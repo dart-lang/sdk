@@ -113,6 +113,10 @@ public class ASTVisitor<R> {
     return visitLiteral(node);
   }
 
+  public R visitAssertStatement(DartAssertStatement node) {
+    return visitStatement(node);
+  }
+  
   public R visitBreakStatement(DartBreakStatement node) {
     return visitGotoStatement(node);
   }

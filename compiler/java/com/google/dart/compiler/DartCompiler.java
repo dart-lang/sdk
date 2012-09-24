@@ -858,11 +858,6 @@ public class DartCompiler {
         } finally {
           Closeables.close(r, failed);
         }
-        
-        // auto-magically define function to use instead of "assert" statement
-        if (dartSrc.getUri().toString().equals("dart://core/object.dart")) {
-          srcCode += "\nvoid " + Elements.ASSERT_FUNCTION_NAME + "(x) {}";
-        }
 
         DartParser parser = new DartParser(dartSrc, srcCode, diet, libraryPrefixes, context,
             context.getCompilerMetrics());

@@ -102,11 +102,9 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+assert_lexical_scope_test: Fail, OK # test issue 5276
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
-bad_constructor_test/04: Fail # Constructor name clashes with other member
-bad_constructor_test/05: Fail # Constructor name clashes with other member
-bad_constructor_test/06: Fail # Constructor name clashes with other member
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -164,7 +162,6 @@ factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 field7_negative_test: Fail, OK # language changed, test issue 5249
 field7a_negative_test: Fail, OK # language changed, test issue 5249
-const_syntax_test/09: Fail  # Issue 4713
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
 setter_no_getter_test/01: Fail # Fails to detect compile-time error.
@@ -177,8 +174,6 @@ library6_negative_test: Fail # still a valid test? Issue 3650
 list_literal4_test: Fail # Issue 1343
 map_literal4_test: Fail # Issue 1343
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-new_expression_type_args_test/01: Fail # language change 1031
-new_expression_type_args_test/02: Fail # language change 1031
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
@@ -193,6 +188,7 @@ prefix9_negative_test : Fail # language change 1031
 prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
+pseudo_kw_test: Fail, OK # test issue 5276
 pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
 pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
@@ -202,7 +198,22 @@ syntax_test/none: Fail # Bug 2107  Static type warnings in none case (INSTANTIAT
 throw7_negative_test: Fail # Issue 3654
 type_variable_bounds_test/00: Fail # issue 3079
 type_variable_bounds_test/07: Fail # language change 1031
-type_variable_static_context_negative_test: Fail # language change 1031
+
+# test issue 5291
+type_parameter_test/01: Fail, OK
+type_parameter_test/02: Fail, OK
+type_parameter_test/03: Fail, OK
+type_parameter_test/04: Fail, OK
+type_variable_scope2_test: Fail, OK
+
+# test issue 5333
+named_constructor_test: Fail, OK
+naming_test: Fail, OK
+
+# test issue 5337
+bad_constructor_test/05: Fail, OK
+
+
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -215,14 +226,9 @@ type_variable_static_context_negative_test: Fail # language change 1031
 
 [ $compiler == none && $runtime == drt ]
 gc_test: Skip # Issue 1487
-import_core_no_prefix_test: Fail # Issue 4607
 prefix_new_test: Fail
 
 [ $runtime == dartium ]
-import_core_no_prefix_test: Fail # Issue 4607
-
-[ $compiler == none && $runtime == vm ]
-import_core_no_prefix_test: Fail # Issue 4607
 
 [ $runtime == vm ]
 first_class_types_test: Fail # Issue 3902
@@ -262,9 +268,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-getter_no_setter2_test/01: Fail, Pass # Test works only for minified output.
 metadata_test: Fail
-prefix_new_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
@@ -343,7 +347,6 @@ function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 implicit_scope_test: Fail
 instanceof3_test: Fail
-library_prefixes_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
 # DartVM problem.

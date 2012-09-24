@@ -317,7 +317,9 @@ class _SpreadArgsHelper {
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
     ensureInitialized();
-    assert(_currentTest < _tests.length);
+    assert(_currentTest >= 0 &&
+           _currentTest < _tests.length &&
+           _tests[_currentTest] != null);
     _callback = callback;
     _shouldCallBack = shouldCallBack;
     _isDone = isDone;
@@ -759,7 +761,8 @@ _registerException(testNum, e, [trace]) {
   } else {
     _tests[testNum].error('Caught $e', trace);
   }
-  if (testNum == _currentTest) {
+  if (testNum == _currentTest &&
+      _tests[testNum].callbackFunctionsOutstanding > 0) {
     _nextTestCase();
   }
 }
@@ -789,6 +792,7 @@ _nextBatch() {
 
 /** Publish results on the page and notify controller. */
 _completeTests() {
+  if (!_initialized) return;
   int testsPassed_ = 0;
   int testsFailed_ = 0;
   int testsErrors_ = 0;

@@ -87,7 +87,7 @@ testDart2DartWithLibrary(
 
   final options = <String>['--output-type=dart'];
   if (minify) options.add('--minify');
-  if (cutDeclarationTypes) options.add('--cut-declaration-types');
+  if (cutDeclarationTypes) options.add('--force-cut-declaration-types');
 
   compile(
       scriptUri,
@@ -124,7 +124,7 @@ testForLoop() {
 }
 
 testEmptyList() {
-  testUnparse('var x=[];');
+  testUnparse('var x=[] ;');
 }
 
 testClosure() {
@@ -149,9 +149,9 @@ testPrefixIncrements() {
 }
 
 testConstModifier() {
-  testUnparse('foo([var a=const[]]){}');
+  testUnparse('foo([var a=const[] ]){}');
   testUnparse('foo([var a=const{}]){}');
-  testUnparse('foo(){var a=const[];var b=const{};}');
+  testUnparse('foo(){var a=const[] ;var b=const{};}');
   testUnparse('foo([var a=const[const{"a":const[1,2,3]}]]){}');
 }
 

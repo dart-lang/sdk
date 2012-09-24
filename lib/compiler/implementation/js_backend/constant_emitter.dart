@@ -94,19 +94,19 @@ class ConstantEmitter implements ConstantVisitor {
     while (iterator.hasNext()) {
       int code = iterator.next();
       if (code === $SQ) {
-        buffer.add(@"\'");
+        buffer.add(r"\'");
       } else if (code === $LF) {
-        buffer.add(@'\n');
+        buffer.add(r'\n');
       } else if (code === $CR) {
-        buffer.add(@'\r');
+        buffer.add(r'\r');
       } else if (code === $LS) {
         // This Unicode line terminator and $PS are invalid in JS string
         // literals.
-        buffer.add(@'\u2028');
+        buffer.add(r'\u2028');
       } else if (code === $PS) {
-        buffer.add(@'\u2029');
+        buffer.add(r'\u2029');
       } else if (code === $BACKSLASH) {
-        buffer.add(@'\\');
+        buffer.add(r'\\');
       } else {
         if (code > 0xffff) {
           compiler.reportError(
@@ -117,14 +117,14 @@ class ConstantEmitter implements ConstantVisitor {
         // be escaped. We build a Dart string here, so it should be a literal
         // stage that converts it to, e.g., UTF-8 for a JS interpreter.
         if (code < 0x20) {
-          buffer.add(@'\x');
+          buffer.add(r'\x');
           if (code < 0x10) buffer.add('0');
           buffer.add(code.toRadixString(16));
         } else if (code >= 0x80) {
           if (code < 0x100) {
-            buffer.add(@'\x');
+            buffer.add(r'\x');
           } else {
-            buffer.add(@'\u');
+            buffer.add(r'\u');
             if (code < 0x1000) {
               buffer.add('0');
             }

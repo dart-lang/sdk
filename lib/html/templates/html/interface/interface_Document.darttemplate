@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 $!COMMENT
-interface Document extends HtmlElement {
+abstract class Document extends HtmlElement {
 
 $!MEMBERS
 }

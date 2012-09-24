@@ -6,6 +6,8 @@
 
 #import("dart:io");
 
+#import("test_suite.dart");
+
 class _DartiumUpdater {
   String name;
   String script;
@@ -34,7 +36,7 @@ class _DartiumUpdater {
   }
 
   List<String> get _getUpdateCommand {
-    Path testScriptPath = new Path.fromNative(new Options().script);
+    Path testScriptPath = new Path.fromNative(TestUtils.testScriptPath);
     Path updateScriptPath = testScriptPath.directoryPath.append(script);
     List<String> command = [updateScriptPath.toNativePath()];
     if (null !== option) {

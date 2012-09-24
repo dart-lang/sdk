@@ -96,6 +96,20 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
   void clear();
 
   /**
+   * Removes the element at position[index] from the list.
+   *
+   * This reduces the length of the list by one and moves all later elements
+   * down by one position.
+   * Returns the removed element.
+   * Throws an [IllegalArgumentException] if [index] is not an [int].
+   * Throws an [IndexOutOfRangeException] if the [index] does not point inside
+   * the list.
+   * Throws an [UnsupportedOperationException] if the length of the list cannot
+   * be changed.
+   */
+  E removeAt(int index);
+
+  /**
    * Pops and returns the last element of the list.
    * Throws a [UnsupportedOperationException] if the length of the
    * list cannot be changed.

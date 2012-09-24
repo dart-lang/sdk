@@ -544,6 +544,27 @@ testTransformExceptionReturns() {
   Expect.equals("transformed value", transformedFuture.value);
 }
 
+testTransformExceptionReturnsAFuture() {
+  final completer = new Completer<String>();
+  var called = false;
+
+  final returnedCompleter = new Completer<String>();
+
+  final transformedFuture = completer.future.transformException((ex) {
+    Expect.equals("original error", ex);
+    called = true;
+    return returnedCompleter.future;
+  });
+
+  completer.completeException("original error");
+  Expect.isTrue(called);
+  Expect.isFalse(transformedFuture.isComplete);
+
+  returnedCompleter.complete("transformed value");
+  Expect.isTrue(transformedFuture.isComplete);
+  Expect.equals("transformed value", transformedFuture.value);
+}
+
 main() {
   testImmediate();
   testNeverComplete();
@@ -583,4 +604,5 @@ main() {
   testTransformExceptionCompletesNormally();
   testTransformExceptionThrows();
   testTransformExceptionReturns();
+  testTransformExceptionReturnsAFuture();
 }

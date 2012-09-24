@@ -21,7 +21,7 @@ main() {
 
 verifyLocale(_) {
   expect(Intl.systemLocale, isNot(equals("xx_YY")));
-  var pattern = new RegExp(@"\w\w_[A-Z0-9]+");
+  var pattern = new RegExp(r"\w\w_[A-Z0-9]+");
   var match = pattern.hasMatch(Intl.systemLocale);
   expect(match, isTrue);
 }

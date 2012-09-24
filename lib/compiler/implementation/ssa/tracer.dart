@@ -394,7 +394,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "p${node.sourceElement.name.slowToString()}";
   }
 
-  String visitLocalValue(HParameterValue node) {
+  String visitLocalValue(HLocalValue node) {
     return "l${node.sourceElement.name.slowToString()}";
   }
 

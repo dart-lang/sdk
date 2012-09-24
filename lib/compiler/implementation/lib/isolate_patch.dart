@@ -88,7 +88,7 @@ void startRootIsolate(entry) {
 _Manager get _globalState() native "return \$globalState;";
 set _globalState(_Manager val) native "\$globalState = val;";
 
-void _fillStatics(context) native @"""
+void _fillStatics(context) native r"""
   $globals = context.isolateStatics;
   $static_init();
 """;
@@ -185,13 +185,13 @@ class _Manager {
     }
   }
 
-  void _nativeDetectEnvironment() native @"""
+  void _nativeDetectEnvironment() native r"""
     this.isWorker = $isWorker;
     this.supportsWorkers = $supportsWorkers;
     this.fromCommandLine = typeof(window) == 'undefined';
   """;
 
-  void _nativeInitWorkerMessageHandler() native @"""
+  void _nativeInitWorkerMessageHandler() native r"""
     $globalThis.onmessage = function (e) {
       _IsolateNatives._processWorkerMessage(this.mainManager, e);
     }
@@ -229,7 +229,7 @@ class _IsolateContext {
   }
 
   // these are filled lazily the first time the isolate starts running.
-  void initGlobals() native @'$initGlobals(this);';
+  void initGlobals() native r'$initGlobals(this);';
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -249,7 +249,7 @@ class _IsolateContext {
     return result;
   }
 
-  void _setGlobals() native @'$setGlobals(this);';
+  void _setGlobals() native r'$setGlobals(this);';
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int portId) => ports[portId];
@@ -379,7 +379,7 @@ class _MainManagerStub implements _ManagerStub {
   void set onmessage(f) {
     throw new Exception("onmessage should not be set on MainManagerStub");
   }
-  void postMessage(msg) native @"$globalThis.postMessage(msg);";
+  void postMessage(msg) native r"$globalThis.postMessage(msg);";
   void terminate() {}  // Nothing useful to do here.
 }
 
@@ -406,7 +406,7 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() native @"return $thisScriptUrl";
+  static String get _thisScript() native r"return $thisScriptUrl";
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) native "return new Worker(url);";
@@ -508,7 +508,7 @@ class _IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f)
-    native @"return f.$name || (void 0);";
+    native r"return f.$name || (void 0);";
 
   /** Create a new JavaScript object instance given its constructor. */
   static Dynamic _allocate(var ctor) native "return new ctor();";

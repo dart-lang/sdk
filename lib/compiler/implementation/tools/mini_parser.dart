@@ -5,6 +5,7 @@
 #library('parser');
 
 #import('dart:io');
+#import('dart:scalarlist');
 
 #import('../../../utf/utf.dart');
 

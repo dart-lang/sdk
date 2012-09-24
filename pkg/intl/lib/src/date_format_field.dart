@@ -89,7 +89,7 @@ class _DateFormatQuotedField extends _DateFormatField {
       pattern = "'";
     } else {
       pattern = pattern.substring(1, pattern.length - 1);
-      var twoEscapedQuotes = new RegExp(@"''");
+      var twoEscapedQuotes = new RegExp(r"''");
       pattern = pattern.replaceAll(twoEscapedQuotes, "'");
     }
   }

@@ -23,7 +23,7 @@ void main() {
 class Legpad {
   // id of script element containing name of the main dart file
   // to compile
-  static final String MAIN_ID = "main_id";
+  static const String MAIN_ID = "main_id";
 
   Legpad() : warnings = new StringBuffer();
 

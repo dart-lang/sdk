@@ -9,7 +9,9 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartArrayLiteral;
+import com.google.dart.compiler.ast.DartAssertStatement;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -103,12 +105,45 @@ public class SyntaxTest extends AbstractParserTest {
         "}"));
   }
 
+//  public void test_cascade2() {
+//    DartUnit unit = parseUnit("cascade.dart", Joiner.on("\n").join(
+//        "class A {",
+//        "  B b;",
+//        "}",
+//        "",
+//        "class B {",
+//        "  void m() {}",
+//        "}",
+//        "",
+//        "main() {",
+//        "  A a;",
+//        "  a..b.m()..b.m();",
+//        "}"));
+//    assertNotNull(unit);
+//  }
+
+  public void test_assertStatement() {
+    DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
+        "main() {",
+        "  assert(true);",
+        "}"
+    ));
+    assertNotNull(unit);
+    assertEquals(1, unit.getTopLevelNodes().size());
+    DartMethodDefinition function = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(function);
+    DartStatement statement = function.getFunction().getBody().getStatements().get(0);
+    assertTrue(statement instanceof DartAssertStatement);
+    DartExpression expression = ((DartAssertStatement) statement).getCondition();
+    assertTrue(expression instanceof DartBooleanLiteral);
+  }
+  
   public void test_functionExpression_asStatement() {
     DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
         "main() {",
         "  () {};",
         "}"
-    ));
+        ));
     assertNotNull(unit);
     assertEquals(1, unit.getTopLevelNodes().size());
     DartMethodDefinition function = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
@@ -647,6 +682,10 @@ public class SyntaxTest extends AbstractParserTest {
     DartMethodDefinition F_access_assign = (DartMethodDefinition)F.getMembers().get(3);
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
   }
+
+//  public void test_string_raw_deprecated() {
+//    parseUnit("test.dart", "var s = @'abc${d}efg';", ParserErrorCode.DEPRECATED_RAW_STRING, 1, 9);
+//  }
 
   public void test_string_raw() {
     String expectedValue = "abc${d}efg";

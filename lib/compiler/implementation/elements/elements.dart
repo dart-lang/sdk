@@ -107,7 +107,7 @@ class ElementKind {
   toString() => id;
 }
 
-class Element implements Hashable {
+class Element implements Hashable, Spannable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
@@ -171,6 +171,55 @@ class Element implements Hashable {
   /** See [ErroneousElement] for documentation. */
   bool isErroneous() => false;
 
+  /**
+   * Is [:true:] if this element has a corresponding patch.
+   *
+   * If [:true:] this element has a non-null [patch] field.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isPatched => false;
+
+  /**
+   * Is [:true:] if this element is a patch.
+   *
+   * If [:true:] this element has a non-null [origin] field.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isPatch => false;
+
+
+  /**
+   * Is [:true:] if this element defines the implementation for the entity of
+   * this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isImplementation => implementation === this;
+
+  /**
+   * Is [:true:] if this element introduces the entity of this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  bool get isDeclaration => declaration === this;
+
+  /**
+   * Returns the element which defines the implementation for the entity of this
+   * element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  Element get implementation => this;
+
+  /**
+   * Returns the element which introduces the entity of this element.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  Element get declaration => this;
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -228,6 +277,8 @@ class Element implements Hashable {
     }
     return element;
   }
+
+  LibraryElement getImplementationLibrary() => getLibrary();
 
   ClassElement getEnclosingClass() {
     for (Element e = this; e !== null; e = e.enclosingElement) {
@@ -294,8 +345,6 @@ class Element implements Hashable {
   Element cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
-
-  bool get isPatched => false;
 }
 
 /**
@@ -316,10 +365,12 @@ class Element implements Hashable {
  *   [: element == null :].
  */
 class ErroneousElement extends Element {
-  final Message errorMessage;
+  final MessageKind messageKind;
+  final List messageArguments;
   final SourceString targetName;
 
-  ErroneousElement(this.errorMessage, this.targetName, Element enclosing)
+  ErroneousElement(this.messageKind, this.messageArguments,
+                   this.targetName, Element enclosing)
       : super(const SourceString('erroneous element'), null, enclosing);
 
   isErroneous() => true;
@@ -337,16 +388,18 @@ class ErroneousElement extends Element {
 
 class ErroneousFunctionElement extends ErroneousElement
                                implements FunctionElement {
-  ErroneousFunctionElement(Message errorMessage, SourceString targetName,
-                           Element enclosing)
-      : super(errorMessage, targetName, enclosing);
+  ErroneousFunctionElement(MessageKind messageKind, List messageArguments,
+                           SourceString targetName, Element enclosing)
+      : super(messageKind, messageArguments, targetName, enclosing);
 
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
   get patch => unsupported();
+  get origin => unsupported();
   get defaultImplementation => unsupported();
   bool get isPatched => unsupported();
+  bool get isPatch => unsupported();
   setPatch(patch) => unsupported();
   computeSignature(compiler) => unsupported();
   requiredParameterCount(compiler) => unsupported();
@@ -452,11 +505,13 @@ class ScopeContainerElement extends ContainerElement {
 class CompilationUnitElement extends ContainerElement {
   final Script script;
 
-  CompilationUnitElement(Script script, Element enclosing)
+  CompilationUnitElement(Script script, LibraryElement library)
     : this.script = script,
       super(new SourceString(script.name),
             ElementKind.COMPILATION_UNIT,
-            enclosing);
+            library) {
+    library.addCompilationUnit(this);
+  }
 
   void addMember(Element element, DiagnosticListener listener) {
     // Keep a list of top level members.
@@ -482,13 +537,22 @@ class LibraryElement extends ScopeContainerElement {
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const EmptyLink<CompilationUnitElement>();
-  Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
-  ScriptTag libraryTag;
+  Link<LibraryTag> tags = const EmptyLink<LibraryTag>();
+  LibraryTag libraryTag;
   bool canUseNative = false;
   LibraryElement patch = null;
 
+  /**
+   * Map for elements imported through import declarations.
+   *
+   * Addition to the map is performed by [addImport]. Lookup is done trough
+   * [find].
+   */
+  final Map<SourceString, Element> importScope;
+
   LibraryElement(Script script, [Uri uri])
     : this.uri = ((uri === null) ? script.uri : uri),
+      importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
   }
@@ -500,15 +564,43 @@ class LibraryElement extends ScopeContainerElement {
     compilationUnits = compilationUnits.prepend(element);
   }
 
-  void addTag(ScriptTag tag, DiagnosticListener listener) {
+  void addTag(LibraryTag tag, DiagnosticListener listener) {
     tags = tags.prepend(tag);
   }
 
-  /** Look up a top-level element in this library. The element could
-    * potentially have been imported from another library. Returns
-    * null if no such element exist. */
+  /**
+   * Adds [element] to the import scope of this library.
+   *
+   * If an element by the same name is already in the imported scope, an
+   * [ErroneousElement] will be put in the imported scope, allowing for the
+   * detection of ambiguous uses of imported names.
+   */
+  void addImport(Element element, DiagnosticListener listener) {
+    Element existing = importScope.putIfAbsent(element.name, () => element);
+    if (existing !== element && existing !== null) {
+      if (!existing.isErroneous()) {
+        // TODO(johnniwinther): Provide access to both the new and existing
+        // elements.
+        importScope[element.name] = new ErroneousElement(
+            MessageKind.DUPLICATE_IMPORT,
+            [element.name], element.name, this);
+      }
+    }
+  }
+
+
+  /**
+   * Look up a top-level element in this library. The element could
+   * potentially have been imported from another library. Returns
+   * null if no such element exist and an [ErroneousElement] if multiple
+   * elements have been imported.
+   */
   Element find(SourceString elementName) {
-    return localScope[elementName];
+    Element result = localScope[elementName];
+    if (result === null) {
+      result = importScope[elementName];
+    }
+    return result;
   }
 
   /** Look up a top-level element in this library, but only look for
@@ -980,14 +1072,15 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    type = compiler.computeFunctionType(this, computeSignature(compiler));
+    type = compiler.computeFunctionType(declaration,
+                                        computeSignature(compiler));
     return type;
   }
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
     if (patch === null) {
-      if (modifiers.isExternal()) {
+      if (modifiers != null && modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
                         element: this);
       }
@@ -1001,24 +1094,26 @@ class FunctionElement extends Element {
 
   FunctionElement asFunctionElement() => this;
 
-  FunctionElement cloneTo(Element enclosing, DiagnosticListener listener) {
-    FunctionElement result = new FunctionElement.tooMuchOverloading(
-        name, cachedNode, kind, modifiers, enclosing, functionSignature);
-    result.defaultImplementation = defaultImplementation;
-    result.type = type;
-    return result;
+  String toString() {
+    if (isPatch) {
+      return 'patch ${super.toString()}';
+    } else if (isPatched) {
+      return 'origin ${super.toString()}';
+    } else {
+      return super.toString();
+    }
   }
 
   Scope buildScope() {
-    Scope result = new MethodScope(enclosingElement.buildScope(), this);
+    Scope result =
+        new MethodScope(enclosingElement.buildScope(), this);
     if (enclosingElement.isClass()) {
-      ClassScope clsScope = result.parent;
+      Scope clsScope = result.parent;
       clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
     }
     return result;
   }
 }
-
 
 class ConstructorBodyElement extends FunctionElement {
   FunctionElement constructor;
@@ -1154,6 +1249,12 @@ class ClassElement extends ScopeContainerElement
   }
 
   bool get isPatched => patch != null;
+
+  /**
+   * Return [:true:] if this element is the [:Object:] class for the [compiler].
+   */
+  bool isObject(Compiler compiler) =>
+      declaration === compiler.objectClass;
 
   Link<DartType> get typeVariables => type.arguments;
 
@@ -1497,7 +1598,7 @@ class Elements {
   }
 
   static const SourceString OPERATOR_EQUALS =
-      const SourceString(@'operator$eq');
+      const SourceString(r'operator$eq');
 
   static SourceString constructOperatorName(SourceString selector,
                                             bool isUnary) {

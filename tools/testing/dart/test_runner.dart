@@ -17,8 +17,8 @@
 #import("test_progress.dart");
 #import("test_suite.dart");
 
-final int NO_TIMEOUT = 0;
-final int SLOW_TIMEOUT_MULTIPLIER = 4;
+const int NO_TIMEOUT = 0;
+const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 /** A command executed as a step in a test case. */
 class Command {
@@ -144,7 +144,8 @@ class TestCase {
     final runtime = configuration['runtime'];
     final mode = configuration['mode'];
     final arch = configuration['arch'];
-    return "$compiler-$runtime ${mode}_$arch";
+    final checked = configuration['checked'] ? '-checked' : '';
+    return "$compiler-$runtime$checked ${mode}_$arch";
   }
 
   List<String> get batchRunnerArguments => ['-batch'];
@@ -316,7 +317,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
-        if ((testCase as Dynamic).numRetries > 0) {
+        if ((testCase as BrowserTestCase).numRetries > 0) {
           requestRetry = true;
         }
         return true;
@@ -551,16 +552,16 @@ class RunningProcess {
     }
     if (allowRetries && testCase.usesWebDriver
         && testCase.output.unexpectedOutput
-        && (testCase as Dynamic).numRetries > 0) {
+        && (testCase as BrowserTestCase).numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
     if (testCase.output.requestRetry) {
       testCase.output.requestRetry = false;
       this.timedOut = false;
-      (testCase as Dynamic).numRetries--;
+      (testCase as BrowserTestCase).numRetries--;
       print("Potential flake. Re-running ${testCase.displayName} "
-          "(${(testCase as Dynamic).numRetries} attempt(s) remains)");
+          "(${(testCase as BrowserTestCase).numRetries} attempt(s) remains)");
       this.start();
     } else {
       testCase.completed();
@@ -1035,7 +1036,7 @@ class ProcessQueue {
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
         while (null != line) {
-          if (const RegExp(@".*selenium-server-standalone.*").hasMatch(line)) {
+          if (const RegExp(r".*selenium-server-standalone.*").hasMatch(line)) {
             _seleniumAlreadyRunning = true;
             resumeTesting();
           }
@@ -1068,8 +1069,8 @@ class ProcessQueue {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
-        if (const RegExp(@".*Started.*Server.*").hasMatch(line) ||
-            const RegExp(@"Exception.*Selenium is already running.*").hasMatch(
+        if (const RegExp(r".*Started.*Server.*").hasMatch(line) ||
+            const RegExp(r"Exception.*Selenium is already running.*").hasMatch(
             line)) {
           resumeTesting();
         }
@@ -1084,13 +1085,13 @@ class ProcessQueue {
    */
   void _startSeleniumServer() {
     // Get the absolute path to the Selenium jar.
-    String filePath = new Options().script;
+    String filePath = TestUtils.testScriptPath;
     String pathSep = Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
     var lister = new Directory(filePath).list();
     lister.onFile = (String file) {
-      if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
+      if (const RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
         _seleniumServer = Process.start('java', ['-jar', file]);
         _seleniumServer.onError = (e) {

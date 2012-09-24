@@ -213,7 +213,8 @@ public class ResolutionContext implements ResolutionErrorListener {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
       String name = ((DartIdentifier) identifier).getName();
-      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !"Dynamic".equals(name)) {
+      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !DartParser.DYNAMIC_KEYWORD.equals(name)
+          && !DartParser.DYNAMIC_KEYWORD_DEPRECATED.equals(name)) {
         onError(identifier, ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, name);
         return Types.newDynamicType();
       }
@@ -225,34 +226,9 @@ public class ResolutionContext implements ResolutionErrorListener {
       case TYPE_VARIABLE: {
         TypeVariableElement typeVariableElement = (TypeVariableElement) element;
         if (!isFactory && isStatic &&
-            typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
-
-          // Check that type variable is not shadowing any element in enclosing context.
-          Scope libraryScope = scope.getLibrary().getScope();
-          String name = element.getName();
-          Element existingElement = libraryScope.findElement(scope.getLibrary(), name);
-
-          switch(ElementKind.of(existingElement)) {
-            case CLASS:
-            case FUNCTION_TYPE_ALIAS:
-            return instantiateParameterizedType((ClassElement)existingElement,
-                                                diagnosticNode,
-                                                typeArguments,
-                                                isStatic,
-                                                isFactory,
-                                                errorCode,
-                                                wrongNumberErrorCode);
-            case NONE:
-            default:
-              if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
-                onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                    identifier);
-              } else {
-                onError(identifier, TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                    identifier);
-              }
-              return typeProvider.getDynamicType();
-          }
+          typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
+          onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, identifier);
+          return typeProvider.getDynamicType();
         }
         return makeTypeVariable(typeVariableElement, typeArguments);
       }
@@ -270,7 +246,10 @@ public class ResolutionContext implements ResolutionErrorListener {
         if (Elements.isIdentifierName(identifier, "void")) {
           return typeProvider.getVoidType();
         }
-        if (Elements.isIdentifierName(identifier, "Dynamic")) {
+        if (Elements.isIdentifierName(identifier, DartParser.DYNAMIC_KEYWORD)) {
+          return typeProvider.getDynamicType();
+        }
+        if (Elements.isIdentifierName(identifier, DartParser.DYNAMIC_KEYWORD_DEPRECATED)) {
           return typeProvider.getDynamicType();
         }
         onError(identifier, errorCode, identifier);

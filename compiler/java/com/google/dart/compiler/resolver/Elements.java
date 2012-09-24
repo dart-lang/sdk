@@ -48,10 +48,6 @@ import java.util.Set;
  * Utility and factory methods for elements.
  */
 public class Elements {
-  /**
-   * Name of the artificial function used for resolution of "assert" statement.
-   */
-  public static final String ASSERT_FUNCTION_NAME = "assert__forStatement" + System.currentTimeMillis();
 
   private Elements() {} // Prevent subclassing and instantiation.
 
@@ -202,8 +198,13 @@ public class Elements {
     ((AbstractNodeElement) element).setType(type);
   }
 
-  public static void setOverridden(MethodElement methodElement, Set<Element> overridden) {
-    ((MethodElementImplementation) methodElement).setOverridden(overridden);
+  public static void setOverridden(Element element, Set<Element> overridden) {
+    if (element instanceof MethodElementImplementation) {
+      ((MethodElementImplementation) element).setOverridden(overridden);
+    }
+    if (element instanceof FieldElementImplementation) {
+      ((FieldElementImplementation) element).setOverridden(overridden);
+    }
   }
 
 static FieldElementImplementation fieldFromNode(DartField node,
@@ -686,7 +687,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   /**
    * @return <code>true</code> if given {@link Source} represents library with given name.
    */
-  private static boolean isLibrarySource(Source source, String name) {
+  public static boolean isLibrarySource(Source source, String name) {
     if (source instanceof DartSource) {
       DartSource dartSource = (DartSource) source;
       LibrarySource library = dartSource.getLibrary();
@@ -736,13 +737,13 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
-   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for artificial
-   *         "assert" statement.
+   * @return <code>true</code> if given {@link Element} if {@link MethodElement} for
+   *         function "identical".
    */
-  public static boolean isArtificialAssertMethod(Element element) {
+  public static boolean isFunctionIdentical(Element element) {
     if (element instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) element;
-      return Objects.equal(methodElement.getName(), ASSERT_FUNCTION_NAME)
+      return Objects.equal(methodElement.getName(), "identical")
           && methodElement.getEnclosingElement() instanceof LibraryElement
           && methodElement.getEnclosingElement().getName().equals("dart://core/core.dart");
     }

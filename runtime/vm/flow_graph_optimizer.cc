@@ -23,6 +23,9 @@ DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
+DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
+DEFINE_FLAG(bool, trace_constant_propagation, false,
+            "Print constant propagation and useless code elimination.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -266,22 +269,16 @@ static bool HasOneDouble(const ICData& ic_data) {
 
 
 static bool ShouldSpecializeForDouble(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() != 1) return false;
-  if (ic_data.num_args_tested() != 2) return false;
+  // Unboxed double operation can't handle case of two smis.
+  if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+    return false;
+  }
 
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
-  ASSERT(class_ids.length() == 2);
-
-  const bool seen_double =
-      (class_ids[0] == kDoubleCid) || (class_ids[1] == kDoubleCid);
-
-  const bool seen_only_smi_or_double =
-      ((class_ids[0] == kDoubleCid) || (class_ids[0] == kSmiCid)) &&
-      ((class_ids[1] == kDoubleCid) || (class_ids[1] == kSmiCid));
-
-  return seen_double && seen_only_smi_or_double;
+  // Check that it have seen only smis and doubles.
+  GrowableArray<intptr_t> class_ids(2);
+  class_ids.Add(kSmiCid);
+  class_ids.Add(kDoubleCid);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
 }
 
 
@@ -1034,7 +1031,7 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
 
 
 // SminessPropagator ensures that CheckSmis are eliminated across phis.
-class SminessPropagator {
+class SminessPropagator : public ValueObject {
  public:
   explicit SminessPropagator(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
@@ -1058,6 +1055,8 @@ class SminessPropagator {
 
   BitVector* in_worklist_;
   GrowableArray<PhiInstr*> worklist_;
+
+  DISALLOW_COPY_AND_ASSIGN(SminessPropagator);
 };
 
 
@@ -1081,11 +1080,21 @@ PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
 }
 
 
-static bool IsSmiPhi(PhiInstr* phi) {
+static bool IsDefinitelySmiPhi(PhiInstr* phi) {
   for (intptr_t i = 0; i < phi->InputCount(); i++) {
-    Value* input = phi->InputAt(i);
-    if ((input->definition() != phi) &&
-        (input->ResultCid() != kSmiCid)) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if (cid != kSmiCid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static bool IsPossiblySmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if ((cid != kSmiCid) && (cid != kDynamicCid)) {
       return false;
     }
   }
@@ -1094,17 +1103,40 @@ static bool IsSmiPhi(PhiInstr* phi) {
 
 
 void SminessPropagator::ProcessPhis() {
+  // First optimistically mark all possible smi-phis: phi is possibly a smi if
+  // its operands are either smis or phis in the worklist.
+  for (intptr_t i = 0; i < worklist_.length(); i++) {
+    PhiInstr* phi = worklist_[i];
+    ASSERT(phi->GetPropagatedCid() == kDynamicCid);
+    phi->SetPropagatedCid(kSmiCid);
+
+    // Append all phis that use this phi and can potentially be smi to the
+    // end of worklist.
+    for (Value* use = phi->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      PhiInstr* phi_use = use->definition()->AsPhi();
+      if ((phi_use != NULL) &&
+          (phi_use->GetPropagatedCid() == kDynamicCid) &&
+          IsPossiblySmiPhi(phi_use)) {
+        AddToWorklist(phi_use);
+      }
+    }
+  }
+
+  // Now unmark phis that are not definitely smi: that is have only
+  // smi operands.
   while (!worklist_.is_empty()) {
     PhiInstr* phi = RemoveLastFromWorklist();
-    if (IsSmiPhi(phi)) {
-      ASSERT(phi->GetPropagatedCid() != kSmiCid);
-      phi->SetPropagatedCid(kSmiCid);
+    if (!IsDefinitelySmiPhi(phi)) {
+      // Phi result is not a smi. Propagate this fact to phis that depend on it.
+      phi->SetPropagatedCid(kDynamicCid);
       for (Value* use = phi->input_use_list();
            use != NULL;
            use = use->next_use()) {
-        if (use->definition()->IsPhi() &&
-            (use->definition()->GetPropagatedCid() != kSmiCid)) {
-          AddToWorklist(use->definition()->AsPhi());
+        PhiInstr* phi_use = use->definition()->AsPhi();
+        if ((phi_use != NULL) && (phi_use->GetPropagatedCid() == kSmiCid)) {
+          AddToWorklist(phi_use);
         }
       }
     }
@@ -1168,6 +1200,498 @@ void SminessPropagator::Propagate() {
 void FlowGraphOptimizer::PropagateSminess() {
   SminessPropagator propagator(flow_graph_);
   propagator.Propagate();
+}
+
+
+// Range analysis for smi values.
+class RangeAnalysis : public ValueObject {
+ public:
+  explicit RangeAnalysis(FlowGraph* flow_graph) : flow_graph_(flow_graph) { }
+
+  // Infer ranges for all values and remove overflow checks from binary smi
+  // operations when proven redundant.
+  void Analyze();
+
+ private:
+  // Collect all values that were proven to be smi in smi_values_ array and all
+  // CheckSmi instructions in smi_check_ array.
+  void CollectSmiValues();
+
+  // Iterate over smi values and constrain them at branch successors.
+  // Additionally constraint values after CheckSmi instructions.
+  void InsertConstraints();
+
+  // Iterate over uses of the given definition and discover branches that
+  // constrain it. Insert appropriate Constraint instructions at true
+  // and false successor and rename all dominated uses to refer to a
+  // Constraint instead of this definition.
+  void InsertConstraintsFor(Definition* defn);
+
+  // Create a constraint for defn, insert it after given instruction and
+  // rename all uses that are dominated by it.
+  ConstraintInstr* InsertConstraintFor(Definition* defn,
+                                       Range* constraint,
+                                       Instruction* after);
+
+  // Replace uses of the definition def that are dominated by instruction dom
+  // with uses of other definition.
+  void RenameDominatedUses(Definition* def,
+                           Instruction* dom,
+                           Definition* other);
+
+  // Propagate range information until fix-point is reached.
+  void InferRanges();
+
+  void ProcessWorklist(Definition::RangeOperator op);
+
+  // Walk the dominator tree, initialize ranges for smi values and place them
+  // to the worklist.
+  void InitializeRangesRecursive(BlockEntryInstr* block);
+
+  // Remove artificial Constraint instructions and replace them with actual
+  // unconstrained definitions.
+  void RemoveConstraints();
+
+  void CreateWorklists();
+
+  void AddToWorklist(Definition* value) {
+    const intptr_t index = value->ssa_temp_index();
+    if (!in_worklist_->Contains(index)) {
+      in_worklist_->Add(index);
+      worklist_.Add(value);
+    }
+  }
+
+  bool IsWorklistEmpty() const {
+    return worklist_.is_empty();
+  }
+
+  Definition* RemoveLastFromWorklist() {
+    Definition* defn = worklist_.Last();
+    worklist_.RemoveLast();
+    ASSERT(in_worklist_->Contains(defn->ssa_temp_index()));
+    in_worklist_->Remove(defn->ssa_temp_index());
+    return defn;
+  }
+
+  void SwapWorklists();
+
+  FlowGraph* flow_graph_;
+
+  GrowableArray<Definition*> smi_values_;  // Value that are known to be smi.
+  GrowableArray<CheckSmiInstr*> smi_checks_;  // All CheckSmi instructions.
+
+  // All Constraints inserted during InsertConstraints phase. They are treated
+  // as smi values.
+  GrowableArray<ConstraintInstr*> constraints_;
+
+  // Bitvector for a quick filtering of known smi values.
+  BitVector* smi_definitions_;
+
+  // Worklist used during range propagation.
+  GrowableArray<Definition*> worklist_;
+  BitVector* in_worklist_;
+
+  DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
+};
+
+
+void RangeAnalysis::Analyze() {
+  CollectSmiValues();
+  InsertConstraints();
+  InferRanges();
+  RemoveConstraints();
+}
+
+
+void RangeAnalysis::CollectSmiValues() {
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Instruction* current = instr_it.Current();
+      Definition* defn = current->AsDefinition();
+      if (defn != NULL) {
+        if ((defn->GetPropagatedCid() == kSmiCid) &&
+            (defn->ssa_temp_index() != -1)) {
+          smi_values_.Add(defn);
+        }
+      } else if (current->IsCheckSmi()) {
+        smi_checks_.Add(current->AsCheckSmi());
+      }
+    }
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* current = phi_it.Current();
+        if (current->GetPropagatedCid() == kSmiCid) {
+          smi_values_.Add(current);
+        }
+      }
+    }
+  }
+}
+
+
+// Returns true if use is dominated by the given instruction.
+// Note: uses that occur at instruction itself are not dominated by it.
+static bool IsDominatedUse(Instruction* dom, Value* use) {
+  BlockEntryInstr* dom_block = dom->GetBlock();
+
+  Instruction* instr = use->instruction();
+
+  PhiInstr* phi = instr->AsPhi();
+  if (phi != NULL) {
+    return dom_block->Dominates(phi->block()->PredecessorAt(use->use_index()));
+  }
+
+  BlockEntryInstr* use_block = instr->GetBlock();
+  if (use_block == dom_block) {
+    // Fast path for the case of block entry.
+    if (dom_block == dom) return true;
+
+    for (Instruction* curr = dom->next(); curr != NULL; curr = curr->next()) {
+      if (curr == instr) return true;
+    }
+
+    return false;
+  }
+
+  return dom_block->Dominates(use_block);
+}
+
+
+void RangeAnalysis::RenameDominatedUses(Definition* def,
+                                        Instruction* dom,
+                                        Definition* other) {
+  Value* next_use = NULL;
+  Value* prev_use = NULL;
+  for (Value* use = def->input_use_list();
+       use != NULL;
+       use = next_use) {
+    next_use = use->next_use();
+
+    // Skip dead phis.
+    if (use->instruction()->IsPhi() &&
+        !use->instruction()->AsPhi()->is_alive()) {
+      prev_use = use;
+      continue;
+    }
+
+    if (IsDominatedUse(dom, use)) {
+      if (prev_use != NULL) {
+        prev_use->set_next_use(next_use);
+      } else {
+        def->set_input_use_list(next_use);
+      }
+      use->set_definition(other);
+      use->AddToInputUseList();
+    } else {
+      prev_use = use;
+    }
+  }
+}
+
+
+// For a comparison operation return an operation for the equivalent flipped
+// comparison: a (op) b === b (op') a.
+static Token::Kind FlipComparison(Token::Kind op) {
+  switch (op) {
+    case Token::kEQ: return Token::kEQ;
+    case Token::kNE: return Token::kNE;
+    case Token::kLT: return Token::kGT;
+    case Token::kGT: return Token::kLT;
+    case Token::kLTE: return Token::kGTE;
+    case Token::kGTE: return Token::kLTE;
+    default:
+      UNREACHABLE();
+      return Token::kILLEGAL;
+  }
+}
+
+// For a comparison operation return an operation for the negated comparison:
+// !(a (op) b) === a (op') b
+static Token::Kind NegateComparison(Token::Kind op) {
+  switch (op) {
+    case Token::kEQ: return Token::kNE;
+    case Token::kNE: return Token::kEQ;
+    case Token::kLT: return Token::kGTE;
+    case Token::kGT: return Token::kLTE;
+    case Token::kLTE: return Token::kGT;
+    case Token::kGTE: return Token::kLT;
+    default:
+      UNREACHABLE();
+      return Token::kILLEGAL;
+  }
+}
+
+
+// Given a boundary (right operand) and a comparison operation return
+// a symbolic range constraint for the left operand of the comparison assuming
+// that it evaluated to true.
+// For example for the comparison a < b symbol a is constrained with range
+// [Smi::kMinValue, b - 1].
+static Range* ConstraintRange(Token::Kind op, Definition* boundary) {
+  switch (op) {
+    case Token::kEQ:
+      return new Range(RangeBoundary::FromDefinition(boundary),
+                       RangeBoundary::FromDefinition(boundary));
+    case Token::kNE:
+      return Range::Unknown();
+    case Token::kLT:
+      return new Range(RangeBoundary::MinSmi(),
+                       RangeBoundary::FromDefinition(boundary, -1));
+    case Token::kGT:
+      return new Range(RangeBoundary::FromDefinition(boundary, 1),
+                       RangeBoundary::MaxSmi());
+    case Token::kLTE:
+      return new Range(RangeBoundary::MinSmi(),
+                       RangeBoundary::FromDefinition(boundary));
+    case Token::kGTE:
+      return new Range(RangeBoundary::FromDefinition(boundary),
+                       RangeBoundary::MaxSmi());
+    default:
+      UNREACHABLE();
+      return Range::Unknown();
+  }
+}
+
+
+ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
+                                                    Range* constraint_range,
+                                                    Instruction* after) {
+  // No need to constrain constants.
+  if (defn->IsConstant()) return NULL;
+
+  ConstraintInstr* constraint =
+      new ConstraintInstr(new Value(defn), constraint_range);
+  constraint->InsertAfter(after);
+  constraint->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+  RenameDominatedUses(defn, after, constraint);
+  constraints_.Add(constraint);
+  constraint->value()->set_instruction(constraint);
+  constraint->value()->set_use_index(0);
+  constraint->value()->AddToInputUseList();
+  return constraint;
+}
+
+
+void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
+  for (Value* use = defn->input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    if (use->instruction()->IsBranch()) {
+      BranchInstr* branch = use->instruction()->AsBranch();
+      RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
+      if ((rel_op != NULL) && (rel_op->operands_class_id() == kSmiCid)) {
+        // Found comparison of two smis. Constrain defn at true and false
+        // successors using the other operand as a boundary.
+        Definition* boundary;
+        Token::Kind op_kind;
+        if (use->use_index() == 0) {  // Left operand.
+          boundary = rel_op->InputAt(1)->definition();
+          op_kind = rel_op->kind();
+        } else {
+          ASSERT(use->use_index() == 1);  // Right operand.
+          boundary = rel_op->InputAt(0)->definition();
+          // InsertConstraintFor assumes that defn is left operand of a
+          // comparison if it is right operand flip the comparison.
+          op_kind = FlipComparison(rel_op->kind());
+        }
+
+        // Constrain definition at the true successor.
+        ConstraintInstr* true_constraint =
+            InsertConstraintFor(defn,
+                                ConstraintRange(op_kind, boundary),
+                                branch->true_successor());
+        // Mark true_constraint an artificial use of boundary. This ensures
+        // that constraint's range is recalculated if boundary's range changes.
+        if (true_constraint != NULL) true_constraint->AddDependency(boundary);
+
+        // Constrain definition with a negated condition at the false successor.
+        ConstraintInstr* false_constraint =
+            InsertConstraintFor(
+                defn,
+                ConstraintRange(NegateComparison(op_kind), boundary),
+                branch->false_successor());
+        // Mark false_constraint an artificial use of boundary. This ensures
+        // that constraint's range is recalculated if boundary's range changes.
+        if (false_constraint != NULL) false_constraint->AddDependency(boundary);
+      }
+    }
+  }
+}
+
+
+void RangeAnalysis::InsertConstraints() {
+  for (intptr_t i = 0; i < smi_checks_.length(); i++) {
+    CheckSmiInstr* check = smi_checks_[i];
+    ConstraintInstr* constraint =
+        InsertConstraintFor(check->value()->definition(),
+                            Range::Unknown(),
+                            check);
+    if (constraint != NULL) {
+      InsertConstraintsFor(constraint);  // Constrain uses further.
+    }
+  }
+
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    InsertConstraintsFor(smi_values_[i]);
+  }
+}
+
+
+void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
+  JoinEntryInstr* join = block->AsJoinEntry();
+  if (join != NULL) {
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      PhiInstr* phi = it.Current();
+      if (smi_definitions_->Contains(phi->ssa_temp_index())) {
+        phi->InferRange(Definition::kRangeInit);
+        AddToWorklist(phi);
+      }
+    }
+  }
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Definition* defn = it.Current()->AsDefinition();
+    if ((defn != NULL) &&
+        (defn->ssa_temp_index() != -1) &&
+        smi_definitions_->Contains(defn->ssa_temp_index())) {
+      defn->InferRange(Definition::kRangeInit);
+      AddToWorklist(defn);
+    }
+  }
+
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    InitializeRangesRecursive(block->dominated_blocks()[i]);
+  }
+}
+
+
+void RangeAnalysis::CreateWorklists() {
+  in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
+}
+
+
+void RangeAnalysis::ProcessWorklist(Definition::RangeOperator op) {
+  // Iterate until fix point is reached.
+  while (!IsWorklistEmpty()) {
+    Definition* defn = RemoveLastFromWorklist();
+    if (FLAG_trace_range_analysis) {
+      OS::Print("infering range for v%"Pd" %s\n",
+                defn->ssa_temp_index(),
+                Range::ToCString(defn->range()));
+    }
+    if (defn->InferRange(op)) {  // Update the range.
+      if (FLAG_trace_range_analysis) {
+        OS::Print("  changed to %s\n", Range::ToCString(defn->range()));
+      }
+      // Range change. Place all uses to the worklist.
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Definition* use_defn = use->instruction()->AsDefinition();
+        if ((use_defn != NULL) &&
+            (use_defn->ssa_temp_index() != -1) &&
+            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
+          AddToWorklist(use_defn);
+        }
+      }
+    }
+  }
+}
+
+
+void RangeAnalysis::InferRanges() {
+  CreateWorklists();
+
+  // Initialize bitvector for quick filtering of smi values.
+  smi_definitions_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    smi_definitions_->Add(smi_values_[i]->ssa_temp_index());
+  }
+  for (intptr_t i = 0; i < constraints_.length(); i++) {
+    smi_definitions_->Add(constraints_[i]->ssa_temp_index());
+  }
+
+  // Infer initial values of ranges.
+  InitializeRangesRecursive(flow_graph_->graph_entry());
+
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    if (smi_values_[i]->IsPhi() &&
+        smi_values_[i]->InferRange(Definition::kRangeInit)) {
+      Definition* defn = smi_values_[i];
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Definition* use_defn = use->instruction()->AsDefinition();
+        if ((use_defn != NULL) &&
+            (use_defn->ssa_temp_index() != -1) &&
+            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
+          AddToWorklist(use_defn);
+        }
+      }
+    }
+  }
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after initialization -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- widening ---------\n");
+  }
+  ProcessWorklist(Definition::kRangeWiden);
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after widening -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- narrowing ---------\n");
+  }
+  // Only phis can change under narrowing operator. Place all phis
+  // into the worklist.
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    if (smi_values_[i]->IsPhi()) AddToWorklist(smi_values_[i]);
+  }
+  ProcessWorklist(Definition::kRangeNarrow);
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after narrowing -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+}
+
+
+void RangeAnalysis::RemoveConstraints() {
+  for (intptr_t i = 0; i < constraints_.length(); i++) {
+    Definition* def = constraints_[i]->value()->definition();
+    // Some constraints might be constraining constraints. Unwind the chain of
+    // constraints until we reach the actual definition.
+    while (def->IsConstraint()) {
+      def = def->AsConstraint()->value()->definition();
+    }
+    constraints_[i]->ReplaceUsesWith(def);
+    constraints_[i]->RemoveDependency();
+    constraints_[i]->RemoveFromGraph();
+  }
+}
+
+
+void FlowGraphOptimizer::InferSmiRanges() {
+  RangeAnalysis range_analysis(flow_graph_);
+  range_analysis.Analyze();
 }
 
 
@@ -1474,7 +1998,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
 void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                       BlockEntryInstr* header,
                                       BlockEntryInstr* pre_header,
-                                      Instruction* current) {
+                                      CheckSmiInstr* current) {
   PhiInstr* phi = current->InputAt(0)->definition()->AsPhi();
   if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
     return;
@@ -1509,7 +2033,13 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 
   // Host CheckSmi instruction and make this phi smi one.
   Hoist(it, pre_header, current);
-  current->SetInputAt(non_smi_input, phi->InputAt(non_smi_input));
+
+  // Replace value we are checking with phi's input. Maintain use lists.
+  Definition* non_smi_input_defn = phi->InputAt(non_smi_input)->definition();
+  current->value()->RemoveFromInputUseList();
+  current->value()->set_definition(non_smi_input_defn);
+  current->value()->AddToInputUseList();
+
   phi->SetPropagatedCid(kSmiCid);
 }
 
@@ -1545,7 +2075,8 @@ void LICM::Optimize(FlowGraph* flow_graph) {
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
-            TryHoistCheckSmiThroughPhi(&it, header, pre_header, current);
+            TryHoistCheckSmiThroughPhi(
+                &it, header, pre_header, current->AsCheckSmi());
           }
         }
       }
@@ -1928,16 +2459,51 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
 
 void ConstantPropagator::VisitBranch(BranchInstr* instr) {
   instr->comparison()->Accept(this);
-  const Object& value = instr->comparison()->constant_value();
-  if (IsNonConstant(value)) {
-    SetReachable(instr->true_successor());
-    SetReachable(instr->false_successor());
-  } else if (value.raw() == Bool::True()) {
-    SetReachable(instr->true_successor());
-  } else if (!IsUnknown(value)) {  // Any other constant.
-    SetReachable(instr->false_successor());
+
+  // The successors may be reachable, but only if this instruction is.  (We
+  // might be analyzing it because the constant value of one of its inputs
+  // has changed.)
+  if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
+    const Object& value = instr->comparison()->constant_value();
+    if (IsNonConstant(value)) {
+      SetReachable(instr->true_successor());
+      SetReachable(instr->false_successor());
+    } else if (value.raw() == Bool::True()) {
+      SetReachable(instr->true_successor());
+    } else if (!IsUnknown(value)) {  // Any other constant.
+      SetReachable(instr->false_successor());
+    }
   }
 }
+
+
+// --------------------------------------------------------------------------
+// Analysis of non-definition instructions.  They do not have values so they
+// cannot have constant values.
+void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
+
+
+void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) { }
+
+
+void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckStackOverflow(
+    CheckStackOverflowInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckEitherNonSmi(
+    CheckEitherNonSmiInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) { }
 
 
 // --------------------------------------------------------------------------
@@ -2004,11 +2570,6 @@ void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitClosureCall(ClosureCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -2031,11 +2592,13 @@ void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadLocal(LoadLocalInstr* instr) {
+  // Instruction is eliminated when translating to SSA.
   UNREACHABLE();
 }
 
 
 void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
+  // Instruction is eliminated when translating to SSA.
   UNREACHABLE();
 }
 
@@ -2184,18 +2747,8 @@ void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) {
-  // Nothing to do. Not a value.
 }
 
 
@@ -2206,16 +2759,31 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsSmi() && right.IsSmi()) {
+      const Smi& left_smi = Smi::Cast(left);
+      const Smi& right_smi = Smi::Cast(right);
       switch (instr->op_kind()) {
         case Token::kADD:
         case Token::kSUB:
         case Token::kMUL:
         case Token::kTRUNCDIV:
         case Token::kMOD: {
-          const Object& result =
-              Integer::ZoneHandle(Integer::BinaryOp(instr->op_kind(),
-                                                    Smi::Cast(left),
-                                                    Smi::Cast(right)));
+          const Object& result = Integer::ZoneHandle(
+              left_smi.ArithmeticOp(instr->op_kind(), right_smi));
+          SetValue(instr, result);
+          break;
+        }
+        case Token::kSHL:
+        case Token::kSHR: {
+          const Object& result = Integer::ZoneHandle(
+              left_smi.ShiftOp(instr->op_kind(), right_smi));
+          SetValue(instr, result);
+          break;
+        }
+        case Token::kBIT_AND:
+        case Token::kBIT_OR:
+        case Token::kBIT_XOR: {
+          const Object& result = Integer::ZoneHandle(
+              left_smi.BitOp(instr->op_kind(), right_smi));
           SetValue(instr, result);
           break;
         }
@@ -2254,12 +2822,6 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckStackOverflow(
-    CheckStackOverflowInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -2277,23 +2839,14 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
-void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {
-  // Nothing to do. Has no value.
-}
-
-
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());
 }
 
 
-void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
-  // Nothing to do. Not a value.
+void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
+  // Should not be used outside of range analysis.
+  UNREACHABLE();
 }
 
 
@@ -2343,11 +2896,6 @@ void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::Analyze() {
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
@@ -2374,6 +2922,12 @@ void ConstantPropagator::Analyze() {
 
 
 void ConstantPropagator::Transform() {
+  if (FLAG_trace_constant_propagation) {
+    OS::Print("\n==== Before constant propagation ====\n");
+    FlowGraphPrinter printer(*graph_);
+    printer.PrintBlocks();
+  }
+
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
@@ -2383,82 +2937,119 @@ void ConstantPropagator::Transform() {
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
     if (!reachable_->Contains(block->preorder_number())) {
+      if (FLAG_trace_constant_propagation) {
+        OS::Print("Unreachable B%"Pd"\n", block->block_id());
+      }
       continue;
     }
-    for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
-      Definition* defn = i.Current()->AsDefinition();
-      BranchInstr* branch = i.Current()->AsBranch();
-      if (defn != NULL) {
-        if (IsConstant(defn->constant_value())) {
-          if (!defn->IsConstant() &&
-              !defn->IsPushArgument() &&
-              !defn->IsStoreLocal() &&
-              !defn->IsStoreIndexed() &&
-              !defn->IsStoreInstanceField() &&
-              !defn->IsStoreStaticField() &&
-              !defn->IsStoreVMField()) {
-            // TODO(kmillikin): propagate constants to replace instructions
-            // without side effects.
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      // Remove phi inputs corresponding to unreachable predecessor blocks.
+      // Predecessors will be recomputed (in block id order) after removing
+      // unreachable code so we merely have to keep the phi inputs in order.
+      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+      if (phis != NULL) {
+        intptr_t pred_count = join->PredecessorCount();
+        intptr_t live_count = 0;
+        for (intptr_t pred_idx = 0; pred_idx < pred_count; ++pred_idx) {
+          if (reachable_->Contains(
+                  join->PredecessorAt(pred_idx)->preorder_number())) {
+            if (live_count < pred_idx) {
+              for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+                PhiInstr* phi = (*phis)[phi_idx];
+                if (phi == NULL) continue;
+                phi->inputs_[live_count] = phi->inputs_[pred_idx];
+              }
+            }
+            ++live_count;
           }
         }
-      } else if (branch != NULL) {
-        TargetEntryInstr* if_true = branch->true_successor();
-        TargetEntryInstr* if_false = branch->false_successor();
-        JoinEntryInstr* join = NULL;
-        Instruction* next = NULL;
-
-        if (!reachable_->Contains(if_true->preorder_number())) {
-          ASSERT(reachable_->Contains(if_false->preorder_number()));
-          ASSERT(branch->comparison()->IsStrictCompare());
-          ASSERT(if_false->parallel_move() == NULL);
-          ASSERT(if_false->loop_info() == NULL);
-          join = new JoinEntryInstr(if_false->try_index());
-          next = if_false->next();
-        } else if (!reachable_->Contains(if_false->preorder_number())) {
-          ASSERT(branch->comparison()->IsStrictCompare());
-          ASSERT(if_true->parallel_move() == NULL);
-          ASSERT(if_true->loop_info() == NULL);
-          join = new JoinEntryInstr(if_true->try_index());
-          next = if_true->next();
-        }
-
-        if (join != NULL) {
-          // Replace the branch with a jump to the reachable successor.
-          // Drop the comparison, which does not have side effects as long
-          // as it is a strict compare (the only one we can determine is
-          // constant with the current analysis).
-          GotoInstr* jump = new GotoInstr(join);
-          // Removing the branch from the graph will leave the iterator in a
-          // state where current is detached from the graph.  Since current
-          // has no successors and neither does its replacement, that's
-          // safe.
-          Instruction* previous = branch->previous();
-          branch->set_previous(NULL);
-          previous->set_next(jump);
-          // Replace the false target entry with the new join entry. We will
-          // recompute the dominators after this pass.
-          join->set_next(next);
+        if (live_count < pred_count) {
+          for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+            PhiInstr* phi = (*phis)[phi_idx];
+            if (phi == NULL) continue;
+            phi->inputs_.TruncateTo(live_count);
+          }
         }
       }
     }
+
+    for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
+      Definition* defn = i.Current()->AsDefinition();
+      // Replace constant-valued instructions without observable side
+      // effects.  Do this for smis only to avoid having to copy other
+      // objects into the heap's old generation.
+      //
+      // TODO(kmillikin): Extend this to handle booleans, other number
+      // types, etc.
+      if ((defn != NULL) &&
+          defn->constant_value().IsSmi() &&
+          !defn->IsConstant() &&
+          !defn->IsPushArgument() &&
+          !defn->IsStoreIndexed() &&
+          !defn->IsStoreInstanceField() &&
+          !defn->IsStoreStaticField() &&
+          !defn->IsStoreVMField()) {
+        if (FLAG_trace_constant_propagation) {
+          OS::Print("Constant v%"Pd" = %s\n",
+                    defn->ssa_temp_index(),
+                    defn->constant_value().ToCString());
+        }
+        i.ReplaceCurrentWith(new ConstantInstr(defn->constant_value()));
+      }
+    }
+
+    // Replace branches where one target is unreachable with jumps.
+    BranchInstr* branch = block->last_instruction()->AsBranch();
+    if (branch != NULL) {
+      TargetEntryInstr* if_true = branch->true_successor();
+      TargetEntryInstr* if_false = branch->false_successor();
+      JoinEntryInstr* join = NULL;
+      Instruction* next = NULL;
+
+      if (!reachable_->Contains(if_true->preorder_number())) {
+        ASSERT(reachable_->Contains(if_false->preorder_number()));
+        ASSERT(branch->comparison()->IsStrictCompare());
+        ASSERT(if_false->parallel_move() == NULL);
+        ASSERT(if_false->loop_info() == NULL);
+        join =
+            new JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        next = if_false->next();
+      } else if (!reachable_->Contains(if_false->preorder_number())) {
+        ASSERT(branch->comparison()->IsStrictCompare());
+        ASSERT(if_true->parallel_move() == NULL);
+        ASSERT(if_true->loop_info() == NULL);
+        join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        next = if_true->next();
+      }
+
+      if (join != NULL) {
+        // Replace the branch with a jump to the reachable successor.
+        // Drop the comparison, which does not have side effects as long
+        // as it is a strict compare (the only one we can determine is
+        // constant with the current analysis).
+        GotoInstr* jump = new GotoInstr(join);
+        Instruction* previous = branch->previous();
+        branch->set_previous(NULL);
+        previous->set_next(jump);
+        // Replace the false target entry with the new join entry. We will
+        // recompute the dominators after this pass.
+        join->set_next(next);
+      }
+    }
   }
+
   graph_->DiscoverBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-
-  // Garbage collect phi inputs corresponding to unreachable predecessors.
-  // This is required because we assume that predecessor and phi indexes
-  // align.  Note that this does not necessarily eliminate all useless phis
-  // (e.g., it does not eliminate phis that were originally inserted solely
-  // due to an assignment on the now-unreachable path).
-  for (BlockIterator it = graph_->reverse_postorder_iterator();
-       !it.Done();
-       it.Advance()) {
-    JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) join->EliminateUnreachablePhiInputs();
-  }
-
   graph_->ComputeUseLists();
+
+  if (FLAG_trace_constant_propagation) {
+    OS::Print("\n==== After constant propagation ====\n");
+    FlowGraphPrinter printer(*graph_);
+    printer.PrintBlocks();
+  }
 }
 
 

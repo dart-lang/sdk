@@ -4,26 +4,26 @@
 
 List regExpExec(JSSyntaxRegExp regExp, String str) {
   var nativeRegExp = regExpGetNative(regExp);
-  var result = JS('List', @'#.exec(#)', nativeRegExp, str);
-  if (JS('bool', @'# === null', result)) return null;
+  var result = JS('List', r'#.exec(#)', nativeRegExp, str);
+  if (JS('bool', r'# === null', result)) return null;
   return result;
 }
 
 bool regExpTest(JSSyntaxRegExp regExp, String str) {
   var nativeRegExp = regExpGetNative(regExp);
-  return JS('bool', @'#.test(#)', nativeRegExp, str);
+  return JS('bool', r'#.test(#)', nativeRegExp, str);
 }
 
 regExpGetNative(JSSyntaxRegExp regExp) {
-  var r = JS('var', @'#._re', regExp);
+  var r = JS('var', r'#._re', regExp);
   if (r === null) {
-    r = JS('var', @'#._re = #', regExp, regExpMakeNative(regExp));
+    r = JS('var', r'#._re = #', regExp, regExpMakeNative(regExp));
   }
   return r;
 }
 
 regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
-  JS('var', @'#._re = #', regExp, regExpMakeNative(regExp, global: true));
+  JS('var', r'#._re = #', regExp, regExpMakeNative(regExp, global: true));
 }
 
 regExpMakeNative(JSSyntaxRegExp regExp, [bool global = false]) {
@@ -36,11 +36,11 @@ regExpMakeNative(JSSyntaxRegExp regExp, [bool global = false]) {
   if (ignoreCase) sb.add('i');
   if (global) sb.add('g');
   try {
-    return JS('Object', @'new RegExp(#, #)', pattern, sb.toString());
+    return JS('Object', r'new RegExp(#, #)', pattern, sb.toString());
   } catch (e) {
     throw new IllegalJSRegExpException(pattern,
-                                       JS('String', @'String(#)', e));
+                                       JS('String', r'String(#)', e));
   }
 }
 
-int regExpMatchStart(m) => JS('int', @'#.index', m);
+int regExpMatchStart(m) => JS('int', r'#.index', m);

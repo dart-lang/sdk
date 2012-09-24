@@ -55,6 +55,11 @@ static intptr_t ToInstructionStart(intptr_t pos) {
 }
 
 
+static intptr_t ToInstructionEnd(intptr_t pos) {
+  return (pos | 1);
+}
+
+
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   : flow_graph_(flow_graph),
     block_order_(flow_graph.reverse_postorder()),
@@ -304,7 +309,9 @@ void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 
 
 void LiveRange::AddSafepoint(intptr_t pos, LocationSummary* locs) {
-  SafepointPosition* safepoint = new SafepointPosition(pos, locs);
+  ASSERT(IsInstructionStartPosition(pos));
+  SafepointPosition* safepoint =
+      new SafepointPosition(ToInstructionEnd(pos), locs);
 
   if (first_safepoint_ == NULL) {
     ASSERT(last_safepoint_ == NULL);
@@ -1128,6 +1135,9 @@ void FlowGraphAllocator::NumberInstructions() {
 
 // Discover structural (reducible) loops nesting structure.
 void FlowGraphAllocator::DiscoverLoops() {
+  // This algorithm relies on the assumption that we emit blocks in reverse
+  // postorder, so postorder number can be used to identify loop nesting.
+  //
   // TODO(vegorov): consider using a generic algorithm to correctly discover
   // both headers of reducible and irreducible loops.
   BlockInfo* current_loop = NULL;
@@ -1144,8 +1154,8 @@ void FlowGraphAllocator::DiscoverLoops() {
         ASSERT(successor_info->entry() == successor);
         if (!successor_info->is_loop_header() &&
             ((current_loop == NULL) ||
-             (current_loop->entry()->block_id() <
-                  successor_info->entry()->block_id()))) {
+             (current_loop->entry()->postorder_number() >
+                  successor_info->entry()->postorder_number()))) {
           ASSERT(successor_info != current_loop);
 
           successor_info->mark_loop_header();

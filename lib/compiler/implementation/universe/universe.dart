@@ -18,9 +18,32 @@
 #source('selector_map.dart');
 
 class Universe {
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
   Map<Element, CodeBuffer> generatedCode;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Key elements are declaration elements.
+   */
   Map<Element, CodeBuffer> generatedBailoutCode;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Elements are declaration elements.
+   */
   final Set<ClassElement> instantiatedClasses;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Elements are declaration elements.
+   */
   final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
@@ -43,10 +66,12 @@ class Universe {
                rti = new RuntimeTypeInformation();
 
   void addGeneratedCode(WorkItem work, CodeBuffer codeBuffer) {
+    assert(invariant(work.element, work.element.isDeclaration));
     generatedCode[work.element] = codeBuffer;
   }
 
   void addBailoutCode(WorkItem work, CodeBuffer codeBuffer) {
+    assert(invariant(work.element, work.element.isDeclaration));
     generatedBailoutCode[work.element] = codeBuffer;
   }
 
@@ -285,6 +310,7 @@ class Selector implements Hashable {
                                             compileArgument(Node argument),
                                             compileConstant(Element element),
                                             Compiler compiler) {
+    assert(invariant(element, element.isImplementation));
     // If there are named arguments, provide them in the order
     // expected by the called function, which is the source order.
     FunctionSignature parameters = element.computeSignature(compiler);
@@ -332,6 +358,8 @@ class Selector implements Hashable {
   /**
    * Returns [:true:] if the selector and the [element] match; [:false:]
    * otherwise.
+   *
+   * Invariant: [element] must be the implementation element.
    */
   bool addArgumentsToList(Link<Node> arguments,
                           List list,
@@ -339,6 +367,7 @@ class Selector implements Hashable {
                           compileArgument(Node argument),
                           compileConstant(Element element),
                           Compiler compiler) {
+    assert(invariant(element, element.isImplementation));
     if (!this.applies(element, compiler)) return false;
 
     FunctionSignature parameters = element.computeSignature(compiler);

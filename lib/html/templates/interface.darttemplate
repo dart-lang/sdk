@@ -4,5 +4,5 @@
 
 // WARNING: Do not edit - generated code.
 
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
 $!MEMBERS}

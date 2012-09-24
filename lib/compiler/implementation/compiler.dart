@@ -29,7 +29,6 @@ const bool DUMP_INFERRED_TYPES = false;
  */
 const String BUILD_ID = 'build number could not be determined';
 
-
 /**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
@@ -39,12 +38,19 @@ class ItemCompilationContext {
 
 class WorkItem {
   final ItemCompilationContext compilationContext;
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   final Element element;
   TreeElements resolutionTree;
   bool allowSpeculativeOptimization = true;
   List<HTypeGuard> guards = const <HTypeGuard>[];
 
-  WorkItem(this.element, this.resolutionTree, this.compilationContext);
+  WorkItem(this.element, this.resolutionTree, this.compilationContext) {
+    assert(invariant(element, element.isDeclaration));
+  }
 
   bool isAnalyzed() => resolutionTree !== null;
 
@@ -94,6 +100,8 @@ class Compiler implements DiagnosticListener {
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
+
+  bool disableInlining = false;
 
   // TODO(5074): Remove this field once we don't accept the
   // deprecated parameter specification.
@@ -189,7 +197,7 @@ class Compiler implements DiagnosticListener {
             this.enableMinification = false,
             bool emitJavaScript = true,
             bool generateSourceMap = true,
-            bool cutDeclarationTypes = false])
+            bool forceCutDeclarationTypes = false])
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
     progress.start();
@@ -205,7 +213,7 @@ class Compiler implements DiagnosticListener {
     typesTask = new ti.TypesTask(this);
     backend = emitJavaScript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
-        new dart_backend.DartBackend(this, cutDeclarationTypes);
+        new dart_backend.DartBackend(this, forceCutDeclarationTypes);
     constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
@@ -608,11 +616,12 @@ class Compiler implements DiagnosticListener {
     assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
-      CodeBuffer oldCode = world.universe.generatedCode[work.element];
-      world.universe.generatedCode.remove(work.element);
-      world.universe.generatedBailoutCode.remove(work.element);
-      withCurrentElement(work.element, () => work.run(this, world));
-      CodeBuffer newCode = world.universe.generatedCode[work.element];
+      Element element = work.element;
+      CodeBuffer oldCode = world.universe.generatedCode[element];
+      world.universe.generatedCode.remove(element);
+      world.universe.generatedBailoutCode.remove(element);
+      withCurrentElement(element, () => work.run(this, world));
+      CodeBuffer newCode = world.universe.generatedCode[element];
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
         log("Pass 2 optimization:");
         log("Before:\n$oldCode");
@@ -670,6 +679,7 @@ class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyzeElement(Element element) {
+    assert(invariant(element, element.isDeclaration));
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements !== null) return elements;
     final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
@@ -713,6 +723,7 @@ class Compiler implements DiagnosticListener {
                              'Internal error: unresolved element: $element.');
     }
     result = analyzeElement(element);
+    assert(invariant(element, element.isDeclaration));
     enqueuer.resolution.resolvedElements[element] = result;
     return result;
   }
@@ -949,4 +960,25 @@ class SourceSpan {
   }
 
   String toString() => 'SourceSpan($uri, $begin, $end)';
+}
+
+/**
+ * Throws an [InvariantException] if [condition] is [:false:]. [condition] must
+ * be either a [:bool:] or a no-arg function returning a [:bool:].
+ *
+ * Use this method to provide better information for assertion by calling
+ * [invariant] as the argument to an [:assert:] statement:
+ *
+ *     assert(invariant(position, isValid));
+ *
+ * [spannable] must be non-null and will be used to provide positional
+ * information in the generated error message.
+ */
+bool invariant(Spannable spannable, var condition, {String message: null}) {
+  // TODO(johnniwinther): Use [spannable] and [message] to provide better
+  // information on assertion errors.
+  if (condition is Function){
+    condition = condition();
+  }
+  return spannable != null && condition;
 }

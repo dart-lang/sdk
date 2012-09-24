@@ -4,6 +4,7 @@
 //
 
 #import("dart:io");
+#import("dart:scalarlist");
 
 void testRequestResponseClientCloses(
     int totalConnections, int closeStatus, String closeReason) {

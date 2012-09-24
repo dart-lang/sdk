@@ -82,13 +82,28 @@ class FunctionBodyRewriter extends CloningVisitor {
       return false;
     }
 
+    rewritTo(Statement statement) {
+      if (statement is Block) {
+        Link statements = statement.statements.nodes;
+        if (!statements.isEmpty() && statements.tail.isEmpty()) {
+          Statement single = statements.head;
+          bool isDeclaration =
+              single is VariableDefinitions || single is FunctionDeclaration;
+          if (!isDeclaration) return single;
+        }
+      }
+      return statement;
+    }
+
     rewriteBody(Statement body) {
       if (body is !Block) return visit(body);
       Block block = body;
       NodeList statements = block.statements;
       LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
       for (Statement statement in statements.nodes) {
-        if (!shouldOmit(statement)) builder.addLast(visit(statement));
+        if (!shouldOmit(statement)) {
+          builder.addLast(visit(rewritTo(statement)));
+        }
       }
       return new Block(rewriteNodeList(statements, builder.toLink()));
     }
@@ -99,7 +114,7 @@ class FunctionBodyRewriter extends CloningVisitor {
 
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
-  final bool cutDeclarationTypes;
+  final bool forceCutDeclarationTypes;
   // TODO(antonm): make available from command-line options.
   final bool outputAst = false;
 
@@ -172,7 +187,7 @@ class DartBackend extends Backend {
     return true;
   }
 
-  DartBackend(Compiler compiler, this.cutDeclarationTypes)
+  DartBackend(Compiler compiler, this.forceCutDeclarationTypes)
       : tasks = <CompilerTask>[],
         super(compiler);
 
@@ -206,15 +221,18 @@ class DartBackend extends Backend {
           for (final member in classElement.localMembers) {
             final name = member.name.slowToString();
             // Skip operator names.
-            if (name.startsWith(@'operator$')) continue;
+            if (name.startsWith(r'operator$')) continue;
             // Fetch name of named constructors and factories if any,
             // otherwise store regular name.
             // TODO(antonm): better way to analyze the name.
-            fixedMemberNames.add(name.split(@'$').last());
+            fixedMemberNames.add(name.split(r'$').last());
           }
-        } else {
-          fixedMemberNames.add(element.name.slowToString());
         }
+        // Even class names are added due to a delicate problem we have:
+        // if one imports dart:core with a prefix, we cannot tell prefix.name
+        // from dynamic invocation (alas!).  So we'd better err on preserving
+        // those names.
+        fixedMemberNames.add(element.name.slowToString());
       }
     }
     // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
@@ -281,7 +299,8 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst = new ElementAst.rewrite(compiler, parse(element), treeElements);
+      var elementAst =
+          new ElementAst.rewrite(compiler, parse(element), treeElements);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
@@ -319,7 +338,7 @@ class DartBackend extends Backend {
     // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
-    bool shouldCutDeclarationTypes = cutDeclarationTypes
+    bool shouldCutDeclarationTypes = forceCutDeclarationTypes
         || (compiler.enableMinification
             && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(

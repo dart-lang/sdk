@@ -7,7 +7,7 @@
  * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
  * unicode mapping.
  */
-interface KeyName {
+abstract class KeyName {
 
   /** The Accept (Commit, OK) key */
   static const String ACCEPT = "Accept";

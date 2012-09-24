@@ -350,7 +350,7 @@ class Codegen {
       buff.add("\n  // CSS class selectors for this template.\n");
       for (int i = 0; i < classes.length; i++) {
         buff.add(
-          "  static String get ${dartNames[i]}() => \"${classes[i]}\";\n");
+          "  static String get ${dartNames[i]} => \"${classes[i]}\";\n");
       }
     }
 

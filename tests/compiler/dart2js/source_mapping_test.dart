@@ -89,6 +89,8 @@ int test(int x) {
   int result = 1; @while (result < x) { result <<= 1; @} return result;
 }''';
 
+String INTERCEPTOR_TEST = '''void main() { var l = []; @l.add(0); print(l); }
+''';
 
 main() {
   // These tests are fragile, since mappings for specific source locations
@@ -104,4 +106,5 @@ main() {
   testSourceMapLocations(SEND_TEST);
   testSourceMapLocations(SEND_SET_TEST);
   testSourceMapLocations(LOOP_TEST);
+  testSourceMapLocations(INTERCEPTOR_TEST);
 }

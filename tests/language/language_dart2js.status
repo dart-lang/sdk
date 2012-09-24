@@ -57,14 +57,8 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-[ $compiler == dart2js && $host_unchecked ]
-metadata_test: Fail # Metadata on type parameters not supported.
-
-[ $compiler == dart2js && $host_checked ]
-metadata_test: Crash # Metadata on type parameters not supported.
-
 [ $compiler == dart2js ]
-prefix_new_test: Fail # New library syntax not supported
+metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
 
@@ -208,9 +202,6 @@ abstract_syntax_test/01: Fail # Negative language test.
 abstract_syntax_test/02: Fail # Negative language test.
 assign_top_method_negative_test: Fail # Negative language test.
 class_extends_negative_test: Fail # Negative language test.
-const_constructor_syntax_test/01: Fail # Negative language test.
-const_constructor_syntax_test/02: Fail # Negative language test.
-const_constructor_syntax_test/03: Fail # Negative language test.
 const_constructor_syntax_test/04: Fail # Negative language test.
 const_field_negative_test: Fail # Negative language test.
 const_init4_negative_test: Fail # Negative language test.
@@ -335,3 +326,7 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
+typed_message_test: Fail # http://dartbug.com/5383

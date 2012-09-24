@@ -195,9 +195,9 @@
  * options and flags from them.
  */
 class ArgParser {
-  static const _SOLO_OPT = const RegExp(@'^-([a-zA-Z0-9])$');
-  static const _ABBR_OPT = const RegExp(@'^-([a-zA-Z0-9]+)(.*)$');
-  static const _LONG_OPT = const RegExp(@'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
+  static const _SOLO_OPT = const RegExp(r'^-([a-zA-Z0-9])$');
+  static const _ABBR_OPT = const RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
+  static const _LONG_OPT = const RegExp(r'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
 
   final Map<String, _Option> _options;
 
@@ -239,14 +239,14 @@ class ArgParser {
    */
   void addOption(String name, [String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
-      void callback(bool value), bool allowMultiple = false]) {
+      void callback(value), bool allowMultiple = false]) {
     _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
         callback, isFlag: false, allowMultiple: allowMultiple);
   }
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, defaultsTo,
-      void callback(bool value), [bool isFlag, bool negatable = false,
+      void callback(value), [bool isFlag, bool negatable = false,
       bool allowMultiple = false]) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {

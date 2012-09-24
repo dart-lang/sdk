@@ -4,6 +4,7 @@
 #import('dart:html');
 
 main() {
+  useHtmlConfiguration();
   evaluateJavaScript(code) {
     final scriptTag = new Element.tag('script');
     scriptTag.innerHTML = code;
@@ -11,7 +12,6 @@ main() {
   }
   evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');
 
-  useHtmlConfiguration();
   test('TwoArgumentVersion', () {
     Window win = window.open('../resources/pong.html', 'testWindow');
     closeWindow(win);

@@ -8,9 +8,10 @@
 
 #library("io");
 #import("dart:coreimpl");
+#import("dart:crypto");
 #import("dart:isolate");
 #import("dart:math");
 #import("dart:nativewrappers");
+#import("dart:scalarlist");
 #import("dart:uri");
-#import("dart:crypto");
 #import("dart:utf");

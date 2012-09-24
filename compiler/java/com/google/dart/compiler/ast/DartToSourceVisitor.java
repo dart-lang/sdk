@@ -364,6 +364,14 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p("]");
     }
   }
+  
+  @Override
+  public Void visitAssertStatement(DartAssertStatement x) {
+    p("assert(");
+    accept(x.getCondition());
+    p(");");
+    return null;
+  }
 
   @Override
   public Void visitBlock(DartBlock x) {

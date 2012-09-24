@@ -175,8 +175,8 @@ class JsNames {
     if (reserved.contains(name)) {
       name = '$name\$';
       assert(!reserved.contains(name));
-    } else if (name.contains(@'$')) {
-      name = name.replaceAll(@'$', @'$$');
+    } else if (name.contains(r'$')) {
+      name = name.replaceAll(r'$', r'$$');
     }
     return name;
   }

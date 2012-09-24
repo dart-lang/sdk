@@ -362,11 +362,15 @@ class OperationInfo(object):
         self.param_infos, 'null',
         lambda param: TypeOrNothing(rename_type(param.dart_type)))
 
-  def ParametersAsArgumentList(self):
+  def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
     """
-    return ', '.join(map(lambda param_info: param_info.name, self.param_infos))
+    if parameter_count is None:
+      parameter_count = len(self.param_infos)
+    return ', '.join(map(
+        lambda param_info: param_info.name,
+        self.param_infos[:parameter_count]))
 
   def _FormatParams(self, params, default_value, type_fn):
     def FormatParam(param):
@@ -396,11 +400,60 @@ class OperationInfo(object):
     assert any([is_static == o.is_static for o in self.overloads])
     return is_static
 
-  def ConstructorFullName(self):
+  def _ConstructorFullName(self):
     if self.constructor_name:
       return self.type_name + '.' + self.constructor_name
     else:
       return self.type_name
+
+  def ConstructorFactoryName(self, rename_type):
+    return 'create' + rename_type(self._ConstructorFullName()).replace('.', '_')
+
+  def GenerateFactoryInvocation(self, rename_type, emitter, factory_provider):
+    has_optional = any(param_info.is_optional
+        for param_info in self.param_infos)
+
+    factory_name = self.ConstructorFactoryName(rename_type)
+    if not has_optional:
+      emitter.Emit(
+          '\n'
+          '  factory $CTOR($PARAMS) => '
+          '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
+          CTOR=rename_type(self._ConstructorFullName()),
+          PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+          FACTORY=factory_provider,
+          CTOR_FACTORY_NAME=factory_name,
+          FACTORY_PARAMS=self.ParametersAsArgumentList())
+      return
+
+    dispatcher_emitter = emitter.Emit(
+        '\n'
+        '  factory $CTOR($PARAMS) {\n'
+        '$!DISPATCHER'
+        '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '  }\n',
+        CTOR=rename_type(self._ConstructorFullName()),
+        PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+        FACTORY=factory_provider,
+        CTOR_FACTORY_NAME=factory_name,
+        FACTORY_PARAMS=self.ParametersAsArgumentList())
+
+    # If we have optional parameters, check to see if they are set
+    # and call the appropriate factory method.
+    def EmitOptionalParameterInvocation(index):
+      dispatcher_emitter.Emit(
+        '    if (!?$OPT_PARAM_NAME) {\n'
+        '      return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+        '    }\n',
+        OPT_PARAM_NAME=self.param_infos[index].name,
+        FACTORY=factory_provider,
+        CTOR_FACTORY_NAME=factory_name,
+        FACTORY_PARAMS=self.ParametersAsArgumentList(index))
+
+    for index, param_info in enumerate(self.param_infos):
+      if param_info.is_optional:
+        EmitOptionalParameterInvocation(index)
+
 
   def CopyAndWidenDefaultParameters(self):
     """Returns equivalent OperationInfo, but default parameters are Dynamic."""

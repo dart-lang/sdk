@@ -1430,6 +1430,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
+      "#import('dart:scalarlist');\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1600,6 +1601,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
+      "#import('dart:scalarlist');\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"

@@ -227,10 +227,6 @@ public class TopLevelElementBuilder {
     if (oldElement == null) {
       return false;
     }
-    // ignore "assert"
-    if (Elements.isArtificialAssertMethod(oldElement)) {
-      return false;
-    }
     // Getter/setter can shared same name, but not setter/setter and getter/getter.
     if (newElement.getModifiers().isAbstractField()
         && oldElement.getModifiers().isAbstractField()) {

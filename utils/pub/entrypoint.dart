@@ -137,11 +137,11 @@ class Entrypoint {
   }
 
   /**
-   * Installs all dependencies listed in [packageVersions] and writes a
-   * [LockFile].
+   * Removes the old packages directory, installs all dependencies listed in
+   * [packageVersions], and writes a [LockFile].
    */
   Future _installDependencies(List<PackageId> packageVersions) {
-    return _removeUnusedDependencies(packageVersions).chain((_) {
+    return cleanDir(path).chain((_) {
       return Futures.wait(packageVersions.map((id) {
         if (id.source is RootSource) return new Future.immediate(id);
         return install(id);
@@ -182,27 +182,6 @@ class Entrypoint {
   }
 
   /**
-   * Removes all dependencies that are no longer depended on from the `packages`
-   * directory. [packageIds] is a list of all packages that are still depended
-   * on.
-   */
-  Future _removeUnusedDependencies(List<PackageId> packageIds) {
-    var dependenciesToKeep = packageIds.map((id) => id.name);
-
-    return dirExists(path).chain((exists) {
-      if (exists) return listDir(path);
-      return new Future.immediate([]);
-    }).chain((existingDependencies) {
-      existingDependencies = existingDependencies.map(basename);
-      var dependenciesToRemove =
-          new List.from(setMinus(existingDependencies, dependenciesToKeep));
-      return Futures.wait(dependenciesToRemove.map((dependency) {
-        return deleteDir(join(path, dependency));
-      }));
-    });
-  }
-
-  /**
    * Saves a list of concrete package versions to the `pubspec.lock` file.
    */
   Future _saveLockFile(List<PackageId> packageIds) {
@@ -238,11 +217,13 @@ class Entrypoint {
     var binDir = join(root.dir, 'bin');
     var testDir = join(root.dir, 'test');
     var exampleDir = join(root.dir, 'example');
+    var webDir = join(root.dir, 'web');
     return dirExists(binDir).chain((exists) {
       if (!exists) return new Future.immediate(null);
       return _linkSecondaryPackageDir(binDir);
     }).chain((_) => _linkSecondaryPackageDirsRecursively(testDir))
-      .chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir));
+      .chain((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
+      .chain((_) => _linkSecondaryPackageDirsRecursively(webDir));
   }
 
   /**

@@ -307,13 +307,13 @@ class Dartdoc {
     return content;
   }
 
-  void documentEntryPoint(Path entrypoint, Path libPath) {
-    final compilation = new Compilation(entrypoint, libPath);
+  void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
+    final compilation = new Compilation(entrypoint, libPath, pkgPath);
     _document(compilation);
   }
 
-  void documentLibraries(List<Path> libraryList, Path libPath) {
-    final compilation = new Compilation.library(libraryList, libPath);
+  void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
+    final compilation = new Compilation.library(libraryList, libPath, pkgPath);
     _document(compilation);
   }
 

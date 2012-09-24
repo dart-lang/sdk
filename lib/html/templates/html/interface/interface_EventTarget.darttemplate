@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface EventListenerList {
+abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
   EventListenerList remove(EventListener handler, [bool useCapture]);
@@ -12,14 +12,14 @@ interface EventListenerList {
   bool dispatch(Event evt);
 }
 
-interface Events {
+abstract class Events {
   EventListenerList operator [](String type);
 }
 
 $!COMMENT
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
-  final Events on;
+  abstract Events get on;
 $!MEMBERS
 }

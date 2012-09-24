@@ -30,12 +30,12 @@ class Namer {
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         constantNames = new Map<Constant, String>();
 
-  final String CURRENT_ISOLATE = @'$';
+  final String CURRENT_ISOLATE = r'$';
   final String ISOLATE = 'Isolate';
-  final String ISOLATE_PROPERTIES = @"$isolateProperties";
+  final String ISOLATE_PROPERTIES = r"$isolateProperties";
   /** Some closures must contain their name. The name is stored in
     * [STATIC_CLOSURE_NAME_NAME]. */
-  final String STATIC_CLOSURE_NAME_NAME = @'$name';
+  final String STATIC_CLOSURE_NAME_NAME = r'$name';
   static const SourceString CLOSURE_INVOCATION_NAME =
       Compiler.CALL_OPERATOR_NAME;
 
@@ -131,7 +131,7 @@ class Namer {
     StringBuffer buffer = new StringBuffer();
     List<SourceString> names = selector.getOrderedNamedArguments();
     for (SourceString argumentName in names) {
-      buffer.add(@'$');
+      buffer.add(r'$');
       argumentName.printOn(buffer);
     }
     return '${privateName(lib, name)}\$${selector.argumentCount}$buffer';

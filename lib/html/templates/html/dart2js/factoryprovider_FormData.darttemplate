@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory FormData([FormElement form = null]) native '''
+  static FormData createFormData([FormElement form = null]) native '''
     if (form == null) return new FormData();
     return new FormData(form);
   ''';

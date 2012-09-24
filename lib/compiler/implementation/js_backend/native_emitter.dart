@@ -84,6 +84,12 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
+  String get hashCodeHelperName {
+    Element element = compiler.findHelper(
+        const SourceString('hashCodeForNativeObject'));
+    return backend.namer.isolateAccess(element);
+  }
+
   String get defineNativeClassName
       => '${backend.namer.CURRENT_ISOLATE}.\$defineNativeClass';
 
@@ -416,6 +422,12 @@ function(cls, fields, methods) {
         const SourceString('toString'), 0);
     objectProperties[toStringName] =
         'function() { return $toStringHelperName(this); }';
+
+    // Same as above, but for hashCode.
+    String hashCodeName = backend.namer.publicInstanceMethodNameByArity(
+        const SourceString('hashCode'), 0);
+    objectProperties[hashCodeName] =
+        'function() { return $hashCodeHelperName(this); }';
 
     // If the native emitter has been asked to take care of the
     // noSuchMethod handlers, we do that now.

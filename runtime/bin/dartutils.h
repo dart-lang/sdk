@@ -127,6 +127,7 @@ class DartUtils {
   static const char* kUriLibURL;
   static const char* kUtfLibURL;
   static const char* kIsolateLibURL;
+  static const char* kScalarlistLibURL;
   static const char* kWebLibURL;
 
   static const char* kIdFieldName;

@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.parser;
 
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
@@ -387,15 +389,23 @@ public class DartScanner {
   private int lastCommentStop;
   private String source;
   private InternalState internalState;
+  private Source sourceReference;
+  private DartCompilerListener listener;
 
   public DartScanner(String source) {
-    this(source, 0);
+    this(source, 0, null, null);
   }
 
   public DartScanner(String source, int start) {
+    this(source, 0, null, null);
+  }
+
+  public DartScanner(String source, int start, Source sourceReference, DartCompilerListener listener) {
     final TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.SCANNER) : null;
     try {
       this.source = source;
+      this.sourceReference = sourceReference;
+      this.listener = listener;
       internalState = new InternalState();
       internalState.tokens = new ArrayList<TokenData>(source.length()/2);
 
@@ -1205,8 +1215,14 @@ public class DartScanner {
         // Raw strings.
         advance();
         if (is('\'') || is('"')) {
-          boolean isRaw = true;
-          return scanString(isRaw);
+//          int offset = position() - 1;
+          Token token = scanString(true);
+//          if (listener != null) {
+//            listener.onError(new DartCompilationError(
+//                new SourceInfo(sourceReference, offset, position() - offset),
+//                ParserErrorCode.DEPRECATED_RAW_STRING));
+//          }
+          return token;
         } else {
           return Token.AT;
         }

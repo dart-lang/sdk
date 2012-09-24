@@ -1031,10 +1031,30 @@ class TarFileDescriptor extends Descriptor {
       tempDir = _tempDir;
       return Futures.wait(contents.map((child) => child.create(tempDir)));
     }).chain((_) {
-      var args = ["--directory", tempDir.path, "--create", "--gzip", "--file",
-          join(parentDir, _stringName)];
-      args.addAll(contents.map((child) => child.name));
-      return runProcess("tar", args);
+      if (Platform.operatingSystem != "windows") {
+        var args = ["--directory", tempDir.path, "--create", "--gzip",
+            "--file", join(parentDir, _stringName)];
+        args.addAll(contents.map((child) => child.name));
+        return runProcess("tar", args);
+      } else {
+        // Create the tar file.
+        var tarFile = join(tempDir, _stringName.replaceAll("tar.gz", "tar"));
+        var args = ["a", tarFile];
+        args.addAll(contents.map(
+            (child) => '-i!"${join(tempDir, child.name)}"'));
+
+        // Find 7zip. Note: this assumes the tests are being run from
+        // utils/tests/pub/
+        var scriptDir = new File(new Options().script).directorySync().path;
+        var command = fs.joinPaths(scriptDir,
+            '../../../third_party/7zip/7za.exe');
+
+        return runProcess(command, args).chain((_) {
+          // GZIP it. 7zip doesn't support doing both as a single operation.
+          args = ["a", join(parentDir, _stringName), tarFile];
+          return runProcess(command, args);
+        });
+      }
     }).chain((result) {
       if (!result.success) {
         throw "Failed to create tar file $name.\n"

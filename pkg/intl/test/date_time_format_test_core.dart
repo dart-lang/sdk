@@ -281,21 +281,21 @@ runDateTests([List<String> subset]) {
   test('Test explicit format string', () {
     var aDate = new Date(2012, 1, 27, 20, 58, 59, 0, false);
     // An explicit format that doesn't conform to any skeleton
-    var us = new DateFormat(@'yy //// :D \\\\ dd:ss ^&@ M');
-    expect(us.format(aDate), equals(@"12 //// :D \\\\ 27:59 ^&@ 1"));
+    var us = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M');
+    expect(us.format(aDate), equals(r"12 //// :D \\\\ 27:59 ^&@ 1"));
     // The result won't change with locale unless we use fields that are words.
-    var greek = new DateFormat(@'yy //// :D \\\\ dd:ss ^&@ M', 'el_GR');
-    expect(greek.format(aDate), equals(@"12 //// :D \\\\ 27:59 ^&@ 1"));
+    var greek = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M', 'el_GR');
+    expect(greek.format(aDate), equals(r"12 //// :D \\\\ 27:59 ^&@ 1"));
     var usWithWords = new DateFormat('yy / :D \\ dd:ss ^&@ MMM', 'en_US');
     var greekWithWords = new DateFormat('yy / :D \\ dd:ss ^&@ MMM', 'el_GR');
     expect(
         usWithWords.format(aDate),
-        equals(@"12 / :D \ 27:59 ^&@ Jan"));
+        equals(r"12 / :D \ 27:59 ^&@ Jan"));
     expect(
         greekWithWords.format(aDate),
-        equals(@"12 / :D \ 27:59 ^&@ Ιαν"));
-    var escaped = new DateFormat(@"hh 'o''clock'");
-    expect(escaped.format(aDate), equals(@"08 o'clock"));
+        equals(r"12 / :D \ 27:59 ^&@ Ιαν"));
+    var escaped = new DateFormat(r"hh 'o''clock'");
+    expect(escaped.format(aDate), equals(r"08 o'clock"));
     var reParsed = escaped.parse(escaped.format(aDate));
     expect(escaped.format(reParsed), equals(escaped.format(aDate)));
     var noSeparators = new DateFormat('HHmmss');

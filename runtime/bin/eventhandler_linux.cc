@@ -412,7 +412,7 @@ void EventHandlerImplementation::Shutdown() {
 
 void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
-                                          intptr_t data) {
+                                          int64_t data) {
   WakeupHandler(id, dart_port, data);
 }
 

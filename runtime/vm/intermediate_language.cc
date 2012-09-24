@@ -24,7 +24,8 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 
 Definition::Definition()
-    : temp_index_(-1),
+    : range_(NULL),
+      temp_index_(-1),
       ssa_temp_index_(-1),
       propagated_type_(AbstractType::Handle()),
       propagated_cid_(kIllegalCid),
@@ -95,7 +96,8 @@ bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
 bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);
-  return op_kind() == other_op->op_kind();
+  return (op_kind() == other_op->op_kind()) &&
+      (overflow_ == other_op->overflow_);
 }
 
 
@@ -148,7 +150,7 @@ const Object& Value::BoundConstant() const {
 
 
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
-    : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
+    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
@@ -481,59 +483,29 @@ RawAbstractType* PushArgumentInstr::CompileType() const {
 }
 
 
+void JoinEntryInstr::AddPredecessor(BlockEntryInstr* predecessor) {
+  // Require the predecessors to be sorted by block_id to make managing
+  // their corresponding phi inputs simpler.
+  intptr_t pred_id = predecessor->block_id();
+  intptr_t index = 0;
+  while ((index < predecessors_.length()) &&
+         (predecessors_[index]->block_id() < pred_id)) {
+    ++index;
+  }
+#if defined(DEBUG)
+  for (intptr_t i = index; i < predecessors_.length(); ++i) {
+    ASSERT(predecessors_[i]->block_id() != pred_id);
+  }
+#endif
+  predecessors_.InsertAt(index, predecessor);
+}
+
+
 intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (predecessors_[i] == pred) return i;
   }
   return -1;
-}
-
-
-void JoinEntryInstr::EliminateUnreachablePhiInputs() {
-  if (phis_ == NULL || phis_->is_empty()) return;
-
-  // Loop over the predecessors, reorganize phi inputs.
-  // TODO(kmillikin): Replace phis that have a single remaining input with
-  // the input.  This requires being a bit careful about use lists.
-  intptr_t input_count = predecessors_.length();
-  for (intptr_t new_idx = 0; new_idx < input_count; ++new_idx) {
-    BlockEntryInstr* pred = predecessors_[new_idx];
-    // Linear search for the old predecessor index.  We can't directly
-    // compare block entries, because unreachable code elimination has
-    // replaced some targets with joins.
-    intptr_t old_idx = 0;
-    for (; old_idx < stale_predecessors_.length(); ++old_idx) {
-      if (stale_predecessors_[old_idx]->next() == pred->next()) break;
-    }
-    ASSERT(old_idx < stale_predecessors_.length());
-    // If the index has changed, adjust all phi inputs.
-    if (old_idx != new_idx) {
-      ASSERT(new_idx < old_idx);
-      // Swap each phi's inputs so the input at new_idx is correct.
-      // Preserve the previous value in case it is from a reachable
-      // predecessor.
-      for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-        PhiInstr* phi = (*phis_)[phi_idx];
-        if (phi == NULL) continue;
-        Value* temp = phi->InputAt(new_idx);
-        phi->SetInputAt(new_idx, phi->InputAt(old_idx));
-        phi->SetInputAt(old_idx, temp);
-      }
-      // The old input at new_idx is now found at old_idx.  It may be a
-      // reachable predecessor so swap the old predecessors too.
-      BlockEntryInstr* temp = stale_predecessors_[new_idx];
-      stale_predecessors_[new_idx] = stale_predecessors_[old_idx];
-      stale_predecessors_[old_idx] = temp;
-    }
-  }
-  // Now truncate each phi if necessary.
-  if (input_count < stale_predecessors_.length()) {
-    for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-      PhiInstr* phi = (*phis_)[phi_idx];
-      if (phi == NULL) continue;
-      phi->inputs_.TruncateTo(input_count);
-    }
-  }
 }
 
 
@@ -567,6 +539,21 @@ void Value::AddToInputUseList() {
 void Value::AddToEnvUseList() {
   set_next_use(definition()->env_use_list());
   definition()->set_env_use_list(this);
+}
+
+
+void Value::RemoveFromInputUseList() {
+  if (definition_->input_use_list() == this) {
+    definition_->set_input_use_list(next_use_);
+    return;
+  }
+
+  Value* prev = definition_->input_use_list();
+  while (prev->next_use_ != this) {
+    prev = prev->next_use_;
+  }
+  prev->next_use_ = next_use_;
+  definition_ = NULL;
 }
 
 
@@ -1211,7 +1198,7 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kBIT_XOR:
       return false;
     default:
-      return true;
+      return overflow_;
   }
 }
 
@@ -1435,6 +1422,16 @@ void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
+
+LocationSummary* ConstraintInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
 
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
   return new LocationSummary(0, 0, LocationSummary::kCall);
@@ -1831,7 +1828,17 @@ void Environment::DeepCopyTo(Instruction* instr) const {
 // environment use lists.
 void Environment::DeepCopyToOuter(Instruction* instr) const {
   ASSERT(instr->env()->outer() == NULL);
-  Environment* copy = DeepCopy();
+  // Create a deep copy removing caller arguments from the environment.
+  intptr_t argument_count = instr->env()->fixed_parameter_count();
+  Environment* copy =
+      new Environment(values_.length() - argument_count,
+                      fixed_parameter_count_,
+                      deopt_id_,
+                      function_,
+                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
+  for (intptr_t i = 0; i < values_.length() - argument_count; ++i) {
+    copy->values_.Add(values_[i]->Copy());
+  }
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
@@ -1840,6 +1847,156 @@ void Environment::DeepCopyToOuter(Instruction* instr) const {
     value->AddToEnvUseList();
   }
   instr->env()->outer_ = copy;
+}
+
+
+RangeBoundary RangeBoundary::LowerBound() const {
+  if (IsConstant()) return *this;
+  if (symbol()->range() == NULL) return MinSmi();
+  return Add(symbol()->range()->min().LowerBound(),
+             RangeBoundary::FromConstant(offset_),
+             MinSmi());
+}
+
+
+RangeBoundary RangeBoundary::UpperBound() const {
+  if (IsConstant()) return *this;
+  if (symbol()->range() == NULL) return MaxSmi();
+  return Add(symbol()->range()->max().UpperBound(),
+             RangeBoundary::FromConstant(offset_),
+             MaxSmi());
+}
+
+
+bool Definition::InferRange(RangeOperator op) {
+  ASSERT(GetPropagatedCid() == kSmiCid);  // Has meaning only for smis.
+  if (range_ == NULL) {
+    range_ = Range::Unknown();
+    return true;
+  }
+  return false;
+}
+
+
+bool ConstantInstr::InferRange(RangeOperator op) {
+  ASSERT(value_.IsSmi());
+  if (range_ == NULL) {
+    intptr_t value = Smi::Cast(value_).Value();
+    range_ = new Range(RangeBoundary::FromConstant(value),
+                       RangeBoundary::FromConstant(value));
+    return true;
+  }
+  return false;
+}
+
+
+bool ConstraintInstr::InferRange(RangeOperator op) {
+  Range* value_range = value()->definition()->range();
+
+  // Compute intersection of constraint and value ranges.
+  return Range::Update(&range_,
+      RangeBoundary::Max(Range::ConstantMin(value_range),
+                         Range::ConstantMin(constraint())),
+      RangeBoundary::Min(Range::ConstantMax(value_range),
+                         Range::ConstantMax(constraint())));
+}
+
+
+bool PhiInstr::InferRange(RangeOperator op) {
+  RangeBoundary new_min;
+  RangeBoundary new_max;
+
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    Range* input_range = InputAt(i)->definition()->range();
+    if (input_range == NULL) {
+      continue;
+    }
+
+    if (new_min.IsUnknown()) {
+      new_min = Range::ConstantMin(input_range);
+    } else {
+      new_min = RangeBoundary::Min(new_min, Range::ConstantMin(input_range));
+    }
+
+    if (new_max.IsUnknown()) {
+      new_max = Range::ConstantMax(input_range);
+    } else {
+      new_max = RangeBoundary::Max(new_max, Range::ConstantMax(input_range));
+    }
+  }
+
+  ASSERT(new_min.IsUnknown() == new_max.IsUnknown());
+  if (new_min.IsUnknown()) {
+    range_ = Range::Unknown();
+    return false;
+  }
+
+  if (op == Definition::kRangeWiden) {
+    // Apply widening operator.
+    new_min = RangeBoundary::WidenMin(range_->min(), new_min);
+    new_max = RangeBoundary::WidenMax(range_->max(), new_max);
+  } else if (op == Definition::kRangeNarrow) {
+    // Apply narrowing operator.
+    new_min = RangeBoundary::NarrowMin(range_->min(), new_min);
+    new_max = RangeBoundary::NarrowMax(range_->max(), new_max);
+  }
+
+  return Range::Update(&range_, new_min, new_max);
+}
+
+
+bool BinarySmiOpInstr::InferRange(RangeOperator op) {
+  Range* left_range = left()->definition()->range();
+  Range* right_range = right()->definition()->range();
+
+  if ((left_range == NULL) || (right_range == NULL)) {
+    return Range::Update(&range_,
+                         RangeBoundary::MinSmi(),
+                         RangeBoundary::MaxSmi());
+  }
+
+  RangeBoundary new_min;
+  RangeBoundary new_max;
+  switch (op_kind()) {
+    case Token::kADD:
+      new_min =
+        RangeBoundary::Add(Range::ConstantMin(left_range),
+                           Range::ConstantMin(right_range),
+                           RangeBoundary::OverflowedMinSmi());
+      new_max =
+        RangeBoundary::Add(Range::ConstantMax(left_range),
+                           Range::ConstantMax(right_range),
+                           RangeBoundary::OverflowedMaxSmi());
+      break;
+
+    case Token::kSUB:
+      new_min =
+        RangeBoundary::Sub(Range::ConstantMin(left_range),
+                           Range::ConstantMax(right_range),
+                           RangeBoundary::OverflowedMinSmi());
+      new_max =
+        RangeBoundary::Sub(Range::ConstantMax(left_range),
+                           Range::ConstantMin(right_range),
+                           RangeBoundary::OverflowedMaxSmi());
+      break;
+
+    default:
+      if (range_ == NULL) {
+        range_ = Range::Unknown();
+        return true;
+      }
+      return false;
+  }
+
+  ASSERT(!new_min.IsUnknown() && !new_max.IsUnknown());
+  set_overflow(new_min.Overflowed() || new_max.Overflowed());
+
+  if (op == Definition::kRangeNarrow) {
+    new_min = new_min.Clamp();
+    new_max = new_max.Clamp();
+  }
+
+  return Range::Update(&range_, new_min, new_max);
 }
 
 

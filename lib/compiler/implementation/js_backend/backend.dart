@@ -225,10 +225,28 @@ class HTypeList {
 
 class ArgumentTypesRegistry {
   final JavaScriptBackend backend;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Keys must be declaration elements.
+   */
   final Map<Element, HTypeList> staticTypeMap;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Elements must be declaration elements.
+   */
   final Set<Element> optimizedStaticFunctions;
   final SelectorMap<HTypeList> selectorTypeMap;
   final FunctionSet optimizedFunctions;
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Keys must be declaration elements.
+   */
   final Map<Element, HTypeList> optimizedTypes;
   final Map<Element, OptionalParameterTypes> optimizedDefaultValueTypes;
 
@@ -246,6 +264,7 @@ class ArgumentTypesRegistry {
 
   void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     Element element = node.element;
+    assert(invariant(node, element.isDeclaration));
     HTypeList oldTypes = staticTypeMap[element];
     if (oldTypes == null) {
       staticTypeMap[element] = new HTypeList.fromStaticInvocation(node, types);
@@ -264,6 +283,7 @@ class ArgumentTypesRegistry {
     // When a static is used for anything else than a call target we cannot
     // infer anything about its parameter types.
     Element element = node.element;
+    assert(invariant(node, element.isDeclaration));
     if (optimizedStaticFunctions.contains(element)) {
       backend.scheduleForRecompilation(element);
     }
@@ -327,6 +347,7 @@ class ArgumentTypesRegistry {
 
   HTypeList parameterTypes(FunctionElement element,
                            OptionalParameterTypes defaultValueTypes) {
+    assert(invariant(element, element.isDeclaration));
     // Handle static functions separately.
     if (Elements.isStaticOrTopLevelFunction(element) ||
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -367,6 +388,7 @@ class ArgumentTypesRegistry {
   void registerOptimization(Element element,
                             HTypeList parameterTypes,
                             OptionalParameterTypes defaultValueTypes) {
+    assert(invariant(element, element.isDeclaration));
     if (Elements.isStaticOrTopLevelFunction(element)) {
       if (parameterTypes.allUnknown) {
         optimizedStaticFunctions.remove(element);
@@ -427,6 +449,11 @@ class JavaScriptBackend extends Backend {
 
   final Map<Element, ReturnInfo> returnInfo;
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: Elements must be declaration elements.
+   */
   final List<Element> invalidateAfterCodegen;
   ArgumentTypesRegistry argumentTypes;
 
@@ -612,7 +639,13 @@ class JavaScriptBackend extends Backend {
     return fields[field];
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   void scheduleForRecompilation(Element element) {
+    assert(invariant(element, element.isDeclaration));
     if (compiler.phase == Compiler.PHASE_COMPILING) {
       invalidateAfterCodegen.add(element);
     }
@@ -648,10 +681,13 @@ class JavaScriptBackend extends Backend {
    * Retrieve the types of the parameters used for calling the [element]
    * function. The types are optimistic in the sense as they are based on the
    * possible invocations of the function seen so far.
+   *
+   * Invariant: [element] must be a declaration element.
    */
   HTypeList optimisticParameterTypes(
       FunctionElement element,
       OptionalParameterTypes defaultValueTypes) {
+    assert(invariant(element, element.isDeclaration));
     if (element.parameterCount(compiler) == 0) return HTypeList.ALL_UNKNOWN;
     return argumentTypes.parameterTypes(element, defaultValueTypes);
   }
@@ -662,17 +698,26 @@ class JavaScriptBackend extends Backend {
    * The passed [defaultValueTypes] holds the types of default values for
    * the optional parameters. If this assumption fail the function will be
    * scheduled for recompilation.
+   *
+   * Invariant: [element] must be a declaration element.
    */
   registerParameterTypesOptimization(
       FunctionElement element,
       HTypeList parameterTypes,
       OptionalParameterTypes defaultValueTypes) {
+    assert(invariant(element, element.isDeclaration));
     if (element.parameterCount(compiler) == 0) return;
     argumentTypes.registerOptimization(
         element, parameterTypes, defaultValueTypes);
   }
 
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   void registerReturnType(FunctionElement element, HType returnType) {
+    assert(invariant(element, element.isDeclaration));
     ReturnInfo info = returnInfo[element];
     if (info != null) {
       info.update(returnType, scheduleForRecompilation);
@@ -687,12 +732,16 @@ class JavaScriptBackend extends Backend {
    * is recompiled the return type might change to someting broader. For that
    * reason [caller] is registered for recompilation if this happens. If the
    * function [callee] has not yet been compiled the returned type is [null].
+   *
+   * Invariant: Both [caller] and [callee] must be declaration elements.
    */
   HType optimisticReturnTypesWithRecompilationOnTypeChange(
       Element caller, FunctionElement callee) {
+    assert(invariant(callee, callee.isDeclaration));
     returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
     ReturnInfo info = returnInfo[callee];
     if (info.returnType != HType.UNKNOWN && caller != null) {
+      assert(invariant(caller, caller.isDeclaration));
       info.addCompiledFunction(caller);
     }
     return info.returnType;

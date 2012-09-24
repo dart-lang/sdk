@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory OptionElement([String data = null, String value = null,
-                         bool defaultSelected = null, bool selected = null])
+  static OptionElement createOptionElement(
+      [String data, String value, bool defaultSelected, bool selected])
       native '''
           if (data == null) return new Option();
           if (value == null) return new Option(data);

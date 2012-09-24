@@ -1,13 +1,12 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Test deoptimization caused by running code that did not collect type
-// feedback before.
+// Test deoptimization on an optimistically hoisted smi check.
 
 sum(a, b) {
-  int sum = 0;
-  for (int j = 1; j < 10; j++) {
-    for (int i = a; i < b; i++) {
+  var sum = 0;
+  for (var j = 1; j < 10; j++) {
+    for (var i = a; i < b; i++) {
       sum++;
     }
   }

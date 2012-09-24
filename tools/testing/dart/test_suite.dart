@@ -428,9 +428,23 @@ class StandardTestSuite implements TestSuite {
 
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
     Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
+
+    // Check for an "ExtraCommand" comment from the file, and generate
+    // a command for it, if needed.
+    var optionsFromFile = info.optionsFromFile;
+    var commands = [];
+    var command = optionsFromFile['extraCommand'];
+    var args = optionsFromFile['extraCommandArgs'];
+    if (command != null) {
+      commands.add(new Command(command, args));
+    }
+
+    List _append(list1,list2) => []..addAll(list1)..addAll(list2);
+
     for (var vmOptions in vmOptionsList) {
       doTest(new TestCase('$suiteName/$testName',
-                          makeCommands(info, vmOptions, commonArguments),
+                          _append(commands,
+                              makeCommands(info, vmOptions, commonArguments)),
                           configuration,
                           completeHandler,
                           expectations,
@@ -663,6 +677,18 @@ class StandardTestSuite implements TestSuite {
               fromPath.toNativePath(), '$tempDir/$baseName.js',
               compiler, tempDir, vmOptions));
         }
+      }
+
+      var extraCommand = optionsFromFile['extraCommand'];
+      if (extraCommand != null) {
+        var args = optionsFromFile['extraCommandArgs'];
+        // As a special case, a command of "dart" should run with the
+        // dart VM that we are testing.
+        if (extraCommand == 'dart') {
+          extraCommand = TestUtils.vmFileName(configuration);
+        }
+        args= args.map((arg)=>arg.replaceAll(@"$dartDir", dartDir.toString()));
+        commands.add(new Command(extraCommand, args));
       }
 
       // Construct the command that executes the browser test
@@ -924,24 +950,28 @@ class StandardTestSuite implements TestSuite {
    *   executing the copy command printed by the test script.
    */
   Map readOptionsFromFile(Path filePath) {
-    RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
-    RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
-    RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
-    RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
+    RegExp testOptionsRegExp = const RegExp(r"// VMOptions=(.*)");
+    RegExp dartOptionsRegExp = const RegExp(r"// DartOptions=(.*)");
+    RegExp otherScriptsRegExp = const RegExp(r"// OtherScripts=(.*)");
+    RegExp multiTestRegExp = const RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp staticTypeRegExp =
-        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type warning");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
     RegExp compileTimeRegExp =
-        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
-    RegExp staticCleanRegExp = const RegExp(@"// @static-clean");
-    RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
-    RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
+        const RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticCleanRegExp = const RegExp(r"// @static-clean");
+    RegExp leadingHashRegExp = const RegExp(r"^#", multiLine: true);
+    RegExp isolateStubsRegExp = const RegExp(r"// IsolateStubs=(.*)");
     RegExp domImportRegExp =
-        const RegExp(@"^#import.*(dart:(dom|html)|html\.dart).*\)",
+        const RegExp(r"^#import.*(dart:(dom|html)|html\.dart).*\)",
                      multiLine: true);
     RegExp libraryDefinitionRegExp =
-        const RegExp(@"^#library\(", multiLine: true);
+        const RegExp(r"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(@"^#(source|import|resource)\(", multiLine: true);
+        const RegExp(r"^#(source|import|resource)\(", multiLine: true);
+    RegExp extraCommandRegExp =
+        const RegExp(r"// ExtraCommand=(.*)", multiLine: true);
+    RegExp extraArgsRegExp =
+        const RegExp(r"// ExtraCommandArgs=(.*)", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -976,6 +1006,11 @@ class StandardTestSuite implements TestSuite {
       }
       dartOptions = match[1].split(' ').filter((e) => e != '');
     }
+
+    var match = extraCommandRegExp.firstMatch(contents);
+    var extraCommand = (match != null) ? match.group(1) : null;
+    match = extraArgsRegExp.firstMatch(contents);
+    var extraCommandArgs = (match != null) ? match.group(1).split(' ') : [];
 
     matches = staticCleanRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1028,7 +1063,9 @@ class StandardTestSuite implements TestSuite {
              "isLibraryDefinition": isLibraryDefinition,
              "containsSourceOrImport": containsSourceOrImport,
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
-             "numCompileTimeAnnotations": numCompileTimeAnnotations};
+             "numCompileTimeAnnotations": numCompileTimeAnnotations,
+             "extraCommand": extraCommand,
+             "extraCommandArgs": extraCommandArgs};
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
@@ -1206,6 +1243,14 @@ class JUnitTestSuite implements TestSuite {
 
 class TestUtils {
   /**
+   * The libraries in this directory relies on finding various files
+   * relative to the 'test.dart' script in '.../dart/tools/test.dart'. If
+   * the main script using 'test_suite.dart' is not there, the main
+   * script must set this to '.../dart/tools/test.dart'.
+   */
+  static String testScriptPath = new Options().script;
+
+  /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
    */
@@ -1344,7 +1389,7 @@ class TestUtils {
  }
 
   static Path dartDir() {
-    File scriptFile = new File(new Options().script);
+    File scriptFile = new File(testScriptPath);
     Path scriptPath = new Path.fromNative(scriptFile.fullPathSync());
     return scriptPath.directoryPath.directoryPath;
   }

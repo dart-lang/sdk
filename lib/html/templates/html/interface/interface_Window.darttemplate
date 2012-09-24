@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
 
   /**
    * Register a [port] on this window under the given [name].  This

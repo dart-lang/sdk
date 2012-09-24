@@ -4,7 +4,6 @@
 
 #include "platform/assert.h"
 
-#include <cstdlib>
 #include <sstream>
 #include <string>
 
@@ -38,11 +37,11 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   // TODO(5411324): replace std::abort with OS::Abort so that we can handle
   // restoring of signal handlers before aborting.
   if (kind_ == ASSERT) {
-    std::abort();
+    abort();
   }
   static bool failed = false;
   if (!failed) {
-    std::atexit(&failed_exit);
+    atexit(&failed_exit);
   }
   failed = true;
 }

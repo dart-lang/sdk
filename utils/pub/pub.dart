@@ -13,10 +13,10 @@
 #import('io.dart');
 #import('command_help.dart');
 #import('command_install.dart');
-#import('command_list.dart');
 #import('command_update.dart');
 #import('command_version.dart');
 #import('entrypoint.dart');
+#import('exit_codes.dart', prefix: 'exit_codes');
 #import('git_source.dart');
 #import('hosted_source.dart');
 #import('package.dart');
@@ -35,7 +35,6 @@ Version get pubVersion => new Version(0, 0, 0);
  */
 Map<String, PubCommand> get pubCommands => {
   'help': new HelpCommand(),
-  'list': new ListCommand(),
   'install': new InstallCommand(),
   'update': new UpdateCommand(),
   'version': new VersionCommand()
@@ -80,8 +79,10 @@ main() {
   var cacheDir;
   if (Platform.environment.containsKey('PUB_CACHE')) {
     cacheDir = Platform.environment['PUB_CACHE'];
+  } else if (Platform.operatingSystem == 'windows') {
+    var appData = Platform.environment['APPDATA'];
+    cacheDir = join(appData, 'Pub', 'Cache');
   } else {
-    // TODO(nweiz): Choose a better default for Windows.
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
@@ -96,7 +97,7 @@ main() {
   if (command == null) {
     printError('Unknown command "${globalOptions.rest[0]}".');
     printError('Run "pub help" to see available commands.');
-    exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+    exit(exit_codes.USAGE);
     return;
   }
 
@@ -176,7 +177,7 @@ class PubCommand {
      commandOptions = commandParser.parse(commandArgs);
     } on FormatException catch (e) {
       this.printUsage(description: e.message);
-      return;
+      exit(exit_codes.USAGE);
     }
 
     handleError(error, trace) {
@@ -195,9 +196,7 @@ class PubCommand {
         printError(trace);
       }
 
-      // TODO(nweiz): Use the more semantic error codes in
-      // http://www.freebsd.org/cgi/man.cgi?query=sysexits
-      exit(1);
+      exit(_chooseExitCode(error));
     }
 
     var future = new Future.immediate(null);
@@ -256,6 +255,19 @@ class PubCommand {
     if (!commandUsage.isEmpty()) {
       print('');
       print(commandUsage);
+    }
+  }
+
+  /// Returns the appropriate exit code for [exception], falling back on 1 if no
+  /// appropriate exit code could be found.
+  int _chooseExitCode(exception) {
+    if (exception is HttpException || exception is HttpParserException ||
+        exception is SocketIOException || exception is PubHttpException) {
+      return exit_codes.UNAVAILABLE;
+    } else if (exception is FormatException) {
+      return exit_codes.DATA;
+    } else {
+      return 1;
     }
   }
 }

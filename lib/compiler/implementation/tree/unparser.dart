@@ -220,6 +220,8 @@ class Unparser implements Visitor {
     if (node.constKeyword !== null) add(node.constKeyword.value);
     visit(node.typeArguments);
     visit(node.elements);
+    // If list is empty, emit space after [] to disambiguate cases like []==[].
+    if (node.elements.isEmpty()) sb.add(' ');
   }
 
   visitModifiers(Modifiers node) => node.visitChildren(this);

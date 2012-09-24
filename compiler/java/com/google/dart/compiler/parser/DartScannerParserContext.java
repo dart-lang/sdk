@@ -39,7 +39,7 @@ class DartScannerParserContext implements ParserContext {
   public DartScannerParserContext(Source source, String sourceCode,
       DartCompilerListener listener, CompilerMetrics compilerMetrics) {
     this.source = source;
-    this.scanner = createScanner(sourceCode);
+    this.scanner = createScanner(sourceCode, source, listener);
     this.listener = listener;
     this.compilerMetrics = compilerMetrics;
   }
@@ -190,8 +190,8 @@ class DartScannerParserContext implements ParserContext {
     return scanner.getTokenLocation();
   }
 
-  protected DartScanner createScanner(String sourceCode) {
-    return new DartScanner(sourceCode);
+  protected DartScanner createScanner(String sourceCode, Source source, DartCompilerListener listener) {
+    return new DartScanner(sourceCode, 0, source, listener);
   }
 
   @Override

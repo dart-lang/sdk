@@ -22,7 +22,6 @@ final USAGE_STRING = """
     The commands are:
       help      display help information for Pub
       install   install the current package's dependencies
-      list      print the contents of repositories
       update    update the current package's dependencies to the latest versions
       version   print Pub version
 

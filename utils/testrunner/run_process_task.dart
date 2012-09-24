@@ -8,15 +8,9 @@ class RunProcessTask extends PipelineTask {
   List _argumentTemplates;
   int _timeout;
 
-  void init(String commandTemplate, List argumentTemplates, int timeout) {
-    this._commandTemplate = commandTemplate;
-    this._argumentTemplates = argumentTemplates;
-    this._timeout = timeout;
-  }
+  RunProcessTask(this._commandTemplate, this._argumentTemplates, this._timeout);
 
-  RunProcessTask();
-
-  void execute(Path testfile, List stdout, List stderr, bool logging,
+  execute(Path testfile, List stdout, List stderr, bool logging,
               Function exitHandler) {
     var cmd = expandMacros(_commandTemplate, testfile);
     List args = new List();
@@ -55,6 +49,7 @@ class RunProcessTask extends PipelineTask {
         new StringInputStream(process.stderr);
     stdoutStringStream.onLine = makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.onLine = makeReadHandler(stderrStringStream, stderr);
+    return process;
   }
 
   Function makeReadHandler(StringInputStream source, List<String> destination) {

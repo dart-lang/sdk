@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory ShadowRoot(Element host) native '''
+  static ShadowRoot createShadowRoot(Element host) native '''
       return new WebKitShadowRoot(host);
     ''';
 }

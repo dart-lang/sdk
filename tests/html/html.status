@@ -8,7 +8,6 @@ event_test: Skip  # Issue 1996
 webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
-measurement_test: Pass, Fail  # Issue 1940
 
 [ $runtime == drt ]
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
@@ -16,6 +15,7 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 url_test: Fail   # createObjectURL not implemented.
+transferables_test: Fail # Under investigation by antonm
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -32,6 +32,9 @@ audioelement_test: Fail # Issue 4517
 blob_constructor_test: Fail # Issue 4517
 css_test: Fail # Issue 4517
 htmlaudioelement_test: Fail # Issue 4517
+form_data_test: Fail # Possibly Issue 4517
+fileapi_test: Fail # Possibly Issue 4517
+websql_test: Pass, Fail # Possibly Issue 4517
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
@@ -88,7 +91,6 @@ indexeddb_4_test: Fail
 js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
-measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
 serialized_script_value_test: Fail
@@ -103,7 +105,6 @@ xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
-
 
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
@@ -165,7 +166,6 @@ xhr_test: Fail
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
-measurement_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
 unknownelement_test: Fail # Issue 4189
 

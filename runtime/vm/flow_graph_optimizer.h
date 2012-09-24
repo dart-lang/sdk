@@ -30,6 +30,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void PropagateSminess();
 
+  void InferSmiRanges();
+
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitRelationalOp(RelationalOpInstr* instr);
@@ -137,7 +139,7 @@ class LICM : public AllStatic {
   static void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                          BlockEntryInstr* header,
                                          BlockEntryInstr* pre_header,
-                                         Instruction* current);
+                                         CheckSmiInstr* current);
 };
 
 

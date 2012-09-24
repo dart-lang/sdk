@@ -5,6 +5,7 @@
 package com.google.dart.compiler;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class PackageLibraryManager {
 
   public static final String DART_SCHEME = "dart";
   public static final String DART_SCHEME_SPEC = "dart:";
-
+  
 
   /**
    * Answer <code>true</code> if the string is a dart spec
@@ -86,12 +87,20 @@ public class PackageLibraryManager {
   }
 
   public PackageLibraryManager(File sdkPath, String platformName) {
-    if (SDK_LIBRARY_MANAGER == null){
-      SDK_LIBRARY_MANAGER = new SystemLibraryManager(sdkPath);
-    }
+    initLibraryManager(sdkPath);
     setPackageRoots(DEFAULT_PACKAGE_ROOTS);
   }
 
+  /**
+   * Initialize the SDK system library manager.
+   * 
+   * @param sdkPath the path to the SDK
+   */
+  protected void initLibraryManager(File sdkPath) {
+    if (SDK_LIBRARY_MANAGER == null){
+      SDK_LIBRARY_MANAGER = new SystemLibraryManager(sdkPath);
+    }
+  }
 
   /**
    * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
@@ -171,8 +180,13 @@ public class PackageLibraryManager {
       }
       for (URI rootUri : packageRootsUri){
         URI fileUri = rootUri.resolve(relPath);
-        if (new File(fileUri).exists()){
-          return fileUri;
+        File file = new File(fileUri);
+        if (file.exists()){
+          try {
+            return file.getCanonicalFile().toURI();
+          } catch (IOException e) {
+            file.toURI();
+          }
         }
       }
       // don't return null for package scheme
@@ -254,7 +268,11 @@ public class PackageLibraryManager {
         fileUri = getResolvedPackageUri(uri, rootUri);
         File file  = new File(fileUri);
         if (file.exists()){
-          return file.toURI();
+          try {
+            return file.getCanonicalFile().toURI();
+          } catch (IOException e) {
+            return file.toURI();
+          }
         }
       }
       // resolve against first package root
@@ -263,6 +281,7 @@ public class PackageLibraryManager {
     }
     return uri;
   }
+
   
   /**
    * Given a uri, resolve against the list of package roots, used to find generated files

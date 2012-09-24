@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
+import com.google.dart.compiler.ast.DartAssertStatement;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -76,7 +77,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -1414,22 +1414,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    @Override
-    public Type visitReturnBlock(DartReturnBlock node) {
-      // 'assert' is statement
-      if (node.getStatements().size() == 1
-          && node.getStatements().get(0) instanceof DartReturnStatement) {
-        DartReturnStatement statement = (DartReturnStatement) node.getStatements().get(0);
-        DartExpression value = statement.getValue();
-        if (value != null && Elements.isArtificialAssertMethod(value.getElement())) {
-          typeError(value, TypeErrorCode.ASSERT_IS_STATEMENT);
-          return voidType;
-        }
-      }
-      // continue
-      return super.visitReturnBlock(node);
-    }
-
     private Type typeAsVoid(DartNode node) {
       node.visitChildren(this);
       return voidType;
@@ -2184,7 +2168,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           List<Type> arguments = ifaceType.getArguments();
           ftype = (FunctionType) ftype.subst(arguments, substParams);
-          checkDeprecated(getConstructorNameNode(node), constructorElement);
+          checkDeprecated(ASTNodes.getConstructorNameNode(node), constructorElement);
           checkInvocation(node, node, constructorElement.getName(), ftype);
         }
       }
@@ -2267,6 +2251,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Element element = node.getElement();
       if (element != null) {
         return element.getType();
+      }
+      if (node.getName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+        return dynamicType;
       }
       DartNode qualifier = node.getQualifier();
       Type receiver = nonVoidTypeOf(qualifier);
@@ -2572,6 +2559,25 @@ public class TypeAnalyzer implements DartCompilationPhase {
       blockOldTypes.addFirst(new BlockTypeContext());
       return typeAsVoid(node);
     }
+    
+    @Override
+    public Type visitAssertStatement(DartAssertStatement node) {
+      DartExpression condition = node.getCondition();
+      checkAssertCondition(condition);
+      // infer types, which are valid until the end of the enclosing control block
+      if (node.getParent() instanceof DartBlock) {
+        DartBlock restoreBlock = getBlockForAssertTypesInference(node);
+        VariableElementsRestorer variableRestorer = restoreOnBlockExit.get(restoreBlock);
+        if (variableRestorer == null) {
+          variableRestorer = new VariableElementsRestorer();
+          restoreOnBlockExit.put(restoreBlock, variableRestorer);
+        }
+        restoreOnBlockExit.put(restoreBlock, variableRestorer);
+        inferVariableTypesFromIsConditions(condition, variableRestorer);
+      }
+      // done for "assert"
+      return voidType;
+    }
 
     @Override
     public Type visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
@@ -2579,28 +2585,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = target.getName();
       Element element = target.getElement();
       node.setElement(element);
-      // special support for "assert"
-      if (Elements.isArtificialAssertMethod(element)) {
-        if (node.getArguments().size() == 1) {
-          DartExpression condition = node.getArguments().get(0);
-          checkAssertCondition(condition);
-          // infer types, which are valid until the end of the enclosing control block
-          if (node.getParent() instanceof DartExprStmt
-              && node.getParent().getParent() instanceof DartBlock) {
-            DartBlock restoreBlock = getBlockForAssertTypesInference(node);
-            VariableElementsRestorer variableRestorer = restoreOnBlockExit.get(restoreBlock);
-            if (variableRestorer == null) {
-              variableRestorer = new VariableElementsRestorer();
-              restoreOnBlockExit.put(restoreBlock, variableRestorer);
-            }
-            restoreOnBlockExit.put(restoreBlock, variableRestorer);
-            inferVariableTypesFromIsConditions(condition, variableRestorer);
-          }
-          // done for "assert"
-          return voidType;
-        }
-      }
-      // normal invocation
       Type type;
       switch (ElementKind.of(element)) {
         case FIELD:
@@ -2968,27 +2952,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return hasFunctionTypeAliasReference(visited, target, current);
     }
 
-    /**
-     * @return the {@link DartIdentifier} corresponding to the name of constructor.
-     */
-    public static DartIdentifier getConstructorNameNode(DartNewExpression node) {
-      DartNode constructor = node.getConstructor();
-      return getConstructorNameNode(constructor);
-    }
-
-    /**
-     * @return the {@link DartIdentifier} corresponding to the name of constructor.
-     */
-    public static DartIdentifier getConstructorNameNode(DartNode constructor) {
-      if (constructor instanceof DartPropertyAccess) {
-        return ((DartPropertyAccess) constructor).getName();
-      } else if (constructor instanceof DartTypeNode) {
-        return getConstructorNameNode(((DartTypeNode) constructor).getIdentifier());
-      } else {
-        return (DartIdentifier) constructor;
-      }
-    }
-
     @Override
     public Type visitIntegerLiteral(DartIntegerLiteral node) {
       return typeOfLiteral(node);
@@ -3076,6 +3039,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (InterfaceType supertype : supertypes) {
           supertypeElements.add(supertype.getElement());
         }
+        Set<String> artificialNames = Sets.newHashSet();
         for (ClassElement interfaceElement : supertypeElements) {
           for (Element member : interfaceElement.getMembers()) {
             String name = member.getName();
@@ -3085,6 +3049,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
               }
             }
             superMembers.put(name, member);
+            if (member instanceof FieldElement) {
+              FieldElement field = (FieldElement) member;
+              if (!field.getModifiers().isAbstractField()) {
+                artificialNames.add("setter " + name);
+                superMembers.put("setter " + name, member);
+              } else if (field.getSetter() != null && !name.startsWith("setter ")) {
+                superMembers.put("setter " + name, member);
+              }
+            }
           }
         }
 
@@ -3106,11 +3079,23 @@ public class TypeAnalyzer implements DartCompilationPhase {
         while (supertype != null) {
           ClassElement superclass = supertype.getElement();
           for (Element member : superclass.getMembers()) {
+            String name = member.getName();
             if (!member.getModifiers().isAbstract()) {
-              superMembers.removeAll(member.getName());
+              superMembers.removeAll(name);
+            }
+            if (member instanceof FieldElement) {
+              FieldElement field = (FieldElement) member;
+              if (field.getSetter() != null) {
+                superMembers.removeAll("setter " + name);
+              }
             }
           }
           supertype = supertype.getElement().getSupertype();
+        }
+        
+        // Remove artificial "setter " members.
+        for (String name : artificialNames) {
+          superMembers.removeAll(name);
         }
 
         // All remaining methods are unimplemented.
@@ -3136,8 +3121,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       public Void visitField(DartField node) {
         if (superMembers != null) {
           FieldElement field = node.getElement();
+          // prepare overridden elements
           String name = field.getName();
-          Collection<Element> overridden = superMembers.removeAll(name);
+          Set<Element> overridden = Sets.newHashSet();
+          if (node.getAccessor() != null) {
+            if (node.getAccessor().getModifiers().isSetter()) {
+              if (!name.startsWith("setter ")) {
+                name = "setter " + name;
+              }
+            }
+            overridden.addAll(superMembers.removeAll(name));
+          } else {
+            overridden.addAll(superMembers.removeAll(name));
+          }
+          // check override
           for (Element superElement : overridden) {
             if (!(field.isStatic() && superElement.getModifiers().isStatic())) {
               if (canOverride(node.getName(), field.getModifiers(), superElement)
@@ -3156,6 +3153,32 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     break;
                 }
               }
+            }
+          }
+          // set super-elements for FieldElement
+          Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
+          // set super-elements for getter/setter
+          if (node.getAccessor() != null) {
+            Set<Element> superGetters = Sets.newHashSet();
+            Set<Element> superSetters = Sets.newHashSet();
+            for (Element superElement : overridden) {
+              if (superElement instanceof FieldElement) {
+                FieldElement superField = (FieldElement) superElement;
+                if (superField.getGetter() != null) {
+                  superGetters.add(superField.getGetter());
+                } else if (superField.getSetter() != null) {
+                  superSetters.add(superField.getSetter());
+                } else {
+                  superGetters.add(superField);
+                  superSetters.add(superField);
+                }
+              }
+            }
+            if (node.getAccessor().getModifiers().isGetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superGetters);
+            }
+            if (node.getAccessor().getModifiers().isSetter()) {
+              Elements.setOverridden(node.getAccessor().getElement(), superSetters);
             }
           }
         }

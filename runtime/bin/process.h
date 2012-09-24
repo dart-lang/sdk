@@ -36,6 +36,11 @@ class Process {
 
   static intptr_t CurrentProcessId();
 
+  static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
+                                             intptr_t* pid);
+  static Dart_Handle SetProcessIdNativeField(Dart_Handle process,
+                                             intptr_t pid);
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };

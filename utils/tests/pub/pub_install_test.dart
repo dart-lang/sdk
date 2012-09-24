@@ -93,6 +93,27 @@ main() {
     run();
   });
 
+  test('overwrites the existing packages directory', () {
+    dir(appPath, [
+      appPubspec([]),
+      dir('packages', [
+        dir('foo'),
+        dir('myapp'),
+      ]),
+      libDir('myapp')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      nothing('foo'),
+      dir('myapp', [file('myapp.dart', 'main() => "myapp";')])
+    ]).scheduleValidate();
+
+    run();
+  });
+
   group('creates a packages directory in', () {
     test('"test/" and its subdirectories', () {
       dir(appPath, [
@@ -142,6 +163,36 @@ main() {
             ])
           ]),
           dir("subexample", [
+            dir("packages", [
+              dir("myapp", [
+                file('foo.dart', 'main() => "foo";')
+              ])
+            ])
+          ])
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test('"web/" and its subdirectories', () {
+      dir(appPath, [
+        appPubspec([]),
+        libDir('foo'),
+        dir("web", [dir("subweb")])
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(appPath, [
+        dir("web", [
+          dir("packages", [
+            dir("myapp", [
+              file('foo.dart', 'main() => "foo";')
+            ])
+          ]),
+          dir("subweb", [
             dir("packages", [
               dir("myapp", [
                 file('foo.dart', 'main() => "foo";')

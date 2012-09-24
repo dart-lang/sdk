@@ -46,6 +46,8 @@ class MessageKind {
       'cannot resolve type #{1}');
   static const DUPLICATE_DEFINITION = const MessageKind(
       'duplicate definition of #{1}');
+  static const DUPLICATE_IMPORT = const MessageKind(
+      'duplicate import of #{1}');
   static const NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
   static const NOT_A_PREFIX = const MessageKind(
@@ -153,6 +155,8 @@ class MessageKind {
       'not a compile-time constant');
   static const CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
       'cycle in the compile-time constant computation');
+  static const CONSTRUCTOR_IS_NOT_CONST = const MessageKind(
+      'constructor is not a const constructor');
 
   static const KEY_NOT_A_STRING_LITERAL = const MessageKind(
       'map-literal key not a string literal');
@@ -251,6 +255,11 @@ class MessageKind {
 
   static const VOID_NOT_ALLOWED = const MessageKind(
       'type void is only allowed in a return type.');
+
+  static const INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
+Invalid offset (#{1}) in source map.
+File: #{2}
+Length: #{3}''');
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

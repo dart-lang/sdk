@@ -189,6 +189,13 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     }
   }
 
+  // Returns the name that is used to identify an object in the
+  // namespace dictionary.
+  // Object::DictionaryName() returns String::null(). Only subclasses
+  // of Object that need to be entered in the library and library prefix
+  // namespaces need to provide an implementation.
+  virtual RawString* DictionaryName() const;
+
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
 
@@ -459,8 +466,9 @@ class Class : public Object {
   }
 
   RawString* Name() const;
-
   RawString* UserVisibleName() const;
+
+  virtual RawString* DictionaryName() const { return Name(); }
 
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
@@ -1336,6 +1344,7 @@ class Function : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
   RawString* QualifiedUserVisibleName() const;
+  virtual RawString* DictionaryName() const { return name(); }
 
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // internal signature of the given function.
@@ -1757,6 +1766,7 @@ class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
+  virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
@@ -2096,6 +2106,7 @@ class Library : public Object {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* ImportAt(intptr_t index) const;
   RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
+  bool ImportsCorelib() const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
                                       intptr_t line_number) const;
@@ -2128,6 +2139,10 @@ class Library : public Object {
     raw_ptr()->debuggable_ = value;
   }
 
+  bool IsCoreLibrary() const {
+    return raw() == CoreLibrary();
+  }
+
   static RawLibrary* LookupLibrary(const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
   static bool IsKeyUsed(intptr_t key);
@@ -2136,12 +2151,15 @@ class Library : public Object {
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
+  static void InitScalarlistLibrary(Isolate* isolate);
+  static void InitNativeWrappersLibrary(Isolate* isolate);
+
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();
-  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static RawLibrary* ScalarlistLibrary();
   static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.
@@ -2176,6 +2194,8 @@ class Library : public Object {
 class LibraryPrefix : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  virtual RawString* DictionaryName() const { return name(); }
+
   RawArray* libraries() const { return raw_ptr()->libraries_; }
   intptr_t num_libs() const { return raw_ptr()->num_libs_; }
 
@@ -3248,10 +3268,13 @@ class Integer : public Number {
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
 
-  static RawInteger* AsInteger(const Integer& value);
-  static RawInteger* BinaryOp(Token::Kind operation,
-                              const Integer& left,
-                              const Integer& right);
+  // Return the most compact presentation of an integer.
+  RawInteger* AsInteger() const;
+  // Return an integer in the form of a RawBigint.
+  RawBigint* AsBigint() const;
+
+  RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
@@ -3306,6 +3329,8 @@ class Smi : public Integer {
   static bool IsValid64(int64_t value) {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
+
+  RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
 
  private:
   static intptr_t ValueFromRaw(uword raw_value) {
@@ -3394,10 +3419,7 @@ class Bigint : public Integer {
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
-  static RawBigint* AsBigint(const Integer& value);
-  static RawBigint* BinaryOp(Token::Kind operation,
-                             const Bigint& left,
-                             const Bigint& right);
+  RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 
  private:
   Chunk GetChunkAt(intptr_t i) const {

@@ -34,6 +34,8 @@ class FlowGraphBuilder: public ValueObject {
 
   void Bailout(const char* reason);
 
+  intptr_t AllocateBlockId() { return ++last_used_block_id_; }
+
   void set_context_level(intptr_t value) { context_level_ = value; }
   intptr_t context_level() const { return context_level_; }
 
@@ -78,6 +80,7 @@ class FlowGraphBuilder: public ValueObject {
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
 
+  intptr_t last_used_block_id_;
   intptr_t context_level_;
   intptr_t last_used_try_index_;
   intptr_t try_index_;

@@ -8,7 +8,7 @@
  */
 abstract class PipelineTask {
 
-  abstract void execute(Path testfile, List stdout, List stderr,
+  abstract execute(Path testfile, List stdout, List stderr,
                        bool logging, Function exitHandler);
 
   void cleanup(Path testfile, List stdout, List stderr,
@@ -20,9 +20,14 @@ abstract class PipelineTask {
     if (!keepFiles) {
       for (var template in templates) {
         var fname = expandMacros(template, testfile);
-        deleteFile(fname);
-        if (logging) {
-          stdout.add('Removing $fname');
+        if (deleteFile(fname)) {
+          if (logging) {
+            stdout.add('Removed $fname');
+          }
+        } else {
+          if (logging) {
+            stdout.add('Failed to remove $fname');
+          }
         }
       }
     }

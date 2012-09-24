@@ -62,6 +62,7 @@ void main() {
   }
 
   final libPath = doc.scriptDir.append('../../');
+  final pkgPath = doc.scriptDir.append('../../pkg/');
 
   doc.cleanOutputDirectory(outputDir);
 
@@ -90,7 +91,7 @@ void main() {
   htmldoc.includeApi = true;
   htmldoc.documentLibraries(
     <Path>[doc.scriptDir.append('../../lib/html/doc/html.dartdoc')],
-    libPath);
+    libPath, pkgPath);
 
   // Process libraries.
 
@@ -136,7 +137,7 @@ void main() {
     apidoc.includedLibraries = includedLibraries;
 
     Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
-      apidoc.documentLibraries(apidocLibraries, libPath);
+      apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
 
       final compiled = doc.compileScript(mode, outputDir, libPath);
 

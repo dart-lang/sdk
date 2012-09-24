@@ -35,6 +35,9 @@ main() {
 
   final argParser = new ArgParser();
 
+  final Path libPath = scriptDir.append('../../../');
+  Path pkgPath = scriptDir.append('../../../pkg/');
+
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
       defaultsTo: false, negatable: false,
@@ -144,7 +147,15 @@ main() {
         }
       }, allowMultiple: true);
 
-  final libPath = scriptDir.append('../../../');
+  argParser.addOption('pkg',
+      help: 'Sets the package directory to the specified directory.\n'
+        'If omitted the package directory is the SDK pkg/ dir',
+      callback: (pkgDir) {
+        if(pkgDir != null) {
+          pkgPath = new Path.fromNative(pkgDir);
+        }
+      });
+
   dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
 
   if (args.isEmpty()) {
@@ -175,7 +186,7 @@ main() {
 
   cleanOutputDirectory(dartdoc.outputDir);
 
-  dartdoc.documentLibraries(entrypoints, libPath);
+  dartdoc.documentLibraries(entrypoints, libPath, pkgPath);
 
   Future compiled = compileScript(dartdoc.mode, dartdoc.outputDir, libPath);
   Future filesCopied = copyDirectory(scriptDir.append('../static'),

@@ -10,7 +10,13 @@
 #import('dart:io');
 #import('dart:isolate');
 #import('dart:uri');
+
 #import('utils.dart');
+
+bool _isGitInstalledCache;
+
+/// The cached Git command.
+String _gitCommandCache;
 
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
@@ -270,8 +276,8 @@ Future<File> createSymlink(from, to) {
     // command is not.) I'm using a junction point (/j) here instead of a soft
     // link (/d) because the latter requires some privilege shenanigans that
     // I'm not sure how to specify from the command line.
-    command = 'cmd';
-    args = ['/c', 'mklink', '/j', to, from];
+    command = 'mklink';
+    args = ['/j', to, from];
   }
 
   return runProcess(command, args).transform((result) {
@@ -363,9 +369,11 @@ Future<InputStream> httpGet(uri) {
   connection.onError = (e) {
     // Show a friendly error if the URL couldn't be resolved.
     if (e is SocketIOException &&
+        e.osError != null &&
         (e.osError.errorCode == 8 ||
          e.osError.errorCode == -2 ||
-         e.osError.errorCode == -5)) {
+         e.osError.errorCode == -5 ||
+         e.osError.errorCode == 11004)) {
       e = 'Could not resolve URL "${uri.origin}".';
     }
 
@@ -377,7 +385,7 @@ Future<InputStream> httpGet(uri) {
     if (response.statusCode >= 400) {
       client.shutdown();
       completer.completeException(
-          new HttpException(response.statusCode, response.reasonPhrase));
+          new PubHttpException(response.statusCode, response.reasonPhrase));
       return;
     }
 
@@ -439,6 +447,16 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     bool pipeStderr = false]) {
   int exitCode;
 
+  // TODO(rnystrom): Should dart:io just handle this?
+  // Spawning a process on Windows will not look for the executable in the
+  // system path. So, if executable looks like it needs that (i.e. it doesn't
+  // have any path separators in it), then spawn it through a shell.
+  if ((Platform.operatingSystem == "windows") &&
+      (executable.indexOf('\\') == -1)) {
+    args = flatten(["/c", executable, args]);
+    executable = "cmd";
+  }
+
   final options = new ProcessOptions();
   if (workingDir != null) {
     options.workingDirectory = _getDirectory(workingDir).path;
@@ -493,16 +511,16 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 
 /**
  * Wraps [input] to provide a timeout. If [input] completes before
- * [milliSeconds] have passed, then the return value completes in the same way.
- * However, if [milliSeconds] pass before [input] has completed, it completes
+ * [milliseconds] have passed, then the return value completes in the same way.
+ * However, if [milliseconds] pass before [input] has completed, it completes
  * with a [TimeoutException] with [message].
  *
  * Note that timing out will not cancel the asynchronous operation behind
  * [input].
  */
-Future timeout(Future input, int milliSeconds, String message) {
+Future timeout(Future input, int milliseconds, String message) {
   var completer = new Completer();
-  var timer = new Timer(milliSeconds, (_) {
+  var timer = new Timer(milliseconds, (_) {
     if (completer.future.isComplete) return;
     completer.completeException(new TimeoutException(message));
   });
@@ -520,15 +538,20 @@ Future timeout(Future input, int milliSeconds, String message) {
   return completer.future;
 }
 
-/// The cached Git command.
-String _gitCommandCache;
-
 /// Tests whether or not the git command-line app is available for use.
-Future<bool> get isGitInstalled => _gitCommand.transform((git) => git != null);
+Future<bool> get isGitInstalled {
+  if (_isGitInstalledCache != null) {
+    // TODO(rnystrom): The sleep is to pump the message queue. Can use
+    // Future.immediate() when #3356 is fixed.
+    return sleep(0).transform((_) => _isGitInstalledCache);
+  }
+
+  return _gitCommand.transform((git) => git != null);
+}
 
 /// Run a git process with [args] from [workingDir].
 Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
-  _gitCommand.chain((git) => runProcess(git, args, workingDir));
+    _gitCommand.chain((git) => runProcess(git, args, workingDir));
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
@@ -579,9 +602,18 @@ Future<bool> _tryGitCommand(String command) {
  * directory or a path. Returns whether or not the extraction was successful.
  */
 Future<bool> extractTarGz(InputStream stream, destination) {
+  destination = _getPath(destination);
+
+  if (Platform.operatingSystem == "windows") {
+    return _extractTarGzWindows(stream, destination);
+  }
+
   var process = Process.start("tar",
-      ["--extract", "--gunzip", "--directory", _getPath(destination)]);
+      ["--extract", "--gunzip", "--directory", destination]);
   var completer = new Completer<int>();
+
+  process.onExit = completer.complete;
+  process.onError = completer.completeException;
 
   // Wait for the process to be fully started before writing to its
   // stdin stream.
@@ -589,22 +621,76 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     stream.pipe(process.stdin);
     process.stdout.pipe(stdout, close: false);
     process.stderr.pipe(stderr, close: false);
-
-    process.onExit = completer.complete;
-    process.onError = completer.completeException;
   };
 
   return completer.future.transform((exitCode) => exitCode == 0);
 }
 
+Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
+  // Find 7zip.
+  var scriptPath = new File(new Options().script).fullPathSync();
+  var scriptDir = new Path.fromNative(scriptPath).directoryPath;
+
+  // Note: This line of code gets munged by create_sdk.py to be the correct
+  // relative path to 7zip in the SDK.
+  var pathTo7zip = '../../third_party/7zip/7za.exe';
+
+  var command = scriptDir.append(pathTo7zip).canonicalize().toNativePath();
+
+  // 7zip can't unarchive from gzip -> tar -> destination all in one step so
+  // we spawn it twice and pipe them together.
+  var completer = new Completer<bool>();
+  var gzipProcess = Process.start(command, ['e', '-si', '-tgzip', '-so']);
+
+  // TODO(rnystrom): Even though we are quoting the destination directory here,
+  // 7zip still seems to barf if there is a space in the path. For now we'll
+  // just avoid spaces.
+  var tarProcess = Process.start(command,
+      ['x', '-si', '-ttar', '-o"$destination"']);
+
+  // 7zip writes to stderr even when things are going OK, so we'll capture it
+  // here and only print it if the exit code is bad.
+  var errorStream = new ListOutputStream();
+
+  // Wait for the process to be fully started before writing to its
+  // stdin stream.
+  gzipProcess.onStart = () {
+    stream.pipe(gzipProcess.stdin);
+    gzipProcess.stderr.pipe(errorStream, close: false);
+  };
+
+  tarProcess.onStart = () {
+    gzipProcess.stdout.pipe(tarProcess.stdin);
+    tarProcess.stderr.pipe(errorStream, close: false);
+
+    // TODO(rnystrom): For some mysterious reason, the extract hangs if you
+    // don't do this. Look into why.
+    tarProcess.stdout.pipe(new ListOutputStream());
+  };
+
+  tarProcess.onExit = (exitCode) {
+    if (exitCode != 0) {
+      printError(new String.fromCharCodes(errorStream.read()));
+      completer.completeException('Could not extract archive to $destination.');
+    } else {
+      completer.complete(true);
+    }
+  };
+
+  tarProcess.onError = completer.completeException;
+  gzipProcess.onError = completer.completeException;
+
+  return completer.future;
+}
+
 /**
  * Exception thrown when an HTTP operation fails.
  */
-class HttpException implements Exception {
+class PubHttpException implements Exception {
   final int statusCode;
   final String reason;
 
-  const HttpException(this.statusCode, this.reason);
+  const PubHttpException(this.statusCode, this.reason);
 }
 
 /**

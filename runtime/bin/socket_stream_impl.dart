@@ -4,7 +4,7 @@
 
 class _SocketInputStream implements SocketInputStream {
   _SocketInputStream(Socket socket) : _socket = socket {
-    if (_socket._id == -1) _closed = true;
+    if (_socket._closed) _closed = true;
     _socket.onClosed = _onClosed;
   }
 

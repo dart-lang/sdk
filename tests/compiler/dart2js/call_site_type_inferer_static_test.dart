@@ -12,9 +12,11 @@
 
 void compileAndFind(String code,
                     String functionName,
+                    bool disableInlining,
                     check(compiler, element)) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
   var compiler = compilerFor(code, uri);
+  compiler.disableInlining = disableInlining;
   compiler.runCompiler(uri);
   var fun = findElement(compiler, functionName);
   return check(compiler.backend, fun);
@@ -72,10 +74,13 @@ const String TEST_TEN = r"""
   main() { f(1); g(f); }
 """;
 
-void runTest(String test, [List<HType> expectedTypes = null]) {
+void doTest(String test,
+            bool enableInlining,
+            List<HType> expectedTypes) {
   compileAndFind(
     test,
     'f',
+    enableInlining,
     (backend, x) {
       HTypeList types = backend.optimisticParameterTypes(x, null);
       if (expectedTypes != null) {
@@ -85,6 +90,11 @@ void runTest(String test, [List<HType> expectedTypes = null]) {
         Expect.isTrue(types.allUnknown);
       }
   });
+}
+
+void runTest(String test, [List<HType> expectedTypes]) {
+  doTest(test, false, expectedTypes);
+  doTest(test, true, expectedTypes);
 }
 
 void test() {

@@ -26,6 +26,15 @@ class TypeCheckerTask extends CompilerTask {
 
 abstract class DartType implements Hashable {
   abstract SourceString get name;
+  /**
+   * Returns the [Element] which declared this type.
+   *
+   * This can be [ClassElement] for classes, [TypedefElement] for typedefs,
+   * [TypeVariableElement] for type variables and [FunctionElement] for
+   * function types.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
   abstract Element get element;
 
   /**
@@ -154,7 +163,9 @@ class FunctionType implements DartType {
   Link<DartType> parameterTypes;
 
   FunctionType(DartType this.returnType, Link<DartType> this.parameterTypes,
-               Element this.element);
+               Element this.element) {
+    assert(element === null || invariant(element, element.isDeclaration));
+  }
 
   DartType unalias(Compiler compiler) => this;
 

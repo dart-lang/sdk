@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
@@ -24,6 +25,7 @@ import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -61,6 +63,7 @@ import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -241,21 +244,24 @@ public class Resolver {
       getContext().pushFunctionAliasScope(alias);
       resolveFunctionAlias(alias);
 
-      List<DartParameter> parameters = alias.getParameters();
-      for (DartParameter parameter : parameters) {
-        assert parameter.getElement() != null;
-        if (parameter.getQualifier() instanceof DartThisExpression) {
-          onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
-        } else {
-          if (parameter.getModifiers().isNamed()
-              && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
-            onError(parameter.getName(),
-                ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+      getContext().pushScope("<parameters>");
+      try {
+        List<DartParameter> parameters = alias.getParameters();
+        for (DartParameter parameter : parameters) {
+          assert parameter.getElement() != null;
+          if (parameter.getQualifier() instanceof DartThisExpression) {
+            onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
+          } else {
+            if (parameter.getModifiers().isNamed()
+                && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
+              onError(parameter.getName(),
+                  ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+            }
+            getContext().declare(parameter.getElement(), ResolverErrorCode.DUPLICATE_PARAMETER);
           }
-          getContext().declare(
-              parameter.getElement(),
-              ResolverErrorCode.DUPLICATE_PARAMETER);
         }
+      } finally {
+        getContext().popScope();
       }
 
       getContext().popScope();
@@ -625,6 +631,19 @@ public class Resolver {
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParameters();
       Set<FieldElement> initializedFields = Sets.newHashSet();
+      
+      // remember field with initializers
+      if (previousEnclosingElement instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) previousEnclosingElement;
+        for (Element classMember : classElement.getMembers()) {
+          if (ElementKind.of(classMember) == ElementKind.FIELD) {
+            FieldElement fieldMember = (FieldElement) classMember;
+            if (fieldMember.getModifiers().isFinal() && fieldMember.getModifiers().isInitialized()) {
+              initializedFields.add(fieldMember);
+            }
+          }
+        }
+      }
 
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.
@@ -1005,11 +1024,37 @@ public class Resolver {
       // The scope of a label on the case statement is the case statement itself. These labels
       // need to be resolved before the continue <label>; statements can be resolved.
       for (DartSwitchMember member : x.getMembers()) {
-        recordSwitchMamberLabel(member);
+        recordSwitchMemberLabel(member);
       }
       x.visitChildren(this);
       getContext().popScope();
       return null;
+    }
+
+    @Override
+    public Element visitCase(DartCase node) {
+      super.visitCase(node);
+      List<DartStatement> statements = node.getStatements();
+      // the last statement should be: break, continue, return, throw
+      if (!statements.isEmpty()) {
+        DartStatement lastStatement = statements.get(statements.size() - 1);
+        if (!isValidLastSwitchCaseStatement(lastStatement)) {
+          onError(lastStatement, ResolverErrorCode.SWITCH_CASE_FALL_THROUGH);
+        }
+      }
+      // done
+      return null;
+    }
+
+    private boolean isValidLastSwitchCaseStatement(DartStatement statement) {
+      if (statement instanceof DartExprStmt) {
+        DartExprStmt exprStmt = (DartExprStmt) statement;
+        if (exprStmt.getExpression() instanceof DartThrowExpression) {
+          return true;
+        }
+      }
+      return statement instanceof DartBreakStatement || statement instanceof DartContinueStatement
+          || statement instanceof DartReturnStatement;
     }
 
     @Override
@@ -1020,7 +1065,7 @@ public class Resolver {
       return null;
     }
 
-    private void recordSwitchMamberLabel(DartSwitchMember x) {
+    private void recordSwitchMemberLabel(DartSwitchMember x) {
       List<DartLabel> labels = x.getLabels();
       for (DartLabel label : labels) {
         LabelElement labelElement =  Elements.switchMemberLabelElement(label, label.getName(),
@@ -1300,6 +1345,7 @@ public class Resolver {
               break;
 
             case NONE:
+              x.getName().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
               onError(x.getName(), TypeErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;
@@ -1489,10 +1535,6 @@ public class Resolver {
       if (element == null) {
         element = scope.findElement(scope.getLibrary(), "setter " + x.getTarget().getName());
       }
-      if (element == null && x.getTarget().getName().equals("assert")
-          && x.getArguments().size() == 1) {
-        element = scope.findElement(scope.getLibrary(), Elements.ASSERT_FUNCTION_NAME);
-      }
       ElementKind kind = ElementKind.of(element);
       if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);
@@ -1528,7 +1570,7 @@ public class Resolver {
         // Only 'new' expressions can have a type in a property access.
         @Override
         public Element visitTypeNode(DartTypeNode type) {
-          TypeErrorCode errorCode = x.isConst() ? TypeErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
+          ErrorCode errorCode = x.isConst() ? ResolverErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
                                               errorCode,
@@ -2085,9 +2127,12 @@ public class Resolver {
       }
     }
 
-    private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
+    private ConstructorElement checkIsConstructor(DartNewExpression node, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        onError(source.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode errorCode = node.isConst()
+            ? ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR
+            : ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+        onError(ASTNodes.getConstructorNameNode(node), errorCode);
         return null;
       }
       return (ConstructorElement) element;

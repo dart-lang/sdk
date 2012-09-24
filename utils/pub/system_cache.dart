@@ -51,25 +51,6 @@ class SystemCache {
   }
 
   /**
-   * Loads all of the package ids in the cache and returns them.
-   */
-  Future<List<PackageId>> listAll() {
-    return listDir(rootDir).chain((paths) {
-      final sources = paths.map((path) {
-        final source = sources[basename(path)];
-        return listDir(path).transform((subpaths) {
-          // TODO(rnystrom): Once there are cached packages and this path is
-          // being used, figure out how version numbers should be acquired.
-          return subpaths.map((subpath) =>
-            new PackageId(
-                basename(subpath), source, Version.none, basename(subpath)));
-        });
-      });
-      return Futures.wait(sources).transform(flatten);
-    });
-  }
-
-  /**
    * Ensures that the package identified by [id] is installed to the cache,
    * loads it, and returns it.
    *

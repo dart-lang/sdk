@@ -30,6 +30,8 @@ Future<String> provider(Uri uri) {
                   setRuntimeTypeInfo(o, i) {}
                   eqNull(a) {}
                   eqNullB(a) {}""";
+    } else if (uri.path.endsWith('_patch.dart')) {
+      source = '';
     } else {
       source = "#library('lib');";
     }

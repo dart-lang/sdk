@@ -455,7 +455,7 @@ int jsonObjectLength(String string) {
     while (index < string.length) {
       String char = string[index];
       if (char == '"') return index + 1;
-      if (char == @'\') index++;
+      if (char == r'\') index++;
       if (index == string.length) return index;
       index++;
     }

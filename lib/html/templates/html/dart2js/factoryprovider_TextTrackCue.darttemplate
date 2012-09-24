@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  factory TextTrackCue(String id, num startTime, num endTime, String text,
-                       [String settings, bool pauseOnExit]) native '''
-    if (settings == null)
-      return new TextTrackCue(id, startTime, endTime, text);
-    if (pauseOnExit == null)
-      return new TextTrackCue(id, startTime, endTime, text, settings);
-    return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
-  ''';
+  static TextTrackCue createTextTrackCue(
+      String id, num startTime, num endTime, String text,
+      [String settings, bool pauseOnExit])
+      native '''
+        if (settings == null)
+          return new TextTrackCue(id, startTime, endTime, text);
+        if (pauseOnExit == null)
+          return new TextTrackCue(id, startTime, endTime, text, settings);
+        return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
+      ''';
 }

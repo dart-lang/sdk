@@ -31,15 +31,15 @@
  */
 
 
-class Token 
+class Token
 {
-  static final String LEFT_PAREN = "(";
-  static final String RIGHT_PAREN = ")";
-  static final String DOLLAR_SYMBOL = @"$";
-  static final String UNION = ",";
-  static final String EQUALS = "==";
-  static final String AND = "&&";
-  static final String OR = "||";
+  static const String LEFT_PAREN = "(";
+  static const String RIGHT_PAREN = ")";
+  static const String DOLLAR_SYMBOL = r"$";
+  static const String UNION = ",";
+  static const String EQUALS = "==";
+  static const String AND = "&&";
+  static const String OR = "||";
 }
 
 
@@ -51,9 +51,9 @@ class Tokenizer {
     : tokens = new List<String>();
 
   //  Tokens are : "(", ")", "$", ",", "&&", "||", "==", and (maximal) \w+.
-  static final testRegexp =
-      const RegExp(@"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
-  static final regexp = const RegExp(@"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
+  static const testRegexp =
+      const RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
+  static const regexp = const RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
 
   List<String> tokenize() {
     if (!testRegexp.hasMatch(expression)) {
@@ -157,7 +157,7 @@ class SetIf implements SetExpression {
     left.evaluate(environment) : new Set<String>();
   String toString() => "($left if $right)";
 }
-    
+
 
 class SetConstant implements SetExpression {
   String value;
@@ -235,7 +235,7 @@ class ExpressionParser {
       scanner.advance();
       return value;
     }
-    Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+    Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
                   "Expected identifier in expression, got ${scanner.current}");
     SetExpression value = new SetConstant(scanner.current);
     scanner.advance();
@@ -279,20 +279,20 @@ class ExpressionParser {
     Expect.equals(scanner.current, Token.DOLLAR_SYMBOL,
         "Expected \$ in expression, got ${scanner.current}");
     scanner.advance();
-    Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+    Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
         "Expected identifier in expression, got ${scanner.current}");
     TermVariable left = new TermVariable(scanner.current);
     scanner.advance();
     if (scanner.current == Token.EQUALS) {
       scanner.advance();
-      Expect.isTrue(const RegExp(@"^\w+$").hasMatch(scanner.current),
+      Expect.isTrue(const RegExp(r"^\w+$").hasMatch(scanner.current),
           "Expected identifier in expression, got ${scanner.current}");
       TermConstant right = new TermConstant(scanner.current);
       scanner.advance();
       return new Comparison(left, right);
     } else {
       return new BooleanVariable(left);
-    } 
+    }
   }
 }
 

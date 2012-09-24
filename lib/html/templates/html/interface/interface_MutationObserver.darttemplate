@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS {
+abstract class $ID$EXTENDS {
 $!MEMBERS
   void observe(Node target,
                [Map options,

@@ -38,7 +38,7 @@ class ValueSet {
     if (probe !== null && probe.gvnEquals(instruction)) return probe;
     // Look in the collisions list.
     for (ValueSetNode node = collisions; node !== null; node = node.next) {
-      if (node.hashCode == hashCode) {
+      if (node.hashCode() == hashCode) {
         HInstruction cached = node.value;
         if (cached.gvnEquals(instruction)) return cached;
       }
@@ -148,7 +148,8 @@ class ValueSet {
 
 class ValueSetNode {
   final HInstruction value;
-  final int hashCode;
+  final int hash;
+  int hashCode() => hash;
   ValueSetNode next;
-  ValueSetNode(this.value, this.hashCode, this.next);
+  ValueSetNode(this.value, this.hash, this.next);
 }

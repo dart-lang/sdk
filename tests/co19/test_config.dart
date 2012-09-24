@@ -16,6 +16,7 @@ class Co19TestSuite extends StandardTestSuite {
               new Path("tests/co19/src"),
               ["tests/co19/co19-compiler.status",
                "tests/co19/co19-runtime.status",
+               "tests/co19/co19-dart2dart.status",
                "tests/co19/co19-dart2js.status"]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);

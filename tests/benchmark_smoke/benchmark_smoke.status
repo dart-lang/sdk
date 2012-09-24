@@ -22,3 +22,6 @@
 
 [ $compiler == dart2js && $runtime == drt && $checked ]
 benchmark_smoke_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
+
+[ $runtime == ie && $compiler == dart2js && $checked ]
+benchmark_smoke_test: Fail

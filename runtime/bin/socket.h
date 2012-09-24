@@ -36,7 +36,7 @@ class Socket {
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
-  static bool GetRemotePeer(intptr_t fd, char *host, intptr_t *port);
+  static bool GetRemotePeer(intptr_t fd, char* host, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
   static intptr_t GetStdioHandle(int num);
 
@@ -45,6 +45,9 @@ class Socket {
   static const char* LookupIPv4Address(char* host, OSError** os_error);
 
   static Dart_Port GetServicePort();
+
+  static Dart_Handle SetSocketIdNativeField(Dart_Handle socket, intptr_t id);
+  static Dart_Handle GetSocketIdNativeField(Dart_Handle socket, intptr_t* id);
 
  private:
   static dart::Mutex mutex_;

@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 $!COMMENT
-interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
-    default _$(ID)FactoryProvider {
-  SVGSVGElement();
+abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
+  factory SVGSVGElement() => _$(ID)FactoryProvider.createSVGSVGElement();
 
 $!MEMBERS
 }

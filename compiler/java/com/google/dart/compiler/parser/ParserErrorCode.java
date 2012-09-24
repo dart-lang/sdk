@@ -36,6 +36,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEPRECATED_GETTER(ErrorSeverity.WARNING, "The presence of parentheses afer the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
+  DEPRECATED_RAW_STRING("The use of '@' to prefix a raw string has been deprecated; use 'r' instead"),
   DEPRECATED_RESOURCE_DIRECTIVE("The #resource directive has been deprecated and will soon be disallowed"),
   DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),

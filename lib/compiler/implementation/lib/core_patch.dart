@@ -13,14 +13,13 @@ patch void print(var obj) {
   }
 }
 
-
 // Patch for Object implementation.
 patch class Object {
-  patch String toString() {
-    return Primitives.objectToString(this);
-  }
+  patch int hashCode() => Primitives.objectHashCode(this);
 
-  patch void noSuchMethod(String name, List args) {
+  patch String toString() => Primitives.objectToString(this);
+
+  patch Dynamic noSuchMethod(String name, List args) {
     throw new NoSuchMethodError(this, name, args);
   }
 
@@ -72,14 +71,7 @@ patch class double {
 }
 
 patch class NoSuchMethodError {
-  patch static String safeToString(Object object) {
-    if (object is int || object is double || object is bool || null == object) {
-      return object.toString();
-    }
-    if (object is String) {
-      String escaped = object.replaceAll('"', '\\"');
-      return '"$escaped"';
-    }
+  patch static String _objectToString(Object object) {
     return Primitives.objectToString(object);
   }
 }

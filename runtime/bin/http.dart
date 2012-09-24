@@ -589,9 +589,10 @@ abstract class HttpResponse {
   int contentLength;
 
   /**
-   * Gets and sets the status code. Any integer value is accepted, but
-   * for the official HTTP status codes use the fields from
-   * [HttpStatus].
+   * Gets and sets the status code. Any integer value is accepted. For
+   * the official HTTP status codes use the fields from
+   * [HttpStatus]. If no status code is explicitly set the default
+   * value [HttpStatus.OK] is used.
    */
   int statusCode;
 

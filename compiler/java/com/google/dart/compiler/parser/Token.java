@@ -88,6 +88,7 @@ public enum Token {
   ASSIGN_INDEX("[]=", 0),
 
   /* Keywords. */
+  ASSERT("assert", 0),
   BREAK("break", 0),
   CASE("case", 0),
   CATCH("catch", 0),

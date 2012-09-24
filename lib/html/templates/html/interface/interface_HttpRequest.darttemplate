@@ -5,8 +5,10 @@
 // WARNING: Do not edit - generated code.
 
 $!COMMENT
-interface $ID$EXTENDS {
-  $ID.get(String url, onSuccess($ID request));
+abstract class $ID$EXTENDS {
+  factory $ID.get(String url, onSuccess($ID request)) =>
+      _$(ID)FactoryProvider.create$(ID)_get(url, onSuccess);
 
-  $ID.getWithCredentials(String url, onSuccess($ID request));
+  factory $ID.getWithCredentials(String url, onSuccess($ID request)) =>
+      _$(ID)FactoryProvider.create$(ID)getWithCredentials(url, onSuccess);
 $!MEMBERS}

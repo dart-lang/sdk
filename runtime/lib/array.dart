@@ -24,6 +24,11 @@ class ObjectArray<E> implements List<E> {
                             int count)
       native "ObjectArray_copyFromObjectArray";
 
+  E removeAt(int index) {
+    throw const UnsupportedOperationException(
+        "Cannot remove element of a non-extendable array");
+  }
+
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
@@ -160,6 +165,11 @@ class ImmutableArray<E> implements List<E> {
   }
 
   int get length native "ObjectArray_getLength";
+
+  E removeAt(int index) {
+    throw const UnsupportedOperationException(
+        "Cannot modify an immutable array");
+  }
 
   void copyFrom(List src, int srcStart, int dstStart, int count) {
     throw const UnsupportedOperationException(

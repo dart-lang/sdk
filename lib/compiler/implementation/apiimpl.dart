@@ -31,7 +31,8 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
-            cutDeclarationTypes: hasOption(options, '--cut-declaration-types'));
+            forceCutDeclarationTypes:
+                hasOption(options, '--force-cut-declaration-types'));
 
   static bool hasOption(List<String> options, String option) {
     return options.indexOf(option) >= 0;

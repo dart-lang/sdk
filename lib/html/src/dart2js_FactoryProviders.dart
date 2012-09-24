@@ -4,22 +4,23 @@
 
 class _AudioContextFactoryProvider {
 
-  factory AudioContext() native '''
+  static AudioContext createAudioContext() native '''
     var constructor = window.AudioContext || window.webkitAudioContext;
     return new constructor();
 ''';
 }
 
 class _PointFactoryProvider {
-
-  factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
+  static Point createPoint(num x, num y) native
+    'return new WebKitPoint(x, y);';
 }
 
 class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) native '''return new WebSocket(url);''';
+  static WebSocket createWebSocket(String url) native
+      '''return new WebSocket(url);''';
 }
 
 class _TextFactoryProvider {
-  factory Text(String data) native "return document.createTextNode(data);";
+  static Text createText(String data) native
+      "return document.createTextNode(data);";
 }

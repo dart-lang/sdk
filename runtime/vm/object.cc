@@ -687,110 +687,113 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-  name = Symbols::_Int8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-  name = Symbols::_Uint8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-  name = Symbols::_Int16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-  name = Symbols::_Uint16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-  name = Symbols::_Int32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-  name = Symbols::_Uint32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-  name = Symbols::_Int64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-  name = Symbols::_Uint64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-  name = Symbols::_Float32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-  name = Symbols::_Float64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-  name = Symbols::_ExternalInt8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-  name = Symbols::_ExternalUint8Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-  name = Symbols::_ExternalInt16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-  name = Symbols::_ExternalUint16Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-  name = Symbols::_ExternalInt32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-  name = Symbols::_ExternalUint32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-  name = Symbols::_ExternalInt64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-  name = Symbols::_ExternalUint64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-  name = Symbols::_ExternalFloat32Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
-  name = Symbols::_ExternalFloat64Array();
-  RegisterPrivateClass(cls, name, core_lib);
-
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
   name = Symbols::_WeakProperty();
   RegisterPrivateClass(cls, name, core_lib);
+
+  Library::InitScalarlistLibrary(isolate);
+  Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
+
+  cls = Class::New<Int8Array>();
+  object_store->set_int8_array_class(cls);
+  name = Symbols::_Int8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint8Array>();
+  object_store->set_uint8_array_class(cls);
+  name = Symbols::_Uint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int16Array>();
+  object_store->set_int16_array_class(cls);
+  name = Symbols::_Int16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint16Array>();
+  object_store->set_uint16_array_class(cls);
+  name = Symbols::_Uint16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int32Array>();
+  object_store->set_int32_array_class(cls);
+  name = Symbols::_Int32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint32Array>();
+  object_store->set_uint32_array_class(cls);
+  name = Symbols::_Uint32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Int64Array>();
+  object_store->set_int64_array_class(cls);
+  name = Symbols::_Int64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Uint64Array>();
+  object_store->set_uint64_array_class(cls);
+  name = Symbols::_Uint64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Float32Array>();
+  object_store->set_float32_array_class(cls);
+  name = Symbols::_Float32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<Float64Array>();
+  object_store->set_float64_array_class(cls);
+  name = Symbols::_Float64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt8Array>();
+  object_store->set_external_int8_array_class(cls);
+  name = Symbols::_ExternalInt8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint8Array>();
+  object_store->set_external_uint8_array_class(cls);
+  name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt16Array>();
+  object_store->set_external_int16_array_class(cls);
+  name = Symbols::_ExternalInt16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint16Array>();
+  object_store->set_external_uint16_array_class(cls);
+  name = Symbols::_ExternalUint16Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt32Array>();
+  object_store->set_external_int32_array_class(cls);
+  name = Symbols::_ExternalInt32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint32Array>();
+  object_store->set_external_uint32_array_class(cls);
+  name = Symbols::_ExternalUint32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalInt64Array>();
+  object_store->set_external_int64_array_class(cls);
+  name = Symbols::_ExternalInt64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalUint64Array>();
+  object_store->set_external_uint64_array_class(cls);
+  name = Symbols::_ExternalUint64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalFloat32Array>();
+  object_store->set_external_float32_array_class(cls);
+  name = Symbols::_ExternalFloat32Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
+
+  cls = Class::New<ExternalFloat64Array>();
+  object_store->set_external_float64_array_class(cls);
+  name = Symbols::_ExternalFloat64Array();
+  RegisterPrivateClass(cls, name, scalarlist_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -944,6 +947,18 @@ RawError* Object::Init(Isolate* isolate) {
   }
   patch_script = Bootstrap::LoadMirrorsScript(true);
   error = mirrors_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& scalarlist_script = Script::Handle(
+      Bootstrap::LoadScalarlistScript(false));
+  ASSERT(!scalarlist_lib.IsNull());
+  error = Bootstrap::Compile(scalarlist_lib, scalarlist_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadScalarlistScript(true);
+  error = scalarlist_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1102,6 +1117,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
 void Object::Print() const {
   OS::Print("%s\n", ToCString());
+}
+
+
+RawString* Object::DictionaryName() const {
+  return String::null();
 }
 
 
@@ -5999,28 +6019,11 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   Object& entry = Class::Handle();
   String& entry_name = String::Handle();
   Object& new_entry = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
   for (intptr_t i = 0; i < dict_size; i++) {
     entry = dict.At(i);
     if (!entry.IsNull()) {
-      if (entry.IsClass()) {
-        cls ^= entry.raw();
-        entry_name = cls.Name();
-      } else if (entry.IsFunction()) {
-        func ^= entry.raw();
-        entry_name = func.name();
-      } else if (entry.IsField()) {
-        field ^= entry.raw();
-        entry_name = field.name();
-      } else if (entry.IsLibraryPrefix()) {
-        prefix ^= entry.raw();
-        entry_name = prefix.name();
-      } else {
-        UNREACHABLE();
-      }
+      entry_name = entry.DictionaryName();
+      ASSERT(!entry_name.IsNull());
       intptr_t hash = entry_name.Hash();
       intptr_t index = hash % new_dict_size;
       new_entry = new_dict.At(index);
@@ -6044,11 +6047,8 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsFunction() ||
          obj.IsField() ||
          obj.IsLibraryPrefix());
-  ASSERT((LookupLocalObject(name) == Object::null()) ||
-         ((obj.IsLibraryPrefix() ||
-           (obj.IsClass() &&
-            Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
-          (LookupLocalObject(name) == Object::null())));
+  ASSERT(name.Equals(String::Handle(obj.DictionaryName())));
+  ASSERT(LookupLocalObject(name) == Object::null());
   const Array& dict = Array::Handle(dictionary());
   intptr_t dict_size = dict.Length() - 1;
   intptr_t index = name.Hash() % dict_size;
@@ -6092,18 +6092,9 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
-    if (entry.IsClass()) {
-      entry_name = Class::Cast(entry).Name();
-    } else if (entry.IsFunction()) {
-      entry_name = Function::Cast(entry).name();
-    } else if (entry.IsField()) {
-      entry_name = Field::Cast(entry).name();
-    } else if (entry.IsLibraryPrefix()) {
-      entry_name = LibraryPrefix::Cast(entry).name();
-    } else {
-      UNREACHABLE();
-    }
-    if (entry_name.Equals(name)) {
+    entry_name = entry.DictionaryName();
+    ASSERT(!entry_name.IsNull());
+     if (entry_name.Equals(name)) {
       return entry.raw();
     }
     *index = (*index + 1) % dict_size;
@@ -6496,6 +6487,32 @@ RawLibraryPrefix* Library::ImportPrefixAt(intptr_t index) const {
 }
 
 
+bool Library::ImportsCorelib() const {
+  Isolate* isolate = Isolate::Current();
+  Library& imported = Library::Handle(isolate);
+  intptr_t count = num_imports();
+  for (int i = 0; i < count; i++) {
+    imported = ImportAt(i);
+    if (imported.IsCoreLibrary()) {
+      return true;
+    }
+  }
+  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate);
+  LibraryPrefixIterator it(*this);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    count = prefix.num_libs();
+    for (int i = 0; i < count; i++) {
+      imported = prefix.GetLibrary(i);
+      if (imported.IsCoreLibrary()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 void Library::AddImport(const Library& library) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
@@ -6567,7 +6584,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
 
 
 RawLibrary* Library::New(const String& url) {
-  return NewLibraryHelper(url, true);
+  return NewLibraryHelper(url, false);
 }
 
 
@@ -6601,7 +6618,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 
 void Library::InitMathLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:math"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   lib.AddImport(core_impl_lib);
@@ -6611,7 +6628,7 @@ void Library::InitMathLibrary(Isolate* isolate) {
 
 void Library::InitIsolateLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:isolate"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   isolate->object_store()->set_isolate_library(lib);
 }
@@ -6619,7 +6636,7 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 
 void Library::InitMirrorsLibrary(Isolate* isolate) {
   const String& url = String::Handle(Symbols::New("dart:mirrors"));
-  const Library& lib = Library::Handle(Library::New(url));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   lib.AddImport(isolate_lib);
@@ -6627,6 +6644,16 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
       Library::Handle(Library::NativeWrappersLibrary());
   lib.AddImport(wrappers_lib);
   isolate->object_store()->set_mirrors_library(lib);
+}
+
+
+void Library::InitScalarlistLibrary(Isolate* isolate) {
+  const String& url = String::Handle(Symbols::New("dart:scalarlist"));
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  lib.AddImport(core_impl_lib);
+  isolate->object_store()->set_scalarlist_library(lib);
 }
 
 
@@ -6755,6 +6782,11 @@ RawLibrary* Library::IsolateLibrary() {
 
 RawLibrary* Library::MirrorsLibrary() {
   return Isolate::Current()->object_store()->mirrors_library();
+}
+
+
+RawLibrary* Library::ScalarlistLibrary() {
+  return Isolate::Current()->object_store()->scalarlist_library();
 }
 
 
@@ -8752,21 +8784,20 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-// Return the most compact presentation of an integer.
-RawInteger* Integer::AsInteger(const Integer& value) {
-  if (value.IsSmi()) return value.raw();
-  if (value.IsMint()) {
+RawInteger* Integer::AsInteger() const {
+  if (IsSmi()) return raw();
+  if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= value.raw();
+    mint ^= raw();
     if (Smi::IsValid64(mint.value())) {
       return Smi::New(mint.value());
     } else {
-      return value.raw();
+      return raw();
     }
   }
-  ASSERT(value.IsBigint());
+  ASSERT(IsBigint());
   Bigint& big_value = Bigint::Handle();
-  big_value ^= value.raw();
+  big_value ^= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
   } else if (BigintOperations::FitsIntoMint(big_value)) {
@@ -8777,19 +8808,18 @@ RawInteger* Integer::AsInteger(const Integer& value) {
 }
 
 
-RawInteger* Integer::BinaryOp(Token::Kind operation,
-                              const Integer& left,
-                              const Integer& right) {
+RawInteger* Integer::ArithmeticOp(Token::Kind operation,
+                                  const Integer& other) const {
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
   // 64-bit signed result, except the product of two Smis (unless the Smis are
   // 32-bit or less).
-  if (left.IsSmi() && right.IsSmi()) {
+  if (IsSmi() && other.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
-    left_smi ^= left.raw();
-    right_smi ^= right.raw();
+    left_smi ^= raw();
+    right_smi ^= other.raw();
     const intptr_t left_value = left_smi.Value();
     const intptr_t right_value = right_smi.Value();
     switch (operation) {
@@ -8833,10 +8863,10 @@ RawInteger* Integer::BinaryOp(Token::Kind operation,
   // In 32-bit mode, the result of any operation between two 63-bit signed
   // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
   // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
-  if ((Smi::kBits < 32) && !left.IsBigint() && !right.IsBigint()) {
-    const int64_t left_value = left.AsInt64Value();
+  if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
+    const int64_t left_value = AsInt64Value();
     if (Utils::IsInt(63, left_value)) {
-      const int64_t right_value = right.AsInt64Value();
+      const int64_t right_value = other.AsInt64Value();
       if (Utils::IsInt(63, right_value)) {
         switch (operation) {
         case Token::kADD:
@@ -8869,11 +8899,109 @@ RawInteger* Integer::BinaryOp(Token::Kind operation,
       }
     }
   }
-  const Bigint& left_big = Bigint::Handle(Bigint::AsBigint(left));
-  const Bigint& right_big = Bigint::Handle(Bigint::AsBigint(right));
+  const Bigint& left_big = Bigint::Handle(AsBigint());
+  const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
-      Bigint::Handle(Bigint::BinaryOp(operation, left_big, right_big));
-  return Integer::Handle(AsInteger(result)).raw();
+      Bigint::Handle(left_big.ArithmeticOp(operation, right_big));
+  return Integer::Handle(result.AsInteger()).raw();
+}
+
+
+static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
+  return !op1.IsBigint() && !op2.IsBigint();
+}
+
+
+RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
+  if (IsSmi() && other.IsSmi()) {
+    Smi& op1 = Smi::Handle();
+    Smi& op2 = Smi::Handle();
+    op1 ^= raw();
+    op2 ^= other.raw();
+    intptr_t result = 0;
+    switch (kind) {
+      case Token::kBIT_AND:
+        result = op1.Value() & op2.Value();
+        break;
+      case Token::kBIT_OR:
+        result = op1.Value() | op2.Value();
+        break;
+      case Token::kBIT_XOR:
+        result = op1.Value() ^ op2.Value();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    ASSERT(Smi::IsValid(result));
+    return Smi::New(result);
+  } else if (Are64bitOperands(*this, other)) {
+    int64_t a = AsInt64Value();
+    int64_t b = other.AsInt64Value();
+    switch (kind) {
+      case Token::kBIT_AND:
+        return Integer::New(a & b);
+      case Token::kBIT_OR:
+        return Integer::New(a | b);
+      case Token::kBIT_XOR:
+        return Integer::New(a ^ b);
+      default:
+        UNIMPLEMENTED();
+    }
+  } else {
+    Bigint& op1 = Bigint::Handle(AsBigint());
+    Bigint& op2 = Bigint::Handle(other.AsBigint());
+    switch (kind) {
+      case Token::kBIT_AND:
+        return BigintOperations::BitAnd(op1, op2);
+      case Token::kBIT_OR:
+        return BigintOperations::BitOr(op1, op2);
+      case Token::kBIT_XOR:
+        return BigintOperations::BitXor(op1, op2);
+      default:
+        UNIMPLEMENTED();
+    }
+  }
+  return Integer::null();
+}
+
+
+// TODO(srdjan): Clarify handling of negative right operand in a shift op.
+RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
+  intptr_t result = 0;
+  const intptr_t left_value = Value();
+  const intptr_t right_value = other.Value();
+  ASSERT(right_value >= 0);
+  switch (kind) {
+    case Token::kSHL: {
+      if ((left_value == 0) || (right_value == 0)) {
+        return raw();
+      }
+      { // Check for overflow.
+        int cnt = Utils::HighestBit(left_value);
+        if ((cnt + right_value) >= Smi::kBits) {
+          if ((cnt + right_value) >= Mint::kBits) {
+            return BigintOperations::ShiftLeft(
+                Bigint::Handle(AsBigint()), right_value);
+          } else {
+            int64_t left_64 = left_value;
+            return Integer::New(left_64 << right_value);
+          }
+        }
+      }
+      result = left_value << right_value;
+      break;
+    }
+    case Token::kSHR: {
+      const intptr_t shift_amount =
+          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
+      result = left_value >> shift_amount;
+      break;
+    }
+    default:
+      UNIMPLEMENTED();
+  }
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
 }
 
 
@@ -9179,41 +9307,39 @@ const char* Double::ToCString() const {
 }
 
 
-// Returns value in form of a RawBigint.
-RawBigint* Bigint::AsBigint(const Integer& value) {
-  ASSERT(!value.IsNull());
-  if (value.IsSmi()) {
+RawBigint* Integer::AsBigint() const {
+  ASSERT(!IsNull());
+  if (IsSmi()) {
     Smi& smi = Smi::Handle();
-    smi ^= value.raw();
+    smi ^= raw();
     return BigintOperations::NewFromSmi(smi);
-  } else if (value.IsMint()) {
+  } else if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= value.raw();
+    mint ^= raw();
     return BigintOperations::NewFromInt64(mint.value());
   } else {
-    ASSERT(value.IsBigint());
+    ASSERT(IsBigint());
     Bigint& big = Bigint::Handle();
-    big ^= value.raw();
+    big ^= raw();
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     return big.raw();
   }
 }
 
 
-RawBigint* Bigint::BinaryOp(Token::Kind operation,
-                            const Bigint& left,
-                            const Bigint& right) {
+RawBigint* Bigint::ArithmeticOp(Token::Kind operation,
+                                const Bigint& other) const {
   switch (operation) {
     case Token::kADD:
-      return BigintOperations::Add(left, right);
+      return BigintOperations::Add(*this, other);
     case Token::kSUB:
-      return BigintOperations::Subtract(left, right);
+      return BigintOperations::Subtract(*this, other);
     case Token::kMUL:
-      return BigintOperations::Multiply(left, right);
+      return BigintOperations::Multiply(*this, other);
     case Token::kTRUNCDIV:
-      return BigintOperations::Divide(left, right);
+      return BigintOperations::Divide(*this, other);
     case Token::kMOD:
-      return BigintOperations::Modulo(left, right);
+      return BigintOperations::Modulo(*this, other);
     default:
       UNIMPLEMENTED();
       return Bigint::null();

@@ -34,6 +34,7 @@
 # ......mirrors/
 # ......uri/
 # ......utf/
+# ......scalarlist/
 # ....pkg/
 # ......args/
 # ......compiler/
@@ -226,7 +227,8 @@ def Main(argv):
   #
 
   for library in ['_internal', 'html', 'core', 'coreimpl',
-                  'crypto', 'isolate', 'json', 'math', 'mirrors', 'uri', 'utf']:
+                  'crypto', 'isolate', 'json', 'math', 'mirrors',
+                  'scalarlist', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
@@ -298,6 +300,19 @@ def Main(argv):
   # Create and populate util/pub.
   copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
            ignore=ignore_patterns('.svn', 'sdk'))
+
+  # Copy in 7zip for Windows.
+  if utils.GuessOS() == 'win32':
+    copytree(join(HOME, 'third_party', '7zip'),
+             join(join(UTIL, 'pub'), '7zip'),
+             ignore=ignore_patterns('.svn'))
+
+    ReplaceInFiles([
+        join(UTIL, 'pub', 'io.dart'),
+      ], [
+        ("var pathTo7zip = '../../third_party/7zip/7za.exe';",
+         "var pathTo7zip = '7zip/7za.exe';"),
+      ])
 
   revision = utils.GetSVNRevision()
 

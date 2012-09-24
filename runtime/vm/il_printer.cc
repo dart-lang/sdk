@@ -183,6 +183,10 @@ void Definition::PrintTo(BufferFormatter* f) const {
   PrintOperandsTo(f);
   f->Print(")");
   PrintPropagatedType(f, *this);
+  if (range_ != NULL) {
+    f->Print(" ");
+    range_->PrintTo(f);
+  }
 }
 
 
@@ -206,6 +210,54 @@ void Value::PrintTo(BufferFormatter* f) const {
 
 void ConstantInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("#%s", value().ToCString());
+}
+
+
+void ConstraintInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print(" ^ ");
+  constraint()->PrintTo(f);
+}
+
+
+void Range::PrintTo(BufferFormatter* f) const {
+  f->Print("[");
+  min_.PrintTo(f);
+  f->Print(", ");
+  max_.PrintTo(f);
+  f->Print("]");
+}
+
+
+const char* Range::ToCString(Range* range) {
+  if (range == NULL) return "[_|_, _|_]";
+
+  char buffer[256];
+  BufferFormatter f(buffer, sizeof(buffer));
+  range->PrintTo(&f);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
+
+void RangeBoundary::PrintTo(BufferFormatter* f) const {
+  switch (kind_) {
+    case kSymbol:
+      f->Print("v%"Pd, reinterpret_cast<Definition*>(value_)->ssa_temp_index());
+      if (offset_ != 0) f->Print("%+"Pd, offset_);
+      break;
+    case kConstant:
+      if (value_ == kMinusInfinity) {
+        f->Print("-inf");
+      } else if (value_ == kPlusInfinity) {
+        f->Print("+inf");
+      } else {
+        f->Print("%"Pd, value_);
+      }
+      break;
+    case kUnknown:
+      f->Print("_|_");
+      break;
+  }
 }
 
 
@@ -429,6 +481,11 @@ void CatchEntryInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" %co", overflow_ ? '+' : '-');
+}
+
 void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
@@ -506,6 +563,10 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
   }
   f->Print(")");
   PrintPropagatedType(f, *this);
+  if (range_ != NULL) {
+    f->Print(" ");
+    range_->PrintTo(f);
+  }
 }
 
 

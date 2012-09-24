@@ -7,6 +7,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -60,6 +61,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -124,6 +126,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "    case 0: qwerty: {",
         "      break qwerty;",
         "    }",
+        "    break;",
         "  }",
         "}",
         "");
@@ -210,6 +213,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 7, 1, 19),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 27),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 17));
+  }
+  
+  /**
+   * Type parameters should not conflict with formal parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5302
+   */
+  public void test_functionTypeAlias_typePaarameter_scope() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef f<f>(f);",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   /**
@@ -436,6 +452,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2862
+   */
+  public void test_switchCase_fallThrough() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(int x) {",
+        "  while (true) {",
+        "    switch (x) {",
+        "      case 0:",
+        "        break;",
+        "      case 1:",
+        "        continue;",
+        "      case 2:",
+        "        return;",
+        "      case 3:",
+        "        throw new Exception();",
+        "      case 4:",
+        "        bar();",
+        "    }",
+        "  }",
+        "}",
+        "bar() {}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.SWITCH_CASE_FALL_THROUGH, 14, 9, 6));
   }
 
   /**
@@ -726,6 +772,70 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
+  }
+
+  /**
+   * There was bug that implementing setter still caused warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  set foo(x) {}",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * When both getter and setter were abstract and only getter implemented, we should report error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementsOnlyGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  get foo();",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  get foo() => 0;",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 7, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5327
+   */
+  public void test_warnAbstract_whenInstantiate_implementsSetter_inSuperClass() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "interface I {",
+        "  get foo();",
+        "  set foo(x);",
+        "}",
+        "class A implements I {",
+        "  abstract get foo();",
+        "  set foo(x) {}",
+        "}",
+        "class B extends A {",
+        "  get foo() => 0;",
+        "}",
+        "main() {",
+        "  new B();",
+        "}");
+    assertErrors(libraryResult.getTypeErrors());
   }
 
   /**
@@ -1149,57 +1259,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  assert(true, false);", // not single argument
         "  assert;", // incomplete
         "}",
-        "foo() => assert(true);", // 'assert' is statement, not expression
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 13, 3, 6),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 14, 3, 6),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 13, 10, 4),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 14, 9, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 5, 10, 9),
         errEx(TypeErrorCode.ASSERT_BOOL, 6, 10, 6),
         errEx(TypeErrorCode.ASSERT_BOOL, 7, 10, 1),
         errEx(TypeErrorCode.ASSERT_BOOL, 11, 10, 13),
-        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12),
-        errEx(TypeErrorCode.ASSERT_IS_STATEMENT, 16, 10, 12));
-  }
-
-  public void test_assert_isUserFunction() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "assert(x) {}",
-        "main() {",
-        "  assert(true);",
-        "  assert(false);",
-        "  assert('message');",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-  }
-
-  public void test_assert_asLocalVariable() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  bool assert;",
-        "  assert;",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
-  }
-  
-  public void test_assert_asInheritedGetter() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  get assert() {}",
-        "}",
-        "class B extends A {",
-        "  foo() {",
-        "    assert;",
-        "  }",
-        "}",
-        "");
-    assertErrors(libraryResult.getErrors());
+        errEx(TypeErrorCode.ASSERT_BOOL, 12, 10, 12));
   }
 
   /**
@@ -1338,6 +1407,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
+  
+  public void test_identicalFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const A = 1;",
+            "const B = 2;",
+            "const C = identical(A, B);",
+            ""));
+    assertErrors(libraryResult.getErrors());
+  }
 
   /**
    * It is a compile-time error to use type variables in "const" instance creation.
@@ -1379,6 +1460,44 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.NOT_A_TYPE, 3, 17, 1));
+  }
+
+  public void test_constInstanceCreation_noSuchType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  const NoSuchType();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE_CONST, 3, 9, 10));
+  }
+  
+  public void test_constInstanceCreation_noSuchConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  const A.noSuchName();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR, 4, 11, 10));
+  }
+  
+  public void test_constInstanceCreation_notType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var notType;",
+        "main() {",
+        "  const notType();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NOT_A_TYPE, 4, 9, 7));
   }
 
   /**
@@ -2173,8 +2292,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
-    assertInferredElementTypeString(testUnit, "v3", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "dynamic");
   }
 
   public void test_typesPropagation_multiAssign_While() throws Exception {
@@ -2321,7 +2440,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
     assertInferredElementTypeString(testUnit, "v2", "String");
     assertInferredElementTypeString(testUnit, "v3", "String");
   }
@@ -2353,8 +2472,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = new Unknown.name();",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
   }
 
   public void test_typesPropagation_ifAsType() throws Exception {
@@ -2368,7 +2487,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
   }
 
   /**
@@ -2386,7 +2505,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
   }
 
   public void test_typesPropagation_ifIsType() throws Exception {
@@ -2403,7 +2522,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(testUnit, "v1", "List<String>");
     assertInferredElementTypeString(testUnit, "v2", "Map<int, String>");
-    assertInferredElementTypeString(testUnit, "v3", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "dynamic");
   }
 
   /**
@@ -2443,7 +2562,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {
@@ -2460,8 +2579,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
     assertInferredElementTypeString(testUnit, "v3", "String");
   }
 
@@ -2491,8 +2610,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
   }
 
   public void test_typesPropagation_whileIsType() throws Exception {
@@ -2507,7 +2626,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
-    assertInferredElementTypeString(testUnit, "v2", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v2", "dynamic");
   }
 
   public void test_typesPropagation_forIsType() throws Exception {
@@ -2523,7 +2642,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
     assertInferredElementTypeString(testUnit, "v2", "String");
-    assertInferredElementTypeString(testUnit, "v3", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "dynamic");
   }
 
   public void test_typesPropagation_forEach() throws Exception {
@@ -2552,11 +2671,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type, but not String
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
     // we know that String
     assertInferredElementTypeString(testUnit, "v2", "String");
     // again, we don't know after "if"
-    assertInferredElementTypeString(testUnit, "v3", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v3", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenReturn() throws Exception {
@@ -2570,7 +2689,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
     assertInferredElementTypeString(testUnit, "v2", "String");
   }
 
@@ -2596,7 +2715,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_otherThen() throws Exception {
@@ -2609,7 +2728,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenThrow_withCatch() throws Exception {
@@ -2625,7 +2744,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenContinue() throws Exception {
@@ -2689,7 +2808,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_not() throws Exception {
@@ -2702,7 +2821,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_ifIsNotType_not2() throws Exception {
@@ -2751,14 +2870,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type initially
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
     // after "assert" all next statements know type
     assertInferredElementTypeString(testUnit, "v2", "String");
     assertInferredElementTypeString(testUnit, "v3", "String");
     // type is set to unknown only when we exit control Block, not just any Block
     assertInferredElementTypeString(testUnit, "v4", "String");
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
-    assertInferredElementTypeString(testUnit, "v5", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v5", "dynamic");
   }
   
   /**
@@ -2781,14 +2900,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type initially
-    assertInferredElementTypeString(testUnit, "a1", "Dynamic");
-    assertInferredElementTypeString(testUnit, "b1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "a1", "dynamic");
+    assertInferredElementTypeString(testUnit, "b1", "dynamic");
     // after "assert" all next statements know type
     assertInferredElementTypeString(testUnit, "a2", "String");
     assertInferredElementTypeString(testUnit, "b2", "String");
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
-    assertInferredElementTypeString(testUnit, "a3", "Dynamic");
-    assertInferredElementTypeString(testUnit, "b3", "Dynamic");
+    assertInferredElementTypeString(testUnit, "a3", "dynamic");
+    assertInferredElementTypeString(testUnit, "b3", "dynamic");
   }
 
   public void test_typesPropagation_field_inClass_final() throws Exception {
@@ -2826,7 +2945,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = 123;",
         "}",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_field_topLevel_final() throws Exception {
@@ -2858,7 +2977,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "var v1 = 123;",
         "");
-    assertInferredElementTypeString(testUnit, "v1", "Dynamic");
+    assertInferredElementTypeString(testUnit, "v1", "dynamic");
   }
 
   public void test_typesPropagation_FunctionAliasType() throws Exception {
@@ -3212,6 +3331,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "void foo() {}",
         "main() {",
         "  var v = foo();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5114
+   */
+  public void test_lowerCaseDynamicType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  dynamic v = null;",
         "}",
         "");
     assertErrors(libraryResult.getErrors());
@@ -4401,10 +4534,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}"));
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 7, 19),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
   }
   
   /**
@@ -4904,7 +5037,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.FORMAL_PARAMETER_NAME_EXPECTED, 5, 4, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5148
@@ -4919,6 +5052,146 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         result.getErrors(),
         errEx(ResolverErrorCode.STATIC_METHOD_MUST_HAVE_BODY, 3, 3, 13));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5162
+   */
+  public void test_initializeFinalInstanceVariable_atDeclaration_inInitializer() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final f = 0;",
+        "  A() : f = 1 {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 4, 9, 5));
+  }
+  
+  public void test_getOverridden_method() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() => 1;",
+        "}",
+        "class B extends A {",
+        "  foo() => 2;",
+        "}",
+        "");
+    DartMethodDefinition node = findNode(DartMethodDefinition.class, "foo() => 2");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertClassMembers(superElements, "method A.foo");
+  }
+
+  public void test_getOverridden_field_withGetterSetter() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var foo;",
+        "}",
+        "class B extends A {",
+        "  get foo => 0;",
+        "  set foo(x) {}",
+        "}",
+        "");
+    // getter
+    {
+      DartMethodDefinition node = findNode(DartMethodDefinition.class, "get foo");
+      Set<Element> superElements = node.getElement().getOverridden();
+      assertClassMembers(superElements, "field A.foo");
+    }
+    // setter
+    {
+      DartMethodDefinition node = findNode(DartMethodDefinition.class, "set foo");
+      Set<Element> superElements = node.getElement().getOverridden();
+      assertClassMembers(superElements, "field A.foo");
+    }
+  }
+
+  public void test_getOverridden_getterSetter_withField() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get foo => 0;",
+        "  set foo(x) {}",
+        "}",
+        "class B extends A {",
+        "  var foo = 42;",
+        "}",
+        "");
+    DartField node = findNode(DartField.class, "foo = 42");
+    Set<Element> superElements = node.getElement().getOverridden();
+    assertClassMembers(superElements, "field A.foo");
+  }
+
+  private static void assertClassMembers(Set<Element> superElements, String... expectedNames) {
+    Set<String> superNames = Sets.newHashSet();
+    for (Element element : superElements) {
+      String name = element.getEnclosingElement().getName() + "." + element.getName();
+      if (element instanceof FieldElement) {
+        superNames.add("field " + name);
+      }
+      if (element instanceof MethodElement) {
+        superNames.add("method " + name);
+      }
+    }
+    for (String name : expectedNames) {
+      assertTrue(name, superNames.remove(name));
+    }
+    assertTrue(superNames.toString(), superNames.isEmpty());
+  }
+
+  public void test_fieldAccess_declared_noGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static set f(x) {}",
+        "}",
+        "main() {",
+        "  print(A.f);",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 6, 11, 1));
+  }
+  
+  public void test_fieldAccess_notDeclared() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  print(A.f);",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 1));
+  }
+  
+  public void test_fieldAssign_declared_noSetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static get f() => 0;",
+        "}",
+        "main() {",
+        "  A.f = 0;",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 6, 5, 1));
+  }
+  
+  public void test_fieldAssign_notDeclared() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A.f = 0;",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 1));
   }
 
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {

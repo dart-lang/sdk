@@ -51,15 +51,35 @@ class _Message {
   String toString() => text(messageType, elapsed, body);
 }
 
+
+class HtmlConfiguration extends Configuration {
+  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
+  EventListener _onErrorClosure;
+
+  void _installErrorHandler() {
+    if (_onErrorClosure == null) {
+      _onErrorClosure =
+          (e) => handleExternalError(e, '(DOM callback has errors)');
+      // Listen for uncaught errors.
+      window.on.error.add(_onErrorClosure);
+    }
+  }
+
+  void _uninstallErrorHandler() {
+    if (_onErrorClosure != null) {
+      window.on.error.remove(_onErrorClosure);
+      _onErrorClosure = null;
+    }
+  }
+}
+
 /**
  * The child configuration that is used to run individual tests in
  * an IFrame and post the results back to the parent. In principle
  * this can run more than one test in the IFrame but currently only
  * one is used.
  */
-class ChildInteractiveHtmlConfiguration extends Configuration {
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
+class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   /** The window to which results must be posted. */
   Window parentWindow;
@@ -74,8 +94,7 @@ class ChildInteractiveHtmlConfiguration extends Configuration {
   get autoStart => false;
 
   void onInit() {
-    _onErrorClosure =
-        (e) => handleExternalError(e, '(DOM callback has errors)');
+    _installErrorHandler();
 
     /**
      *  The parent posts a 'start' message to kick things off,
@@ -99,8 +118,7 @@ class ChildInteractiveHtmlConfiguration extends Configuration {
   }
 
   void onStart() {
-    // Listen for uncaught errors.
-    window.on.error.add(_onErrorClosure);
+    _installErrorHandler();
   }
 
   /** Record the start time of the test. */
@@ -145,7 +163,7 @@ class ChildInteractiveHtmlConfiguration extends Configuration {
 
   void onDone(int passed, int failed, int errors, List<TestCase> results,
               String uncaughtError) {
-    window.on.error.remove(_onErrorClosure);
+    _uninstallErrorHandler();
   }
 }
 
@@ -153,10 +171,9 @@ class ChildInteractiveHtmlConfiguration extends Configuration {
  * The parent configuration runs in the top-level window; it wraps the tests
  * in new functions that create child IFrames and run the real tests.
  */
-class ParentInteractiveHtmlConfiguration extends Configuration {
+class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   Map<int,Date> _testStarts;
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
+
 
   /** The stack that was posted back from the child, if any. */
   String _stack;
@@ -223,15 +240,13 @@ class ParentInteractiveHtmlConfiguration extends Configuration {
   }
 
   void onInit() {
+    _installErrorHandler();
     _messageHandler = _handleMessage; // We need to make just one closure.
-    _onErrorClosure =
-        (e) => handleExternalError(e, '(DOM callback has errors)');
     document.query('#group-divs').innerHTML = "";
   }
 
   void onStart() {
-    // Listen for uncaught errors.
-    window.on.error.add(_onErrorClosure);
+    _installErrorHandler();
     if (!_doneWrap) {
       _doneWrap = true;
       for (int i = 0; i < testCases.length; i++) {
@@ -395,7 +410,7 @@ class ParentInteractiveHtmlConfiguration extends Configuration {
   void onDone(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     window.on.message.remove(_messageHandler);
-    window.on.error.remove(_onErrorClosure);
+    _uninstallErrorHandler();
     document.query('#busy').style.display = 'none';
     InputElement startButton = document.query('#start');
     startButton.disabled = false;

@@ -21,6 +21,7 @@ InputStream _getStdioInputStream() {
     case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalReadOnly();
       _getStdioHandle(s, 0);
+      s._closed = false;
       return s.inputStream;
     case _STDIO_HANDLE_TYPE_FILE:
       return new _FileInputStream.fromStdio(0);
@@ -38,6 +39,7 @@ OutputStream _getStdioOutputStream(int fd) {
     case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalWriteOnly();
       _getStdioHandle(s, fd);
+      s._closed = false;
       return s.outputStream;
     case _STDIO_HANDLE_TYPE_FILE:
       return new _FileOutputStream.fromStdio(fd);

@@ -12,7 +12,6 @@ import com.google.dart.compiler.SubSystem;
  */
 public enum TypeErrorCode implements ErrorCode {
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
-  ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_ASSIGN_TO("cannot assign to '%s'"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
@@ -52,7 +51,6 @@ public enum TypeErrorCode implements ErrorCode {
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
-  NO_SUCH_TYPE_CONST(ErrorSeverity.ERROR, "no such type \"%s\" in constant constructor", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_MEMBER_OF_INFERRED(ErrorSeverity.INFO, "\"%s\" is not a member of %s"),
@@ -73,7 +71,6 @@ public enum TypeErrorCode implements ErrorCode {
   SUPERTYPE_HAS_METHOD(ErrorSeverity.ERROR, "%s is a method in %s"),
   TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(ErrorSeverity.ERROR,
       "Type alias cannot reference itself directly of via other typedefs"),
-  TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED(ErrorSeverity.INFO, "'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),

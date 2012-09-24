@@ -10,12 +10,20 @@ package com.google.dart.compiler.ast;
  */
 public class DartNativeBlock extends DartBlock {
 
-  public DartNativeBlock() {
+  private final DartExpression body;
+
+  public DartNativeBlock(DartExpression body) {
     super(null);
+    this.body = body;
+  }
+  
+  public DartExpression getBody() {
+    return body;
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    safelyVisitChild(body, visitor);
   }
 
   @Override

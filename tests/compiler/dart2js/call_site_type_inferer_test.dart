@@ -14,9 +14,11 @@
 void compileAndFind(String code,
                     String className,
                     String memberName,
+                    bool disableInlining,
                     check(compiler, element)) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
   var compiler = compilerFor(code, uri);
+  compiler.disableInlining = disableInlining;
   compiler.runCompiler(uri);
   var cls = findElement(compiler, className);
   var member = cls.lookupLocalMember(buildSourceString(memberName));
@@ -189,13 +191,15 @@ const String TEST_17 = @"""
   }
 """;
 
-void runTest(String test,
-             [List<HType> expectedTypes,
-              OptionalParameterTypes defaultTypes]) {
+void doTest(String test,
+            bool enableInlining,
+            List<HType> expectedTypes,
+            OptionalParameterTypes defaultTypes) {
   compileAndFind(
     test,
     'A',
     'x',
+    enableInlining,
     (backend, x) {
       HTypeList types = backend.optimisticParameterTypes(x, defaultTypes);
       if (expectedTypes != null) {
@@ -205,6 +209,13 @@ void runTest(String test,
         Expect.isTrue(types.allUnknown);
       }
   });
+}
+
+void runTest(String test,
+             [List<HType> expectedTypes,
+              OptionalParameterTypes defaultTypes]) {
+  doTest(test, false, expectedTypes, defaultTypes);
+  doTest(test, true, expectedTypes, defaultTypes);
 }
 
 void test() {

@@ -5,7 +5,7 @@
 /**
  * Contains the set of standard values returned by HTMLDocument.getReadyState.
  */
-interface ReadyState {
+abstract class ReadyState {
   /**
    * Indicates the document is still loading and parsing.
    */

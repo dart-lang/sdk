@@ -96,19 +96,24 @@ void buildFileList(List dirs, RegExp filePat, bool recurse,
 }
 
 /** Delete a file. */
-void deleteFile(String fname) {
+bool deleteFile(String fname) {
   var f = new File(fname);
-  f.deleteSync();
+  try {
+    f.deleteSync();
+  } catch (e) {
+    return false;
+  }
+  return true;
 }
 
-/** Get the name of the layout render file for a test. */
-String layoutFileName(String testname) =>
-  testname.replaceAll(new RegExp('\.dart\$'), '.render');
-
-/** Check if a test is a layout render test. renders.
+/**
+ * Get the directory that testrunner lives in; we need it to import
+ * support files into the generated scripts.
  */
-bool isLayoutRenderTest(String testname) {
-  var layoutname = layoutFileName(testname);
-  var f = new File(layoutname);
-  return f.existsSync();
+
+String get runnerDirectory() {
+  var libDirectory = makePathAbsolute(new Options().script);
+  return libDirectory.substring(0,
+      libDirectory.lastIndexOf(Platform.pathSeparator));
 }
+

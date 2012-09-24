@@ -3042,6 +3042,36 @@ TEST_CASE(InjectNativeFields4) {
 }
 
 
+TEST_CASE(InjectNativeFieldsSuperClass) {
+  const char* kScriptChars =
+      "#import('dart:nativewrappers');"
+      "class NativeFieldsSuper extends NativeFieldWrapperClass1 {\n"
+      "  NativeFieldsSuper() : fld1 = 42 {}\n"
+      "  int fld1;\n"
+      "}\n"
+      "class NativeFields extends NativeFieldsSuper {\n"
+      "  fld() => fld1;\n"
+      "}\n"
+      "int testMain() {\n"
+      "  NativeFields obj = new NativeFields();\n"
+      "  return obj.fld();\n"
+      "}\n";
+  Dart_Handle result;
+  // Load up a test script in the test library.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+
+  // Invoke a function which returns an object of type NativeFields.
+  result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
+
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(42, value);
+}
+
+
 static void TestNativeFields(Dart_Handle retobj) {
   // Access and set various instance fields of the object.
   Dart_Handle result = Dart_GetField(retobj, Dart_NewString("fld3"));

@@ -28,6 +28,7 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/dart2js_FactoryProviders.dart');
 #source('$AUXILIARY_DIR/dart2js_IDBKeyRangeFactoryProvider.dart');
 #source('$AUXILIARY_DIR/dart2js_LocationWrapper.dart');
+#source('$AUXILIARY_DIR/dart2js_MutationObserverSupported.dart');
 #source('$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart');
 #source('$AUXILIARY_DIR/_Testing.dart');
 #source('$AUXILIARY_DIR/Device.dart');

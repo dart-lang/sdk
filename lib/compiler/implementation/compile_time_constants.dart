@@ -535,11 +535,16 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     return signalNotCompileTimeConstant(node);
   }
 
-  /** Returns the list of constants that are passed to the static function. */
+  /**
+   * Returns the list of constants that are passed to the static function.
+   *
+   * Invariant: [target] must be an implementation element.
+   */
   List<Constant> evaluateArgumentsToConstructor(Node node,
                                                 Selector selector,
                                                 Link<Node> arguments,
                                                 FunctionElement target) {
+    assert(invariant(node, target.isImplementation));
     List<Constant> compiledArguments = <Constant>[];
 
     Function compileArgument = evaluateConstant;
@@ -571,12 +576,16 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       constructor = constructor.defaultImplementation;
       classElement = constructor.getEnclosingClass();
     }
+    // The constructor must be an implementation to ensure that field
+    // initializers are handled correctly.
+    constructor = constructor.implementation;
+    assert(invariant(node, constructor.isImplementation));
 
     Selector selector = elements.getSelector(send);
     List<Constant> arguments = evaluateArgumentsToConstructor(
         node, selector, send.arguments, constructor);
     ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(constructor, constantSystem, compiler);
+        new ConstructorEvaluator(node, constructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -626,20 +635,28 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
 }
 
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
-  FunctionElement constructor;
+  final FunctionElement constructor;
   final Map<Element, Constant> definitions;
   final Map<Element, Constant> fieldValues;
 
-  ConstructorEvaluator(FunctionElement constructor,
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [constructor] must be an implementation element.
+   */
+  ConstructorEvaluator(Node node,
+                       FunctionElement constructor,
                        ConstantSystem constantSystem,
                        Compiler compiler)
       : this.constructor = constructor,
         this.definitions = new Map<Element, Constant>(),
         this.fieldValues = new Map<Element, Constant>(),
         super(constantSystem,
-              compiler.resolver.resolveMethodElement(constructor),
+              compiler.resolver.resolveMethodElement(constructor.declaration),
               compiler,
-              isConst: true);
+              isConst: true) {
+    assert(invariant(node, constructor.isImplementation));
+  }
 
   Constant visitSend(Send send) {
     Element element = elements[send];
@@ -701,7 +718,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         currentNode, selector, arguments, targetConstructor);
 
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
-        targetConstructor, constantSystem, compiler);
+        currentNode, targetConstructor, constantSystem, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
     // No need to go through [updateFieldValue] because the

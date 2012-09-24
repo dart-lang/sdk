@@ -1215,8 +1215,8 @@ public class ResolverTest extends ResolverTestCase {
         "  static foo() { new T(); }", // can't ref type variable in method
         "  static bar() { T variable = 1; }",
         "}"),
-        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
-        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
   }
 
   public void testConstClass() {
@@ -1371,7 +1371,7 @@ public class ResolverTest extends ResolverTestCase {
         "main() {",
         " const A();",
         "}"),
-        errEx(TypeErrorCode.NO_SUCH_TYPE_CONST, 3, 8, 1));
+        errEx(ResolverErrorCode.NO_SUCH_TYPE_CONST, 3, 8, 1));
   }
 
   public void testNoGetterOrSetter() {

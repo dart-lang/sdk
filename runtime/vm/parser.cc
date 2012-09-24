@@ -37,12 +37,17 @@ static void CheckedModeHandler(bool value) {
   FLAG_enable_type_checks = value;
 }
 
+// --enable-checked-mode and --checked both enable checked mode which is
+// equivalent to setting --enable-asserts and --enable-type-checks.
 DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     enable_checked_mode,
-                    "Enabled checked mode.");
+                    "Enable checked mode.");
+
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    checked,
+                    "Enable checked mode.");
 
 #if defined(DEBUG)
-
 class TraceParser : public ValueObject {
  public:
   TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
@@ -1517,7 +1522,9 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   // Omit the implicit super() if there is no super class (i.e.
   // we're not compiling class Object), or if the super class is an
   // artificially generated "wrapper class" that has no constructor.
-  if (super_class.IsNull() || (super_class.num_native_fields() > 0)) {
+  if (super_class.IsNull() ||
+      (super_class.num_native_fields() > 0 &&
+       Class::Handle(super_class.SuperClass()).IsObjectClass())) {
     return;
   }
   String& ctor_name = String::Handle(super_class.Name());
@@ -2827,7 +2834,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           (follower == Token::kGET) ||  // Getter following a type.
           (follower == Token::kSET) ||  // Setter following a type.
           (follower == Token::kOPERATOR) ||  // Operator following a type.
-          (Token::IsIdentifier(follower))  ||  // Member name following a type.
+          (Token::IsIdentifier(follower)) ||  // Member name following a type.
           ((follower == Token::kPERIOD) &&    // Qualified class name of type,
            (LookaheadToken(3) != Token::kLPAREN))) {  // but not a named constr.
         ASSERT(is_top_level_);
@@ -4214,6 +4221,13 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryNameObsoleteSyntax();
     ParseLibraryImportObsoleteSyntax();
     ParseLibraryIncludeObsoleteSyntax();
+    // Core lib has not been explicitly imported, so we implicitly
+    // import it here.
+    if (!library_.ImportsCorelib()) {
+      Library& core_lib = Library::Handle(Library::CoreLibrary());
+      ASSERT(!core_lib.IsNull());
+      library_.AddImport(core_lib);
+    }
     return;
   }
 
@@ -4234,6 +4248,13 @@ void Parser::ParseLibraryDefinition() {
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
+  }
+  // Core lib has not been explicitly imported, so we implicitly
+  // import it here.
+  if (!library_.ImportsCorelib()) {
+    Library& core_lib = Library::Handle(Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
+    library_.AddImport(core_lib);
   }
   while (IsLiteral("part")) {
     ParseLibraryPart();
@@ -6584,7 +6605,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        if ((op_kind == Token::kIS) && type.IsMalformed()) {
+        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
+            type.IsMalformed()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test. However, no cast exception is thrown if the value
           // is null in a type cast.
@@ -7985,12 +8007,20 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
       if (!resolved_obj.IsNull()) {
         if (!first_lib_url.IsNull()) {
           // Found duplicate definition.
-          ErrorMsg(ident_pos,
-                   "ambiguous reference: "
-                   "'%s' is defined in library '%s' and also in '%s'",
-                   name.ToCString(),
-                   first_lib_url.ToCString(),
-                   String::Handle(lib.url()).ToCString());
+          if (first_lib_url.raw() == lib.url()) {
+            ErrorMsg(ident_pos,
+                     "ambiguous reference: "
+                     "'%s' as library '%s' is imported multiple times",
+                     name.ToCString(),
+                     first_lib_url.ToCString());
+          } else {
+            ErrorMsg(ident_pos,
+                     "ambiguous reference: "
+                     "'%s' is defined in library '%s' and also in '%s'",
+                     name.ToCString(),
+                     first_lib_url.ToCString(),
+                     String::Handle(lib.url()).ToCString());
+          }
         } else {
           first_lib_url = lib.url();
           obj = resolved_obj.raw();
