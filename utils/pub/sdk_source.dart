@@ -10,18 +10,12 @@
 #import('source.dart');
 #import('version.dart');
 
-/**
- * A package source that uses libraries from the Dart SDK.
- *
- * This currently uses the "sdkdir" command-line argument to find the SDK.
- */
+/// A package source that uses libraries from the Dart SDK.
 class SdkSource extends Source {
   final String name = "sdk";
   final bool shouldCache = false;
 
-  /**
-   * The root directory of the Dart SDK.
-   */
+  /// The root directory of the Dart SDK.
   final String _rootDir;
 
   String get rootDir {
@@ -32,39 +26,48 @@ class SdkSource extends Source {
 
   SdkSource(this._rootDir);
 
-  /**
-   * An SDK package has no dependencies. Its version number is inferred from the
-   * revision number of the SDK itself.
-   */
+  /// SDK packages are not individually versioned. Instead, their version is
+  /// inferred from the revision number of the SDK itself.
   Future<Pubspec> describe(PackageId id) {
-    return readTextFile(join(rootDir, "revision")).transform((revision) {
-      var version = new Version.parse("0.0.0-r.${revision.trim()}");
-      return new Pubspec(id.name, version, <PackageRef>[]);
+    var version;
+    return readTextFile(join(rootDir, "revision")).chain((revision) {
+      version = new Version.parse("0.0.0-r.${revision.trim()}");
+      // Read the pubspec for the package's dependencies.
+      return _getPackagePath(id);
+    }).chain((packageDir) {
+      // TODO(rnystrom): What if packageDir is null?
+      return Package.load(id.name, packageDir, systemCache.sources);
+    }).transform((package) {
+      // Ignore the pubspec's version, and use the SDK's.
+      return new Pubspec(id.name, version, package.pubspec.dependencies);
     });
   }
 
-  /**
-   * Since all the SDK files are already available locally, installation just
-   * involves symlinking the SDK library into the packages directory.
-   */
+  /// Since all the SDK files are already available locally, installation just
+  /// involves symlinking the SDK library into the packages directory.
   Future<bool> install(PackageId id, String destPath) {
-    // Look in "pkg" first.
-    var sourcePath = join(rootDir, "pkg", id.description);
-    return exists(sourcePath).chain((found) {
-      if (!found) {
-        // TODO(rnystrom): Get rid of this when all SDK packages are moved from
-        // "lib" to "pkg".
-        // Not in "pkg", so try "lib".
-        sourcePath = join(rootDir, "lib", id.description);
-        return exists(sourcePath).chain((found) {
-          if (!found) return new Future<bool>.immediate(false);
-          return createPackageSymlink(id.name, sourcePath, destPath).transform(
-              (_) => true);
-        });
-      }
+    return _getPackagePath(id).chain((path) {
+      if (path == null) return new Future<bool>.immediate(false);
 
-      return createPackageSymlink(id.name, sourcePath, destPath).transform(
+      return createPackageSymlink(id.name, path, destPath).transform(
           (_) => true);
+    });
+  }
+
+  /// Gets the path in the SDK to the directory containing package [id]. Looks
+  /// inside both "pkg" and "lib" in the SDK. Returns `null` if the package
+  /// could not be found.
+  Future<String> _getPackagePath(PackageId id) {
+    // Look in "pkg" first.
+    var pkgPath = join(rootDir, "pkg", id.description);
+    return exists(pkgPath).chain((found) {
+      if (found) return new Future<String>.immediate(pkgPath);
+
+      // Not in "pkg", so try "lib".
+      // TODO(rnystrom): Get rid of this when all SDK packages are moved from
+      // "lib" to "pkg".
+      var libPath = join(rootDir, "lib", id.description);
+      return exists(libPath).transform((found) => found ? libPath : null);
     });
   }
 }

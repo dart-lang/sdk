@@ -15,7 +15,8 @@ main() {
       file('revision', '1234'),
       dir('pkg', [
         dir('foo', [
-          libDir('foo', 'foo 0.0.1234')
+          libDir('foo', 'foo 0.0.1234'),
+          libPubspec('foo', '0.0.0-not.used')
         ])
       ])
     ]).scheduleCreate();
@@ -25,11 +26,39 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
+        output: const RegExp(@"Dependencies installed!$"));
 
     packagesDir({"foo": "0.0.1234"}).scheduleValidate();
+
+    run();
+  });
+
+  test('includes transitive dependencies', () {
+    dir(sdkPath, [
+      file('revision', '1234'),
+      dir('pkg', [
+        dir('foo', [
+          libDir('foo', 'foo 0.0.1234'),
+          libPubspec('foo', '0.0.0-not.used', [{'sdk': 'bar'}])
+        ]),
+        dir('bar', [
+          libDir('bar', 'bar 0.0.1234'),
+          libPubspec('bar', '0.0.0-not.used')
+        ])
+      ])
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      appPubspec([{'sdk': 'foo'}])
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    packagesDir({
+      'foo': '0.0.1234',
+      'bar': '0.0.1234'
+    }).scheduleValidate();
 
     run();
   });

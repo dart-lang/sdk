@@ -413,6 +413,8 @@ String _packageName(String sourceName, description) {
   case "hosted":
     if (description is String) return description;
     return description['name'];
+  case "sdk":
+    return description;
   default:
     return description;
   }

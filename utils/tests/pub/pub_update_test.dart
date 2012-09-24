@@ -77,7 +77,9 @@ main() {
     dir(sdkPath, [
       file('revision', '1234'),
       dir('pkg', [
-        dir('foo', [])
+        dir('foo', [
+          libPubspec('foo', '0.0.0-not.used')
+        ])
       ])
     ]).scheduleCreate();
 
