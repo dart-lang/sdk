@@ -36,7 +36,7 @@ main() {
   group('blob', () {
     test('createObjectUrl', () {
       var blob = createImageBlob();
-      var url = DOMURL.createObjectURL(blob);
+      var url = window.createObjectUrl(blob);
       expect(url.length, greaterThan(0));
       expect(url.startsWith('blob:'));
 
@@ -52,11 +52,11 @@ main() {
       img.src = url;
     });
 
-    test('revokeObjectURL', () {
+    test('revokeObjectUrl', () {
       var blob = createImageBlob();
-      var url = DOMURL.createObjectURL(blob);
+      var url = window.createObjectUrl(blob);
       expect(url.startsWith('blob:'));
-      DOMURL.revokeObjectURL(url);
+      window.revokeObjectUrl(url);
 
       var img = new ImageElement();
       // Image should fail to load since the URL was revoked.

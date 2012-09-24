@@ -131,7 +131,10 @@ class BaseGenerator(object):
     for id in sorted(operationsById.keys()):
       operations = operationsById[id]
       info = AnalyzeOperation(interface, operations)
-      self.AddOperation(info)
+      if info.IsStatic():
+        self.AddStaticOperation(info)
+      else:
+        self.AddOperation(info)
 
   def AddSecondaryMembers(self, interface):
     # With multiple inheritance, attributes and operations of non-first
@@ -173,6 +176,9 @@ class BaseGenerator(object):
     pass
 
   def AddOperation(self, info):
+    pass
+
+  def AddStaticOperation(self, info):
     pass
 
   def AddSecondaryAttribute(self, interface, attribute):

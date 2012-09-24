@@ -9561,19 +9561,9 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
-
-  /** @domName DOMURL.createObjectURL */
-  static final createObjectURL = _DOMURLImpl.createObjectURL;
-
-  /** @domName DOMURL.revokeObjectURL */
-  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(blob_OR_source_OR_stream) native;
-
-  void revokeObjectURL(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16425,18 +16415,6 @@ abstract class IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
-
-  /** @domName IDBKeyRange.bound */
-  static final bound = _IDBKeyRangeImpl.bound;
-
-  /** @domName IDBKeyRange.lowerBound */
-  static final lowerBound = _IDBKeyRangeImpl.lowerBound;
-
-  /** @domName IDBKeyRange.only */
-  static final only = _IDBKeyRangeImpl.only;
-
-  /** @domName IDBKeyRange.upperBound */
-  static final upperBound = _IDBKeyRangeImpl.upperBound;
 }
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
@@ -16450,53 +16428,6 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   Dynamic get _upper() native "return this.upper;";
 
   final bool upperOpen;
-
-  _IDBKeyRangeImpl bound(lower, upper, [lowerOpen, upperOpen]) {
-    if (?upperOpen) {
-      var lower_1 = _convertDartToNative_IDBKey(lower);
-      var upper_2 = _convertDartToNative_IDBKey(upper);
-      return _bound_1(lower_1, upper_2, lowerOpen, upperOpen);
-    }
-    if (?lowerOpen) {
-      var lower_3 = _convertDartToNative_IDBKey(lower);
-      var upper_4 = _convertDartToNative_IDBKey(upper);
-      return _bound_2(lower_3, upper_4, lowerOpen);
-    }
-    var lower_5 = _convertDartToNative_IDBKey(lower);
-    var upper_6 = _convertDartToNative_IDBKey(upper);
-    return _bound_3(lower_5, upper_6);
-  }
-  _IDBKeyRangeImpl _bound_1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
-  _IDBKeyRangeImpl _bound_2(lower, upper, bool lowerOpen) native "bound";
-  _IDBKeyRangeImpl _bound_3(lower, upper) native "bound";
-
-  _IDBKeyRangeImpl lowerBound(bound, [open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _lowerBound_1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _lowerBound_2(bound_2);
-  }
-  _IDBKeyRangeImpl _lowerBound_1(bound, bool open) native "lowerBound";
-  _IDBKeyRangeImpl _lowerBound_2(bound) native "lowerBound";
-
-  _IDBKeyRangeImpl only(value) {
-    var value_1 = _convertDartToNative_IDBKey(value);
-    return _only_1(value_1);
-  }
-  _IDBKeyRangeImpl _only_1(value) native "only";
-
-  _IDBKeyRangeImpl upperBound(bound, [open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _upperBound_1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _upperBound_2(bound_2);
-  }
-  _IDBKeyRangeImpl _upperBound_1(bound, bool open) native "upperBound";
-  _IDBKeyRangeImpl _upperBound_2(bound) native "upperBound";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21517,9 +21448,6 @@ abstract class Notification implements EventTarget {
   /** @domName Notification.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName Notification.requestPermission */
-  static final requestPermission = _NotificationImpl.requestPermission;
-
   /** @domName Notification.show */
   void show();
 }
@@ -21591,8 +21519,6 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-
-  void requestPermission(NotificationPermissionCallback callback) native;
 
   void show() native;
 }

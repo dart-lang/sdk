@@ -10499,12 +10499,6 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
-
-  /** @domName DOMURL.createObjectURL */
-  static final createObjectURL = _DOMURLImpl.createObjectURL;
-
-  /** @domName DOMURL.revokeObjectURL */
-  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17885,18 +17879,6 @@ abstract class IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
-
-  /** @domName IDBKeyRange.bound */
-  static final bound = _IDBKeyRangeImpl.bound;
-
-  /** @domName IDBKeyRange.lowerBound */
-  static final lowerBound = _IDBKeyRangeImpl.lowerBound;
-
-  /** @domName IDBKeyRange.only */
-  static final only = _IDBKeyRangeImpl.only;
-
-  /** @domName IDBKeyRange.upperBound */
-  static final upperBound = _IDBKeyRangeImpl.upperBound;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23487,9 +23469,6 @@ abstract class Notification implements EventTarget {
 
   /** @domName Notification.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName Notification.requestPermission */
-  static final requestPermission = _NotificationImpl.requestPermission;
 
   /** @domName Notification.show */
   void show();
