@@ -71,6 +71,7 @@ class ObjectPointerVisitor;
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(ClosureData, "ClosureData")                                                \
+  V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \

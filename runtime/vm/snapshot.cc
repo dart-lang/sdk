@@ -530,6 +530,11 @@ RawClosureData* SnapshotReader::NewClosureData() {
 }
 
 
+RawRedirectionData* SnapshotReader::NewRedirectionData() {
+  ALLOC_NEW_OBJECT(RedirectionData, Object::redirection_data_class());
+}
+
+
 RawFunction* SnapshotReader::NewFunction() {
   ALLOC_NEW_OBJECT(Function, Object::function_class());
 }

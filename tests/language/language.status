@@ -339,6 +339,7 @@ number_identifier_negative_test: Fail
 # Bug in dart2js frontent: does not support this feature.
 switch_label_test: Fail
 # Common with language_dart2js.
+factory_redirection_test: Fail # Not implemented.
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail

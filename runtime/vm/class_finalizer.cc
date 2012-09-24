@@ -400,6 +400,127 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
 }
 
 
+void ClassFinalizer::ResolveRedirectingFactoryTarget(
+    const Class& cls,
+    const Function& factory,
+    const GrowableObjectArray& visited_factories) {
+  ASSERT(factory.IsRedirectingFactory());
+
+  // Check for redirection cycle.
+  for (int i = 0; i < visited_factories.Length(); i++) {
+    if (visited_factories.At(i) == factory.raw()) {
+      // TODO(regis): Throw or report error?
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, factory.token_pos(),
+                  "factory '%s' illegally redirects to itself",
+                  String::Handle(factory.name()).ToCString());
+    }
+  }
+  visited_factories.Add(factory);
+
+  // Check if target is already resolved.
+  Type& type = Type::Handle(factory.RedirectionType());
+  Function& target = Function::Handle(factory.RedirectionTarget());
+  if (type.IsMalformed()) {
+    // Already resolved to a malformed type. Will throw on usage.
+    ASSERT(target.IsNull());
+    return;
+  }
+  if (!target.IsNull()) {
+    // Already resolved.
+    return;
+  }
+
+  // Target is not resolved yet.
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Resolving redirecting factory: %s\n",
+              String::Handle(factory.name()).ToCString());
+  }
+  ResolveType(cls, type, kCanonicalize);
+  type ^= FinalizeType(cls, type, kCanonicalize);
+  factory.SetRedirectionType(type);
+  if (type.IsMalformed()) {
+    ASSERT(target.IsNull());
+    factory.SetRedirectionTarget(target);
+    return;
+  }
+  const Class& target_class = Class::Handle(type.type_class());
+  String& target_class_name = String::Handle(target_class.Name());
+  const String& period = String::Handle(Symbols::Dot());
+  String& target_name = String::Handle(
+      String::Concat(target_class_name, period));
+  const String& identifier = String::Handle(factory.RedirectionIdentifier());
+  if (!identifier.IsNull()) {
+    target_name = String::Concat(target_name, identifier);
+  }
+
+  // Verify that the target constructor of the redirection exists.
+  target = target_class.LookupConstructor(target_name);
+  if (target.IsNull()) {
+    target = target_class.LookupFactory(target_name);
+  }
+  if (target.IsNull()) {
+    const String& user_visible_target_name =
+        identifier.IsNull() ? target_class_name : target_name;
+    const Script& script = Script::Handle(cls.script());
+    // TODO(regis): Instead of reporting an error, should we replace the type
+    // with a malformed type and compile a throw? We should then also do it
+    // below for incompatible signatures. Wait for spec to stabilize.
+    ReportError(script, factory.token_pos(),
+                "class '%s' has no constructor or factory named '%s'",
+                target_class_name.ToCString(),
+                user_visible_target_name.ToCString());
+  }
+
+  // Verify that the target is compatible with the redirecting factory.
+  if (!target.HasCompatibleParametersWith(factory)) {
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, factory.token_pos(),
+                "constructor '%s' has incompatible parameters with redirecting "
+                "factory '%s'",
+                String::Handle(target.name()).ToCString(),
+                String::Handle(factory.name()).ToCString());
+  }
+
+  // Verify that the target is const if the the redirecting factory is const.
+  if (factory.is_const() && !target.is_const()) {
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, factory.token_pos(),
+                "constructor '%s' must be const as required by redirecting"
+                "const factory '%s'",
+                String::Handle(target.name()).ToCString(),
+                String::Handle(factory.name()).ToCString());
+  }
+
+  // Update redirection data with resolved target.
+  factory.SetRedirectionTarget(target);
+  factory.SetRedirectionIdentifier(String::Handle());  // Not needed anymore.
+  if (!target.IsRedirectingFactory()) {
+    return;
+  }
+
+  // The target is itself a redirecting factory. Recursively resolve its own
+  // target and update the current redirection data to point to the end target
+  // of the redirection chain.
+  ResolveRedirectingFactoryTarget(target_class, target, visited_factories);
+  Type& target_type = Type::Handle(target.RedirectionType());
+  const Function& target_target = Function::Handle(target.RedirectionTarget());
+  if (target_target.IsNull()) {
+    ASSERT(target_type.IsMalformed());
+  } else {
+    if (!target_type.IsInstantiated()) {
+      const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+          type.arguments());
+      target_type ^= target_type.InstantiateFrom(type_args);
+      // TODO(regis): Do we need to check bounds?
+      target_type ^= FinalizeType(cls, target_type, kCanonicalize);
+    }
+  }
+  factory.SetRedirectionType(target_type);
+  factory.SetRedirectionTarget(target_target);
+}
+
+
 void ClassFinalizer::ResolveType(const Class& cls,
                                  const AbstractType& type,
                                  FinalizationKind finalization) {
@@ -933,6 +1054,11 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     class_name.ToCString(),
                     function_name.ToCString(),
                     super_class_name.ToCString());
+      }
+      if (function.IsRedirectingFactory()) {
+        const GrowableObjectArray& redirecting_factories =
+            GrowableObjectArray::Handle(GrowableObjectArray::New());
+        ResolveRedirectingFactoryTarget(cls, function, redirecting_factories);
       }
     } else {
       for (int i = 0; i < interfaces.Length(); i++) {

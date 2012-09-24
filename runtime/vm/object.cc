@@ -81,6 +81,8 @@ RawClass* Object::instantiated_type_arguments_class_ =
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::redirection_data_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -336,6 +338,9 @@ void Object::InitOnce() {
   cls = Class::New<ClosureData>();
   closure_data_class_ = cls.raw();
 
+  cls = Class::New<RedirectionData>();
+  redirection_data_class_ = cls.raw();
+
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -441,6 +446,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
   SET_CLASS_NAME(closure_data, ClosureData);
+  SET_CLASS_NAME(redirection_data, RedirectionData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
   SET_CLASS_NAME(token_stream, TokenStream);
@@ -3936,6 +3942,72 @@ void Function::set_signature_class(const Class& value) const {
 }
 
 
+bool Function::IsRedirectingFactory() const {
+  if (!IsFactory() || (raw_ptr()->data_ == Object::null())) {
+    return false;
+  }
+  ASSERT(!IsClosure());  // A factory cannot also be a closure.
+  return true;
+}
+
+
+RawType* Function::RedirectionType() const {
+  ASSERT(IsRedirectingFactory());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return RedirectionData::Cast(obj).type();
+}
+
+
+void Function::SetRedirectionType(const Type& type) const {
+  ASSERT(IsFactory());
+  Object& obj = Object::Handle(raw_ptr()->data_);
+  if (obj.IsNull()) {
+    obj = RedirectionData::New();
+    set_data(obj);
+  }
+  RedirectionData::Cast(obj).set_type(type);
+}
+
+
+RawString* Function::RedirectionIdentifier() const {
+  ASSERT(IsRedirectingFactory());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return RedirectionData::Cast(obj).identifier();
+}
+
+
+void Function::SetRedirectionIdentifier(const String& identifier) const {
+  ASSERT(IsFactory());
+  Object& obj = Object::Handle(raw_ptr()->data_);
+  if (obj.IsNull()) {
+    obj = RedirectionData::New();
+    set_data(obj);
+  }
+  RedirectionData::Cast(obj).set_identifier(identifier);
+}
+
+
+RawFunction* Function::RedirectionTarget() const {
+  ASSERT(IsRedirectingFactory());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return RedirectionData::Cast(obj).target();
+}
+
+
+void Function::SetRedirectionTarget(const Function& target) const {
+  ASSERT(IsFactory());
+  Object& obj = Object::Handle(raw_ptr()->data_);
+  if (obj.IsNull()) {
+    obj = RedirectionData::New();
+    set_data(obj);
+  }
+  RedirectionData::Cast(obj).set_target(target);
+}
+
+
 void Function::set_data(const Object& value) const {
   StorePointer(&raw_ptr()->data_, value.raw());
 }
@@ -4326,9 +4398,13 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
       other.NumOptionalPositionalParameters();
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
+  // A generative constructor may be compared to a redirecting factory and be
+  // compatible although it has an additional phase parameter.
+  const intptr_t num_ignored_params =
+      (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
   if (FLAG_reject_named_argument_as_positional) {
     // The default values of optional parameters can differ.
-    if ((num_fixed_params != other_num_fixed_params) ||
+    if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
         (num_opt_pos_params < other_num_opt_pos_params) ||
         (num_opt_named_params < other_num_opt_named_params)) {
       return false;
@@ -4368,7 +4444,7 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   const intptr_t other_num_opt_params =
       other_num_opt_pos_params + other_num_opt_named_params;
-  if ((num_fixed_params != other_num_fixed_params) ||
+  if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
       (num_opt_params < other_num_opt_params)) {
     return false;
   }
@@ -4976,6 +5052,36 @@ RawClosureData* ClosureData::New() {
 
 const char* ClosureData::ToCString() const {
   return "ClosureData class";
+}
+
+
+void RedirectionData::set_type(const Type& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->type_, value.raw());
+}
+
+
+void RedirectionData::set_identifier(const String& value) const {
+  StorePointer(&raw_ptr()->identifier_, value.raw());
+}
+
+
+void RedirectionData::set_target(const Function& value) const {
+  StorePointer(&raw_ptr()->target_, value.raw());
+}
+
+
+RawRedirectionData* RedirectionData::New() {
+  ASSERT(Object::redirection_data_class() != Class::null());
+  RawObject* raw = Object::Allocate(RedirectionData::kClassId,
+                                    RedirectionData::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawRedirectionData*>(raw);
+}
+
+
+const char* RedirectionData::ToCString() const {
+  return "RedirectionData class";
 }
 
 

@@ -513,6 +513,54 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
+                                              intptr_t object_id,
+                                              intptr_t tags,
+                                              Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate redirection data object.
+  RedirectionData& data = RedirectionData::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(RedirectionData));
+  reader->AddBackRef(object_id, &data, kIsDeserialized);
+
+  // Set the object tags.
+  data.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (data.raw()->to() - data.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(data.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return data.raw();
+}
+
+
+void RawRedirectionData::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kRedirectionDataCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,

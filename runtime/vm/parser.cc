@@ -519,7 +519,7 @@ struct MemberDesc {
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
-  // For constructors: NULL or redirected constructor.
+  // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
   // For constructors: NULL for unnamed constructor,
   // identifier after classname for named constructors.
@@ -708,6 +708,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
+      // The call to a redirecting factory is redirected.
+      ASSERT(!func.IsRedirectingFactory());
       node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
@@ -2360,7 +2362,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
   if (method->IsConstructor() && method->has_const) {
-    Class& cls = Class::ZoneHandle(library_.LookupClass(members->class_name()));
+    Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
     cls.set_is_const();
   }
   if (method->has_abstract && members->is_interface()) {
@@ -2382,7 +2384,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // the type of the instance to be allocated.
   if (!method->has_static || method->IsConstructor()) {
     method->params.AddReceiver(ReceiverType(formal_param_pos));
-  } else if (method->has_factory) {
+  } else if (method->IsFactory()) {
     method->params.AddFinalParameter(
         formal_param_pos,
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
@@ -2443,8 +2445,27 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
   }
 
-  // Parse initializers.
-  if (CurrentToken() == Token::kCOLON) {
+  // Parse redirecting factory constructor.
+  Type& redirection_type = Type::Handle();
+  String& redirection_identifier = String::Handle();
+  if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
+    ConsumeToken();
+    const intptr_t type_pos = TokenPos();
+    const AbstractType& type = AbstractType::Handle(
+        ParseType(ClassFinalizer::kTryResolve));
+    if (type.IsTypeParameter()) {
+      // TODO(regis): Spec is not clear. Throw dynamic error or report
+      // compile-time error? Same question for new and const operators.
+      ErrorMsg(type_pos, "factory may not redirect via a type parameter");
+    }
+    redirection_type ^= type.raw();
+    if (CurrentToken() == Token::kPERIOD) {
+      // Named constructor or factory.
+      ConsumeToken();
+      redirection_identifier = ExpectIdentifier("identifier expected")->raw();
+    }
+  } else if (CurrentToken() == Token::kCOLON) {
+    // Parse initializers.
     if (!method->IsConstructor()) {
       ErrorMsg("initializers only allowed on constructors");
     }
@@ -2538,7 +2559,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
         !members->is_interface() &&
-        method->has_static && !method->has_external;
+        method->has_static &&
+        !method->has_external &&
+        redirection_type.IsNull();
     if (must_have_body) {
       ErrorMsg(method->name_pos,
                "function body expected for method '%s'",
@@ -2594,6 +2617,15 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
+
+  // If this method is a redirecting factory, set the redirection information.
+  if (!redirection_type.IsNull()) {
+    ASSERT(func.IsFactory());
+    func.SetRedirectionType(redirection_type);
+    if (!redirection_identifier.IsNull()) {
+      func.SetRedirectionIdentifier(redirection_identifier);
+    }
+  }
 
   // No need to resolve parameter types yet, or add parameters to local scope.
   ASSERT(is_top_level_);
@@ -2971,6 +3003,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
+    ASSERT(member.IsFactory() == member.has_factory);
     ParseMethodOrConstructor(members, &member);
     if (member.has_operator) {
       CheckOperatorArity(member, operator_token);
@@ -8719,7 +8752,7 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
-  const AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // Malformed bounds never result in a compile time error, therefore, the
   // parsed type may be malformed although we requested kCanonicalizeWellFormed.
@@ -8733,7 +8766,7 @@ AstNode* Parser::ParseNewOperator() {
   if (type.IsDynamicType()) {
     ErrorMsg(type_pos, "Dynamic cannot be instantiated");
   }
-  const Class& type_class = Class::Handle(type.type_class());
+  Class& type_class = Class::Handle(type.type_class());
   const String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
@@ -8828,21 +8861,39 @@ AstNode* Parser::ParseNewOperator() {
       constructor_class.LookupConstructor(constructor_name));
   if (constructor.IsNull()) {
     constructor = constructor_class.LookupFactory(constructor_name);
-    // A factory does not have the implicit 'phase' parameter.
-    arguments_length -= 1;
-  }
-  if (constructor.IsNull()) {
-    const String& external_constructor_name =
-        (named_constructor ? constructor_name : constructor_class_name);
-    ErrorMsg(type_pos,
-             "class '%s' has no constructor or factory named '%s'",
-             String::Handle(constructor_class.Name()).ToCString(),
-             external_constructor_name.ToCString());
+    if (constructor.IsNull()) {
+      const String& external_constructor_name =
+          (named_constructor ? constructor_name : constructor_class_name);
+      ErrorMsg(type_pos,
+               "class '%s' has no constructor or factory named '%s'",
+               String::Handle(constructor_class.Name()).ToCString(),
+               external_constructor_name.ToCString());
+    } else if (constructor.IsRedirectingFactory()) {
+      type = constructor.RedirectionType();
+      constructor = constructor.RedirectionTarget();
+      if (constructor.IsNull()) {
+        // TODO(regis): We normally report a compile-time error if the
+        // constructor is not found. See above. However, we should throw a
+        // dynamic error instead. We do it here. This is the first step.
+        ASSERT(type.IsMalformed());
+      } else {
+        type_class = type.type_class();
+        type_arguments = type.arguments();
+        constructor_class = constructor.Owner();
+        ASSERT(type_class.raw() == constructor_class.raw());
+      }
+    }
+    if (!constructor.IsNull() && constructor.IsFactory()) {
+      // A factory does not have the implicit 'phase' parameter.
+      arguments_length -= 1;
+    }
   }
 
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
-  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
+  if (!constructor.IsNull() &&
+      constructor_class.is_abstract() &&
+      !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
@@ -8855,7 +8906,8 @@ AstNode* Parser::ParseNewOperator() {
   }
 
   String& error_message = String::Handle();
-  if (!constructor.AreValidArguments(arguments_length,
+  if (!constructor.IsNull() &&
+      !constructor.AreValidArguments(arguments_length,
                                      arguments->names(),
                                      &error_message)) {
     const String& external_constructor_name =
@@ -8874,7 +8926,7 @@ AstNode* Parser::ParseNewOperator() {
   // factory class, we need to finalize the type argument vector again, because
   // it may be longer due to the factory class extending a class, or/and because
   // the bounds on the factory class may be tighter than on the interface.
-  if (constructor_class.raw() != type_class.raw()) {
+  if (!constructor.IsNull() && (constructor_class.raw() != type_class.raw())) {
     const intptr_t num_type_parameters = constructor_class.NumTypeParameters();
     TypeArguments& temp_type_arguments = TypeArguments::Handle();
     if (!type_arguments.IsNull()) {
@@ -8909,7 +8961,11 @@ AstNode* Parser::ParseNewOperator() {
       type.set_malformed_error(error);
     }
   }
-
+  if (type.IsMalformed()) {
+    // Compile the throw of a dynamic type error due to a bound error or to
+    // a redirection error.
+    return ThrowTypeError(type_pos, type);
+  }
   type_arguments ^= type_arguments.Canonicalize();
   // Make the constructor call.
   AstNode* new_object = NULL;
@@ -8917,10 +8973,6 @@ AstNode* Parser::ParseNewOperator() {
     if (!constructor.is_const()) {
       ErrorMsg("'const' requires const constructor: '%s'",
           String::Handle(constructor.name()).ToCString());
-    }
-    if (type.IsMalformed()) {
-      // Compile the throw of a dynamic type error due to a bound error.
-      return ThrowTypeError(type_pos, type);
     }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(constructor_class,
@@ -8942,10 +8994,6 @@ AstNode* Parser::ParseNewOperator() {
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
-    }
-    if (type.IsMalformed()) {
-      // Compile the throw of a dynamic type error due to a bound error.
-      return ThrowTypeError(type_pos, type);
     }
     // If the type argument vector is not instantiated, we verify in checked
     // mode at runtime that it is within its declared bounds.

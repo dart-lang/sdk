@@ -25,6 +25,7 @@ namespace dart {
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
+  V(RedirectionData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
@@ -630,6 +631,22 @@ class RawClosureData : public RawObject {
   RawCode* closure_allocation_stub_;  // Stub code for allocation of closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_allocation_stub_);
+  }
+};
+
+
+class RawRedirectionData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RedirectionData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  RawType* type_;
+  RawString* identifier_;
+  RawFunction* target_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
   }
 };
 

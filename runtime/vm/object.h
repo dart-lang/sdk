@@ -266,6 +266,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* closure_data_class() { return closure_data_class_; }
+  static RawClass* redirection_data_class() { return redirection_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
@@ -397,6 +398,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* closure_data_class_;  // Class of ClosureData vm obj.
+  static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
@@ -1417,6 +1419,15 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
 
+  // Redirection information for a redirecting factory.
+  bool IsRedirectingFactory() const;
+  RawType* RedirectionType() const;
+  void SetRedirectionType(const Type& type) const;
+  RawString* RedirectionIdentifier() const;
+  void SetRedirectionIdentifier(const String& identifier) const;
+  RawFunction* RedirectionTarget() const;
+  void SetRedirectionTarget(const Function& target) const;
+
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
   }
@@ -1756,6 +1767,34 @@ class ClosureData: public Object {
   static RawClosureData* New();
 
   HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
+};
+
+
+class RedirectionData: public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawRedirectionData));
+  }
+
+ private:
+  // The type specifies the class and type arguments of the target constructor.
+  RawType* type() const { return raw_ptr()->type_; }
+  void set_type(const Type& value) const;
+
+  // The optional identifier specifies a named constructor.
+  RawString* identifier() const { return raw_ptr()->identifier_; }
+  void set_identifier(const String& value) const;
+
+  // The resolved constructor or factory target of the redirection.
+  RawFunction* target() const { return raw_ptr()->target_; }
+  void set_target(const Function& value) const;
+
+  static RawRedirectionData* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
