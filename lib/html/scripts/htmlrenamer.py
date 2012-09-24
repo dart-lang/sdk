@@ -3,7 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-_html_interface_renames = {
+html_interface_renames = {
     'DOMFormData': 'FormData',
     'DOMWindow': 'Window',
     'WebKitAnimation': 'Animation',
@@ -278,8 +278,8 @@ class HtmlRenamer(object):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    elif interface.id in _html_interface_renames:
-      return _html_interface_renames[interface.id]
+    elif interface.id in html_interface_renames:
+      return html_interface_renames[interface.id]
     return interface.id
 
   def RenameMember(self, interface_name, member, member_prefix=''):

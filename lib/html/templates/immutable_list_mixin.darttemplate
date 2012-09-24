@@ -57,7 +57,6 @@
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<$E> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }

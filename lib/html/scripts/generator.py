@@ -8,6 +8,7 @@ Dart APIs from the IDL database."""
 
 import copy
 import re
+from htmlrenamer import html_interface_renames
 
 _pure_interfaces = set([
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
@@ -808,7 +809,13 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               requires_v8_scope=False):
+               requires_v8_scope=False, suppress_public_interface=False):
+    """Constructor. 
+    Arguments:
+    - suppress_public_interface is True if we are converting a DOM type to a
+        built-in Dart type in which case we do not want to generate the new
+        interface in the library (FooList -> List<Foo> for example) but we still
+        generate the underlying implementation classes."""
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -818,6 +825,7 @@ class TypeData(object):
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
     self.requires_v8_scope = requires_v8_scope
+    self.suppress_public_interface = suppress_public_interface
 
 
 _idl_type_registry = {
@@ -871,22 +879,51 @@ _idl_type_registry = {
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
+    'ClientRectList': TypeData(clazz='Interface', dart_type='List<ClientRect>',
+        custom_to_native=True, suppress_public_interface=True),
+    'CSSRuleList': TypeData(clazz='Interface', dart_type='List<CSSRule>',
+        custom_to_native=True, suppress_public_interface=True),
+    'CSSValueList': TypeData(clazz='Interface', dart_type='List<CSSValue>',
+        custom_to_native=True, suppress_public_interface=True),
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
     'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
     'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
     'Element': TypeData(clazz='Interface', custom_to_dart=True),
+    'EntryArray': TypeData(clazz='Interface', dart_type='List<Entry>',
+        custom_to_native=True, suppress_public_interface=True),
+    'EntryArraySync': TypeData(clazz='Interface',
+        dart_type='List<EntrySync>', custom_to_native=True,
+        suppress_public_interface=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
     'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
+    'FileList': TypeData(clazz='Interface', dart_type='List<File>',
+        custom_to_native=True, suppress_public_interface=True),
+    'GamepadList': TypeData(clazz='Interface', dart_type='List<Gamepad>',
+        custom_to_native=True, suppress_public_interface=True),
     'HTMLElement': TypeData(clazz='Interface', custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
     'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'MediaStreamList': TypeData(clazz='Interface',
+        dart_type='List<MediaStream>', custom_to_native=True,
+        suppress_public_interface=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
-                                    native_type='MutationRecordArray',
-                                    dart_type='List<MutationRecord>'),
+        native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
+    'SVGElementInstanceList': TypeData(clazz='Interface',
+        dart_type='List<SVGElementInstance>', custom_to_native=True,
+        suppress_public_interface=True),
+    'SpeechInputResultList': TypeData(clazz='Interface',
+        dart_type='List<SpeechInputResult>', custom_to_native=True,
+        suppress_public_interface=True),
+    'SpeechRecognitionResultList': TypeData(clazz='Interface',
+        dart_type='List<SpeechRecognitionResult>', custom_to_native=True,
+        suppress_public_interface=True),
+    'StyleSheetList': TypeData(clazz='Interface',
+        dart_type='List<StyleSheet>', custom_to_native=True,
+        suppress_public_interface=True),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
@@ -903,6 +940,17 @@ _idl_type_registry = {
     'SVGTransform': TypeData(clazz='SVGTearOff'),
     'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff'),
 }
+
+# A list constructed of DOM types that are converted to built-in dart types
+# (like Lists) and therefore whose actual interface generation should be
+# suppressed. (For type information, we still generate the implementations
+# though, so these types should not be suppressed entirely.)
+nativified_classes = {}
+for key in _idl_type_registry:
+  value = _idl_type_registry[key]
+  if value.suppress_public_interface:
+    nativified_classes[value.dart_type] = key
+    html_interface_renames[key] = value.dart_type
 
 _svg_supplemental_includes = [
     '"SVGAnimatedPropertyTearOff.h"',
