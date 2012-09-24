@@ -1836,7 +1836,7 @@ class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule nativ
 abstract class CSSKeyframesRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name */
   String name;
@@ -2052,7 +2052,7 @@ class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 abstract class CSSMediaRule implements CSSRule {
 
   /** @domName CSSMediaRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName CSSMediaRule.media */
   abstract MediaList get media;
@@ -2332,6 +2332,21 @@ class _CSSRuleImpl implements CSSRule native "*CSSRule" {
 
   final int type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName CSSRuleList
+abstract class CSSRuleList implements List<CSSRule> {
+
+  /** @domName CSSRuleList.length */
+  abstract int get length;
+
+  /** @domName CSSRuleList.item */
+  CSSRule item(int index);
+}
 
 class _CSSRuleListImpl implements CSSRuleList, JavaScriptIndexingBehavior native "*CSSRuleList" {
 
@@ -2401,6 +2416,7 @@ class _CSSRuleListImpl implements CSSRuleList, JavaScriptIndexingBehavior native
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -7157,13 +7173,13 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CS
 abstract class CSSStyleSheet implements StyleSheet {
 
   /** @domName CSSStyleSheet.cssRules */
-  abstract List<CSSRule> get cssRules;
+  abstract CSSRuleList get cssRules;
 
   /** @domName CSSStyleSheet.ownerRule */
   abstract CSSRule get ownerRule;
 
   /** @domName CSSStyleSheet.rules */
-  abstract List<CSSRule> get rules;
+  abstract CSSRuleList get rules;
 
   /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
@@ -7201,7 +7217,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet native
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSTransformValue
-abstract class CSSTransformValue implements List<CSSValue> {
+abstract class CSSTransformValue implements CSSValueList {
 
   static const int CSS_MATRIX = 11;
 
@@ -7345,6 +7361,21 @@ class _CSSValueImpl implements CSSValue native "*CSSValue" {
 
   final int cssValueType;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName CSSValueList
+abstract class CSSValueList implements CSSValue, List<CSSValue> {
+
+  /** @domName CSSValueList.length */
+  abstract int get length;
+
+  /** @domName CSSValueList.item */
+  CSSValue item(int index);
+}
 
 class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList, JavaScriptIndexingBehavior native "*CSSValueList" {
 
@@ -7414,6 +7445,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList, JavaScrip
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -8014,6 +8046,21 @@ class _ClientRectImpl implements ClientRect native "*ClientRect" {
 
   final num width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName ClientRectList
+abstract class ClientRectList implements List<ClientRect> {
+
+  /** @domName ClientRectList.length */
+  abstract int get length;
+
+  /** @domName ClientRectList.item */
+  ClientRect item(int index);
+}
 
 class _ClientRectListImpl implements ClientRectList, JavaScriptIndexingBehavior native "*ClientRectList" {
 
@@ -8083,6 +8130,7 @@ class _ClientRectListImpl implements ClientRectList, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -8118,7 +8166,7 @@ abstract class Clipboard {
   String effectAllowed;
 
   /** @domName Clipboard.files */
-  abstract List<File> get files;
+  abstract FileList get files;
 
   /** @domName Clipboard.items */
   abstract DataTransferItemList get items;
@@ -8971,6 +9019,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -9139,6 +9188,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -9423,6 +9473,7 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -10071,7 +10122,7 @@ class _DirectoryReaderImpl implements DirectoryReader native "*DirectoryReader" 
 abstract class DirectoryReaderSync {
 
   /** @domName DirectoryReaderSync.readEntries */
-  List<EntryArraySync> readEntries();
+  EntryArraySync readEntries();
 }
 
 class _DirectoryReaderSyncImpl implements DirectoryReaderSync native "*DirectoryReaderSync" {
@@ -10153,7 +10204,7 @@ abstract class Document extends HtmlElement {
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  abstract List<StyleSheet> get styleSheets;
+  abstract StyleSheetList get styleSheets;
 
   /** @domName Document.title */
   String title;
@@ -11385,7 +11436,7 @@ abstract class Element implements Node, NodeSelector {
   ClientRect $dom_getBoundingClientRect();
 
   /** @domName Element.getClientRects */
-  List<ClientRect> $dom_getClientRects();
+  ClientRectList $dom_getClientRects();
 
   /** @domName Element.getElementsByClassName */
   NodeList $dom_getElementsByClassName(String name);
@@ -12756,7 +12807,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference native "
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntriesCallback(List<EntryArray> entries);
+typedef bool EntriesCallback(EntryArray entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12798,6 +12849,21 @@ abstract class Entry {
 
   /** @domName Entry.toURL */
   String toURL();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName EntryArray
+abstract class EntryArray implements List<Entry> {
+
+  /** @domName EntryArray.length */
+  abstract int get length;
+
+  /** @domName EntryArray.item */
+  Entry item(int index);
 }
 
 class _EntryArrayImpl implements EntryArray, JavaScriptIndexingBehavior native "*EntryArray" {
@@ -12868,6 +12934,7 @@ class _EntryArrayImpl implements EntryArray, JavaScriptIndexingBehavior native "
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -12886,6 +12953,21 @@ class _EntryArrayImpl implements EntryArray, JavaScriptIndexingBehavior native "
   // -- end List<Entry> mixins.
 
   _EntryImpl item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName EntryArraySync
+abstract class EntryArraySync implements List<EntrySync> {
+
+  /** @domName EntryArraySync.length */
+  abstract int get length;
+
+  /** @domName EntryArraySync.item */
+  EntrySync item(int index);
 }
 
 class _EntryArraySyncImpl implements EntryArraySync, JavaScriptIndexingBehavior native "*EntryArraySync" {
@@ -12956,6 +13038,7 @@ class _EntryArraySyncImpl implements EntryArraySync, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -13805,6 +13888,21 @@ class _FileImpl extends _BlobImpl implements File native "*File" {
 
   final String webkitRelativePath;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName FileList
+abstract class FileList implements List<File> {
+
+  /** @domName FileList.length */
+  abstract int get length;
+
+  /** @domName FileList.item */
+  File item(int index);
+}
 
 class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*FileList" {
 
@@ -13874,6 +13972,7 @@ class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*Fil
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -14314,6 +14413,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -14433,6 +14533,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -14792,6 +14893,21 @@ class _GamepadImpl implements Gamepad native "*Gamepad" {
 
   final int timestamp;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName GamepadList
+abstract class GamepadList implements List<Gamepad> {
+
+  /** @domName GamepadList.length */
+  abstract int get length;
+
+  /** @domName GamepadList.item */
+  Gamepad item(int index);
+}
 
 class _GamepadListImpl implements GamepadList, JavaScriptIndexingBehavior native "*GamepadList" {
 
@@ -14861,6 +14977,7 @@ class _GamepadListImpl implements GamepadList, JavaScriptIndexingBehavior native
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -15053,6 +15170,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -15163,6 +15281,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -17148,7 +17267,7 @@ abstract class InputElement implements Element {
   bool disabled;
 
   /** @domName HTMLInputElement.files */
-  List<File> files;
+  FileList files;
 
   /** @domName HTMLInputElement.form */
   abstract FormElement get form;
@@ -17250,7 +17369,7 @@ abstract class InputElement implements Element {
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries */
-  abstract List<EntryArray> get webkitEntries;
+  abstract EntryArray get webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -17510,6 +17629,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -17629,6 +17749,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -17748,6 +17869,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -18986,7 +19108,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*Me
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaList
-abstract class MediaList {
+abstract class MediaList implements List<String> {
 
   /** @domName MediaList.length */
   abstract int get length;
@@ -19004,11 +19126,93 @@ abstract class MediaList {
   String item(int index);
 }
 
-class _MediaListImpl implements MediaList native "*MediaList" {
+class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*MediaList" {
 
   final int length;
 
   String mediaText;
+
+  String operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
+  void sort(int compare(String a, String b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  String last() => this[length - 1];
+
+  String removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
 
   void appendMedium(String newMedium) native;
 
@@ -19234,6 +19438,21 @@ class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
 
   EventListenerList get ended => this['ended'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MediaStreamList
+abstract class MediaStreamList implements List<MediaStream> {
+
+  /** @domName MediaStreamList.length */
+  abstract int get length;
+
+  /** @domName MediaStreamList.item */
+  MediaStream item(int index);
+}
 
 class _MediaStreamListImpl implements MediaStreamList, JavaScriptIndexingBehavior native "*MediaStreamList" {
 
@@ -19303,6 +19522,7 @@ class _MediaStreamListImpl implements MediaStreamList, JavaScriptIndexingBehavio
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -20290,6 +20510,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -20385,7 +20606,7 @@ abstract class Navigator {
   bool javaEnabled();
 
   /** @domName Navigator.webkitGetGamepads */
-  List<Gamepad> webkitGetGamepads();
+  GamepadList webkitGetGamepads();
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -21992,7 +22213,7 @@ abstract class PeerConnection00 implements EventTarget {
   abstract SessionDescription get localDescription;
 
   /** @domName PeerConnection00.localStreams */
-  abstract List<MediaStream> get localStreams;
+  abstract MediaStreamList get localStreams;
 
   /** @domName PeerConnection00.readyState */
   abstract int get readyState;
@@ -22001,7 +22222,7 @@ abstract class PeerConnection00 implements EventTarget {
   abstract SessionDescription get remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  abstract MediaStreamList get remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -22685,7 +22906,7 @@ abstract class RTCPeerConnection implements EventTarget {
   abstract RTCSessionDescription get localDescription;
 
   /** @domName RTCPeerConnection.localStreams */
-  abstract List<MediaStream> get localStreams;
+  abstract MediaStreamList get localStreams;
 
   /** @domName RTCPeerConnection.readyState */
   abstract String get readyState;
@@ -22694,7 +22915,7 @@ abstract class RTCPeerConnection implements EventTarget {
   abstract RTCSessionDescription get remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  abstract MediaStreamList get remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -22938,6 +23159,7 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList, JavaScr
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -23032,7 +23254,7 @@ abstract class Range {
   ClientRect getBoundingClientRect();
 
   /** @domName Range.getClientRects */
-  List<ClientRect> getClientRects();
+  ClientRectList getClientRects();
 
   /** @domName Range.insertNode */
   void insertNode(Node newNode);
@@ -23938,6 +24160,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -24063,6 +24286,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -24232,6 +24456,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -24823,7 +25048,7 @@ abstract class SVGElementInstance implements EventTarget {
   SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
-  abstract List<SVGElementInstance> get childNodes;
+  abstract SVGElementInstanceList get childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
   abstract SVGElement get correspondingElement;
@@ -25035,6 +25260,21 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
 
   EventListenerList get unload => this['unload'];
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName SVGElementInstanceList
+abstract class SVGElementInstanceList implements List<SVGElementInstance> {
+
+  /** @domName SVGElementInstanceList.length */
+  abstract int get length;
+
+  /** @domName SVGElementInstanceList.item */
+  SVGElementInstance item(int index);
+}
 
 class _SVGElementInstanceListImpl implements SVGElementInstanceList, JavaScriptIndexingBehavior native "*SVGElementInstanceList" {
 
@@ -25104,6 +25344,7 @@ class _SVGElementInstanceListImpl implements SVGElementInstanceList, JavaScriptI
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -27232,6 +27473,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -27838,6 +28080,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -28813,6 +29056,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -29884,6 +30128,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -30569,6 +30814,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -31494,6 +31740,7 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -31678,6 +31925,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -31711,7 +31959,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 abstract class SpeechInputEvent implements Event {
 
   /** @domName SpeechInputEvent.results */
-  abstract List<SpeechInputResult> get results;
+  abstract SpeechInputResultList get results;
 }
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
@@ -31739,6 +31987,21 @@ class _SpeechInputResultImpl implements SpeechInputResult native "*SpeechInputRe
   final num confidence;
 
   final String utterance;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName SpeechInputResultList
+abstract class SpeechInputResultList implements List<SpeechInputResult> {
+
+  /** @domName SpeechInputResultList.length */
+  abstract int get length;
+
+  /** @domName SpeechInputResultList.item */
+  SpeechInputResult item(int index);
 }
 
 class _SpeechInputResultListImpl implements SpeechInputResultList, JavaScriptIndexingBehavior native "*SpeechInputResultList" {
@@ -31809,6 +32072,7 @@ class _SpeechInputResultListImpl implements SpeechInputResultList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -31994,7 +32258,7 @@ abstract class SpeechRecognitionEvent implements Event {
   abstract SpeechRecognitionResult get result;
 
   /** @domName SpeechRecognitionEvent.resultHistory */
-  abstract List<SpeechRecognitionResult> get resultHistory;
+  abstract SpeechRecognitionResultList get resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex */
   abstract int get resultIndex;
@@ -32094,6 +32358,21 @@ class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*S
 
   _SpeechRecognitionAlternativeImpl item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName SpeechRecognitionResultList
+abstract class SpeechRecognitionResultList implements List<SpeechRecognitionResult> {
+
+  /** @domName SpeechRecognitionResultList.length */
+  abstract int get length;
+
+  /** @domName SpeechRecognitionResultList.item */
+  SpeechRecognitionResult item(int index);
+}
 
 class _SpeechRecognitionResultListImpl implements SpeechRecognitionResultList, JavaScriptIndexingBehavior native "*SpeechRecognitionResultList" {
 
@@ -32163,6 +32442,7 @@ class _SpeechRecognitionResultListImpl implements SpeechRecognitionResultList, J
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -32482,6 +32762,21 @@ class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
 
   final String type;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName StyleSheetList
+abstract class StyleSheetList implements List<StyleSheet> {
+
+  /** @domName StyleSheetList.length */
+  abstract int get length;
+
+  /** @domName StyleSheetList.item */
+  StyleSheet item(int index);
+}
 
 class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior native "*StyleSheetList" {
 
@@ -32551,6 +32846,7 @@ class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -33443,6 +33739,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -33604,6 +33901,7 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -33891,6 +34189,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -34272,6 +34571,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -34391,6 +34691,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -34510,6 +34811,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
+  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -37039,7 +37341,7 @@ class _WebGLVertexArrayObjectOESImpl implements WebGLVertexArrayObjectOES native
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSFilterValue
-abstract class WebKitCSSFilterValue implements List<CSSValue> {
+abstract class WebKitCSSFilterValue implements CSSValueList {
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -37562,7 +37864,7 @@ abstract class Window implements EventTarget {
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
   /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
+  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
   /** @domName DOMWindow.getSelection */
   DOMSelection getSelection();
@@ -41065,11 +41367,14 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     }
 
     if (e is _FileListImpl) return e;
+    if (e is FileList) {
+      throw const NotImplementedException('structured clone of FileList');
+    }
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is _ImageDataImpl) return e;
     if (e is ImageData) {
-      throw const NotImplementedException('structured clone of ImageData');
+      throw const NotImplementedException('structured clone of FileList');
     }
 
     if (e is _ArrayBufferImpl) return e;
