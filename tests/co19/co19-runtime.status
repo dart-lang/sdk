@@ -333,9 +333,12 @@ LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $system == windows ]
-LibTest/core/double/operator_remainder_A01_t04: Fail
-LibTest/core/double/round_A01_t01: Fail
-LibTest/core/double/remainder_A01_t04: Fail
+LibTest/core/Math/atan2_A01_t03: Fail # http://dartbug.com/5407
+LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
+LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
+LibTest/core/double/round_A01_t01: Fail # http://dartbug.com/5407
+LibTest/core/int/operator_remainder_A01_t02: Fail # http://dartbug.com/5407
+LibTest/core/int/remainder_A01_t02: Fail # http://dartbug.com/5407
 
 
 [ $runtime == vm ]
