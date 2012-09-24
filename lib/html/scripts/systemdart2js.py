@@ -134,9 +134,6 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
     pass
 
   def _ImplClassName(self, type_name):
-    name = type_name
-    if type_name in nativified_classes:
-      name = nativified_classes[type_name]
     return '_' + type_name + 'Js'
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):

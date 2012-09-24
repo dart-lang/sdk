@@ -205,11 +205,14 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     }
 
     if (e is _FileListImpl) return e;
+    if (e is FileList) {
+      throw const NotImplementedException('structured clone of FileList');
+    }
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is _ImageDataImpl) return e;
     if (e is ImageData) {
-      throw const NotImplementedException('structured clone of ImageData');
+      throw const NotImplementedException('structured clone of FileList');
     }
 
     if (e is _ArrayBufferImpl) return e;
