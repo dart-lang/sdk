@@ -108,9 +108,8 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
       builder.AddCopy(inner->LocationAt(i), *inner->ValueAt(i), slot_ix++);
     }
 
-    // Set the locals, not including the outgoing arguments.
-    ASSERT(current->Length() >= inner->fixed_parameter_count());
-    for (intptr_t i = current->Length() - inner->fixed_parameter_count() - 1;
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
          i >= current->fixed_parameter_count();
          i--) {
       builder.AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);

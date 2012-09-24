@@ -1828,7 +1828,17 @@ void Environment::DeepCopyTo(Instruction* instr) const {
 // environment use lists.
 void Environment::DeepCopyToOuter(Instruction* instr) const {
   ASSERT(instr->env()->outer() == NULL);
-  Environment* copy = DeepCopy();
+  // Create a deep copy removing caller arguments from the environment.
+  intptr_t argument_count = instr->env()->fixed_parameter_count();
+  Environment* copy =
+      new Environment(values_.length() - argument_count,
+                      fixed_parameter_count_,
+                      deopt_id_,
+                      function_,
+                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
+  for (intptr_t i = 0; i < values_.length() - argument_count; ++i) {
+    copy->values_.Add(values_[i]->Copy());
+  }
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
