@@ -65,7 +65,7 @@ abstract class SendPort implements Hashable {
    * running in the same process (e.g. isolates created via [spawnFunction]), it
    * is also possible to send object instances (which would be copied in the
    * process). This is currently only supported by the dartvm.  For now, the
-   * frog compiler only supports the restricted messages described above.
+   * dart2js compiler only supports the restricted messages described above.
    *
    * Deprecation note: it is no longer valid to transmit a [ReceivePort] in a
    * message. Previously they were translated to the corresponding send port
@@ -136,7 +136,7 @@ interface ReceivePort default _ReceivePortFactory {
 
 }
 
-// TODO(kasperl): Make this hashable and document it.
+// TODO(kasperl): Document this.
 abstract class SendPortSync {
 
   callSync(var message);

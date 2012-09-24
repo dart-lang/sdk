@@ -1293,8 +1293,7 @@ $classesCollector.$mangledName = {'':
     }
 
     // TODO(ngeoffray): These globals are currently required by the isolate
-    // library, but since leg already generates code on an Isolate object, they
-    // are not really needed. We should remove them once Leg replaces Frog.
+    // library. They should be removed.
     buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;

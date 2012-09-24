@@ -298,10 +298,6 @@ class _Sentinel {
   const _Sentinel();
 }
 
-// TODO(sigmund): make a singleton const field when frog supports passing those
-// as default values to named arguments.
-const _sentinel = const _Sentinel();
-
 /** Simulates spread arguments using named arguments. */
 // TODO(sigmund): remove this class and simply use a closure with named
 // arguments (if still applicable).
@@ -313,6 +309,7 @@ class _SpreadArgsHelper {
   TestCase _testCase;
   Function _shouldCallBack;
   Function _isDone;
+  static const _sentinel = const _Sentinel();
 
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
