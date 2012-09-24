@@ -19,7 +19,7 @@ patch class Object {
 
   patch String toString() => Primitives.objectToString(this);
 
-  patch void noSuchMethod(String name, List args) {
+  patch Dynamic noSuchMethod(String name, List args) {
     throw new NoSuchMethodError(this, name, args);
   }
 

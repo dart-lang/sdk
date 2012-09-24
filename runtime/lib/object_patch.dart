@@ -21,7 +21,7 @@ patch class Object {
 
   /* patch */ String toString() => _toString(this);
 
-  /* patch */ void noSuchMethod(String functionName, List args) {
+  /* patch */ Dynamic noSuchMethod(String functionName, List args) {
     _noSuchMethod(this, functionName, args);
   }
 
