@@ -66,15 +66,6 @@ class MemoryRegion {
     return reinterpret_cast<T*>(start() + offset);
   }
 
-  // Locate the bit with the given offset. Returns a pointer to the byte
-  // containing the bit, and sets bit_mask to the bit within that byte.
-  uint8_t* ComputeBitPointer(uword bit_offset, uint8_t* bit_mask) const {
-    uword bit_remainder = (bit_offset & (kBitsPerByte - 1));
-    *bit_mask = (1U << bit_remainder);
-    uword byte_offset = (bit_offset >> kBitsPerByteLog2);
-    return ComputeInternalPointer<uint8_t>(byte_offset);
-  }
-
   void* pointer_;
   uword size_;
 

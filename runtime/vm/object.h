@@ -750,7 +750,7 @@ class Class : public Object {
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_class_state(RawClass::ClassState state) const;
-  void set_state_bits(uint8_t bits) const;
+  void set_state_bits(intptr_t bits) const;
 
   void set_constants(const Array& value) const;
 
@@ -1843,8 +1843,8 @@ class Field : public Object {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
   void set_has_initializer(bool has_initializer) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = HasInitializerBit::update(has_initializer, bits);
+    set_kind_bits(HasInitializerBit::update(has_initializer,
+                                            raw_ptr()->kind_bits_));
   }
 
   // Constructs getter and setter names for fields and vice versa.
@@ -1871,16 +1871,13 @@ class Field : public Object {
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = StaticBit::update(is_static, bits);
+    set_kind_bits(StaticBit::update(is_static, raw_ptr()->kind_bits_));
   }
   void set_is_final(bool is_final) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = FinalBit::update(is_final, bits);
+    set_kind_bits(FinalBit::update(is_final, raw_ptr()->kind_bits_));
   }
   void set_is_const(bool value) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = ConstBit::update(value, bits);
+    set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Class& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -1889,7 +1886,7 @@ class Field : public Object {
     raw_ptr()->token_pos_ = token_pos;
   }
   void set_kind_bits(intptr_t value) const {
-    raw_ptr()->kind_bits_ = value;
+    raw_ptr()->kind_bits_ = static_cast<uint8_t>(value);
   }
   static RawField* New();
 
@@ -1976,7 +1973,7 @@ class TokenStream : public Object {
     intptr_t ReadToken() {
       int64_t value = stream_.ReadUnsigned();
       ASSERT((value >= 0) && (value <= kIntptrMax));
-      return value;
+      return static_cast<intptr_t>(value);
     }
 
     const TokenStream& tokens_;

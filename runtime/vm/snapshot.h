@@ -167,7 +167,7 @@ class BaseReader {
   intptr_t ReadIntptrValue() {
     int64_t value = Read<int64_t>();
     ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
-    return value;
+    return static_cast<intptr_t>(value);
   }
 
   void ReadBytes(uint8_t* addr, intptr_t len) {

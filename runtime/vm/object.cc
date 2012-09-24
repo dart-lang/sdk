@@ -1445,13 +1445,12 @@ void Class::set_class_state(RawClass::ClassState state) const {
   ASSERT((state == RawClass::kAllocated) ||
          (state == RawClass::kPreFinalized) ||
          (state == RawClass::kFinalized));
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = StateBits::update(state, bits);
+  set_state_bits(StateBits::update(state, raw_ptr()->state_bits_));
 }
 
 
-void Class::set_state_bits(uint8_t bits) const {
-  raw_ptr()->state_bits_ = bits;
+void Class::set_state_bits(intptr_t bits) const {
+  raw_ptr()->state_bits_ = static_cast<uint8_t>(bits);
 }
 
 
@@ -1904,33 +1903,30 @@ void Class::set_token_pos(intptr_t token_pos) const {
 
 
 void Class::set_is_interface() const {
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = InterfaceBit::update(true, bits);
+  set_state_bits(InterfaceBit::update(true, raw_ptr()->state_bits_));
 }
 
 void Class::set_is_abstract() const {
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = AbstractBit::update(true, bits);
+  set_state_bits(AbstractBit::update(true, raw_ptr()->state_bits_));
 }
 
 
 void Class::set_is_const() const {
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = ConstBit::update(true, bits);
+  set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
 }
 
 
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = StateBits::update(RawClass::kFinalized, bits);
+  set_state_bits(StateBits::update(RawClass::kFinalized,
+                                   raw_ptr()->state_bits_));
 }
 
 
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
-  uword bits = raw_ptr()->state_bits_;
-  raw_ptr()->state_bits_ = StateBits::update(RawClass::kPreFinalized, bits);
+  set_state_bits(StateBits::update(RawClass::kPreFinalized,
+                                   raw_ptr()->state_bits_));
 }
 
 
@@ -4087,26 +4083,22 @@ void Function::set_parameter_names(const Array& value) const {
 
 
 void Function::set_kind(RawFunction::Kind value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = KindBits::update(value, bits);
+  set_kind_tag(KindBits::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_is_static(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = StaticBit::update(value, bits);
+  set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_is_const(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ConstBit::update(value, bits);
+  set_kind_tag(ConstBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_is_external(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = ExternalBit::update(value, bits);
+  set_kind_tag(ExternalBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -4117,7 +4109,7 @@ void Function::set_token_pos(intptr_t value) const {
 
 
 void Function::set_kind_tag(intptr_t value) const {
-  raw_ptr()->kind_tag_ = value;
+  raw_ptr()->kind_tag_ = static_cast<uint16_t>(value);
 }
 
 
@@ -4152,26 +4144,22 @@ bool Function::is_optimizable() const {
 
 
 void Function::set_is_optimizable(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = OptimizableBit::update(value, bits);
+  set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_has_finally(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = HasFinallyBit::update(value, bits);
+  set_kind_tag(HasFinallyBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_is_native(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = NativeBit::update(value, bits);
+  set_kind_tag(NativeBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
 void Function::set_is_abstract(bool value) const {
-  uword bits = raw_ptr()->kind_tag_;
-  raw_ptr()->kind_tag_ = AbstractBit::update(value, bits);
+  set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
 }
 
 

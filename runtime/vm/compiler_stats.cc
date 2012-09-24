@@ -64,22 +64,24 @@ void CompilerStats::Print() {
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
   OS::Print("Source length:      %"Pd" characters\n", src_length);
-  intptr_t scan_usecs = scanner_timer.TotalElapsedTime();
-  OS::Print("Scanner time:       %"Pd" msecs\n",
+  int64_t scan_usecs = scanner_timer.TotalElapsedTime();
+  OS::Print("Scanner time:       %"Pd64" msecs\n",
             scan_usecs / 1000);
-  intptr_t parse_usecs = parser_timer.TotalElapsedTime();
-  OS::Print("Parser time:        %"Pd" msecs\n",
+  int64_t parse_usecs = parser_timer.TotalElapsedTime();
+  OS::Print("Parser time:        %"Pd64" msecs\n",
             parse_usecs / 1000);
-  intptr_t codegen_usecs = codegen_timer.TotalElapsedTime();
-  OS::Print("Code gen. time:     %"Pd" msecs\n",
+  int64_t codegen_usecs = codegen_timer.TotalElapsedTime();
+  OS::Print("Code gen. time:     %"Pd64" msecs\n",
             codegen_usecs / 1000);
-  intptr_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
-  OS::Print("  Graph builder time: %"Pd" msecs\n", graphbuilder_usecs / 1000);
-  intptr_t graphcompiler_usecs = graphcompiler_timer.TotalElapsedTime();
-  OS::Print("  Graph comp. time:   %"Pd" msecs\n", graphcompiler_usecs / 1000);
-  intptr_t codefinalizer_usecs = codefinalizer_timer.TotalElapsedTime();
-  OS::Print("  Code final. time:   %"Pd" msecs\n", codefinalizer_usecs / 1000);
-  OS::Print("Compilation speed:  %"Pd" tokens per msec\n",
+  int64_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
+  OS::Print("  Graph builder time: %"Pd64" msecs\n", graphbuilder_usecs / 1000);
+  int64_t graphcompiler_usecs = graphcompiler_timer.TotalElapsedTime();
+  OS::Print("  Graph comp. time:   %"Pd64" msecs\n",
+            graphcompiler_usecs / 1000);
+  int64_t codefinalizer_usecs = codefinalizer_timer.TotalElapsedTime();
+  OS::Print("  Code final. time:   %"Pd64" msecs\n",
+            codefinalizer_usecs / 1000);
+  OS::Print("Compilation speed:  %"Pd64" tokens per msec\n",
             1000 * num_tokens_total / (parse_usecs + codegen_usecs));
   OS::Print("Code size:          %"Pd" KB\n",
             code_allocated / 1024);

@@ -584,7 +584,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
-  func.set_kind_tag(reader->ReadIntptrValue());
+  func.set_kind_tag(reader->Read<uint16_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -619,7 +619,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
-  writer->WriteIntptrValue(ptr()->kind_tag_);
+  writer->Write<uint16_t>(ptr()->kind_tag_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -674,7 +674,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->kind_bits_);
+  writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
