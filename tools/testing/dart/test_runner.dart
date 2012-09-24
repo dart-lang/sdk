@@ -144,7 +144,8 @@ class TestCase {
     final runtime = configuration['runtime'];
     final mode = configuration['mode'];
     final arch = configuration['arch'];
-    return "$compiler-$runtime ${mode}_$arch";
+    final checked = configuration['checked'] ? '-checked' : '';
+    return "$compiler-$runtime$checked ${mode}_$arch";
   }
 
   List<String> get batchRunnerArguments => ['-batch'];
