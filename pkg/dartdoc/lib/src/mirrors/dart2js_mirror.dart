@@ -11,6 +11,7 @@
 #import('../../../../../lib/compiler/implementation/elements/elements.dart');
 #import('../../../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
 #import('../../../../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import('../../../../../lib/compiler/implementation/ssa/ssa.dart');
 #import('../../../../../lib/compiler/implementation/leg.dart');
 #import('../../../../../lib/compiler/implementation/filenames.dart');
 #import('../../../../../lib/compiler/implementation/source_file.dart');
@@ -59,7 +60,11 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   if (type === null) {
     return new Dart2JsInterfaceTypeMirror(system, defaultType);
   } else if (type is InterfaceType) {
-    return new Dart2JsInterfaceTypeMirror(system, type);
+    if (type === system.compiler.types.dynamicType) {
+      return new Dart2JsDynamicMirror(system, type);
+    } else {
+      return new Dart2JsInterfaceTypeMirror(system, type);
+    }
   } else if (type is TypeVariableType) {
     return new Dart2JsTypeVariableMirror(system, type);
   } else if (type is FunctionType) {
@@ -675,7 +680,6 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   ClassElement get _class => _element;
 
-
   Dart2JsInterfaceMirror.fromLibrary(Dart2JsLibraryMirror library,
                                  ClassElement _class)
       : this.library = library,
@@ -715,7 +719,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   bool get isObject => _class == system.compiler.objectClass;
 
-  bool get isDynamic => _class == system.compiler.dynamicClass;
+  bool get isDynamic => false;
 
   bool get isVoid => false;
 
@@ -837,17 +841,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   LibraryMirror get library => _library;
 
-  bool get isObject => false;
-
-  bool get isDynamic => false;
-
-  bool get isVoid => false;
-
-  bool get isTypeVariable => false;
-
   bool get isTypedef => true;
-
-  bool get isFunction => false;
 
   List<TypeMirror> get typeArguments {
     throw new UnsupportedOperationException(
@@ -934,17 +928,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
 
   LibraryMirror get library => declarer.library;
 
-  bool get isObject => false;
-
-  bool get isDynamic => false;
-
-  bool get isVoid => false;
-
   bool get isTypeVariable => true;
-
-  bool get isTypedef => false;
-
-  bool get isFunction => false;
 
   TypeMirror get bound => _convertTypeToTypeMirror(
       system,
@@ -991,6 +975,18 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
     return system.getLibrary(_type.element.getLibrary());
   }
 
+  bool get isObject => false;
+
+  bool get isVoid => false;
+
+  bool get isDynamic => false;
+
+  bool get isTypeVariable => false;
+
+  bool get isTypedef => false;
+
+  bool get isFunction => false;
+
   String toString() => _type.element.toString();
 }
 
@@ -1012,14 +1008,6 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   bool get isObject => system.compiler.objectClass == _type.element;
 
   bool get isDynamic => system.compiler.dynamicClass == _type.element;
-
-  bool get isTypeVariable => false;
-
-  bool get isVoid => false;
-
-  bool get isTypedef => false;
-
-  bool get isFunction => false;
 
   InterfaceMirror get declaration
       => new Dart2JsInterfaceMirror(system, _type.element);
@@ -1114,16 +1102,6 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
     return declaration.declaredMembers;
   }
 
-  bool get isObject => system.compiler.objectClass == _type.element;
-
-  bool get isDynamic => system.compiler.dynamicClass == _type.element;
-
-  bool get isVoid => false;
-
-  bool get isTypeVariable => false;
-
-  bool get isTypedef => false;
-
   bool get isFunction => true;
 
   MethodMirror get callMethod => _convertElementMethodToMethodMirror(
@@ -1189,17 +1167,7 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
    */
   LibraryMirror get library => null;
 
-  bool get isObject => false;
-
   bool get isVoid => true;
-
-  bool get isDynamic => false;
-
-  bool get isTypeVariable => false;
-
-  bool get isTypedef => false;
-
-  bool get isFunction => false;
 
   bool operator ==(Object other) {
     if (this === other) {
@@ -1209,6 +1177,38 @@ class Dart2JsVoidMirror extends Dart2JsTypeElementMirror {
       return false;
     }
     return other.isVoid;
+  }
+}
+
+
+class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
+  Dart2JsDynamicMirror(Dart2JsMirrorSystem system, InterfaceType voidType)
+      : super(system, voidType);
+
+  InterfaceType get _dynamicType => _type;
+
+  String get qualifiedName => simpleName;
+
+  /**
+   * The dynamic type has no location.
+   */
+  Location get location => null;
+
+  /**
+   * The dynamic type has no library.
+   */
+  LibraryMirror get library => null;
+
+  bool get isDynamic => true;
+
+  bool operator ==(Object other) {
+    if (this === other) {
+      return true;
+    }
+    if (other is! TypeMirror) {
+      return false;
+    }
+    return other.isDynamic;
   }
 }
 
