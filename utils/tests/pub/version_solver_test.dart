@@ -10,6 +10,7 @@
 #import('../../pub/lock_file.dart');
 #import('../../pub/package.dart');
 #import('../../pub/pubspec.dart');
+#import('../../pub/root_source.dart');
 #import('../../pub/source.dart');
 #import('../../pub/source_registry.dart');
 #import('../../pub/utils.dart');
@@ -26,12 +27,13 @@ final couldNotSolve = 'unsolved';
 Source source1;
 Source source2;
 Source versionlessSource;
+Source rootSource;
 
 main() {
   testResolve('no dependencies', {
     'myapp 0.0.0': {}
   }, result: {
-    'myapp': '0.0.0'
+    'myapp from root': '0.0.0'
   });
 
   testResolve('simple dependency tree', {
@@ -52,7 +54,7 @@ main() {
     'ba 1.0.0': {},
     'bb 1.0.0': {}
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'a': '1.0.0',
     'aa': '1.0.0',
     'ab': '1.0.0',
@@ -78,7 +80,7 @@ main() {
     'shared 4.0.0': {},
     'shared 5.0.0': {},
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'a': '1.0.0',
     'b': '1.0.0',
     'shared': '3.6.9'
@@ -99,7 +101,7 @@ main() {
     'whoop 1.0.0': {},
     'zoop 1.0.0': {}
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
@@ -111,8 +113,8 @@ main() {
     },
     'foo 1.2.3 from versionless': {}
   }, result: {
-    'myapp': '0.0.0',
-    'foo': '1.2.3'
+    'myapp from root': '0.0.0',
+    'foo from versionless': '1.2.3'
   });
 
   testResolve('transitively through versionless source', {
@@ -124,8 +126,8 @@ main() {
     },
     'bar 1.1.0': {}
   }, result: {
-    'myapp': '0.0.0',
-    'foo': '1.2.3',
+    'myapp from root': '0.0.0',
+    'foo from versionless': '1.2.3',
     'bar': '1.1.0'
   });
 
@@ -142,7 +144,7 @@ main() {
   }, lockfile: {
     'foo': '1.0.1'
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'foo': '1.0.1',
     'bar': '1.0.1'
   });
@@ -160,7 +162,7 @@ main() {
   }, lockfile: {
     'foo': '1.0.1'
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'foo': '1.0.2',
     'bar': '1.0.2'
   });
@@ -179,9 +181,25 @@ main() {
   }, lockfile: {
     'baz': '1.0.0'
   }, result: {
-    'myapp': '0.0.0',
+    'myapp from root': '0.0.0',
     'foo': '1.0.2',
     'bar': '1.0.2'
+  });
+
+  testResolve('circular dependency', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'bar': '1.0.0'
+    },
+    'bar 1.0.0': {
+      'foo': '1.0.0'
+    }
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
   });
 
   testResolve('dependency back onto root package', {
@@ -189,9 +207,46 @@ main() {
       'foo': '1.0.0'
     },
     'foo 1.0.0': {
+      'myapp from root': '>=1.0.0'
+    }
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0'
+  });
+
+  testResolve('dependency back onto root package with different source', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0'
+    },
+    'foo 1.0.0': {
       'myapp': '>=1.0.0'
     }
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0'
+  });
+
+  testResolve('mismatched dependencies back onto root package', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0',
+      'bar': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'myapp': '>=1.0.0'
+    },
+    'bar 1.0.0': {
+      'myapp from mock2': '>=1.0.0'
+    }
   }, error: sourceMismatch);
+
+  testResolve('dependency back onto root package with wrong version', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'myapp': '<1.0.0'
+    }
+  }, error: disjointConstraint);
 
   testResolve('no version that matches requirement', {
     'myapp 0.0.0': {
@@ -310,6 +365,8 @@ testResolve(description, packages, [lockfile, result, error]) {
         // doesn't try to look up information about the local package on the
         // remote server.
         root = package;
+        rootSource = new RootSource(root);
+        sources.register(rootSource);
       } else {
         source.addPackage(package);
       }
@@ -317,9 +374,15 @@ testResolve(description, packages, [lockfile, result, error]) {
 
     // Clean up the expectation.
     if (result != null) {
+      var newResult = {};
       result.forEach((name, version) {
-        result[name] = new Version.parse(version);
+        var parsed = parseSource(name);
+        name = parsed.first;
+        var source = parsed.last;
+        version = new Version.parse(version);
+        newResult[name] = new PackageId(name, source, version, name);
       });
+      result = newResult;
     }
 
     var realLockFile = new LockFile.empty();
@@ -336,9 +399,10 @@ testResolve(description, packages, [lockfile, result, error]) {
 
     if (result != null) {
       expect(future, completion(predicate((actualResult) {
-        for (var id in actualResult) {
-          if (!result.containsKey(id.description)) return false;
-          if (id.version != result.remove(id.description)) return false;
+        for (var actualId in actualResult) {
+          if (!result.containsKey(actualId.name)) return false;
+          var expectedId = result.remove(actualId.name);
+          if (actualId != expectedId) return false;
         }
         return result.isEmpty();
       }, description: 'packages to match $result')));
@@ -462,6 +526,7 @@ Pair<String, Source> parseSource(String name) {
   switch (match[2]) {
   case 'mock1': return new Pair<String, Source>(match[1], source1);
   case 'mock2': return new Pair<String, Source>(match[1], source2);
+  case 'root': return new Pair<String, Source>(match[1], rootSource);
   case 'versionless':
     return new Pair<String, Source>(match[1], versionlessSource);
   }
