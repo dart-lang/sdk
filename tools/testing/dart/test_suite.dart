@@ -685,7 +685,7 @@ class StandardTestSuite implements TestSuite {
         // As a special case, a command of "dart" should run with the
         // dart VM that we are testing.
         if (extraCommand == 'dart') {
-          extraCommand = TestUtils.vmFileName(configuration),
+          extraCommand = TestUtils.vmFileName(configuration);
         }
         args= args.map((arg)=>arg.replaceAll(@"$dartDir", dartDir.toString()));
         commands.add(new Command(extraCommand, args));
