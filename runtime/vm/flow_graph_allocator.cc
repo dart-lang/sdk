@@ -1135,6 +1135,9 @@ void FlowGraphAllocator::NumberInstructions() {
 
 // Discover structural (reducible) loops nesting structure.
 void FlowGraphAllocator::DiscoverLoops() {
+  // This algorithm relies on the assumption that we emit blocks in reverse
+  // postorder, so postorder number can be used to identify loop nesting.
+  //
   // TODO(vegorov): consider using a generic algorithm to correctly discover
   // both headers of reducible and irreducible loops.
   BlockInfo* current_loop = NULL;
@@ -1151,8 +1154,8 @@ void FlowGraphAllocator::DiscoverLoops() {
         ASSERT(successor_info->entry() == successor);
         if (!successor_info->is_loop_header() &&
             ((current_loop == NULL) ||
-             (current_loop->entry()->block_id() <
-                  successor_info->entry()->block_id()))) {
+             (current_loop->entry()->postorder_number() >
+                  successor_info->entry()->postorder_number()))) {
           ASSERT(successor_info != current_loop);
 
           successor_info->mark_loop_header();

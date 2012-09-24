@@ -659,7 +659,6 @@ class BlockEntryInstr : public Instruction {
   void set_postorder_number(intptr_t number) { postorder_number_ = number; }
 
   intptr_t block_id() const { return block_id_; }
-  void set_block_id(intptr_t value) { block_id_ = value; }
 
   void set_start_pos(intptr_t pos) { start_pos_ = pos; }
   intptr_t start_pos() const { return start_pos_; }
@@ -732,11 +731,11 @@ class BlockEntryInstr : public Instruction {
   }
 
  protected:
-  explicit BlockEntryInstr(intptr_t try_index)
-      : try_index_(try_index),
+  BlockEntryInstr(intptr_t block_id, intptr_t try_index)
+      : block_id_(block_id),
+        try_index_(try_index),
         preorder_number_(-1),
         postorder_number_(-1),
-        block_id_(-1),
         dominator_(NULL),
         dominated_blocks_(1),
         last_instruction_(NULL),
@@ -747,12 +746,12 @@ class BlockEntryInstr : public Instruction {
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
+  const intptr_t block_id_;
   const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
   // Starting and ending lifetime positions for this block.  Used by
   // the linear scan register allocator.
-  intptr_t block_id_;
   intptr_t start_pos_;
   intptr_t end_pos_;
   BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
@@ -882,8 +881,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  explicit JoinEntryInstr(intptr_t try_index)
-      : BlockEntryInstr(try_index),
+  JoinEntryInstr(intptr_t block_id, intptr_t try_index)
+      : BlockEntryInstr(block_id, try_index),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL),
         phi_count_(0) { }
@@ -910,28 +909,13 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
-  // After recomputing predecessors to eliminate unreachable ones,
-  // reorganize phi inputs to match the predecessor order and to eliminate
-  // unreachable inputs.
-  void EliminateUnreachablePhiInputs();
-
  private:
-  virtual void ClearPredecessors() {
-    // Keep a 'backup' of any existing predecessors to enable garbage
-    // collection of phis after eliminating unreachable code and recomputing
-    // predecessors.
-    stale_predecessors_.Clear();
-    stale_predecessors_.AddArray(predecessors_);
-    predecessors_.Clear();
-  }
-  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
-    predecessors_.Add(predecessor);
-  }
+  virtual void ClearPredecessors() { predecessors_.Clear(); }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
   GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t phi_count_;
-  GrowableArray<BlockEntryInstr*> stale_predecessors_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -967,16 +951,10 @@ class PhiIterator : public ValueObject {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  explicit TargetEntryInstr(intptr_t try_index)
-      : BlockEntryInstr(try_index),
+  TargetEntryInstr(intptr_t block_id, intptr_t try_index)
+      : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
         catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
-
-  // Used for exception catch entries.
-  TargetEntryInstr(intptr_t try_index, intptr_t catch_try_index)
-      : BlockEntryInstr(try_index),
-        predecessor_(NULL),
-        catch_try_index_(catch_try_index) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -999,6 +977,7 @@ class TargetEntryInstr : public BlockEntryInstr {
     ASSERT(IsCatchEntry());
     return catch_try_index_;
   }
+  void set_catch_try_index(intptr_t index) { catch_try_index_ = index; }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1013,7 +992,7 @@ class TargetEntryInstr : public BlockEntryInstr {
   }
 
   BlockEntryInstr* predecessor_;
-  const intptr_t catch_try_index_;
+  intptr_t catch_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -1212,7 +1191,7 @@ class PhiInstr : public Definition {
   virtual bool InferRange();
 
  private:
-  friend class JoinEntryInstr;  // Direct access to inputs_ array.
+  friend class ConstantPropagator;  // Direct access to inputs_.
 
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;

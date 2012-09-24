@@ -150,7 +150,7 @@ const Object& Value::BoundConstant() const {
 
 
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
-    : BlockEntryInstr(CatchClauseNode::kInvalidTryIndex),
+    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
@@ -483,59 +483,29 @@ RawAbstractType* PushArgumentInstr::CompileType() const {
 }
 
 
+void JoinEntryInstr::AddPredecessor(BlockEntryInstr* predecessor) {
+  // Require the predecessors to be sorted by block_id to make managing
+  // their corresponding phi inputs simpler.
+  intptr_t pred_id = predecessor->block_id();
+  intptr_t index = 0;
+  while ((index < predecessors_.length()) &&
+         (predecessors_[index]->block_id() < pred_id)) {
+    ++index;
+  }
+#if defined(DEBUG)
+  for (intptr_t i = index; i < predecessors_.length(); ++i) {
+    ASSERT(predecessors_[i]->block_id() != pred_id);
+  }
+#endif
+  predecessors_.InsertAt(index, predecessor);
+}
+
+
 intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (predecessors_[i] == pred) return i;
   }
   return -1;
-}
-
-
-void JoinEntryInstr::EliminateUnreachablePhiInputs() {
-  if (phis_ == NULL || phis_->is_empty()) return;
-
-  // Loop over the predecessors, reorganize phi inputs.
-  // TODO(kmillikin): Replace phis that have a single remaining input with
-  // the input.  This requires being a bit careful about use lists.
-  intptr_t input_count = predecessors_.length();
-  for (intptr_t new_idx = 0; new_idx < input_count; ++new_idx) {
-    BlockEntryInstr* pred = predecessors_[new_idx];
-    // Linear search for the old predecessor index.  We can't directly
-    // compare block entries, because unreachable code elimination has
-    // replaced some targets with joins.
-    intptr_t old_idx = 0;
-    for (; old_idx < stale_predecessors_.length(); ++old_idx) {
-      if (stale_predecessors_[old_idx]->next() == pred->next()) break;
-    }
-    ASSERT(old_idx < stale_predecessors_.length());
-    // If the index has changed, adjust all phi inputs.
-    if (old_idx != new_idx) {
-      ASSERT(new_idx < old_idx);
-      // Swap each phi's inputs so the input at new_idx is correct.
-      // Preserve the previous value in case it is from a reachable
-      // predecessor.
-      for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-        PhiInstr* phi = (*phis_)[phi_idx];
-        if (phi == NULL) continue;
-        Value* temp = phi->InputAt(new_idx);
-        phi->SetInputAt(new_idx, phi->InputAt(old_idx));
-        phi->SetInputAt(old_idx, temp);
-      }
-      // The old input at new_idx is now found at old_idx.  It may be a
-      // reachable predecessor so swap the old predecessors too.
-      BlockEntryInstr* temp = stale_predecessors_[new_idx];
-      stale_predecessors_[new_idx] = stale_predecessors_[old_idx];
-      stale_predecessors_[old_idx] = temp;
-    }
-  }
-  // Now truncate each phi if necessary.
-  if (input_count < stale_predecessors_.length()) {
-    for (intptr_t phi_idx = 0; phi_idx < phis_->length(); ++phi_idx) {
-      PhiInstr* phi = (*phis_)[phi_idx];
-      if (phi == NULL) continue;
-      phi->inputs_.TruncateTo(input_count);
-    }
-  }
 }
 
 

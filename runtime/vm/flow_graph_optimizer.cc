@@ -2406,14 +2406,20 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
 
 void ConstantPropagator::VisitBranch(BranchInstr* instr) {
   instr->comparison()->Accept(this);
-  const Object& value = instr->comparison()->constant_value();
-  if (IsNonConstant(value)) {
-    SetReachable(instr->true_successor());
-    SetReachable(instr->false_successor());
-  } else if (value.raw() == Bool::True()) {
-    SetReachable(instr->true_successor());
-  } else if (!IsUnknown(value)) {  // Any other constant.
-    SetReachable(instr->false_successor());
+
+  // The successors may be reachable, but only if this instruction is.  (We
+  // might be analyzing it because the constant value of one of its inputs
+  // has changed.)
+  if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
+    const Object& value = instr->comparison()->constant_value();
+    if (IsNonConstant(value)) {
+      SetReachable(instr->true_successor());
+      SetReachable(instr->false_successor());
+    } else if (value.raw() == Bool::True()) {
+      SetReachable(instr->true_successor());
+    } else if (!IsUnknown(value)) {  // Any other constant.
+      SetReachable(instr->false_successor());
+    }
   }
 }
 
@@ -2868,79 +2874,102 @@ void ConstantPropagator::Transform() {
     if (!reachable_->Contains(block->preorder_number())) {
       continue;
     }
-    for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
-      Definition* defn = i.Current()->AsDefinition();
-      BranchInstr* branch = i.Current()->AsBranch();
-      if (defn != NULL) {
-        if (IsConstant(defn->constant_value())) {
-          if (!defn->IsConstant() &&
-              !defn->IsPushArgument() &&
-              !defn->IsStoreLocal() &&
-              !defn->IsStoreIndexed() &&
-              !defn->IsStoreInstanceField() &&
-              !defn->IsStoreStaticField() &&
-              !defn->IsStoreVMField()) {
-            // TODO(kmillikin): propagate constants to replace instructions
-            // without side effects.
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      // Remove phi inputs corresponding to unreachable predecessor blocks.
+      // Predecessors will be recomputed (in block id order) after removing
+      // unreachable code so we merely have to keep the phi inputs in order.
+      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+      if (phis != NULL) {
+        intptr_t pred_count = join->PredecessorCount();
+        intptr_t live_count = 0;
+        for (intptr_t pred_idx = 0; pred_idx < pred_count; ++pred_idx) {
+          if (reachable_->Contains(
+                  join->PredecessorAt(pred_idx)->preorder_number())) {
+            if (live_count < pred_idx) {
+              for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+                PhiInstr* phi = (*phis)[phi_idx];
+                if (phi == NULL) continue;
+                phi->inputs_[live_count] = phi->inputs_[pred_idx];
+              }
+            }
+            ++live_count;
           }
         }
-      } else if (branch != NULL) {
-        TargetEntryInstr* if_true = branch->true_successor();
-        TargetEntryInstr* if_false = branch->false_successor();
-        JoinEntryInstr* join = NULL;
-        Instruction* next = NULL;
-
-        if (!reachable_->Contains(if_true->preorder_number())) {
-          ASSERT(reachable_->Contains(if_false->preorder_number()));
-          ASSERT(branch->comparison()->IsStrictCompare());
-          ASSERT(if_false->parallel_move() == NULL);
-          ASSERT(if_false->loop_info() == NULL);
-          join = new JoinEntryInstr(if_false->try_index());
-          next = if_false->next();
-        } else if (!reachable_->Contains(if_false->preorder_number())) {
-          ASSERT(branch->comparison()->IsStrictCompare());
-          ASSERT(if_true->parallel_move() == NULL);
-          ASSERT(if_true->loop_info() == NULL);
-          join = new JoinEntryInstr(if_true->try_index());
-          next = if_true->next();
-        }
-
-        if (join != NULL) {
-          // Replace the branch with a jump to the reachable successor.
-          // Drop the comparison, which does not have side effects as long
-          // as it is a strict compare (the only one we can determine is
-          // constant with the current analysis).
-          GotoInstr* jump = new GotoInstr(join);
-          // Removing the branch from the graph will leave the iterator in a
-          // state where current is detached from the graph.  Since current
-          // has no successors and neither does its replacement, that's
-          // safe.
-          Instruction* previous = branch->previous();
-          branch->set_previous(NULL);
-          previous->set_next(jump);
-          // Replace the false target entry with the new join entry. We will
-          // recompute the dominators after this pass.
-          join->set_next(next);
+        if (live_count < pred_count) {
+          for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+            PhiInstr* phi = (*phis)[phi_idx];
+            if (phi == NULL) continue;
+            phi->inputs_.TruncateTo(live_count);
+          }
         }
       }
     }
+
+    for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
+      Definition* defn = i.Current()->AsDefinition();
+      if (defn != NULL && IsConstant(defn->constant_value())) {
+        if (!defn->IsConstant() &&
+            !defn->IsPushArgument() &&
+            !defn->IsStoreLocal() &&
+            !defn->IsStoreIndexed() &&
+            !defn->IsStoreInstanceField() &&
+            !defn->IsStoreStaticField() &&
+            !defn->IsStoreVMField()) {
+          // TODO(kmillikin): propagate constants to replace instructions
+          // without side effects.
+        }
+      }
+    }
+
+    // Replace branches where one target is unreachable with jumps.
+    BranchInstr* branch = block->last_instruction()->AsBranch();
+    if (branch != NULL) {
+      TargetEntryInstr* if_true = branch->true_successor();
+      TargetEntryInstr* if_false = branch->false_successor();
+      JoinEntryInstr* join = NULL;
+      Instruction* next = NULL;
+
+      if (!reachable_->Contains(if_true->preorder_number())) {
+        ASSERT(reachable_->Contains(if_false->preorder_number()));
+        ASSERT(branch->comparison()->IsStrictCompare());
+        ASSERT(if_false->parallel_move() == NULL);
+        ASSERT(if_false->loop_info() == NULL);
+        join =
+            new JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        next = if_false->next();
+      } else if (!reachable_->Contains(if_false->preorder_number())) {
+        ASSERT(branch->comparison()->IsStrictCompare());
+        ASSERT(if_true->parallel_move() == NULL);
+        ASSERT(if_true->loop_info() == NULL);
+        join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        next = if_true->next();
+      }
+
+      if (join != NULL) {
+        // Replace the branch with a jump to the reachable successor.
+        // Drop the comparison, which does not have side effects as long
+        // as it is a strict compare (the only one we can determine is
+        // constant with the current analysis).
+        GotoInstr* jump = new GotoInstr(join);
+        // Removing the branch from the graph will leave the iterator in a
+        // state where current is detached from the graph.  Since current
+        // has no successors and neither does its replacement, that's
+        // safe.
+        Instruction* previous = branch->previous();
+        branch->set_previous(NULL);
+        previous->set_next(jump);
+        // Replace the false target entry with the new join entry. We will
+        // recompute the dominators after this pass.
+        join->set_next(next);
+      }
+    }
   }
+
   graph_->DiscoverBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-
-  // Garbage collect phi inputs corresponding to unreachable predecessors.
-  // This is required because we assume that predecessor and phi indexes
-  // align.  Note that this does not necessarily eliminate all useless phis
-  // (e.g., it does not eliminate phis that were originally inserted solely
-  // due to an assignment on the now-unreachable path).
-  for (BlockIterator it = graph_->reverse_postorder_iterator();
-       !it.Done();
-       it.Advance()) {
-    JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) join->EliminateUnreachablePhiInputs();
-  }
-
   graph_->ComputeUseLists();
 }
 

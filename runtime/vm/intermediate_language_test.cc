@@ -9,7 +9,7 @@ namespace dart {
 
 TEST_CASE(InstructionTests) {
   TargetEntryInstr* target_instr =
-      new TargetEntryInstr(CatchClauseNode::kInvalidTryIndex);
+      new TargetEntryInstr(1, CatchClauseNode::kInvalidTryIndex);
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
   CurrentContextInstr* context = new CurrentContextInstr();
@@ -20,7 +20,7 @@ TEST_CASE(InstructionTests) {
 
 TEST_CASE(OptimizationTests) {
   JoinEntryInstr* join =
-      new JoinEntryInstr(CatchClauseNode::kInvalidTryIndex);
+      new JoinEntryInstr(1, CatchClauseNode::kInvalidTryIndex);
 
   Definition* def1 = new PhiInstr(join, 0);
   Definition* def2 = new PhiInstr(join, 0);
