@@ -23,6 +23,7 @@ DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
+DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -1239,6 +1240,8 @@ class RangeAnalysis : public ValueObject {
   // Propagate range information until fix-point is reached.
   void InferRanges();
 
+  void ProcessWorklist(Definition::RangeOperator op);
+
   // Walk the dominator tree, initialize ranges for smi values and place them
   // to the worklist.
   void InitializeRangesRecursive(BlockEntryInstr* block);
@@ -1251,14 +1254,22 @@ class RangeAnalysis : public ValueObject {
 
   void AddToWorklist(Definition* value) {
     const intptr_t index = value->ssa_temp_index();
-    if (!in_inactive_worklist_->Contains(index)) {
-      in_inactive_worklist_->Add(index);
-      inactive_worklist_->Add(value);
+    if (!in_worklist_->Contains(index)) {
+      in_worklist_->Add(index);
+      worklist_.Add(value);
     }
   }
 
   bool IsWorklistEmpty() const {
-    return active_worklist_->is_empty();
+    return worklist_.is_empty();
+  }
+
+  Definition* RemoveLastFromWorklist() {
+    Definition* defn = worklist_.Last();
+    worklist_.RemoveLast();
+    ASSERT(in_worklist_->Contains(defn->ssa_temp_index()));
+    in_worklist_->Remove(defn->ssa_temp_index());
+    return defn;
   }
 
   void SwapWorklists();
@@ -1275,10 +1286,9 @@ class RangeAnalysis : public ValueObject {
   // Bitvector for a quick filtering of known smi values.
   BitVector* smi_definitions_;
 
-  // Worklists using during range propagation.
-  ZoneGrowableArray<Definition*>* active_worklist_;
-  ZoneGrowableArray<Definition*>* inactive_worklist_;
-  BitVector* in_inactive_worklist_;
+  // Worklist used during range propagation.
+  GrowableArray<Definition*> worklist_;
+  BitVector* in_worklist_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -1533,12 +1543,11 @@ void RangeAnalysis::InsertConstraints() {
 
 void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
   JoinEntryInstr* join = block->AsJoinEntry();
-  if ((join != NULL) && (join->phis() != NULL)) {
-    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-      PhiInstr* phi = (*join->phis())[i];
-      if (phi == NULL) continue;
+  if (join != NULL) {
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      PhiInstr* phi = it.Current();
       if (smi_definitions_->Contains(phi->ssa_temp_index())) {
-        phi->InferRange();
+        phi->InferRange(Definition::kRangeInit);
         AddToWorklist(phi);
       }
     }
@@ -1549,7 +1558,7 @@ void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
     if ((defn != NULL) &&
         (defn->ssa_temp_index() != -1) &&
         smi_definitions_->Contains(defn->ssa_temp_index())) {
-      defn->InferRange();
+      defn->InferRange(Definition::kRangeInit);
       AddToWorklist(defn);
     }
   }
@@ -1561,19 +1570,36 @@ void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
 
 
 void RangeAnalysis::CreateWorklists() {
-  active_worklist_ = new ZoneGrowableArray<Definition*>(10);
-  inactive_worklist_ = new ZoneGrowableArray<Definition*>(10);
-  in_inactive_worklist_ = new BitVector(
-      flow_graph_->current_ssa_temp_index());
+  in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
 }
 
 
-void RangeAnalysis::SwapWorklists() {
-  ZoneGrowableArray<Definition*>* temp = active_worklist_;
-  active_worklist_ = inactive_worklist_;
-  inactive_worklist_ = temp;
-  inactive_worklist_->Clear();
-  in_inactive_worklist_->Clear();
+void RangeAnalysis::ProcessWorklist(Definition::RangeOperator op) {
+  // Iterate until fix point is reached.
+  while (!IsWorklistEmpty()) {
+    Definition* defn = RemoveLastFromWorklist();
+    if (FLAG_trace_range_analysis) {
+      OS::Print("infering range for v%"Pd" %s\n",
+                defn->ssa_temp_index(),
+                Range::ToCString(defn->range()));
+    }
+    if (defn->InferRange(op)) {  // Update the range.
+      if (FLAG_trace_range_analysis) {
+        OS::Print("  changed to %s\n", Range::ToCString(defn->range()));
+      }
+      // Range change. Place all uses to the worklist.
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Definition* use_defn = use->instruction()->AsDefinition();
+        if ((use_defn != NULL) &&
+            (use_defn->ssa_temp_index() != -1) &&
+            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
+          AddToWorklist(use_defn);
+        }
+      }
+    }
+  }
 }
 
 
@@ -1592,31 +1618,54 @@ void RangeAnalysis::InferRanges() {
   // Infer initial values of ranges.
   InitializeRangesRecursive(flow_graph_->graph_entry());
 
-  // Active worklist is empty, inactive now contains all smi values.
-  SwapWorklists();
-
-  // Iterate until fix point is reached.
-  while (!IsWorklistEmpty()) {
-    for (intptr_t i = 0; i < active_worklist_->length(); i++) {
-      Definition* defn = (*active_worklist_)[i];
-      if (defn->InferRange()) {  // Update the range.
-        // Range change. Place all uses to the worklist.
-        for (Value* use = defn->input_use_list();
-             use != NULL;
-             use = use->next_use()) {
-          Definition* use_defn = use->instruction()->AsDefinition();
-          if ((use_defn != NULL) &&
-              (use_defn->ssa_temp_index() != -1) &&
-              smi_definitions_->Contains(use_defn->ssa_temp_index())) {
-            AddToWorklist(use_defn);
-          }
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    if (smi_values_[i]->IsPhi() &&
+        smi_values_[i]->InferRange(Definition::kRangeInit)) {
+      Definition* defn = smi_values_[i];
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Definition* use_defn = use->instruction()->AsDefinition();
+        if ((use_defn != NULL) &&
+            (use_defn->ssa_temp_index() != -1) &&
+            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
+          AddToWorklist(use_defn);
         }
       }
     }
+  }
 
-    // Active worklist has been processed. Inactive contains all values which
-    // can be affected by changed ranges.
-    SwapWorklists();
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after initialization -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- widening ---------\n");
+  }
+  ProcessWorklist(Definition::kRangeWiden);
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after widening -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- narrowing ---------\n");
+  }
+  // Only phis can change under narrowing operator. Place all phis
+  // into the worklist.
+  for (intptr_t i = 0; i < smi_values_.length(); i++) {
+    if (smi_values_[i]->IsPhi()) AddToWorklist(smi_values_[i]);
+  }
+  ProcessWorklist(Definition::kRangeNarrow);
+
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- after narrowing -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
   }
 }
 

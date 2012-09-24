@@ -1840,28 +1840,6 @@ void Environment::DeepCopyToOuter(Instruction* instr) const {
 }
 
 
-bool Definition::InferRange() {
-  ASSERT(GetPropagatedCid() == kSmiCid);  // Has meaning only for smis.
-  if (range_ == NULL) {
-    range_ = Range::Unknown();
-    return true;
-  }
-  return false;
-}
-
-
-bool ConstantInstr::InferRange() {
-  ASSERT(value_.IsSmi());
-  if (range_ == NULL) {
-    intptr_t value = Smi::Cast(value_).Value();
-    range_ = new Range(RangeBoundary::FromConstant(value),
-                       RangeBoundary::FromConstant(value));
-    return true;
-  }
-  return false;
-}
-
-
 RangeBoundary RangeBoundary::LowerBound() const {
   if (IsConstant()) return *this;
   if (symbol()->range() == NULL) return MinSmi();
@@ -1880,7 +1858,29 @@ RangeBoundary RangeBoundary::UpperBound() const {
 }
 
 
-bool ConstraintInstr::InferRange() {
+bool Definition::InferRange(RangeOperator op) {
+  ASSERT(GetPropagatedCid() == kSmiCid);  // Has meaning only for smis.
+  if (range_ == NULL) {
+    range_ = Range::Unknown();
+    return true;
+  }
+  return false;
+}
+
+
+bool ConstantInstr::InferRange(RangeOperator op) {
+  ASSERT(value_.IsSmi());
+  if (range_ == NULL) {
+    intptr_t value = Smi::Cast(value_).Value();
+    range_ = new Range(RangeBoundary::FromConstant(value),
+                       RangeBoundary::FromConstant(value));
+    return true;
+  }
+  return false;
+}
+
+
+bool ConstraintInstr::InferRange(RangeOperator op) {
   Range* value_range = value()->definition()->range();
 
   // Compute intersection of constraint and value ranges.
@@ -1892,15 +1892,13 @@ bool ConstraintInstr::InferRange() {
 }
 
 
-bool PhiInstr::InferRange() {
+bool PhiInstr::InferRange(RangeOperator op) {
   RangeBoundary new_min;
   RangeBoundary new_max;
 
-  bool has_inputs_without_range = false;
   for (intptr_t i = 0; i < InputCount(); i++) {
     Range* input_range = InputAt(i)->definition()->range();
     if (input_range == NULL) {
-      has_inputs_without_range = true;
       continue;
     }
 
@@ -1919,23 +1917,25 @@ bool PhiInstr::InferRange() {
 
   ASSERT(new_min.IsUnknown() == new_max.IsUnknown());
   if (new_min.IsUnknown()) {
-    ASSERT(range_ == NULL);
+    range_ = Range::Unknown();
     return false;
   }
 
-  if ((range_ != NULL) && !has_inputs_without_range_) {
-    // If phi's range is growing widen it in the direction of growth to
-    // speedup convergence.
+  if (op == Definition::kRangeWiden) {
+    // Apply widening operator.
     new_min = RangeBoundary::WidenMin(range_->min(), new_min);
     new_max = RangeBoundary::WidenMax(range_->max(), new_max);
+  } else if (op == Definition::kRangeNarrow) {
+    // Apply narrowing operator.
+    new_min = RangeBoundary::NarrowMin(range_->min(), new_min);
+    new_max = RangeBoundary::NarrowMax(range_->max(), new_max);
   }
-  has_inputs_without_range_ = has_inputs_without_range;
 
   return Range::Update(&range_, new_min, new_max);
 }
 
 
-bool BinarySmiOpInstr::InferRange() {
+bool BinarySmiOpInstr::InferRange(RangeOperator op) {
   Range* left_range = left()->definition()->range();
   Range* right_range = right()->definition()->range();
 
@@ -1980,6 +1980,12 @@ bool BinarySmiOpInstr::InferRange() {
 
   ASSERT(!new_min.IsUnknown() && !new_max.IsUnknown());
   set_overflow(new_min.Overflowed() || new_max.Overflowed());
+
+  if (op == Definition::kRangeNarrow) {
+    new_min = new_min.Clamp();
+    new_max = new_max.Clamp();
+  }
+
   return Range::Update(&range_, new_min, new_max);
 }
 

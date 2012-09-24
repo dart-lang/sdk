@@ -229,6 +229,16 @@ void Range::PrintTo(BufferFormatter* f) const {
 }
 
 
+const char* Range::ToCString(Range* range) {
+  if (range == NULL) return "[_|_, _|_]";
+
+  char buffer[256];
+  BufferFormatter f(buffer, sizeof(buffer));
+  range->PrintTo(&f);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
+
 void RangeBoundary::PrintTo(BufferFormatter* f) const {
   switch (kind_) {
     case kSymbol:
@@ -236,7 +246,13 @@ void RangeBoundary::PrintTo(BufferFormatter* f) const {
       if (offset_ != 0) f->Print("%+"Pd, offset_);
       break;
     case kConstant:
-      f->Print("%"Pd, value_);
+      if (value_ == kMinusInfinity) {
+        f->Print("-inf");
+      } else if (value_ == kPlusInfinity) {
+        f->Print("+inf");
+      } else {
+        f->Print("%"Pd, value_);
+      }
       break;
     case kUnknown:
       f->Print("_|_");

@@ -1093,7 +1093,9 @@ class Definition : public Instruction {
   //    - unknown sentinel
   Object& constant_value() const { return constant_value_; }
 
-  virtual bool InferRange();
+  enum RangeOperator { kRangeInit, kRangeWiden, kRangeNarrow };
+
+  virtual bool InferRange(RangeOperator op);
 
   Range* range() const { return range_; }
 
@@ -1188,7 +1190,7 @@ class PhiInstr : public Definition {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
-  virtual bool InferRange();
+  virtual bool InferRange(RangeOperator op);
 
  private:
   friend class ConstantPropagator;  // Direct access to inputs_.
@@ -1581,6 +1583,9 @@ class RangeBoundary : public ValueObject {
     return FromConstant(Smi::kMaxValue);
   }
 
+  static const intptr_t kMinusInfinity = Smi::kMinValue - 1;
+  static const intptr_t kPlusInfinity = Smi::kMaxValue + 1;
+
   static RangeBoundary OverflowedMinSmi() {
     return FromConstant(Smi::kMinValue - 1);
   }
@@ -1639,17 +1644,31 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary WidenMin(const RangeBoundary& old_min,
                                 const RangeBoundary& new_min) {
     if (new_min.LowerBound().value() < old_min.LowerBound().value()) {
-      return MinSmi();
+      return OverflowedMinSmi();
     }
-    return new_min;
+    return old_min;
   }
 
   static RangeBoundary WidenMax(const RangeBoundary& old_max,
                                 const RangeBoundary& new_max) {
     if (new_max.UpperBound().value() > old_max.UpperBound().value()) {
-      return MaxSmi();
+      return OverflowedMaxSmi();
     }
-    return new_max;
+    return old_max;
+  }
+
+  static RangeBoundary NarrowMin(const RangeBoundary& old_min,
+                                 const RangeBoundary& new_min) {
+    ASSERT(old_min.IsConstant());
+    ASSERT(new_min.IsConstant());
+    return (old_min.value() == kMinusInfinity) ? new_min
+                                               : Min(old_min, new_min);
+  }
+
+  static RangeBoundary NarrowMax(const RangeBoundary& old_max,
+                                const RangeBoundary& new_max) {
+    return (old_max.value() == kPlusInfinity) ? new_max
+                                              : Max(old_max, new_max);
   }
 
   void PrintTo(BufferFormatter* f) const;
@@ -1697,6 +1716,7 @@ class Range : public ZoneAllocated {
   }
 
   void PrintTo(BufferFormatter* f) const;
+  static const char* ToCString(Range* range);
 
   const RangeBoundary& min() { return min_; }
   const RangeBoundary& max() { return max_; }
@@ -1770,7 +1790,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
   Value* value() const { return inputs_[0]; }
   Range* constraint() const { return constraint_; }
 
-  virtual bool InferRange();
+  virtual bool InferRange(RangeOperator op);
 
   void AddDependency(Definition* defn) {
     Value* val = new Value(defn);
@@ -1823,7 +1843,7 @@ class ConstantInstr : public TemplateDefinition<0> {
   virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual bool InferRange();
+  virtual bool InferRange(RangeOperator op);
 
  private:
   const Object& value_;
@@ -3464,7 +3484,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   void PrintTo(BufferFormatter* f) const;
 
-  virtual bool InferRange();
+  virtual bool InferRange(RangeOperator op);
 
  private:
   const Token::Kind op_kind_;

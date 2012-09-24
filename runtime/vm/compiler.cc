@@ -46,7 +46,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
-DEFINE_FLAG(bool, range_analysis, false, "Enable range analysis");
+DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DECLARE_FLAG(bool, print_flow_graph);
 
 
