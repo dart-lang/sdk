@@ -505,11 +505,13 @@ class ScopeContainerElement extends ContainerElement {
 class CompilationUnitElement extends ContainerElement {
   final Script script;
 
-  CompilationUnitElement(Script script, Element enclosing)
+  CompilationUnitElement(Script script, LibraryElement library)
     : this.script = script,
       super(new SourceString(script.name),
             ElementKind.COMPILATION_UNIT,
-            enclosing);
+            library) {
+    library.addCompilationUnit(this);
+  }
 
   void addMember(Element element, DiagnosticListener listener) {
     // Keep a list of top level members.

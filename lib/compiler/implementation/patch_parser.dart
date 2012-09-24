@@ -135,7 +135,6 @@ class PatchParserTask extends leg.CompilerTask {
     leg.Script script = compiler.readScript(patchUri, null);
     CompilationUnitElement compilationUnit =
         new CompilationUnitElement(script, library);
-    library.addCompilationUnit(compilationUnit);
     LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
     compiler.withCurrentElement(compilationUnit, () {
       // This patches the elements of the patch library into [library].
