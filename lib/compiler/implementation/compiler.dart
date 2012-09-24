@@ -101,6 +101,8 @@ class Compiler implements DiagnosticListener {
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
 
+  bool disableInlining = false;
+
   // TODO(5074): Remove this field once we don't accept the
   // deprecated parameter specification.
   static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = false;

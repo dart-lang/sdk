@@ -1041,6 +1041,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   bool tryInlineMethod(Element element,
                        Selector selector,
                        Link<Node> arguments) {
+    if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;
     // TODO(floitsch): we should be able to inline inside lazy initializers.
