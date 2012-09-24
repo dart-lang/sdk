@@ -4,6 +4,9 @@
 
 // Dart core library.
 
+/**
+ * All numbers in dart are instances of [num].
+ */
 abstract class num implements Comparable, Hashable {
   /** Addition operator. */
   num operator +(num other);
