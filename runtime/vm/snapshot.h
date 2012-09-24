@@ -45,6 +45,7 @@ class RawImmutableArray;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
+class RawNamespace;
 class RawLiteralToken;
 class RawMint;
 class RawObject;
@@ -256,6 +257,7 @@ class SnapshotReader : public BaseReader {
   RawField* NewField();
   RawLibrary* NewLibrary();
   RawLibraryPrefix* NewLibraryPrefix();
+  RawNamespace* NewNamespace();
   RawScript* NewScript();
   RawLiteralToken* NewLiteralToken();
   RawGrowableObjectArray* NewGrowableObjectArray();
@@ -330,6 +332,7 @@ class SnapshotReader : public BaseReader {
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
+  friend class Namespace;
   friend class LiteralToken;
   friend class PatchClass;
   friend class Script;

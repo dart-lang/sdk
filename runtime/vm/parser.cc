@@ -4120,15 +4120,17 @@ void Parser::ParseLibraryImportObsoleteSyntax() {
       }
     }
     // Add the import to the library.
+    const Namespace& import = Namespace::Handle(
+        Namespace::New(library, Array::Handle(), Array::Handle()));
     if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(library);
+      library_.AddImport(import);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
-        library_prefix.AddLibrary(library);
+        library_prefix.AddImport(import);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, library);
+        library_prefix = LibraryPrefix::New(prefix, import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -4170,6 +4172,18 @@ void Parser::ParseLibraryName() {
 }
 
 
+void Parser::ParseIdentList(GrowableObjectArray* names) {
+  while (IsIdentifier()) {
+    names->Add(*CurrentLiteral());
+    ConsumeToken();  // Identifier.
+    if (CurrentToken() != Token::kCOMMA) {
+      return;
+    }
+    ConsumeToken();  // Comma.
+  }
+}
+
+
 void Parser::ParseLibraryImportExport() {
   if (IsLiteral("import")) {
     const intptr_t import_pos = TokenPos();
@@ -4187,10 +4201,31 @@ void Parser::ParseLibraryImportExport() {
       ConsumeToken();
       prefix = ExpectIdentifier("prefix expected")->raw();
     }
-    if (IsLiteral("show")) {
-      ErrorMsg("show combinator not yet supported");
-    } else if (IsLiteral("hide")) {
-      ErrorMsg("hide combinator not yet supported");
+
+    Array& show_names = Array::Handle();
+    Array& hide_names = Array::Handle();
+    if (IsLiteral("show") || IsLiteral("hide")) {
+      GrowableObjectArray& show_list =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray& hide_list =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      for (;;) {
+        if (IsLiteral("show")) {
+          ConsumeToken();
+          ParseIdentList(&show_list);
+        } else if (IsLiteral("hide")) {
+          ConsumeToken();
+          ParseIdentList(&hide_list);
+        } else {
+          break;
+        }
+      }
+      if (show_list.Length() > 0) {
+        show_names = Array::MakeArray(show_list);
+      }
+      if (hide_list.Length() > 0) {
+        hide_names = Array::MakeArray(hide_list);
+      }
     }
     ExpectSemicolon();
 
@@ -4212,15 +4247,17 @@ void Parser::ParseLibraryImportExport() {
       }
     }
     // Add the import to the library.
+    const Namespace& import =
+        Namespace::Handle(Namespace::New(library, show_names, hide_names));
     if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(library);
+      library_.AddImport(import);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
-        library_prefix.AddLibrary(library);
+        library_prefix.AddImport(import);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, library);
+        library_prefix = LibraryPrefix::New(prefix, import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -4259,7 +4296,9 @@ void Parser::ParseLibraryDefinition() {
     if (!library_.ImportsCorelib()) {
       Library& core_lib = Library::Handle(Library::CoreLibrary());
       ASSERT(!core_lib.IsNull());
-      library_.AddImport(core_lib);
+      const Namespace& core_ns = Namespace::Handle(
+          Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+      library_.AddImport(core_ns);
     }
     return;
   }
@@ -4287,7 +4326,9 @@ void Parser::ParseLibraryDefinition() {
   if (!library_.ImportsCorelib()) {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    library_.AddImport(core_lib);
+    const Namespace& core_ns = Namespace::Handle(
+        Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+    library_.AddImport(core_ns);
   }
   while (IsLiteral("part")) {
     ParseLibraryPart();
@@ -8017,6 +8058,28 @@ static RawObject* LookupNameInLibrary(const Library& lib, const String& name) {
 }
 
 
+static RawObject* LookupNameInImport(const Namespace& ns, const String& name) {
+  Object& obj = Object::Handle();
+  obj = ns.Lookup(name);
+  if (!obj.IsNull()) {
+    return obj.raw();
+  }
+  // If the given name is filtered out by the import, don't look up the
+  // getter and setter names.
+  if (ns.HidesName(name)) {
+    return Object::null();
+  }
+  String& accessor_name = String::Handle(Field::GetterName(name));
+  obj = ns.Lookup(accessor_name);
+  if (!obj.IsNull()) {
+    return obj.raw();
+  }
+  accessor_name = Field::SetterName(name);
+  obj = ns.Lookup(accessor_name);
+  return obj.raw();
+}
+
+
 // Resolve a name by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
@@ -8031,13 +8094,14 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
     // Name is not found in current library. Check scope of all
     // imported libraries.
     String& first_lib_url = String::Handle();
-    Library& lib = Library::Handle();
+    Namespace& import = Namespace::Handle();
     intptr_t num_imports = library_.num_imports();
-    Object& resolved_obj = Object::Handle();
+    Object& imported_obj = Object::Handle();
     for (int i = 0; i < num_imports; i++) {
-      lib ^= library_.ImportAt(i);
-      resolved_obj = LookupNameInLibrary(lib, name);
-      if (!resolved_obj.IsNull()) {
+      import ^= library_.ImportAt(i);
+      imported_obj = LookupNameInImport(import, name);
+      if (!imported_obj.IsNull()) {
+        const Library& lib = Library::Handle(import.library());
         if (!first_lib_url.IsNull()) {
           // Found duplicate definition.
           if (first_lib_url.raw() == lib.url()) {
@@ -8056,7 +8120,7 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
           }
         } else {
           first_lib_url = lib.url();
-          obj = resolved_obj.raw();
+          obj = imported_obj.raw();
         }
       }
     }
@@ -8119,16 +8183,17 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
                                             const LibraryPrefix& prefix,
                                             const String& name) {
   TRACE_PARSER("ResolveNameInPrefixScope");
-  Library& lib = Library::Handle();
+  Namespace& import = Namespace::Handle();
   String& first_lib_url = String::Handle();
   Object& obj = Object::Handle();
   Object& resolved_obj = Object::Handle();
-  for (intptr_t i = 0; i < prefix.num_libs(); i++) {
-    lib = prefix.GetLibrary(i);
-    ASSERT(!lib.IsNull());
-    resolved_obj = LookupNameInLibrary(lib, name);
+  const Array& imports = Array::Handle(prefix.imports());
+  for (intptr_t i = 0; i < prefix.num_imports(); i++) {
+    import ^= imports.At(i);
+    resolved_obj = LookupNameInImport(import, name);
     if (!resolved_obj.IsNull()) {
       obj = resolved_obj.raw();
+      const Library& lib = Library::Handle(import.library());
       if (first_lib_url.IsNull()) {
         first_lib_url = lib.url();
       } else {

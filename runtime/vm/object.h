@@ -273,6 +273,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* library_prefix_class() { return library_prefix_class_; }
+  static RawClass* namespace_class() { return namespace_class_; }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
@@ -405,6 +406,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* script_class_;  // Class of the Script vm object.
   static RawClass* library_class_;  // Class of the Library vm object.
   static RawClass* library_prefix_class_;  // Class of Library prefix vm object.
+  static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
@@ -2140,11 +2142,11 @@ class Library : public Object {
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
-  void AddImport(const Library& library) const;
+  void AddImport(const Namespace& ns) const;
   RawLibrary* LookupImport(const String& url) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
-  RawLibrary* ImportAt(intptr_t index) const;
-  RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
+  RawNamespace* ImportAt(intptr_t index) const;
+  RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
@@ -2227,6 +2229,7 @@ class Library : public Object {
   friend class Debugger;
   friend class DictionaryIterator;
   friend class Isolate;
+  friend class Namespace;
 };
 
 
@@ -2235,32 +2238,56 @@ class LibraryPrefix : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   virtual RawString* DictionaryName() const { return name(); }
 
-  RawArray* libraries() const { return raw_ptr()->libraries_; }
-  intptr_t num_libs() const { return raw_ptr()->num_libs_; }
+  RawArray* imports() const { return raw_ptr()->imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
 
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
-  void AddLibrary(const Library& library) const;
+  void AddImport(const Namespace& import) const;
   RawClass* LookupLocalClass(const String& class_name) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
   }
 
-  static RawLibraryPrefix* New(const String& name, const Library& lib);
+  static RawLibraryPrefix* New(const String& name, const Namespace& import);
 
  private:
   static const int kInitialSize = 2;
   static const int kIncrementSize = 2;
 
   void set_name(const String& value) const;
-  void set_libraries(const Array& value) const;
-  void set_num_libs(intptr_t value) const;
+  void set_imports(const Array& value) const;
+  void set_num_imports(intptr_t value) const;
   static RawLibraryPrefix* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
   friend class Class;
   friend class Isolate;
+};
+
+
+class Namespace : public Object {
+ public:
+  RawLibrary* library() const { return raw_ptr()->library_; }
+  RawArray* show_names() const { return raw_ptr()->show_names_; }
+  RawArray* hide_names() const { return raw_ptr()->hide_names_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawNamespace));
+  }
+
+  bool HidesName(const String& name) const;
+  RawObject* Lookup(const String& name) const;
+
+  static RawNamespace* New(const Library& library,
+                           const Array& show_names,
+                           const Array& hide_names);
+ private:
+  static RawNamespace* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
+  friend class Class;
 };
 
 

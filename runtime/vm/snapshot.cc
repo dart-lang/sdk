@@ -555,6 +555,11 @@ RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
 }
 
 
+RawNamespace* SnapshotReader::NewNamespace() {
+  ALLOC_NEW_OBJECT(Namespace, Object::namespace_class());
+}
+
+
 RawScript* SnapshotReader::NewScript() {
   ALLOC_NEW_OBJECT(Script, Object::script_class());
 }

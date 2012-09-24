@@ -955,7 +955,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.set_tags(tags);
 
   // Set all non object fields.
-  prefix.raw_ptr()->num_libs_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -984,7 +984,55 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->WriteIntptrValue(ptr()->num_libs_);
+  writer->WriteIntptrValue(ptr()->num_imports_);
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
+RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate Namespace object.
+  Namespace& ns = Namespace::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(Namespace));
+  reader->AddBackRef(object_id, &ns, kIsDeserialized);
+
+  // Set the object tags.
+  ns.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (ns.raw()->to() - ns.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(ns.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return ns.raw();
+}
+
+
+void RawNamespace::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kNamespaceCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

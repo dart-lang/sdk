@@ -291,6 +291,7 @@ class Parser : public ValueObject {
   Dart_Handle CallLibraryTagHandler(Dart_LibraryTag tag,
                                     intptr_t token_pos,
                                     const String& url);
+  void ParseIdentList(GrowableObjectArray* names);
   void ParseLibraryDefinition();
   void ParseLibraryName();
   void ParseLibraryImportExport();

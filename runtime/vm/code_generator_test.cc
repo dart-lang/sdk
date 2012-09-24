@@ -270,7 +270,9 @@ static Library& MakeTestLibrary(const char* url) {
   lib.Register();
   Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
-  lib.AddImport(core_lib);
+  const Namespace& core_ns = Namespace::Handle(
+      Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(core_ns);
   return lib;
 }
 

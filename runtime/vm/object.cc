@@ -89,6 +89,7 @@ RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_prefix_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -358,6 +359,9 @@ void Object::InitOnce() {
 
   cls = Class::New<LibraryPrefix>();
   library_prefix_class_ = cls.raw();
+
+  cls = Class::New<Namespace>();
+  namespace_class_ = cls.raw();
 
   cls = Class::New<Code>();
   code_class_ = cls.raw();
@@ -6377,16 +6381,15 @@ RawField* Library::LookupFieldAllowPrivate(const String& name) const {
     return Field::null();
   }
 
-  // Now check if name is found in the top level scope of any imported
-  // libs.
+  // Now check if name is found in any imported libs.
   const Array& imports = Array::Handle(this->imports());
-  Library& import_lib = Library::Handle();
+  Namespace& import = Namespace::Handle();
+  Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import_lib ^= imports.At(j);
-
-
-    field = import_lib.LookupLocalField(name);
-    if (!field.IsNull()) {
+    import ^= imports.At(j);
+    obj = import.Lookup(name);
+    if (!obj.IsNull() && obj.IsField()) {
+      field ^= obj.raw();
       return field.raw();
     }
   }
@@ -6427,16 +6430,15 @@ RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
     return Function::null();
   }
 
-  // Now check if name is found in the top level scope of any imported
-  // libs.
+  // Now check if name is found in any imported libs.
   const Array& imports = Array::Handle(this->imports());
-  Library& import_lib = Library::Handle();
+  Namespace& import = Namespace::Handle();
+  Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import_lib ^= imports.At(j);
-
-
-    function = import_lib.LookupLocalFunction(name);
-    if (!function.IsNull()) {
+    import ^= imports.At(j);
+    obj = import.Lookup(name);
+    if (!obj.IsNull() && obj.IsFunction()) {
+      function ^= obj.raw();
       return function.raw();
     }
   }
@@ -6467,12 +6469,12 @@ RawObject* Library::LookupObject(const String& name) const {
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  // Now check if name is found in the top level scope of any imported libs.
+  // Now check if name is found in any imported libs.
   const Array& imports = Array::Handle(this->imports());
-  Library& import_lib = Library::Handle();
+  Namespace& import = Namespace::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import_lib ^= imports.At(j);
-    obj = import_lib.LookupLocalObject(name);
+    import ^= imports.At(j);
+    obj = import.Lookup(name);
     if (!obj.IsNull()) {
       return obj.raw();
     }
@@ -6549,10 +6551,12 @@ RawLibrary* Library::LookupImport(const String& url) const {
   Isolate* isolate = Isolate::Current();
   const Array& imports = Array::Handle(isolate, this->imports());
   intptr_t num_imports = this->num_imports();
+  Namespace& import = Namespace::Handle(isolate, Namespace::null());
   Library& lib = Library::Handle(isolate, Library::null());
   String& import_url = String::Handle(isolate, String::null());
   for (int i = 0; i < num_imports; i++) {
-    lib ^= imports.At(i);
+    import ^= imports.At(i);
+    lib = import.library();
     import_url = lib.url();
     if (url.Equals(import_url)) {
       return lib.raw();
@@ -6562,34 +6566,23 @@ RawLibrary* Library::LookupImport(const String& url) const {
 }
 
 
-RawLibrary* Library::ImportAt(intptr_t index) const {
-  if ((index < 0) || index >= num_imports()) {
+RawLibrary* Library::ImportLibraryAt(intptr_t index) const {
+  Namespace& import = Namespace::Handle(ImportAt(index));
+  if (import.IsNull()) {
     return Library::null();
   }
-  const Array& import_list = Array::Handle(imports());
-  Library& lib = Library::Handle();
-  lib ^= import_list.At(index);
-  return lib.raw();
+  return import.library();
 }
 
 
-RawLibraryPrefix* Library::ImportPrefixAt(intptr_t index) const {
-  const Library& imported = Library::Handle(ImportAt(index));
-  if (imported.IsNull()) {
-    return LibraryPrefix::null();
+RawNamespace* Library::ImportAt(intptr_t index) const {
+  if ((index < 0) || index >= num_imports()) {
+    return Namespace::null();
   }
-  DictionaryIterator it(*this);
-  Object& obj = Object::Handle();
-  while (it.HasNext()) {
-    obj = it.GetNext();
-    if (obj.IsLibraryPrefix()) {
-      const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(obj);
-      if (lib_prefix.ContainsLibrary(imported)) {
-        return lib_prefix.raw();
-      }
-    }
-  }
-  return LibraryPrefix::null();
+  const Array& import_list = Array::Handle(imports());
+  Namespace& import = Namespace::Handle();
+  import ^= import_list.At(index);
+  return import.raw();
 }
 
 
@@ -6598,7 +6591,7 @@ bool Library::ImportsCorelib() const {
   Library& imported = Library::Handle(isolate);
   intptr_t count = num_imports();
   for (int i = 0; i < count; i++) {
-    imported = ImportAt(i);
+    imported = ImportLibraryAt(i);
     if (imported.IsCoreLibrary()) {
       return true;
     }
@@ -6607,7 +6600,7 @@ bool Library::ImportsCorelib() const {
   LibraryPrefixIterator it(*this);
   while (it.HasNext()) {
     prefix = it.GetNext();
-    count = prefix.num_libs();
+    count = prefix.num_imports();
     for (int i = 0; i < count; i++) {
       imported = prefix.GetLibrary(i);
       if (imported.IsCoreLibrary()) {
@@ -6619,7 +6612,7 @@ bool Library::ImportsCorelib() const {
 }
 
 
-void Library::AddImport(const Library& library) const {
+void Library::AddImport(const Namespace& ns) const {
   Array& imports = Array::Handle(this->imports());
   intptr_t capacity = imports.Length();
   if (num_imports() == capacity) {
@@ -6628,7 +6621,7 @@ void Library::AddImport(const Library& library) const {
     StorePointer(&raw_ptr()->imports_, imports.raw());
   }
   intptr_t index = num_imports();
-  imports.SetAt(index, library);
+  imports.SetAt(index, ns);
   set_num_imports(index + 1);
 }
 
@@ -6681,9 +6674,11 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.InitClassDictionary();
   result.InitImportList();
   if (import_core_lib) {
-    Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    result.AddImport(core_lib);
+    const Namespace& ns = Namespace::Handle(
+        Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+    result.AddImport(ns);
   }
   return result.raw();
 }
@@ -6699,6 +6694,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
+  const Namespace& core_ns = Namespace::Handle(
+      Namespace::New(core_lib, Array::Handle(), Array::Handle()));
   isolate->object_store()->set_core_library(core_lib);
   const String& core_impl_lib_url =
       String::Handle(Symbols::New("dart:coreimpl"));
@@ -6706,12 +6703,16 @@ void Library::InitCoreLibrary(Isolate* isolate) {
       Library::Handle(Library::NewLibraryHelper(core_impl_lib_url, false));
   isolate->object_store()->set_core_impl_library(core_impl_lib);
   core_impl_lib.Register();
-  core_lib.AddImport(core_impl_lib);
-  core_impl_lib.AddImport(core_lib);
+  const Namespace& impl_ns = Namespace::Handle(
+      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
+  core_lib.AddImport(impl_ns);
+  core_impl_lib.AddImport(core_ns);
   Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
-  core_lib.AddImport(math_lib);
-  core_impl_lib.AddImport(math_lib);
+  const Namespace& math_ns = Namespace::Handle(
+      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  core_lib.AddImport(math_ns);
+  core_impl_lib.AddImport(math_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6727,7 +6728,9 @@ void Library::InitMathLibrary(Isolate* isolate) {
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  lib.AddImport(core_impl_lib);
+  const Namespace& impl_ns = Namespace::Handle(
+      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(impl_ns);
   isolate->object_store()->set_math_library(lib);
 }
 
@@ -6745,10 +6748,14 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  lib.AddImport(isolate_lib);
+  const Namespace& isolate_ns = Namespace::Handle(
+      Namespace::New(isolate_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(isolate_ns);
   const Library& wrappers_lib =
       Library::Handle(Library::NativeWrappersLibrary());
-  lib.AddImport(wrappers_lib);
+  const Namespace& wrappers_ns = Namespace::Handle(
+      Namespace::New(wrappers_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(wrappers_ns);
   isolate->object_store()->set_mirrors_library(lib);
 }
 
@@ -6758,7 +6765,9 @@ void Library::InitScalarlistLibrary(Isolate* isolate) {
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  lib.AddImport(core_impl_lib);
+  const Namespace& impl_ns = Namespace::Handle(
+      Namespace::New(core_impl_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(impl_ns);
   isolate->object_store()->set_scalarlist_library(lib);
 }
 
@@ -6912,22 +6921,22 @@ const char* Library::ToCString() const {
 
 
 RawLibrary* LibraryPrefix::GetLibrary(int index) const {
-  Library& lib = Library::Handle();
-  if ((index >= 0) || (index < num_libs())) {
-    Array& libs = Array::Handle(libraries());
-    lib ^= libs.At(index);
+  if ((index >= 0) || (index < num_imports())) {
+    const Array& imports = Array::Handle(this->imports());
+    const Namespace& import = Namespace::CheckedHandle(imports.At(index));
+    return import.library();
   }
-  return lib.raw();
+  return Library::null();
 }
 
 
 bool LibraryPrefix::ContainsLibrary(const Library& library) const {
-  intptr_t num_current_libs = num_libs();
-  if (num_current_libs > 0) {
+  intptr_t num_current_imports = num_imports();
+  if (num_current_imports > 0) {
     Library& lib = Library::Handle();
     const String& url = String::Handle(library.url());
     String& lib_url = String::Handle();
-    for (intptr_t i = 0; i < num_current_libs; i++) {
+    for (intptr_t i = 0; i < num_current_imports; i++) {
       lib = GetLibrary(i);
       ASSERT(!lib.IsNull());
       lib_url = lib.url();
@@ -6939,38 +6948,34 @@ bool LibraryPrefix::ContainsLibrary(const Library& library) const {
   return false;
 }
 
-void LibraryPrefix::AddLibrary(const Library& library) const {
-  intptr_t num_current_libs = num_libs();
 
-  // First check if the library is already in the list of libraries imported.
-  if (ContainsLibrary(library)) {
-    return;  // Library already imported with same prefix.
-  }
+void LibraryPrefix::AddImport(const Namespace& import) const {
+  intptr_t num_current_imports = num_imports();
 
   // The library needs to be added to the list.
-  Array& libs = Array::Handle(libraries());
-  const intptr_t length = (libs.IsNull()) ? 0 : libs.Length();
+  Array& imports = Array::Handle(this->imports());
+  const intptr_t length = (imports.IsNull()) ? 0 : imports.Length();
   // Grow the list if it is full.
-  if (num_current_libs >= length) {
+  if (num_current_imports >= length) {
     const intptr_t new_length = length + kIncrementSize;
-    libs = Array::Grow(libs, new_length, Heap::kOld);
-    set_libraries(libs);
+    imports = Array::Grow(imports, new_length, Heap::kOld);
+    set_imports(imports);
   }
-  libs.SetAt(num_current_libs, library);
-  set_num_libs(num_current_libs + 1);
+  imports.SetAt(num_current_imports, import);
+  set_num_imports(num_current_imports + 1);
 }
 
 
 RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
-  Array& libs = Array::Handle(libraries());
-  Class& resolved_class = Class::Handle();
-  Library& lib = Library::Handle();
-  for (intptr_t i = 0; i < num_libs(); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    resolved_class = lib.LookupLocalClass(class_name);
-    if (!resolved_class.IsNull()) {
-      return resolved_class.raw();
+  Array& imports = Array::Handle(this->imports());
+  Object& obj = Object::Handle();
+  Namespace& import = Namespace::Handle();
+  for (intptr_t i = 0; i < num_imports(); i++) {
+    import ^= imports.At(i);
+    obj = import.Lookup(class_name);
+    if (!obj.IsNull() && obj.IsClass()) {
+      // TODO(hausner):
+      return Class::Cast(obj).raw();
     }
   }
   return Class::null();
@@ -6986,12 +6991,30 @@ RawLibraryPrefix* LibraryPrefix::New() {
 }
 
 
-RawLibraryPrefix* LibraryPrefix::New(const String& name, const Library& lib) {
+RawLibraryPrefix* LibraryPrefix::New(const String& name,
+                                     const Namespace& import) {
   const LibraryPrefix& result = LibraryPrefix::Handle(LibraryPrefix::New());
   result.set_name(name);
-  result.set_num_libs(0);
-  result.AddLibrary(lib);
+  result.set_num_imports(0);
+  result.set_imports(Array::Handle(Array::New(kInitialSize)));
+  result.AddImport(import);
   return result.raw();
+}
+
+
+void LibraryPrefix::set_name(const String& value) const {
+  ASSERT(value.IsSymbol());
+  StorePointer(&raw_ptr()->name_, value.raw());
+}
+
+
+void LibraryPrefix::set_imports(const Array& value) const {
+  StorePointer(&raw_ptr()->imports_, value.raw());
+}
+
+
+void LibraryPrefix::set_num_imports(intptr_t value) const {
+  raw_ptr()->num_imports_ = value;
 }
 
 
@@ -7005,19 +7028,80 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 
-void LibraryPrefix::set_name(const String& value) const {
-  ASSERT(value.IsSymbol());
-  StorePointer(&raw_ptr()->name_, value.raw());
+const char* Namespace::ToCString() const {
+  const char* kFormat = "Namespace for library '%s'";
+  const Library& lib = Library::Handle(library());
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, lib.ToCString()) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, lib.ToCString());
+  return chars;
 }
 
 
-void LibraryPrefix::set_libraries(const Array& value) const {
-  StorePointer(&raw_ptr()->libraries_, value.raw());
+bool Namespace::HidesName(const String& name) const {
+  // Check whether the name is in the list of explicitly hidden names.
+  if (hide_names() != Array::null()) {
+    const Array& names = Array::Handle(hide_names());
+    String& hidden = String::Handle();
+    intptr_t num_names = names.Length();
+    for (intptr_t i = 0; i < num_names; i++) {
+      hidden ^= names.At(i);
+      if (name.Equals(hidden)) {
+        return true;
+      }
+    }
+  }
+  // The name is not explicitly hidden. Now check whether it is in the
+  // list of explicitly visible names, if there is one.
+  if (show_names() != Array::null()) {
+    const Array& names = Array::Handle(show_names());
+    String& shown = String::Handle();
+    intptr_t num_names = names.Length();
+    for (intptr_t i = 0; i < num_names; i++) {
+      shown ^= names.At(i);
+      if (name.Equals(shown)) {
+        return false;
+      }
+    }
+    // There is a list of visible names. The name we're looking for is not
+    // contained in the list, so it is hidden.
+    return true;
+  }
+  // The name is not filtered out.
+  return false;
 }
 
 
-void LibraryPrefix::set_num_libs(intptr_t value) const {
-  raw_ptr()->num_libs_ = value;
+RawObject* Namespace::Lookup(const String& name) const {
+  intptr_t i = 0;
+  const Library& lib = Library::Handle(library());
+  const Object& obj = Object::Handle(lib.LookupEntry(name, &i));
+  if (obj.IsNull() || HidesName(name)) {
+    return Object::null();
+  }
+  return obj.raw();
+}
+
+
+RawNamespace* Namespace::New() {
+  ASSERT(Object::namespace_class() != Class::null());
+  RawObject* raw = Object::Allocate(Namespace::kClassId,
+                                    Namespace::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawNamespace*>(raw);
+}
+
+
+RawNamespace* Namespace::New(const Library& library,
+                             const Array& show_names,
+                             const Array& hide_names) {
+  ASSERT(show_names.IsNull() || (show_names.Length() > 0));
+  ASSERT(hide_names.IsNull() || (hide_names.Length() > 0));
+  const Namespace& result = Namespace::Handle(Namespace::New());
+  result.StorePointer(&result.raw_ptr()->library_, library.raw());
+  result.StorePointer(&result.raw_ptr()->show_names_, show_names.raw());
+  result.StorePointer(&result.raw_ptr()->hide_names_, hide_names.raw());
+  return result.raw();
 }
 
 

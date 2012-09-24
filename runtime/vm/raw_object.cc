@@ -437,6 +437,13 @@ intptr_t RawLibraryPrefix::VisitLibraryPrefixPointers(
 }
 
 
+intptr_t RawNamespace::VisitNamespacePointers(
+    RawNamespace* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Namespace::InstanceSize();
+}
+
+
 intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
                                     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
