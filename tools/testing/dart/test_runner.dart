@@ -1084,7 +1084,7 @@ class ProcessQueue {
    */
   void _startSeleniumServer() {
     // Get the absolute path to the Selenium jar.
-    String filePath = new Options().script;
+    String filePath = TestUtils.testScriptPath;
     String pathSep = Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';

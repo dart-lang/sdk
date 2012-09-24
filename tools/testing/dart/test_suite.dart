@@ -1243,6 +1243,14 @@ class JUnitTestSuite implements TestSuite {
 
 class TestUtils {
   /**
+   * The libraries in this directory relies on finding various files
+   * relative to the 'test.dart' script in '.../dart/tools/test.dart'. If
+   * the main script using 'test_suite.dart' is not there, the main
+   * script must set this to '.../dart/tools/test.dart'.
+   */
+  static String testScriptPath = new Options().script;
+
+  /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
    */
@@ -1381,7 +1389,7 @@ class TestUtils {
  }
 
   static Path dartDir() {
-    File scriptFile = new File(new Options().script);
+    File scriptFile = new File(testScriptPath);
     Path scriptPath = new Path.fromNative(scriptFile.fullPathSync());
     return scriptPath.directoryPath.directoryPath;
   }
