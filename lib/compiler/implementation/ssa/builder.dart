@@ -2115,9 +2115,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver];
-      push(new HInvokeInterceptor(selector, inputs, !hasGetter));
+      pushWithPosition(new HInvokeInterceptor(selector, inputs, !hasGetter),
+                       send);
     } else {
-      push(new HInvokeDynamicGetter(selector, null, receiver, !hasGetter));
+      pushWithPosition(
+          new HInvokeDynamicGetter(selector, null, receiver, !hasGetter), send);
     }
   }
 
@@ -2438,7 +2440,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.receiver);
       inputs.add(pop());
       addGenericSendArgumentsToList(node.arguments, inputs);
-      push(new HInvokeInterceptor(selector, inputs));
+      pushWithPosition(new HInvokeInterceptor(selector, inputs), node);
       return;
     }
 
