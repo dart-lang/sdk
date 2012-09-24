@@ -52,8 +52,8 @@ List<Mirror> orderByName(Collection<Mirror> list) {
   elements.sort((a,b) {
     String aName = a.simpleName;
     String bName = b.simpleName;
-    bool doma = aName.startsWith(@"$dom");
-    bool domb = bName.startsWith(@"$dom");
+    bool doma = aName.startsWith(r"$dom");
+    bool domb = bName.startsWith(r"$dom");
     return doma == domb ? aName.compareTo(bName) : doma ? 1 : -1;
   });
   return elements;
