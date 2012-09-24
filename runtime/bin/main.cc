@@ -80,25 +80,51 @@ static bool IsValidFlag(const char* name,
 }
 
 
-static void ProcessBreakpointOption(const char* funcname) {
+static bool has_help_option = false;
+static bool ProcessHelpOption(const char* arg) {
+  if (*arg != '\0') {
+    return false;
+  }
+  has_help_option = true;
+  return true;
+}
+
+
+static bool has_verbose_option = false;
+static bool ProcessVerboseOption(const char* arg) {
+  if (*arg != '\0') {
+    return false;
+  }
+  has_verbose_option = true;
+  return true;
+}
+
+
+static bool ProcessBreakpointOption(const char* funcname) {
   ASSERT(funcname != NULL);
   breakpoint_at = funcname;
+  return true;
 }
 
 
-static void ProcessPackageRootOption(const char* arg) {
+static bool ProcessPackageRootOption(const char* arg) {
   ASSERT(arg != NULL);
   package_root = arg;
+  return true;
 }
 
 
-static void ProcessCompileAllOption(const char* compile_all) {
-  ASSERT(compile_all != NULL);
+static bool ProcessCompileAllOption(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
   has_compile_all = true;
+  return true;
 }
 
 
-static void ProcessDebugOption(const char* port) {
+static bool ProcessDebugOption(const char* port) {
   // TODO(hausner): Add support for specifying an IP address on which
   // the debugger should listen.
   ASSERT(port != NULL);
@@ -113,14 +139,15 @@ static void ProcessDebugOption(const char* port) {
   if (debug_port == 0) {
     fprintf(stderr, "unrecognized --debug option syntax. "
                     "Use --debug[:<port number>]\n");
-    return;
+    return false;
   }
   breakpoint_at = "main";
   start_debugger = true;
+  return true;
 }
 
 
-static void ProcessPerfEventsOption(const char* option) {
+static bool ProcessPerfEventsOption(const char* option) {
   ASSERT(option != NULL);
   if (perf_events_symbols_file == NULL) {
     // TODO(cshapiro): eliminate the #ifdef by moving this code to a
@@ -136,41 +163,52 @@ static void ProcessPerfEventsOption(const char* option) {
     delete[] filename;
 #endif
   }
+  return true;
 }
 
 
-static void ProcessPprofOption(const char* filename) {
+static bool ProcessPprofOption(const char* filename) {
   ASSERT(filename != NULL);
   generate_pprof_symbols_filename = filename;
+  return true;
 }
 
 
-static void ProcessScriptSnapshotOption(const char* filename) {
+static bool ProcessScriptSnapshotOption(const char* filename) {
   if (filename != NULL && strlen(filename) != 0) {
     use_script_snapshot = true;
     snapshot_file = File::Open(filename, File::kRead);
   }
+  return true;
 }
 
 
-static void ProcessFlowGraphOption(const char* flowgraph_option) {
+static bool ProcessFlowGraphOption(const char* flowgraph_option) {
   ASSERT(flowgraph_option != NULL);
   flow_graph_file = File::Open("flowgraph.cfg", File::kWriteTruncate);
   ASSERT(flow_graph_file != NULL);
+  return true;
 }
 
 
 static struct {
   const char* option_name;
-  void (*process)(const char* option);
+  bool (*process)(const char* option);
 } main_options[] = {
+  // Standard options shared with dart2js.
+  { "--help", ProcessHelpOption },
+  { "-h", ProcessHelpOption },
+  { "--verbose", ProcessVerboseOption },
+  { "-v", ProcessVerboseOption },
+  { "--package-root=", ProcessPackageRootOption },
+  { "-p", ProcessPackageRootOption },
+  // VM specific options to the standalone dart program.
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
   { "--generate_flow_graph", ProcessFlowGraphOption },
   { "--generate_perf_events_symbols", ProcessPerfEventsOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
-  { "--package-root=", ProcessPackageRootOption },
   { "--use_script_snapshot=", ProcessScriptSnapshotOption },
   { NULL, NULL }
 };
@@ -182,8 +220,7 @@ static bool ProcessMainOptions(const char* option) {
   while (name != NULL) {
     int length = strlen(name);
     if (strncmp(option, name, length) == 0) {
-      main_options[i].process(option + length);
-      return true;
+      return main_options[i].process(option + length);
     }
     i += 1;
     name = main_options[i].option_name;
@@ -223,10 +260,14 @@ static int ParseArguments(int argc,
   int i = 1;
 
   // Parse out the vm options.
-  while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+  while (i < argc) {
     if (ProcessMainOptions(argv[i])) {
       i++;
     } else {
+      // Check if this flag is a potentially valid VM flag.
+      if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+        break;
+      }
       const char* kPrintFlags1 = "--print-flags";
       const char* kPrintFlags2 = "--print_flags";
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
@@ -469,7 +510,33 @@ static bool CreateIsolateAndSetup(const char* script_uri,
 
 static void PrintUsage() {
   fprintf(stderr,
-          "dart [<vm-flags>] <dart-script-file> [<dart-options>]\n");
+      "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
+      "\n"
+      "Executes the Dart script passed as <dart-script-file>.\n"
+      "\n");
+  if (!has_verbose_option) {
+    fprintf(stderr,
+"Common options:\n"
+"--checked Insert runtime type checks and enable assertions (checked mode).\n"
+"--help    Display this message (add --verbose for information about all\n"
+"          VM options).\n");
+  } else {
+    fprintf(stderr,
+"Supported options:\n"
+"--checked \n"
+"  Insert runtime type checks and enable assertions (checked mode).\n"
+"\n"
+"--help\n"
+"  Display this message (add --verbose for information about all VM options).\n"
+"\n"
+"--package-root=<path>\n"
+"  Where to find packages, that is, \"package:...\" imports.\n"
+"\n"
+"The following options are only used for VM development and may\n"
+"be changed in any future version:\n");
+    const char* print_flags = "--print_flags";
+    Dart_SetVMFlags(1, &print_flags);
+  }
 }
 
 
@@ -578,6 +645,11 @@ int main(int argc, char** argv) {
       PrintUsage();
       return kErrorExitCode;
     }
+  }
+
+  if (has_help_option) {
+    PrintUsage();
+    return 0;
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
