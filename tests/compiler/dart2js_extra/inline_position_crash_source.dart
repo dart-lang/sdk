@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*******************************************************************************
- * Long comment to make positions in this file exceed the those in the other.
+ * Long comment to make positions in this file exceed those in
+ * 'inline_position_crash_source.dart'.
  *******************************************************************************
  *******************************************************************************
  *******************************************************************************
