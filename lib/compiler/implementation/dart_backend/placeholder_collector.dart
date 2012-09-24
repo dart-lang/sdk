@@ -451,17 +451,21 @@ class PlaceholderCollector extends AbstractVisitor {
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?
-      if (type.element !== compiler.types.dynamicType.element) {
-        // Corner case: dart:core type with a prefix.
-        // Most probably there are some additional problems with
-        // coreLibPrefix.Dynamic and coreLibPrefix.topLevels.
-        if (type.element.getLibrary() === coreLibrary && hasPrefix) {
-          makeNullPlaceholder(node.typeName.receiver);
-        } else {
-          makeTypePlaceholder(target, type);
-        }
+      // Corner case: dart:core type with a prefix.
+      // Most probably there are some additional problems with
+      // coreLibPrefix.topLevels.
+      Element typeElement = type.element;
+      Element dynamicTypeElement = compiler.types.dynamicType.element;
+      if (hasPrefix &&
+          (typeElement.getLibrary() === coreLibrary ||
+          typeElement === dynamicTypeElement)) {
+        makeNullPlaceholder(node.typeName.receiver);
       } else {
-        if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+        if (typeElement !== dynamicTypeElement) {
+          makeTypePlaceholder(target, type);
+        } else {
+          if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+        }
       }
     }
     node.visitChildren(this);

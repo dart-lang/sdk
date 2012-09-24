@@ -11,4 +11,5 @@ void main() {
   mycore.bool boolval = false;
   mycore.int variable = 10;
   mycore.num value = 10;
+  mycore.Dynamic d = null;
 }
