@@ -1460,8 +1460,8 @@ static Range* ConstraintRange(Token::Kind op, Definition* boundary) {
 
 
 ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
-                                                Range* constraint_range,
-                                                Instruction* after) {
+                                                    Range* constraint_range,
+                                                    Instruction* after) {
   // No need to constrain constants.
   if (defn->IsConstant()) return NULL;
 
@@ -1504,8 +1504,8 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
         // Constrain definition at the true successor.
         ConstraintInstr* true_constraint =
             InsertConstraintFor(defn,
-                            ConstraintRange(op_kind, boundary),
-                            branch->true_successor());
+                                ConstraintRange(op_kind, boundary),
+                                branch->true_successor());
         // Mark true_constraint an artificial use of boundary. This ensures
         // that constraint's range is recalculated if boundary's range changes.
         if (true_constraint != NULL) true_constraint->AddDependency(boundary);
@@ -1530,9 +1530,11 @@ void RangeAnalysis::InsertConstraints() {
     CheckSmiInstr* check = smi_checks_[i];
     ConstraintInstr* constraint =
         InsertConstraintFor(check->value()->definition(),
-                        Range::Unknown(),
-                        check);
-    InsertConstraintsFor(constraint);  // Constrain uses further.
+                            Range::Unknown(),
+                            check);
+    if (constraint != NULL) {
+      InsertConstraintsFor(constraint);  // Constrain uses further.
+    }
   }
 
   for (intptr_t i = 0; i < smi_values_.length(); i++) {
