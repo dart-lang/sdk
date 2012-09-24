@@ -82,13 +82,28 @@ class FunctionBodyRewriter extends CloningVisitor {
       return false;
     }
 
+    rewritTo(Statement statement) {
+      if (statement is Block) {
+        Link statements = statement.statements.nodes;
+        if (!statements.isEmpty() && statements.tail.isEmpty()) {
+          Statement single = statements.head;
+          bool isDeclaration =
+              single is VariableDefinitions || single is FunctionDeclaration;
+          if (!isDeclaration) return single;
+        }
+      }
+      return statement;
+    }
+
     rewriteBody(Statement body) {
       if (body is !Block) return visit(body);
       Block block = body;
       NodeList statements = block.statements;
       LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
       for (Statement statement in statements.nodes) {
-        if (!shouldOmit(statement)) builder.addLast(visit(statement));
+        if (!shouldOmit(statement)) {
+          builder.addLast(visit(rewritTo(statement)));
+        }
       }
       return new Block(rewriteNodeList(statements, builder.toLink()));
     }
