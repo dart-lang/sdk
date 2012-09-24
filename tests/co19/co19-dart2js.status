@@ -6,12 +6,17 @@
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 
+Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
+Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/1_Methods_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -60,12 +65,25 @@ Language/08_Interfaces/4_Factories_and_Constructors_A10_t06: Fail # TODO(ahe): P
 Language/08_Interfaces/Interfaces_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/Interfaces_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/double/toInt_A01_t03: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/double/toInt_A01_t04: Fail # TODO(ahe): Please triage this failure.
+Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
+Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
-LibTest/core/Object/dynamic_A01_t01: Fail, OK # co19 issue 211
-LibTest/core/Object/operator_equality_A01_t01: Fail, OK # co19 issue 211
-LibTest/core/Object/toString_A01_t01: Fail, OK # co19 issue 211
+
+[ $compiler == dart2js && $unchecked ]
+Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js && $checked ]
@@ -84,7 +102,6 @@ Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/09_Generics/09_Generics_A04_t05: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A04_t06: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.
@@ -116,332 +133,49 @@ Language/11_Statements/15_Assert_A05_t03: Fail # dart2js doesn't throw ClosureAr
 
 
 [ $compiler == dart2js ]
-Language/05_Variables/05_Variables_A03_t09: Fail, OK # co19 issue 200
-Language/05_Variables/05_Variables_A04_t09: Fail, OK # co19 issue 200
-Language/05_Variables/05_Variables_A05_t03: Fail, OK # co19 issue 200
-Language/13_Libraries_and_Scripts/3_Includes_A02_t03: Fail, OK # co19 issue 200
 Language/13_Libraries_and_Scripts/source2: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A01_t04: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A02_t01: Fail, OK # co19 issue 200
-LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/acos_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/acos_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/acos_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/acos_A01_t04: Fail, OK # co19 issue 200
 LibTest/core/Math/asin_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/asin_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/asin_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/asin_A01_t04: Fail, OK # co19 issue 200
 LibTest/core/Math/atan2_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/atan2_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/atan2_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/atan2_A01_t04: Fail, OK # co19 issue 200
 LibTest/core/Math/atan_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/atan_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/atan_A01_t03: Fail, OK # co19 issue 200
 LibTest/core/Math/cos_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/cos_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/cos_A01_t03: Fail, OK # co19 issue 200
 LibTest/core/Math/exp_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/exp_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/exp_A01_t03: Fail, OK # co19 issue 200
 LibTest/core/Math/log_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/log_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/log_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/log_A01_t04: Fail, OK # co19 issue 200
-LibTest/core/Math/max_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/max_A01_t02: Fail, OK # co19 issue 200
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/min_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/min_A01_t02: Fail, OK # co19 issue 200
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 200
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/parseDouble_A02_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/parseInt_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/parseInt_A02_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A01_t04: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A02_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A03_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A04_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A05_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A06_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A07_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A08_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A09_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A10_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/pow_A11_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A12_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/pow_A13_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A14_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A15_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A16_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A17_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A18_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/pow_A19_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/random_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/sin_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/sin_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/sin_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/sin_A01_t04: Fail, OK # co19 issue 200
 LibTest/core/Math/sqrt_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/sqrt_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/sqrt_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/Math/sqrt_A01_t04: Fail, OK # co19 issue 200
 LibTest/core/Math/tan_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/Math/tan_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/Math/tan_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/double/ceil_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/double/ceil_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/double/ceil_A01_t06: Fail, OK # co19 issue 200
-LibTest/core/double/floor_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/double/floor_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/double/floor_A01_t06: Fail, OK # co19 issue 200
-LibTest/core/double/round_A01_t05: Fail, OK # co19 issue 200
-LibTest/core/double/toDouble_A01_t03: Fail, OK # co19 issue 200
-LibTest/core/double/toInt_A01_t05: Fail, OK # co19 issue 200
-LibTest/core/double/truncate_A01_t05: Fail, OK # co19 issue 200
-LibTest/core/int/operator_GE_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/int/operator_LE_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_LT_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/int/operator_division_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/int/operator_remainder_A01_t02: Fail, OK # co19 issue 200
-LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # co19 issue 200
-LibTest/core/int/remainder_A01_t02: Fail, OK # co19 issue 200
 LibTest/core/int/toDouble_A01_t01: Fail, OK # co19 issue 200
-
-LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
-LibTest/core/InternalError/toString_A01_t01: Fail, OK # co19 issue 201
-
-Language/06_Functions/2_Formal_Parameters_A02_t02: Fail, OK # co19 issue 207
-LibTest/core/double/operator_remainder_A01_t03: Fail, OK # co19 issue 207
-LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 207
 
 # Slow tests that needs extra time to finish.
 LibTest/core/List/sort_A01_t06: Slow, Pass
 
-# These test the Clock class which has been removed.
-# issue co19 - 173
-LibTest/core/Clock/frequency_A01_t01: Fail, OK
-LibTest/core/Clock/now_A01_t01: Fail, OK
-
 # Tests that fail because they use the legacy try-catch syntax.
 # See co19 issue 184.
-Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
 Language/11_Statements/09_Try_A04_t01: Fail, OK
 Language/11_Statements/14_Throw_A02_t02: Fail, OK
 Language/11_Statements/14_Throw_A02_t03: Fail, OK
-LibTest/core/AssertionError/column_A01_t02: Fail, OK
-LibTest/core/AssertionError/failedAssertion_A01_t01: Fail, OK
-LibTest/core/AssertionError/line_A01_t02: Fail, OK
-LibTest/core/AssertionError/toString_A01_t01: Fail, OK
-LibTest/core/AssertionError/url_A01_t01: Fail, OK
-LibTest/core/Completer/complete_A02_t01: Fail, OK
-LibTest/core/Completer/complete_A02_t02: Fail, OK
-LibTest/core/Completer/completeException_A01_t01: Fail, OK
-LibTest/core/Completer/completeException_A02_t01: Fail, OK
-LibTest/core/Completer/completeException_A03_t01: Fail, OK
-LibTest/core/Completer/completeException_A03_t02: Fail, OK
-LibTest/core/Date/add_A05_t01: Fail, OK
-LibTest/core/Date/compareTo_A02_t01: Fail, OK
-LibTest/core/Date/Date_A01_t02: Fail, OK
-LibTest/core/Date/Date.fromString_A02_t01: Fail, OK
-LibTest/core/Date/difference_A02_t01: Fail, OK
-LibTest/core/Date/subtract_A05_t01: Fail, OK
-LibTest/core/double/operator_addition_A02_t01: Fail, OK
-LibTest/core/double/operator_division_A02_t01: Fail, OK
-LibTest/core/double/operator_GE_A02_t01: Fail, OK
-LibTest/core/double/operator_GT_A02_t01: Fail, OK
-LibTest/core/double/operator_LE_A02_t01: Fail, OK
-LibTest/core/double/operator_LT_A02_t01: Fail, OK
-LibTest/core/double/operator_multiplication_A02_t01: Fail, OK
-LibTest/core/double/operator_remainder_A02_t01: Fail, OK
-LibTest/core/double/operator_subtraction_A02_t01: Fail, OK
-LibTest/core/double/operator_truncating_division_A02_t01: Fail, OK
-LibTest/core/double/remainder_A02_t01: Fail, OK
-LibTest/core/double/toStringAsFixed_A01_t05: Fail, OK
-LibTest/core/double/toStringAsFixed_A01_t06: Fail, OK
-LibTest/core/double/toStringAsFixed_A02_t01: Fail, OK
-LibTest/core/Duration/Duration_A03_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A03_t01: Fail, OK
-LibTest/core/Expect/equals_A01_t02: Fail, OK
 LibTest/core/Expect/equals_A02_t01: Fail, OK
-LibTest/core/Expect/fail_A01_t01: Fail, OK
-LibTest/core/Expect/fail_A02_t01: Fail, OK
-LibTest/core/Expect/identical_A01_t02: Fail, OK
-LibTest/core/Expect/identical_A01_t03: Fail, OK
-LibTest/core/Expect/identical_A02_t01: Fail, OK
-LibTest/core/Expect/isFalse_A01_t02: Fail, OK
-LibTest/core/Expect/isFalse_A02_t01: Fail, OK
-LibTest/core/Expect/isNotNull_A01_t02: Fail, OK
-LibTest/core/Expect/isNotNull_A02_t01: Fail, OK
-LibTest/core/Expect/isNull_A01_t02: Fail, OK
-LibTest/core/Expect/isNull_A02_t01: Fail, OK
-LibTest/core/Expect/isTrue_A01_t02: Fail, OK
-LibTest/core/Expect/isTrue_A02_t01: Fail, OK
-LibTest/core/Expect/listEquals_A01_t02: Fail, OK
-LibTest/core/Expect/listEquals_A01_t03: Fail, OK
-LibTest/core/Expect/listEquals_A02_t01: Fail, OK
-LibTest/core/Expect/listEquals_A03_t01: Fail, OK
-LibTest/core/Expect/notEquals_A01_t02: Fail, OK
-LibTest/core/Expect/notEquals_A02_t01: Fail, OK
-LibTest/core/Expect/setEquals_A01_t02: Fail, OK
-LibTest/core/Expect/setEquals_A02_t01: Fail, OK
-LibTest/core/Expect/setEquals_A03_t01: Fail, OK
-LibTest/core/Expect/stringEquals_A01_t02: Fail, OK
-LibTest/core/Expect/stringEquals_A02_t01: Fail, OK
-LibTest/core/Expect/throws_A01_t01: Fail, OK
-LibTest/core/Expect/throws_A01_t02: Fail, OK
-LibTest/core/Expect/throws_A01_t03: Fail, OK
-LibTest/core/Expect/throws_A01_t05: Fail, OK
-LibTest/core/FallThroughError/toString_A01_t01: Fail, OK
-LibTest/core/FallThroughError/toString_A01_t02: Fail, OK
-LibTest/core/Future/exception_A02_t01: Fail, OK
-LibTest/core/Future/handleException_A01_t04: Fail, OK
-LibTest/core/Future/handleException_A01_t05: Fail, OK
-LibTest/core/HashMap/HashMap.from_A02_t01: Fail, OK
-LibTest/core/HashSet/HashSet.from_A02_t01: Fail, OK
-LibTest/core/int/operator_left_shift_A01_t03: Fail, OK
-LibTest/core/int/operator_right_shift_A01_t03: Fail, OK
-LibTest/core/int/toRadixString_A01_t02: Fail, OK
-LibTest/core/int/toStringAsExponential_A01_t02: Fail, OK
-LibTest/core/int/toStringAsFixed_A01_t02: Fail, OK
-LibTest/core/int/toStringAsPrecision_A01_t02: Fail, OK
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail, OK
-LibTest/core/List/add_A02_t01: Fail, OK
-LibTest/core/List/addAll_A02_t01: Fail, OK
-LibTest/core/List/addAll_A03_t01: Fail, OK
-LibTest/core/List/addLast_A02_t01: Fail, OK
-LibTest/core/List/clear_A02_t01: Fail, OK
-LibTest/core/List/every_A01_t01: Fail, OK
-LibTest/core/List/every_A03_t01: Fail, OK
-LibTest/core/List/filter_A03_t01: Fail, OK
-LibTest/core/List/forEach_A02_t01: Fail, OK
 LibTest/core/List/getRange_A03_t01: Fail, OK
-LibTest/core/List/getRange_A04_t01: Fail, OK
-LibTest/core/List/getRange_A05_t01: Fail, OK
-LibTest/core/List/insertRange_A02_t01: Fail, OK
-LibTest/core/List/insertRange_A05_t01: Fail, OK
-LibTest/core/List/insertRange_A06_t01: Fail, OK
-LibTest/core/List/insertRange_A07_t01: Fail, OK
-LibTest/core/List/iterator_next_A02_t01: Fail, OK
-LibTest/core/List/last_A02_t01: Fail, OK
-LibTest/core/List/length_A04_t01: Fail, OK
-LibTest/core/List/length_A05_t01: Fail, OK
-LibTest/core/List/length_A06_t01: Fail, OK
-LibTest/core/List/List_A01_t01: Fail, OK
-LibTest/core/List/List_A01_t02: Fail, OK
-LibTest/core/List/List_A03_t01: Fail, OK
-LibTest/core/List/List_A04_t01: Fail, OK
-LibTest/core/List/List.from_A03_t01: Fail, OK
-LibTest/core/List/operator_subscript_A02_t01: Fail, OK
-LibTest/core/List/operator_subscript_A03_t01: Fail, OK
-LibTest/core/List/operator_subscript_A04_t01: Fail, OK
-LibTest/core/List/operator_subscripted_assignment_A02_t01: Fail, OK
-LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail, OK
-LibTest/core/List/removeLast_A01_t02: Fail, OK
-LibTest/core/List/removeLast_A02_t01: Fail, OK
-LibTest/core/List/removeRange_A02_t01: Fail, OK
-LibTest/core/List/removeRange_A04_t01: Fail, OK
-LibTest/core/List/removeRange_A05_t01: Fail, OK
 LibTest/core/List/removeRange_A06_t01: Fail, OK
-LibTest/core/List/setRange_A02_t01: Fail, OK
-LibTest/core/List/setRange_A02_t02: Fail, OK
-LibTest/core/List/setRange_A03_t01: Fail, OK
-LibTest/core/List/setRange_A03_t02: Fail, OK
-LibTest/core/List/setRange_A04_t01: Fail, OK
 LibTest/core/List/setRange_A05_t01: Fail, OK
-LibTest/core/List/setRange_A06_t01: Fail, OK
-LibTest/core/List/some_A03_t01: Fail, OK
-LibTest/core/Map/containsKey_A01_t02: Fail, OK
-LibTest/core/Map/forEach_A01_t02: Fail, OK
-LibTest/core/Map/forEach_A01_t04: Fail, OK
-LibTest/core/Map/operator_subscript_A01_t02: Fail, OK
-LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail, OK
-LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK
-LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK
-LibTest/core/Map/putIfAbsent_A01_t10: Fail, OK
-LibTest/core/Map/remove_A01_t02: Fail, OK
-LibTest/core/Match/group_A02_t01: Fail, OK
-LibTest/core/Match/groups_A02_t01: Fail, OK
-LibTest/core/Match/operator_subscript_A02_t01: Fail, OK
-LibTest/core/Queue/addAll_A02_t01: Fail, OK
-LibTest/core/Queue/every_A01_t03: Fail, OK
-LibTest/core/Queue/every_A01_t05: Fail, OK
-LibTest/core/Queue/filter_A01_t03: Fail, OK
-LibTest/core/Queue/filter_A01_t05: Fail, OK
-LibTest/core/Queue/first_A02_t01: Fail, OK
-LibTest/core/Queue/forEach_A01_t03: Fail, OK
-LibTest/core/Queue/forEach_A01_t05: Fail, OK
-LibTest/core/Queue/iterator_next_A02_t01: Fail, OK
-LibTest/core/Queue/last_A02_t01: Fail, OK
-LibTest/core/Queue/Queue.from_A02_t01: Fail, OK
-LibTest/core/Queue/removeFirst_A02_t01: Fail, OK
-LibTest/core/Queue/removeLast_A02_t01: Fail, OK
-LibTest/core/Queue/some_A01_t03: Fail, OK
-LibTest/core/Queue/some_A01_t05: Fail, OK
-LibTest/core/RegExp/allMatches_A02_t01: Fail, OK
-LibTest/core/RegExp/firstMatch_A03_t01: Fail, OK
-LibTest/core/RegExp/hasMatch_A02_t01: Fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fail, OK
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t04: Fail, OK
-LibTest/core/RegExp/stringMatch_A02_t01: Fail, OK
-LibTest/core/Set/add_A01_t02: Fail, OK
-LibTest/core/Set/addAll_A01_t02: Fail, OK
 LibTest/core/Set/addAll_A01_t04: Fail, OK
-LibTest/core/Set/contains_A01_t02: Fail, OK
 LibTest/core/Set/contains_A01_t03: Fail, OK
-LibTest/core/Set/containsAll_A01_t02: Fail, OK
 LibTest/core/Set/containsAll_A01_t03: Fail, OK
 LibTest/core/Set/intersection_A01_t02: Fail, OK
-LibTest/core/Set/intersection_A02_t01: Fail, OK
-LibTest/core/Set/intersection_A03_t01: Fail, OK
-LibTest/core/Set/isSubsetOf_A01_t02: Fail, OK
-LibTest/core/Set/remove_A01_t02: Fail, OK
 LibTest/core/Set/remove_A01_t04: Fail, OK
-LibTest/core/Set/removeAll_A01_t02: Fail, OK
 LibTest/core/Set/removeAll_A01_t03: Fail, OK
-LibTest/core/Set/Set.from_A02_t01: Fail, OK
-LibTest/core/StringBuffer/addAll_A03_t01: Fail, OK
-LibTest/core/String/charCodeAt_A02_t01: Fail, OK
-LibTest/core/String/charCodeAt_A03_t01: Fail, OK
-LibTest/core/String/concat_A02_t01: Fail, OK
-LibTest/core/String/contains_A02_t01: Fail, OK
-LibTest/core/String/endsWith_A02_t01: Fail, OK
-LibTest/core/String/indexOf_A03_t01: Fail, OK
-LibTest/core/String/lastIndexOf_A03_t01: Fail, OK
-LibTest/core/String/operator_subscript_A02_t01: Fail, OK
-LibTest/core/String/replaceAll_A02_t01: Fail, OK
-LibTest/core/String/replaceFirst_A02_t01: Fail, OK
-LibTest/core/Strings/concatAll_A02_t01: Fail, OK
-LibTest/core/Strings/concatAll_A03_t01: Fail, OK
-LibTest/core/Strings/concatAll_A04_t01: Fail, OK
-LibTest/core/Strings/join_A02_t01: Fail, OK
-LibTest/core/Strings/join_A03_t01: Fail, OK
-LibTest/core/Strings/join_A04_t01: Fail, OK
-LibTest/core/String/split_A02_t01: Fail, OK
-LibTest/core/String/startsWith_A02_t01: Fail, OK
-LibTest/core/String/String.fromCharCodes_A02_t01: Fail, OK
-LibTest/core/String/String.fromCharCodes_A03_t01: Fail, OK
-LibTest/core/String/substring_A02_t01: Fail, OK
-LibTest/core/TypeError/column_A01_t01: Fail, OK
-LibTest/core/TypeError/dstName_A01_t01: Fail, OK
-LibTest/core/TypeError/dstType_A01_t01: Fail, OK
-LibTest/core/TypeError/failedAssertion_A01_t01: Fail, OK
-LibTest/core/TypeError/line_A01_t01: Fail, OK
-LibTest/core/TypeError/srcType_A01_t01: Fail, OK
-LibTest/core/TypeError/toString_A01_t01: Fail, OK
-LibTest/core/TypeError/url_A01_t01: Fail, OK
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK
 
 # Tests that used to fail before deprecating the old try-catch syntax.
 # The original issue that used to cause the test to fail is put in an
@@ -468,10 +202,6 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TOD
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
-
-Language/06_Functions/2_Formal_Parameters_A01_t01: Fail, OK # co19 issue 205
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t02: Fail, OK # co19 issue 205
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A04_t01: Fail, OK # co19 issue 205
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
@@ -501,7 +231,6 @@ Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpect
 Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Runtime error: Expect.fail('Method noSuchMethod() was not properly executed!')
 Language/10_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
-Language/09_Generics/09_Generics_A04_t04: Fail # Runtime error: Expect.isFalse(true, 'Using malformed type in a type test expression should result in a run-time error!') fails.
 Language/11_Statements/08_Switch_A02_t01: Fail # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Runtime error: NoSuchMethodException : method not found: '$call'
@@ -570,92 +299,11 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 # The following tests use the deprecated Date interface.
 # Issue co19 - 125
 LibTest/core/Date/toString_A02_t01: Fail, OK
-LibTest/core/Date/isUtc_A01_t01: Fail, OK
 
-LibTest/core/Date/add_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Date/add_A02_t01: Fail, OK # co19 issue 209
-LibTest/core/Date/add_A03_t01: Fail, OK # co19 issue 209
-LibTest/core/Date/subtract_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Date/subtract_A02_t01: Fail, OK # co19 issue 209
-LibTest/core/Date/subtract_A03_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/compareTo_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/compareTo_A01_t02: Fail, OK # co19 issue 209
-LibTest/core/Duration/Duration_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/Duration_A02_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/inDays_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/inHours_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/inMilliseconds_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/inMinutes_A01_t01: Fail, OK # co19 issue 209
-LibTest/core/Duration/inSeconds_A01_t01: Fail, OK # co19 issue 209
-
-LibTest/core/Match/end_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/Match/group_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/Match/groupCount_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/Match/groups_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/Match/pattern_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/Match/start_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/Match/str_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/firstMatch_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/hasMatch_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/hasMatch_A01_t02: Fail, OK # co19 issue 212
-LibTest/core/RegExp/ignoreCase_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/multiLine_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/pattern_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A05_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A03_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A04_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A05_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t03: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t04: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/RegExp_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/RegExp/RegExp_A01_t02: Fail, OK # co19 issue 212
-LibTest/core/RegExp/stringMatch_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/contains_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/replaceAll_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/replaceFirst_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/split_A01_t01: Fail, OK # co19 issue 212
-LibTest/core/String/split_A01_t02: Fail, OK # co19 issue 212
 
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
@@ -685,22 +333,17 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
-Language/03_Overview/2_Privacy_A01_t04: Fail, OK # co19 issue 210
-Language/03_Overview/2_Privacy_A01_t05: Fail, OK # co19 issue 210
-Language/05_Variables/05_Variables_A01_t03: Fail, OK # co19 issue 210
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
-Language/06_Functions/2_Formal_Parameters_A02_t01: Fail, OK # co19 issue 210
 Language/08_Interfaces/4_Factories_and_Constructors_A02_t06: Fail, OK # co19 issue 210
 Language/10_Expressions/03_Numbers_A01_t19: Fail, OK # co19 issue 210
 Language/10_Expressions/03_Numbers_A01_t20: Fail, OK # co19 issue 210
 Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
-Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t06: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t09: Fail, OK # co19 issue 210
@@ -772,22 +415,9 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # co19 
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
 
-Language/10_Expressions/25_Unary_Expressions_A01_t27: Fail, OK # co19 issue 169
-Language/10_Expressions/25_Unary_Expressions_A05_t01: Fail, OK # co19 issue 169
-Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail, OK # co19 issue 169
-LibTest/core/double/operator_negate_A01_t01: Fail, OK # co19 issue 169
-LibTest/core/double/operator_negate_A01_t02: Fail, OK # co19 issue 169
-LibTest/core/double/operator_negate_A01_t03: Fail, OK # co19 issue 169
-LibTest/core/double/operator_negate_A01_t04: Fail, OK # co19 issue 169
-LibTest/core/int/operator_negate_A01_t01: Fail, OK # co19 issue 169
-
-Language/11_Statements/09_Try_A01_t14: Fail, OK # co19 issue 168
-
 Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189
 
 Language/03_Overview/2_Privacy_A01_t12: Fail, OK # co19 issue 191
-
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail, OK # co19 issue 192
 
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # co19 issue 193
 Language/07_Classes/07_Classes_A02_t34: Fail, OK # co19 issue 193
@@ -798,7 +428,6 @@ Language/11_Statements/09_Try_A06_t02: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t03: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t04: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A06_t05: Fail, OK # co19 issue 194
-LibTest/core/Futures/wait_A03_t01: Fail, OK # co19 issue 194
 
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
 
@@ -812,8 +441,6 @@ Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t19: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t20: Fail, OK # co19 issue 198
 
-Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Fail, OK # co19 issue 213
-
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -821,7 +448,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
-LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/Date_A01_t03: Fail, OK # co19 issue 180
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
@@ -839,10 +465,7 @@ LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const cons
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
-LibTest/core/double/toInt_A01_t05: Fail, OK # Requires big int.
 LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
-LibTest/core/double/toStringAsExponential_A01_t01: Fail, OK # Unimplemented test stub.
-LibTest/core/double/toStringAsPrecision_A01_t01: Fail, OK # Unimplemented test stub.
 LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
 LibTest/core/int/isEven_A01_t01: Fail, OK # Not in API.
@@ -859,9 +482,6 @@ LibTest/core/int/remainder_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
-LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # Co19 Issue 112.
-LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # Co19 Issue 114.
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # Co19 Issue 113.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects negative result from bit-operation.
 
@@ -873,7 +493,6 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail, OK # Expects n
 #
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
 
@@ -904,8 +523,6 @@ Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
-LibTest/core/Expect/equals_A01_t03: Fail  # Issue co19 - 178
-LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
@@ -983,7 +600,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t05: Fail # Checks that it is a co
 Language/07_Classes/07_Classes_A02_t02: Fail # Checks that it is a compile-time error if a constant constructor declaration includes a body.
 Language/07_Classes/07_Classes_A02_t04: Fail # Checks that it is a compile-time error if a constant constructor declaration with initializers includes a body.
 Language/07_Classes/07_Classes_A02_t11: Fail # Checks that it is a compile-time error if a static final variable declaration does not include explicit initializer.
-Language/07_Classes/07_Classes_A02_t31: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
 Language/07_Classes/07_Classes_A02_t32: Fail # Checks that it is a compile-time error when a constant constructor is declared abstract.
 Language/07_Classes/07_Classes_A03_t02: Fail # Checks that it is a compile-time error if a factory constructor method definition does not include a body.
 Language/07_Classes/07_Classes_A03_t08: Fail # Checks that it is a compile-time error if a static setter method definition does not include a body.
@@ -1048,7 +664,6 @@ Language/10_Expressions/05_Strings_A02_t47: Fail # Checks that multi-line string
 Language/10_Expressions/05_Strings_A02_t48: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/10_Expressions/05_Strings_A02_t49: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/10_Expressions/06_Lists_A04_t01: Fail # Checks that it is a compile-time error if the type argument of a constant list literal includes a type variable.
-Language/10_Expressions/07_Maps_A03_t01: Fail # Checks that it is a compile-error if if the type argument of a constant map literal includes a type variable.
 Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # Checks that the function body is required.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope. Named constructor case.
@@ -1188,7 +803,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # http://dartbug.com/4
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # co19 issue 223
 Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
