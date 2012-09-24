@@ -1911,7 +1911,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.inputs[0]);
       pushStatement(new js.Throw(pop()), node);
     } else {
-      generateThrowWithHelper(@'$throw', node.inputs[0]);
+      generateThrowWithHelper(r'$throw', node.inputs[0]);
     }
   }
 

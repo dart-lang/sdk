@@ -13,51 +13,51 @@
 
 // Performance critical helper methods.
 add(var a, var b) => (a is num && b is num)
-    ? JS('num', @'# + #', a, b)
+    ? JS('num', r'# + #', a, b)
     : add$slow(a, b);
 
 sub(var a, var b) => (a is num && b is num)
-    ? JS('num', @'# - #', a, b)
+    ? JS('num', r'# - #', a, b)
     : sub$slow(a, b);
 
 div(var a, var b) => (a is num && b is num)
-    ? JS('num', @'# / #', a, b)
+    ? JS('num', r'# / #', a, b)
     : div$slow(a, b);
 
 mul(var a, var b) => (a is num && b is num)
-    ? JS('num', @'# * #', a, b)
+    ? JS('num', r'# * #', a, b)
     : mul$slow(a, b);
 
 gt(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# > #', a, b)
+    ? JS('bool', r'# > #', a, b)
     : gt$slow(a, b);
 
 ge(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# >= #', a, b)
+    ? JS('bool', r'# >= #', a, b)
     : ge$slow(a, b);
 
 lt(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# < #', a, b)
+    ? JS('bool', r'# < #', a, b)
     : lt$slow(a, b);
 
 le(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# <= #', a, b)
+    ? JS('bool', r'# <= #', a, b)
     : le$slow(a, b);
 
 gtB(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# > #', a, b)
+    ? JS('bool', r'# > #', a, b)
     : gt$slow(a, b) === true;
 
 geB(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# >= #', a, b)
+    ? JS('bool', r'# >= #', a, b)
     : ge$slow(a, b) === true;
 
 ltB(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# < #', a, b)
+    ? JS('bool', r'# < #', a, b)
     : lt$slow(a, b) === true;
 
 leB(var a, var b) => (a is num && b is num)
-    ? JS('bool', @'# <= #', a, b)
+    ? JS('bool', r'# <= #', a, b)
     : le$slow(a, b) === true;
 
 index(var a, var index) {
@@ -65,12 +65,12 @@ index(var a, var index) {
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isJsArrayOrString = JS('bool',
-      @'typeof # == "string" || #.constructor === Array',
+      r'typeof # == "string" || #.constructor === Array',
       a, a);
   if (isJsArrayOrString) {
     var key = JS('int', '# >>> 0', index);
-    if (key === index && key < JS('int', @'#.length', a)) {
-      return JS('var', @'#[#]', a, key);
+    if (key === index && key < JS('int', r'#.length', a)) {
+      return JS('var', r'#[#]', a, key);
     }
   }
   return index$slow(a, index);
@@ -81,12 +81,12 @@ indexSet(var a, var index, var value) {
   // that matches the specification of what the indexing operator is
   // supposed to do.
   bool isMutableJsArray = JS('bool',
-      @'#.constructor === Array && !#.immutable$list',
+      r'#.constructor === Array && !#.immutable$list',
       a, a);
   if (isMutableJsArray) {
     var key = JS('int', '# >>> 0', index);
-    if (key === index && key < JS('int', @'#.length', a)) {
-      JS('void', @'#[#] = #', a, key, value);
+    if (key === index && key < JS('int', r'#.length', a)) {
+      JS('void', r'#[#] = #', a, key, value);
       return;
     }
   }
@@ -112,33 +112,33 @@ bool checkNumbers(var a, var b) {
 }
 
 bool isJsArray(var value) {
-  return value !== null && JS('bool', @'#.constructor === Array', value);
+  return value !== null && JS('bool', r'#.constructor === Array', value);
 }
 
 add$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'# + #', a, b);
+    return JS('num', r'# + #', a, b);
   }
   return UNINTERCEPTED(a + b);
 }
 
 div$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'# / #', a, b);
+    return JS('num', r'# / #', a, b);
   }
   return UNINTERCEPTED(a / b);
 }
 
 mul$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'# * #', a, b);
+    return JS('num', r'# * #', a, b);
   }
   return UNINTERCEPTED(a * b);
 }
 
 sub$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'# - #', a, b);
+    return JS('num', r'# - #', a, b);
   }
   return UNINTERCEPTED(a - b);
 }
@@ -146,7 +146,7 @@ sub$slow(var a, var b) {
 mod(var a, var b) {
   if (checkNumbers(a, b)) {
     // Euclidean Modulo.
-    num result = JS('num', @'# % #', a, b);
+    num result = JS('num', r'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', b) < 0) {
@@ -160,63 +160,63 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b)) {
-    return (JS('num', @'# / #', a, b)).truncate();
+    return (JS('num', r'# / #', a, b)).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
 }
 
 eq(var a, var b) {
-  if (JS('bool', @'# == null', a)) return JS('bool', @'# == null', b);
-  if (JS('bool', @'# == null', b)) return false;
-  if (JS('bool', @'typeof # === "object"', a)) {
+  if (JS('bool', r'# == null', a)) return JS('bool', r'# == null', b);
+  if (JS('bool', r'# == null', b)) return false;
+  if (JS('bool', r'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS('bool', @'# === #', a, b);
+  return JS('bool', r'# === #', a, b);
 }
 
 bool eqB(var a, var b) {
-  if (JS('bool', @'# == null', a)) return JS('bool', @'# == null', b);
-  if (JS('bool', @'# == null', b)) return false;
-  if (JS('bool', @'typeof # === "object"', a)) {
+  if (JS('bool', r'# == null', a)) return JS('bool', r'# == null', b);
+  if (JS('bool', r'# == null', b)) return false;
+  if (JS('bool', r'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b) === true;
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS('bool', @'# === #', a, b);
+  return JS('bool', r'# === #', a, b);
 }
 
 eqq(var a, var b) {
-  return JS('bool', @'# === #', a, b);
+  return JS('bool', r'# === #', a, b);
 }
 
 gt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'# > #', a, b);
+    return JS('bool', r'# > #', a, b);
   }
   return UNINTERCEPTED(a > b);
 }
 
 ge$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'# >= #', a, b);
+    return JS('bool', r'# >= #', a, b);
   }
   return UNINTERCEPTED(a >= b);
 }
 
 lt$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'# < #', a, b);
+    return JS('bool', r'# < #', a, b);
   }
   return UNINTERCEPTED(a < b);
 }
 
 le$slow(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'# <= #', a, b);
+    return JS('bool', r'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
 }
@@ -227,8 +227,8 @@ shl(var a, var b) {
     if (JS('num', '#', b) < 0) throw new IllegalArgumentException(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
-    if (JS('bool', @'# > 31', b)) return 0;
-    return JS('num', @'(# << #) >>> 0', a, b);
+    if (JS('bool', r'# > 31', b)) return 0;
+    return JS('num', r'(# << #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a << b);
 }
@@ -241,17 +241,17 @@ shr(var a, var b) {
       // JavaScript only looks at the last 5 bits of the shift-amount. In JS
       // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
       // computation when that happens.
-      if (JS('bool', @'# > 31', b)) return 0;
+      if (JS('bool', r'# > 31', b)) return 0;
       // Given that 'a' is positive we must not use '>>'. Otherwise a number
       // that has the 31st bit set would be treated as negative and shift in
       // ones.
-      return JS('num', @'# >>> #', a, b);
+      return JS('num', r'# >>> #', a, b);
     }
     // For negative numbers we just clamp the shift-by amount. 'a' could be
     // negative but not have its 31st bit set. The ">>" would then shift in
     // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
     if (JS('num', '#', b) > 31) b = 31;
-    return JS('num', @'(# >> #) >>> 0', a, b);
+    return JS('num', r'(# >> #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a >> b);
 }
@@ -259,7 +259,7 @@ shr(var a, var b) {
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'(# & #) >>> 0', a, b);
+    return JS('num', r'(# & #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a & b);
 }
@@ -267,7 +267,7 @@ and(var a, var b) {
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'(# | #) >>> 0', a, b);
+    return JS('num', r'(# | #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a | b);
 }
@@ -275,20 +275,20 @@ or(var a, var b) {
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'(# ^ #) >>> 0', a, b);
+    return JS('num', r'(# ^ #) >>> 0', a, b);
   }
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
-  if (JS('bool', @'typeof # === "number"', a)) {
-    return JS('num', @'(~#) >>> 0', a);
+  if (JS('bool', r'typeof # === "number"', a)) {
+    return JS('num', r'(~#) >>> 0', a);
   }
   return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
-  if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'-#', a);
+  if (JS('bool', r'typeof # === "number"', a)) return JS('num', r'-#', a);
   return UNINTERCEPTED(-a);
 }
 
@@ -301,7 +301,7 @@ index$slow(var a, var index) {
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
     }
-    return JS('Object', @'#[#]', a, index);
+    return JS('Object', r'#[#]', a, index);
   }
   return UNINTERCEPTED(a[index]);
 }
@@ -315,20 +315,20 @@ void indexSet$slow(var a, var index, var value) {
       throw new IndexOutOfRangeException(index);
     }
     checkMutable(a, 'indexed set');
-    JS('Object', @'#[#] = #', a, index, value);
+    JS('Object', r'#[#] = #', a, index, value);
     return;
   }
   UNINTERCEPTED(a[index] = value);
 }
 
 checkMutable(list, reason) {
-  if (JS('bool', @'!!(#.immutable$list)', list)) {
+  if (JS('bool', r'!!(#.immutable$list)', list)) {
     throw new UnsupportedOperationException(reason);
   }
 }
 
 checkGrowable(list, reason) {
-  if (JS('bool', @'!!(#.fixed$length)', list)) {
+  if (JS('bool', r'!!(#.fixed$length)', list)) {
     throw new UnsupportedOperationException(reason);
   }
 }
@@ -343,10 +343,10 @@ class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS('int', @'#.length', list);
+  bool hasNext() => i < JS('int', r'#.length', list);
   T next() {
     if (!hasNext()) throw new NoMoreElementsException();
-    var value = JS('Object', @'#[#]', list, i);
+    var value = JS('Object', r'#[#]', list, i);
     i += 1;
     return value;
   }
@@ -371,36 +371,36 @@ class Primitives {
    * by defining a function in JavaScript called "dartPrint".
    */
   static void printString(String string) {
-    var hasDartPrint = JS('bool', @'typeof dartPrint == "function"');
+    var hasDartPrint = JS('bool', r'typeof dartPrint == "function"');
     if (hasDartPrint) {
-      JS('void', @'dartPrint(#)', string);
+      JS('void', r'dartPrint(#)', string);
       return;
     }
 
-    var hasConsole = JS('bool', @'typeof console == "object"');
+    var hasConsole = JS('bool', r'typeof console == "object"');
     if (hasConsole) {
-      JS('void', @'console.log(#)', string);
+      JS('void', r'console.log(#)', string);
       return;
     }
 
-    var hasWrite = JS('bool', @'typeof write == "function"');
+    var hasWrite = JS('bool', r'typeof write == "function"');
     if (hasWrite) {
-      JS('void', @'write(#)', string);
-      JS('void', @'write("\n")');
+      JS('void', r'write(#)', string);
+      JS('void', r'write("\n")');
     }
   }
 
   static int parseInt(String string) {
     checkString(string);
     var match = JS('List',
-                   @'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
+                   r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
                    string);
     if (match === null) {
       throw new FormatException(string);
     }
     var base = 10;
     if (match[1] !== null) base = 16;
-    var result = JS('num', @'parseInt(#, #)', string, base);
+    var result = JS('num', r'parseInt(#, #)', string, base);
     if (result.isNaN()) throw new FormatException(string);
     return result;
   }
@@ -413,12 +413,12 @@ class Primitives {
     // - [+/-]Infinity
     // -  a Dart double literal
     if (!JS('bool',
-            @'/^\s*(?:NaN|[+-]?(?:Infinity|'
-                @'(?:\.\d+|\d+(?:\.\d+)?)(?:[eE][+-]?\d+)?))\s*$/.test(#)',
+            r'/^\s*(?:NaN|[+-]?(?:Infinity|'
+                r'(?:\.\d+|\d+(?:\.\d+)?)(?:[eE][+-]?\d+)?))\s*$/.test(#)',
             string)) {
       throw new FormatException(string);
     }
-    var result = JS('num', @'parseFloat(#)', string);
+    var result = JS('num', r'parseFloat(#)', string);
     if (result.isNaN() && string != 'NaN') {
       throw new FormatException(string);
     }
@@ -434,8 +434,8 @@ class Primitives {
       // Try to decompile the constructor by turning it into a string
       // and get the name out of that. If the decompiled name is a
       // string, we use that instead of the very generic 'Object'.
-      var decompiled = JS('var', @'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
-                          JS('var', @'String(#.constructor)', object));
+      var decompiled = JS('var', r'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+                          JS('var', r'String(#.constructor)', object));
       if (decompiled is String) name = decompiled;
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
@@ -450,22 +450,22 @@ class Primitives {
   }
 
   static List newList(length) {
-    if (length === null) return JS('Object', @'new Array()');
+    if (length === null) return JS('Object', r'new Array()');
     if ((length is !int) || (length < 0)) {
       throw new IllegalArgumentException(length);
     }
-    var result = JS('Object', @'new Array(#)', length);
-    JS('void', @'#.fixed$length = #', result, true);
+    var result = JS('Object', r'new Array(#)', length);
+    JS('void', r'#.fixed$length = #', result, true);
     return result;
   }
 
-  static num dateNow() => JS('num', @'Date.now()');
+  static num dateNow() => JS('num', r'Date.now()');
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw new IllegalArgumentException(i);
     }
-    return JS('String', @'String.fromCharCode.apply(#, #)', null, charCodes);
+    return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
   }
 
   static String getTimeZoneName(receiver) {
@@ -473,12 +473,12 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    return JS('String', @'/\((.*)\)/.exec(#.toString())[1]', d);
+    return JS('String', r'/\((.*)\)/.exec(#.toString())[1]', d);
   }
 
   static int getTimeZoneOffsetInMinutes(receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
-    return -JS('int', @'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
@@ -495,10 +495,10 @@ class Primitives {
     var jsMonth = month - 1;
     var value;
     if (isUtc) {
-      value = JS('num', @'Date.UTC(#, #, #, #, #, #, #)',
+      value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
+      value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN() ||
@@ -511,70 +511,70 @@ class Primitives {
   }
 
   static patchUpY2K(value, years, isUtc) {
-    var date = JS('Object', @'new Date(#)', value);
+    var date = JS('Object', r'new Date(#)', value);
     if (isUtc) {
-      JS('num', @'#.setUTCFullYear(#)', date, years);
+      JS('num', r'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('num', @'#.setFullYear(#)', date, years);
+      JS('num', r'#.setFullYear(#)', date, years);
     }
-    return JS('num', @'#.valueOf()', date);
+    return JS('num', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(receiver) {
-    if (JS('bool', @'#.date === (void 0)', receiver)) {
-      JS('void', @'#.date = new Date(#)', receiver,
+    if (JS('bool', r'#.date === (void 0)', receiver)) {
+      JS('void', r'#.date = new Date(#)', receiver,
          receiver.millisecondsSinceEpoch);
     }
-    return JS('Date', @'#.date', receiver);
+    return JS('Date', r'#.date', receiver);
   }
 
   static getYear(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCFullYear()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getFullYear()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCFullYear()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getFullYear()', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
-      : JS('int', @'#.getMonth()', lazyAsJsDate(receiver)) + 1;
+      ? JS('int', r'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
+      : JS('int', r'#.getMonth()', lazyAsJsDate(receiver)) + 1;
   }
 
   static getDay(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCDate()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getDate()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCDate()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getDate()', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCHours()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getHours()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCHours()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getHours()', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCMinutes()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getMinutes()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCMinutes()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getMinutes()', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCSeconds()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getSeconds()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCSeconds()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getSeconds()', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', @'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getMilliseconds()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getMilliseconds()', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
     int weekday = (receiver.isUtc)
-      ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
-      : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCDay()', lazyAsJsDate(receiver))
+      : JS('int', r'#.getDay()', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -582,7 +582,7 @@ class Primitives {
   static valueFromDateString(str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException(str);
-    var value = JS('num', @'Date.parse(#)', str);
+    var value = JS('num', r'Date.parse(#)', str);
     if (value.isNaN()) throw new IllegalArgumentException(str);
     return value;
   }
@@ -632,7 +632,7 @@ listInsertRange(receiver, start, length, initialValue) {
   if (length < 0) throw new IllegalArgumentException(length);
   if (start is !int) throw new IllegalArgumentException(start);
 
-  var receiverLength = JS('num', @'#.length', receiver);
+  var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start > receiverLength) {
     throw new IndexOutOfRangeException(start);
   }
@@ -651,7 +651,7 @@ listInsertRange(receiver, start, length, initialValue) {
 }
 
 stringLastIndexOfUnchecked(receiver, element, start)
-  => JS('int', @'#.lastIndexOf(#, #)', receiver, element, start);
+  => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 
 checkNull(object) {
@@ -692,13 +692,13 @@ checkString(value) {
 }
 
 substringUnchecked(receiver, startIndex, endIndex)
-  => JS('String', @'#.substring(#, #)', receiver, startIndex, endIndex);
+  => JS('String', r'#.substring(#, #)', receiver, startIndex, endIndex);
 
 class MathNatives {
   static int parseInt(str) {
     checkString(str);
     if (!JS('bool',
-            @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
+            r'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
             str)) {
       throw new FormatException(str);
     }
@@ -708,17 +708,17 @@ class MathNatives {
         (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
       base = 16;
     }
-    var ret = JS('num', @'parseInt(#, #)', trimmed, base);
+    var ret = JS('num', r'parseInt(#, #)', trimmed, base);
     if (ret.isNaN()) throw new FormatException(str);
     return ret;
   }
 
   static double parseDouble(String str) {
     checkString(str);
-    var ret = JS('num', @'parseFloat(#)', str);
+    var ret = JS('num', r'parseFloat(#)', str);
     if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
       // TODO(ahe): This is unspecified, but tested by co19.
-      ret = JS('num', @'parseInt(#)', str);
+      ret = JS('num', r'parseInt(#)', str);
     }
     if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
       throw new FormatException(str);
@@ -727,42 +727,42 @@ class MathNatives {
   }
 
   static double sqrt(num value)
-    => JS('double', @'Math.sqrt(#)', checkNum(value));
+    => JS('double', r'Math.sqrt(#)', checkNum(value));
 
   static double sin(num value)
-    => JS('double', @'Math.sin(#)', checkNum(value));
+    => JS('double', r'Math.sin(#)', checkNum(value));
 
   static double cos(num value)
-    => JS('double', @'Math.cos(#)', checkNum(value));
+    => JS('double', r'Math.cos(#)', checkNum(value));
 
   static double tan(num value)
-    => JS('double', @'Math.tan(#)', checkNum(value));
+    => JS('double', r'Math.tan(#)', checkNum(value));
 
   static double acos(num value)
-    => JS('double', @'Math.acos(#)', checkNum(value));
+    => JS('double', r'Math.acos(#)', checkNum(value));
 
   static double asin(num value)
-    => JS('double', @'Math.asin(#)', checkNum(value));
+    => JS('double', r'Math.asin(#)', checkNum(value));
 
   static double atan(num value)
-    => JS('double', @'Math.atan(#)', checkNum(value));
+    => JS('double', r'Math.atan(#)', checkNum(value));
 
   static double atan2(num a, num b)
-    => JS('double', @'Math.atan2(#, #)', checkNum(a), checkNum(b));
+    => JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
   static double exp(num value)
-    => JS('double', @'Math.exp(#)', checkNum(value));
+    => JS('double', r'Math.exp(#)', checkNum(value));
 
   static double log(num value)
-    => JS('double', @'Math.log(#)', checkNum(value));
+    => JS('double', r'Math.log(#)', checkNum(value));
 
   static num pow(num value, num exponent) {
     checkNum(value);
     checkNum(exponent);
-    return JS('num', @'Math.pow(#, #)', value, exponent);
+    return JS('num', r'Math.pow(#, #)', value, exponent);
   }
 
-  static double random() => JS('double', @'Math.random()');
+  static double random() => JS('double', r'Math.random()');
 }
 
 /**
@@ -774,13 +774,13 @@ class MathNatives {
  */
 $throw(ex) {
   if (ex === null) ex = const NullPointerException();
-  var jsError = JS('Object', @'new Error()');
-  JS('void', @'#.name = #', jsError, ex);
-  JS('void', @'#.description = #', jsError, ex);
-  JS('void', @'#.dartException = #', jsError, ex);
-  JS('void', @'#.toString = #', jsError,
+  var jsError = JS('Object', r'new Error()');
+  JS('void', r'#.name = #', jsError, ex);
+  JS('void', r'#.description = #', jsError, ex);
+  JS('void', r'#.dartException = #', jsError, ex);
+  JS('void', r'#.toString = #', jsError,
      DART_CLOSURE_TO_JS(toStringWrapper));
-  JS('void', @'throw #', jsError);
+  JS('void', r'throw #', jsError);
 }
 
 /**
@@ -789,11 +789,11 @@ $throw(ex) {
  * JavaScript Error to which we have added a property 'dartException'
  * which holds a Dart object.
  */
-toStringWrapper() => JS('Object', @'this.dartException').toString();
+toStringWrapper() => JS('Object', r'this.dartException').toString();
 
 makeLiteralListConst(list) {
-  JS('bool', @'#.immutable$list = #', list, true);
-  JS('bool', @'#.fixed$length = #', list, true);
+  JS('bool', r'#.immutable$list = #', list, true);
+  JS('bool', r'#.fixed$length = #', list, true);
   return list;
 }
 
@@ -812,31 +812,31 @@ throwRuntimeError(message) {
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
-  if (JS('bool', @'"dartException" in #', ex)) {
-    return JS('Object', @'#.dartException', ex);
+  if (JS('bool', r'"dartException" in #', ex)) {
+    return JS('Object', r'#.dartException', ex);
   }
 
   // Grab hold of the exception message. This field is available on
   // all supported browsers.
-  var message = JS('var', @'#.message', ex);
+  var message = JS('var', r'#.message', ex);
 
-  if (JS('bool', @'# instanceof TypeError', ex)) {
+  if (JS('bool', r'# instanceof TypeError', ex)) {
     // The type and arguments fields are Chrome specific but they
     // allow us to get very detailed information about what kind of
     // exception occurred.
-    var type = JS('var', @'#.type', ex);
-    var name = JS('var', @'#.arguments ? #.arguments[0] : ""', ex, ex);
+    var type = JS('var', r'#.type', ex);
+    var name = JS('var', r'#.arguments ? #.arguments[0] : ""', ex, ex);
     if (type == 'property_not_function' ||
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      if (name is String && name.startsWith(@'call$')) {
+      if (name is String && name.startsWith(r'call$')) {
         return new ObjectNotClosureException();
       } else {
         return new NullPointerException();
       }
     } else if (type == 'undefined_method') {
-      if (name is String && name.startsWith(@'call$')) {
+      if (name is String && name.startsWith(r'call$')) {
         return new ObjectNotClosureException();
       } else {
         return new NoSuchMethodError('', name, []);
@@ -871,7 +871,7 @@ unwrapException(ex) {
     return new Exception(message is String ? message : '');
   }
 
-  if (JS('bool', @'# instanceof RangeError', ex)) {
+  if (JS('bool', r'# instanceof RangeError', ex)) {
     if (message is String && message.contains('call stack')) {
       return new StackOverflowException();
     }
@@ -884,7 +884,7 @@ unwrapException(ex) {
 
   // Check for the Firefox specific stack overflow signal.
   if (JS('bool',
-         @"typeof InternalError == 'function' && # instanceof InternalError",
+         r"typeof InternalError == 'function' && # instanceof InternalError",
          ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowException();
@@ -902,7 +902,7 @@ unwrapException(ex) {
  * exception.
  */
 StackTrace getTraceFromException(exception) {
-  return new StackTrace(JS("var", @"#.stack", exception));
+  return new StackTrace(JS("var", r"#.stack", exception));
 }
 
 class StackTrace {
@@ -950,10 +950,10 @@ invokeClosure(Function closure,
  */
 convertDartClosureToJS(closure, int arity) {
   if (closure === null) return null;
-  var function = JS('var', @'#.$identity', closure);
-  if (JS('bool', @'!!#', function)) return function;
+  var function = JS('var', r'#.$identity', closure);
+  if (JS('bool', r'!!#', function)) return function;
 
-  function = JS("var", @"""function() {
+  function = JS("var", r"""function() {
     return #(#, #, #, arguments[0], arguments[1]);
   }""",
   DART_CLOSURE_TO_JS(invokeClosure),
@@ -961,7 +961,7 @@ convertDartClosureToJS(closure, int arity) {
   JS_CURRENT_ISOLATE(),
   arity);
 
-  JS('void', @'#.$identity = #', closure, function);
+  JS('void', r'#.$identity = #', closure, function);
   return function;
 }
 
@@ -973,11 +973,11 @@ class Closure implements Function {
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
-  return JS('bool', @'#.hasOwnProperty(#)', jsObject, property);
+  return JS('bool', r'#.hasOwnProperty(#)', jsObject, property);
 }
 
 jsPropertyAccess(var jsObject, String property) {
-  return JS('var', @'#[#]', jsObject, property);
+  return JS('var', r'#[#]', jsObject, property);
 }
 
 /**
@@ -1006,12 +1006,12 @@ class Null {
 
 setRuntimeTypeInfo(target, typeInfo) {
   // We have to check for null because factories may return null.
-  if (target !== null) JS('var', @'#.builtin$typeInfo = #', target, typeInfo);
+  if (target !== null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
 }
 
 getRuntimeTypeInfo(target) {
   if (target === null) return null;
-  var res = JS('var', @'#.builtin$typeInfo', target);
+  var res = JS('var', r'#.builtin$typeInfo', target);
   // If the object does not have runtime type information, return an
   // empty literal, to avoid null checks.
   // TODO(ngeoffray): Make the object a top-level field to avoid
@@ -1347,16 +1347,16 @@ class TypeImpl implements Type {
 
 Type getOrCreateCachedRuntimeType(String key) {
   Type runtimeType =
-      JS('Type', @'#.runtimeTypeCache[#]', JS_CURRENT_ISOLATE(), key);
+      JS('Type', r'#.runtimeTypeCache[#]', JS_CURRENT_ISOLATE(), key);
   if (runtimeType == null) {
     runtimeType = new TypeImpl(key);
-    JS('void', @'#.runtimeTypeCache[#] = #', JS_CURRENT_ISOLATE(), key,
+    JS('void', r'#.runtimeTypeCache[#] = #', JS_CURRENT_ISOLATE(), key,
        runtimeType);
   }
   return runtimeType;
 }
 
 String getRuntimeTypeString(var object) {
-  var typeInfo = JS('Object', @'#.builtin$typeInfo', object);
-  return JS('String', @'#.runtimeType', typeInfo);
+  var typeInfo = JS('Object', r'#.builtin$typeInfo', object);
+  return JS('String', r'#.runtimeType', typeInfo);
 }

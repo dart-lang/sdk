@@ -144,8 +144,8 @@ void compile(List<String> argv) {
     new OptionHandler('--enable-diagnostic-colors', (_) => enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
-    new OptionHandler(@'--help|/\?|/h', (_) => wantHelp = true),
-    new OptionHandler(@'--package-root=.+|-p.+', setPackageRoot),
+    new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
+    new OptionHandler(r'--package-root=.+|-p.+', setPackageRoot),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');

@@ -221,11 +221,11 @@ class DartBackend extends Backend {
           for (final member in classElement.localMembers) {
             final name = member.name.slowToString();
             // Skip operator names.
-            if (name.startsWith(@'operator$')) continue;
+            if (name.startsWith(r'operator$')) continue;
             // Fetch name of named constructors and factories if any,
             // otherwise store regular name.
             // TODO(antonm): better way to analyze the name.
-            fixedMemberNames.add(name.split(@'$').last());
+            fixedMemberNames.add(name.split(r'$').last());
           }
         }
         // Even class names are added due to a delicate problem we have:

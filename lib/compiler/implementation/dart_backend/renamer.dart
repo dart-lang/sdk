@@ -258,9 +258,9 @@ String conservativeGenerator(
 /** Always tries to generate the most compact identifier. */
 class MinifyingGenerator {
   static const String firstCharAlphabet =
-      @'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   static const String otherCharsAlphabet =
-      @'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$';
+      r'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_$';
   int nextIdIndex;
 
   MinifyingGenerator() : nextIdIndex = 0;

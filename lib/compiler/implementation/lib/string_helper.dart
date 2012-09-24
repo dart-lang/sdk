@@ -72,8 +72,8 @@ stringReplaceJS(receiver, replacer, to) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
-  to = JS('String', @"#.replace('$', '$$$$')", to);
-  return JS('String', @'#.replace(#, #)', receiver, replacer, to);
+  to = JS('String', r"#.replace('$', '$$$$')", to);
+  return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
 
 stringReplaceAllUnchecked(receiver, from, to) {
@@ -93,9 +93,9 @@ stringReplaceAllUnchecked(receiver, from, to) {
       }
     } else {
       RegExp quoteRegExp =
-          const JSSyntaxRegExp(@'[-[\]{}()*+?.,\\^$|#\s]');
+          const JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
       var quoter = regExpMakeNative(quoteRegExp, global: true);
-      var quoted = JS('String', @'#.replace(#, "\\$&")', from, quoter);
+      var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
       RegExp replaceRegExp = new JSSyntaxRegExp(quoted);
       var replacer = regExpMakeNative(replaceRegExp, global: true);
       return stringReplaceJS(receiver, replacer, to);
@@ -125,15 +125,15 @@ stringReplaceFirstUnchecked(receiver, from, to) {
 
 stringSplitUnchecked(receiver, pattern) {
   if (pattern is String) {
-    return JS('List', @'#.split(#)', receiver, pattern);
+    return JS('List', r'#.split(#)', receiver, pattern);
   } else if (pattern is JSSyntaxRegExp) {
     var re = regExpGetNative(pattern);
-    return JS('List', @'#.split(#)', receiver, re);
+    return JS('List', r'#.split(#)', receiver, re);
   } else {
     throw "StringImplementation.split(Pattern) UNIMPLEMENTED";
   }
 }
 
 stringJoinUnchecked(array, separator) {
-  return JS('String', @'#.join(#)', array, separator);
+  return JS('String', r'#.join(#)', array, separator);
 }

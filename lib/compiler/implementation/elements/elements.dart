@@ -1598,7 +1598,7 @@ class Elements {
   }
 
   static const SourceString OPERATOR_EQUALS =
-      const SourceString(@'operator$eq');
+      const SourceString(r'operator$eq');
 
   static SourceString constructOperatorName(SourceString selector,
                                             bool isUnary) {

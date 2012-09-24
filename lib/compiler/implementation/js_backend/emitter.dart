@@ -1092,7 +1092,7 @@ $classesCollector.$mangledName = {'':
 
   void emitMakeConstantList(CodeBuffer buffer) {
     buffer.add(namer.ISOLATE);
-    buffer.add(@'''.makeConstantList = function(list) {
+    buffer.add(r'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
   return list;
@@ -1362,7 +1362,7 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
       mainBuffer.add('function ${namer.ISOLATE}() {}\n');
       mainBuffer.add('init();\n\n');
       // Shorten the code by using "$$" as temporary.
-      classesCollector = @"$$";
+      classesCollector = r"$$";
       mainBuffer.add('var $classesCollector = {};\n');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
