@@ -25,9 +25,7 @@ Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Statements/14_Throw_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/14_Throw_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/acos_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/asin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/atan2_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -40,9 +38,6 @@ LibTest/core/Math/random_A01_t01: Fail # TODO(analyzer-team): Please triage this
 LibTest/core/Math/sin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/sqrt_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/tan_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
-LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
-LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
-LibTest/isolate/SendPort/send_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
