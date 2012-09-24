@@ -97,6 +97,7 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TOD
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
@@ -121,7 +122,13 @@ Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe)
 Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/List/operator_subscript_A03_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 Language/11_Statements/04_If_A02_t02: Fail, OK # Issue co19 208
 Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail, OK # Issue co19 208
