@@ -662,15 +662,19 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
           DOMNAME=info.name)
 
-      self._members_emitter.Emit('\n'
-                                 '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=self._DartType(info.type_name),
-                                 NAME=html_name,
-                                 PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
+      if info.IsStatic():
+        # FIXME: provide a type.
+        self._members_emitter.Emit('\n'
+                                  '  static final $NAME = $IMPL_CLASS_NAME.$NAME;\n',
+                                  IMPL_CLASS_NAME=self._backend.ImplementationClassName(),
+                                  NAME=html_name)
+      else:
+        self._members_emitter.Emit('\n'
+                                  '  $TYPE $NAME($PARAMS);\n',
+                                  TYPE=self._DartType(info.type_name),
+                                  NAME=html_name,
+                                  PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
-
-  def AddStaticOperation(self, info):
-    self.AddOperation(info, True)
 
   def AddSecondaryOperation(self, interface, info):
     self._backend.SecondaryContext(interface)
@@ -1007,10 +1011,6 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       info: An OperationInfo object.
     """
     if self._HasCustomImplementation(info.name):
-      return
-
-    # FIXME: support static operations.
-    if info.IsStatic():
       return
 
     # Any conversions needed?
