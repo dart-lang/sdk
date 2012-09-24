@@ -435,26 +435,31 @@ class PlaceholderCollector extends AbstractVisitor {
     // We call [resolveReturnType] to allow having 'void'.    
     final type = compiler.resolveReturnType(currentElement, node);
     if (type is InterfaceType || type is TypedefType) {
-      var target = node.typeName;
+      Node target = node.typeName;
+      bool hasPrefix = false;
       if (node.typeName is Send) {
         final element = treeElements[node];
         if (element !== null) {
           final send = node.typeName.asSend();
           Identifier receiver = send.receiver;
           Identifier selector = send.selector;
-          hasPrefix() {
-            if (element is TypedefElement) return true;
-            ClassElement classElement = element;
-            final constructor = classElement.lookupConstructor(
-                receiver.source, selector.source);
-            return constructor === null;
-          }
-          if (!hasPrefix()) target = send.receiver;
+          getConstructor() =>
+              (element as ClassElement).lookupConstructor(
+                  receiver.source, selector.source);
+          hasPrefix = (element is TypedefElement) || getConstructor() === null;
+          if (!hasPrefix) target = receiver;
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?
       if (type.element !== compiler.types.dynamicType.element) {
-        makeTypePlaceholder(target, type);
+        // Corner case: dart:core type with a prefix.
+        // Most probably there are some additional problems with
+        // coreLibPrefix.Dynamic and coreLibPrefix.topLevels.
+        if (type.element.getLibrary() === coreLibrary && hasPrefix) {
+          makeNullPlaceholder(node.typeName.receiver);
+        } else {
+          makeTypePlaceholder(target, type);
+        }
       } else {
         if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
       }

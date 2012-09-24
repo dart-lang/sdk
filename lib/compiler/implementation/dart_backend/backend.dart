@@ -227,9 +227,12 @@ class DartBackend extends Backend {
             // TODO(antonm): better way to analyze the name.
             fixedMemberNames.add(name.split(@'$').last());
           }
-        } else {
-          fixedMemberNames.add(element.name.slowToString());
         }
+        // Even class names are added due to a delicate problem we have:
+        // if one imports dart:core with a prefix, we cannot tell prefix.name
+        // from dynamic invocation (alas!).  So we'd better err on preserving
+        // those names.
+        fixedMemberNames.add(element.name.slowToString());
       }
     }
     // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
