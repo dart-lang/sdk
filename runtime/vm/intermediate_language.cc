@@ -1468,9 +1468,11 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Add deoptimization descriptor for deoptimizing instructions
   // that may be inserted before this instruction.
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 GetDeoptId(),
-                                 0);  // No token position.
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   GetDeoptId(),
+                                   0);  // No token position.
+  }
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -1619,9 +1621,11 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 deopt_id(),
-                                 token_pos());
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id(),
+                                   token_pos());
+  }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  function_name(),
