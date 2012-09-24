@@ -40522,12 +40522,6 @@ abstract class Window implements EventTarget {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
-
-  void cancelAnimationFrame(int id);
-
   IDBFactory get indexedDB;
 
   /**
@@ -40806,10 +40800,10 @@ abstract class Window implements EventTarget {
   void stop();
 
   /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void webkitCancelAnimationFrame(int id);
+  void cancelAnimationFrame(int id);
 
   /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
-  void webkitCancelRequestAnimationFrame(int id);
+  void cancelRequestAnimationFrame(int id);
 
   /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
@@ -40821,7 +40815,7 @@ abstract class Window implements EventTarget {
   void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
@@ -41345,17 +41339,13 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   void stop() native "DOMWindow_stop_Callback";
 
-  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-  void webkitCancelRequestAnimationFrame(int id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
+  void cancelRequestAnimationFrame(int id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
 
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
   Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
   void webkitPostMessage(message, String targetOrigin, [List transferList]) native "DOMWindow_webkitPostMessage_Callback";
-
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 

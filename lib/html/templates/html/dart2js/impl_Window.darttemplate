@@ -91,10 +91,9 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   }
 
   int _requestAnimationFrame(RequestAnimationFrameCallback callback)
-      native 'requestAnimationFrame';
+      native 'webkitRequestAnimationFrame';
 
-  void _cancelAnimationFrame(int id)
-      native 'cancelAnimationFrame';
+  void _cancelAnimationFrame(int id) native 'webkitCancelAnimationFrame';
 
   _ensureRequestAnimationFrame() native '''
    if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
