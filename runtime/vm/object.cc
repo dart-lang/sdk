@@ -457,6 +457,7 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(library_prefix, LibraryPrefix);
+  SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);

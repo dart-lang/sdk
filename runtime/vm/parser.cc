@@ -8197,12 +8197,20 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
       if (first_lib_url.IsNull()) {
         first_lib_url = lib.url();
       } else {
-        ErrorMsg(ident_pos,
-                 "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
-                 String::Handle(prefix.name()).ToCString(),
-                 name.ToCString(),
-                 first_lib_url.ToCString(),
-                 String::Handle(lib.url()).ToCString());
+        // Found duplicate definition.
+        if (first_lib_url.raw() == lib.url()) {
+          ErrorMsg(ident_pos,
+                   "ambiguous reference: '%s.%s' is imported multiple times",
+                   String::Handle(prefix.name()).ToCString(),
+                   name.ToCString());
+        } else {
+          ErrorMsg(ident_pos,
+                   "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
+                   String::Handle(prefix.name()).ToCString(),
+                   name.ToCString(),
+                   first_lib_url.ToCString(),
+                   String::Handle(lib.url()).ToCString());
+        }
       }
     }
   }

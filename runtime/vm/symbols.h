@@ -78,6 +78,7 @@ class ObjectPointerVisitor;
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
+  V(Namespace, "Namespace")                                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
   V(PcDescriptors, "PcDescriptors")                                            \
