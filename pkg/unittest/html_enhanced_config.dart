@@ -48,6 +48,12 @@ class HtmlEnhancedConfiguration extends Configuration {
     }
   }
 
+  void processMessage(e) {
+    if ('unittest-suite-external-error' == e.data) {
+      handleExternalError('<unknown>', '(external error detected)');
+    }
+  }
+
   void onInit() {
     _installHandlers();
     //initialize and load CSS
