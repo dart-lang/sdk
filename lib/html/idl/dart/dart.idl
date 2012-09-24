@@ -16,7 +16,6 @@ module default {
   GamepadList implements sequence<Gamepad>;
   HTMLAllCollection implements sequence<Node>; // namedItem and tags
   HTMLCollection implements sequence<Node>; // namedItem
-  MediaList implements sequence<DOMString>;
   MediaStreamList implements sequence<MediaStream>;
   NamedNodeMap implements sequence<Node>;
   NodeList implements sequence<Node>;
@@ -65,6 +64,7 @@ module default {
   //DataTransferItemList implements sequence<DataTransferItem>; mutable
   //DOMTokenList implements sequence<DOMString>; mutable
   //DOMSettableTokenList implements sequence<DOMString>; mutable
+  //MediaList implements sequence<DOMString>;
   // Additional methods: has event listener and mutable
   //MediaStreamTrackList implements sequence<MediaStreamTrack>;
   //WebKitAnimationList implements sequence<WebKitAnimation>;

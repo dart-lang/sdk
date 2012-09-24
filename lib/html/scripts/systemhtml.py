@@ -218,8 +218,6 @@ _html_event_names = {
   'writestart': 'writeStart'
 }
 
-
-
 # Information for generating element constructors.
 #
 # TODO(sra): maybe remove all the argument complexity and use cascades.
@@ -479,7 +477,9 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._backend = system._backend.ImplementationGenerator(self._interface)
 
   def StartInterface(self):
-    if not self._interface.id in _merged_html_interfaces:
+    if (not self._interface.id in _merged_html_interfaces and
+        # Don't re-generate types that have been converted to native Dart types. 
+        self._html_interface_name not in nativified_classes.values()):
       path = '%s.dart' % self._html_interface_name
       self._interface_emitter = self._system._CreateEmitter(path)
     else:
@@ -563,7 +563,10 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
     if self._backend.HasImplementation():
       if not self._interface.id in _merged_html_interfaces:
-        filename = '%sImpl.dart' % self._html_interface_name
+        name = self._html_interface_name
+        if self._html_interface_name in nativified_classes:
+          name = nativified_classes[self._html_interface_name]
+        filename = '%sImpl.dart' % name
       else:
         filename = '%sImpl_Merged.dart' % self._html_interface_name
       self._implementation_emitter = self._system._CreateEmitter(filename)
@@ -783,7 +786,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     return True
 
   def _ImplClassName(self, type_name):
-    return '_%sImpl' % type_name
+    name = type_name
+    if type_name in nativified_classes:
+      name = nativified_classes[type_name]
+    return '_%sImpl' % name
 
   def StartInterface(self):
     interface = self._interface
