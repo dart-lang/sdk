@@ -682,10 +682,10 @@ class StandardTestSuite implements TestSuite {
       var extraCommand = optionsFromFile['extraCommand'];
       if (extraCommand != null) {
         var args = optionsFromFile['extraCommandArgs'];
-        // As a special case, a command of "dart" should run with the same
-        // dart executable that we are using.
+        // As a special case, a command of "dart" should run with the
+        // dart VM that we are testing.
         if (extraCommand == 'dart') {
-          extraCommand = new Options().executable;
+          extraCommand = TestUtils.vmFileName(configuration),
         }
         args= args.map((arg)=>arg.replaceAll(@"$dartDir", dartDir.toString()));
         commands.add(new Command(extraCommand, args));
