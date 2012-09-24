@@ -31,6 +31,16 @@ int Utils::CountOneBits(uint32_t x) {
 }
 
 
+int Utils::HighestBit(int64_t v) {
+  uint64_t t = static_cast<uint64_t>((v > 0) ? v : -v);
+  int count = 0;
+  while ((t >>= 1) != 0) {
+    count++;
+  }
+  return count;
+}
+
+
 uint32_t Utils::StringHash(const char* data, int length) {
   // This implementation is based on the public domain MurmurHash
   // version 2.0. It assumes that the underlying CPU can read from
@@ -87,5 +97,6 @@ uint32_t Utils::WordHash(word key) {
   a = (a ^ 0xb55a4f09) ^ (a >> 16);
   return static_cast<uint32_t>(a);
 }
+
 
 }  // namespace dart

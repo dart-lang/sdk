@@ -24,6 +24,8 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
+DEFINE_FLAG(bool, trace_constant_propagation, false,
+            "Print constant propagation and useless code elimination.");
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -2476,6 +2478,35 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 
 
 // --------------------------------------------------------------------------
+// Analysis of non-definition instructions.  They do not have values so they
+// cannot have constant values.
+void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) { }
+
+
+void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) { }
+
+
+void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckStackOverflow(
+    CheckStackOverflowInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckEitherNonSmi(
+    CheckEitherNonSmiInstr* instr) { }
+
+
+void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) { }
+
+
+// --------------------------------------------------------------------------
 // Analysis of definitions.  Compute the constant value.  If it has changed
 // and the definition has input uses, add the definition to the definition
 // worklist so that the used can be processed.
@@ -2539,11 +2570,6 @@ void ConstantPropagator::VisitCurrentContext(CurrentContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitStoreContext(StoreContextInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitClosureCall(ClosureCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -2566,11 +2592,13 @@ void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadLocal(LoadLocalInstr* instr) {
+  // Instruction is eliminated when translating to SSA.
   UNREACHABLE();
 }
 
 
 void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
+  // Instruction is eliminated when translating to SSA.
   UNREACHABLE();
 }
 
@@ -2719,18 +2747,8 @@ void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitChainContext(ChainContextInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitCatchEntry(CatchEntryInstr* instr) {
-  // Nothing to do. Not a value.
 }
 
 
@@ -2741,15 +2759,31 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsSmi() && right.IsSmi()) {
+      const Smi& left_smi = Smi::Cast(left);
+      const Smi& right_smi = Smi::Cast(right);
       switch (instr->op_kind()) {
         case Token::kADD:
         case Token::kSUB:
         case Token::kMUL:
         case Token::kTRUNCDIV:
         case Token::kMOD: {
-          const Object& result =
-              Integer::ZoneHandle(Smi::Cast(left).BinaryOp(instr->op_kind(),
-                                                           Smi::Cast(right)));
+          const Object& result = Integer::ZoneHandle(
+              left_smi.ArithmeticOp(instr->op_kind(), right_smi));
+          SetValue(instr, result);
+          break;
+        }
+        case Token::kSHL:
+        case Token::kSHR: {
+          const Object& result = Integer::ZoneHandle(
+              left_smi.ShiftOp(instr->op_kind(), right_smi));
+          SetValue(instr, result);
+          break;
+        }
+        case Token::kBIT_AND:
+        case Token::kBIT_OR:
+        case Token::kBIT_XOR: {
+          const Object& result = Integer::ZoneHandle(
+              left_smi.BitOp(instr->op_kind(), right_smi));
           SetValue(instr, result);
           break;
         }
@@ -2788,12 +2822,6 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckStackOverflow(
-    CheckStackOverflowInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -2811,16 +2839,6 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
-void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {
-  // Nothing to do. Has no value.
-}
-
-
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());
 }
@@ -2829,11 +2847,6 @@ void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
 void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
   // Should not be used outside of range analysis.
   UNREACHABLE();
-}
-
-
-void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
-  // Nothing to do. Not a value.
 }
 
 
@@ -2883,11 +2896,6 @@ void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
-  // Nothing to do. Not a value.
-}
-
-
 void ConstantPropagator::Analyze() {
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
@@ -2914,6 +2922,12 @@ void ConstantPropagator::Analyze() {
 
 
 void ConstantPropagator::Transform() {
+  if (FLAG_trace_constant_propagation) {
+    OS::Print("\n==== Before constant propagation ====\n");
+    FlowGraphPrinter printer(*graph_);
+    printer.PrintBlocks();
+  }
+
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
@@ -2923,6 +2937,9 @@ void ConstantPropagator::Transform() {
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
     if (!reachable_->Contains(block->preorder_number())) {
+      if (FLAG_trace_constant_propagation) {
+        OS::Print("Unreachable B%"Pd"\n", block->block_id());
+      }
       continue;
     }
 
@@ -2960,17 +2977,26 @@ void ConstantPropagator::Transform() {
 
     for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
       Definition* defn = i.Current()->AsDefinition();
-      if (defn != NULL && IsConstant(defn->constant_value())) {
-        if (!defn->IsConstant() &&
-            !defn->IsPushArgument() &&
-            !defn->IsStoreLocal() &&
-            !defn->IsStoreIndexed() &&
-            !defn->IsStoreInstanceField() &&
-            !defn->IsStoreStaticField() &&
-            !defn->IsStoreVMField()) {
-          // TODO(kmillikin): propagate constants to replace instructions
-          // without side effects.
+      // Replace constant-valued instructions without observable side
+      // effects.  Do this for smis only to avoid having to copy other
+      // objects into the heap's old generation.
+      //
+      // TODO(kmillikin): Extend this to handle booleans, other number
+      // types, etc.
+      if ((defn != NULL) &&
+          defn->constant_value().IsSmi() &&
+          !defn->IsConstant() &&
+          !defn->IsPushArgument() &&
+          !defn->IsStoreIndexed() &&
+          !defn->IsStoreInstanceField() &&
+          !defn->IsStoreStaticField() &&
+          !defn->IsStoreVMField()) {
+        if (FLAG_trace_constant_propagation) {
+          OS::Print("Constant v%"Pd" = %s\n",
+                    defn->ssa_temp_index(),
+                    defn->constant_value().ToCString());
         }
+        i.ReplaceCurrentWith(new ConstantInstr(defn->constant_value()));
       }
     }
 
@@ -3004,10 +3030,6 @@ void ConstantPropagator::Transform() {
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
         GotoInstr* jump = new GotoInstr(join);
-        // Removing the branch from the graph will leave the iterator in a
-        // state where current is detached from the graph.  Since current
-        // has no successors and neither does its replacement, that's
-        // safe.
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);
         previous->set_next(jump);
@@ -3022,6 +3044,12 @@ void ConstantPropagator::Transform() {
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
   graph_->ComputeUseLists();
+
+  if (FLAG_trace_constant_propagation) {
+    OS::Print("\n==== After constant propagation ====\n");
+    FlowGraphPrinter printer(*graph_);
+    printer.PrintBlocks();
+  }
 }
 
 

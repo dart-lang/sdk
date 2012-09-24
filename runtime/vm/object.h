@@ -3273,7 +3273,8 @@ class Integer : public Number {
   // Return an integer in the form of a RawBigint.
   RawBigint* AsBigint() const;
 
-  RawInteger* BinaryOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
@@ -3328,6 +3329,8 @@ class Smi : public Integer {
   static bool IsValid64(int64_t value) {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
+
+  RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
 
  private:
   static intptr_t ValueFromRaw(uword raw_value) {
@@ -3416,7 +3419,7 @@ class Bigint : public Integer {
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
-  RawBigint* BinaryOp(Token::Kind operation, const Bigint& other) const;
+  RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 
  private:
   Chunk GetChunkAt(intptr_t i) const {

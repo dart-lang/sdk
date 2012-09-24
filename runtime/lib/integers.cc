@@ -17,66 +17,6 @@ DEFINE_FLAG(bool, trace_intrinsified_natives, false,
 
 // Smi natives.
 
-static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
-  return !op1.IsBigint() && !op2.IsBigint();
-}
-
-
-static RawInteger* IntegerBitOperation(Token::Kind kind,
-                                       const Integer& op1_int,
-                                       const Integer& op2_int) {
-  if (op1_int.IsSmi() && op2_int.IsSmi()) {
-    Smi& op1 = Smi::Handle();
-    Smi& op2 = Smi::Handle();
-    op1 ^= op1_int.raw();
-    op2 ^= op2_int.raw();
-    intptr_t result = 0;
-    switch (kind) {
-      case Token::kBIT_AND:
-        result = op1.Value() & op2.Value();
-        break;
-      case Token::kBIT_OR:
-        result = op1.Value() | op2.Value();
-        break;
-      case Token::kBIT_XOR:
-        result = op1.Value() ^ op2.Value();
-        break;
-      default:
-        UNIMPLEMENTED();
-    }
-    ASSERT(Smi::IsValid(result));
-    return Smi::New(result);
-  } else if (Are64bitOperands(op1_int, op2_int)) {
-    int64_t a = op1_int.AsInt64Value();
-    int64_t b = op2_int.AsInt64Value();
-    switch (kind) {
-      case Token::kBIT_AND:
-        return Integer::New(a & b);
-      case Token::kBIT_OR:
-        return Integer::New(a | b);
-      case Token::kBIT_XOR:
-        return Integer::New(a ^ b);
-      default:
-        UNIMPLEMENTED();
-    }
-  } else {
-    Bigint& op1 = Bigint::Handle(op1_int.AsBigint());
-    Bigint& op2 = Bigint::Handle(op2_int.AsBigint());
-    switch (kind) {
-      case Token::kBIT_AND:
-        return BigintOperations::BitAnd(op1, op2);
-      case Token::kBIT_OR:
-        return BigintOperations::BitOr(op1, op2);
-      case Token::kBIT_XOR:
-        return BigintOperations::BitXor(op1, op2);
-      default:
-        UNIMPLEMENTED();
-    }
-  }
-  return Integer::null();
-}
-
-
 // Returns false if integer is in wrong representation, e.g., as is a Bigint
 // when it could have been a Smi.
 static bool CheckInteger(const Integer& i) {
@@ -104,8 +44,8 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
     OS::Print("Integer_bitAndFromInteger %s & %s\n",
         right.ToCString(), left.ToCString());
   }
-  Integer& result = Integer::Handle(
-      IntegerBitOperation(Token::kBIT_AND, left, right));
+  Integer& result =
+      Integer::Handle(left.BitOp(Token::kBIT_AND, right));
   return result.AsInteger();
 }
 
@@ -119,8 +59,8 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
     OS::Print("Integer_bitOrFromInteger %s | %s\n",
         left.ToCString(), right.ToCString());
   }
-  Integer& result = Integer::Handle(
-      IntegerBitOperation(Token::kBIT_OR, left, right));
+  Integer& result =
+      Integer::Handle(left.BitOp(Token::kBIT_OR, right));
   return result.AsInteger();
 }
 
@@ -134,8 +74,8 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
     OS::Print("Integer_bitXorFromInteger %s ^ %s\n",
         left.ToCString(), right.ToCString());
   }
-  Integer& result = Integer::Handle(
-      IntegerBitOperation(Token::kBIT_XOR, left, right));
+  Integer& result =
+      Integer::Handle(left.BitOp(Token::kBIT_XOR, right));
   return result.AsInteger();
 }
 
@@ -149,7 +89,7 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
     OS::Print("Integer_addFromInteger %s + %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.BinaryOp(Token::kADD, right_int);
+  return left_int.ArithmeticOp(Token::kADD, right_int);
 }
 
 
@@ -162,7 +102,7 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
     OS::Print("Integer_subFromInteger %s - %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.BinaryOp(Token::kSUB, right_int);
+  return left_int.ArithmeticOp(Token::kSUB, right_int);
 }
 
 
@@ -175,7 +115,7 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
     OS::Print("Integer_mulFromInteger %s * %s\n",
         left_int.ToCString(), right_int.ToCString());
   }
-  return left_int.BinaryOp(Token::kMUL, right_int);
+  return left_int.ArithmeticOp(Token::kMUL, right_int);
 }
 
 
@@ -185,7 +125,7 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(CheckInteger(right_int));
   ASSERT(CheckInteger(left_int));
   ASSERT(!right_int.IsZero());
-  return left_int.BinaryOp(Token::kTRUNCDIV, right_int);
+  return left_int.ArithmeticOp(Token::kTRUNCDIV, right_int);
 }
 
 
@@ -202,7 +142,7 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
     // Should have been caught before calling into runtime.
     UNIMPLEMENTED();
   }
-  return left_int.BinaryOp(Token::kMOD, right_int);
+  return left_int.ArithmeticOp(Token::kMOD, right_int);
 }
 
 
@@ -232,58 +172,6 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
 }
 
 
-static int HighestBit(int64_t v) {
-  uint64_t t = static_cast<uint64_t>((v > 0) ? v : -v);
-  int count = 0;
-  while ((t >>= 1) != 0) {
-    count++;
-  }
-  return count;
-}
-
-
-// TODO(srdjan): Clarify handling of negative right operand in a shift op.
-static RawInteger* SmiShiftOperation(Token::Kind kind,
-                                     const Smi& left,
-                                     const Smi& right) {
-  intptr_t result = 0;
-  const intptr_t left_value = left.Value();
-  const intptr_t right_value = right.Value();
-  ASSERT(right_value >= 0);
-  switch (kind) {
-    case Token::kSHL: {
-      if ((left_value == 0) || (right_value == 0)) {
-        return left.raw();
-      }
-      { // Check for overflow.
-        int cnt = HighestBit(left_value);
-        if ((cnt + right_value) >= Smi::kBits) {
-          if ((cnt + right_value) >= Mint::kBits) {
-            return BigintOperations::ShiftLeft(
-                Bigint::Handle(left.AsBigint()), right_value);
-          } else {
-            int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value);
-          }
-        }
-      }
-      result = left_value << right_value;
-      break;
-    }
-    case Token::kSHR: {
-      const intptr_t shift_amount =
-          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
-      result = left_value >> shift_amount;
-      break;
-    }
-    default:
-      UNIMPLEMENTED();
-  }
-  ASSERT(Smi::IsValid(result));
-  return Smi::New(result);
-}
-
-
 static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
                                         const Smi& amount) {
@@ -295,12 +183,12 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   if (value.IsSmi()) {
     Smi& smi_value = Smi::Handle();
     smi_value ^= value.raw();
-    return SmiShiftOperation(kind, smi_value, amount);
+    return smi_value.ShiftOp(kind, amount);
   }
   Bigint& big_value = Bigint::Handle();
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();
-    const int count = HighestBit(mint_value);
+    const int count = Utils::HighestBit(mint_value);
     if ((count + amount.Value()) < Mint::kBits) {
       switch (kind) {
         case Token::kSHL:

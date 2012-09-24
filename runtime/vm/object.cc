@@ -8808,8 +8808,8 @@ RawInteger* Integer::AsInteger() const {
 }
 
 
-RawInteger* Integer::BinaryOp(Token::Kind operation,
-                              const Integer& other) const {
+RawInteger* Integer::ArithmeticOp(Token::Kind operation,
+                                  const Integer& other) const {
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
@@ -8902,8 +8902,106 @@ RawInteger* Integer::BinaryOp(Token::Kind operation,
   const Bigint& left_big = Bigint::Handle(AsBigint());
   const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
-      Bigint::Handle(left_big.BinaryOp(operation, right_big));
+      Bigint::Handle(left_big.ArithmeticOp(operation, right_big));
   return Integer::Handle(result.AsInteger()).raw();
+}
+
+
+static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
+  return !op1.IsBigint() && !op2.IsBigint();
+}
+
+
+RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
+  if (IsSmi() && other.IsSmi()) {
+    Smi& op1 = Smi::Handle();
+    Smi& op2 = Smi::Handle();
+    op1 ^= raw();
+    op2 ^= other.raw();
+    intptr_t result = 0;
+    switch (kind) {
+      case Token::kBIT_AND:
+        result = op1.Value() & op2.Value();
+        break;
+      case Token::kBIT_OR:
+        result = op1.Value() | op2.Value();
+        break;
+      case Token::kBIT_XOR:
+        result = op1.Value() ^ op2.Value();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    ASSERT(Smi::IsValid(result));
+    return Smi::New(result);
+  } else if (Are64bitOperands(*this, other)) {
+    int64_t a = AsInt64Value();
+    int64_t b = other.AsInt64Value();
+    switch (kind) {
+      case Token::kBIT_AND:
+        return Integer::New(a & b);
+      case Token::kBIT_OR:
+        return Integer::New(a | b);
+      case Token::kBIT_XOR:
+        return Integer::New(a ^ b);
+      default:
+        UNIMPLEMENTED();
+    }
+  } else {
+    Bigint& op1 = Bigint::Handle(AsBigint());
+    Bigint& op2 = Bigint::Handle(other.AsBigint());
+    switch (kind) {
+      case Token::kBIT_AND:
+        return BigintOperations::BitAnd(op1, op2);
+      case Token::kBIT_OR:
+        return BigintOperations::BitOr(op1, op2);
+      case Token::kBIT_XOR:
+        return BigintOperations::BitXor(op1, op2);
+      default:
+        UNIMPLEMENTED();
+    }
+  }
+  return Integer::null();
+}
+
+
+// TODO(srdjan): Clarify handling of negative right operand in a shift op.
+RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
+  intptr_t result = 0;
+  const intptr_t left_value = Value();
+  const intptr_t right_value = other.Value();
+  ASSERT(right_value >= 0);
+  switch (kind) {
+    case Token::kSHL: {
+      if ((left_value == 0) || (right_value == 0)) {
+        return raw();
+      }
+      { // Check for overflow.
+        int cnt = Utils::HighestBit(left_value);
+        if ((cnt + right_value) >= Smi::kBits) {
+          if ((cnt + right_value) >= Mint::kBits) {
+            return BigintOperations::ShiftLeft(
+                Bigint::Handle(AsBigint()), right_value);
+          } else {
+            int64_t left_64 = left_value;
+            return Integer::New(left_64 << right_value);
+          }
+        }
+      }
+      result = left_value << right_value;
+      break;
+    }
+    case Token::kSHR: {
+      const intptr_t shift_amount =
+          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
+      result = left_value >> shift_amount;
+      break;
+    }
+    default:
+      UNIMPLEMENTED();
+  }
+  ASSERT(Smi::IsValid(result));
+  return Smi::New(result);
 }
 
 
@@ -9229,7 +9327,8 @@ RawBigint* Integer::AsBigint() const {
 }
 
 
-RawBigint* Bigint::BinaryOp(Token::Kind operation, const Bigint& other) const {
+RawBigint* Bigint::ArithmeticOp(Token::Kind operation,
+                                const Bigint& other) const {
   switch (operation) {
     case Token::kADD:
       return BigintOperations::Add(*this, other);
