@@ -4271,7 +4271,18 @@ void Parser::ParseLibraryImportExport() {
 
 
 void Parser::ParseLibraryPart() {
-  ErrorMsg("library part definitions not implemented");
+  const intptr_t source_pos = TokenPos();
+  ConsumeToken();  // Consume "part".
+  if (CurrentToken() != Token::kSTRING) {
+    ErrorMsg("url expected");
+  }
+  const String& url = *CurrentLiteral();
+  ConsumeToken();
+  ExpectSemicolon();
+  Dart_Handle handle =
+      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url);
+  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
 }
 
 

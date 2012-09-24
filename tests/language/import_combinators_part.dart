@@ -2,14 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program importing with show/hide combinators.
+// This file is part of the test import_combinators_test.dart
 
-import "import1_lib.dart" show hide, show hide ugly;
-
-part "import_combinators_part.dart";
-
-main() {
-  print(hide);
-  print(show);
-  print(lookBehindCurtain());
+lookBehindCurtain() {
+  return show;  // show is an imported identifier.
 }
