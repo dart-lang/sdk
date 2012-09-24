@@ -78,6 +78,7 @@ void compile(List<String> argv) {
   bool explicitOut = false;
   bool wantHelp = false;
   bool enableColors = false;
+  String outputLanguage = 'JavaScript';
 
   passThrough(String argument) => options.add(argument);
 
@@ -93,6 +94,17 @@ void compile(List<String> argv) {
     explicitOut = true;
     out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
     sourceMapOut = new Uri.fromString('$out.map');
+  }
+
+  setOutputType(String argument) {
+    if (argument == '--output-type=dart') {
+      outputLanguage = 'Dart';
+      if (!explicitOut) {
+        out = cwd.resolve('out.dart');
+        sourceMapOut = cwd.resolve('out.dart.map');
+      }
+    }
+    passThrough(argument);
   }
 
   handleShortOptions(String argument) {
@@ -120,7 +132,7 @@ void compile(List<String> argv) {
     new OptionHandler('-[chv?]+', handleShortOptions),
     new OptionHandler('--throw-on-error', (_) => throwOnError = true),
     new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
-    new OptionHandler('--output-type=dart|--output-type=js', passThrough),
+    new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
     new OptionHandler('--verbose', (_) => verbose = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
@@ -254,13 +266,13 @@ void compile(List<String> argv) {
       sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
   code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
-  int jsBytesWritten = code.length;
-  info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
-       'in ${relativize(cwd, out, isWindows)}');
+  int bytesWritten = code.length;
+  info('compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
+       '$outputLanguage in ${relativize(cwd, out, isWindows)}');
   if (!explicitOut) {
     String input = uriPathToNative(arguments[0]);
     String output = relativize(cwd, out, isWindows);
-    print('Dart file $input compiled to JavaScript: $output');
+    print('Dart file $input compiled to $outputLanguage: $output');
   }
 }
 
