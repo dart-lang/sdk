@@ -1096,42 +1096,44 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues) {
-    assert(invariant(constructor, constructor.isImplementation));
-    constructors.addLast(constructor);
+    compiler.withCurrentElement(constructor, () {
+      assert(invariant(constructor, constructor.isImplementation));
+      constructors.addLast(constructor);
 
-    List<HInstruction> compiledArguments = new List<HInstruction>();
-    bool succeeded = addStaticSendArgumentsToList(selector,
-                                                  arguments,
-                                                  constructor,
-                                                  compiledArguments);
-    if (!succeeded) {
-      // Non-matching super and redirects are compile-time errors and thus
-      // checked by the resolver.
-      compiler.internalError(
-          "Parameters and arguments didn't match for super/redirect call",
-          element: constructor);
-    }
-
-    buildFieldInitializers(constructor.enclosingElement, fieldValues);
-
-    int index = 0;
-    FunctionSignature params = constructor.computeSignature(compiler);
-    params.forEachParameter((Element parameter) {
-      HInstruction argument = compiledArguments[index++];
-      localsHandler.updateLocal(parameter, argument);
-      // Don't forget to update the field, if the parameter is of the
-      // form [:this.x:].
-      if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-        FieldParameterElement fieldParameterElement = parameter;
-        fieldValues[fieldParameterElement.fieldElement] = argument;
+      List<HInstruction> compiledArguments = new List<HInstruction>();
+      bool succeeded = addStaticSendArgumentsToList(selector,
+                                                    arguments,
+                                                    constructor,
+                                                    compiledArguments);
+      if (!succeeded) {
+        // Non-matching super and redirects are compile-time errors and thus
+        // checked by the resolver.
+        compiler.internalError(
+            "Parameters and arguments didn't match for super/redirect call",
+            element: constructor);
       }
-    });
 
-    // Build the initializers in the context of the new constructor.
-    TreeElements oldElements = elements;
-    elements = compiler.resolver.resolveMethodElement(constructor);
-    buildInitializers(constructor, constructors, fieldValues);
-    elements = oldElements;
+      buildFieldInitializers(constructor.enclosingElement, fieldValues);
+
+      int index = 0;
+      FunctionSignature params = constructor.computeSignature(compiler);
+      params.forEachParameter((Element parameter) {
+        HInstruction argument = compiledArguments[index++];
+        localsHandler.updateLocal(parameter, argument);
+        // Don't forget to update the field, if the parameter is of the
+        // form [:this.x:].
+        if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+          FieldParameterElement fieldParameterElement = parameter;
+          fieldValues[fieldParameterElement.fieldElement] = argument;
+        }
+      });
+
+      // Build the initializers in the context of the new constructor.
+      TreeElements oldElements = elements;
+      elements = compiler.resolver.resolveMethodElement(constructor);
+      buildInitializers(constructor, constructors, fieldValues);
+      elements = oldElements;
+    });
   }
 
   /**
