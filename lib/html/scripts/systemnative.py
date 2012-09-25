@@ -11,10 +11,6 @@ import os
 import systembase
 from generator import *
 
-_dart_custom_members = set([
-    'Window.webkitCancelAnimationFrame',
-    'Window.webkitRequestAnimationFrame',
-    ])
 
 class NativeImplementationSystem(systembase.System):
 
@@ -546,18 +542,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def _HasCustomImplementation(self, member_name):
-    member_name = '%s.%s' % (self._html_interface_name, member_name)
-    return member_name in _dart_custom_members
-
   def AddOperation(self, info, html_name):
     """
     Arguments:
       info: An OperationInfo object.
     """
-
-    if self._HasCustomImplementation(info.name):
-      return
 
     operation = info.operations[0]
 
