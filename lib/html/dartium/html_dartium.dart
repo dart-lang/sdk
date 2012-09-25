@@ -10499,6 +10499,12 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
+
+  /** @domName DOMURL.createObjectURL */
+  static final createObjectURL = _DOMURLImpl.createObjectURL;
+
+  /** @domName DOMURL.revokeObjectURL */
+  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17879,6 +17885,18 @@ abstract class IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
+
+  /** @domName IDBKeyRange.bound_ */
+  static final bound_ = _IDBKeyRangeImpl.bound_;
+
+  /** @domName IDBKeyRange.lowerBound_ */
+  static final lowerBound_ = _IDBKeyRangeImpl.lowerBound_;
+
+  /** @domName IDBKeyRange.only_ */
+  static final only_ = _IDBKeyRangeImpl.only_;
+
+  /** @domName IDBKeyRange.upperBound_ */
+  static final upperBound_ = _IDBKeyRangeImpl.upperBound_;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17896,7 +17914,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound(lower, upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(lower, upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -17912,7 +17930,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound(bound, [open]) {
+  static IDBKeyRange lowerBound_(bound, [open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -17923,9 +17941,9 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
-  static IDBKeyRange only(value) native "IDBKeyRange_only_Callback";
+  static IDBKeyRange only_(value) native "IDBKeyRange_only__Callback";
 
-  static IDBKeyRange upperBound(bound, [open]) {
+  static IDBKeyRange upperBound_(bound, [open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -23469,6 +23487,9 @@ abstract class Notification implements EventTarget {
 
   /** @domName Notification.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Notification.requestPermission */
+  static final requestPermission = _NotificationImpl.requestPermission;
 
   /** @domName Notification.show */
   void show();
@@ -43329,20 +43350,20 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only(value);
+      _IDBKeyRangeImpl.only_(value);
 
   static IDBKeyRange createIDBKeyRange_lowerBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound(bound, open);
+      _IDBKeyRangeImpl.lowerBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_upperBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound(bound, open);
+      _IDBKeyRangeImpl.upperBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_bound(
       /*IDBKey*/ lower, /*IDBKey*/ upper,
       [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeImpl.bound(lower, upper, lowerOpen, upperOpen);
+      _IDBKeyRangeImpl.bound_(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {

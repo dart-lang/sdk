@@ -662,15 +662,19 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
           DOMNAME=info.name)
 
-      self._members_emitter.Emit('\n'
-                                 '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=self._DartType(info.type_name),
-                                 NAME=html_name,
-                                 PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
+      if info.IsStatic():
+        # FIXME: provide a type.
+        self._members_emitter.Emit('\n'
+                                  '  static final $NAME = $IMPL_CLASS_NAME.$NAME;\n',
+                                  IMPL_CLASS_NAME=self._backend.ImplementationClassName(),
+                                  NAME=html_name)
+      else:
+        self._members_emitter.Emit('\n'
+                                  '  $TYPE $NAME($PARAMS);\n',
+                                  TYPE=self._DartType(info.type_name),
+                                  NAME=html_name,
+                                  PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
-
-  def AddStaticOperation(self, info):
-    self.AddOperation(info, True)
 
   def AddSecondaryOperation(self, interface, info):
     self._backend.SecondaryContext(interface)
@@ -1009,10 +1013,6 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     if self._HasCustomImplementation(info.name):
       return
 
-    # FIXME: support static operations.
-    if info.IsStatic():
-      return
-
     # Any conversions needed?
     if any(self._OperationRequiresConversions(op) for op in info.overloads):
       self._AddOperationWithConversions(info, html_name)
@@ -1025,6 +1025,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       return_type = self._NarrowOutputType(info.type_name)
 
       operation_emitter = self._members_emitter.Emit('$!SCOPE',
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
@@ -1034,11 +1035,12 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       operation_emitter.Emit(
           '\n'
           #'  // @native("$NAME")\n;'
-          '  $TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
+          '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE $NAME($PARAMS) native;\n',
+          '  $MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=self._NarrowOutputType(info.type_name),
           NAME=info.name,
           PARAMS=info.ParametersImplementationDeclaration(
@@ -1066,9 +1068,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $(HTML_NAME)($PARAMS) {\n'
+        '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) {\n'
         '$!BODY'
         '  }\n',
+        MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=return_type,
         HTML_NAME=html_name,
         PARAMS=info.ParametersImplementationDeclaration(InputType))

@@ -13,20 +13,20 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only(value);
+      _IDBKeyRangeImpl.only_(value);
 
   static IDBKeyRange createIDBKeyRange_lowerBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound(bound, open);
+      _IDBKeyRangeImpl.lowerBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_upperBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound(bound, open);
+      _IDBKeyRangeImpl.upperBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_bound(
       /*IDBKey*/ lower, /*IDBKey*/ upper,
       [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeImpl.bound(lower, upper, lowerOpen, upperOpen);
+      _IDBKeyRangeImpl.bound_(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {
