@@ -1560,19 +1560,36 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  __ CompareRegisters(left, right);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = left.constant().raw() == right.constant().raw();
+    __ LoadObject(locs()->out().reg(), result ? compiler->bool_true() :
+                                                compiler->bool_false());
+    return;
+  }
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ CompareRegisters(left.reg(), right.reg());
+  }
 
   Register result = locs()->out().reg();
   Label load_true, done;
@@ -1586,12 +1603,25 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                       BranchInstr* branch) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
+                                        BranchInstr* branch) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  __ CompareRegisters(left, right);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = left.constant().raw() == right.constant().raw();
+    branch->EmitBranchOnValue(compiler, result);
+    return;
+  }
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ CompareRegisters(left.reg(), right.reg());
+  }
+
   branch->EmitBranchOnCondition(compiler, true_condition);
 }
 
