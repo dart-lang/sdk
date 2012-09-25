@@ -52,7 +52,6 @@ unknownelement_test: Fail # Issue 4189
 history_test: Fail
 
 [ $runtime == ie ]
-contentelement_test: Fail   # ie does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
@@ -118,7 +117,6 @@ css_test: Fail               # No analog to WebKitCSSMatrix
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
-contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
 element_test: Fail
