@@ -23,6 +23,9 @@ main() {
     Expect.equals(2, test5(3));
 
     Expect.equals(1, test6());
+
+    Expect.isFalse(test7());
+    Expect.equals(2, test8());
   }
 }
 
@@ -74,4 +77,17 @@ test6() {
 
 get5() {
   return 5;
+}
+
+test7() {
+  return null !== null;
+}
+
+
+test8() {
+  if (null !== null) {
+    return 1;
+  } else {
+    return 2;
+  }
 }

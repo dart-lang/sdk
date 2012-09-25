@@ -1573,12 +1573,13 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
 
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   if (left.IsConstant() && right.IsConstant()) {
     // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = left.constant().raw() == right.constant().raw();
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
     __ LoadObject(locs()->out().reg(), result ? compiler->bool_true() :
                                                 compiler->bool_false());
     return;
@@ -1593,6 +1594,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register result = locs()->out().reg();
   Label load_true, done;
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ j(true_condition, &load_true, Assembler::kNearJump);
   __ LoadObject(result, compiler->bool_false());
   __ jmp(&done, Assembler::kNearJump);
@@ -1605,12 +1607,13 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   Location left = locs()->in(0);
   Location right = locs()->in(1);
   if (left.IsConstant() && right.IsConstant()) {
     // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = left.constant().raw() == right.constant().raw();
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
     branch->EmitBranchOnValue(compiler, result);
     return;
   }
@@ -1622,6 +1625,7 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     __ CompareRegisters(left.reg(), right.reg());
   }
 
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   branch->EmitBranchOnCondition(compiler, true_condition);
 }
 
