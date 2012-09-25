@@ -93,7 +93,7 @@ LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failu
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
-LibTest/core/Completer/completeException_A02_t01: co19 Fail # issue 224
+LibTest/core/Completer/completeException_A02_t01: Fail # co19 issue 224
 LibTest/core/int/operator_left_shift_A01_t03: Fail # co19 issue 224
 LibTest/core/int/operator_right_shift_A01_t03: Fail # co19 issue 224
 LibTest/core/List/insertRange_A05_t01: Fail # co19 issue 224
