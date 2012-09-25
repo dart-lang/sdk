@@ -14,7 +14,7 @@ class IsolateSpawnException implements Exception {
  * the first communication between isolates (see [spawnFunction] and
  * [spawnUri]).
  */
-external ReceivePort get port();
+external ReceivePort get port;
 
 /**
  * Creates and spawns an isolate that shares the same code as the current
