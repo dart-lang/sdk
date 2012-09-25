@@ -62,11 +62,8 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
 
   /**
    * Sorts the list according to the order specified by the [Comparator].
-   *
-   * The default [compare] function assumes that the elements are [Comparable]
-   * and compares them through their [:compareTo:] method.
    */
-  void sort(Comparator<E> compare = Comparable.compare);
+  void sort(Comparator<E> compare);
 
   /**
    * Returns the first index of [element] in the list.
