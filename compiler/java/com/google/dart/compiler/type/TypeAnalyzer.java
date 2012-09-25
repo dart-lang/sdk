@@ -3133,6 +3133,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             overridden.addAll(superMembers.removeAll(name));
           } else {
             overridden.addAll(superMembers.removeAll(name));
+            overridden.addAll(superMembers.removeAll("setter " + name));
           }
           // check override
           for (Element superElement : overridden) {
