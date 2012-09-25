@@ -4162,6 +4162,9 @@ void Function::set_is_abstract(bool value) const {
   set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
 }
 
+void Function::set_is_inlinable(bool value) const {
+  set_kind_tag(InlinableBit::update(value, raw_ptr()->kind_tag_));
+}
 
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();
@@ -4681,6 +4684,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);
+  result.set_is_inlinable(true);
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);

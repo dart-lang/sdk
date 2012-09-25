@@ -1557,6 +1557,11 @@ class Function : public Object {
   bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
 
+  bool is_inlinable() const {
+    return InlinableBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_inlinable(bool value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1684,6 +1689,7 @@ class Function : public Object {
     kStaticBit = 1,
     kConstBit,
     kOptimizableBit,
+    kInlinableBit,
     kHasFinallyBit,
     kNativeBit,
     kAbstractBit,
@@ -1694,6 +1700,7 @@ class Function : public Object {
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
   class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
