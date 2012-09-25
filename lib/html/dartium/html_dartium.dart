@@ -51,7 +51,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].add((event) {
-      _callPortLastResult = JSON.parse(event.data);
+      _callPortLastResult = JSON.parse(_getPortSyncEventData(event));
     }, false);
     _callPortInitialized = true;
   }
@@ -43569,7 +43569,7 @@ class _RemoteSendPortSync implements SendPortSync {
     var source = '$target-result';
     var result = null;
     var listener = (Event e) {
-      result = JSON.parse(e.detail);
+      result = JSON.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -43641,7 +43641,7 @@ class ReceivePortSync {
     _callback = callback;
     if (_listener === null) {
       _listener = (Event e) {
-        var data = JSON.parse(e.detail);
+        var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -43676,6 +43676,8 @@ void _dispatchEvent(String receiver, var message) {
   event.initCustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
+
+String _getPortSyncEventData(CustomEvent event) => event.detail;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
