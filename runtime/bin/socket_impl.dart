@@ -208,7 +208,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
       assert(_isErrorResponse(error));
       switch (error[0]) {
         case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
-          doReportError(new IllegalArgumentException());
+          doReportError(new ArgumentError());
           break;
         case _FileUtils.OSERROR_RESPONSE:
           doReportError(new SocketIOException(

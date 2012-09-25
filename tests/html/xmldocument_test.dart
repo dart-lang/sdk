@@ -25,7 +25,7 @@ main() {
     //
     // test('with a parse error', () {
     //   Expect.throws(() => new XMLDocument.xml("<xml></xml>foo"),
-    //       (e) => e is IllegalArgumentException);
+    //       (e) => e is ArgumentError);
     // });
 
     test('with a PARSERERROR tag', () {

@@ -211,8 +211,24 @@ Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage 
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 
+LibTest/core/Completer/completeException_A02_t01: Fail # co19 issue 224
+LibTest/core/int/operator_left_shift_A01_t03: Fail # co19 issue 224
+LibTest/core/int/operator_right_shift_A01_t03: Fail # co19 issue 224
+LibTest/core/List/List_A03_t01: Fail # co19 issue 224
+LibTest/core/List/insertRange_A05_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscript_A04_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # co19 issue 224
+LibTest/core/List/removeRange_A04_t01: Fail # co19 issue 224
+LibTest/core/List/setRange_A04_t01: Fail # co19 issue 224
+LibTest/core/String/charCodeAt_A03_t01: Fail # co19 issue 224
+LibTest/core/String/concat_A02_t01: Fail # co19 issue 224
+LibTest/core/Strings/concatAll_A04_t01: Fail # co19 issue 224
+LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
+LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
+LibTest/core/List/getRange_A03_t01: Fail # co19 issue 224
 
 [ $runtime == vm && $checked ]
+
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -228,6 +244,9 @@ Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(vm-team): Please triag
 Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+
+LibTest/core/List/List_A04_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscript_A03_t01: Fail # co19 issue 224
 
 
 [ $runtime == vm ]

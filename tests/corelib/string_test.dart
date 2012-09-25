@@ -40,7 +40,7 @@ class StringTest {
     try {
       var c = a[2.2];  // Throw exception.
       Expect.equals(true, false);
-    } on IllegalArgumentException catch (e) {
+    } on ArgumentError catch (e) {
       exception_caught = true;
     } on TypeError catch (e) {  // Thrown in checked mode only.
       exception_caught = true;

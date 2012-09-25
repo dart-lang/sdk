@@ -41,5 +41,5 @@ void expectIOORE(Function f) {
 }
 
 void expectIAE(Function f) {
-  Expect.throws(f, (e) => e is IllegalArgumentException);
+  Expect.throws(f, (e) => e is ArgumentError);
 }

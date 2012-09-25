@@ -31,7 +31,7 @@ class ObjectArray<E> implements List<E> {
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
+      throw new ArgumentError("negative length $length");
     }
       if (from is ObjectArray) {
       _copyFromObjectArray(from, startFrom, start, length);

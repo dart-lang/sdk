@@ -36,7 +36,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [start] is negative, or if
    * `start + length` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [length] is negative.
+   * Throws [ArgumentError] if [length] is negative.
    */
   ByteArray subByteArray([int start, int length]);
 
@@ -63,7 +63,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * greater than or equal to the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is less than -128 or
+   * Throws [ArgumentError] if [value] is less than -128 or
    * greater than 127.
    */
   int setInt8(int byteOffset, int value);
@@ -91,7 +91,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative,
    * or greater than or equal to the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is negative or
+   * Throws [ArgumentError] if [value] is negative or
    * greater than 255.
    */
   int setUint8(int byteOffset, int value);
@@ -120,7 +120,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is less than 2<sup>15</sup>
+   * Throws [ArgumentError] if [value] is less than 2<sup>15</sup>
    * or greater than 2<sup>15 - 1.
    */
   int setInt16(int byteOffset, int value);
@@ -148,7 +148,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is negative or
+   * Throws [ArgumentError] if [value] is negative or
    * greater than 2<sup>16 - 1.
    */
   int setUint16(int byteOffset, int value);
@@ -177,7 +177,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is less than 2<sup>31</sup>
+   * Throws [ArgumentError] if [value] is less than 2<sup>31</sup>
    * or greater than 2<sup>31 - 1.
    */
   int setInt32(int byteOffset, int value);
@@ -203,7 +203,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is negative or
+   * Throws [ArgumentError] if [value] is negative or
    * greater than 2<sup>32 - 1.
    */
   int setUint32(int byteOffset, int value);
@@ -232,7 +232,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is less than 2<sup>63</sup>
+   * Throws [ArgumentError] if [value] is less than 2<sup>63</sup>
    * or greater than 2<sup>63 - 1.
    */
   int setInt64(int byteOffset, int value);
@@ -260,7 +260,7 @@ abstract class ByteArray {
    * Throws [IndexOutOfRangeException] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this byte array.
    *
-   * Throws [IllegalArgumentException] if [value] is negative or
+   * Throws [ArgumentError] if [value] is negative or
    * greater than 2<sup>64 - 1.
    */
   int setUint64(int byteOffset, int value);
@@ -416,13 +416,13 @@ class Int16List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 2 (the size of an "int16" in bytes), or if the
    * [start] of the region is not divisible by 2. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 2. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "int16s," or if it
    * is not "int16-aligned."
    */
@@ -450,13 +450,13 @@ class Uint16List implements List<int>, ByteArrayViewable {
    * array). If the length is not specified, it defaults to null, which
    * indicates that the view extends to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 2 (the size of a "uint16" in bytes), or if the
    * [start] of the region is not divisible by 2. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 2. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "uint16s," or if it
    * is not "uint16-aligned."
    */
@@ -484,13 +484,13 @@ class Int32List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 4 (the size of an "int32" in bytes), or if the
    * [start] of the region is not divisible by 4. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 4. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "int32s," or if it
    * is not "int32-aligned."
    */
@@ -518,13 +518,13 @@ class Uint32List implements List<int>, ByteArrayViewable {
    * array). If the length is not specified, it defaults to null, which
    * indicates that the view extends to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 4 (the size of a "uint32" in bytes), or if the
    * [start] of the region is not divisible by 4. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 4. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "uint32s," or if it
    * is not "uint32-aligned."
    */
@@ -552,13 +552,13 @@ class Int64List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 8 (the size of an "int64" in bytes), or if the
    * [start] of the region is not divisible by 8. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 8. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "int64s," or if it
    * is not "int64-aligned."
    */
@@ -586,13 +586,13 @@ class Uint64List implements List<int>, ByteArrayViewable {
    * array). If the length is not specified, it defaults to null, which
    * indicates that the view extends to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 8 (the size of a "uint64" in bytes), or if the
    * [start] of the region is not divisible by 8. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 8. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "uint64s," or if it
    * is not "uint64-aligned."
    */
@@ -621,13 +621,13 @@ class Float32List implements List<double>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 4 (the size of a "float32" in bytes), or if the
    * [start] of the region is not divisible by 4. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 4. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "float32s," or if it
    * is not "float32-aligned."
    */
@@ -656,13 +656,13 @@ class Float64List implements List<double>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    *
-   * Throws [IllegalArgumentException] if the length of the specified region
+   * Throws [ArgumentError] if the length of the specified region
    * is not divisible by 8 (the size of a "float64" in bytes), or if the
    * [start] of the region is not divisible by 8. If, however, [array]
    * is a view of another byte array, this constructor will throw
-   * [IllegalArgumentException] if the implicit starting position in the
+   * [ArgumentError] if the implicit starting position in the
    * "ultimately backing" byte array is not divisible by 8. In plain terms,
-   * this constructor throws [IllegalArgumentException] if the specified
+   * this constructor throws [ArgumentError] if the specified
    * region does not contain an integral number of "float64s," or if it
    * is not "float64-aligned."
    */

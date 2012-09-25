@@ -21,7 +21,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
     GrowableArray<const Object*> args;
     args.Add(&dart_seconds);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   const char* name = OS::GetTimeZoneName(seconds);
   return String::New(name);
@@ -34,7 +34,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
   if (seconds < 0 || seconds > kMaxAllowedSeconds) {
     GrowableArray<const Object*> args;
     args.Add(&dart_seconds);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   int offset = OS::GetTimeZoneOffsetInSeconds(seconds);
   return Integer::New(offset);

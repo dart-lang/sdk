@@ -8,29 +8,29 @@
 
 void main() {
   Expect.throws(() => Process.start(["true"], []),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.start("true", "asdf"),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.start("true", ["asdf", 1]),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.run(["true"], [], null),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.run("true", "asdf", null),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.run("true", ["asdf", 1], null),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   var options = new ProcessOptions();
   options.workingDirectory = 23;
   Expect.throws(() => Process.start("true", [], options),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   Expect.throws(() => Process.run("true", [], options),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   options = new ProcessOptions();
   options.stdoutEncoding = 23;
   Expect.throws(() => Process.run("true", [], options),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
   options = new ProcessOptions();
   options.stderrEncoding = 23;
   Expect.throws(() => Process.run("true", [], options),
-                (e) => e is IllegalArgumentException);
+                (e) => e is ArgumentError);
 }

@@ -10,11 +10,11 @@
 String relativize(Uri base, Uri uri, bool isWindows) {
   if (!base.path.startsWith('/')) {
     // Also throw an exception if [base] or base.path is null.
-    throw new IllegalArgumentException('Expected absolute path: ${base.path}');
+    throw new ArgumentError('Expected absolute path: ${base.path}');
   }
   if (!uri.path.startsWith('/')) {
     // Also throw an exception if [uri] or uri.path is null.
-    throw new IllegalArgumentException('Expected absolute path: ${uri.path}');
+    throw new ArgumentError('Expected absolute path: ${uri.path}');
   }
   bool equalsNCS(String a, String b) {
     return a.toLowerCase() == b.toLowerCase();

@@ -97,7 +97,7 @@ indexSet(var a, var index, var value) {
  * Returns true if both arguments are numbers.
  *
  * If only the first argument is a number, an
- * [IllegalArgumentException] with the other argument is thrown.
+ * [ArgumentError] with the other argument is thrown.
  */
 bool checkNumbers(var a, var b) {
   if (a is num) {
@@ -105,7 +105,7 @@ bool checkNumbers(var a, var b) {
       return true;
     } else {
       checkNull(b);
-      throw new IllegalArgumentException(b);
+      throw new ArgumentError(b);
     }
   }
   return false;
@@ -224,7 +224,7 @@ le$slow(var a, var b) {
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new IllegalArgumentException(b);
+    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
     if (JS('bool', r'# > 31', b)) return 0;
@@ -236,7 +236,7 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new IllegalArgumentException(b);
+    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
     if (JS('num', '#', a) > 0) {
       // JavaScript only looks at the last 5 bits of the shift-amount. In JS
       // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
@@ -295,8 +295,8 @@ neg(var a) {
 index$slow(var a, var index) {
   if (a is String || isJsArray(a)) {
     if (index is !int) {
-      if (index is !num) throw new IllegalArgumentException(index);
-      if (index.truncate() !== index) throw new IllegalArgumentException(index);
+      if (index is !num) throw new ArgumentError(index);
+      if (index.truncate() !== index) throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
@@ -309,7 +309,7 @@ index$slow(var a, var index) {
 void indexSet$slow(var a, var index, var value) {
   if (isJsArray(a)) {
     if (index is !int) {
-      throw new IllegalArgumentException(index);
+      throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
@@ -335,7 +335,7 @@ checkGrowable(list, reason) {
 
 String S(value) {
   var res = value.toString();
-  if (res is !String) throw new IllegalArgumentException(value);
+  if (res is !String) throw new ArgumentError(value);
   return res;
 }
 
@@ -452,7 +452,7 @@ class Primitives {
   static List newList(length) {
     if (length === null) return JS('Object', r'new Array()');
     if ((length is !int) || (length < 0)) {
-      throw new IllegalArgumentException(length);
+      throw new ArgumentError(length);
     }
     var result = JS('Object', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
@@ -463,7 +463,7 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw new IllegalArgumentException(i);
+      if (i is !int) throw new ArgumentError(i);
     }
     return JS('String', r'String.fromCharCode.apply(#, #)', null, charCodes);
   }
@@ -504,7 +504,7 @@ class Primitives {
     if (value.isNaN() ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
@@ -581,16 +581,16 @@ class Primitives {
 
   static valueFromDateString(str) {
     checkNull(str);
-    if (str is !String) throw new IllegalArgumentException(str);
+    if (str is !String) throw new ArgumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN()) throw new IllegalArgumentException(str);
+    if (value.isNaN()) throw new ArgumentError(str);
     return value;
   }
 
   static getProperty(object, key) {
     checkNull(object);
     if (object is bool || object is num || object is String) {
-      throw new IllegalArgumentException(object);
+      throw new ArgumentError(object);
     }
     return JS('var', '#[#]', object, key);
   }
@@ -598,7 +598,7 @@ class Primitives {
   static void setProperty(object, key, value) {
     checkNull(object);
     if (object is bool || object is num || object is String) {
-      throw new IllegalArgumentException(object);
+      throw new ArgumentError(object);
     }
     JS('void', '#[#] = #', object, key, value);
   }
@@ -610,7 +610,7 @@ class Primitives {
  * indexed access.
  */
 iae(argument) {
-  throw new IllegalArgumentException(argument);
+  throw new ArgumentError(argument);
 }
 
 /**
@@ -628,9 +628,9 @@ listInsertRange(receiver, start, length, initialValue) {
   }
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (length is !int) throw new IllegalArgumentException(length);
-  if (length < 0) throw new IllegalArgumentException(length);
-  if (start is !int) throw new IllegalArgumentException(start);
+  if (length is !int) throw new ArgumentError(length);
+  if (length < 0) throw new ArgumentError(length);
+  if (start is !int) throw new ArgumentError(start);
 
   var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start > receiverLength) {
@@ -662,7 +662,7 @@ checkNull(object) {
 checkNum(value) {
   if (value is !num) {
     checkNull(value);
-    throw new IllegalArgumentException(value);
+    throw new ArgumentError(value);
   }
   return value;
 }
@@ -670,7 +670,7 @@ checkNum(value) {
 checkInt(value) {
   if (value is !int) {
     checkNull(value);
-    throw new IllegalArgumentException(value);
+    throw new ArgumentError(value);
   }
   return value;
 }
@@ -678,7 +678,7 @@ checkInt(value) {
 checkBool(value) {
   if (value is !bool) {
     checkNull(value);
-    throw new IllegalArgumentException(value);
+    throw new ArgumentError(value);
   }
   return value;
 }
@@ -686,7 +686,7 @@ checkBool(value) {
 checkString(value) {
   if (value is !String) {
     checkNull(value);
-    throw new IllegalArgumentException(value);
+    throw new ArgumentError(value);
   }
   return value;
 }
@@ -879,7 +879,7 @@ unwrapException(ex) {
     // In general, a RangeError is thrown when trying to pass a number
     // as an argument to a function that does not allow a range that
     // includes that number.
-    return new IllegalArgumentException();
+    return new ArgumentError();
   }
 
   // Check for the Firefox specific stack overflow signal.

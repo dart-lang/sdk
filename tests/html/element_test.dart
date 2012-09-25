@@ -85,7 +85,7 @@ main() {
   group('constructors', () {
     test('error', () {
       Expect.throws(() => new Element.html('<br/><br/>'),
-          (e) => e is IllegalArgumentException);
+          (e) => e is ArgumentError);
     });
 
     test('.html has no parent', () =>

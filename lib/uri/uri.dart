@@ -181,17 +181,17 @@ class Uri {
 
   /**
    * For http/https schemes returns URI's [origin][] - scheme://domain:port.
-   * For all other schemes throws IllegalArgumentException.
+   * For all other schemes throws ArgumentError.
    * [origin]: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
    */
   String get origin {
     if (scheme == "") {
       // TODO(aprelev@gmail.com): Use StateException instead
-      throw new IllegalArgumentException("Cannot use origin without a scheme");
+      throw new ArgumentError("Cannot use origin without a scheme");
     }
     if (scheme != "http" && scheme != "https") {
       // TODO(aprelev@gmail.com): Use StateException instead
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
         "origin is applicable to http/https schemes only. Not \'$scheme\'");
     }
     StringBuffer sb = new StringBuffer();
@@ -199,7 +199,7 @@ class Uri {
     sb.add(":");
     if (domain == null || domain == "") {
       // TODO(aprelev@gmail.com): Use StateException instead
-      throw new IllegalArgumentException("Cannot use origin without a domain");
+      throw new ArgumentError("Cannot use origin without a domain");
     }
 
     sb.add("//");

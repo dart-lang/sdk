@@ -121,7 +121,7 @@ class Intl {
         return each;
       }
     }
-    throw new IllegalArgumentException("Invalid locale '$newLocale'");
+    throw new ArgumentError("Invalid locale '$newLocale'");
   }
 
   /** Return the short version of a locale name, e.g. 'en_US' => 'en' */

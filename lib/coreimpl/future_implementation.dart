@@ -159,7 +159,7 @@ class FutureImpl<T> implements Future<T> {
   void _setException(Object exception, Object stackTrace) {
     if (exception === null) {
       // null is not a legal value for the exception of a Future.
-      throw new IllegalArgumentException(null);
+      throw new ArgumentError(null);
     }
     if (_isComplete) {
       throw new FutureAlreadyCompleteException();

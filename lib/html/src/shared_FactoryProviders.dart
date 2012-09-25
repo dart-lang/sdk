@@ -91,7 +91,7 @@ class _SVGElementFactoryProvider {
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }

@@ -95,14 +95,14 @@ void main() {
         "but:  exception <Exception> does not match FormatException.");
     });
 
-    test('throwsIllegalArgumentException', () {
-      shouldPass(() { throw new IllegalArgumentException(''); },
-          throwsIllegalArgumentException);
+    test('throwsArgumentError', () {
+      shouldPass(() { throw new ArgumentError(''); },
+          throwsArgumentError);
       shouldFail(() { throw new Exception(); },
-          throwsIllegalArgumentException,
-        "Expected: throws an exception which matches IllegalArgumentException "
+          throwsArgumentError,
+        "Expected: throws an exception which matches ArgumentError "
         "but:  exception <Exception> does not match "
-            "IllegalArgumentException.");
+            "ArgumentError.");
     });
 
     test('throwsIllegalJSRegExpException', () {

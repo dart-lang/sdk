@@ -427,5 +427,5 @@ Matcher doesNotAllow(List<Version> versions) =>
     new VersionConstraintMatcher(versions, false);
 
 throwsIllegalArg(function) {
-  expect(function, throwsA((e) => e is IllegalArgumentException));
+  expect(function, throwsA((e) => e is ArgumentError));
 }

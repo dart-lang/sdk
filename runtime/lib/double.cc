@@ -188,7 +188,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
     GrowableArray<const Object*> args;
     args.Add(&String::ZoneHandle(String::New(
         "Illegal arguments to double.toStringAsFixed")));
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }
@@ -206,7 +206,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
     GrowableArray<const Object*> args;
     args.Add(&String::ZoneHandle(String::New(
         "Illegal arguments to double.toStringAsExponential")));
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }
@@ -223,7 +223,7 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
     GrowableArray<const Object*> args;
     args.Add(&String::ZoneHandle(String::New(
         "Illegal arguments to double.toStringAsPrecision")));
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
     return Object::null();
   }
 }

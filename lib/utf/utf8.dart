@@ -24,7 +24,7 @@ const int _UTF8_SUBSEQUENT_BYTE_BASE = 0x80;
 /**
  * Decodes the UTF-8 bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. Set the replacementCharacter to null to
- * throw an IllegalArgumentException rather than replace the bad value.
+ * throw an ArgumentError rather than replace the bad value.
  */
 IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes, [int offset = 0,
     int length,
@@ -36,7 +36,7 @@ IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes, [int offset = 0,
  * Produce a String from a List of UTF-8 encoded bytes. The parameters
  * can set an offset into a list of bytes (as int), limit the length of the
  * values to be decoded, and override the default Unicode replacement character.
- * Set the replacementCharacter to null to throw an IllegalArgumentException
+ * Set the replacementCharacter to null to throw an ArgumentError
  * rather than replace the bad value.
  */
 String decodeUtf8(List<int> bytes, [int offset = 0, int length,
@@ -146,7 +146,7 @@ class IterableUtf8Decoder implements Iterable<int> {
  * parameters can set an offset into a list of bytes (as int), limit the length
  * of the values to be decoded, and override the default Unicode replacement
  * character. Set the replacementCharacter to null to throw an
- * IllegalArgumentException rather than replace the bad value. The return value
+ * ArgumentError rather than replace the bad value. The return value
  * from this method can be used as an Iterable (e.g. in a for-loop).
  */
 class Utf8Decoder implements Iterator<int> {
@@ -193,7 +193,7 @@ class Utf8Decoder implements Iterator<int> {
       if (replacementCodepoint != null) {
         return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
       }
     } else if (value <= _UTF8_ONE_BYTE_MAX) {
@@ -202,7 +202,7 @@ class Utf8Decoder implements Iterator<int> {
       if (replacementCodepoint != null) {
         return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
       }
     } else if (value < _UTF8_FIRST_BYTE_OF_THREE_BASE) {
@@ -223,7 +223,7 @@ class Utf8Decoder implements Iterator<int> {
     } else if (replacementCodepoint != null) {
       return replacementCodepoint;
     } else {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
     }
     int j = 0;
@@ -254,7 +254,7 @@ class Utf8Decoder implements Iterator<int> {
     } else if (replacementCodepoint != null) {
       return replacementCodepoint;
     } else {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Invalid UTF8 at ${utf8EncodedBytesIterator.position - j}");
     }
   }

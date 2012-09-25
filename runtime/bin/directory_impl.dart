@@ -42,7 +42,7 @@ class _Directory implements Directory {
 
   bool existsSync() {
     if (_path is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _exists(_path);
     if (result is OSError) {
@@ -66,7 +66,7 @@ class _Directory implements Directory {
 
   void createSync() {
     if (_path is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _create(_path);
     if (result is OSError) {
@@ -90,7 +90,7 @@ class _Directory implements Directory {
 
   Directory createTempSync() {
     if (_path is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _createTemp(path);
     if (result is OSError) {
@@ -122,7 +122,7 @@ class _Directory implements Directory {
 
   void deleteSync() {
     if (_path is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _delete(_path, false);
     if (result is OSError) {
@@ -136,7 +136,7 @@ class _Directory implements Directory {
 
   void deleteRecursivelySync() {
     if (_path is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _delete(_path, true);
     if (result is OSError) {
@@ -160,7 +160,7 @@ class _Directory implements Directory {
 
   Directory renameSync(String newPath) {
     if (_path is !String || newPath is !String) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     var result = _rename(_path, newPath);
     if (result is OSError) {
@@ -183,7 +183,7 @@ class _Directory implements Directory {
     assert(_isErrorResponse(response));
     switch (response[_FileUtils.ERROR_RESPONSE_ERROR_TYPE]) {
       case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
-        return new IllegalArgumentException();
+        return new ArgumentError();
       case _FileUtils.OSERROR_RESPONSE:
         var err = new OSError(response[_FileUtils.OSERROR_RESPONSE_MESSAGE],
                               response[_FileUtils.OSERROR_RESPONSE_ERROR_CODE]);
@@ -240,7 +240,7 @@ class _DirectoryLister implements DirectoryLister {
           var errorType =
               message[RESPONSE_ERROR][_FileUtils.ERROR_RESPONSE_ERROR_TYPE];
           if (errorType == _FileUtils.ILLEGAL_ARGUMENT_RESPONSE) {
-            _reportError(new IllegalArgumentException());
+            _reportError(new ArgumentError());
           } else if (errorType == _FileUtils.OSERROR_RESPONSE) {
             var responseError = message[RESPONSE_ERROR];
             var err = new OSError(

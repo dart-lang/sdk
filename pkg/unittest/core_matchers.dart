@@ -423,16 +423,16 @@ class _Exception extends _ExceptionMatcher {
   bool matches(item, MatchState matchState) => item is Exception;
 }
 
-/** A matcher for IllegalArgumentExceptions. */
-const isIllegalArgumentException = const _IllegalArgumentException();
+/** A matcher for ArgumentErrors. */
+const isArgumentError = const _ArgumentError();
 
-/** A matcher for functions that throw IllegalArgumentException */
-const Matcher throwsIllegalArgumentException =
-    const _Throws(isIllegalArgumentException);
+/** A matcher for functions that throw ArgumentError */
+const Matcher throwsArgumentError =
+    const _Throws(isArgumentError);
 
-class _IllegalArgumentException extends _ExceptionMatcher {
-  const _IllegalArgumentException() : super("IllegalArgumentException");
-  bool matches(item, MatchState matchState) => item is IllegalArgumentException;
+class _ArgumentError extends _ExceptionMatcher {
+  const _ArgumentError() : super("ArgumentError");
+  bool matches(item, MatchState matchState) => item is ArgumentError;
 }
 
 /** A matcher for IllegalJSRegExpExceptions. */

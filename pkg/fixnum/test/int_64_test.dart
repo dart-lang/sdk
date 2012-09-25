@@ -515,20 +515,20 @@ void testShift() {
 
   try {
     new int64.fromInt(17) >> -1;
-    Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } on IllegalArgumentException catch (e) {
+    Expect.fail("x >> -1 should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   try {
     new int64.fromInt(17) << -1;
-    Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } on IllegalArgumentException catch (e) {
+    Expect.fail("x >> -1 should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
   try {
     new int64.fromInt(17).shiftRightUnsigned(-1);
-    Expect.fail("x >> -1 should throw IllegalArgumentException");
-  } on IllegalArgumentException catch (e) {
+    Expect.fail("x >> -1 should throw ArgumentError");
+  } on ArgumentError catch (e) {
   }
 
 }

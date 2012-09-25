@@ -43,11 +43,11 @@ class Version implements Comparable, Hashable, VersionConstraint {
   /** Creates a new [Version] object. */
   Version(this.major, this.minor, this.patch, [String pre, this.build])
     : preRelease = pre {
-    if (major < 0) throw new IllegalArgumentException(
+    if (major < 0) throw new ArgumentError(
         'Major version must be non-negative.');
-    if (minor < 0) throw new IllegalArgumentException(
+    if (minor < 0) throw new ArgumentError(
         'Minor version must be non-negative.');
-    if (patch < 0) throw new IllegalArgumentException(
+    if (patch < 0) throw new ArgumentError(
         'Patch version must be non-negative.');
   }
 
@@ -98,7 +98,7 @@ class Version implements Comparable, Hashable, VersionConstraint {
     // Intersecting two versions only works if they are the same.
     if (other is Version) return this == other ? this : const _EmptyVersion();
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'Unknown VersionConstraint type $other.');
   }
 
@@ -260,7 +260,7 @@ class VersionRange implements VersionConstraint {
   VersionRange([this.min, this.max,
       this.includeMin = false, this.includeMax = false]) {
     if (min != null && max != null && min > max) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           'Minimum version ("$min") must be less than maximum ("$max").');
     }
   }
@@ -343,7 +343,7 @@ class VersionRange implements VersionConstraint {
           intersectIncludeMin, intersectIncludeMax);
     }
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'Unknown VersionConstraint type $other.');
   }
 

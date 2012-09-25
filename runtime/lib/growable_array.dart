@@ -9,7 +9,7 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T removeAt(int index) {
-    if (index is! int) throw new IllegalArgumentException(index);
+    if (index is! int) throw new ArgumentError(index);
     T result = this[index];
     int newLength = this.length - 1;
     Arrays.copy(this,
@@ -23,7 +23,7 @@ class GrowableObjectArray<T> implements List<T> {
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
     if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
+      throw new ArgumentError("negative length $length");
     }
     Arrays.copy(from, startFrom, this, start, length);
   }
@@ -46,7 +46,7 @@ class GrowableObjectArray<T> implements List<T> {
       return;
     }
     if ((length < 0) || (length is! int)) {
-      throw new IllegalArgumentException("invalid length specified $length");
+      throw new ArgumentError("invalid length specified $length");
     }
     if (start < 0 || start > this.length) {
       throw new IndexOutOfRangeException(start);

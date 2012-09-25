@@ -6,7 +6,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   _IDBTransactionImpl transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
-      throw new IllegalArgumentException(mode);
+      throw new ArgumentError(mode);
     }
 
     // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or

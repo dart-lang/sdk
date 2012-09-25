@@ -85,9 +85,9 @@ num min(num a, num b) {
       }
       return a;
     }
-    throw new IllegalArgumentException(b);
+    throw new ArgumentError(b);
   }
-  throw new IllegalArgumentException(a);
+  throw new ArgumentError(a);
 }
 
 /**
@@ -124,9 +124,9 @@ num max(num a, num b) {
       if (b == 0 && a.isNegative()) return b;
       return a;
     }
-    throw new IllegalArgumentException(b);
+    throw new ArgumentError(b);
   }
-  throw new IllegalArgumentException(a);
+  throw new ArgumentError(a);
 }
 
 /**

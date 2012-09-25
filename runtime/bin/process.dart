@@ -5,7 +5,7 @@
 /** Exit the Dart VM process with the given [status] code. */
 void exit(int status) {
   if (status is !int) {
-    throw new IllegalArgumentException("int status expected");
+    throw new ArgumentError("int status expected");
   }
   _exit(status);
 }

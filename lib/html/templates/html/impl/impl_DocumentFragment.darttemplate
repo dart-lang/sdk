@@ -38,7 +38,7 @@ class FilteredElementList implements ElementList {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const IllegalArgumentException("Invalid list length");
+      throw const ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -190,7 +190,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
         this.nodes.add(node);
         return node;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 

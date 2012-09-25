@@ -101,7 +101,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * This reduces the length of the list by one and moves all later elements
    * down by one position.
    * Returns the removed element.
-   * Throws an [IllegalArgumentException] if [index] is not an [int].
+   * Throws an [ArgumentError] if [index] is not an [int].
    * Throws an [IndexOutOfRangeException] if the [index] does not point inside
    * the list.
    * Throws an [UnsupportedOperationException], and doesn't remove the element,
@@ -126,7 +126,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * Returns a new list containing [length] elements from the list,
    * starting at  [start].
    * Returns an empty list if [length] is 0.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length - 1:] are out of range.
    */
@@ -136,7 +136,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * Copies [length] elements of [from], starting
    * at [startFrom], into the list, starting at [start].
    * If [length] is 0, this method does not do anything.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length - 1:] are out of range for [:this:], or if
    * [startFrom] or [:startFrom + length - 1:] are out of range for [from].
@@ -148,7 +148,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * Throws an [UnsupportedOperationException] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length: - 1] are out of range.
    */
@@ -162,7 +162,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * If [length] is 0, this method does not do anything.
    * If [start] is the length of the list, this method inserts the
    * range at the end of the list.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] is negative or if
    * [start] is greater than the length of the list.
    */

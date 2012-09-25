@@ -44,7 +44,7 @@ List zip(Iterable left, Iterable right, mapper(left, right)) {
     result.add(mapper(x.next(), y.next()));
   }
   if (x.hasNext() || y.hasNext()) {
-    throw new IllegalArgumentException();
+    throw new ArgumentError();
   }
   return result;
 }

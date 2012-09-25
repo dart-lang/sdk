@@ -21,19 +21,19 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
                  List<String> arguments,
                  ProcessOptions options) {
     if (path is !String) {
-      throw new IllegalArgumentException("Path is not a String: $path");
+      throw new ArgumentError("Path is not a String: $path");
     }
     _path = path;
 
     if (arguments is !List) {
-      throw new IllegalArgumentException("Arguments is not a List: $arguments");
+      throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
     _arguments = new ObjectArray<String>(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
-        throw new IllegalArgumentException("Non-string argument: $arg");
+        throw new ArgumentError("Non-string argument: $arg");
       }
       _arguments[i] = arguments[i];
       if (Platform.operatingSystem == 'windows') {
@@ -44,7 +44,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
     if (options !== null && options.workingDirectory !== null) {
       _workingDirectory = options.workingDirectory;
       if (_workingDirectory is !String) {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "WorkingDirectory is not a String: $_workingDirectory");
       }
     }
@@ -52,12 +52,12 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
     if (options !== null && options.environment !== null) {
       var env = options.environment;
       if (env is !Map) {
-        throw new IllegalArgumentException("Environment is not a map: $env");
+        throw new ArgumentError("Environment is not a map: $env");
       }
       _environment = [];
       env.forEach((key, value) {
         if (key is !String || value is !String) {
-          throw new IllegalArgumentException(
+          throw new ArgumentError(
               "Environment key or value is not a string: ($key, $value)");
         }
         _environment.add('$key=$value');
@@ -224,7 +224,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
 
   void kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
     if (signal is! ProcessSignal) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Argument 'signal' must be a ProcessSignal");
     }
     if (!_started) {
@@ -315,14 +315,14 @@ class _NonInteractiveProcess {
       if (options.stdoutEncoding !== null) {
         stdoutEncoding = options.stdoutEncoding;
         if (stdoutEncoding is !Encoding) {
-          throw new IllegalArgumentException(
+          throw new ArgumentError(
               'stdoutEncoding option is not an encoding: $stdoutEncoding');
         }
       }
       if (options.stderrEncoding !== null) {
         stderrEncoding = options.stderrEncoding;
         if (stderrEncoding is !Encoding) {
-          throw new IllegalArgumentException(
+          throw new ArgumentError(
               'stderrEncoding option is not an encoding: $stderrEncoding');
         }
       }

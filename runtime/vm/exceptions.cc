@@ -385,9 +385,9 @@ RawObject* Exceptions::Create(
       library = Library::CoreLibrary();
       class_name = Symbols::New("IndexOutOfRangeException");
       break;
-    case kIllegalArgument:
+    case kArgument:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("IllegalArgumentException");
+      class_name = Symbols::New("ArgumentError");
       break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();

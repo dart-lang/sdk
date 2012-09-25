@@ -18,7 +18,7 @@ add$1(var receiver, var value) {
 
 removeAt$1(var receiver, var index) {
   if (isJsArray(receiver)) {
-    if (index is !int) throw new IllegalArgumentException(index);
+    if (index is !int) throw new ArgumentError(index);
     if (index < 0 || index >= receiver.length) {
       throw new IndexOutOfRangeException(index);
     }
@@ -56,7 +56,7 @@ get$length(var receiver) {
 set$length(receiver, newLength) {
   if (isJsArray(receiver)) {
     checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
-    if (newLength is !int) throw new IllegalArgumentException(newLength);
+    if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new IndexOutOfRangeException(newLength);
     checkGrowable(receiver, 'set length');
     JS('void', r'#.length = #', receiver, newLength);
@@ -93,7 +93,7 @@ iterator(receiver) {
 
 charCodeAt(var receiver, int index) {
   if (receiver is String) {
-    if (index is !num) throw new IllegalArgumentException(index);
+    if (index is !num) throw new ArgumentError(index);
     if (index < 0) throw new IndexOutOfRangeException(index);
     if (index >= receiver.length) throw new IndexOutOfRangeException(index);
     return JS('int', r'#.charCodeAt(#)', receiver, index);
@@ -133,7 +133,7 @@ compareTo(a, b) {
       return -1;
     }
   } else if (a is String) {
-    if (b is !String) throw new IllegalArgumentException(b);
+    if (b is !String) throw new ArgumentError(b);
     return JS('bool', r'# == #', a, b) ? 0
       : JS('bool', r'# < #', a, b) ? -1 : 1;
   } else {
@@ -194,15 +194,15 @@ getRange(receiver, start, length) {
   if (0 === length) return [];
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new IllegalArgumentException(start);
-  if (length is !int) throw new IllegalArgumentException(length);
-  if (length < 0) throw new IllegalArgumentException(length);
+  if (start is !int) throw new ArgumentError(start);
+  if (length is !int) throw new ArgumentError(length);
+  if (length < 0) throw new ArgumentError(length);
   if (start < 0) throw new IndexOutOfRangeException(start);
   var end = start + length;
   if (end > receiver.length) {
     throw new IndexOutOfRangeException(length);
   }
-  if (length < 0) throw new IllegalArgumentException(length);
+  if (length < 0) throw new ArgumentError(length);
   return JS('Object', r'#.slice(#, #)', receiver, start, end);
 }
 
@@ -212,7 +212,7 @@ indexOf$1(receiver, element) {
     return Arrays.indexOf(receiver, element, 0, length);
   } else if (receiver is String) {
     checkNull(element);
-    if (element is !String) throw new IllegalArgumentException(element);
+    if (element is !String) throw new ArgumentError(element);
     return JS('int', r'#.indexOf(#)', receiver, element);
   }
   return UNINTERCEPTED(receiver.indexOf(element));
@@ -220,13 +220,13 @@ indexOf$1(receiver, element) {
 
 indexOf$2(receiver, element, start) {
   if (isJsArray(receiver)) {
-    if (start is !int) throw new IllegalArgumentException(start);
+    if (start is !int) throw new ArgumentError(start);
     var length = JS('num', r'#.length', receiver);
     return Arrays.indexOf(receiver, element, start, length);
   } else if (receiver is String) {
     checkNull(element);
-    if (start is !int) throw new IllegalArgumentException(start);
-    if (element is !String) throw new IllegalArgumentException(element);
+    if (start is !int) throw new ArgumentError(start);
+    if (element is !String) throw new ArgumentError(element);
     if (start < 0) return -1; // TODO(ahe): Is this correct?
     return JS('int', r'#.indexOf(#, #)', receiver, element, start);
   }
@@ -260,7 +260,7 @@ lastIndexOf$1(receiver, element) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
     checkNull(element);
-    if (element is !String) throw new IllegalArgumentException(element);
+    if (element is !String) throw new ArgumentError(element);
     return JS('int', r'#.lastIndexOf(#)', receiver, element);
   }
   return UNINTERCEPTED(receiver.lastIndexOf(element));
@@ -271,9 +271,9 @@ lastIndexOf$2(receiver, element, start) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
     checkNull(element);
-    if (element is !String) throw new IllegalArgumentException(element);
+    if (element is !String) throw new ArgumentError(element);
     if (start !== null) {
-      if (start is !num) throw new IllegalArgumentException(start);
+      if (start is !num) throw new ArgumentError(start);
       if (start < 0) return -1;
       if (start >= receiver.length) {
         if (element == "") return receiver.length;
@@ -295,9 +295,9 @@ removeRange(receiver, start, length) {
   }
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new IllegalArgumentException(start);
-  if (length is !int) throw new IllegalArgumentException(length);
-  if (length < 0) throw new IllegalArgumentException(length);
+  if (start is !int) throw new ArgumentError(start);
+  if (length is !int) throw new ArgumentError(length);
+  if (length < 0) throw new ArgumentError(length);
   var receiverLength = JS('num', r'#.length', receiver);
   if (start < 0 || start >= receiverLength) {
     throw new IndexOutOfRangeException(start);
@@ -331,10 +331,10 @@ setRange$4(receiver, start, length, from, startFrom) {
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(startFrom); // TODO(ahe): This is not specified but co19 tests it.
-  if (start is !int) throw new IllegalArgumentException(start);
-  if (length is !int) throw new IllegalArgumentException(length);
-  if (startFrom is !int) throw new IllegalArgumentException(startFrom);
-  if (length < 0) throw new IllegalArgumentException(length);
+  if (start is !int) throw new ArgumentError(start);
+  if (length is !int) throw new ArgumentError(length);
+  if (startFrom is !int) throw new ArgumentError(startFrom);
+  if (length < 0) throw new ArgumentError(length);
   if (start < 0) throw new IndexOutOfRangeException(start);
   if (start + length > receiver.length) {
     throw new IndexOutOfRangeException(start + length);
@@ -491,7 +491,7 @@ toRadixString(receiver, radix) {
     return UNINTERCEPTED(receiver.toRadixString(radix));
   }
   checkNum(radix);
-  if (radix < 2 || radix > 36) throw new IllegalArgumentException(radix);
+  if (radix < 2 || radix > 36) throw new ArgumentError(radix);
   return JS('String', r'#.toString(#)', receiver, radix);
 }
 
@@ -504,7 +504,7 @@ allMatches(receiver, str) {
 concat(receiver, other) {
   if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
 
-  if (other is !String) throw new IllegalArgumentException(other);
+  if (other is !String) throw new ArgumentError(other);
   return JS('String', r'# + #', receiver, other);
 }
 

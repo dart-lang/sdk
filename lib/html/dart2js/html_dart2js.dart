@@ -10490,7 +10490,7 @@ class FilteredElementList implements ElementList {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const IllegalArgumentException("Invalid list length");
+      throw const ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -10642,7 +10642,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
         this.nodes.add(node);
         return node;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 
@@ -12378,7 +12378,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         this.parent.insertBefore(node, this.nextNode);
         break;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 
@@ -12560,7 +12560,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -16036,7 +16036,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBTransactionImpl transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
-      throw new IllegalArgumentException(mode);
+      throw new ArgumentError(mode);
     }
 
     // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
@@ -20310,7 +20310,7 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
-            throw new IllegalArgumentException(
+            throw new ArgumentError(
                 "Illegal MutationObserver.observe option '$k'");
           }
         });
@@ -41144,7 +41144,7 @@ class _SVGElementFactoryProvider {
     parentTag.innerHTML = svg;
     if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
@@ -42039,12 +42039,12 @@ class _Lists {
    * Returns a sub list copy of this list, from [start] to
    * [:start + length:].
    * Returns an empty list if [length] is 0.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new IllegalArgumentException('length');
+    if (length < 0) throw new ArgumentError('length');
     if (start < 0) throw new IndexOutOfRangeException(start);
     int end = start + length;
     if (end > a.length) throw new IndexOutOfRangeException(end);

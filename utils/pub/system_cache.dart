@@ -59,7 +59,7 @@ class SystemCache {
    */
   Future<Package> install(PackageId id) {
     if (!id.source.shouldCache) {
-      throw new IllegalArgumentException("Package $id is not cacheable.");
+      throw new ArgumentError("Package $id is not cacheable.");
     }
 
     var pending = _pendingInstalls[id];

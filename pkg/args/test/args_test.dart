@@ -11,25 +11,25 @@
 
 main() {
   group('ArgParser.addFlag()', () {
-    test('throws IllegalArgumentException if the flag already exists', () {
+    test('throws ArgumentError if the flag already exists', () {
       var parser = new ArgParser();
       parser.addFlag('foo');
       throwsIllegalArg(() => parser.addFlag('foo'));
     });
 
-    test('throws IllegalArgumentException if the option already exists', () {
+    test('throws ArgumentError if the option already exists', () {
       var parser = new ArgParser();
       parser.addOption('foo');
       throwsIllegalArg(() => parser.addFlag('foo'));
     });
 
-    test('throws IllegalArgumentException if the abbreviation exists', () {
+    test('throws ArgumentError if the abbreviation exists', () {
       var parser = new ArgParser();
       parser.addFlag('foo', abbr: 'f');
       throwsIllegalArg(() => parser.addFlag('flummox', abbr: 'f'));
     });
 
-    test('throws IllegalArgumentException if the abbreviation is longer '
+    test('throws ArgumentError if the abbreviation is longer '
          'than one character', () {
       var parser = new ArgParser();
       throwsIllegalArg(() => parser.addFlag('flummox', abbr: 'flu'));
@@ -37,25 +37,25 @@ main() {
   });
 
   group('ArgParser.addOption()', () {
-    test('throws IllegalArgumentException if the flag already exists', () {
+    test('throws ArgumentError if the flag already exists', () {
       var parser = new ArgParser();
       parser.addFlag('foo');
       throwsIllegalArg(() => parser.addOption('foo'));
     });
 
-    test('throws IllegalArgumentException if the option already exists', () {
+    test('throws ArgumentError if the option already exists', () {
       var parser = new ArgParser();
       parser.addOption('foo');
       throwsIllegalArg(() => parser.addOption('foo'));
     });
 
-    test('throws IllegalArgumentException if the abbreviation exists', () {
+    test('throws ArgumentError if the abbreviation exists', () {
       var parser = new ArgParser();
       parser.addFlag('foo', abbr: 'f');
       throwsIllegalArg(() => parser.addOption('flummox', abbr: 'f'));
     });
 
-    test('throws IllegalArgumentException if the abbreviation is longer '
+    test('throws ArgumentError if the abbreviation is longer '
          'than one character', () {
       var parser = new ArgParser();
       throwsIllegalArg(() => parser.addOption('flummox', abbr: 'flu'));
@@ -434,14 +434,14 @@ main() {
         var parser = new ArgParser();
         parser.addOption('define', defaultsTo: '0');
         expect(()=>parser.getDefault('undefine'),
-            throwsIllegalArgumentException);
+            throwsArgumentError);
       });
 
       test('queries the default value for an unknown option', () {
         var parser = new ArgParser();
         parser.addOption('define', defaultsTo: '0');
         expect(()=>parser.getDefault('undefine'),
-            throwsIllegalArgumentException);
+            throwsArgumentError);
       });
     });
 
@@ -664,7 +664,7 @@ main() {
 }
 
 throwsIllegalArg(function) {
-  expect(function, throwsIllegalArgumentException);
+  expect(function, throwsArgumentError);
 }
 
 throwsFormat(ArgParser parser, List<String> args) {
@@ -693,14 +693,14 @@ String unindentString(String text) {
     if (line.length <= indent) {
       // It's short, so it must be nothing but whitespace.
       if (line.trim() != '') {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             'Line "$line" does not have enough indentation.');
       }
 
       lines[i] = '';
     } else {
       if (line.substring(0, indent).trim() != '') {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             'Line "$line" does not have enough indentation.');
       }
 

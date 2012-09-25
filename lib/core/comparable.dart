@@ -28,7 +28,7 @@ abstract class Comparable {
    *
    * Returns a value like a [Comparator] when comparing [:this:] to [other].
    *
-   * May throw an [IllegalArgumentException] if [other] is of a type that
+   * May throw an [ArgumentError] if [other] is of a type that
    * is not comparable to [:this:].
    */
   abstract int compareTo(Comparable other);

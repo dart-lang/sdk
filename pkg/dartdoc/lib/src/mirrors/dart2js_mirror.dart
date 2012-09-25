@@ -74,7 +74,7 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   } else if (type is TypedefType) {
     return new Dart2JsTypedefMirror(system, type);
   }
-  throw new IllegalArgumentException("Unexpected interface type $type");
+  throw new ArgumentError("Unexpected interface type $type");
 }
 
 Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
@@ -95,7 +95,7 @@ Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     }
     return members;
   }
-  throw new IllegalArgumentException(
+  throw new ArgumentError(
       "Unexpected member type $element ${element.kind}");
 }
 
@@ -297,7 +297,7 @@ class Dart2JsCompilation implements Compilation {
 
   Future<String> provider(Uri uri) {
     if (uri.scheme != 'file') {
-      throw new IllegalArgumentException(uri);
+      throw new ArgumentError(uri);
     }
     String source;
     try {
