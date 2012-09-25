@@ -15,6 +15,6 @@ main() {
       expect(messageEvent.data, new isInstanceOf<ArrayBuffer>());
     }));
     final buffer = (new Float32Array(3)).buffer;
-    window.webkitPostMessage(buffer, '*', [buffer]);
+    window.postMessage(buffer, '*', [buffer]);
   });
 }
