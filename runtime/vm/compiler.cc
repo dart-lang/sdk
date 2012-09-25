@@ -214,8 +214,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
           DominatorBasedCSE::Optimize(flow_graph);
         }
         if (FLAG_loop_invariant_code_motion &&
-            (parsed_function.function().deoptimization_counter() ==
-             FLAG_deoptimization_counter_threshold - 1)) {
+            (parsed_function.function().deoptimization_counter() <
+             (FLAG_deoptimization_counter_threshold - 1))) {
           LICM::Optimize(flow_graph);
         }
 
