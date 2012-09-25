@@ -6296,16 +6296,6 @@ AstNode* Parser::ParseJump(String* label_name) {
 }
 
 
-bool Parser::IsDefinedInLexicalScope(const String& ident) {
-  if (ResolveIdentInLocalScope(TokenPos(), ident, NULL)) {
-    return true;
-  }
-  Object& obj = Object::Handle();
-  obj = library_.LookupObject(ident);
-  return !obj.IsNull();
-}
-
-
 AstNode* Parser::ParseStatement() {
   TRACE_PARSER("ParseStatement");
   AstNode* statement = NULL;
@@ -6350,8 +6340,7 @@ AstNode* Parser::ParseStatement() {
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kIF) {
     statement = ParseIfStatement(label_name);
-  } else if ((CurrentToken() == Token::kASSERT) &&
-             !IsDefinedInLexicalScope(*CurrentLiteral())) {
+  } else if (CurrentToken() == Token::kASSERT) {
     statement = ParseAssertStatement();
     ExpectSemicolon();
   } else if (IsVariableDeclaration()) {

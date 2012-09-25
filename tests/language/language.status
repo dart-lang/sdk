@@ -30,7 +30,6 @@ pseudo_kw_illegal_test/08: Fail  # Issue 356
 pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 
-assert_lexical_scope_test: Fail # Issue 4935
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail          # (Discussion ongoing)
@@ -102,13 +101,11 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
-assert_lexical_scope_test: Fail, OK # test issue 5276
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
-assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
 call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
@@ -275,7 +272,6 @@ string_escape1_negative_test: Skip
 import_combinators_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
-assert_lexical_scope_test: Fail, Pass
 bad_constructor_test/04: Fail
 bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail

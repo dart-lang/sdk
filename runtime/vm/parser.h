@@ -498,7 +498,6 @@ class Parser : public ValueObject {
   RawClass* TypeParametersScopeClass() const;
   const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
-  bool IsDefinedInLexicalScope(const String& ident);
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
                                 AstNode** node);

@@ -210,6 +210,18 @@ Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage 
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 
+# Failures related to assert being a reserved word now. co19 issue 218.
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, OK
+Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, OK
+Language/11_Statements/15_Assert_A05_t01: Fail, OK
+Language/11_Statements/15_Assert_A05_t02: Fail, OK
+Language/11_Statements/15_Assert_A05_t03: Fail, OK
+Language/11_Statements/15_Assert_A05_t04: Fail, OK
+Language/11_Statements/15_Assert_A05_t05: Fail, OK
+
 LibTest/core/Completer/completeException_A02_t01: Fail # co19 issue 224
 LibTest/core/int/operator_left_shift_A01_t03: Fail # co19 issue 224
 LibTest/core/int/operator_right_shift_A01_t03: Fail # co19 issue 224
