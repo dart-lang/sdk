@@ -128,8 +128,6 @@ indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
-js_interop_3_test: Fail
-js_interop_4_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail

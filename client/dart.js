@@ -191,7 +191,7 @@ function ReceivePortSync() {
 
   if (navigator.webkitStartDart) {
     window.addEventListener('js-sync-message', function(event) {
-      var data = JSON.parse(event.data);
+      var data = JSON.parse(getPortSyncEventData(event));
       var deserialized = deserialize(data.message);
       var result = ReceivePortSync.map[data.id].callback(deserialized);
       // TODO(vsm): Handle and propagate exceptions.
@@ -220,9 +220,13 @@ function ReceivePortSync() {
 
   function dispatchEvent(receiver, message) {
     var string = JSON.stringify(message);
-    var event = document.createEvent('TextEvent');
-    event.initTextEvent(receiver, false, false, window, string);
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent(receiver, false, false, string);
     window.dispatchEvent(event);
+  }
+
+  function getPortSyncEventData(event) {
+    return event.detail;
   }
 
   DartSendPortSync.prototype.callSync = function(message) {
@@ -233,7 +237,7 @@ function ReceivePortSync() {
     var source = target + '-result';
     var result = null;
     var listener = function (e) {
-      result = JSON.parse(e.data);
+      result = JSON.parse(getPortSyncEventData(e));
     };
     window.addEventListener(source, listener, false);
     dispatchEvent(target, [source, serialized]);

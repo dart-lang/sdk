@@ -43552,8 +43552,8 @@ class _RemoteSendPortSync implements SendPortSync {
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
     var result = null;
-    var listener = (TextEvent e) {
-      result = JSON.parse(e.data);
+    var listener = (Event e) {
+      result = JSON.parse(e.detail);
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -43624,8 +43624,8 @@ class ReceivePortSync {
   void receive(callback(var message)) {
     _callback = callback;
     if (_listener === null) {
-      _listener = (TextEvent e) {
-        var data = JSON.parse(e.data);
+      _listener = (Event e) {
+        var data = JSON.parse(e.detail);
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -43656,8 +43656,8 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('TextEvent');
-  event.initTextEvent(receiver, false, false, window, JSON.stringify(message));
+  var event = document.$dom_createEvent('CustomEvent');
+  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
