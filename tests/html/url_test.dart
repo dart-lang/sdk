@@ -36,7 +36,7 @@ main() {
   group('blob', () {
     test('createObjectUrl', () {
       var blob = createImageBlob();
-      var url = window.createObjectUrl(blob);
+      var url = DOMURL.createObjectURL(blob);
       expect(url.length, greaterThan(0));
       expect(url.startsWith('blob:'));
 
@@ -52,9 +52,9 @@ main() {
       img.src = url;
     });
 
-    test('revokeObjectUrl', () {
+    test('revokeObjectURL', () {
       var blob = createImageBlob();
-      var url = window.createObjectUrl(blob);
+      var url = DOMURL.createObjectURL(blob);
       expect(url.startsWith('blob:'));
       DOMURL.revokeObjectURL(url);
 
