@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/10_Expressions/01_Constants_A13_t01: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
@@ -12,7 +13,6 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # inh
 Language/06_Functions/06_Functions_A01_t03: Fail # inherited from dart2js
 # TODO(antonm): adjust suppressions to drop Pass expectations which
 # are currently due to runtime suppressions.
-Language/07_Classes/07_Classes_A02_t01: Fail # TRIAGE
 Language/07_Classes/07_Classes_A03_t07: Pass
 Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A03_t09: Fail # inherited from dart2js
@@ -151,7 +151,10 @@ Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Pass
 Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Pass
