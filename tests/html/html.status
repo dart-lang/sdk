@@ -170,7 +170,6 @@ unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js ]
 transferables_test: Skip # until isInstance works in dart2js
-url_test: Fail # antonm is working on it
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
