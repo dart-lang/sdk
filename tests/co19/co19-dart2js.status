@@ -104,7 +104,6 @@ LibTest/core/List/operator_subscript_A04_t01: Fail # co19 issue 224
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # co19 issue 224
 LibTest/core/List/removeRange_A04_t01: Fail # co19 issue 224
 LibTest/core/List/setRange_A04_t01: Fail # co19 issue 224
-LibTest/core/List/sort_A01_t05: Fail # co19 issue 224
 LibTest/core/String/charCodeAt_A03_t01: Fail # co19 issue 224
 LibTest/core/String/concat_A02_t01: Fail # co19 issue 224
 LibTest/core/Strings/concatAll_A04_t01: Fail # co19 issue 224
