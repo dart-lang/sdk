@@ -665,7 +665,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HCheck check = argument;
       use(check.checkedInput);
     } else {
-      push(new js.VariableUse(variableNames.getName(argument)), argument);
+      push(new js.VariableUse(variableNames.getName(argument)));
     }
   }
 
