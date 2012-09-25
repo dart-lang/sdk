@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 Language/03_Overview/03_Overview_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/03_Overview_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): Please triage this failure.
@@ -226,8 +226,7 @@ LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
 LibTest/core/List/getRange_A03_t01: Fail # co19 issue 224
 
-[ $runtime == vm && $checked ]
-
+[ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -236,7 +235,7 @@ Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this 
 Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 
 
-[ $runtime == vm && $unchecked ]
+[ $compiler == none && $runtime == vm && $unchecked ]
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(vm-team): Please triage this failure.
@@ -248,7 +247,7 @@ LibTest/core/List/List_A04_t01: Fail # co19 issue 224
 LibTest/core/List/operator_subscript_A03_t01: Fail # co19 issue 224
 
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 # Not properly reporting exception in initializer expressions
 Language/10_Expressions/01_Constants_A16_t01: Fail
 Language/10_Expressions/01_Constants_A16_t02: Fail
@@ -333,7 +332,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 # New failures
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
@@ -348,7 +347,7 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 LibTest/core/Math/acos_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/core/Math/asin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/core/Math/atan_A01_t01: Fail, OK # Issue co19 - 44
@@ -357,18 +356,18 @@ LibTest/core/Math/exp_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/core/Math/sin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/core/Math/tan_A01_t01: Fail, OK  # Issue co19 - 44
 
-[ $runtime == vm && $system == linux ]
+[ $compiler == none && $runtime == vm && $system == linux ]
 LibTest/core/Math/exp_A01_t01: Fail
 
-[ $runtime == vm && $system == linux && $arch == ia32 ]
+[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
 LibTest/core/Math/sin_A01_t01: Fail
 LibTest/core/Math/tan_A01_t01: Fail
 
-[ $runtime == vm && $arch == x64 && $mode == debug ]
+[ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
-[ $runtime == vm && $system == windows ]
+[ $compiler == none && $runtime == vm && $system == windows ]
 LibTest/core/Math/atan2_A01_t03: Fail # http://dartbug.com/5407
 LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
@@ -377,7 +376,7 @@ LibTest/core/int/operator_remainder_A01_t02: Fail # http://dartbug.com/5407
 LibTest/core/int/remainder_A01_t02: Fail # http://dartbug.com/5407
 
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 
 # The following tests use the deprecated Date interface.
 # Issue co19 - 125
@@ -385,7 +384,7 @@ LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/year_A01_t01: Fail, OK
 
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 Language/11_Statements/09_Try_A01_t01: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A02_t03: Fail, OK # co19 issue 194
 Language/11_Statements/09_Try_A04_t01: Fail, OK # co19 issue 194
@@ -417,11 +416,11 @@ Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
 
 
-[ $runtime == vm && $arch == ia32 ]
+[ $compiler == none && $runtime == vm && $arch == ia32 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 
-[ $runtime == vm ]
+[ $compiler == none && $runtime == vm ]
 Language/07_Classes/07_Classes_A02_t29: Fail
 Language/07_Classes/07_Classes_A02_t31: Fail
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail
@@ -523,19 +522,19 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail
 Language/11_Statements/05_For_A01_t11: Fail
 
 
-[ $runtime == vm && $unchecked ]
+[ $compiler == none && $runtime == vm && $unchecked ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
 
 
-[ $runtime == vm && $checked ]
+[ $compiler == none && $runtime == vm && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail
 
 
-[ $runtime == vm && $mode == debug && $unchecked ]
+[ $compiler == none && $runtime == vm && $mode == debug && $unchecked ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 
-[ $arch == simarm ]
+[ $compiler == none && $arch == simarm ]
 *: Skip
 
-[ $arch == arm ]
+[ $compiler == none && $arch == arm ]
 *: Skip

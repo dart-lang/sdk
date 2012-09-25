@@ -3,17 +3,40 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
-Language/10_Expressions/01_Constants_A13_t01: Fail # inherited from dart2js
+Language/03_Overview/03_Overview_A01_t01: Fail # inherited from VM
+Language/03_Overview/03_Overview_A01_t02: Fail # inherited from VM
+Language/03_Overview/1_Scoping_A02_t05: Fail # inherited from VM
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
+Language/03_Overview/2_Privacy_A01_t04: Fail # inherited from VM
+Language/03_Overview/2_Privacy_A01_t05: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
+Language/03_Overview/2_Privacy_A01_t09: Fail # inherited from VM
+Language/03_Overview/2_Privacy_A01_t10: Fail # inherited from VM
+Language/03_Overview/2_Privacy_A01_t11: Fail # inherited from dart2js
+Language/03_Overview/2_Privacy_A01_t12: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
-Language/07_Classes/6_Constructors_A03_t03: Fail # Issue 5349
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # inherited from dart2js
+Language/03_Overview/2_Privacy_A01_t19: Fail # inherited from VM
+Language/03_Overview/2_Privacy_A01_t20: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t03: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t07: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t10: Fail # inherited from VM
 Language/06_Functions/06_Functions_A01_t03: Fail # inherited from dart2js
-# TODO(antonm): adjust suppressions to drop Pass expectations which
-# are currently due to runtime suppressions.
-Language/07_Classes/07_Classes_A03_t07: Pass
+Language/06_Functions/06_Functions_A01_t06: Fail # inherited from VM
+Language/06_Functions/06_Functions_A01_t22: Fail # inherited from VM
+Language/06_Functions/1_Function_Declaration_A02_t03: Fail # inherited from VM
+Language/06_Functions/1_Function_Declaration_A03_t03: Fail # inherited from VM
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # inherited from VM
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # inherited from dart2js
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # inherited from VM
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # inherited from VM
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # inherited from VM
+Language/06_Functions/2_Formal_Parameters_A02_t01: Fail # inherited from VM
+Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
+Language/07_Classes/07_Classes_A01_t20: Fail # inherited from VM
+Language/07_Classes/07_Classes_A02_t32: Fail # inherited from VM
+Language/07_Classes/07_Classes_A02_t34: Fail # inherited from VM
+Language/07_Classes/07_Classes_A03_t01: Fail # inherited from VM
 Language/07_Classes/07_Classes_A03_t08: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A03_t09: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t19: Fail # inherited from dart2js
@@ -21,6 +44,11 @@ Language/07_Classes/07_Classes_A04_t21: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t22: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t24: Fail # inherited from dart2js
 Language/07_Classes/07_Classes_A04_t25: Fail # inherited from dart2js
+Language/07_Classes/07_Classes_A09_t01: Fail # inherited from VM
+Language/07_Classes/07_Classes_A09_t02: Fail # inherited from VM
+Language/07_Classes/07_Classes_A09_t04: Fail # inherited from VM
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # inherited from VM
+Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail # inherited from VM
 Language/07_Classes/1_Instance_Methods/2_Operators_A03_t01: Fail # inherited from dart2js
 Language/07_Classes/1_Instance_Methods/2_Operators_A03_t02: Fail # inherited from dart2js
 Language/07_Classes/1_Instance_Methods/2_Operators_A04_t02: Fail # inherited from dart2js
@@ -43,16 +71,40 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A04_t18: Fail # inherited fro
 Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail # inherited from dart2js
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail # inherited from dart2js
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # inherited from dart2js
-Language/07_Classes/1_Instance_Methods_A05_t02: Pass
-Language/07_Classes/1_Instance_Methods_A05_t03: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Pass
-Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Pass
+Language/07_Classes/2_Getters_A01_t03: Fail # inherited from VM
+Language/07_Classes/2_Getters_A01_t05: Fail # inherited from VM
+Language/07_Classes/3_Setters_A01_t02: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t04: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t05: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t06: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
+Language/07_Classes/3_Setters_A04_t08: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail # inherited from VM
+Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail # inherited from VM
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Pass
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # inherited from VM
+Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # inherited from VM
+Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # inherited from VM
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # inherited from VM
+Language/07_Classes/6_Constructors_A01_t01: Fail # inherited from VM
+Language/07_Classes/6_Constructors_A03_t03: Fail # Issue 5349
+Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # inherited from VM
+Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # inherited from VM
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail, OK
 Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail, OK
 Language/08_Interfaces/1_Methods_A01_t01: Fail, OK
@@ -69,108 +121,262 @@ Language/08_Interfaces/1_Methods_A04_t05: Fail, OK
 Language/08_Interfaces/1_Methods_A05_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Pass
-Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Pass
-Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Pass
 Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Pass
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Pass
 Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Pass
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Pass
 Language/08_Interfaces/4_Factories_and_Constructors_A02_t05: Fail, OK
 Language/08_Interfaces/4_Factories_and_Constructors_A02_t07: Fail, OK
 Language/08_Interfaces/4_Factories_and_Constructors_A10_t04: Fail, Pass, OK
-Language/08_Interfaces/5_Superinterfaces_A01_t02: Pass
 Language/08_Interfaces/Interfaces_A01_t02: Fail, OK
 Language/08_Interfaces/Interfaces_A01_t07: Fail, OK
 Language/09_Generics/09_Generics_A04_t04: Fail # inherited from dart2js
-Language/09_Generics/09_Generics_A05_t01: Pass
-Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
-Language/10_Expressions/01_Constants_A05_t01: Pass
-Language/10_Expressions/01_Constants_A06_t01: Pass
+Language/09_Generics/09_Generics_A05_t02: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A05_t01: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A06_t01: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A13_t01: Fail # inherited from dart2js
 Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Pass
+Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A16_t01: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # inherited from VM
+Language/10_Expressions/01_Constants_A16_t02: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A16_t03: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A17_t03: Crash # inherited from VM
+Language/10_Expressions/01_Constants_A19_t02: Fail # inherited from VM
+Language/10_Expressions/01_Constants_A19_t03: Fail # inherited from VM
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # co19 issue 188
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # inherited from VM
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
+Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # inherited from VM
+Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A01_t01: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
+Language/10_Expressions/05_Strings_A02_t39: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t41: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t43: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t45: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t46: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t47: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t48: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A02_t49: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A20_t01: Fail # inherited from VM
+Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
+Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # inherited from VM
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # inherited from dart2js
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # inherited from dart2js
 Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # inherited from dart2js
-Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Pass
-Language/10_Expressions/20_Equality_A03_t02: Pass
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2inherited from VM
+Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # inherited from VM
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # inherited from VM
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail  # co19 issue 166
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail # inherited from VM
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail # inherited from VM
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # inherited from VM
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # inherited from VM
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t03: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t05: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t06: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t07: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # inherited from VM
+Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # inherited from VM
+Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # inherited from VM
+Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # inherited from VM
+Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A04_t03: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A04_t04: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A04_t05: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A05_t02: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A05_t04: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A05_t05: Fail # inherited from VM
+Language/10_Expressions/16_Assignment_A08_t04: Fail # inherited from VM
+Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # inherited from VM
+Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
+Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # inherited from VM
+Language/10_Expressions/17_Getter_Invocation_A05_t04: Fail # inherited from VM
+Language/10_Expressions/17_Getter_Invocation_A05_t05: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A04_t03: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A04_t04: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A04_t05: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A05_t04: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A05_t05: Fail # inherited from VM
+Language/10_Expressions/18_Assignment_A08_t04: Fail # inherited from VM
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A01_t01: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A02_t02: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A02_t03: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A02_t04: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A03_t01: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A03_t03: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A05_t01: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A07_t01: Fail # inherited from VM
+Language/10_Expressions/20_Equality_A08_t01: Fail # inherited from VM
+Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/22_Shift_A01_t01: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # inherited from VM
+Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # inherited from VM
+Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184
-Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # inherited from dart2js
 Language/10_Expressions/28_Identifier_Reference_A08_t02: Fail # inherited from dart2js
 Language/10_Expressions/28_Identifier_Reference_A08_t32: Fail # inherited from dart2js
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # inherited from dart2js
-Language/10_Expressions/29_Type_Test_A05_t01: Pass
-Language/10_Expressions/29_Type_Test_A05_t02: Pass
-Language/10_Expressions/29_Type_Test_A05_t03: Pass
-Language/10_Expressions/30_Type_Cast_A01_t02: Pass
+Language/10_Expressions/30_Type_Cast_A02_t02: Fail # inherited from VM
 Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
 Language/10_Expressions/30_Type_Cast_A03_t02: Fail # http://dartbug.com/5029
-Language/10_Expressions/30_Type_Cast_A04_t01: Pass
-Language/10_Expressions/30_Type_Cast_A04_t02: Pass
 Language/10_Expressions/30_Type_Cast_A05_t01: Fail # http://dartbug.com/5029
-Language/11_Statements/03_Variable_Declaration_A01_t05: Pass
-Language/11_Statements/03_Variable_Declaration_A01_t06: Pass
-Language/11_Statements/03_Variable_Declaration_A01_t09: Pass
-Language/11_Statements/03_Variable_Declaration_A02_t03: Pass
-Language/11_Statements/03_Variable_Declaration_A02_t05: Pass
-Language/11_Statements/03_Variable_Declaration_A02_t06: Pass
-Language/11_Statements/05_For_A01_t07: Pass
-Language/11_Statements/08_Switch_A07_t02: Pass
+Language/10_Expressions/30_Type_Cast_A05_t02: Fail # inherited from VM
+Language/10_Expressions/30_Type_Cast_A05_t03: Fail # inherited from VM
+Language/10_Expressions/30_Type_Cast_A05_t04: Fail # inherited from VM
+Language/10_Expressions/30_Type_Cast_A05_t05: Fail # inherited from VM
+Language/11_Statements/02_Expression_Statements_A01_t09: Fail # inherited from VM
+Language/11_Statements/02_Expression_Statements_A01_t10: Fail # inherited from VM
+Language/11_Statements/02_Expression_Statements_A01_t11: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail # inherited from VM
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail # inherited from VM
+Language/11_Statements/05_For/2_For_in_A01_t02: Fail # inherited from VM
+Language/11_Statements/05_For/2_For_in_A01_t04: Fail # inherited from VM
+Language/11_Statements/05_For_A01_t07: Fail # inherited from VM
+Language/11_Statements/05_For_A01_t11: Fail # inherited from VM
+Language/11_Statements/07_Do_A02_t02: Fail # inherited from VM
+Language/11_Statements/08_Switch_A01_t01: Fail # inherited from VM
+Language/11_Statements/08_Switch_A02_t01: Fail # inherited from VM
+Language/11_Statements/08_Switch_A05_t01: Fail # inherited from VM
+Language/11_Statements/08_Switch_A05_t02: Fail # inherited from VM
+Language/11_Statements/08_Switch_A06_t01: Fail # inherited from VM
+Language/11_Statements/08_Switch_A06_t02: Fail # inherited from VM
+Language/11_Statements/08_Switch_A06_t03: Fail # inherited from VM
+Language/11_Statements/08_Switch_A06_t04: Fail # inherited from VM
+Language/11_Statements/08_Switch_A07_t02: Fail # inherited from VM
+Language/11_Statements/09_Try_A01_t01: Fail, OK # inherited from VM
+Language/11_Statements/09_Try_A01_t18: Fail # inherited from VM
+Language/11_Statements/09_Try_A02_t03: Fail, OK # inherited from VM
+Language/11_Statements/09_Try_A04_t01: Fail, OK # inherited from VM
+Language/11_Statements/09_Try_A05_t03: Fail, OK # inherited from VM
+Language/11_Statements/09_Try_A05_t06: Fail # inherited from VM
+Language/11_Statements/09_Try_A06_t01: Fail # inherited from VM
+Language/11_Statements/09_Try_A06_t02: Fail # inherited from VM
+Language/11_Statements/09_Try_A06_t03: Fail # inherited from VM
+Language/11_Statements/09_Try_A06_t04: Fail # inherited from VM
+Language/11_Statements/09_Try_A06_t05: Fail # inherited from VM
+Language/11_Statements/11_Labels_A01_t03: Fail # inherited from VM
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A01_t01: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A01_t03: Pass
+Language/11_Statements/14_Throw_A02_t02: Fail, OK # inherited from VM
+Language/11_Statements/14_Throw_A02_t03: Fail, OK # inherited from VM
+Language/11_Statements/14_Throw_A03_t02: Fail, OK # inherited from VM
+Language/11_Statements/14_Throw_A03_t03: Fail, OK # inherited from VM
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Pass
-Language/13_Libraries_and_Scripts/2_Imports_A04_t02: Pass
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Pass
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # inherited from VM
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail, Pass # inherited from dart2js: fails in minify, self-reference typedef check not performed
 Language/14_Types/4_Interface_Types_A01_t01: Fail # Looks like dart2js issue, let's wait when interfaces are phased away
 Language/14_Types/4_Interface_Types_A02_t01: Fail # Looks like dart2js issue, let's wait when interfaces are phased away
 Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
+Language/14_Types/5_Function_Types_A02_t01: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # co19 issue 188
@@ -202,10 +408,96 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # co19 
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # co19 issue 188
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
-LibTest/core/int/operator_subtraction_A01_t01: Fail # TRIAGE
+LibTest/core/Completer/completeException_A02_t01: Fail # co19 issue 224
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # inherited from VM
+LibTest/core/Date/Date.fromString_A03_t01: Fail, OK # Issue co19 - 121
+LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
+LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM
+LibTest/core/double/INFINITY_A01_t02: Fail # inherited from VM
+LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # inherited from VM
+LibTest/core/double/toRadixString_A01_t01: Fail # inherited from VM
+LibTest/core/Expect/equals_A02_t01: Fail, OK # co19 issue 194
+LibTest/core/Expect/throws_A02_t01: Fail, OK # Issue co19 - 42
+LibTest/core/Future/handleException_A01_t07: Fail # inherited from VM
+LibTest/core/Future/then_A01_t05: Fail # inherited from VM
 LibTest/core/InternalError/InternalError_A01_t01: Fail, OK # co19 issue 201
+LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
+LibTest/core/int/operator_left_shift_A01_t03: Fail # co19 issue 224
+LibTest/core/int/operator_left_shift_A01_t03: Fail, OK # co19 issue 224
+LibTest/core/int/operator_right_shift_A01_t03: Fail # co19 issue 224
+LibTest/core/int/operator_right_shift_A01_t03: Fail, OK # co19 issue 224
+LibTest/core/int/operator_subtraction_A01_t01: Fail # TRIAGE
+LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
+LibTest/core/List/getRange_A03_t01: Fail # co19 issue 224
+LibTest/core/List/insertRange_A05_t01: Fail # co19 issue 224
+LibTest/core/List/List_A03_t01: Fail # co19 issue 224
+LibTest/core/List/List_A04_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscript_A03_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscript_A04_t01: Fail # co19 issue 224
+LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # co19 issue 224
+LibTest/core/List/removeRange_A04_t01: Fail # co19 issue 224
+LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 194
+LibTest/core/List/setRange_A04_t01: Fail # co19 issue 224
+LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
+LibTest/core/Math/acos_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/asin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/atan2_A01_t01: Fail, OK # inherited from VM
+LibTest/core/Math/atan_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/cos_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/exp_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/log_A01_t01: Fail, OK # inherited from VM
+LibTest/core/Math/max_A01_t03: Fail, OK  # Issue co19 - 157
+LibTest/core/Math/min_A01_t03: Fail, OK  # Issue co19 - 157
+LibTest/core/Math/parseDouble_A02_t01: Fail # inherited from VM
+LibTest/core/Math/pow_A01_t01: Fail, OK  # Issue co19 - 44
+LibTest/core/Math/pow_A11_t01: Fail # inherited from VM
+LibTest/core/Math/pow_A13_t01: Fail # inherited from VM
+LibTest/core/Math/random_A01_t01: Fail, OK # inherited from VM
+LibTest/core/Math/sin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/core/Math/sqrt_A01_t01: Fail, OK # inherited from VM
+LibTest/core/Math/tan_A01_t01: Fail, OK  # Issue co19 - 44
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # inherited from VM
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
+LibTest/core/Set/addAll_A01_t04: Fail, OK # co19 issue 194
+LibTest/core/Set/contains_A01_t03: Fail, OK # co19 issue 194
+LibTest/core/Set/containsAll_A01_t03: Fail, OK # co19 issue 194
+LibTest/core/Set/intersection_A01_t02: Fail, OK # co19 issue 194
+LibTest/core/Set/remove_A01_t04: Fail, OK # co19 issue 194
+LibTest/core/Set/removeAll_A01_t03: Fail, OK # co19 issue 194
+LibTest/core/String/charCodeAt_A03_t01: Fail # co19 issue 224
+LibTest/core/String/concat_A02_t01: Fail # co19 issue 224
+LibTest/core/String/contains_A01_t02: Fail # inherited from VM
+LibTest/core/String/replaceAll_A02_t01: Fail, OK # co19 issue 103
+LibTest/core/String/replaceFirst_A02_t01: Fail, OK # co19 issue 103
+LibTest/core/Strings/concatAll_A04_t01: Fail # co19 issue 224
+LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
+LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # inherited from VM
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
+LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.heavy_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.light_A01_t01: Fail, OK
+LibTest/isolate/Isolate/main_A01_t01: Fail, OK
+LibTest/isolate/Isolate/port_A01_t01: Fail, OK
+LibTest/isolate/Isolate/port_A01_t02: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
