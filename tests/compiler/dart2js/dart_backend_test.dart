@@ -9,6 +9,7 @@
 #import("../../../lib/compiler/implementation/leg.dart", prefix:'leg');
 #import("../../../lib/compiler/implementation/dart_backend/dart_backend.dart");
 #import("../../../lib/compiler/implementation/elements/elements.dart");
+#import("../../../lib/compiler/implementation/tree/tree.dart");
 
 const coreLib = r'''
 #library('corelib');
