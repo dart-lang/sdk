@@ -302,22 +302,6 @@ static void RemovePushArguments(StaticCallInstr* call) {
 }
 
 
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-static bool HasOneTarget(const ICData& ic_data) {
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
-  Function& test_target = Function::Handle();
-  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    test_target = ic_data.GetTargetAt(i);
-    if (first_target.raw() != test_target.raw()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 static intptr_t ReceiverClassId(InstanceCallInstr* call) {
   if (!call->HasICData()) return kIllegalCid;
 
@@ -326,7 +310,7 @@ static intptr_t ReceiverClassId(InstanceCallInstr* call) {
   if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
   // TODO(vegorov): Add multiple receiver type support.
   if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
-  ASSERT(HasOneTarget(ic_data));
+  ASSERT(ic_data.HasOneTarget());
 
   Function& target = Function::Handle();
   intptr_t class_id;
@@ -656,7 +640,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(class_ids.length() == 1);
 
   if (target.kind() == RawFunction::kImplicitGetter) {
-    if (!HasOneTarget(ic_data)) {
+    if (!ic_data.HasOneTarget()) {
       // TODO(srdjan): Implement for mutiple targets.
       return false;
     }
@@ -689,7 +673,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   if ((recognized_kind == MethodRecognizer::kObjectArrayLength) ||
       (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
       (recognized_kind == MethodRecognizer::kGrowableArrayLength)) {
-    if (!HasOneTarget(ic_data)) {
+    if (!ic_data.HasOneTarget()) {
       // TODO(srdjan): Implement for mutiple targets.
       return false;
     }
@@ -745,7 +729,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   }
 
   if (recognized_kind == MethodRecognizer::kStringBaseLength) {
-    if (!HasOneTarget(ic_data)) {
+    if (!ic_data.HasOneTarget()) {
       // Target is not only StringBase_get_length.
       return false;
     }
@@ -771,7 +755,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if ((ic_data.NumberOfChecks() == 0) || !HasOneTarget(ic_data)) {
+  if ((ic_data.NumberOfChecks() == 0) || !ic_data.HasOneTarget()) {
     // No type feedback collected.
     return false;
   }
@@ -839,7 +823,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
       bool call_with_checks;
       // TODO(srdjan): Add check class instr for mixed smi/non-smi.
-      if (HasOneTarget(unary_checks) &&
+      if (unary_checks.HasOneTarget() &&
           (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
         // Type propagation has not run yet, we cannot eliminate the check.
         AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
@@ -883,7 +867,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     // No type feedback collected.
     return false;
   }
-  if (!HasOneTarget(unary_ic_data)) {
+  if (!unary_ic_data.HasOneTarget()) {
     // TODO(srdjan): Implement when not all targets are the same.
     return false;
   }
@@ -938,7 +922,7 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
   if (ic_data.NumberOfChecks() == 0) return;
   // TODO(srdjan): Add multiple receiver type support.
   if (ic_data.NumberOfChecks() != 1) return;
-  ASSERT(HasOneTarget(ic_data));
+  ASSERT(ic_data.HasOneTarget());
 
   if (HasOnlyTwoSmi(ic_data)) {
     optimizer->InsertBefore(

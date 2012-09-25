@@ -8373,6 +8373,22 @@ bool ICData::AllReceiversAreNumbers() const {
 }
 
 
+// Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
+bool ICData::HasOneTarget() const {
+  ASSERT(NumberOfChecks() > 0);
+  const Function& first_target = Function::Handle(GetTargetAt(0));
+  Function& test_target = Function::Handle();
+  for (intptr_t i = 1; i < NumberOfChecks(); i++) {
+    test_target = GetTargetAt(i);
+    if (first_target.raw() != test_target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 RawICData* ICData::New(const Function& function,
                        const String& target_name,
                        intptr_t deopt_id,

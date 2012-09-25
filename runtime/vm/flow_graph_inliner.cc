@@ -192,12 +192,14 @@ class CallSiteInliner : public FlowGraphVisitor {
 
   void VisitPolymorphicInstanceCall(PolymorphicInstanceCallInstr* instr) {
     TRACE_INLINING(OS::Print("  PolymorphicInstanceCall\n"));
-    if (instr->with_checks()) {
-      TRACE_INLINING(OS::Print("     Bailout: checks\n"));
-      return;
-    }
     const ICData& ic_data = instr->ic_data();
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+    if (instr->with_checks()) {
+      TRACE_INLINING(OS::Print("    Bailout: %"Pd" checks target '%s'\n",
+          ic_data.NumberOfChecks(),
+          target.ToCString()));
+      return;
+    }
 
     GrowableArray<Value*> arguments(instr->ArgumentCount());
     for (int i = 0; i < instr->ArgumentCount(); ++i) {
