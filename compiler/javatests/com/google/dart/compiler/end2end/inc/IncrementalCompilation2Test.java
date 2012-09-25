@@ -668,6 +668,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "import 'B.dart';",
             "main() {",
             "  Test();",
+            "  Test.FOO;",
             "  Test = 0;",
             "  0 is Test;",
             "}",
@@ -677,7 +678,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 6, 3, 4),
         errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 7, 3, 4),
-        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 8, 8, 4));
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 8, 3, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 9, 8, 4));
   }
 
   public void test_importConflict_used_notTypeAnnotation_3() throws Exception {

@@ -1197,8 +1197,16 @@ public class Resolver {
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
       }
+      
+      if (ElementKind.of(element) == ElementKind.DUPLICATE) {
+        DuplicateElement duplicateElement = (DuplicateElement) element;
+        List<String> locations = duplicateElement.getLocations();
+        onError(x, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, element.getName(), locations.size(),
+            locations);
+        return null;
+      }
 
-      if (inInitializer && (element != null && element.getKind().equals(ElementKind.FIELD))) {
+      if (inInitializer && ElementKind.of(element) == ElementKind.FIELD) {
         if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
           onError(x, ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT);
         }

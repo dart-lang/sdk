@@ -660,7 +660,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * current "basic block" and set new type.
      */
     private void setVariableElementType(Element element, Type rhs) {
-      if (element instanceof VariableElement) {
+      if (ElementKind.of(element) == ElementKind.VARIABLE) {
         VariableElement variableElement = (VariableElement) element;
         Type newType = Types.makeInferred(rhs);
         blockOldTypes.getFirst().setType(variableElement, newType);
