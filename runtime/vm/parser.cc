@@ -4353,6 +4353,31 @@ void Parser::ParseLibraryDefinition() {
 }
 
 
+void Parser::ParsePartHeader() {
+  intptr_t metadata_pos = TokenPos();
+  SkipMetadata();
+  // TODO(hausner): Once support for old #source directive is removed
+  // from the compiler, add an error message here if we don't find
+  // a 'part of' directive.
+  if (IsLiteral("part")) {
+    ConsumeToken();
+    if (!IsLiteral("of")) {
+      ErrorMsg("'part of' expected");
+    }
+    ConsumeToken();
+    // TODO(hausner): Exact syntax of library name still unclear: identifier,
+    // qualified identifier or even multiple dots allowed? For now we just
+    // accept simple identifiers.
+    // The VM is not required to check that the library name matches the
+    // name of the current library, so we ignore it.
+    ExpectIdentifier("library name expected");
+    ExpectSemicolon();
+  } else {
+    SetPosition(metadata_pos);
+  }
+}
+
+
 void Parser::ParseTopLevel() {
   TRACE_PARSER("ParseTopLevel");
   // Collect the classes found at the top level in this growable array.
@@ -4371,6 +4396,8 @@ void Parser::ParseTopLevel() {
 
   if (is_library_source()) {
     ParseLibraryDefinition();
+  } else if (is_part_source()) {
+    ParsePartHeader();
   }
 
   while (true) {

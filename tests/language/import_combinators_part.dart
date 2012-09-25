@@ -4,6 +4,9 @@
 
 // This file is part of the test import_combinators_test.dart
 
+// VM ignores the library name.
+part of Foo;  /// static warning
+
 lookBehindCurtain() {
   return show;  // show is an imported identifier.
 }

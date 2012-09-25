@@ -171,7 +171,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(vm-team): Please triage this failure.

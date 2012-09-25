@@ -185,6 +185,10 @@ class Parser : public ValueObject {
         (script_.kind() == RawScript::kLibraryTag);
   }
 
+  bool is_part_source() const {
+    return script_.kind() == RawScript::kSourceTag;
+  }
+
   // Parsing library patch script.
   bool is_patch_source() const {
     return script_.kind() == RawScript::kPatchTag;
@@ -296,6 +300,7 @@ class Parser : public ValueObject {
   void ParseLibraryName();
   void ParseLibraryImportExport();
   void ParseLibraryPart();
+  void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
