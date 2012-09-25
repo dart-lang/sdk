@@ -194,8 +194,9 @@ if (tmp.__proto__) {
     // object and copy over the members.
     return '''
 function(collectedClasses) {
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var cls in collectedClasses) {
-    if (Object.prototype.hasOwnProperty.call(collectedClasses, cls)) {
+    if (hasOwnProperty.call(collectedClasses, cls)) {
       var desc = collectedClasses[cls];
       $isolatePropertiesName[cls] = $defineClassName(cls, desc[''], desc);
       if (desc['super'] !== "") $pendingClassesName[cls] = desc['super'];
@@ -207,7 +208,10 @@ function(collectedClasses) {
   $pendingClassesName = {};
   var finishedClasses = {};
   function finishClass(cls) {
-    if (finishedClasses[cls]) return;
+'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
+      hasOwnProperty instead. */'''
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    if (hasOwnProperty.call(finishedClasses, cls)) return;
     finishedClasses[cls] = true;
     var superclass = pendingClasses[cls];
 '''/* The superclass is only false (empty string) for Dart's Object class. */'''
@@ -225,9 +229,6 @@ function(collectedClasses) {
       var newPrototype = new tmp();
       constructor.prototype = newPrototype;
       newPrototype.constructor = constructor;
-'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
-      hosOwnProperty instead. */'''
-      var hasOwnProperty = Object.prototype.hasOwnProperty;
       for (var member in prototype) {
         if (member == '' || member == 'super') continue;
         if (hasOwnProperty.call(prototype, member)) {
