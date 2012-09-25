@@ -15,6 +15,7 @@ main() {
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
+
 ''';
 
     var e = document.query('#svg1');
@@ -26,5 +27,17 @@ main() {
     Expect.equals(40, r.height.baseVal.value);
     Expect.equals(130, r.width.baseVal.value);
     Expect.equals(5, r.rx.baseVal.value);
+  });
+
+  test('trailing newline', () {
+    // Ensures that we handle SVG with trailing newlines.
+    var logo = new SVGElement.svg("""
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+        <path/>
+      </svg>
+      """);
+
+  expect(logo is SVGElement, true);
+
   });
 }
