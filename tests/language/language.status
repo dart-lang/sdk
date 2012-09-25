@@ -102,7 +102,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
-import_combinators_negative_test: Fail
 assert_lexical_scope_test: Fail, OK # test issue 5276
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail

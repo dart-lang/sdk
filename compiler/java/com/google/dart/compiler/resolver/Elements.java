@@ -805,4 +805,8 @@ static FieldElementImplementation fieldFromNode(DartField node,
     Source source = member.getElement().getSourceInfo().getSource();
     return !isCoreLibrarySource(source);
   }
+  
+  public static DuplicateElement createDuplicateElement(Element oldElement, Element newElement) {
+    return new DuplicateElementImplementation(oldElement, newElement);
+  }
 }

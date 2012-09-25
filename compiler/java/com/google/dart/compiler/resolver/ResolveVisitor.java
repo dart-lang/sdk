@@ -45,6 +45,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
             node.getReturnTypeNode(),
             element.getModifiers().isStatic(),
             element.getModifiers().isFactory(),
+            true,
             TypeErrorCode.NO_SUCH_TYPE,
             TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     ClassElement functionElement = typeProvider.getFunctionType().getElement();
@@ -99,7 +100,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       typeErrorCode = TypeErrorCode.NO_SUCH_TYPE;
       wrongNumberErrorCode = TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
     }
-    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(),
+    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), true,
         typeErrorCode, wrongNumberErrorCode);
     VariableElement element =
         Elements.parameterElement(
@@ -127,12 +128,13 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
   }
 
   final Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory,
-                         ErrorCode errorCode, ErrorCode wrongNumberErrorCode) {
+      boolean isAnnotation, ErrorCode errorCode, ErrorCode wrongNumberErrorCode) {
     if (node == null) {
       return getTypeProvider().getDynamicType();
     }
 //    assert node.getType() == null || node.getType() instanceof DynamicType;
-    Type type = getContext().resolveType(node, isStatic, isFactory, errorCode, wrongNumberErrorCode);
+    Type type = getContext().resolveType(node, isStatic, isFactory, isAnnotation, errorCode,
+        wrongNumberErrorCode);
     if (type == null) {
       type = getTypeProvider().getDynamicType();
     }
@@ -140,7 +142,8 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     Element element = type.getElement();
     recordElement(node.getIdentifier(), element);
     if (element != null && element.getMetadata().isDeprecated()) {
-      getContext().onError(node.getIdentifier(), TypeErrorCode.DEPRECATED_ELEMENT, element.getName());
+      getContext().onError(node.getIdentifier(), TypeErrorCode.DEPRECATED_ELEMENT,
+          element.getName());
     }
     return type;
   }

@@ -134,8 +134,9 @@ public class TopLevelElementBuilder {
         String name = element.getName();
         if (libraryImport.isVisible(name)) {
           Element oldElement = scopeForImport.declareElement(name, element);
-          if (shouldReportDuplicateDeclaration(oldElement, element)) {
-            reportDuplicateTopLevelDeclarationImport(listener, library, prefix, oldElement, element);
+          if (oldElement != null) {
+            scopeForImport.declareElement(name,
+                Elements.createDuplicateElement(oldElement, element));
           }
         }
       }
@@ -152,19 +153,6 @@ public class TopLevelElementBuilder {
     }
     // Done.
     library.getElement().getScope().markStateReady();
-  }
-
-  private static void reportDuplicateTopLevelDeclarationImport(DartCompilerListener listener,
-      LibraryUnit library, String prefix, Element oldElement, Element newElement) {
-    String name = newElement.getName();
-    SourceInfo errorLocation = new SourceInfo(library.getSource(), 0, 0);
-    compilationError(listener, errorLocation,
-        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT,
-        name,
-        library.getSource().getUri(),
-        prefix,
-        Elements.getLibraryUnitLocation(oldElement),
-        Elements.getLibraryUnitLocation(newElement));
   }
   
   @VisibleForTesting
@@ -216,29 +204,11 @@ public class TopLevelElementBuilder {
         }
       }
     }
-    if (shouldReportDuplicateDeclaration(oldElement, newElement)) {
+    if (oldElement != null) {
       reportDuplicateDeclaration(listener, oldElement, newElement);
       reportDuplicateDeclaration(listener, newElement, oldElement);
     }
     scope.declareElement(name, newElement);
-  }
-
-  private static boolean shouldReportDuplicateDeclaration(Element oldElement, Element newElement) {
-    if (oldElement == null) {
-      return false;
-    }
-    // Getter/setter can shared same name, but not setter/setter and getter/getter.
-    if (newElement.getModifiers().isAbstractField()
-        && oldElement.getModifiers().isAbstractField()) {
-      if (newElement.getModifiers().isGetter() && !oldElement.getModifiers().isGetter()) {
-        return false;
-      }
-      if (newElement.getModifiers().isSetter() && !oldElement.getModifiers().isSetter()) {
-        return false;
-      }
-    }
-    // yes
-    return true;
   }
   
   /**

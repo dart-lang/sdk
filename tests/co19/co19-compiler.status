@@ -39,12 +39,8 @@ Language/11_Statements/05_For_A01_t07: Fail # TODO(analyzer-team): Please triage
 Language/11_Statements/08_Switch_A07_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/14_Throw_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/acos_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/asin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -177,11 +173,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax 
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error 
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # Issue 5292
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail, OK # invalid directive syntax
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail, OK # invalid directive syntax
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail, OK # invalid directive syntax
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # Issue 5289

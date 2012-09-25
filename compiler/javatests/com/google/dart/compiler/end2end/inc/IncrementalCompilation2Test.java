@@ -595,37 +595,123 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
-   * Test that when same prefix is used to import several libraries, we still report error for
-   * duplicate names.
+   * It is neither an error nor a warning if N is introduced by two or more imports but never
+   * referred to.
    */
-  public void test_samePrefix_severalLibraries_duplicateTopLevelNames() throws Exception {
+  public void test_importConflict_notUsed() throws Exception {
+    prepare_importConflictAB();
     appSource.setContent(
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "library application;",
-            "import 'A.dart' as p;",
-            "import 'B.dart' as p;",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "main() {",
+            "}",
             ""));
+    compile();
+    assertErrors(errors);
+  }
+  
+  public void test_importConflict_used_asTypeAnnotation() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "typedef Test MyTypeDef(Test p);",
+            "Test myFunction(Test p) {",
+            "  Test test;",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE, 5, 24, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE, 5, 9, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE, 6, 17, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE, 6, 1, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE, 7, 3, 4));
+  }
+
+  public void test_importConflict_used_notTypeAnnotation_1() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "class A extends Test {}",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 5, 17, 4));
+  }
+  
+  public void test_importConflict_used_notTypeAnnotation_2() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart';",
+            "import 'B.dart';",
+            "main() {",
+            "  Test();",
+            "  Test = 0;",
+            "  0 is Test;",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 6, 3, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 7, 3, 4),
+        errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 8, 8, 4));
+  }
+
+  public void test_importConflict_used_notTypeAnnotation_3() throws Exception {
+    prepare_importConflictAB();
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart' hide Test;",
+            "import 'B.dart';",
+            "class A extends Test {}",
+            "main() {",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
+  private void prepare_importConflictAB() {
     appSource.setContent(
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "library A;",
-            "var someVar;",
+            "library lib_a;",
+            "class Test {}",
             ""));
     appSource.setContent(
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "library B;",
-            "var someVar;",
+            "library lib_b;",
+            "class Test {}",
             ""));
-    // do compile
-    compile();
-    assertErrors(
-        errors,
-        errEx(APP, ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT, 1, 1, 0));
   }
 
   public void test_reportMissingSource() throws Exception {
@@ -1045,7 +1131,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertTrue(errors.toString().contains("libB.TypeAB"));
     assertTrue(errors.toString().contains("libB.TypeAC"));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
