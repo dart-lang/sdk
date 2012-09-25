@@ -53,45 +53,48 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
   void addLast(E value);
 
   /**
-   * Appends all elements of the [collection] to the end of the list.
-   * Extends the length of the list by the length of [collection].
-   * Throws an [UnsupportedOperationException] if the list is not
+   * Appends all elements of the [collection] to the end of this list.
+   * Extends the length of the list by the number of elements in [collection].
+   * Throws an [UnsupportedOperationException] if this list is not
    * extendable.
    */
   void addAll(Collection<E> collection);
 
   /**
-   * Sorts the list according to the order specified by the comparator.
-   * The order specified by the comparator must be reflexive,
-   * anti-symmetric, and transitive.
+   * Sorts the list according to the order specified by the [Comparator].
    *
-   * The comparator function [compare] must take two arguments [a] and [b]
-   * and return
-   *
-   *   an integer strictly less than 0 if a < b,
-   *   0 if a = b, and
-   *   an integer strictly greater than 0 if a > b.
+   * The default [compare] function assumes that the elements are [Comparable]
+   * and compares them through their [:compareTo:] method.
    */
-  void sort(int compare(E a, E b));
+  void sort(Comparator<E> compare = Comparable.compare);
 
   /**
-   * Returns the first index of [element] in the list. Searches the
-   * list from index [start] to the length of the list. Returns
-   * -1 if [element] is not found.
+   * Returns the first index of [element] in the list.
+   *
+   * Searches the list from index [start] to the length of the list.
+   * The first time an element [:e:] is encountered so that [:e == element:],
+   * the index of [:e:] is returned.
+   * Returns -1 if [element] is not found.
    */
-  int indexOf(E element, [int start]);
+  int indexOf(E element, [int start = 0]);
 
   /**
-   * Returns the last index of [element] in the list. Searches the
-   * list from index [start] (inclusive) to 0. Returns -1 if
-   * [element] is not found.
+   * Returns the last index of [element] in the list.
+   *
+   * Searches the list backwards from index [start] (inclusive) to 0.
+   * The first time an element [:e:] is encountered so that [:e == element:],
+   * the index of [:e:] is returned.
+   * If start is not provided, it defaults to [:this.length - 1:] .
+   * Returns -1 if [element] is not found.
    */
   int lastIndexOf(E element, [int start]);
 
   /**
-   * Removes all elements in the list. The length of the list
-   * becomes zero. Throws an [UnsupportedOperationException] if
-   * the list is not extendable.
+   * Removes all elements in the list.
+   *
+   * The length of the list becomes zero.
+   * Throws an [UnsupportedOperationException], and retains all elements, if the
+   * length of the list cannot be changed.
    */
   void clear();
 
@@ -104,8 +107,8 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
    * Throws an [IllegalArgumentException] if [index] is not an [int].
    * Throws an [IndexOutOfRangeException] if the [index] does not point inside
    * the list.
-   * Throws an [UnsupportedOperationException] if the length of the list cannot
-   * be changed.
+   * Throws an [UnsupportedOperationException], and doesn't remove the element,
+   * if the length of the list cannot be changed.
    */
   E removeAt(int index);
 
