@@ -185,7 +185,6 @@ prefix9_negative_test : Fail # language change 1031
 prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
-pseudo_kw_test: Fail, OK # test issue 5276
 pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
 pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
