@@ -40528,8 +40528,6 @@ abstract class Window implements EventTarget {
 
   void cancelAnimationFrame(int id);
 
-  IDBFactory get indexedDB;
-
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
@@ -41147,8 +41145,6 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
       webkitRequestAnimationFrame(callback);
 
   void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
-
-  IDBFactory get indexedDB => webkitIndexedDB;
 
   // TODO(kasperl): Document these.
   lookupPort(String name) {

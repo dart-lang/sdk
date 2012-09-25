@@ -37649,8 +37649,6 @@ abstract class Window implements EventTarget {
 
   void cancelAnimationFrame(int id);
 
-  IDBFactory get indexedDB;
-
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
