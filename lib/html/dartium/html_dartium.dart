@@ -41173,6 +41173,11 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
+  String createObjectUrl(object) => DOMURL.createObjectURL(object);
+  void revokeObjectUrl(String url) {
+    DOMURL.revokeObjectURL(url);
+  }
+
 
   _WindowEventsImpl get on =>
     new _WindowEventsImpl(this);
