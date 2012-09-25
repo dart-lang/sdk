@@ -1500,7 +1500,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element target = resolveSend(node);
     Element setter = target;
     Element getter = target;
-    String source = node.assignmentOperator.source.stringValue;
+    SourceString operatorName = node.assignmentOperator.source;
+    String source = operatorName.stringValue;
     bool isComplex = source !== '=';
     if (!Elements.isUnresolved(target)
         && target.kind == ElementKind.ABSTRACT_FIELD) {
@@ -1549,13 +1550,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
 
       // Make sure we include the + and - operators if we are using
-      // the ++ and -- ones.
+      // the ++ and -- ones.  Also, if op= form is used, include op itself.
       void registerBinaryOperator(SourceString name) {
         Selector binop = new Selector.binaryOperator(name);
         world.registerDynamicInvocation(binop.name, binop);
       }
       if (source === '++') registerBinaryOperator(const SourceString('+'));
       if (source === '--') registerBinaryOperator(const SourceString('-'));
+      if (source.endsWith('=')) {
+        registerBinaryOperator(Elements.mapToUserOperator(operatorName));
+      }
     }
 
     registerSend(selector, setter);

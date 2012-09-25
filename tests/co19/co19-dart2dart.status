@@ -100,16 +100,6 @@ Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # inherited fro
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # inherited from dart2js
 Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # inherited from dart2js
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Pass
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t01: Fail # BUG: operator * is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t02: Fail # BUG: operator / is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t03: Fail # BUG: operator ~/ is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t04: Fail # BUG: operator % is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t06: Fail # BUG: operator - is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t07: Fail # BUG: operator << is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t08: Fail # BUG: operator >> is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t09: Fail # BUG: operator ^ is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t10: Fail # BUG: operator & is not emitted back
-Language/10_Expressions/16_Assignment/1_Compound_Assignment_A02_t11: Fail # BUG: operator | is not emitted back
 Language/10_Expressions/20_Equality_A03_t02: Pass
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184

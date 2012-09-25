@@ -1655,6 +1655,25 @@ class Elements {
     return new SourceString('operator\$$str');
   }
 
+  static SourceString mapToUserOperator(SourceString op) {
+    String value = op.stringValue;
+
+    if (value === '!=') return const SourceString('==');
+    if (value === '*=') return const SourceString('*');
+    if (value === '/=') return const SourceString('/');
+    if (value === '%=') return const SourceString('%');
+    if (value === '~/=') return const SourceString('~/');
+    if (value === '+=') return const SourceString('+');
+    if (value === '-=') return const SourceString('-');
+    if (value === '<<=') return const SourceString('<<');
+    if (value === '>>=') return const SourceString('>>');
+    if (value === '&=') return const SourceString('&');
+    if (value === '^=') return const SourceString('^');
+    if (value === '|=') return const SourceString('|');
+
+    throw 'Unhandled operator: ${op.slowToString()}';
+  }
+
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
     return (element == coreLibrary.find(const SourceString('Comparable')))
