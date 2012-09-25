@@ -5,6 +5,8 @@
 [ $compiler == dart2js ]
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
+Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # http://dartbug.com/5429
+Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # http://dartbug.com/5429
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
@@ -66,6 +68,10 @@ Language/08_Interfaces/Interfaces_A01_t02: Fail # TODO(ahe): Please triage this 
 Language/08_Interfaces/Interfaces_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
@@ -75,6 +81,13 @@ Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage t
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -122,18 +135,24 @@ Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe)
 Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/operator_subscript_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/dstType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/line_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/TypeError/srcType_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 Language/11_Statements/04_If_A02_t02: Fail, OK # Issue co19 208
 Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail, OK # Issue co19 208
 Language/11_Statements/06_While_A02_t02: Fail, OK # Issue co19 208
-Language/11_Statements/06_While_A03_t03: Fail, OK # Issue co19 208
 
 Language/11_Statements/15_Assert_A04_t04: Fail # dart2js doesn't throw ClosureArgumentMismatchException
 Language/11_Statements/15_Assert_A05_t03: Fail # dart2js doesn't throw ClosureArgumentMismatchException
@@ -219,7 +238,6 @@ Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A07_
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # Compile-time error: error: cannot resolve type Undeclared
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
-Language/10_Expressions/01_Constants_A14_t01: Fail # Parser error: Field 'as' conflict with pseudo-keyword.
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
@@ -349,17 +367,9 @@ Language/08_Interfaces/4_Factories_and_Constructors_A02_t06: Fail, OK # co19 iss
 Language/10_Expressions/03_Numbers_A01_t19: Fail, OK # co19 issue 210
 Language/10_Expressions/03_Numbers_A01_t20: Fail, OK # co19 issue 210
 Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A01_t05: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A01_t06: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A01_t09: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t05: Fail, OK # co19 issue 210
-Language/11_Statements/03_Variable_Declaration_A02_t06: Fail, OK # co19 issue 210
-Language/11_Statements/05_For_A01_t07: Fail, OK # co19 issue 210
 Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
 Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
 Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
@@ -439,8 +449,6 @@ Language/11_Statements/09_Try_A06_t05: Fail, OK # co19 issue 194
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.com/5021
 
 Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 195
-
-Language/07_Classes/07_Classes_A02_t01: Fail, OK # co19 issue 197
 
 Language/03_Overview/2_Privacy_A01_t02: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
@@ -810,7 +818,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # http://dartbug.com/4
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
 Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050

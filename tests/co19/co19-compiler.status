@@ -15,6 +15,11 @@ Language/06_Functions/2_Formal_Parameters_A02_t01: Fail # TODO(analyzer-team): P
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -24,8 +29,25 @@ Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/05_For_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/08_Switch_A07_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Statements/14_Throw_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/11_Statements/14_Throw_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/acos_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/asin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/atan2_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -38,6 +60,9 @@ LibTest/core/Math/random_A01_t01: Fail # TODO(analyzer-team): Please triage this
 LibTest/core/Math/sin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/sqrt_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/tan_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/SendPort/send_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -100,7 +125,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http:
 
 Language/07_Classes/07_Classes_A03_t01: Fail, OK # 'default' is no longer supported
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # the default constructor invokes a non-existent zero argument constructor
-Language/07_Classes/07_Classes_A02_t01: Fail # co19 issue 221
 Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not required to have a body
 Language/07_Classes/07_Classes_A02_t34: Fail # co19 issue 221
 Language/07_Classes/07_Classes_A09_t01: Fail, OK # warning expected if instance member has the same name as a static member
@@ -127,9 +151,6 @@ Language/11_Statements/15_Assert_A05_t03: Fail, OK
 Language/11_Statements/15_Assert_A05_t01: Fail, OK
 Language/11_Statements/15_Assert_A05_t04: Fail, OK
 Language/11_Statements/15_Assert_A05_t05: Fail, OK
-
-# co19 issue 222
-Language/07_Classes/07_Classes_A03_t10: Fail, OK
 
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail, OK # this should be a warning, not an error
@@ -162,7 +183,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error 
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # Issue 5292
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail, OK # invalid directive syntax
 Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail, OK # invalid directive syntax

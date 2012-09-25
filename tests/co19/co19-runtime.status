@@ -24,7 +24,6 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TOD
 Language/06_Functions/2_Formal_Parameters_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/4_External_Functions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A01_t20: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A02_t32: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A02_t34: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -87,6 +86,12 @@ Language/08_Interfaces/4_Factories_and_Constructors_A06_t08: Fail # TODO(vm-team
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t39: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t41: Fail # TODO(vm-team): Please triage this failure.
@@ -139,8 +144,15 @@ Language/10_Expressions/30_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triag
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/03_Variable_Declaration_A02_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/05_For/2_For_in_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/05_For/2_For_in_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/05_For_A01_t07: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/07_Do_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/08_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/08_Switch_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -148,6 +160,7 @@ Language/11_Statements/08_Switch_A06_t01: Fail # TODO(vm-team): Please triage th
 Language/11_Statements/08_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/08_Switch_A06_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/08_Switch_A06_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Switch_A07_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -183,9 +196,13 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(vm-team): Pleas
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -197,6 +214,7 @@ LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please tria
 
 [ $runtime == vm && $checked ]
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
