@@ -409,7 +409,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Check for redirection cycle.
   for (int i = 0; i < visited_factories.Length(); i++) {
     if (visited_factories.At(i) == factory.raw()) {
-      // TODO(regis): Throw or report error?
+      // A redirection cycle is reported as a compile-time error.
       const Script& script = Script::Handle(cls.script());
       ReportError(script, factory.token_pos(),
                   "factory '%s' illegally redirects to itself",
@@ -440,8 +440,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
   if (type.IsMalformed()) {
-    ASSERT(target.IsNull());
-    factory.SetRedirectionTarget(target);
+    ASSERT(factory.RedirectionTarget() == Function::null());
     return;
   }
   const Class& target_class = Class::Handle(type.type_class());
@@ -462,24 +461,28 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   if (target.IsNull()) {
     const String& user_visible_target_name =
         identifier.IsNull() ? target_class_name : target_name;
-    const Script& script = Script::Handle(cls.script());
-    // TODO(regis): Instead of reporting an error, should we replace the type
-    // with a malformed type and compile a throw? We should then also do it
-    // below for incompatible signatures. Wait for spec to stabilize.
-    ReportError(script, factory.token_pos(),
-                "class '%s' has no constructor or factory named '%s'",
-                target_class_name.ToCString(),
-                user_visible_target_name.ToCString());
+    // Replace the type with a malformed type and compile a throw when called.
+    FinalizeMalformedType(Error::Handle(),  // No previous error.
+                          cls, type, kCanonicalize,
+                          "class '%s' has no constructor or factory named '%s'",
+                          target_class_name.ToCString(),
+                          user_visible_target_name.ToCString());
+    factory.SetRedirectionType(type);
+    ASSERT(factory.RedirectionTarget() == Function::null());
+    return;
   }
 
   // Verify that the target is compatible with the redirecting factory.
   if (!target.HasCompatibleParametersWith(factory)) {
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, factory.token_pos(),
-                "constructor '%s' has incompatible parameters with redirecting "
-                "factory '%s'",
-                String::Handle(target.name()).ToCString(),
-                String::Handle(factory.name()).ToCString());
+    FinalizeMalformedType(Error::Handle(),  // No previous error.
+                          cls, type, kCanonicalize,
+                          "constructor '%s' has incompatible parameters with "
+                          "redirecting factory '%s'",
+                          String::Handle(target.name()).ToCString(),
+                          String::Handle(factory.name()).ToCString());
+    factory.SetRedirectionType(type);
+    ASSERT(factory.RedirectionTarget() == Function::null());
+    return;
   }
 
   // Verify that the target is const if the the redirecting factory is const.
@@ -504,16 +507,21 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // of the redirection chain.
   ResolveRedirectingFactoryTarget(target_class, target, visited_factories);
   Type& target_type = Type::Handle(target.RedirectionType());
-  const Function& target_target = Function::Handle(target.RedirectionTarget());
+  Function& target_target = Function::Handle(target.RedirectionTarget());
   if (target_target.IsNull()) {
     ASSERT(target_type.IsMalformed());
   } else {
+    // If the target type refers to type parameters, substitute them with the
+    // type arguments of the redirection type.
     if (!target_type.IsInstantiated()) {
       const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
           type.arguments());
       target_type ^= target_type.InstantiateFrom(type_args);
-      // TODO(regis): Do we need to check bounds?
+      // TODO(regis): Check bounds in checked mode.
       target_type ^= FinalizeType(cls, target_type, kCanonicalize);
+      if (target_type.IsMalformed()) {
+        target_target = Function::null();
+      }
     }
   }
   factory.SetRedirectionType(target_type);

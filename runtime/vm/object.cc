@@ -2975,6 +2975,7 @@ bool Type::IsIdentical(const AbstractType& other,
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
+    ASSERT(IsMalformed() || AbstractTypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
   const Class& cls = Class::Handle(type_class());
@@ -3005,6 +3006,10 @@ RawAbstractType* Type::Canonicalize() const {
     }
     index++;
   }
+  // Canonicalize the type arguments.
+  AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  type_args = type_args.Canonicalize();
+  set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
   if (index == canonical_types_len) {
     const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
@@ -3645,7 +3650,8 @@ void TypeArguments::SetLength(intptr_t value) const {
 
 
 RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
-  if (IsNull() || IsCanonical() || !IsInstantiated()) {
+  if (IsNull() || IsCanonical()) {
+    ASSERT(IsOld());
     return this->raw();
   }
   ObjectStore* object_store = Isolate::Current()->object_store();

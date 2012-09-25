@@ -195,9 +195,6 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   Type& type = Type::ZoneHandle(reader->isolate(), NEW_OBJECT(Type));
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
-  // Set the object tags.
-  type.set_tags(tags);
-
   // Set all non object fields.
   type.set_token_pos(reader->ReadIntptrValue());
   type.set_type_state(reader->Read<int8_t>());
@@ -211,9 +208,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && type.IsCanonical()) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     type ^= type.Canonicalize();
   }
+
+  // Set the object tags (This is done after 'Canonicalize', which
+  // does not canonicalize a type already marked as canonical).
+  type.set_tags(tags);
+
   return type.raw();
 }
 
@@ -332,15 +334,17 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
-  // Set the object tags (This is done after setting the object fields
-  // because 'SetTypeAt' has an assertion to check if the object is not
-  // already canonical).
-  type_arguments.set_tags(tags);
-
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && type_arguments.IsCanonical()) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     type_arguments ^= type_arguments.Canonicalize();
   }
+
+  // Set the object tags (This is done after setting the object fields
+  // because 'SetTypeAt' has an assertion to check if the object is not
+  // already canonical. Also, this is done after 'Canonicalize', which
+  // does not canonicalize a type already marked as canonical).
+  type_arguments.set_tags(tags);
+
   return type_arguments.raw();
 }
 
