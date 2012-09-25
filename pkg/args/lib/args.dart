@@ -179,6 +179,11 @@
  *
  *           [arm]       ARM Holding 32-bit chip
  *           [ia32]      Intel x86
+ * 
+ * To assist the formatting of the usage help, single line help text will
+ * be followed by a single new line. Options with multi-line help text
+ * will be followed by two new lines. This provides spatial diversity between
+ * options.
  *
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
