@@ -7,7 +7,7 @@ main() {
 
   insertTestDiv() {
     var element = new Element.tag('div');
-    element.innerHTML = @'''
+    element.innerHTML = r'''
     A large block of text should go here. Click this
     block of text multiple times to see each line
     highlight with every click of the mouse button.

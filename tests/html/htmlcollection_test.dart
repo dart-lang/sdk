@@ -7,7 +7,7 @@
 main() {
   Element insertTestDiv() {
     Element element = new Element.tag('div');
-    element.innerHTML = @"""
+    element.innerHTML = r"""
 <div id='allChecked'>
 <input type="checkbox" name="c1" value="1" checked="yes">
 <input type="checkbox" name="c2" value="2" checked="yes">
