@@ -19,7 +19,7 @@ class StatusExpressionTest {
 
   static void test1() {
     Tokenizer tokenizer = new Tokenizer(
-        @" $mode == debug && ($arch == chromium || $arch == dartc) ");
+        r" $mode == debug && ($arch == chromium || $arch == dartc) ");
     tokenizer.tokenize();
     Expect.listEquals(tokenizer.tokens,
         ["\$", "mode", "==", "debug", "&&", "(", "\$", "arch", "==",
@@ -28,7 +28,7 @@ class StatusExpressionTest {
         new ExpressionParser(new Scanner(tokenizer.tokens));
     BooleanExpression ast = parser.parseBooleanExpression();
     Expect.equals(
-        @"(($mode == debug) && (($arch == chromium) || ($arch == dartc)))",
+        r"(($mode == debug) && (($arch == chromium) || ($arch == dartc)))",
         ast.toString());
     // Test BooleanExpression.evaluate().
     Map environment = new Map();
@@ -47,7 +47,7 @@ class StatusExpressionTest {
 
   static void test2() {
     Tokenizer tokenizer = new Tokenizer(
-        @"($arch == dartc || $arch == chromium) && $mode == release");
+        r"($arch == dartc || $arch == chromium) && $mode == release");
     tokenizer.tokenize();
     Expect.listEquals(
         tokenizer.tokens,
@@ -57,7 +57,7 @@ class StatusExpressionTest {
 
   static void test3() {
     var thrown;
-    String input = @" $mode == debug && ($arch==chromium || *$arch == dartc)";
+    String input = r" $mode == debug && ($arch==chromium || *$arch == dartc)";
     Tokenizer tokenizer = new Tokenizer(input);
     try {
       tokenizer.tokenize();
@@ -70,7 +70,7 @@ class StatusExpressionTest {
   static void test4() {
     var thrown;
     String input =
-        @"($arch == (-dartc || $arch == chromium) && $mode == release";
+        r"($arch == (-dartc || $arch == chromium) && $mode == release";
     Tokenizer tokenizer = new Tokenizer(input);
     try {
       tokenizer.tokenize();
@@ -82,15 +82,15 @@ class StatusExpressionTest {
 
   static void test5() {
     Tokenizer tokenizer = new Tokenizer(
-        @"Skip , Pass if $arch == dartc, Fail || Timeout if "
-        @"$arch == chromium && $mode == release");
+        r"Skip , Pass if $arch == dartc, Fail || Timeout if "
+        r"$arch == chromium && $mode == release");
     tokenizer.tokenize();
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
     SetExpression ast = parser.parseSetExpression();
     Expect.equals(
-        @"((skip || (pass if ($arch == dartc))) || ((fail || timeout) "
-        @"if (($arch == chromium) && ($mode == release))))",
+        r"((skip || (pass if ($arch == dartc))) || ((fail || timeout) "
+        r"if (($arch == chromium) && ($mode == release))))",
         ast.toString());
 
     // Test SetExpression.evaluate().
@@ -116,13 +116,13 @@ class StatusExpressionTest {
 
   static void test6() {
     Tokenizer tokenizer = new Tokenizer(
-      @"  $arch == ia32 && $checked || $mode == release    ");
+      r"  $arch == ia32 && $checked || $mode == release    ");
     tokenizer.tokenize();
     ExpressionParser parser =
         new ExpressionParser(new Scanner(tokenizer.tokens));
     BooleanExpression ast = parser.parseBooleanExpression();
     Expect.equals(
-        @"((($arch == ia32) && (bool $checked)) || ($mode == release))",
+        r"((($arch == ia32) && (bool $checked)) || ($mode == release))",
         ast.toString());
 
     // Test BooleanExpression.evaluate().

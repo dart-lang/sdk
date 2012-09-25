@@ -56,7 +56,7 @@ void testBaseFunctions() {
 
   // Test the special path cleaning operations on the Windows platform.
   if (Platform.operatingSystem == 'windows') {
-    testGetters(new Path.fromNative(@"c:\foo\bar\fisk.hest"),
+    testGetters(new Path.fromNative(r"c:\foo\bar\fisk.hest"),
                 ['/c:/foo/bar', 'fisk.hest', 'fisk', 'hest'],
                 'absolute canonical');
     testGetters(new Path.fromNative("\\foo\\bar\\"),
@@ -65,21 +65,21 @@ void testBaseFunctions() {
     testGetters(new Path.fromNative("\\foo\\bar\\hest"),
                 ['/foo/bar', 'hest', 'hest', ''],
                 'absolute canonical');
-    testGetters(new Path.fromNative(@"foo/bar\hest/.fisk"),
+    testGetters(new Path.fromNative(r"foo/bar\hest/.fisk"),
                 ['foo/bar/hest', '.fisk', '', 'fisk'],
                 'canonical');
-    testGetters(new Path.fromNative(@"foo//bar\\hest/\/.fisk."),
+    testGetters(new Path.fromNative(r"foo//bar\\hest/\/.fisk."),
                 ['foo//bar//hest', '.fisk.', '.fisk', ''],
                 '');
   } else {
     // Make sure that backslashes are uninterpreted on other platforms.
-    testGetters(new Path.fromNative(@"/foo\bar/bif/fisk.hest"),
+    testGetters(new Path.fromNative(r"/foo\bar/bif/fisk.hest"),
                 [@'/foo\bar/bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute canonical');
-    testGetters(new Path.fromNative(@"//foo\bar///bif////fisk.hest"),
+    testGetters(new Path.fromNative(r"//foo\bar///bif////fisk.hest"),
                 [@'//foo\bar///bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute');
-    testGetters(new Path.fromNative(@"/foo\ bar/bif/gule\ fisk.hest"),
+    testGetters(new Path.fromNative(r"/foo\ bar/bif/gule\ fisk.hest"),
                 [@'/foo\ bar/bif', @'gule\ fisk.hest', @'gule\ fisk', 'hest'],
                 'absolute canonical');
   }

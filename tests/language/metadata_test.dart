@@ -31,7 +31,7 @@ const extern = const Tag("external");
     return x;
   }
 
-  @Tag(@"timewarp")
+  @Tag(r"timewarp")
   List<int> getNextWeeksLottoNumbers() => [1, 2, 3, 4, 5, 6];
 }
 
@@ -43,5 +43,5 @@ const extern = const Tag("external");
     // Do something.
   }
 
-  @meta1 var s = @'This is a raw \\ string.';
+  @meta1 var s = r'This is a raw \\ string.';
 }

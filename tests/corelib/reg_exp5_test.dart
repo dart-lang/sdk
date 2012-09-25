@@ -12,12 +12,12 @@ main() {
       Expect.fail("Expected: NullPointerException got: ${e}");
     }
   }
-  Expect.isFalse(new RegExp(@"^\w+$").hasMatch(str));
-  Match fm = new RegExp(@"^\w+$").firstMatch(str);
+  Expect.isFalse(new RegExp(r"^\w+$").hasMatch(str));
+  Match fm = new RegExp(r"^\w+$").firstMatch(str);
   Expect.equals(null, fm);
 
-  Iterable<Match> am = new RegExp(@"^\w+$").allMatches(str);
+  Iterable<Match> am = new RegExp(r"^\w+$").allMatches(str);
   Expect.isFalse(am.iterator().hasNext());
 
-  Expect.equals(null, new RegExp(@"^\w+$").stringMatch(str));
+  Expect.equals(null, new RegExp(r"^\w+$").stringMatch(str));
 }
