@@ -31518,16 +31518,13 @@ abstract class ShadowRoot implements DocumentFragment {
   Node clone(bool deep);
 
   /** @domName ShadowRoot.getElementById */
-  Element getElementById(String elementId);
+  Element $dom_getElementById(String elementId);
 
   /** @domName ShadowRoot.getElementsByClassName */
-  NodeList getElementsByClassName(String className);
+  NodeList $dom_getElementsByClassName(String className);
 
   /** @domName ShadowRoot.getElementsByTagName */
-  NodeList getElementsByTagName(String tagName);
-
-  /** @domName ShadowRoot.getElementsByTagNameNS */
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+  NodeList $dom_getElementsByTagName(String tagName);
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
@@ -31545,13 +31542,11 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   _NodeImpl clone(bool deep) native "cloneNode";
 
-  _ElementImpl getElementById(String elementId) native;
+  _ElementImpl $dom_getElementById(String elementId) native "getElementById";
 
-  _NodeListImpl getElementsByClassName(String className) native;
+  _NodeListImpl $dom_getElementsByClassName(String className) native "getElementsByClassName";
 
-  _NodeListImpl getElementsByTagName(String tagName) native;
-
-  _NodeListImpl getElementsByTagNameNS(String namespaceURI, String localName) native;
+  _NodeListImpl $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
   _DOMSelectionImpl getSelection() native;
 }

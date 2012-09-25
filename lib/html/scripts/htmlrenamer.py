@@ -81,6 +81,9 @@ _private_html_members = set([
   "Node.nodeType",
   'Node.removeChild',
   'Node.replaceChild',
+  'ShadowRoot.getElementById',
+  'ShadowRoot.getElementsByClassName',
+  'ShadowRoot.getElementsByTagName',
   'Storage.length',
   'Storage.clear',
   'Storage.getItem',
@@ -265,6 +268,7 @@ _removed_html_members = set([
     "Node.get:nodeName",
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
+    'ShadowRoot.getElementsByTagNameNS',
     "IFrameElement.get:contentDocument",
     "Window.get:frameElement",
     ])
