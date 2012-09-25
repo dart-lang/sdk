@@ -8401,6 +8401,8 @@ class _ConsoleImpl
 /// @domName HTMLContentElement
 abstract class ContentElement implements Element {
 
+  factory ContentElement() => _Elements.createContentElement();
+
   /** @domName HTMLContentElement.select */
   String select;
 }
@@ -39252,6 +39254,11 @@ class _Elements {
     _CanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
+    return _e;
+  }
+
+  static ContentElement createContentElement() {
+    _ContentElementImpl _e = _document.$dom_createElement("content");
     return _e;
   }
 
