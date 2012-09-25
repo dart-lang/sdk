@@ -1166,10 +1166,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           FunctionElement target = elements[call];
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
-          sourceElementStack.add(target);
           inlineSuperOrRedirect(target, selector, arguments, constructors,
                                 fieldValues);
-          sourceElementStack.removeLast();
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1198,13 +1196,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (target === null) {
           compiler.internalError("no default constructor available");
         }
-        sourceElementStack.add(target.implementation);
         inlineSuperOrRedirect(target.implementation,
                               selector,
                               const EmptyLink<Node>(),
                               constructors,
                               fieldValues);
-        sourceElementStack.removeLast();
       }
     }
   }
@@ -2301,8 +2297,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.isTypeVariable()) {
-        // TODO(karlklose): We currently answer true to any is check
-        // involving a type variable -- both is T and is !T -- until
+        // TODO(karlklose): We currently answer true to any is check 
+        // involving a type variable -- both is T and is !T -- until 
         // we have a proper implementation of reified generics.
         stack.add(graph.addConstantBool(true, constantSystem));
       } else {
