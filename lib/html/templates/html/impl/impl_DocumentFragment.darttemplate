@@ -131,7 +131,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   }
   Set<String> _read() => new Set<String>();
 
-  bool get isFrozen => true;
+  bool get frozen => true;
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {

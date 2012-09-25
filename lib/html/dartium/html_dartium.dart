@@ -11758,7 +11758,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   }
   Set<String> _read() => new Set<String>();
 
-  bool get isFrozen => true;
+  bool get frozen => true;
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
@@ -12439,7 +12439,7 @@ abstract class CSSClassSet implements Set<String> {
    * Returns [:true:] classes cannot be added or removed from this
    * [:CSSClassSet:].
    */
-  bool get isFrozen;
+  bool get frozen;
 }
 
 /// @domName Element
@@ -13382,7 +13382,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen => false;
+  bool get frozen => false;
 
   int get length =>_read().length;
 

@@ -493,7 +493,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen => false;
+  bool get frozen => false;
 
   int get length =>_read().length;
 
