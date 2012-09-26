@@ -133,7 +133,7 @@ public enum ResolverErrorCode implements ErrorCode {
   INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
-  INVALID_OVERRIDE_METADATA(ErrorSeverity.INFO, "Method marked with @override, but does not override any superclass element"),
+  INVALID_OVERRIDE_METADATA(ErrorSeverity.WARNING, "Method marked with @override, but does not override any superclass element"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),

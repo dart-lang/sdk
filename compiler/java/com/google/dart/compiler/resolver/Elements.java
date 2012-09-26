@@ -477,6 +477,14 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return names;
   }
+  
+  /**
+   * Prepares title for {@link TypeErrorCode#DEPRECATED_ELEMENT}.
+   */
+  public static String getDeprecatedElementTitle(Element element) {
+    String title = getUserElementTitle(element);
+    return StringUtils.capitalize(title);
+  }
 
   /**
    * @return the user readable title of the given {@link Element}, a little different than

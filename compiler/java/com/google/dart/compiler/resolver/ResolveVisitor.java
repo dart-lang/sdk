@@ -143,7 +143,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     recordElement(node.getIdentifier(), element);
     if (element != null && element.getMetadata().isDeprecated()) {
       getContext().onError(node.getIdentifier(), TypeErrorCode.DEPRECATED_ELEMENT,
-          element.getName());
+         Elements.getDeprecatedElementTitle(element));
     }
     return type;
   }

@@ -19,7 +19,7 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),
-  DEPRECATED_ELEMENT("'%s' is deprecated"),
+  DEPRECATED_ELEMENT(ErrorSeverity.INFO, "%s is deprecated"),
   DEFAULT_CONSTRUCTOR_TYPES(
       "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
   DUPLICATE_NAMED_ARGUMENT("Named parameter argument already provided as positional argument"),

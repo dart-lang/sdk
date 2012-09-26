@@ -2291,7 +2291,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       // @deprecated
       if (element != null && element.getMetadata().isDeprecated()) {
-        onError(node.getName(), TypeErrorCode.DEPRECATED_ELEMENT, name);
+        onError(node.getName(), TypeErrorCode.DEPRECATED_ELEMENT,
+            Elements.getDeprecatedElementTitle(element));
       }
       // analyze Element
       switch (element.getKind()) {
@@ -2650,7 +2651,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private void checkDeprecated(HasSourceInfo nameNode, Element element) {
       if (element != null && element.getMetadata().isDeprecated()) {
-        onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT, element);
+        onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT,
+            Elements.getDeprecatedElementTitle(element));
       }
     }
 
