@@ -8,11 +8,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     _addMeasurementFrameCallback(callback);
   }
 
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
-      webkitRequestAnimationFrame(callback);
-
-  void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
-
   // TODO(kasperl): Document these.
   lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);

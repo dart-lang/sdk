@@ -25,6 +25,8 @@ _js_custom_members = set([
     'Window.top',
     'Window.location',
     'Window.open',
+    'Window.webkitCancelAnimationFrame',
+    'Window.webkitRequestAnimationFrame',
     ])
 
 # This map controls merging of interfaces in dart:html library.
