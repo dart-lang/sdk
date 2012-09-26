@@ -1587,9 +1587,9 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
   } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
   } else {
     __ CompareRegisters(left.reg(), right.reg());
   }
@@ -1620,9 +1620,9 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     return;
   }
   if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
+    compiler->EmitEqualityRegConstCompare(right.reg(), left.constant());
   } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    compiler->EmitEqualityRegConstCompare(left.reg(), right.constant());
   } else {
     __ CompareRegisters(left.reg(), right.reg());
   }

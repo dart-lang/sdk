@@ -1125,6 +1125,16 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 }
 
 
+void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
+                                                    const Object& obj) {
+  if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
+    __ testl(reg, reg);
+  } else {
+    __ CompareObject(reg, obj);
+  }
+}
+
+
 void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
                                              Register reg,
                                              Register temp,

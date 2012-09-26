@@ -26,6 +26,18 @@ main() {
 
     Expect.isFalse(test7());
     Expect.equals(2, test8());
+
+    Expect.isFalse(test9(2));
+    Expect.isFalse(test9r(2));
+    Expect.isTrue(test9(0));
+    Expect.isTrue(test9r(0));
+
+    Expect.isFalse(test10(0));
+    Expect.isFalse(test10r(0));
+    Expect.isTrue(test10(2));
+    Expect.isTrue(test10r(2));
+
+    test11(i);
   }
 }
 
@@ -89,5 +101,36 @@ test8() {
     return 1;
   } else {
     return 2;
+  }
+}
+
+
+test9(a) {
+  return a === 0;
+}
+
+
+test9r(a) {
+  return 0 === a;
+}
+
+
+test10(a) {
+  return a !== 0;
+}
+
+test10r(a) {
+  return 0 !== a;
+}
+
+test11(a) {
+  if (a === 0) {
+    Expect.isTrue(0 === a);
+    Expect.isFalse(a !== 0);
+    Expect.isFalse(0 !== a);
+  } else {
+    Expect.isFalse(0 === a);
+    Expect.isTrue(a !== 0);
+    Expect.isTrue(0 !== a);
   }
 }
