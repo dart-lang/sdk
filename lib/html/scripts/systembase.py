@@ -9,10 +9,6 @@ Dart APIs from the IDL database."""
 import os
 from generator import *
 
-def MassagePath(path):
-  # The most robust way to emit path separators is to use / always.
-  return path.replace('\\', '/')
-
 class System(object):
   """A System generates all the files for one implementation.
 
@@ -20,18 +16,13 @@ class System(object):
   The life-cycle of a System is:
   - construction (__init__)
   - (InterfaceGenerator | ProcessCallback)*  # for each IDL interface
-  - GenerateLibraries
-  - Finish
   """
 
   def __init__(self, options):
     self._templates = options.templates
     self._database = options.database
-    self._emitters = options.emitters
     self._type_registry = options.type_registry
     self._renamer = options.renamer
-    self._output_dir = options.output_dir
-    self._auxiliary_dir = options.auxiliary_dir
 
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
@@ -41,34 +32,8 @@ class System(object):
     """Processes an interface that is a callback function."""
     pass
 
-  def GenerateLibraries(self, lib_dir):
-    pass
-
-  def Finish(self):
-    pass
-
 
   # Helper methods used by several systems.
-
-  def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
-                       **template_args):
-    """Generates a lib file from a template and a list of files.
-
-    Additional keyword arguments are passed to the template.
-    Typically called from self.GenerateLibraries.
-    """
-    # Load template.
-    template = self._templates.Load(lib_template)
-    # Generate the .lib file.
-    lib_file_contents = self._emitters.FileEmitter(lib_file_path)
-
-    # Emit the list of #source directives.
-    list_emitter = lib_file_contents.Emit(template, **template_args)
-    lib_file_dir = os.path.dirname(lib_file_path)
-    for path in sorted(file_paths):
-      relpath = os.path.relpath(path, lib_file_dir)
-      list_emitter.Emit("#source('$PATH');\n", PATH=MassagePath(relpath))
-
 
   def _BaseDefines(self, interface):
     """Returns a set of names (strings) for members defined in a base class.
@@ -211,15 +176,11 @@ class BaseGenerator(object):
 
 
 class GeneratorOptions(object):
-  def __init__(self, templates, database, emitters, type_registry, renamer,
-               output_dir, auxiliary_dir):
+  def __init__(self, templates, database, type_registry, renamer):
     self.templates = templates
     self.database = database
-    self.emitters = emitters
     self.type_registry = type_registry
     self.renamer = renamer
-    self.output_dir = output_dir
-    self.auxiliary_dir = auxiliary_dir
 
 
 def IsReadOnly(attribute):

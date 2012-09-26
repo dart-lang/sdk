@@ -438,8 +438,9 @@ class HtmlSystemShared(object):
 
 
 class HtmlInterfacesSystem(System):
-  def __init__(self, options, backend):
+  def __init__(self, options, dart_library_generator, backend):
     super(HtmlInterfacesSystem, self).__init__(options)
+    self._dart_library_generator = dart_library_generator
     self._backend = backend
     self._shared = HtmlSystemShared(options)
     self._dart_file_paths = []
@@ -458,13 +459,8 @@ class HtmlInterfacesSystem(System):
               PARAMS=info.ParametersImplementationDeclaration(DartType))
     self._backend.ProcessCallback(interface, info)
 
-  def GenerateLibraries(self):
-    self._backend.GenerateLibraries(self._dart_file_paths)
-
   def _CreateEmitter(self, filename):
-    path = os.path.join(self._output_dir, 'dart', filename)
-    self._dart_file_paths.append(path)
-    return self._emitters.FileEmitter(path)
+    return self._dart_library_generator.CreateFileEmitter(filename)
 
 # ------------------------------------------------------------------------------
 
@@ -1231,13 +1227,30 @@ class HtmlDart2JSSystem(System):
   def ImplementationGenerator(self, interface):
     return HtmlDart2JSClassGenerator(self, interface)
 
-  def GenerateLibraries(self, dart_files):
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-    self._GenerateLibFile(
-        'html_dart2js.darttemplate',
-        os.path.join(self._output_dir, 'html_dart2js.dart'),
-        dart_files,
-        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
 
-  def Finish(self):
-    pass
+class DartLibraryEmitter():
+  def __init__(self, emitters, template, dart_sources_dir):
+    self._emitters = emitters
+    self._template = template
+    self._dart_sources_dir = dart_sources_dir
+    self._dart_sources_list = []
+
+  def CreateFileEmitter(self, filename):
+    path = os.path.join(self._dart_sources_dir, filename)
+    self._dart_sources_list.append(path)
+    return self._emitters.FileEmitter(path)
+
+  def EmitLibrary(self, library_file_path, auxiliary_dir):
+    def massage_path(path):
+      # The most robust way to emit path separators is to use / always.
+      return path.replace('\\', '/')
+
+    library_emitter = self._emitters.FileEmitter(library_file_path)
+    library_file_dir = os.path.dirname(library_file_path)
+    auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
+    imports_emitter = library_emitter.Emit(
+        self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
+    for path in sorted(self._dart_sources_list):
+      relpath = os.path.relpath(path, library_file_dir)
+      imports_emitter.Emit(
+          "#source('$PATH');\n", PATH=massage_path(relpath))
