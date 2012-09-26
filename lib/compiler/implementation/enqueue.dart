@@ -264,7 +264,7 @@ class Enqueuer {
           // assignments to fields.
           // TODO(ngeoffray): This should really move to the backend.
           cls.localMembers.forEach((Element member) {
-            if (!member.isInstanceMember() && !member.isField()) return;
+            if (!member.isInstanceMember() || !member.isField()) return;
             DartType type = member.computeType(compiler);
             registerIsCheck(type);
             SourceString helper = compiler.backend.getCheckedModeHelper(type);

@@ -672,6 +672,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     generateIsTestsOn(classElement, (Element other) {
       String code;
+      if (other.isObject(compiler)) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = 'function() { return true; }';
       } else {
