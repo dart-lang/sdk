@@ -90,7 +90,7 @@ class Compiler extends leg.Compiler {
         throw new leg.CompilerCancelledException("$exception");
       }
     }
-    SourceFile sourceFile = new SourceFile(uri.toString(), text);
+    SourceFile sourceFile = new SourceFile(translated.toString(), text);
     return new leg.Script(uri, sourceFile);
   }
 
