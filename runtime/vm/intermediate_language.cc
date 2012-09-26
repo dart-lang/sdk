@@ -106,7 +106,9 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
          ((immutable_ == other_load->immutable_) &&
-          (ResultCid() == other_load->ResultCid())));
+          ((ResultCid() == other_load->ResultCid()) ||
+           (ResultCid() == kDynamicCid) ||
+           (other_load->ResultCid() == kDynamicCid))));
   return offset_in_bytes() == other_load->offset_in_bytes();
 }
 
