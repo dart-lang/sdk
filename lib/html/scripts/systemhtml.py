@@ -23,10 +23,9 @@ _js_custom_members = set([
     'MouseEvent.offsetY',
     'TableElement.createTBody',
     'Window.document',
-    'Window.indexedDB',
+    'Window.top',
     'Window.location',
     'Window.open',
-    'Window.top',
     'Window.webkitCancelAnimationFrame',
     'Window.webkitRequestAnimationFrame',
     ])

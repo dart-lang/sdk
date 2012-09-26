@@ -832,11 +832,14 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.playbackState */
   abstract int get playbackState;
 
-  /** @domName AudioBufferSourceNode.start */
-  void start(num when, [num grainOffset, num grainDuration]);
+  /** @domName AudioBufferSourceNode.noteGrainOn */
+  void noteGrainOn(num when, num grainOffset, num grainDuration);
 
-  /** @domName AudioBufferSourceNode.stop */
-  void stop(num when);
+  /** @domName AudioBufferSourceNode.noteOff */
+  void noteOff(num when);
+
+  /** @domName AudioBufferSourceNode.noteOn */
+  void noteOn(num when);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -864,23 +867,11 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
-  void start(when, [grainOffset, grainDuration]) {
-    if ((when is num || when === null) && !?grainOffset && !?grainDuration) {
-      _start_1(when);
-      return;
-    }
-    if ((when is num || when === null) && (grainOffset is num || grainOffset === null) && (grainDuration is num || grainDuration === null)) {
-      _start_2(when, grainOffset, grainDuration);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
+  void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
 
-  void _start_1(when) native "AudioBufferSourceNode_start_1_Callback";
+  void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
 
-  void _start_2(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_2_Callback";
-
-  void stop(num when) native "AudioBufferSourceNode_stop_Callback";
+  void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1878,6 +1869,9 @@ abstract class Blob {
 
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]);
+
+  /** @domName Blob.webkitSlice */
+  Blob webkitSlice([int start, int end, String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1911,6 +1905,27 @@ class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
   Blob _slice_3(start) native "Blob_slice_3_Callback";
 
   Blob _slice_4() native "Blob_slice_4_Callback";
+
+  Blob webkitSlice([start, end, contentType]) {
+    if (?contentType) {
+      return _webkitSlice_1(start, end, contentType);
+    }
+    if (?end) {
+      return _webkitSlice_2(start, end);
+    }
+    if (?start) {
+      return _webkitSlice_3(start);
+    }
+    return _webkitSlice_4();
+  }
+
+  Blob _webkitSlice_1(start, end, contentType) native "Blob_webkitSlice_1_Callback";
+
+  Blob _webkitSlice_2(start, end) native "Blob_webkitSlice_2_Callback";
+
+  Blob _webkitSlice_3(start) native "Blob_webkitSlice_3_Callback";
+
+  Blob _webkitSlice_4() native "Blob_webkitSlice_4_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8071,9 +8086,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.lineCap */
   String lineCap;
 
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
-  num lineDashOffset;
-
   /** @domName CanvasRenderingContext2D.lineJoin */
   String lineJoin;
 
@@ -8170,9 +8182,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.getImageData */
   ImageData getImageData(num sx, num sy, num sw, num sh);
 
-  /** @domName CanvasRenderingContext2D.getLineDash */
-  List<num> getLineDash();
-
   /** @domName CanvasRenderingContext2D.isPointInPath */
   bool isPointInPath(num x, num y);
 
@@ -8217,9 +8226,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
-
-  /** @domName CanvasRenderingContext2D.setLineDash */
-  void setLineDash(List<num> dash);
 
   /** @domName CanvasRenderingContext2D.setLineJoin */
   void setLineJoin(String join);
@@ -8287,10 +8293,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
 
   void set lineCap(String) native "CanvasRenderingContext2D_lineCap_Setter";
-
-  num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
-
-  void set lineDashOffset(num) native "CanvasRenderingContext2D_lineDashOffset_Setter";
 
   String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
@@ -8530,8 +8532,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
 
-  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
-
   bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
 
   void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
@@ -8613,8 +8613,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setFillColor_6_Callback";
 
   void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
-
-  void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
 
   void setLineJoin(String join) native "CanvasRenderingContext2D_setLineJoin_Callback";
 
@@ -8794,9 +8792,6 @@ abstract class CharacterData implements Node {
   /** @domName CharacterData.insertData */
   void insertData(int offset, String data);
 
-  /** @domName CharacterData.remove */
-  void remove();
-
   /** @domName CharacterData.replaceData */
   void replaceData(int offset, int length, String data);
 
@@ -8822,8 +8817,6 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
   void deleteData(int offset, int length) native "CharacterData_deleteData_Callback";
 
   void insertData(int offset, String data) native "CharacterData_insertData_Callback";
-
-  void remove() native "CharacterData_remove_Callback";
 
   void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
 
@@ -10991,6 +10984,9 @@ abstract class DedicatedWorkerContext implements WorkerContext {
 
   /** @domName DedicatedWorkerContext.postMessage */
   void postMessage(Object message, [List messagePorts]);
+
+  /** @domName DedicatedWorkerContext.webkitPostMessage */
+  void webkitPostMessage(Object message, [List transferList]);
 }
 
 abstract class DedicatedWorkerContextEvents implements WorkerContextEvents {
@@ -11015,6 +11011,8 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
     new _DedicatedWorkerContextEventsImpl(this);
 
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
+
+  void webkitPostMessage(Object message, [List transferList]) native "DedicatedWorkerContext_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12291,9 +12289,6 @@ abstract class DocumentType implements Node {
 
   /** @domName DocumentType.systemId */
   abstract String get systemId;
-
-  /** @domName DocumentType.remove */
-  void remove();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12314,8 +12309,6 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
   String get publicId native "DocumentType_publicId_Getter";
 
   String get systemId native "DocumentType_systemId_Getter";
-
-  void remove() native "DocumentType_remove_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12648,6 +12641,9 @@ abstract class Element implements Node, NodeSelector {
   /** @domName Element.tagName */
   abstract String get tagName;
 
+  /** @domName Element.webkitRegionOverset */
+  abstract String get webkitRegionOverset;
+
   /** @domName Element.blur */
   void blur();
 
@@ -12677,9 +12673,6 @@ abstract class Element implements Node, NodeSelector {
 
   /** @domName Element.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
-
-  /** @domName Element.remove */
-  void remove();
 
   /** @domName Element.removeAttribute */
   void $dom_removeAttribute(String name);
@@ -13715,6 +13708,8 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   String get tagName native "Element_tagName_Getter";
 
+  String get webkitRegionOverset native "Element_webkitRegionOverset_Getter";
+
   void blur() native "Element_blur_Callback";
 
   void focus() native "Element_focus_Callback";
@@ -13734,8 +13729,6 @@ class _ElementImpl extends _NodeImpl implements Element {
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
   NodeList $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
-
-  void remove() native "Element_remove_Callback";
 
   void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
 
@@ -17341,7 +17334,7 @@ abstract class IDBCursor {
   IDBRequest delete();
 
   /** @domName IDBCursor.update */
-  IDBRequest update(Object value);
+  IDBRequest update(/*SerializedScriptValue*/ value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17375,7 +17368,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   IDBRequest delete() native "IDBCursor_delete_Callback";
 
-  IDBRequest update(Object value) native "IDBCursor_update_Callback";
+  IDBRequest update(value) native "IDBCursor_update_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18001,7 +17994,7 @@ abstract class IDBObjectStore {
   abstract IDBTransaction get transaction;
 
   /** @domName IDBObjectStore.add */
-  IDBRequest add(Object value, [/*IDBKey*/ key]);
+  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 
   /** @domName IDBObjectStore.clear */
   IDBRequest clear();
@@ -18028,7 +18021,7 @@ abstract class IDBObjectStore {
   IDBRequest openCursor([key_OR_range, direction]);
 
   /** @domName IDBObjectStore.put */
-  IDBRequest put(Object value, [/*IDBKey*/ key]);
+  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21938,6 +21931,9 @@ abstract class MessagePort implements EventTarget {
 
   /** @domName MessagePort.start */
   void start();
+
+  /** @domName MessagePort.webkitPostMessage */
+  void webkitPostMessage(Object message, [List transfer]);
 }
 
 abstract class MessagePortEvents implements Events {
@@ -21972,6 +21968,8 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
   void start() native "MessagePort_start_Callback";
+
+  void webkitPostMessage(Object message, [List transfer]) native "MessagePort_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24088,14 +24086,14 @@ abstract class Oscillator implements AudioSourceNode {
   /** @domName Oscillator.type */
   int type;
 
+  /** @domName Oscillator.noteOff */
+  void noteOff(num when);
+
+  /** @domName Oscillator.noteOn */
+  void noteOn(num when);
+
   /** @domName Oscillator.setWaveTable */
   void setWaveTable(WaveTable waveTable);
-
-  /** @domName Oscillator.start */
-  void start(num when);
-
-  /** @domName Oscillator.stop */
-  void stop(num when);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24115,11 +24113,11 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
   void set type(int) native "Oscillator_type_Setter";
 
+  void noteOff(num when) native "Oscillator_noteOff_Callback";
+
+  void noteOn(num when) native "Oscillator_noteOn_Callback";
+
   void setWaveTable(WaveTable waveTable) native "Oscillator_setWaveTable_Callback";
-
-  void start(num when) native "Oscillator_start_Callback";
-
-  void stop(num when) native "Oscillator_stop_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25241,8 +25239,6 @@ abstract class RTCPeerConnectionEvents implements Events {
 
   EventListenerList get iceChange;
 
-  EventListenerList get negotiationNeeded;
-
   EventListenerList get open;
 
   EventListenerList get removeStream;
@@ -25258,8 +25254,6 @@ class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnect
   EventListenerList get iceCandidate => this['icecandidate'];
 
   EventListenerList get iceChange => this['icechange'];
-
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
   EventListenerList get open => this['open'];
 
@@ -40610,9 +40604,6 @@ abstract class Window implements EventTarget {
   /** @domName DOMWindow.history */
   abstract History get history;
 
-  /** @domName DOMWindow.indexedDB */
-  abstract IDBFactory get indexedDB;
-
   /** @domName DOMWindow.innerHeight */
   abstract int get innerHeight;
 
@@ -40841,6 +40832,9 @@ abstract class Window implements EventTarget {
   /** @domName DOMWindow.webkitConvertPointFromPageToNode */
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
+  /** @domName DOMWindow.webkitPostMessage */
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
+
   /** @domName DOMWindow.webkitRequestAnimationFrame */
   int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
@@ -40848,7 +40842,7 @@ abstract class Window implements EventTarget {
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 
   /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 
 }
 
@@ -41212,8 +41206,6 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   History get history native "DOMWindow_history_Getter";
 
-  IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
-
   int get innerHeight native "DOMWindow_innerHeight_Getter";
 
   int get innerWidth native "DOMWindow_innerWidth_Getter";
@@ -41372,11 +41364,13 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
+  void webkitPostMessage(message, String targetOrigin, [List transferList]) native "DOMWindow_webkitPostMessage_Callback";
+
   int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41400,6 +41394,9 @@ abstract class Worker implements AbstractWorker {
 
   /** @domName Worker.terminate */
   void terminate();
+
+  /** @domName Worker.webkitPostMessage */
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 }
 
 abstract class WorkerEvents implements AbstractWorkerEvents {
@@ -41423,9 +41420,6 @@ abstract class WorkerContext implements EventTarget {
   static const int PERSISTENT = 1;
 
   static const int TEMPORARY = 0;
-
-  /** @domName WorkerContext.indexedDB */
-  abstract IDBFactory get indexedDB;
 
   /** @domName WorkerContext.location */
   abstract WorkerLocation get location;
@@ -41485,7 +41479,7 @@ abstract class WorkerContext implements EventTarget {
   EntrySync webkitResolveLocalFileSystemSyncURL(String url);
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }
 
 abstract class WorkerContextEvents implements Events {
@@ -41508,8 +41502,6 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   _WorkerContextEventsImpl get on =>
     new _WorkerContextEventsImpl(this);
-
-  IDBFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
   WorkerLocation get location native "WorkerContext_location_Getter";
 
@@ -41549,7 +41541,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   EntrySync webkitResolveLocalFileSystemSyncURL(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 
@@ -41572,6 +41564,8 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
   void postMessage(message, [List messagePorts]) native "Worker_postMessage_Callback";
 
   void terminate() native "Worker_terminate_Callback";
+
+  void webkitPostMessage(message, [List messagePorts]) native "Worker_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
