@@ -381,6 +381,13 @@ intptr_t RawClosureData::VisitClosureDataPointers(
 }
 
 
+intptr_t RawRedirectionData::VisitRedirectionDataPointers(
+    RawRedirectionData* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return RedirectionData::InstanceSize();
+}
+
+
 intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -427,6 +434,13 @@ intptr_t RawLibraryPrefix::VisitLibraryPrefixPointers(
     RawLibraryPrefix* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return LibraryPrefix::InstanceSize();
+}
+
+
+intptr_t RawNamespace::VisitNamespacePointers(
+    RawNamespace* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Namespace::InstanceSize();
 }
 
 

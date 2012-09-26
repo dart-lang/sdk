@@ -55,7 +55,7 @@ bool test(compiler, String name1, String name2, {bool expect}) {
 void main() {
   var uri = new Uri.fromComponents(scheme: 'source');
   var compiler = compilerFor(
-      @"""
+      r"""
       typedef int Typedef1<X,Y>(String s1);
       typedef void Typedef2<Z>(T t1, S s1);
 

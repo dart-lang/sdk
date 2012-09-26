@@ -1114,11 +1114,22 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
   ASSERT(!IsLeaf());
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
-  GenerateDartCall(deopt_id,
-                   token_pos,
-                   &StubCode::CallStaticFunctionLabel(),
-                   PcDescriptors::kFuncCall,
-                   locs);
+  if (function.HasCode()) {
+    const Code& code = Code::Handle(function.CurrentCode());
+    ExternalLabel target_label(function.ToFullyQualifiedCString(),
+                               code.EntryPoint());
+    GenerateDartCall(deopt_id,
+                     token_pos,
+                     &target_label,
+                     PcDescriptors::kFuncCall,
+                     locs);
+  } else {
+    GenerateDartCall(deopt_id,
+                     token_pos,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kFuncCall,
+                     locs);
+  }
   __ Drop(argument_count);
 }
 

@@ -1623,7 +1623,7 @@ class HBinaryArithmetic extends HInvokeBinary {
     // not help for the outgoing type, but at least the binary arithmetic
     // operation will not have type problems.
     // TODO(floitsch): normally we shouldn't request a number, but simply
-    // throw an IllegalArgumentException if it isn't. This would be similar
+    // throw an ArgumentError if it isn't. This would be similar
     // to the array case.
     if (input == right && left.isNumber(types)) return HType.NUMBER;
     return HType.UNKNOWN;

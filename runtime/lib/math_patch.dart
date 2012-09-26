@@ -47,7 +47,7 @@ class _Random implements Random {
 
   int nextInt(int max) {
     if (max <= 0 || max > _POW2_32) {
-      throw new IllegalArgumentException("max must be positive and < 2^32:"
+      throw new ArgumentError("max must be positive and < 2^32:"
                                          " $max");
     }
     if ((max & -max) == max) {

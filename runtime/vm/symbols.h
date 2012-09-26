@@ -71,12 +71,14 @@ class ObjectPointerVisitor;
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(ClosureData, "ClosureData")                                                \
+  V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \
   V(Script, "Script")                                                          \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
+  V(Namespace, "Namespace")                                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
   V(PcDescriptors, "PcDescriptors")                                            \

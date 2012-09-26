@@ -679,8 +679,8 @@ Element findBest(Element root, List<Text> allText, String prop,
  * for what these tags look like in the MDN docs.
  */
 bool isObsolete(Element e) {
-  RegExp obsoleteRegExp = new RegExp(@"(^|\s)obsolete(?=\s|$)");
-  RegExp deprecatedRegExp = new RegExp(@"(^|\s)deprecated(?=\s|$)");
+  RegExp obsoleteRegExp = new RegExp(r"(^|\s)obsolete(?=\s|$)");
+  RegExp deprecatedRegExp = new RegExp(r"(^|\s)deprecated(?=\s|$)");
   for (Element child in e.queryAll("span")) {
     String t = child.text.toLowerCase();
     if (t.startsWith("obsolete") || t.startsWith("deprecated")) return true;
@@ -1121,10 +1121,10 @@ void run() {
   }
 
   // Fix up links.
-  const SHORT_LINK = const RegExp(@'^[\w/]+$');
-  const INNER_LINK = const RegExp(@'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
-  const MEMBER_LINK = const RegExp(@'(\w+)[.#](\w+)');
-  const RELATIVE_LINK = const RegExp(@'^(?:../)*/?[Ee][Nn]/(.+)');
+  const SHORT_LINK = const RegExp(r'^[\w/]+$');
+  const INNER_LINK = const RegExp(r'[Ee]n/(?:[\w/]+/|)([\w#.]+)(?:\(\))?$');
+  const MEMBER_LINK = const RegExp(r'(\w+)[.#](\w+)');
+  const RELATIVE_LINK = const RegExp(r'^(?:../)*/?[Ee][Nn]/(.+)');
 
   // - Make relative links absolute.
   // - If we can, take links that point to other MDN pages and retarget them

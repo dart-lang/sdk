@@ -477,6 +477,14 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     return names;
   }
+  
+  /**
+   * Prepares title for {@link TypeErrorCode#DEPRECATED_ELEMENT}.
+   */
+  public static String getDeprecatedElementTitle(Element element) {
+    String title = getUserElementTitle(element);
+    return StringUtils.capitalize(title);
+  }
 
   /**
    * @return the user readable title of the given {@link Element}, a little different than
@@ -804,5 +812,9 @@ static FieldElementImplementation fieldFromNode(DartField node,
     }
     Source source = member.getElement().getSourceInfo().getSource();
     return !isCoreLibrarySource(source);
+  }
+  
+  public static DuplicateElement createDuplicateElement(Element oldElement, Element newElement) {
+    return new DuplicateElementImplementation(oldElement, newElement);
   }
 }

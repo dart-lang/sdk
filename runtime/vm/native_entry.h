@@ -59,7 +59,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   if (!__##name##_instance__.Is##type()) {                                     \
     GrowableArray<const Object*> __args__;                                     \
     __args__.Add(&__##name##_instance__);                                      \
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, __args__);           \
+    Exceptions::ThrowByType(Exceptions::kArgument, __args__);           \
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
 

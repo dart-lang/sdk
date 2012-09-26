@@ -787,7 +787,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   Definition* def = current->AsDefinition();
   if ((def != NULL) &&
       (def->AsConstant() != NULL) &&
-      (GetLiveRange(def->ssa_temp_index())->first_use() == NULL)) {
+      ((def->ssa_temp_index() == -1) ||
+       (GetLiveRange(def->ssa_temp_index())->first_use() == NULL))) {
     // Drop definitions of constants that have no uses.
     locs->set_out(Location::NoLocation());
     return;

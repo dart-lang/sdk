@@ -84,6 +84,8 @@ public enum ResolverErrorCode implements ErrorCode {
       "Deprecated Map literal syntax. Both String (as key) and value type arguments required."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATE_IMPLEMENTS_TYPE("Duplicate type in the implements clause"),
+  DUPLICATE_IMPORTED_NAME("Element '%s' is introduced by %s imports: %s"),
+  DUPLICATE_IMPORTED_NAME_TYPE(ErrorSeverity.WARNING, "Element '%s' is introduced by %s imports: %s"),
   DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("Duplicate label in switch statement"),
@@ -92,7 +94,6 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
   DUPLICATE_PARAMETER("Duplicate parameter '%s'"),
   DUPLICATE_TOP_LEVEL_DECLARATION("duplicate top-level declaration %s at %s"),
-  DUPLICATE_TOP_LEVEL_DECLARATION_IMPORT("Duplicate import '%s' in %s prefix '%s' -  %s - %s"),
   DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
   // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
@@ -132,7 +133,7 @@ public enum ResolverErrorCode implements ErrorCode {
   INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
-  INVALID_OVERRIDE_METADATA(ErrorSeverity.INFO, "Method marked with @override, but does not override any superclass element"),
+  INVALID_OVERRIDE_METADATA(ErrorSeverity.WARNING, "Method marked with @override, but does not override any superclass element"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),

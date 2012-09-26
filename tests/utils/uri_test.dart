@@ -142,7 +142,7 @@ main() {
       new Uri.fromString("https://example.com:1234/a/b/c").origin);
   Expect.throws(
       () => new Uri.fromString("http:").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
       () => const Uri.fromComponents(
@@ -153,7 +153,7 @@ main() {
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
       () => const Uri.fromComponents(
@@ -164,7 +164,7 @@ main() {
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for uri with empty scheme should fail");
   Expect.throws(
       () => const Uri.fromComponents(
@@ -175,15 +175,15 @@ main() {
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
       () => new Uri.fromString("http://:80").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
       () => new Uri.fromString("file://localhost/test.txt").origin,
-      (e) { return e is IllegalArgumentException; },
+      (e) { return e is ArgumentError; },
       "origin for non-http/https uri should fail");
 
   // URI encode tests

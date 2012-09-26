@@ -13,7 +13,7 @@ class A {
     /*
     'a.foo()' is a "Regular instance-method invocation". The guide says:
     "If no method is found, the result of the invocation expression is
-    equivalent to: $0.noSuchMethod(@"id", [$1, ..., $N])."
+    equivalent to: $0.noSuchMethod(r"id", [$1, ..., $N])."
     Invoking noSuchMethod on an instance of A will invoke Object's
     noSuchMethod (because A doesn't override that method). Object's
     noSuchMethod will throw an error.

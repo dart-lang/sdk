@@ -6,7 +6,7 @@
  * Decodes the UTF-32 bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. Determines the byte order from the BOM,
  * or uses big-endian as a default. This method always strips a leading BOM.
- * Set the replacementCharacter to null to throw an IllegalArgumentException
+ * Set the replacementCharacter to null to throw an ArgumentError
  * rather than replace the bad value.
  */
 IterableUtf32Decoder decodeUtf32AsIterable(List<int> bytes, [
@@ -20,7 +20,7 @@ IterableUtf32Decoder decodeUtf32AsIterable(List<int> bytes, [
  * Decodes the UTF-32BE bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. This method strips a leading BOM by default,
  * but can be overridden by setting the optional parameter [stripBom] to false.
- * Set the replacementCharacter to null to throw an IllegalArgumentException
+ * Set the replacementCharacter to null to throw an ArgumentError
  * rather than replace the bad value.
  */
 IterableUtf32Decoder decodeUtf32beAsIterable(List<int> bytes, [
@@ -35,7 +35,7 @@ IterableUtf32Decoder decodeUtf32beAsIterable(List<int> bytes, [
  * Decodes the UTF-32LE bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. This method strips a leading BOM by default,
  * but can be overridden by setting the optional parameter [stripBom] to false.
- * Set the replacementCharacter to null to throw an IllegalArgumentException
+ * Set the replacementCharacter to null to throw an ArgumentError
  * rather than replace the bad value.
  */
 IterableUtf32Decoder decodeUtf32leAsIterable(List<int> bytes, [
@@ -51,7 +51,7 @@ IterableUtf32Decoder decodeUtf32leAsIterable(List<int> bytes, [
  * allow an offset into a list of bytes (as int), limiting the length of the
  * values be decoded and the ability of override the default Unicode
  * replacement character. Set the replacementCharacter to null to throw an
- * IllegalArgumentException rather than replace the bad value.
+ * ArgumentError rather than replace the bad value.
  */
 String decodeUtf32(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
@@ -63,7 +63,7 @@ String decodeUtf32(List<int> bytes, [int offset = 0, int length,
  * allow an offset into a list of bytes (as int), limiting the length of the
  * values be decoded and the ability of override the default Unicode
  * replacement character. Set the replacementCharacter to null to throw an
- * IllegalArgumentException rather than replace the bad value.
+ * ArgumentError rather than replace the bad value.
  */
 String decodeUtf32be(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
@@ -76,7 +76,7 @@ String decodeUtf32be(
  * allow an offset into a list of bytes (as int), limiting the length of the
  * values be decoded and the ability of override the default Unicode
  * replacement character. Set the replacementCharacter to null to throw an
- * IllegalArgumentException rather than replace the bad value.
+ * ArgumentError rather than replace the bad value.
  */
 String decodeUtf32le(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
@@ -232,7 +232,7 @@ class Utf32BytesDecoder implements _ListRangeIterator {
       if (replacementCodepoint != null) {
           return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
       }
     } else {
@@ -242,7 +242,7 @@ class Utf32BytesDecoder implements _ListRangeIterator {
       } else if (replacementCodepoint != null) {
           return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
       }
     }

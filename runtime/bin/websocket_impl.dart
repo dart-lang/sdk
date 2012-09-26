@@ -414,7 +414,7 @@ class _WebSocketConnectionBase  {
         data = _StringEncoders.encoder(Encoding.UTF_8).encodeString(message);
       } else {
         if (message is !List<int>) {
-          throw new IllegalArgumentException(message);
+          throw new ArgumentError(message);
         }
         opcode = _WebSocketOpcode.BINARY;
         data = message;

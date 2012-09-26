@@ -21,6 +21,7 @@
 #source('../../../../lib/core/function.dart');
 #source('../../../../lib/core/future.dart');
 #source('../../../../lib/core/hashable.dart');
+#source('../../../../lib/core/identical.dart');
 #source('../../../../lib/core/int.dart');
 #source('../../../../lib/core/iterable.dart');
 #source('../../../../lib/core/iterator.dart');
@@ -38,3 +39,4 @@
 #source('../../../../lib/core/string.dart');
 #source('../../../../lib/core/string_buffer.dart');
 #source('../../../../lib/core/strings.dart');
+#source('../../../../lib/core/type.dart');

@@ -31,14 +31,14 @@ static void RangeCheck(const ByteArray& array,
 
 
 // Checks to see if a length is in the range [0..max].  If the length
-// is out of range, then an IllegalArgumentException is thrown.
+// is out of range, then an ArgumentError is thrown.
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
     const String& error = String::Handle(String::NewFormatted(
         "length (%"Pd") must be in the range [0..%"Pd"]", len, max));
     GrowableArray<const Object*> args;
     args.Add(&error);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
 }
 
@@ -266,7 +266,7 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
         "length (%"Pd") must be non-negative", length_value));
     GrowableArray<const Object*> args;
     args.Add(&error);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   RangeCheck(src, src_start_value, length_value);
   RangeCheck(dst, dst_start_value, length_value);

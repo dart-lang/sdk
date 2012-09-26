@@ -180,7 +180,7 @@ class MockCompiler extends Compiler {
 
   Script readScript(Uri uri, [ScriptTag node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
-    if (sourceFile === null) throw new IllegalArgumentException(uri);
+    if (sourceFile === null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
   }
 }

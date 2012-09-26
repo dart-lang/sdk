@@ -530,6 +530,11 @@ RawClosureData* SnapshotReader::NewClosureData() {
 }
 
 
+RawRedirectionData* SnapshotReader::NewRedirectionData() {
+  ALLOC_NEW_OBJECT(RedirectionData, Object::redirection_data_class());
+}
+
+
 RawFunction* SnapshotReader::NewFunction() {
   ALLOC_NEW_OBJECT(Function, Object::function_class());
 }
@@ -547,6 +552,11 @@ RawLibrary* SnapshotReader::NewLibrary() {
 
 RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
   ALLOC_NEW_OBJECT(LibraryPrefix, Object::library_prefix_class());
+}
+
+
+RawNamespace* SnapshotReader::NewNamespace() {
+  ALLOC_NEW_OBJECT(Namespace, Object::namespace_class());
 }
 
 

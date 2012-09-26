@@ -171,7 +171,7 @@ class _MatchesRegExp extends _StringMatcher {
     } else if (re is RegExp) {
       _regexp = re;
     } else {
-      throw new IllegalArgumentException('matches requires a regexp or string');
+      throw new ArgumentError('matches requires a regexp or string');
     }
   }
 

@@ -238,7 +238,7 @@ class int32 implements intx {
 
   int32 operator <<(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 31;
     return new int32.fromInt(_i << n);
@@ -246,7 +246,7 @@ class int32 implements intx {
 
   int32 operator >>(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 31;
     int value;
@@ -260,7 +260,7 @@ class int32 implements intx {
 
   int32 shiftRightUnsigned(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 31;
     int value;

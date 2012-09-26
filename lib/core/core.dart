@@ -19,6 +19,7 @@
 #source("function.dart");
 #source("future.dart");
 #source("hashable.dart");
+#source("identical.dart");
 #source("int.dart");
 #source("iterable.dart");
 #source("iterator.dart");
@@ -36,3 +37,4 @@
 #source("string.dart");
 #source("string_buffer.dart");
 #source("strings.dart");
+#source("type.dart");

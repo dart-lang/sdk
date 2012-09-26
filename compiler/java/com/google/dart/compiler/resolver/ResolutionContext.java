@@ -154,7 +154,7 @@ public class ResolutionContext implements ResolutionErrorListener {
       return null;
     }
 
-    Type type = resolveType(node, isStatic, isFactory, ResolverErrorCode.NO_SUCH_TYPE,
+    Type type = resolveType(node, isStatic, isFactory, false, ResolverErrorCode.NO_SUCH_TYPE,
         ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     if (!isClassType(type)) {
       onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS, type);
@@ -166,8 +166,8 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   InterfaceType resolveInterface(DartTypeNode node, boolean isStatic, boolean isFactory) {
-    Type type = resolveType(node, isStatic, isFactory, ResolverErrorCode.NO_SUCH_TYPE,
-        ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    Type type = resolveType(node, isStatic, isFactory, false,
+        ResolverErrorCode.NO_SUCH_TYPE, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     if (type.getKind() != TypeKind.DYNAMIC && !isClassOrInterfaceType(type)) {
       onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE, type);
       type = typeProvider.getDynamicType();
@@ -177,13 +177,13 @@ public class ResolutionContext implements ResolutionErrorListener {
     return (InterfaceType) type;
   }
 
-  Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory, ErrorCode errorCode,
-      ErrorCode wrongNumberErrorCode) {
+  Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory, boolean isAnnotation,
+      ErrorCode errorCode, ErrorCode wrongNumberErrorCode) {
     if (node == null) {
       return null;
     } else {
       Type type = resolveType(node, node.getIdentifier(), node.getTypeArguments(), isStatic,
-          isFactory, errorCode, wrongNumberErrorCode);
+          isFactory, isAnnotation, errorCode, wrongNumberErrorCode);
       recordTypeIdentifier(node.getIdentifier(), type.getElement());
       return type;
     }
@@ -208,7 +208,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   Type resolveType(DartNode diagnosticNode, DartNode identifier, List<DartTypeNode> typeArguments,
-                   boolean isStatic, boolean isFactory, ErrorCode errorCode,
+                   boolean isStatic, boolean isFactory, boolean isAnnotation, ErrorCode errorCode,
                    ErrorCode wrongNumberErrorCode) {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
@@ -242,6 +242,18 @@ public class ResolutionContext implements ResolutionErrorListener {
             isFactory,
             errorCode,
             wrongNumberErrorCode);
+      case DUPLICATE: {
+        DuplicateElement duplicateElement = (DuplicateElement) element;
+        List<String> locations = duplicateElement.getLocations();
+        ResolverErrorCode duplicateErrorCode;
+        if (isAnnotation) {
+          duplicateErrorCode = ResolverErrorCode.DUPLICATE_IMPORTED_NAME_TYPE;
+        } else {
+          duplicateErrorCode = ResolverErrorCode.DUPLICATE_IMPORTED_NAME;
+        }
+        onError(identifier, duplicateErrorCode, element.getName(), locations.size(), locations);
+        return typeProvider.getDynamicType();
+      }
       case NONE:
         if (Elements.isIdentifierName(identifier, "void")) {
           return typeProvider.getVoidType();
@@ -285,7 +297,8 @@ public class ResolutionContext implements ResolutionErrorListener {
       int index = 0;
       if (typeArgumentNodes != null) {
         for (DartTypeNode typeNode : typeArgumentNodes) {
-          Type type = resolveType(typeNode, isStatic, isFactory, errorCode, wrongNumberErrorCode);
+          Type type = resolveType(typeNode, isStatic, isFactory, false, errorCode,
+              wrongNumberErrorCode);
           typeNode.setType(type);
           if (index < typeArguments.length) {
             typeArguments[index] = type;
@@ -296,7 +309,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     } else {
       typeArguments = new Type[typeArgumentNodes.size()];
       for (int i = 0; i < typeArguments.length; i++) {
-        typeArguments[i] = resolveType(typeArgumentNodes.get(i), isStatic, isFactory, errorCode,
+        typeArguments[i] = resolveType(typeArgumentNodes.get(i), isStatic, isFactory, false, errorCode,
             wrongNumberErrorCode);
         typeArgumentNodes.get(i).setType(typeArguments[i]);
       }

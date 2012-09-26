@@ -58,7 +58,7 @@ class _Path implements Path {
 
   Path join(Path further) {
     if (further.isAbsolute) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Path.join called with absolute Path as argument.");
     }
     if (isEmpty) {

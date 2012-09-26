@@ -236,7 +236,7 @@ class Dartdoc {
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
     md.InlineParser.syntaxes.insertRange(0, 1,
-        new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
+        new md.CodeSyntax(r'\[\:((?:.|\n)*?)\:\]'));
 
     md.setImplicitLinkResolver((name) => resolveNameReference(name,
             currentLibrary: _currentLibrary, currentType: _currentType,
@@ -539,7 +539,7 @@ class Dartdoc {
       }
     }
     String jsonString = JSON.stringify(createNavigationInfo());
-    String dartString = jsonString.replaceAll(@"$", @"\$");
+    String dartString = jsonString.replaceAll(r"$", r"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
         'get json => $dartString;');
@@ -1229,7 +1229,7 @@ class Dartdoc {
     // TODO(rnystrom): Why don't we have a nice type in the platform for this?
     // TODO(rnystrom): This is a bit hackish. We consider any URL that lacks
     // a scheme to be relative.
-    return const RegExp(@'^\w+:').hasMatch(url);
+    return const RegExp(r'^\w+:').hasMatch(url);
   }
 
   /** Gets the URL to the documentation for [library]. */
@@ -1480,7 +1480,7 @@ class Dartdoc {
       // See if it's a constructor
       final constructorLink = (() {
         final match =
-            new RegExp(@'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
+            new RegExp(r'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
         if (match == null) return;
         InterfaceMirror foundtype = findMirror(currentLibrary.types, match[1]);
         if (foundtype == null) return;
@@ -1494,7 +1494,7 @@ class Dartdoc {
 
       // See if it's a member of another type
       final foreignMemberLink = (() {
-        final match = new RegExp(@'([\w$]+)\.([\w$]+)').firstMatch(name);
+        final match = new RegExp(r'([\w$]+)\.([\w$]+)').firstMatch(name);
         if (match == null) return;
         InterfaceMirror foundtype = findMirror(currentLibrary.types, match[1]);
         if (foundtype == null) return;

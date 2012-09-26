@@ -10,7 +10,7 @@
 class ByteArrayTest {
   static testInt8List() {
     Expect.throws(() { new Int8List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Int8List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -94,7 +94,7 @@ class ByteArrayTest {
 
   static testUint8List() {
     Expect.throws(() { new Uint8List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Uint8List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -166,7 +166,7 @@ class ByteArrayTest {
 
   static testInt16List() {
     Expect.throws(() { new Int16List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Int16List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -250,7 +250,7 @@ class ByteArrayTest {
 
   static testUint16List() {
     Expect.throws(() { new Uint16List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Uint16List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -322,7 +322,7 @@ class ByteArrayTest {
 
   static testInt32List() {
     Expect.throws(() { new Int32List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Int32List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -412,7 +412,7 @@ class ByteArrayTest {
 
   static testUint32List() {
     Expect.throws(() { new Uint32List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Uint32List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -487,7 +487,7 @@ class ByteArrayTest {
 
   static testInt64List() {
     Expect.throws(() { new Int64List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Int64List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -578,7 +578,7 @@ class ByteArrayTest {
 
   static testUint64List() {
     Expect.throws(() { new Uint64List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Uint64List(10);
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -653,7 +653,7 @@ class ByteArrayTest {
 
   static testFloat32List() {
     Expect.throws(() { new Float32List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Float32List(10);
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);
@@ -715,7 +715,7 @@ class ByteArrayTest {
 
   static testFloat64List() {
     Expect.throws(() { new Float64List(-1); },
-                  (e) { return e is IllegalArgumentException; });
+                  (e) { return e is ArgumentError; });
     var array = new Float64List(10);
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);

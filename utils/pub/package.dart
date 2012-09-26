@@ -135,7 +135,7 @@ class PackageId implements Comparable, Hashable {
   String toString() => "$name $version from ${source.name}";
 
   int compareTo(Comparable other) {
-    if (other is! PackageId) throw new IllegalArgumentException(other);
+    if (other is! PackageId) throw new ArgumentError(other);
 
     var sourceComp = source.name.compareTo(other.source.name);
     if (sourceComp != 0) return sourceComp;

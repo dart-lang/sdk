@@ -427,6 +427,7 @@ public class Resolver {
                   boundNode,
                   false,
                   false,
+                  false,
                   ResolverErrorCode.NO_SUCH_TYPE,
                   ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           boundNode.setType(bound);
@@ -695,7 +696,7 @@ public class Resolver {
       {
         DartTypeNode rcTypeName = node.getRedirectedTypeName();
         if (rcTypeName != null) {
-          InterfaceType rcType = (InterfaceType) resolveType(rcTypeName, true, true,
+          InterfaceType rcType = (InterfaceType) resolveType(rcTypeName, true, true, false,
               TypeErrorCode.NO_SUCH_TYPE, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           switch (TypeKind.of(rcType)) {
             case INTERFACE:
@@ -828,6 +829,7 @@ public class Resolver {
               node.getTypeNode(),
               inStaticContext(currentMethod),
               inFactoryContext(currentMethod),
+              true,
               TypeErrorCode.NO_SUCH_TYPE,
               TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       for (DartVariable variable : node.getVariables()) {
@@ -1195,8 +1197,16 @@ public class Resolver {
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
       }
+      
+      if (ElementKind.of(element) == ElementKind.DUPLICATE) {
+        DuplicateElement duplicateElement = (DuplicateElement) element;
+        List<String> locations = duplicateElement.getLocations();
+        onError(x, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, element.getName(), locations.size(),
+            locations);
+        return null;
+      }
 
-      if (inInitializer && (element != null && element.getKind().equals(ElementKind.FIELD))) {
+      if (inInitializer && ElementKind.of(element) == ElementKind.FIELD) {
         if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
           onError(x, ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT);
         }
@@ -1215,6 +1225,12 @@ public class Resolver {
           case TYPE_VARIABLE:
             onError(x, ResolverErrorCode.CANNOT_USE_TYPE_VARIABLE, name);
             break;
+          case DUPLICATE:
+            DuplicateElement duplicateElement = (DuplicateElement) element;
+            List<String> locations = duplicateElement.getLocations();
+            onError(x, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, element.getName(),
+                locations.size(), locations);
+            return null;
         }
       }
 
@@ -1301,7 +1317,7 @@ public class Resolver {
         }
       }
       // do Type resolve
-      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
+      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod), false,
           errorCode, wrongNumberErrorCode).getElement();
     }
 
@@ -1433,6 +1449,13 @@ public class Resolver {
         default:
           break;
       }
+      if (ElementKind.of(element) == ElementKind.DUPLICATE) {
+        DuplicateElement duplicateElement = (DuplicateElement) element;
+        List<String> locations = duplicateElement.getLocations();
+        onError(x.getName(), ResolverErrorCode.DUPLICATE_IMPORTED_NAME, duplicateElement.getName(),
+            locations.size(), locations);
+        return null;
+      }
       return recordElement(x, element);
     }
 
@@ -1536,7 +1559,13 @@ public class Resolver {
         element = scope.findElement(scope.getLibrary(), "setter " + x.getTarget().getName());
       }
       ElementKind kind = ElementKind.of(element);
-      if (!INVOKABLE_ELEMENTS.contains(kind)) {
+      if (kind == ElementKind.DUPLICATE) {
+        DuplicateElement duplicateElement = (DuplicateElement) element;
+        List<String> locations = duplicateElement.getLocations();
+        onError(x.getTarget(), ResolverErrorCode.DUPLICATE_IMPORTED_NAME, element.getName(),
+            locations.size(), locations);
+        return null;
+      } else if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);
       } else {
         checkInvocationTarget(x, currentMethod, element);
@@ -1573,6 +1602,7 @@ public class Resolver {
           ErrorCode errorCode = x.isConst() ? ResolverErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
+                                              false,
                                               errorCode,
                                               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS));
         }

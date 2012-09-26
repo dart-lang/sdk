@@ -315,9 +315,11 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t token_pos,
                                        Token::Kind kind,
                                        LocationSummary* locs) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 deopt_id,
-                                 token_pos);
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id,
+                                   token_pos);
+  }
   const String& operator_name = String::ZoneHandle(Symbols::New("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
@@ -791,9 +793,11 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const String& function_name =
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 deopt_id(),
-                                 token_pos());
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id(),
+                                   token_pos());
+  }
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 2;  // Type-feedback.
   compiler->GenerateInstanceCall(deopt_id(),

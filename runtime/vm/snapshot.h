@@ -38,12 +38,14 @@ class RawDouble;
 class RawField;
 class RawFourByteString;
 class RawClosureData;
+class RawRedirectionData;
 class RawFunction;
 class RawGrowableObjectArray;
 class RawImmutableArray;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
+class RawNamespace;
 class RawLiteralToken;
 class RawMint;
 class RawObject;
@@ -165,7 +167,7 @@ class BaseReader {
   intptr_t ReadIntptrValue() {
     int64_t value = Read<int64_t>();
     ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
-    return value;
+    return static_cast<intptr_t>(value);
   }
 
   void ReadBytes(uint8_t* addr, intptr_t len) {
@@ -250,10 +252,12 @@ class SnapshotReader : public BaseReader {
   RawTypeParameter* NewTypeParameter();
   RawPatchClass* NewPatchClass();
   RawClosureData* NewClosureData();
+  RawRedirectionData* NewRedirectionData();
   RawFunction* NewFunction();
   RawField* NewField();
   RawLibrary* NewLibrary();
   RawLibraryPrefix* NewLibraryPrefix();
+  RawNamespace* NewNamespace();
   RawScript* NewScript();
   RawLiteralToken* NewLiteralToken();
   RawGrowableObjectArray* NewGrowableObjectArray();
@@ -319,6 +323,7 @@ class SnapshotReader : public BaseReader {
   friend class ContextScope;
   friend class Field;
   friend class ClosureData;
+  friend class RedirectionData;
   friend class Function;
   friend class GrowableObjectArray;
   friend class ImmutableArray;
@@ -327,6 +332,7 @@ class SnapshotReader : public BaseReader {
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
+  friend class Namespace;
   friend class LiteralToken;
   friend class PatchClass;
   friend class Script;

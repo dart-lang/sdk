@@ -46,11 +46,11 @@ class Document {
     // [id]: http:foo.com "some title"
     // Where there may whitespace in there, and where the title may be in
     // single quotes, double quotes, or parentheses.
-    final indent = @'^[ ]{0,3}'; // Leading indentation.
-    final id = @'\[([^\]]+)\]';  // Reference id in [brackets].
-    final quote = @'"[^"]+"';    // Title in "double quotes".
-    final apos = @"'[^']+'";     // Title in 'single quotes'.
-    final paren = @"\([^)]+\)";  // Title in (parentheses).
+    final indent = r'^[ ]{0,3}'; // Leading indentation.
+    final id = r'\[([^\]]+)\]';  // Reference id in [brackets].
+    final quote = r'"[^"]+"';    // Title in "double quotes".
+    final apos = r"'[^']+'";     // Title in 'single quotes'.
+    final paren = r"\([^)]+\)";  // Title in (parentheses).
     final pattern = new RegExp(
         '$indent$id:\\s+(\\S+)\\s*($quote|$apos|$paren|)\\s*\$');
 

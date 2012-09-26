@@ -49,7 +49,7 @@ class Exceptions : AllStatic {
 
   enum ExceptionType {
     kIndexOutOfRange,
-    kIllegalArgument,
+    kArgument,
     kNoSuchMethod,
     kClosureArgumentMismatch,
     kObjectNotClosure,

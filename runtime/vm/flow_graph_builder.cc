@@ -461,6 +461,7 @@ void EffectGraphVisitor::Bailout(const char* reason) {
 
 
 void EffectGraphVisitor::InlineBailout(const char* reason) {
+  owner()->parsed_function().function().set_is_inlinable(false);
   if (owner()->InInliningContext()) owner()->Bailout(reason);
 }
 

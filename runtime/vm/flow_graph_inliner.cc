@@ -41,6 +41,12 @@ class CallSiteInliner : public FlowGraphVisitor {
                    Definition* call) {
     TRACE_INLINING(OS::Print("  => %s\n", function.ToCString()));
 
+    // Abort if the inlinable bit on the function is low.
+    if (!function.is_inlinable()) {
+      TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
+      return false;
+    }
+
     // Abort if the callee has optional parameters.
     if (function.HasOptionalParameters()) {
       TRACE_INLINING(OS::Print("     Bailout: optional parameters\n"));
@@ -52,6 +58,7 @@ class CallSiteInliner : public FlowGraphVisitor {
 
     // Abort if the callee has an intrinsic translation.
     if (Intrinsifier::CanIntrinsify(function)) {
+      function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: can intrinsify\n"));
       return false;
     }
@@ -89,6 +96,7 @@ class CallSiteInliner : public FlowGraphVisitor {
 
       // Abort if the callee graph contains control flow.
       if (callee_graph->preorder().length() != 2) {
+        function.set_is_inlinable(false);
         isolate->set_long_jump_base(base);
         isolate->set_ic_data_array(prev_ic_data.raw());
         TRACE_INLINING(OS::Print("     Bailout: control flow\n"));
@@ -184,12 +192,14 @@ class CallSiteInliner : public FlowGraphVisitor {
 
   void VisitPolymorphicInstanceCall(PolymorphicInstanceCallInstr* instr) {
     TRACE_INLINING(OS::Print("  PolymorphicInstanceCall\n"));
-    if (instr->with_checks()) {
-      TRACE_INLINING(OS::Print("     Bailout: checks\n"));
-      return;
-    }
     const ICData& ic_data = instr->ic_data();
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+    if (instr->with_checks()) {
+      TRACE_INLINING(OS::Print("    Bailout: %"Pd" checks target '%s'\n",
+          ic_data.NumberOfChecks(),
+          target.ToCString()));
+      return;
+    }
 
     GrowableArray<Value*> arguments(instr->ArgumentCount());
     for (int i = 0; i < instr->ArgumentCount(); ++i) {

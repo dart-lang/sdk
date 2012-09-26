@@ -403,7 +403,7 @@ class Selector implements Hashable {
       // Iterate over the optional parameters of the signature, and try to
       // find them in [compiledNamedArguments]. If found, we use the
       // value in the temporary list, otherwise the default value.
-      parameters.forEachOptionalParameter((element) {
+      parameters.orderedOptionalParameters.forEach((element) {
         int foundIndex = namedArguments.indexOf(element.name);
         if (foundIndex != -1) {
           list.add(compiledNamedArguments[foundIndex]);

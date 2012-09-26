@@ -4355,15 +4355,17 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   }
   const String& prefix_symbol =
       String::Handle(isolate, Symbols::New(prefix_vm));
+  const Namespace& import_ns = Namespace::Handle(
+      Namespace::New(import_vm, Array::Handle(), Array::Handle()));
   if (prefix_vm.Length() == 0) {
-    library_vm.AddImport(import_vm);
+    library_vm.AddImport(import_ns);
   } else {
     LibraryPrefix& library_prefix = LibraryPrefix::Handle();
     library_prefix = library_vm.LookupLocalLibraryPrefix(prefix_symbol);
     if (!library_prefix.IsNull()) {
-      library_prefix.AddLibrary(import_vm);
+      library_prefix.AddImport(import_ns);
     } else {
-      library_prefix = LibraryPrefix::New(prefix_symbol, import_vm);
+      library_prefix = LibraryPrefix::New(prefix_symbol, import_ns);
       library_vm.AddObject(library_prefix, prefix_symbol);
     }
   }

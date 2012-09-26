@@ -10,7 +10,7 @@
  * The following example finds all matches of a [RegExp] in a [String]
  * and iterates through the returned iterable of [Match] objects.
  *
- *     RegExp exp = const RegExp(@"(\w+)");
+ *     RegExp exp = const RegExp(r"(\w+)");
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
  *     for (Match m in matches) {
@@ -84,7 +84,7 @@ abstract class Match {
  * The following example finds all matches of a regular expression in
  * a string.
  *
- *     RegExp exp = const RegExp(@"(\w+)");
+ *     RegExp exp = const RegExp(r"(\w+)");
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
  */

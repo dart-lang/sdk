@@ -141,7 +141,7 @@ _html_event_names = {
   'mouseup': 'mouseUp',
   'mousewheel': 'mouseWheel',
   'mute': 'mute',
-  'negotationneeded': 'negotationNeeded',
+  'negotiationneeded': 'negotiationNeeded',
   'nomatch': 'noMatch',
   'noupdate': 'noUpdate',
   'obsolete': 'obsolete',
@@ -261,6 +261,7 @@ _html_element_constructors = {
   'CanvasElement':
     ElementConstructorInfo(tag='canvas',
                            opt_params=[('int', 'width'), ('int', 'height')]),
+  'ContentElement': 'content',
   'DataListElement': 'datalist',
   'DListElement': 'dl',
   'DetailsElement': 'details',
@@ -437,8 +438,9 @@ class HtmlSystemShared(object):
 
 
 class HtmlInterfacesSystem(System):
-  def __init__(self, options, backend):
+  def __init__(self, options, dart_library_generator, backend):
     super(HtmlInterfacesSystem, self).__init__(options)
+    self._dart_library_generator = dart_library_generator
     self._backend = backend
     self._shared = HtmlSystemShared(options)
     self._dart_file_paths = []
@@ -457,13 +459,8 @@ class HtmlInterfacesSystem(System):
               PARAMS=info.ParametersImplementationDeclaration(DartType))
     self._backend.ProcessCallback(interface, info)
 
-  def GenerateLibraries(self):
-    self._backend.GenerateLibraries(self._dart_file_paths)
-
   def _CreateEmitter(self, filename):
-    path = os.path.join(self._output_dir, 'dart', filename)
-    self._dart_file_paths.append(path)
-    return self._emitters.FileEmitter(path)
+    return self._dart_library_generator.CreateFileEmitter(filename)
 
 # ------------------------------------------------------------------------------
 
@@ -662,15 +659,19 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
           DOMNAME=info.name)
 
-      self._members_emitter.Emit('\n'
-                                 '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=self._DartType(info.type_name),
-                                 NAME=html_name,
-                                 PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
+      if info.IsStatic():
+        # FIXME: provide a type.
+        self._members_emitter.Emit('\n'
+                                  '  static final $NAME = $IMPL_CLASS_NAME.$NAME;\n',
+                                  IMPL_CLASS_NAME=self._backend.ImplementationClassName(),
+                                  NAME=html_name)
+      else:
+        self._members_emitter.Emit('\n'
+                                  '  $TYPE $NAME($PARAMS);\n',
+                                  TYPE=self._DartType(info.type_name),
+                                  NAME=html_name,
+                                  PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
-
-  def AddStaticOperation(self, info):
-    self.AddOperation(info, True)
 
   def AddSecondaryOperation(self, interface, info):
     self._backend.SecondaryContext(interface)
@@ -1009,10 +1010,6 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     if self._HasCustomImplementation(info.name):
       return
 
-    # FIXME: support static operations.
-    if info.IsStatic():
-      return
-
     # Any conversions needed?
     if any(self._OperationRequiresConversions(op) for op in info.overloads):
       self._AddOperationWithConversions(info, html_name)
@@ -1025,6 +1022,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       return_type = self._NarrowOutputType(info.type_name)
 
       operation_emitter = self._members_emitter.Emit('$!SCOPE',
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
@@ -1034,11 +1032,12 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       operation_emitter.Emit(
           '\n'
           #'  // @native("$NAME")\n;'
-          '  $TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
+          '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE $NAME($PARAMS) native;\n',
+          '  $MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+          MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=self._NarrowOutputType(info.type_name),
           NAME=info.name,
           PARAMS=info.ParametersImplementationDeclaration(
@@ -1066,9 +1065,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $(HTML_NAME)($PARAMS) {\n'
+        '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) {\n'
         '$!BODY'
         '  }\n',
+        MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=return_type,
         HTML_NAME=html_name,
         PARAMS=info.ParametersImplementationDeclaration(InputType))
@@ -1227,13 +1227,30 @@ class HtmlDart2JSSystem(System):
   def ImplementationGenerator(self, interface):
     return HtmlDart2JSClassGenerator(self, interface)
 
-  def GenerateLibraries(self, dart_files):
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-    self._GenerateLibFile(
-        'html_dart2js.darttemplate',
-        os.path.join(self._output_dir, 'html_dart2js.dart'),
-        dart_files,
-        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
 
-  def Finish(self):
-    pass
+class DartLibraryEmitter():
+  def __init__(self, emitters, template, dart_sources_dir):
+    self._emitters = emitters
+    self._template = template
+    self._dart_sources_dir = dart_sources_dir
+    self._dart_sources_list = []
+
+  def CreateFileEmitter(self, filename):
+    path = os.path.join(self._dart_sources_dir, filename)
+    self._dart_sources_list.append(path)
+    return self._emitters.FileEmitter(path)
+
+  def EmitLibrary(self, library_file_path, auxiliary_dir):
+    def massage_path(path):
+      # The most robust way to emit path separators is to use / always.
+      return path.replace('\\', '/')
+
+    library_emitter = self._emitters.FileEmitter(library_file_path)
+    library_file_dir = os.path.dirname(library_file_path)
+    auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
+    imports_emitter = library_emitter.Emit(
+        self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
+    for path in sorted(self._dart_sources_list):
+      relpath = os.path.relpath(path, library_file_dir)
+      imports_emitter.Emit(
+          "#source('$PATH');\n", PATH=massage_path(relpath))

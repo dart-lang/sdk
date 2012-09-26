@@ -4,7 +4,7 @@
 
 #import("compiler_helper.dart");
 
-const String TEST = @"""
+const String TEST = r"""
 foo() {
   String s = new Object().toString();
   Object o = new Object().toString();

@@ -11,7 +11,7 @@ main() {
 
   insertTestDiv() {
     var element = new Element.tag('div');
-    element.innerHTML = @'''
+    element.innerHTML = r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>

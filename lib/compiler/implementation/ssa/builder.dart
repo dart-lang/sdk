@@ -212,7 +212,7 @@ class SsaBuilderTask extends CompilerTask {
                                              defaultValueTypes);
         if (!parameterTypes.allUnknown) {
           int i = 0;
-          signature.forEachParameter((Element param) {
+          signature.orderedForEachParameter((Element param) {
             builder.parameters[param].guaranteedType = parameterTypes[i++];
           });
         }
@@ -365,7 +365,7 @@ class LocalsHandler {
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
             node, builder.elements);
     FunctionSignature signature = function.computeSignature(compiler);
-    signature.forEachParameter((Element element) {
+    signature.orderedForEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
       builder.parameters[element] = parameter;
@@ -1014,7 +1014,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(elements !== null);
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
-    signature.forEachParameter((Element parameter) {
+    signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
       potentiallyCheckType(argument, parameter);
@@ -1096,42 +1096,46 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues) {
-    assert(invariant(constructor, constructor.isImplementation));
-    constructors.addLast(constructor);
+    compiler.withCurrentElement(constructor, () {
+      assert(invariant(constructor, constructor.isImplementation));
+      constructors.addLast(constructor);
 
-    List<HInstruction> compiledArguments = new List<HInstruction>();
-    bool succeeded = addStaticSendArgumentsToList(selector,
-                                                  arguments,
-                                                  constructor,
-                                                  compiledArguments);
-    if (!succeeded) {
-      // Non-matching super and redirects are compile-time errors and thus
-      // checked by the resolver.
-      compiler.internalError(
-          "Parameters and arguments didn't match for super/redirect call",
-          element: constructor);
-    }
-
-    buildFieldInitializers(constructor.enclosingElement, fieldValues);
-
-    int index = 0;
-    FunctionSignature params = constructor.computeSignature(compiler);
-    params.forEachParameter((Element parameter) {
-      HInstruction argument = compiledArguments[index++];
-      localsHandler.updateLocal(parameter, argument);
-      // Don't forget to update the field, if the parameter is of the
-      // form [:this.x:].
-      if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-        FieldParameterElement fieldParameterElement = parameter;
-        fieldValues[fieldParameterElement.fieldElement] = argument;
+      List<HInstruction> compiledArguments = new List<HInstruction>();
+      bool succeeded = addStaticSendArgumentsToList(selector,
+                                                    arguments,
+                                                    constructor,
+                                                    compiledArguments);
+      if (!succeeded) {
+        // Non-matching super and redirects are compile-time errors and thus
+        // checked by the resolver.
+        compiler.internalError(
+            "Parameters and arguments didn't match for super/redirect call",
+            element: constructor);
       }
-    });
 
-    // Build the initializers in the context of the new constructor.
-    TreeElements oldElements = elements;
-    elements = compiler.resolver.resolveMethodElement(constructor);
-    buildInitializers(constructor, constructors, fieldValues);
-    elements = oldElements;
+      sourceElementStack.add(constructor.enclosingElement);
+      buildFieldInitializers(constructor.enclosingElement, fieldValues);
+      sourceElementStack.removeLast();
+
+      int index = 0;
+      FunctionSignature params = constructor.computeSignature(compiler);
+      params.orderedForEachParameter((Element parameter) {
+        HInstruction argument = compiledArguments[index++];
+        localsHandler.updateLocal(parameter, argument);
+        // Don't forget to update the field, if the parameter is of the
+        // form [:this.x:].
+        if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+          FieldParameterElement fieldParameterElement = parameter;
+          fieldValues[fieldParameterElement.fieldElement] = argument;
+        }
+      });
+
+      // Build the initializers in the context of the new constructor.
+      TreeElements oldElements = elements;
+      elements = compiler.resolver.resolveMethodElement(constructor);
+      buildInitializers(constructor, constructors, fieldValues);
+      elements = oldElements;
+    });
   }
 
   /**
@@ -1267,7 +1271,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.computeSignature(compiler);
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
@@ -1315,7 +1319,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bodyCallInputs.add(newObject);
       FunctionSignature functionSignature = body.computeSignature(compiler);
       int arity = functionSignature.parameterCount;
-      functionSignature.forEachParameter((parameter) {
+      functionSignature.orderedForEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
       // TODO(ahe): The constructor name is statically resolved. See
@@ -1397,7 +1401,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     open(block);
 
     FunctionSignature params = functionElement.computeSignature(compiler);
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       if (elements.isParameterChecked(element)) {
         addParameterCheckInstruction(element);
       }
@@ -1407,7 +1411,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // because that is where the type guards will also be inserted.
     // This way we ensure that a type guard will dominate the type
     // check.
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       HInstruction newParameter = potentiallyCheckType(
           localsHandler.directLocals[element], element);
       localsHandler.directLocals[element] = newParameter;
@@ -2295,10 +2299,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.isTypeVariable()) {
-        // TODO(karlklose): We emulate the behavior of the old frog
-        // compiler and answer true to any is check involving a type variable
-        // -- both is T and is !T -- until we have a proper implementation of
-        // reified generics.
+        // TODO(karlklose): We currently answer true to any is check
+        // involving a type variable -- both is T and is !T -- until
+        // we have a proper implementation of reified generics.
         stack.add(graph.addConstantBool(true, constantSystem));
       } else {
         HInstruction instruction;

@@ -185,6 +185,10 @@ class Parser : public ValueObject {
         (script_.kind() == RawScript::kLibraryTag);
   }
 
+  bool is_part_source() const {
+    return script_.kind() == RawScript::kSourceTag;
+  }
+
   // Parsing library patch script.
   bool is_patch_source() const {
     return script_.kind() == RawScript::kPatchTag;
@@ -291,10 +295,12 @@ class Parser : public ValueObject {
   Dart_Handle CallLibraryTagHandler(Dart_LibraryTag tag,
                                     intptr_t token_pos,
                                     const String& url);
+  void ParseIdentList(GrowableObjectArray* names);
   void ParseLibraryDefinition();
   void ParseLibraryName();
   void ParseLibraryImportExport();
   void ParseLibraryPart();
+  void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
@@ -492,7 +498,6 @@ class Parser : public ValueObject {
   RawClass* TypeParametersScopeClass() const;
   const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
-  bool IsDefinedInLexicalScope(const String& ident);
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
                                 AstNode** node);

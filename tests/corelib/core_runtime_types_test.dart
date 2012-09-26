@@ -51,7 +51,7 @@ class CoreRuntimeTypesTest {
       Expect.equals(true, (exception is TypeError) ||
                           (exception is NoSuchMethodError) ||
                           (exception is NullPointerException) ||
-                          (exception is IllegalArgumentException));
+                          (exception is ArgumentError));
       return;
     }
     Expect.equals(true, false);

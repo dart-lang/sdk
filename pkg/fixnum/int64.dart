@@ -420,7 +420,7 @@ class int64 implements intx {
 
   int64 operator <<(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 63;
 
@@ -444,7 +444,7 @@ class int64 implements intx {
 
   int64 operator >>(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 63;
 
@@ -485,7 +485,7 @@ class int64 implements intx {
 
   int64 shiftRightUnsigned(int n) {
     if (n < 0) {
-      throw new IllegalArgumentException("$n");
+      throw new ArgumentError("$n");
     }
     n &= 63;
 

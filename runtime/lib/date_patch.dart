@@ -16,8 +16,8 @@ patch class DateImplementation {
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
             year, month, day, hour, minute, second, millisecond, isUtc) {
-    if (millisecondsSinceEpoch === null) throw new IllegalArgumentException();
-    if (isUtc === null) throw new IllegalArgumentException();
+    if (millisecondsSinceEpoch === null) throw new ArgumentError();
+    if (isUtc === null) throw new ArgumentError();
   }
 
   /* patch */ DateImplementation.now()

@@ -16,6 +16,58 @@ namespace dart {
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
+DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
+
+
+bool CPUFeatures::sse3_supported_ = false;
+bool CPUFeatures::sse4_1_supported_ = false;
+#ifdef DEBUG
+bool CPUFeatures::initialized_ = false;
+#endif
+
+bool CPUFeatures::sse3_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse3_supported_;
+}
+
+
+bool CPUFeatures::sse4_1_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse4_1_supported_;
+}
+
+
+#define __ assembler.
+
+void CPUFeatures::InitOnce() {
+  Assembler assembler;
+  __ pushl(EBP);
+  __ pushl(EBX);
+  __ movl(EBP, ESP);
+  // Get feature information in ECX:EDX and return it in EDX:EAX.
+  __ movl(EAX, Immediate(1));
+  __ cpuid();
+  __ movl(EAX, EDX);
+  __ movl(EDX, ECX);
+  __ movl(ESP, EBP);
+  __ popl(EBX);
+  __ popl(EBP);
+  __ ret();
+
+  const Code& code =
+      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef uint64_t (*DetectCPUFeatures)();
+  uint64_t features =
+      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
+  sse3_supported_ = (features & kSSE3BitMask) != 0;
+  sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
+#ifdef DEBUG
+  initialized_ = true;
+#endif
+}
+
+#undef __
 
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -1304,6 +1356,13 @@ void Assembler::cmpxchgl(const Address& address, Register reg) {
   EmitUint8(0x0F);
   EmitUint8(0xB1);
   EmitOperand(reg, address);
+}
+
+
+void Assembler::cpuid() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xA2);
 }
 
 

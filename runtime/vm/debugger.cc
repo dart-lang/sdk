@@ -1203,7 +1203,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
   Library& imported = Library::Handle(isolate_);
   intptr_t num_imports = lib.num_imports();
   for (int i = 0; i < num_imports; i++) {
-    imported = lib.ImportAt(i);
+    imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     CollectLibraryFields(field_list, imported, prefix_name, false);
   }
@@ -1215,7 +1215,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name,
                                  String::Handle(isolate_, Symbols::Dot()));
-    for (int i = 0; i < prefix.num_libs(); i++) {
+    for (int i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);
     }

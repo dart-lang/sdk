@@ -21,7 +21,7 @@ main() {
   Expect.equals("b", list[1]);
   Expect.equals("c", list[2]);
 
-  list = "abc".split(new RegExp(@"b$"));
+  list = "abc".split(new RegExp(r"b$"));
   Expect.equals(1, list.length);
   Expect.equals("abc", list[0]);
 
@@ -38,7 +38,7 @@ main() {
   Expect.equals("", list[2]);
   Expect.equals("", list[3]);
 
-  list = "aaa".split(const RegExp(@"a$"));
+  list = "aaa".split(const RegExp(r"a$"));
   Expect.equals(2, list.length);
   Expect.equals("aa", list[0]);
   Expect.equals("", list[1]);

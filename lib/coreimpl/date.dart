@@ -50,12 +50,12 @@ class DateImplementation implements Date {
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
       if (millisecondsSinceEpoch === null) {
-        throw new IllegalArgumentException(formattedString);
+        throw new ArgumentError(formattedString);
       }
       if (addOneMillisecond) millisecondsSinceEpoch++;
       return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, isUtc);
     } else {
-      throw new IllegalArgumentException(formattedString);
+      throw new ArgumentError(formattedString);
     }
   }
 
@@ -64,9 +64,9 @@ class DateImplementation implements Date {
   DateImplementation.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch,
                                                 this.isUtc) {
     if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
-      throw new IllegalArgumentException(millisecondsSinceEpoch);
+      throw new ArgumentError(millisecondsSinceEpoch);
     }
-    if (isUtc === null) throw new IllegalArgumentException(isUtc);
+    if (isUtc === null) throw new ArgumentError(isUtc);
   }
 
   bool operator ==(other) {

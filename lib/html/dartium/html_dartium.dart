@@ -51,7 +51,7 @@ var _callPortLastResult = null;
 _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].add((event) {
-      _callPortLastResult = JSON.parse(event.data);
+      _callPortLastResult = JSON.parse(_getPortSyncEventData(event));
     }, false);
     _callPortInitialized = true;
   }
@@ -9259,6 +9259,8 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 /// @domName HTMLContentElement
 abstract class ContentElement implements Element {
 
+  factory ContentElement() => _Elements.createContentElement();
+
   /** @domName HTMLContentElement.select */
   String select;
 }
@@ -10499,6 +10501,12 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
+
+  /** @domName DOMURL.createObjectURL */
+  static final createObjectURL = _DOMURLImpl.createObjectURL;
+
+  /** @domName DOMURL.revokeObjectURL */
+  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11659,7 +11667,7 @@ class FilteredElementList implements ElementList {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const IllegalArgumentException("Invalid list length");
+      throw const ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -11752,7 +11760,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   }
   Set<String> _read() => new Set<String>();
 
-  bool get isFrozen => true;
+  bool get frozen => true;
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
@@ -11811,7 +11819,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
         this.nodes.add(node);
         return node;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 
@@ -12433,7 +12441,7 @@ abstract class CSSClassSet implements Set<String> {
    * Returns [:true:] classes cannot be added or removed from this
    * [:CSSClassSet:].
    */
-  bool get isFrozen;
+  bool get frozen;
 }
 
 /// @domName Element
@@ -13376,7 +13384,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen => false;
+  bool get frozen => false;
 
   int get length =>_read().length;
 
@@ -13788,7 +13796,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -17879,6 +17887,18 @@ abstract class IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
+
+  /** @domName IDBKeyRange.bound_ */
+  static final bound_ = _IDBKeyRangeImpl.bound_;
+
+  /** @domName IDBKeyRange.lowerBound_ */
+  static final lowerBound_ = _IDBKeyRangeImpl.lowerBound_;
+
+  /** @domName IDBKeyRange.only_ */
+  static final only_ = _IDBKeyRangeImpl.only_;
+
+  /** @domName IDBKeyRange.upperBound_ */
+  static final upperBound_ = _IDBKeyRangeImpl.upperBound_;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17896,7 +17916,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound(lower, upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(lower, upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -17912,7 +17932,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound(bound, [open]) {
+  static IDBKeyRange lowerBound_(bound, [open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -17923,9 +17943,9 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
-  static IDBKeyRange only(value) native "IDBKeyRange_only_Callback";
+  static IDBKeyRange only_(value) native "IDBKeyRange_only__Callback";
 
-  static IDBKeyRange upperBound(bound, [open]) {
+  static IDBKeyRange upperBound_(bound, [open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -22370,7 +22390,7 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
-            throw new IllegalArgumentException(
+            throw new ArgumentError(
                 "Illegal MutationObserver.observe option '$k'");
           }
         });
@@ -23469,6 +23489,9 @@ abstract class Notification implements EventTarget {
 
   /** @domName Notification.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Notification.requestPermission */
+  static final requestPermission = _NotificationImpl.requestPermission;
 
   /** @domName Notification.show */
   void show();
@@ -34290,16 +34313,13 @@ abstract class ShadowRoot implements DocumentFragment {
   Node clone(bool deep);
 
   /** @domName ShadowRoot.getElementById */
-  Element getElementById(String elementId);
+  Element $dom_getElementById(String elementId);
 
   /** @domName ShadowRoot.getElementsByClassName */
-  NodeList getElementsByClassName(String className);
+  NodeList $dom_getElementsByClassName(String className);
 
   /** @domName ShadowRoot.getElementsByTagName */
-  NodeList getElementsByTagName(String tagName);
-
-  /** @domName ShadowRoot.getElementsByTagNameNS */
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+  NodeList $dom_getElementsByTagName(String tagName);
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
@@ -34328,13 +34348,11 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
 
-  Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
+  Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
-  NodeList getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
+  NodeList $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
-  NodeList getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
-
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName) native "ShadowRoot_getElementsByTagNameNS_Callback";
+  NodeList $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
@@ -40528,8 +40546,6 @@ abstract class Window implements EventTarget {
 
   void cancelAnimationFrame(int id);
 
-  IDBFactory get indexedDB;
-
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
@@ -41148,8 +41164,6 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
 
-  IDBFactory get indexedDB => webkitIndexedDB;
-
   // TODO(kasperl): Document these.
   lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);
@@ -41159,6 +41173,11 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  String createObjectUrl(object) => DOMURL.createObjectURL(object);
+  void revokeObjectUrl(String url) {
+    DOMURL.revokeObjectURL(url);
   }
 
 
@@ -42052,6 +42071,11 @@ class _Elements {
     _HTMLCanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
+    return _e;
+  }
+
+  static ContentElement createContentElement() {
+    _HTMLContentElementImpl _e = _document.$dom_createElement("content");
     return _e;
   }
 
@@ -43307,9 +43331,9 @@ class _SVGElementFactoryProvider {
     }
 
     parentTag.innerHTML = svg;
-    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
+    if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
@@ -43338,20 +43362,20 @@ class _AudioContextFactoryProvider {
 class _IDBKeyRangeFactoryProvider {
 
   static IDBKeyRange createIDBKeyRange_only(/*IDBKey*/ value) =>
-      _IDBKeyRangeImpl.only(value);
+      _IDBKeyRangeImpl.only_(value);
 
   static IDBKeyRange createIDBKeyRange_lowerBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.lowerBound(bound, open);
+      _IDBKeyRangeImpl.lowerBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_upperBound(
       /*IDBKey*/ bound, [bool open = false]) =>
-      _IDBKeyRangeImpl.upperBound(bound, open);
+      _IDBKeyRangeImpl.upperBound_(bound, open);
 
   static IDBKeyRange createIDBKeyRange_bound(
       /*IDBKey*/ lower, /*IDBKey*/ upper,
       [bool lowerOpen = false, bool upperOpen = false]) =>
-      _IDBKeyRangeImpl.bound(lower, upper, lowerOpen, upperOpen);
+      _IDBKeyRangeImpl.bound_(lower, upper, lowerOpen, upperOpen);
 }
 
 class _TypedArrayFactoryProvider {
@@ -43556,8 +43580,8 @@ class _RemoteSendPortSync implements SendPortSync {
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
     var result = null;
-    var listener = (TextEvent e) {
-      result = JSON.parse(e.data);
+    var listener = (Event e) {
+      result = JSON.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -43628,8 +43652,8 @@ class ReceivePortSync {
   void receive(callback(var message)) {
     _callback = callback;
     if (_listener === null) {
-      _listener = (TextEvent e) {
-        var data = JSON.parse(e.data);
+      _listener = (Event e) {
+        var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -43660,10 +43684,12 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('TextEvent');
-  event.initTextEvent(receiver, false, false, window, JSON.stringify(message));
+  var event = document.$dom_createEvent('CustomEvent');
+  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
+
+String _getPortSyncEventData(CustomEvent event) => event.detail;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -44191,12 +44217,12 @@ class _Lists {
    * Returns a sub list copy of this list, from [start] to
    * [:start + length:].
    * Returns an empty list if [length] is 0.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new IllegalArgumentException('length');
+    if (length < 0) throw new ArgumentError('length');
     if (start < 0) throw new IndexOutOfRangeException(start);
     int end = start + length;
     if (end > a.length) throw new IndexOutOfRangeException(end);

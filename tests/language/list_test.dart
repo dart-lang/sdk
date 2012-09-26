@@ -93,7 +93,7 @@ class ListTest {
     Expect.equals(9, element);
 
     Expect.throws(() => unsorted[2.1],
-                  (e) => e is IllegalArgumentException || e is TypeError);
+                  (e) => e is ArgumentError || e is TypeError);
 
     Expect.throws(() => new List(-1), (e) => true);
     Expect.throws(() => new List(99999999999999999999999), (e) => true);

@@ -7,7 +7,7 @@
  * Decodes the UTF-16 bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. Determines the byte order from the BOM,
  * or uses big-endian as a default. This method always strips a leading BOM.
- * Set the [replacementCodepoint] to null to throw an IllegalArgumentException
+ * Set the [replacementCodepoint] to null to throw an ArgumentError
  * rather than replace the bad value. The default value for
  * [replacementCodepoint] is U+FFFD.
  */
@@ -24,7 +24,7 @@ IterableUtf16Decoder decodeUtf16AsIterable(List<int> bytes, [int offset = 0,
  * convert as much of the input as needed. This method strips a leading BOM by
  * default, but can be overridden by setting the optional parameter [stripBom]
  * to false. Set the [replacementCodepoint] to null to throw an
- * IllegalArgumentException rather than replace the bad value. The default
+ * ArgumentError rather than replace the bad value. The default
  * value for the [replacementCodepoint] is U+FFFD.
  */
 IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes, [int offset = 0,
@@ -40,7 +40,7 @@ IterableUtf16Decoder decodeUtf16beAsIterable(List<int> bytes, [int offset = 0,
  * convert as much of the input as needed. This method strips a leading BOM by
  * default, but can be overridden by setting the optional parameter [stripBom]
  * to false. Set the [replacementCodepoint] to null to throw an
- * IllegalArgumentException rather than replace the bad value. The default
+ * ArgumentError rather than replace the bad value. The default
  * value for the [replacementCodepoint] is U+FFFD.
  */
 IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes, [int offset = 0,
@@ -54,7 +54,7 @@ IterableUtf16Decoder decodeUtf16leAsIterable(List<int> bytes, [int offset = 0,
 /**
  * Produce a String from a sequence of UTF-16 encoded bytes. This method always
  * strips a leading BOM. Set the [replacementCodepoint] to null to throw  an
- * IllegalArgumentException rather than replace the bad value. The default
+ * ArgumentError rather than replace the bad value. The default
  * value for the [replacementCodepoint] is U+FFFD.
  */
 String decodeUtf16(List<int> bytes, [int offset = 0, int length,
@@ -77,7 +77,7 @@ String decodeUtf16(List<int> bytes, [int offset = 0, int length,
  * Produce a String from a sequence of UTF-16BE encoded bytes. This method
  * strips a leading BOM by default, but can be overridden by setting the
  * optional parameter [stripBom] to false. Set the [replacementCodepoint] to
- * null to throw an IllegalArgumentException rather than replace the bad value.
+ * null to throw an ArgumentError rather than replace the bad value.
  * The default value for the [replacementCodepoint] is U+FFFD.
  */
 String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
@@ -100,7 +100,7 @@ String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
  * Produce a String from a sequence of UTF-16LE encoded bytes. This method
  * strips a leading BOM by default, but can be overridden by setting the
  * optional parameter [stripBom] to false. Set the [replacementCodepoint] to
- * null to throw an IllegalArgumentException rather than replace the bad value.
+ * null to throw an ArgumentError rather than replace the bad value.
  * The default value for the [replacementCodepoint] is U+FFFD.
  */
 String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
@@ -284,7 +284,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
       if (replacementCodepoint != null) {
         return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF16 at ${utf16EncodedBytesIterator.position}");
       }
     } else {

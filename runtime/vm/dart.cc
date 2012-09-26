@@ -76,6 +76,11 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     StubCode::InitOnce();
     Scanner::InitOnce();
     Symbols::InitOnce(vm_isolate_);
+    CPUFeatures::InitOnce();
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    // Dart VM requires at least SSE3.
+    if (!CPUFeatures::sse3_supported()) return false;
+#endif
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
     vm_isolate_->heap()->WriteProtect(true);

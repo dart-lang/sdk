@@ -1968,7 +1968,7 @@ class _HttpClient implements HttpClient {
                              [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
     if (method == null || host == null || port == null || path == null) {
-      throw new IllegalArgumentException(null);
+      throw new ArgumentError(null);
     }
     return _prepareHttpClientConnection(host, port, method, path, connection);
   }

@@ -5,9 +5,6 @@
 [ $runtime == opera ]
 peg_test: Skip
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == chrome || $runtime == safari) ]
-peg_test: Skip # TODO(ahe): Triage
-
 [ $arch == x64 ]
 *: Skip
 

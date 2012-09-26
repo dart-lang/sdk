@@ -24,7 +24,7 @@ bool throwsBecauseOfBadArgument(f) {
     return false;
   } on NoSuchMethodError catch (e) {
     return true;
-  } on IllegalArgumentException catch (e) {
+  } on ArgumentError catch (e) {
     return true;
   } on NullPointerException catch (e) {
     return true;

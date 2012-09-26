@@ -3,39 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The line contains only whitespace or is empty.
-const _RE_EMPTY = const RegExp(@'^([ \t]*)$');
+const _RE_EMPTY = const RegExp(r'^([ \t]*)$');
 
 /// A series of `=` or `-` (on the next line) define setext-style headers.
-const _RE_SETEXT = const RegExp(@'^((=+)|(-+))$');
+const _RE_SETEXT = const RegExp(r'^((=+)|(-+))$');
 
 /// Leading (and trailing) `#` define atx-style headers.
-const _RE_HEADER = const RegExp(@'^(#{1,6})(.*?)#*$');
+const _RE_HEADER = const RegExp(r'^(#{1,6})(.*?)#*$');
 
 /// The line starts with `>` with one optional space after.
-const _RE_BLOCKQUOTE = const RegExp(@'^[ ]{0,3}>[ ]?(.*)$');
+const _RE_BLOCKQUOTE = const RegExp(r'^[ ]{0,3}>[ ]?(.*)$');
 
 /// A line indented four spaces. Used for code blocks and lists.
-const _RE_INDENT = const RegExp(@'^(?:    |\t)(.*)$');
+const _RE_INDENT = const RegExp(r'^(?:    |\t)(.*)$');
 
 /// Three or more hyphens, asterisks or underscores by themselves. Note that
 /// a line like `----` is valid as both HR and SETEXT. In case of a tie,
 /// SETEXT should win.
-const _RE_HR = const RegExp(@'^[ ]{0,3}((-+[ ]{0,2}){3,}|'
-                                 @'(_+[ ]{0,2}){3,}|'
-                                 @'(\*+[ ]{0,2}){3,})$');
+const _RE_HR = const RegExp(r'^[ ]{0,3}((-+[ ]{0,2}){3,}|'
+                                 r'(_+[ ]{0,2}){3,}|'
+                                 r'(\*+[ ]{0,2}){3,})$');
 
 /// Really hacky way to detect block-level embedded HTML. Just looks for
 /// "<somename".
-const _RE_HTML = const RegExp(@'^<[ ]*\w+[ >]');
+const _RE_HTML = const RegExp(r'^<[ ]*\w+[ >]');
 
 /// A line starting with one of these markers: `-`, `*`, `+`. May have up to
 /// three leading spaces before the marker and any number of spaces or tabs
 /// after.
-const _RE_UL = const RegExp(@'^[ ]{0,3}[*+-][ \t]+(.*)$');
+const _RE_UL = const RegExp(r'^[ ]{0,3}[*+-][ \t]+(.*)$');
 
 /// A line starting with a number like `123.`. May have up to three leading
 /// spaces before the marker and any number of spaces or tabs after.
-const _RE_OL = const RegExp(@'^[ ]{0,3}\d+\.[ \t]+(.*)$');
+const _RE_OL = const RegExp(r'^[ ]{0,3}\d+\.[ \t]+(.*)$');
 
 /// Maintains the internal state needed to parse a series of lines into blocks
 /// of markdown suitable for further inline parsing.

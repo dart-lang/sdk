@@ -519,7 +519,7 @@ struct MemberDesc {
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
-  // For constructors: NULL or redirected constructor.
+  // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
   // For constructors: NULL for unnamed constructor,
   // identifier after classname for named constructors.
@@ -708,6 +708,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
+      // The call to a redirecting factory is redirected.
+      ASSERT(!func.IsRedirectingFactory());
       node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
@@ -2360,7 +2362,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ErrorMsg(method->name_pos, "constructor cannot be abstract");
   }
   if (method->IsConstructor() && method->has_const) {
-    Class& cls = Class::ZoneHandle(library_.LookupClass(members->class_name()));
+    Class& cls = Class::Handle(library_.LookupClass(members->class_name()));
     cls.set_is_const();
   }
   if (method->has_abstract && members->is_interface()) {
@@ -2382,7 +2384,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // the type of the instance to be allocated.
   if (!method->has_static || method->IsConstructor()) {
     method->params.AddReceiver(ReceiverType(formal_param_pos));
-  } else if (method->has_factory) {
+  } else if (method->IsFactory()) {
     method->params.AddFinalParameter(
         formal_param_pos,
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
@@ -2443,8 +2445,27 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
   }
 
-  // Parse initializers.
-  if (CurrentToken() == Token::kCOLON) {
+  // Parse redirecting factory constructor.
+  Type& redirection_type = Type::Handle();
+  String& redirection_identifier = String::Handle();
+  if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
+    ConsumeToken();
+    const intptr_t type_pos = TokenPos();
+    const AbstractType& type = AbstractType::Handle(
+        ParseType(ClassFinalizer::kTryResolve));
+    if (type.IsTypeParameter()) {
+      // TODO(regis): Spec is not clear. Throw dynamic error or report
+      // compile-time error? Same question for new and const operators.
+      ErrorMsg(type_pos, "factory may not redirect via a type parameter");
+    }
+    redirection_type ^= type.raw();
+    if (CurrentToken() == Token::kPERIOD) {
+      // Named constructor or factory.
+      ConsumeToken();
+      redirection_identifier = ExpectIdentifier("identifier expected")->raw();
+    }
+  } else if (CurrentToken() == Token::kCOLON) {
+    // Parse initializers.
     if (!method->IsConstructor()) {
       ErrorMsg("initializers only allowed on constructors");
     }
@@ -2538,7 +2559,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
         !members->is_interface() &&
-        method->has_static && !method->has_external;
+        method->has_static &&
+        !method->has_external &&
+        redirection_type.IsNull();
     if (must_have_body) {
       ErrorMsg(method->name_pos,
                "function body expected for method '%s'",
@@ -2594,6 +2617,15 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
+
+  // If this method is a redirecting factory, set the redirection information.
+  if (!redirection_type.IsNull()) {
+    ASSERT(func.IsFactory());
+    func.SetRedirectionType(redirection_type);
+    if (!redirection_identifier.IsNull()) {
+      func.SetRedirectionIdentifier(redirection_identifier);
+    }
+  }
 
   // No need to resolve parameter types yet, or add parameters to local scope.
   ASSERT(is_top_level_);
@@ -2971,6 +3003,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
+    ASSERT(member.IsFactory() == member.has_factory);
     ParseMethodOrConstructor(members, &member);
     if (member.has_operator) {
       CheckOperatorArity(member, operator_token);
@@ -4087,15 +4120,17 @@ void Parser::ParseLibraryImportObsoleteSyntax() {
       }
     }
     // Add the import to the library.
+    const Namespace& import = Namespace::Handle(
+        Namespace::New(library, Array::Handle(), Array::Handle()));
     if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(library);
+      library_.AddImport(import);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
-        library_prefix.AddLibrary(library);
+        library_prefix.AddImport(import);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, library);
+        library_prefix = LibraryPrefix::New(prefix, import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -4137,6 +4172,18 @@ void Parser::ParseLibraryName() {
 }
 
 
+void Parser::ParseIdentList(GrowableObjectArray* names) {
+  while (IsIdentifier()) {
+    names->Add(*CurrentLiteral());
+    ConsumeToken();  // Identifier.
+    if (CurrentToken() != Token::kCOMMA) {
+      return;
+    }
+    ConsumeToken();  // Comma.
+  }
+}
+
+
 void Parser::ParseLibraryImportExport() {
   if (IsLiteral("import")) {
     const intptr_t import_pos = TokenPos();
@@ -4154,10 +4201,31 @@ void Parser::ParseLibraryImportExport() {
       ConsumeToken();
       prefix = ExpectIdentifier("prefix expected")->raw();
     }
-    if (IsLiteral("show")) {
-      ErrorMsg("show combinator not yet supported");
-    } else if (IsLiteral("hide")) {
-      ErrorMsg("hide combinator not yet supported");
+
+    Array& show_names = Array::Handle();
+    Array& hide_names = Array::Handle();
+    if (IsLiteral("show") || IsLiteral("hide")) {
+      GrowableObjectArray& show_list =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray& hide_list =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      for (;;) {
+        if (IsLiteral("show")) {
+          ConsumeToken();
+          ParseIdentList(&show_list);
+        } else if (IsLiteral("hide")) {
+          ConsumeToken();
+          ParseIdentList(&hide_list);
+        } else {
+          break;
+        }
+      }
+      if (show_list.Length() > 0) {
+        show_names = Array::MakeArray(show_list);
+      }
+      if (hide_list.Length() > 0) {
+        hide_names = Array::MakeArray(hide_list);
+      }
     }
     ExpectSemicolon();
 
@@ -4179,15 +4247,17 @@ void Parser::ParseLibraryImportExport() {
       }
     }
     // Add the import to the library.
+    const Namespace& import =
+        Namespace::Handle(Namespace::New(library, show_names, hide_names));
     if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(library);
+      library_.AddImport(import);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
-        library_prefix.AddLibrary(library);
+        library_prefix.AddImport(import);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, library);
+        library_prefix = LibraryPrefix::New(prefix, import);
         library_.AddObject(library_prefix, prefix);
       }
     }
@@ -4201,7 +4271,18 @@ void Parser::ParseLibraryImportExport() {
 
 
 void Parser::ParseLibraryPart() {
-  ErrorMsg("library part definitions not implemented");
+  const intptr_t source_pos = TokenPos();
+  ConsumeToken();  // Consume "part".
+  if (CurrentToken() != Token::kSTRING) {
+    ErrorMsg("url expected");
+  }
+  const String& url = *CurrentLiteral();
+  ConsumeToken();
+  ExpectSemicolon();
+  Dart_Handle handle =
+      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url);
+  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
 }
 
 
@@ -4226,7 +4307,9 @@ void Parser::ParseLibraryDefinition() {
     if (!library_.ImportsCorelib()) {
       Library& core_lib = Library::Handle(Library::CoreLibrary());
       ASSERT(!core_lib.IsNull());
-      library_.AddImport(core_lib);
+      const Namespace& core_ns = Namespace::Handle(
+          Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+      library_.AddImport(core_ns);
     }
     return;
   }
@@ -4254,7 +4337,9 @@ void Parser::ParseLibraryDefinition() {
   if (!library_.ImportsCorelib()) {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    library_.AddImport(core_lib);
+    const Namespace& core_ns = Namespace::Handle(
+        Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+    library_.AddImport(core_ns);
   }
   while (IsLiteral("part")) {
     ParseLibraryPart();
@@ -4265,6 +4350,31 @@ void Parser::ParseLibraryDefinition() {
     ErrorMsg("unexpected token '%s'", CurrentLiteral()->ToCString());
   }
   SetPosition(metadata_pos);
+}
+
+
+void Parser::ParsePartHeader() {
+  intptr_t metadata_pos = TokenPos();
+  SkipMetadata();
+  // TODO(hausner): Once support for old #source directive is removed
+  // from the compiler, add an error message here if we don't find
+  // a 'part of' directive.
+  if (IsLiteral("part")) {
+    ConsumeToken();
+    if (!IsLiteral("of")) {
+      ErrorMsg("'part of' expected");
+    }
+    ConsumeToken();
+    // TODO(hausner): Exact syntax of library name still unclear: identifier,
+    // qualified identifier or even multiple dots allowed? For now we just
+    // accept simple identifiers.
+    // The VM is not required to check that the library name matches the
+    // name of the current library, so we ignore it.
+    ExpectIdentifier("library name expected");
+    ExpectSemicolon();
+  } else {
+    SetPosition(metadata_pos);
+  }
 }
 
 
@@ -4286,6 +4396,8 @@ void Parser::ParseTopLevel() {
 
   if (is_library_source()) {
     ParseLibraryDefinition();
+  } else if (is_part_source()) {
+    ParsePartHeader();
   }
 
   while (true) {
@@ -6184,16 +6296,6 @@ AstNode* Parser::ParseJump(String* label_name) {
 }
 
 
-bool Parser::IsDefinedInLexicalScope(const String& ident) {
-  if (ResolveIdentInLocalScope(TokenPos(), ident, NULL)) {
-    return true;
-  }
-  Object& obj = Object::Handle();
-  obj = library_.LookupObject(ident);
-  return !obj.IsNull();
-}
-
-
 AstNode* Parser::ParseStatement() {
   TRACE_PARSER("ParseStatement");
   AstNode* statement = NULL;
@@ -6238,8 +6340,7 @@ AstNode* Parser::ParseStatement() {
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kIF) {
     statement = ParseIfStatement(label_name);
-  } else if ((CurrentToken() == Token::kASSERT) &&
-             !IsDefinedInLexicalScope(*CurrentLiteral())) {
+  } else if (CurrentToken() == Token::kASSERT) {
     statement = ParseAssertStatement();
     ExpectSemicolon();
   } else if (IsVariableDeclaration()) {
@@ -7984,6 +8085,28 @@ static RawObject* LookupNameInLibrary(const Library& lib, const String& name) {
 }
 
 
+static RawObject* LookupNameInImport(const Namespace& ns, const String& name) {
+  Object& obj = Object::Handle();
+  obj = ns.Lookup(name);
+  if (!obj.IsNull()) {
+    return obj.raw();
+  }
+  // If the given name is filtered out by the import, don't look up the
+  // getter and setter names.
+  if (ns.HidesName(name)) {
+    return Object::null();
+  }
+  String& accessor_name = String::Handle(Field::GetterName(name));
+  obj = ns.Lookup(accessor_name);
+  if (!obj.IsNull()) {
+    return obj.raw();
+  }
+  accessor_name = Field::SetterName(name);
+  obj = ns.Lookup(accessor_name);
+  return obj.raw();
+}
+
+
 // Resolve a name by checking the global scope of the current
 // library. If not found in the current library, then look in the scopes
 // of all libraries that are imported without a library prefix.
@@ -7998,13 +8121,14 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
     // Name is not found in current library. Check scope of all
     // imported libraries.
     String& first_lib_url = String::Handle();
-    Library& lib = Library::Handle();
+    Namespace& import = Namespace::Handle();
     intptr_t num_imports = library_.num_imports();
-    Object& resolved_obj = Object::Handle();
+    Object& imported_obj = Object::Handle();
     for (int i = 0; i < num_imports; i++) {
-      lib ^= library_.ImportAt(i);
-      resolved_obj = LookupNameInLibrary(lib, name);
-      if (!resolved_obj.IsNull()) {
+      import ^= library_.ImportAt(i);
+      imported_obj = LookupNameInImport(import, name);
+      if (!imported_obj.IsNull()) {
+        const Library& lib = Library::Handle(import.library());
         if (!first_lib_url.IsNull()) {
           // Found duplicate definition.
           if (first_lib_url.raw() == lib.url()) {
@@ -8023,7 +8147,7 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
           }
         } else {
           first_lib_url = lib.url();
-          obj = resolved_obj.raw();
+          obj = imported_obj.raw();
         }
       }
     }
@@ -8086,25 +8210,34 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
                                             const LibraryPrefix& prefix,
                                             const String& name) {
   TRACE_PARSER("ResolveNameInPrefixScope");
-  Library& lib = Library::Handle();
+  Namespace& import = Namespace::Handle();
   String& first_lib_url = String::Handle();
   Object& obj = Object::Handle();
   Object& resolved_obj = Object::Handle();
-  for (intptr_t i = 0; i < prefix.num_libs(); i++) {
-    lib = prefix.GetLibrary(i);
-    ASSERT(!lib.IsNull());
-    resolved_obj = LookupNameInLibrary(lib, name);
+  const Array& imports = Array::Handle(prefix.imports());
+  for (intptr_t i = 0; i < prefix.num_imports(); i++) {
+    import ^= imports.At(i);
+    resolved_obj = LookupNameInImport(import, name);
     if (!resolved_obj.IsNull()) {
       obj = resolved_obj.raw();
+      const Library& lib = Library::Handle(import.library());
       if (first_lib_url.IsNull()) {
         first_lib_url = lib.url();
       } else {
-        ErrorMsg(ident_pos,
-                 "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
-                 String::Handle(prefix.name()).ToCString(),
-                 name.ToCString(),
-                 first_lib_url.ToCString(),
-                 String::Handle(lib.url()).ToCString());
+        // Found duplicate definition.
+        if (first_lib_url.raw() == lib.url()) {
+          ErrorMsg(ident_pos,
+                   "ambiguous reference: '%s.%s' is imported multiple times",
+                   String::Handle(prefix.name()).ToCString(),
+                   name.ToCString());
+        } else {
+          ErrorMsg(ident_pos,
+                   "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
+                   String::Handle(prefix.name()).ToCString(),
+                   name.ToCString(),
+                   first_lib_url.ToCString(),
+                   String::Handle(lib.url()).ToCString());
+        }
       }
     }
   }
@@ -8719,7 +8852,7 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = TokenPos();
-  const AbstractType& type = AbstractType::Handle(
+  AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // Malformed bounds never result in a compile time error, therefore, the
   // parsed type may be malformed although we requested kCanonicalizeWellFormed.
@@ -8733,7 +8866,7 @@ AstNode* Parser::ParseNewOperator() {
   if (type.IsDynamicType()) {
     ErrorMsg(type_pos, "Dynamic cannot be instantiated");
   }
-  const Class& type_class = Class::Handle(type.type_class());
+  Class& type_class = Class::Handle(type.type_class());
   const String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
@@ -8828,21 +8961,39 @@ AstNode* Parser::ParseNewOperator() {
       constructor_class.LookupConstructor(constructor_name));
   if (constructor.IsNull()) {
     constructor = constructor_class.LookupFactory(constructor_name);
-    // A factory does not have the implicit 'phase' parameter.
-    arguments_length -= 1;
-  }
-  if (constructor.IsNull()) {
-    const String& external_constructor_name =
-        (named_constructor ? constructor_name : constructor_class_name);
-    ErrorMsg(type_pos,
-             "class '%s' has no constructor or factory named '%s'",
-             String::Handle(constructor_class.Name()).ToCString(),
-             external_constructor_name.ToCString());
+    if (constructor.IsNull()) {
+      const String& external_constructor_name =
+          (named_constructor ? constructor_name : constructor_class_name);
+      ErrorMsg(type_pos,
+               "class '%s' has no constructor or factory named '%s'",
+               String::Handle(constructor_class.Name()).ToCString(),
+               external_constructor_name.ToCString());
+    } else if (constructor.IsRedirectingFactory()) {
+      type = constructor.RedirectionType();
+      constructor = constructor.RedirectionTarget();
+      if (constructor.IsNull()) {
+        // TODO(regis): We normally report a compile-time error if the
+        // constructor is not found. See above. However, we should throw a
+        // dynamic error instead. We do it here. This is the first step.
+        ASSERT(type.IsMalformed());
+      } else {
+        type_class = type.type_class();
+        type_arguments = type.arguments();
+        constructor_class = constructor.Owner();
+        ASSERT(type_class.raw() == constructor_class.raw());
+      }
+    }
+    if (!constructor.IsNull() && constructor.IsFactory()) {
+      // A factory does not have the implicit 'phase' parameter.
+      arguments_length -= 1;
+    }
   }
 
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
-  if (constructor_class.is_abstract() && !constructor.IsFactory()) {
+  if (!constructor.IsNull() &&
+      constructor_class.is_abstract() &&
+      !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
@@ -8855,7 +9006,8 @@ AstNode* Parser::ParseNewOperator() {
   }
 
   String& error_message = String::Handle();
-  if (!constructor.AreValidArguments(arguments_length,
+  if (!constructor.IsNull() &&
+      !constructor.AreValidArguments(arguments_length,
                                      arguments->names(),
                                      &error_message)) {
     const String& external_constructor_name =
@@ -8874,7 +9026,7 @@ AstNode* Parser::ParseNewOperator() {
   // factory class, we need to finalize the type argument vector again, because
   // it may be longer due to the factory class extending a class, or/and because
   // the bounds on the factory class may be tighter than on the interface.
-  if (constructor_class.raw() != type_class.raw()) {
+  if (!constructor.IsNull() && (constructor_class.raw() != type_class.raw())) {
     const intptr_t num_type_parameters = constructor_class.NumTypeParameters();
     TypeArguments& temp_type_arguments = TypeArguments::Handle();
     if (!type_arguments.IsNull()) {
@@ -8909,7 +9061,11 @@ AstNode* Parser::ParseNewOperator() {
       type.set_malformed_error(error);
     }
   }
-
+  if (type.IsMalformed()) {
+    // Compile the throw of a dynamic type error due to a bound error or to
+    // a redirection error.
+    return ThrowTypeError(type_pos, type);
+  }
   type_arguments ^= type_arguments.Canonicalize();
   // Make the constructor call.
   AstNode* new_object = NULL;
@@ -8917,10 +9073,6 @@ AstNode* Parser::ParseNewOperator() {
     if (!constructor.is_const()) {
       ErrorMsg("'const' requires const constructor: '%s'",
           String::Handle(constructor.name()).ToCString());
-    }
-    if (type.IsMalformed()) {
-      // Compile the throw of a dynamic type error due to a bound error.
-      return ThrowTypeError(type_pos, type);
     }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(constructor_class,
@@ -8942,10 +9094,6 @@ AstNode* Parser::ParseNewOperator() {
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
-    }
-    if (type.IsMalformed()) {
-      // Compile the throw of a dynamic type error due to a bound error.
-      return ThrowTypeError(type_pos, type);
     }
     // If the type argument vector is not instantiated, we verify in checked
     // mode at runtime that it is within its declared bounds.

@@ -31,7 +31,7 @@ class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
-int _getNewIsolateId() native @'''
+int _getNewIsolateId() native r'''
   if (!window.$dart$isolate$counter) {
     window.$dart$isolate$counter = 1;
   }
@@ -40,7 +40,7 @@ int _getNewIsolateId() native @'''
 
 // Fast path to invoke JS send port.
 _callPortSync(int id, message) {
-  return JS('var', @'ReceivePortSync.dispatchCall(#, #)', id, message);
+  return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
 // TODO(vsm): Plumb this properly.
@@ -8401,6 +8401,8 @@ class _ConsoleImpl
 /// @domName HTMLContentElement
 abstract class ContentElement implements Element {
 
+  factory ContentElement() => _Elements.createContentElement();
+
   /** @domName HTMLContentElement.select */
   String select;
 }
@@ -9561,9 +9563,19 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
+
+  /** @domName DOMURL.createObjectURL */
+  static final createObjectURL = _DOMURLImpl.createObjectURL;
+
+  /** @domName DOMURL.revokeObjectURL */
+  static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
+
+  static String createObjectURL(blob_OR_source_OR_stream) native;
+
+  static void revokeObjectURL(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10490,7 +10502,7 @@ class FilteredElementList implements ElementList {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const IllegalArgumentException("Invalid list length");
+      throw const ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -10583,7 +10595,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   }
   Set<String> _read() => new Set<String>();
 
-  bool get isFrozen => true;
+  bool get frozen => true;
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
@@ -10642,7 +10654,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
         this.nodes.add(node);
         return node;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 
@@ -11232,7 +11244,7 @@ abstract class CSSClassSet implements Set<String> {
    * Returns [:true:] classes cannot be added or removed from this
    * [:CSSClassSet:].
    */
-  bool get isFrozen;
+  bool get frozen;
 }
 
 /// @domName Element
@@ -12075,7 +12087,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool isEmpty() => _read().isEmpty();
 
-  bool get isFrozen => false;
+  bool get frozen => false;
 
   int get length =>_read().length;
 
@@ -12378,7 +12390,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         this.parent.insertBefore(node, this.nextNode);
         break;
       default:
-        throw new IllegalArgumentException("Invalid position ${where}");
+        throw new ArgumentError("Invalid position ${where}");
     }
   }
 
@@ -12560,7 +12572,7 @@ class _ElementFactoryProvider {
       // only contains a head or body element.
       element = temp.elements[tag == 'head' ? 0 : 1];
     } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} '
+      throw new ArgumentError('HTML had ${temp.elements.length} '
           'top level elements but 1 expected');
     }
     element.remove();
@@ -16036,7 +16048,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBTransactionImpl transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
-      throw new IllegalArgumentException(mode);
+      throw new ArgumentError(mode);
     }
 
     // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
@@ -16415,6 +16427,18 @@ abstract class IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
+
+  /** @domName IDBKeyRange.bound_ */
+  static final bound_ = _IDBKeyRangeImpl.bound_;
+
+  /** @domName IDBKeyRange.lowerBound_ */
+  static final lowerBound_ = _IDBKeyRangeImpl.lowerBound_;
+
+  /** @domName IDBKeyRange.only_ */
+  static final only_ = _IDBKeyRangeImpl.only_;
+
+  /** @domName IDBKeyRange.upperBound_ */
+  static final upperBound_ = _IDBKeyRangeImpl.upperBound_;
 }
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
@@ -16428,6 +16452,53 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   Dynamic get _upper() native "return this.upper;";
 
   final bool upperOpen;
+
+  static _IDBKeyRangeImpl bound_(lower, upper, [lowerOpen, upperOpen]) {
+    if (?upperOpen) {
+      var lower_1 = _convertDartToNative_IDBKey(lower);
+      var upper_2 = _convertDartToNative_IDBKey(upper);
+      return _bound__1(lower_1, upper_2, lowerOpen, upperOpen);
+    }
+    if (?lowerOpen) {
+      var lower_3 = _convertDartToNative_IDBKey(lower);
+      var upper_4 = _convertDartToNative_IDBKey(upper);
+      return _bound__2(lower_3, upper_4, lowerOpen);
+    }
+    var lower_5 = _convertDartToNative_IDBKey(lower);
+    var upper_6 = _convertDartToNative_IDBKey(upper);
+    return _bound__3(lower_5, upper_6);
+  }
+  _IDBKeyRangeImpl _bound__1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
+  _IDBKeyRangeImpl _bound__2(lower, upper, bool lowerOpen) native "bound";
+  _IDBKeyRangeImpl _bound__3(lower, upper) native "bound";
+
+  static _IDBKeyRangeImpl lowerBound_(bound, [open]) {
+    if (?open) {
+      var bound_1 = _convertDartToNative_IDBKey(bound);
+      return _lowerBound__1(bound_1, open);
+    }
+    var bound_2 = _convertDartToNative_IDBKey(bound);
+    return _lowerBound__2(bound_2);
+  }
+  _IDBKeyRangeImpl _lowerBound__1(bound, bool open) native "lowerBound";
+  _IDBKeyRangeImpl _lowerBound__2(bound) native "lowerBound";
+
+  static _IDBKeyRangeImpl only_(value) {
+    var value_1 = _convertDartToNative_IDBKey(value);
+    return _only__1(value_1);
+  }
+  _IDBKeyRangeImpl _only__1(value) native "only";
+
+  static _IDBKeyRangeImpl upperBound_(bound, [open]) {
+    if (?open) {
+      var bound_1 = _convertDartToNative_IDBKey(bound);
+      return _upperBound__1(bound_1, open);
+    }
+    var bound_2 = _convertDartToNative_IDBKey(bound);
+    return _upperBound__2(bound_2);
+  }
+  _IDBKeyRangeImpl _upperBound__1(bound, bool open) native "upperBound";
+  _IDBKeyRangeImpl _upperBound__2(bound) native "upperBound";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20310,7 +20381,7 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
-            throw new IllegalArgumentException(
+            throw new ArgumentError(
                 "Illegal MutationObserver.observe option '$k'");
           }
         });
@@ -21448,6 +21519,9 @@ abstract class Notification implements EventTarget {
   /** @domName Notification.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName Notification.requestPermission */
+  static final requestPermission = _NotificationImpl.requestPermission;
+
   /** @domName Notification.show */
   void show();
 }
@@ -21519,6 +21593,8 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+
+  static void requestPermission(NotificationPermissionCallback callback) native;
 
   void show() native;
 }
@@ -31518,16 +31594,13 @@ abstract class ShadowRoot implements DocumentFragment {
   Node clone(bool deep);
 
   /** @domName ShadowRoot.getElementById */
-  Element getElementById(String elementId);
+  Element $dom_getElementById(String elementId);
 
   /** @domName ShadowRoot.getElementsByClassName */
-  NodeList getElementsByClassName(String className);
+  NodeList $dom_getElementsByClassName(String className);
 
   /** @domName ShadowRoot.getElementsByTagName */
-  NodeList getElementsByTagName(String tagName);
-
-  /** @domName ShadowRoot.getElementsByTagNameNS */
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+  NodeList $dom_getElementsByTagName(String tagName);
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
@@ -31545,13 +31618,11 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   _NodeImpl clone(bool deep) native "cloneNode";
 
-  _ElementImpl getElementById(String elementId) native;
+  _ElementImpl $dom_getElementById(String elementId) native "getElementById";
 
-  _NodeListImpl getElementsByClassName(String className) native;
+  _NodeListImpl $dom_getElementsByClassName(String className) native "getElementsByClassName";
 
-  _NodeListImpl getElementsByTagName(String tagName) native;
-
-  _NodeListImpl getElementsByTagNameNS(String namespaceURI, String localName) native;
+  _NodeListImpl $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
   _DOMSelectionImpl getSelection() native;
 }
@@ -37649,8 +37720,6 @@ abstract class Window implements EventTarget {
 
   void cancelAnimationFrame(int id);
 
-  IDBFactory get indexedDB;
-
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
@@ -39257,6 +39326,11 @@ class _Elements {
     return _e;
   }
 
+  static ContentElement createContentElement() {
+    _ContentElementImpl _e = _document.$dom_createElement("content");
+    return _e;
+  }
+
   static DListElement createDListElement() {
     _DListElementImpl _e = _document.$dom_createElement("dl");
     return _e;
@@ -40533,8 +40607,8 @@ class _RemoteSendPortSync implements SendPortSync {
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
     var result = null;
-    var listener = (TextEvent e) {
-      result = JSON.parse(e.data);
+    var listener = (Event e) {
+      result = JSON.parse(_getPortSyncEventData(e));
     };
     window.on[source].add(listener);
     _dispatchEvent(target, [source, message]);
@@ -40605,8 +40679,8 @@ class ReceivePortSync {
   void receive(callback(var message)) {
     _callback = callback;
     if (_listener === null) {
-      _listener = (TextEvent e) {
-        var data = JSON.parse(e.data);
+      _listener = (Event e) {
+        var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
@@ -40637,10 +40711,12 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('TextEvent');
-  event.initTextEvent(receiver, false, false, window, JSON.stringify(message));
+  var event = document.$dom_createEvent('CustomEvent');
+  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
+
+String _getPortSyncEventData(CustomEvent event) => event.detail;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41144,9 +41220,9 @@ class _SVGElementFactoryProvider {
     }
 
     parentTag.innerHTML = svg;
-    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
+    if (parentTag.elements.length == 1) return parentTag.elements.removeLast();
 
-    throw new IllegalArgumentException(
+    throw new ArgumentError(
         'SVG had ${parentTag.elements.length} '
         'top-level elements but 1 expected');
   }
@@ -41556,7 +41632,7 @@ bool _isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
 bool _isJavaScriptSimpleObject(value) =>
     JS('bool', 'Object.getPrototypeOf(#) === Object.prototype', value);
 bool _isImmutableJavaScriptArray(value) =>
-    JS('bool', @'!!(#.immutable$list)', value);
+    JS('bool', r'!!(#.immutable$list)', value);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -42041,12 +42117,12 @@ class _Lists {
    * Returns a sub list copy of this list, from [start] to
    * [:start + length:].
    * Returns an empty list if [length] is 0.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new IllegalArgumentException('length');
+    if (length < 0) throw new ArgumentError('length');
     if (start < 0) throw new IndexOutOfRangeException(start);
     int end = start + length;
     if (end > a.length) throw new IndexOutOfRangeException(end);

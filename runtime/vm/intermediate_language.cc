@@ -106,7 +106,9 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
          ((immutable_ == other_load->immutable_) &&
-          (ResultCid() == other_load->ResultCid())));
+          ((ResultCid() == other_load->ResultCid()) ||
+           (ResultCid() == kDynamicCid) ||
+           (other_load->ResultCid() == kDynamicCid))));
   return offset_in_bytes() == other_load->offset_in_bytes();
 }
 
@@ -1468,9 +1470,11 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Add deoptimization descriptor for deoptimizing instructions
   // that may be inserted before this instruction.
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 GetDeoptId(),
-                                 0);  // No token position.
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   GetDeoptId(),
+                                   0);  // No token position.
+  }
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -1558,22 +1562,41 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  __ CompareRegisters(left, right);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
+    __ LoadObject(locs()->out().reg(), result ? compiler->bool_true() :
+                                                compiler->bool_false());
+    return;
+  }
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ CompareRegisters(left.reg(), right.reg());
+  }
 
   Register result = locs()->out().reg();
   Label load_true, done;
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ j(true_condition, &load_true, Assembler::kNearJump);
   __ LoadObject(result, compiler->bool_false());
   __ jmp(&done, Assembler::kNearJump);
@@ -1584,12 +1607,27 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                       BranchInstr* branch) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
+                                        BranchInstr* branch) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
+    branch->EmitBranchOnValue(compiler, result);
+    return;
+  }
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ CompareRegisters(left.reg(), right.reg());
+  }
+
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  __ CompareRegisters(left, right);
   branch->EmitBranchOnCondition(compiler, true_condition);
 }
 
@@ -1619,9 +1657,11 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                 deopt_id(),
-                                 token_pos());
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id(),
+                                   token_pos());
+  }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  function_name(),

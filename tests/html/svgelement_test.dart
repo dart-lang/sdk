@@ -50,13 +50,13 @@ main() {
 
       test('empty', () {
         Expect.throws(() => new SVGElement.svg(""),
-            (e) => e is IllegalArgumentException);
+            (e) => e is ArgumentError);
       });
 
       test('too many elements', () {
         Expect.throws(
             () => new SVGElement.svg("<circle></circle><path></path>"),
-            (e) => e is IllegalArgumentException);
+            (e) => e is ArgumentError);
       });
     });
 

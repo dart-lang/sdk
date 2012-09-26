@@ -65,12 +65,12 @@ void testNegativeIndices() {
   expectIOORE(() { list.setRange(-1, 1, [1]); });
   expectIOORE(() { list.setRange(0, 1, [1], -1); });
 
-  // A negative length throws an IllegalArgumentException.
+  // A negative length throws an ArgumentError.
   Expect.throws(() { list.setRange(0, -1, [1]); },
-      (e) => e is IllegalArgumentException);
+      (e) => e is ArgumentError);
 
   Expect.throws(() { list.setRange(-1, -1, [1], -1); },
-      (e) => e is IllegalArgumentException);
+      (e) => e is ArgumentError);
   Expect.listEquals([1, 2], list);
 
   // A zero length prevails, and does not throw an exception.

@@ -5,13 +5,13 @@
 // WARNING: Do not edit - generated code.
 
 #include "config.h"
-$INCLUDES
+$!INCLUDES
 
 namespace WebCore {
 
 Dart_NativeFunction snapshotResolver(Dart_Handle name, int argumentCount)
 {
-$RESOLVER_BODY
+$!RESOLVER_BODY
     return 0;
 }
 

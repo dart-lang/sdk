@@ -179,6 +179,11 @@
  *
  *           [arm]       ARM Holding 32-bit chip
  *           [ia32]      Intel x86
+ * 
+ * To assist the formatting of the usage help, single line help text will
+ * be followed by a single new line. Options with multi-line help text
+ * will be followed by two new lines. This provides spatial diversity between
+ * options.
  *
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
@@ -220,7 +225,7 @@ class ArgParser {
       _optionNames = <String>[];
 
   /**
-   * Defines a flag. Throws an [IllegalArgumentException] if:
+   * Defines a flag. Throws an [ArgumentError] if:
    *
    * * There is already an option named [name].
    * * There is already an option using abbreviation [abbr].
@@ -232,7 +237,7 @@ class ArgParser {
   }
 
   /**
-   * Defines a value-taking option. Throws an [IllegalArgumentException] if:
+   * Defines a value-taking option. Throws an [ArgumentError] if:
    *
    * * There is already an option with name [name].
    * * There is already an option using abbreviation [abbr].
@@ -250,19 +255,19 @@ class ArgParser {
       bool allowMultiple = false]) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {
-      throw new IllegalArgumentException('Duplicate option "$name".');
+      throw new ArgumentError('Duplicate option "$name".');
     }
 
     // Make sure the abbreviation isn't too long or in use.
     if (abbr != null) {
       if (abbr.length > 1) {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             'Abbreviation "$abbr" is longer than one character.');
       }
 
       var existing = _findByAbbr(abbr);
       if (existing != null) {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             'Abbreviation "$abbr" is already used by "${existing.name}".');
       }
     }
@@ -504,7 +509,7 @@ class ArgParser {
    */
   getDefault(String option) {
     if (!_options.containsKey(option)) {
-      throw new IllegalArgumentException('No option named $option');
+      throw new ArgumentError('No option named $option');
     }
     return _options[option].defaultValue;
   }
@@ -531,7 +536,7 @@ class ArgResults {
   /** Gets the parsed command-line option named [name]. */
   operator [](String name) {
     if (!_options.containsKey(name)) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           'Could not find an option named "$name".');
     }
 

@@ -14,10 +14,9 @@ from generator import *
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, options):
+  def __init__(self, options, cpp_library_emitter):
     super(NativeImplementationSystem, self).__init__(options)
-    self._cpp_header_files = []
-    self._cpp_impl_files = []
+    self._cpp_library_emitter = cpp_library_emitter
 
   def ImplementationGenerator(self, interface):
     return NativeImplementationGenerator(self, interface)
@@ -71,75 +70,18 @@ class NativeImplementationSystem(systembase.System):
           ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
 
-    cpp_header_path = self._FilePathForCppHeader(self._interface.id)
-    cpp_header_emitter = self._emitters.FileEmitter(cpp_header_path)
+    cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id, True)
     cpp_header_emitter.Emit(
         self._templates.Load('cpp_callback_header.template'),
         INTERFACE=self._interface.id,
         HANDLERS=cpp_header_handlers_emitter.Fragments())
 
-    cpp_impl_path = self._FilePathForCppImplementation(self._interface.id)
-    self._cpp_impl_files.append(cpp_impl_path)
-    cpp_impl_emitter = self._emitters.FileEmitter(cpp_impl_path)
+    cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     cpp_impl_emitter.Emit(
         self._templates.Load('cpp_callback_implementation.template'),
         INCLUDES=_GenerateCPPIncludes(cpp_impl_includes),
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
-
-  def GenerateLibraries(self, interface_files):
-    # Generate dart:html library.
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-    self._GenerateLibFile(
-        'html_dartium.darttemplate',
-        os.path.join(self._output_dir, 'html_dartium.dart'),
-        interface_files,
-        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
-
-    # Generate DartDerivedSourcesXX.cpp.
-    partitions = 20 # FIXME: this should be configurable.
-    sources_count = len(self._cpp_impl_files)
-    for i in range(0, partitions):
-      derived_sources_path = os.path.join(self._output_dir,
-          'DartDerivedSources%02i.cpp' % (i + 1))
-
-      includes_emitter = emitter.Emitter()
-      for impl_file in self._cpp_impl_files[i::partitions]:
-          path = os.path.relpath(impl_file, os.path.dirname(derived_sources_path))
-          includes_emitter.Emit('#include "$PATH"\n', PATH=path)
-
-      derived_sources_emitter = self._emitters.FileEmitter(derived_sources_path)
-      derived_sources_emitter.Emit(
-          self._templates.Load('cpp_derived_sources.template'),
-          INCLUDES=includes_emitter.Fragments())
-
-    # Generate DartResolver.cpp.
-    cpp_resolver_path = os.path.join(self._output_dir, 'DartResolver.cpp')
-
-    includes_emitter = emitter.Emitter()
-    resolver_body_emitter = emitter.Emitter()
-    for file in self._cpp_header_files:
-        path = os.path.relpath(file, os.path.dirname(cpp_resolver_path))
-        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
-        resolver_body_emitter.Emit(
-            '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
-            '        return func;\n',
-            CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
-
-    cpp_resolver_emitter = self._emitters.FileEmitter(cpp_resolver_path)
-    cpp_resolver_emitter.Emit(
-        self._templates.Load('cpp_resolver.template'),
-        INCLUDES=includes_emitter.Fragments(),
-        RESOLVER_BODY=resolver_body_emitter.Fragments())
-
-  def Finish(self):
-    pass
-
-  def _FilePathForCppHeader(self, interface_name):
-    return os.path.join(self._output_dir, 'cpp', 'Dart%s.h' % interface_name)
-
-  def _FilePathForCppImplementation(self, interface_name):
-    return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
 
 
 class NativeImplementationGenerator(systembase.BaseGenerator):
@@ -178,12 +120,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def StartInterface(self):
     # Create emitters for c++ implementation.
     if self.HasImplementation():
-      cpp_header_path = self._system._FilePathForCppHeader(self._interface.id)
-      self._system._cpp_header_files.append(cpp_header_path)
-      self._cpp_header_emitter = self._system._emitters.FileEmitter(cpp_header_path)
-      cpp_impl_path = self._system._FilePathForCppImplementation(self._interface.id)
-      self._system._cpp_impl_files.append(cpp_impl_path)
-      self._cpp_impl_emitter = self._system._emitters.FileEmitter(cpp_impl_path)
+      self._cpp_header_emitter = self._system._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
+      self._cpp_impl_emitter = self._system._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     else:
       self._cpp_header_emitter = emitter.Emitter()
       self._cpp_impl_emitter = emitter.Emitter()
@@ -319,7 +257,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         NATIVESPEC='')
     members_emitter.Emit(''.join(self._members_emitter.Fragments()))
 
-    self._GenerateCppHeader()
+    self._GenerateCPPHeader()
 
     self._cpp_impl_emitter.Emit(
         self._system._templates.Load('cpp_implementation.template'),
@@ -329,7 +267,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
         DART_IMPLEMENTATION_CLASS=class_name)
 
-  def _GenerateCppHeader(self):
+  def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
     if self._interface_type_info.custom_to_native():
       to_native_emitter.Emit(
@@ -922,6 +860,46 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
       return False
     return True
+
+
+class CPPLibraryEmitter():
+  def __init__(self, emitters, cpp_sources_dir):
+    self._emitters = emitters
+    self._cpp_sources_dir = cpp_sources_dir
+    self._headers_list = []
+    self._sources_list = []
+
+  def CreateHeaderEmitter(self, interface_name, is_callback=False):
+    path = os.path.join(self._cpp_sources_dir, 'Dart%s.h' % interface_name)
+    if not is_callback:
+      self._headers_list.append(path)
+    return self._emitters.FileEmitter(path)
+
+  def CreateSourceEmitter(self, interface_name):
+    path = os.path.join(self._cpp_sources_dir, 'Dart%s.cpp' % interface_name)
+    self._sources_list.append(path)
+    return self._emitters.FileEmitter(path)
+
+  def EmitDerivedSources(self, template, output_dir):
+    partitions = 20 # FIXME: this should be configurable.
+    sources_count = len(self._sources_list)
+    for i in range(0, partitions):
+      file_path = os.path.join(output_dir, 'DartDerivedSources%02i.cpp' % (i + 1))
+      includes_emitter = self._emitters.FileEmitter(file_path).Emit(template)
+      for source_file in self._sources_list[i::partitions]:
+        path = os.path.relpath(source_file, output_dir)
+        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+
+  def EmitResolver(self, template, output_dir):
+    file_path = os.path.join(output_dir, 'DartResolver.cpp')
+    includes_emitter, body_emitter = self._emitters.FileEmitter(file_path).Emit(template)
+    for header_file in self._headers_list:
+      path = os.path.relpath(header_file, output_dir)
+      includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+      body_emitter.Emit(
+          '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
+          '        return func;\n',
+          CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
 
 
 def _GenerateCPPIncludes(includes):

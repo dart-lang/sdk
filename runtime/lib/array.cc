@@ -25,7 +25,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
         len, Array::kMaxElements));
     GrowableArray<const Object*> args;
     args.Add(&error);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   const Array& new_array = Array::Handle(Array::New(length.Value()));
   new_array.SetTypeArguments(type_arguments);
@@ -75,7 +75,7 @@ DEFINE_NATIVE_ENTRY(ObjectArray_copyFromObjectArray, 5) {
   intptr_t icount = count.Value();
   if (icount < 0) {
     GrowableArray<const Object*> args;
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (icount == 0) {
     return Object::null();

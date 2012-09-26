@@ -58,17 +58,8 @@ class Object {
   external Dynamic noSuchMethod(String name, List args);
 
   /**
-   * Returns a representation of the runtime type of the object.
+   * A representation of the runtime type of the object.
    */
-  external Type runtimeType();
+  external Type get runtimeType;
 }
 
-/**
- * Representation of a type.
- */
-abstract class Type {}
-
-/**
- * Check whether two references are to the same object.
- */
-bool identical(Object a, Object b) => a === b;

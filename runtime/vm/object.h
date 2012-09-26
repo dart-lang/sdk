@@ -266,12 +266,14 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* closure_data_class() { return closure_data_class_; }
+  static RawClass* redirection_data_class() { return redirection_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* library_prefix_class() { return library_prefix_class_; }
+  static RawClass* namespace_class() { return namespace_class_; }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
@@ -397,12 +399,14 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* closure_data_class_;  // Class of ClosureData vm obj.
+  static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
   static RawClass* script_class_;  // Class of the Script vm object.
   static RawClass* library_class_;  // Class of the Library vm object.
   static RawClass* library_prefix_class_;  // Class of Library prefix vm object.
+  static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
@@ -746,7 +750,7 @@ class Class : public Object {
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_class_state(RawClass::ClassState state) const;
-  void set_state_bits(uint8_t bits) const;
+  void set_state_bits(intptr_t bits) const;
 
   void set_constants(const Array& value) const;
 
@@ -1417,6 +1421,15 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
 
+  // Redirection information for a redirecting factory.
+  bool IsRedirectingFactory() const;
+  RawType* RedirectionType() const;
+  void SetRedirectionType(const Type& type) const;
+  RawString* RedirectionIdentifier() const;
+  void SetRedirectionIdentifier(const String& identifier) const;
+  RawFunction* RedirectionTarget() const;
+  void SetRedirectionTarget(const Function& target) const;
+
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
   }
@@ -1543,6 +1556,11 @@ class Function : public Object {
 
   bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
+
+  bool is_inlinable() const {
+    return InlinableBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_inlinable(bool value) const;
 
   bool HasOptimizedCode() const;
 
@@ -1671,6 +1689,7 @@ class Function : public Object {
     kStaticBit = 1,
     kConstBit,
     kOptimizableBit,
+    kInlinableBit,
     kHasFinallyBit,
     kNativeBit,
     kAbstractBit,
@@ -1681,6 +1700,7 @@ class Function : public Object {
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
   class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
@@ -1762,6 +1782,34 @@ class ClosureData: public Object {
 };
 
 
+class RedirectionData: public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawRedirectionData));
+  }
+
+ private:
+  // The type specifies the class and type arguments of the target constructor.
+  RawType* type() const { return raw_ptr()->type_; }
+  void set_type(const Type& value) const;
+
+  // The optional identifier specifies a named constructor.
+  RawString* identifier() const { return raw_ptr()->identifier_; }
+  void set_identifier(const String& value) const;
+
+  // The resolved constructor or factory target of the redirection.
+  RawFunction* target() const { return raw_ptr()->target_; }
+  void set_target(const Function& value) const;
+
+  static RawRedirectionData* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
+};
+
+
 class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -1802,8 +1850,8 @@ class Field : public Object {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
   void set_has_initializer(bool has_initializer) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = HasInitializerBit::update(has_initializer, bits);
+    set_kind_bits(HasInitializerBit::update(has_initializer,
+                                            raw_ptr()->kind_bits_));
   }
 
   // Constructs getter and setter names for fields and vice versa.
@@ -1830,16 +1878,13 @@ class Field : public Object {
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = StaticBit::update(is_static, bits);
+    set_kind_bits(StaticBit::update(is_static, raw_ptr()->kind_bits_));
   }
   void set_is_final(bool is_final) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = FinalBit::update(is_final, bits);
+    set_kind_bits(FinalBit::update(is_final, raw_ptr()->kind_bits_));
   }
   void set_is_const(bool value) const {
-    uword bits = raw_ptr()->kind_bits_;
-    raw_ptr()->kind_bits_ = ConstBit::update(value, bits);
+    set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Class& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -1848,7 +1893,7 @@ class Field : public Object {
     raw_ptr()->token_pos_ = token_pos;
   }
   void set_kind_bits(intptr_t value) const {
-    raw_ptr()->kind_bits_ = value;
+    raw_ptr()->kind_bits_ = static_cast<uint8_t>(value);
   }
   static RawField* New();
 
@@ -1935,7 +1980,7 @@ class TokenStream : public Object {
     intptr_t ReadToken() {
       int64_t value = stream_.ReadUnsigned();
       ASSERT((value >= 0) && (value <= kIntptrMax));
-      return value;
+      return static_cast<intptr_t>(value);
     }
 
     const TokenStream& tokens_;
@@ -2101,11 +2146,11 @@ class Library : public Object {
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
-  void AddImport(const Library& library) const;
+  void AddImport(const Namespace& ns) const;
   RawLibrary* LookupImport(const String& url) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
-  RawLibrary* ImportAt(intptr_t index) const;
-  RawLibraryPrefix* ImportPrefixAt(intptr_t index) const;
+  RawNamespace* ImportAt(intptr_t index) const;
+  RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
 
   RawFunction* LookupFunctionInSource(const String& script_url,
@@ -2188,6 +2233,7 @@ class Library : public Object {
   friend class Debugger;
   friend class DictionaryIterator;
   friend class Isolate;
+  friend class Namespace;
 };
 
 
@@ -2196,32 +2242,56 @@ class LibraryPrefix : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   virtual RawString* DictionaryName() const { return name(); }
 
-  RawArray* libraries() const { return raw_ptr()->libraries_; }
-  intptr_t num_libs() const { return raw_ptr()->num_libs_; }
+  RawArray* imports() const { return raw_ptr()->imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
 
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
-  void AddLibrary(const Library& library) const;
+  void AddImport(const Namespace& import) const;
   RawClass* LookupLocalClass(const String& class_name) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
   }
 
-  static RawLibraryPrefix* New(const String& name, const Library& lib);
+  static RawLibraryPrefix* New(const String& name, const Namespace& import);
 
  private:
   static const int kInitialSize = 2;
   static const int kIncrementSize = 2;
 
   void set_name(const String& value) const;
-  void set_libraries(const Array& value) const;
-  void set_num_libs(intptr_t value) const;
+  void set_imports(const Array& value) const;
+  void set_num_imports(intptr_t value) const;
   static RawLibraryPrefix* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
   friend class Class;
   friend class Isolate;
+};
+
+
+class Namespace : public Object {
+ public:
+  RawLibrary* library() const { return raw_ptr()->library_; }
+  RawArray* show_names() const { return raw_ptr()->show_names_; }
+  RawArray* hide_names() const { return raw_ptr()->hide_names_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawNamespace));
+  }
+
+  bool HidesName(const String& name) const;
+  RawObject* Lookup(const String& name) const;
+
+  static RawNamespace* New(const Library& library,
+                           const Array& show_names,
+                           const Array& hide_names);
+ private:
+  static RawNamespace* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
+  friend class Class;
 };
 
 
@@ -2987,6 +3057,7 @@ class ICData : public Object {
 
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
+  bool HasOneTarget() const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

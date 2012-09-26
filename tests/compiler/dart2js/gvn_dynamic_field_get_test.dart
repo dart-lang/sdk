@@ -8,7 +8,7 @@
 #import('parser_helper.dart');
 #import('dart:uri');
 
-const String TEST = @"""
+const String TEST = r"""
 class A {
   var foo;
   bar(a) {
@@ -26,7 +26,7 @@ main() {
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
   String generated = compiler.assembledCode;
-  RegExp regexp = const RegExp(@"get\$foo");
+  RegExp regexp = const RegExp(r"get\$foo");
   Iterator matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
   var cls = findElement(compiler, 'A');

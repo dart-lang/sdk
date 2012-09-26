@@ -58,6 +58,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+import_combinators_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
@@ -96,6 +97,7 @@ char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
+factory_redirection_test: Fail # Not implemented.
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_literals2_test: Fail # Closures inside initializers not implemented.
 function_syntax_test/none: Fail # Closures inside initializers not implemented.

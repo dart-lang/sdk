@@ -12,30 +12,30 @@ class InlineParser {
         new AutolinkSyntax(),
         new LinkSyntax(),
         // "*" surrounded by spaces is left alone.
-        new TextSyntax(@' \* '),
+        new TextSyntax(r' \* '),
         // "_" surrounded by spaces is left alone.
-        new TextSyntax(@' _ '),
+        new TextSyntax(r' _ '),
         // Leave already-encoded HTML entities alone. Ensures we don't turn
         // "&amp;" into "&amp;amp;"
-        new TextSyntax(@'&[#a-zA-Z0-9]*;'),
+        new TextSyntax(r'&[#a-zA-Z0-9]*;'),
         // Encode "&".
-        new TextSyntax(@'&', sub: '&amp;'),
+        new TextSyntax(r'&', sub: '&amp;'),
         // Encode "<". (Why not encode ">" too? Gruber is toying with us.)
-        new TextSyntax(@'<', sub: '&lt;'),
+        new TextSyntax(r'<', sub: '&lt;'),
         // Parse "**strong**" tags.
-        new TagSyntax(@'\*\*', tag: 'strong'),
+        new TagSyntax(r'\*\*', tag: 'strong'),
         // Parse "__strong__" tags.
-        new TagSyntax(@'__', tag: 'strong'),
+        new TagSyntax(r'__', tag: 'strong'),
         // Parse "*emphasis*" tags.
-        new TagSyntax(@'\*', tag: 'em'),
+        new TagSyntax(r'\*', tag: 'em'),
         // Parse "_emphasis_" tags.
         // TODO(rnystrom): Underscores in the middle of a word should not be
         // parsed as emphasis like_in_this.
-        new TagSyntax(@'_', tag: 'em'),
+        new TagSyntax(r'_', tag: 'em'),
         // Parse inline code within double backticks: "``code``".
-        new CodeSyntax(@'``\s?((?:.|\n)*?)\s?``'),
+        new CodeSyntax(r'``\s?((?:.|\n)*?)\s?``'),
         // Parse inline code within backticks: "`code`".
-        new CodeSyntax(@'`([^`]*)`')
+        new CodeSyntax(r'`([^`]*)`')
       ];
     }
 
@@ -182,7 +182,7 @@ class TextSyntax extends InlineSyntax {
 /// Matches autolinks like `<http://foo.com>`.
 class AutolinkSyntax extends InlineSyntax {
   AutolinkSyntax()
-    : super(@'<((http|https|ftp)://[^>]*)>');
+    : super(r'<((http|https|ftp)://[^>]*)>');
   // TODO(rnystrom): Make case insensitive.
 
   bool onMatch(InlineParser parser, Match match) {
@@ -226,8 +226,8 @@ class LinkSyntax extends TagSyntax {
   /// inline styles as well as optional titles for inline links. To make that
   /// a bit more palatable, this breaks it into pieces.
   static get linkPattern {
-    final refLink    = @'\s?\[([^\]]*)\]';        // "[id]" reflink id.
-    final title      = @'(?:[ ]*"([^"]+)"|)';     // Optional title in quotes.
+    final refLink    = r'\s?\[([^\]]*)\]';        // "[id]" reflink id.
+    final title      = r'(?:[ ]*"([^"]+)"|)';     // Optional title in quotes.
     final inlineLink = '\\s?\\(([^ )]+)$title\\)'; // "(url "title")" link.
     return '\](?:($refLink|$inlineLink)|)';
 
@@ -240,7 +240,7 @@ class LinkSyntax extends TagSyntax {
   }
 
   LinkSyntax()
-    : super(@'\[', end: linkPattern);
+    : super(r'\[', end: linkPattern);
 
   bool onMatchEnd(InlineParser parser, Match match, TagState state) {
     var url;

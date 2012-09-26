@@ -12,6 +12,7 @@ package com.google.dart.compiler.resolver;
 public enum ElementKind {
   CLASS,
   CONSTRUCTOR,
+  DUPLICATE,
   FIELD,
   FUNCTION_OBJECT,
   LABEL,

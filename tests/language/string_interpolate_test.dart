@@ -34,14 +34,14 @@ class StringInterpolateTest {
     var x = 1;
     var s = "eins und \$x macht zwei.";
     print(s);
-    Expect.equals(@"eins und $x macht zwei.", s);
+    Expect.equals(r"eins und $x macht zwei.", s);
 
     s = "eins und $x macht zwei.";
     print(s);
-    Expect.equals(@"eins und 1 macht zwei.", s);
+    Expect.equals(r"eins und 1 macht zwei.", s);
 
     print(AAR_Printers);
-    Expect.equals(@"AAR has 2 Printers: svin and hest.", AAR_Printers);
+    Expect.equals(r"AAR has 2 Printers: svin and hest.", AAR_Printers);
 
     var s$eins = "eins";
     var $1 = 1;
@@ -50,7 +50,7 @@ class StringInterpolateTest {
     var zw$ei = "\"Martini, dry? Nai zwai.\"";
     s = "${s$eins} und ${$1} macht $zw$ei.";
     print(s);
-    Expect.equals(@"eins und 1 macht zwei.", s);
+    Expect.equals(r"eins und 1 macht zwei.", s);
 
     var t = new ThingamaBob("Gretel");
     print(t.foo());

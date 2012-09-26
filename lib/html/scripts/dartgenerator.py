@@ -234,9 +234,6 @@ class DartGenerator(object):
         _logger.info('Generating %s' % interface.id)
         system.ProcessInterface(interface)
 
-    system.GenerateLibraries()
-    system.Finish()
-
   def _PreOrderInterfaces(self, interfaces):
     """Returns the interfaces in pre-order, i.e. parents first."""
     seen = set()

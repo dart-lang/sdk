@@ -194,10 +194,10 @@ class StringBase {
 
   String replaceFirst(Pattern pattern, String replacement) {
     if (pattern is! Pattern) {
-      throw new IllegalArgumentException("${pattern} is not a Pattern");
+      throw new ArgumentError("${pattern} is not a Pattern");
     }
     if (replacement is! String) {
-      throw new IllegalArgumentException("${replacement} is not a String");
+      throw new ArgumentError("${replacement} is not a String");
     }
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
@@ -212,10 +212,10 @@ class StringBase {
 
   String replaceAll(Pattern pattern, String replacement) {
     if (pattern is! Pattern) {
-      throw new IllegalArgumentException("${pattern} is not a Pattern");
+      throw new ArgumentError("${pattern} is not a Pattern");
     }
     if (replacement is! String) {
-      throw new IllegalArgumentException("${replacement} is not a String");
+      throw new ArgumentError("${replacement} is not a String");
     }
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;

@@ -51,12 +51,12 @@ class _Lists {
    * Returns a sub list copy of this list, from [start] to
    * [:start + length:].
    * Returns an empty list if [length] is 0.
-   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [ArgumentError] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or
    * [:start + length:] are out of range.
    */
   static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new IllegalArgumentException('length');
+    if (length < 0) throw new ArgumentError('length');
     if (start < 0) throw new IndexOutOfRangeException(start);
     int end = start + length;
     if (end > a.length) throw new IndexOutOfRangeException(end);

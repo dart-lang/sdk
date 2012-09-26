@@ -13,8 +13,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
 
-  IDBFactory get indexedDB => webkitIndexedDB;
-
   // TODO(kasperl): Document these.
   lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);
@@ -24,6 +22,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  String createObjectUrl(object) => DOMURL.createObjectURL(object);
+  void revokeObjectUrl(String url) {
+    DOMURL.revokeObjectURL(url);
   }
 
 $!MEMBERS

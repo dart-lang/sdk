@@ -25,12 +25,14 @@ namespace dart {
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
+  V(RedirectionData)                                                           \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
   V(LibraryPrefix)                                                             \
+  V(Namespace)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(PcDescriptors)                                                             \
@@ -634,6 +636,22 @@ class RawClosureData : public RawObject {
 };
 
 
+class RawRedirectionData : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RedirectionData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  RawType* type_;
+  RawString* identifier_;
+  RawFunction* target_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
+  }
+};
+
+
 class RawField : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
@@ -722,8 +740,7 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
-  RawArray* imports_;            // List of libraries imported without prefix.
-                                 // is imported into without a prefix.
+  RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
@@ -746,11 +763,26 @@ class RawLibraryPrefix : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // library prefix name.
-  RawArray* libraries_;           // libraries imported with this prefix.
+  RawArray* imports_;             // libraries imported with this prefix.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->libraries_);
+    return reinterpret_cast<RawObject**>(&ptr()->imports_);
   }
-  intptr_t num_libs_;             // Number of library entries in libraries_.
+  intptr_t num_imports_;          // Number of library entries in libraries_.
+};
+
+
+class RawNamespace : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->library_);
+  }
+  RawLibrary* library_;          // library with name dictionary.
+  RawArray* show_names_;         // list of names that are exported.
+  RawArray* hide_names_;         // blacklist of names that are not exported.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->hide_names_);
+  }
 };
 
 

@@ -18,9 +18,10 @@ from generator import TypeRegistry
 from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
 from systemdart2js import Dart2JSSystem
-from systemhtml import HtmlInterfacesSystem, HtmlDart2JSSystem
+from systemhtml import DartLibraryEmitter, HtmlInterfacesSystem,\
+                       HtmlDart2JSSystem
 from systeminterface import InterfacesSystem
-from systemnative import NativeImplementationSystem
+from systemnative import CPPLibraryEmitter, NativeImplementationSystem
 from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartdomgenerator')
@@ -68,33 +69,55 @@ def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
   renamer = HtmlRenamer(webkit_database)
   type_registry = TypeRegistry(webkit_database, renamer)
 
-  def CreateGeneratorOptions(template_paths, conditions, output_dir):
-    template_loader = TemplateLoader(template_dir, template_paths, conditions)
-    return GeneratorOptions(
-        template_loader, webkit_database, emitters, type_registry, renamer,
-        output_dir, auxiliary_dir)
-
-  def Generate(backend, output_dir):
-    options = CreateGeneratorOptions(
-        ['html/interface', 'html/impl', 'html', ''], {}, output_dir)
-    html_system = HtmlInterfacesSystem(options, backend)
-    generator.Generate(webkit_database, html_system,
-                       super_database=common_database,
-                       webkit_renames=_webkit_renames)
+  def RunGenerator(dart_library_template, dart_output_dir, dart_library_path,
+               backend):
+    template_loader = TemplateLoader(
+        template_dir, ['html/interface', 'html/impl', 'html', ''], {})
+    options = GeneratorOptions(
+        template_loader, webkit_database, type_registry, renamer)
+    dart_library_emitter = DartLibraryEmitter(
+        emitters, dart_library_template, dart_output_dir)
+    html_system = HtmlInterfacesSystem(options, dart_library_emitter, backend)
+    generator.Generate(
+        webkit_database, html_system, common_database, _webkit_renames)
+    dart_library_emitter.EmitLibrary(dart_library_path, auxiliary_dir)
 
   if dart2js_output_dir:
-    options = CreateGeneratorOptions(
-        ['html/dart2js', 'html/impl', 'html', ''],
-        {'DARTIUM': False, 'DART2JS': True}, dart2js_output_dir)
-    backend = HtmlDart2JSSystem(options)
-    Generate(backend, dart2js_output_dir)
+    template_loader = TemplateLoader(template_dir,
+                                     ['html/dart2js', 'html/impl', 'html', ''],
+                                     {'DARTIUM': False, 'DART2JS': True})
+    backend_options = GeneratorOptions(
+        template_loader, webkit_database, type_registry, renamer)
+    backend = HtmlDart2JSSystem(backend_options)
+
+    dart_library_template = template_loader.Load('html_dart2js.darttemplate')
+    dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
+    dart_library_path = os.path.join(dart2js_output_dir, 'html_dart2js.dart')
+
+    RunGenerator(
+        dart_library_template, dart_output_dir, dart_library_path, backend)
 
   if dartium_output_dir:
-    options = CreateGeneratorOptions(
-        ['html/dartium', 'html/impl', ''],
-        {'DARTIUM': True, 'DART2JS': False}, dartium_output_dir)
-    backend = NativeImplementationSystem(options)
-    Generate(backend, dartium_output_dir)
+    template_loader = TemplateLoader(template_dir,
+                                     ['html/dartium', 'html/impl', ''],
+                                     {'DARTIUM': True, 'DART2JS': False})
+    backend_options = GeneratorOptions(
+        template_loader, webkit_database, type_registry, renamer)
+    cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
+    cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
+    backend = NativeImplementationSystem(backend_options, cpp_library_emitter)
+
+    dart_library_template = template_loader.Load('html_dartium.darttemplate')
+    dart_output_dir = os.path.join(dartium_output_dir, 'dart')
+    dart_library_path = os.path.join(dartium_output_dir, 'html_dartium.dart')
+
+    RunGenerator(
+        dart_library_template, dart_output_dir, dart_library_path, backend)
+    cpp_library_emitter.EmitDerivedSources(
+        template_loader.Load('cpp_derived_sources.template'),
+        dartium_output_dir)
+    cpp_library_emitter.EmitResolver(
+        template_loader.Load('cpp_resolver.template'), dartium_output_dir)
 
   _logger.info('Flush...')
   emitters.Flush()

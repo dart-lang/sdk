@@ -90,7 +90,7 @@ String _uriEncode(String canonical, String text) {
           // convert the pair to a U+10000 codepoint
           ch = 0x10000 + ((ch-0xD800) << 10) + (nextCh - 0xDC00);
         } else {
-          throw new IllegalArgumentException('Malformed URI');
+          throw new ArgumentError('Malformed URI');
         }
       }
       for (int codepoint in codepointsToUtf8([ch])) {
@@ -132,7 +132,7 @@ String _uriDecode(String text) {
       codepoints.clear();
       while (ch == '%') {
         if (++i > text.length - 2) {
-          throw new IllegalArgumentException('Truncated URI');
+          throw new ArgumentError('Truncated URI');
         }
         codepoints.add(_hexCharPairToByte(text, i));
         i += 2;

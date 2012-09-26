@@ -178,7 +178,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   if (amount.Value() < 0) {
     GrowableArray<const Object*> args;
     args.Add(&amount);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (value.IsSmi()) {
     Smi& smi_value = Smi::Handle();

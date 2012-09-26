@@ -183,7 +183,12 @@ class VersionSolver {
    * This does a breadth-first search; immediate dependers will be unlocked
    * first, followed by transitive dependers.
    */
-  bool tryUnlockDepender(Dependency dependency) {
+  bool tryUnlockDepender(Dependency dependency, [Set<String> seen]) {
+    if (seen == null) seen = new Set();
+    // Avoid an infinite loop if there are circular dependencies.
+    if (seen.contains(dependency.name)) return false;
+    seen.add(dependency.name);
+
     for (var dependerName in dependency.dependers) {
       var depender = getDependency(dependerName);
       var locked = lockFile.packages[dependerName];
@@ -192,7 +197,9 @@ class VersionSolver {
         return true;
       }
     }
-    return dependency.dependers.map(getDependency).some(tryUnlockDepender);
+    
+    return dependency.dependers.map(getDependency).some((subdependency) =>
+        tryUnlockDepender(subdependency, seen));
   }
 
   List<PackageId> buildResults() {
@@ -523,21 +530,6 @@ class Dependency {
   final Map<String, PackageRef> _refs;
 
   /**
-   * The source of this dependency's package.
-   *
-   * All constraints in [_refs] must have this as their source.
-   */
-  Source source;
-
-  /**
-   * The description of this dependency's package.
-   *
-   * All constraints in [_refs] must have a description equivalent to this one
-   * according to [source].
-   */
-  var description;
-
-  /**
    * The currently-selected best version for this dependency.
    */
   Version version;
@@ -568,13 +560,38 @@ class Dependency {
         _refs.getValues().map((ref) => ref.constraint));
   }
 
+  /// The source of this dependency's package.
+  Source get source {
+     var canonical = _canonicalRef();
+     if (canonical == null) return null;
+     return canonical.source;
+  }
+
+  /// The description of this dependency's package.
+  get description {
+     var canonical = _canonicalRef();
+     if (canonical == null) return null;
+     return canonical.description;
+  }
+
+  /// Return the PackageRef that has the canonical source and description for
+  /// this package. If any dependency requires that this package come from a
+  /// [RootSource], that will be used; otherwise, it will be the source and
+  /// description that all dependencies agree upon.
+  PackageRef _canonicalRef() {
+    if (_refs.isEmpty()) return null;
+    var refs = _refs.getValues();
+    for (var ref in refs) {
+      if (ref is RootSource) return ref;
+    }
+    return refs[0];
+  }
+
   Dependency(this.name)
       : _refs = <String, PackageRef>{};
 
   Dependency._clone(Dependency other)
       : name = other.name,
-        source = other.source,
-        description = other.description,
         version = other.version,
         _refs = new Map<String, PackageRef>.from(other._refs);
 
@@ -588,34 +605,38 @@ class Dependency {
    * Places [ref] as a constraint from [package] onto this.
    */
   void placeConstraint(String package, PackageRef ref) {
-    // If this isn't the first constraint placed on this package, make sure it
-    // matches the source and description of past constraints.
-    if (_refs.isEmpty()) {
-      source = ref.source;
-      description = ref.description;
-    } else if (source.name != ref.source.name) {
-      throw new SourceMismatchException(name, source, ref.source);
-    } else if (!source.descriptionsEqual(description, ref.description)) {
-      throw new DescriptionMismatchException(
-          name, description, ref.description);
+    var required = _requiredRef();
+    if (required != null) {
+      if (required.source.name != ref.source.name) {
+        throw new SourceMismatchException(name, required.source, ref.source);
+      } else if (!required.source.descriptionsEqual(
+                     required.description, ref.description)) {
+        throw new DescriptionMismatchException(
+            name, required.description, ref.description);
+      }
     }
 
     _refs[package] = ref;
   }
 
+  /// Returns a PackageRef whose source and description any new constraints are
+  /// required to match. Returns null if there are no requirements on new
+  /// constraints.
+  PackageRef _requiredRef() {
+    if (_refs.isEmpty()) return null;
+    var refs = _refs.getValues();
+    var first = refs[0];
+    if (refs.length == 1) {
+      if (first.source is RootSource) return null;
+      return first;
+    }
+    return refs[1];
+  }
+
   /**
    * Removes the constraint from [package] onto this.
    */
-  PackageRef removeConstraint(String package) {
-    var removed = _refs.remove(package);
-
-    if (_refs.isEmpty()) {
-      source = null;
-      description = null;
-    }
-
-    return removed;
-  }
+  PackageRef removeConstraint(String package) => _refs.remove(package);
 }
 
 // TODO(rnystrom): Report the last of depending packages and their constraints.

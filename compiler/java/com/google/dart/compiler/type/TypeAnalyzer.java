@@ -660,7 +660,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * current "basic block" and set new type.
      */
     private void setVariableElementType(Element element, Type rhs) {
-      if (element instanceof VariableElement) {
+      if (ElementKind.of(element) == ElementKind.VARIABLE) {
         VariableElement variableElement = (VariableElement) element;
         Type newType = Types.makeInferred(rhs);
         blockOldTypes.getFirst().setType(variableElement, newType);
@@ -2291,7 +2291,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       // @deprecated
       if (element != null && element.getMetadata().isDeprecated()) {
-        onError(node.getName(), TypeErrorCode.DEPRECATED_ELEMENT, name);
+        onError(node.getName(), TypeErrorCode.DEPRECATED_ELEMENT,
+            Elements.getDeprecatedElementTitle(element));
       }
       // analyze Element
       switch (element.getKind()) {
@@ -2650,7 +2651,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private void checkDeprecated(HasSourceInfo nameNode, Element element) {
       if (element != null && element.getMetadata().isDeprecated()) {
-        onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT, element);
+        onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT,
+            Elements.getDeprecatedElementTitle(element));
       }
     }
 
@@ -3133,6 +3135,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             overridden.addAll(superMembers.removeAll(name));
           } else {
             overridden.addAll(superMembers.removeAll(name));
+            overridden.addAll(superMembers.removeAll("setter " + name));
           }
           // check override
           for (Element superElement : overridden) {

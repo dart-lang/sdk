@@ -194,8 +194,9 @@ if (tmp.__proto__) {
     // object and copy over the members.
     return '''
 function(collectedClasses) {
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var cls in collectedClasses) {
-    if (Object.prototype.hasOwnProperty.call(collectedClasses, cls)) {
+    if (hasOwnProperty.call(collectedClasses, cls)) {
       var desc = collectedClasses[cls];
       $isolatePropertiesName[cls] = $defineClassName(cls, desc[''], desc);
       if (desc['super'] !== "") $pendingClassesName[cls] = desc['super'];
@@ -207,7 +208,10 @@ function(collectedClasses) {
   $pendingClassesName = {};
   var finishedClasses = {};
   function finishClass(cls) {
-    if (finishedClasses[cls]) return;
+'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
+      hasOwnProperty instead. */'''
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    if (hasOwnProperty.call(finishedClasses, cls)) return;
     finishedClasses[cls] = true;
     var superclass = pendingClasses[cls];
 '''/* The superclass is only false (empty string) for Dart's Object class. */'''
@@ -225,9 +229,6 @@ function(collectedClasses) {
       var newPrototype = new tmp();
       constructor.prototype = newPrototype;
       newPrototype.constructor = constructor;
-'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
-      hosOwnProperty instead. */'''
-      var hasOwnProperty = Object.prototype.hasOwnProperty;
       for (var member in prototype) {
         if (member == '' || member == 'super') continue;
         if (hasOwnProperty.call(prototype, member)) {
@@ -387,7 +388,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
-    parameters.forEachParameter((Element element) {
+    parameters.orderedForEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
       if (count < positionalArgumentCount) {
         parametersBuffer[count] = jsName;
@@ -1293,8 +1294,7 @@ $classesCollector.$mangledName = {'':
     }
 
     // TODO(ngeoffray): These globals are currently required by the isolate
-    // library, but since leg already generates code on an Isolate object, they
-    // are not really needed. We should remove them once Leg replaces Frog.
+    // library. They should be removed.
     buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;

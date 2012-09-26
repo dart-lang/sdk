@@ -52,7 +52,7 @@ class Logger {
    */
   factory Logger(String name) {
     if (name.startsWith('.')) {
-      throw new IllegalArgumentException("name shouldn't start with a '.'");
+      throw new ArgumentError("name shouldn't start with a '.'");
     }
     if (_loggers == null) _loggers = <String, Logger>{};
     if (_loggers.containsKey(name)) return _loggers[name];

@@ -30,7 +30,7 @@ syn keyword dartErrors         AssertionError TypeError FallThroughError
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static abstract
 syn keyword dartExceptions     throw try catch finally
-syn keyword dartExceptions     BadNumberFormatException ClosureArgumentMismatchException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException IllegalArgumentException IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException ObjectNotClosureException OutOfMemoryException StackOverflowException UnsupportedOperationException WrongArgumentCountException
+syn keyword dartExceptions     BadNumberFormatException ClosureArgumentMismatchException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException ArgumentError IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException ObjectNotClosureException OutOfMemoryException StackOverflowException UnsupportedOperationException WrongArgumentCountException
 syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
 " TODO(antonm): check if labels on break and continue are supported.

@@ -64,17 +64,17 @@ class ExpandoTest {
     Expect.throws(() => expando[null], (exception)
                   => exception is NullPointerException);
     Expect.throws(() => expando['string'], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando['string'], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando[42], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando[42.87], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando[true], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
     Expect.throws(() => expando[false], (exception)
-                  => exception is IllegalArgumentException);
+                  => exception is ArgumentError);
   }
 }
 

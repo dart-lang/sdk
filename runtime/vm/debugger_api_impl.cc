@@ -607,7 +607,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
   intptr_t num_imports = lib.num_imports();
   for (int i = 0; i < num_imports; i++) {
     import_list.Add(prefix_name);  // Null prefix name means no prefix.
-    imported = lib.ImportAt(i);
+    imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     ASSERT(Smi::IsValid(imported.index()));
     import_list.Add(Smi::Handle(Smi::New(imported.index())));
@@ -620,7 +620,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name,
                                  String::Handle(isolate, Symbols::Dot()));
-    for (int i = 0; i < prefix.num_libs(); i++) {
+    for (int i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       import_list.Add(prefix_name);
       import_list.Add(Smi::Handle(Smi::New(imported.index())));

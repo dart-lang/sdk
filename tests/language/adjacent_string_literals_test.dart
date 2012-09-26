@@ -11,50 +11,50 @@ main() {
 testEmpty() {
   Expect.equals("", "" "" "");
   Expect.equals("", "" '' "");
-  Expect.equals("", "" "" @"");
-  
+  Expect.equals("", "" "" r"");
+
   Expect.equals("a", "a" "");
   Expect.equals("a", "a" '');
-  Expect.equals("a", "a" @'');
+  Expect.equals("a", "a" r'');
 
   Expect.equals("b", 'b' "");
   Expect.equals("b", 'b' '');
-  Expect.equals("b", 'b' @'');
-  
-  Expect.equals("c", @'c' "");
-  Expect.equals("c", @'c' '');
-  Expect.equals("c", @'c' @'');
+  Expect.equals("b", 'b' r'');
+
+  Expect.equals("c", r'c' "");
+  Expect.equals("c", r'c' '');
+  Expect.equals("c", r'c' r'');
 
   Expect.equals("a", "" "a");
   Expect.equals("a", "" 'a');
-  Expect.equals("a", "" @'a');
+  Expect.equals("a", "" r'a');
 
   Expect.equals("b", '' "b");
   Expect.equals("b", '' 'b');
-  Expect.equals("b", '' @'b');
-  
-  Expect.equals("c", @'' "c");
-  Expect.equals("c", @'' 'c');
-  Expect.equals("c", @'' @'c');
+  Expect.equals("b", '' r'b');
+
+  Expect.equals("c", r'' "c");
+  Expect.equals("c", r'' 'c');
+  Expect.equals("c", r'' r'c');
 }
 
 testInterpolation() {
   var s = "a";
-  Expect.equals(@"ab", "$s" "b");
-  Expect.equals(@"ab", '$s' "b");
-  Expect.equals(@"$sb", @'$s' "b");
+  Expect.equals(r"ab", "$s" "b");
+  Expect.equals(r"ab", '$s' "b");
+  Expect.equals(r"$sb", r'$s' "b");
 
-  Expect.equals(@"-a-b", "-$s-" "b");
-  Expect.equals(@"-a-b", '-$s-' "b");
-  Expect.equals(@"-$s-b", @'-$s-' "b");
-  
-  Expect.equals(@"ba", 'b' "$s");
-  Expect.equals(@"ba", 'b' '$s');
-  Expect.equals(@"b$s", 'b' @'$s');
+  Expect.equals(r"-a-b", "-$s-" "b");
+  Expect.equals(r"-a-b", '-$s-' "b");
+  Expect.equals(r"-$s-b", r'-$s-' "b");
 
-  Expect.equals(@"b-a-", 'b' "-$s-");
-  Expect.equals(@"b-a-", 'b' '-$s-');
-  Expect.equals(@"b-$s-", 'b' @'-$s-');
+  Expect.equals(r"ba", 'b' "$s");
+  Expect.equals(r"ba", 'b' '$s');
+  Expect.equals(r"b$s", 'b' r'$s');
+
+  Expect.equals(r"b-a-", 'b' "-$s-");
+  Expect.equals(r"b-a-", 'b' '-$s-');
+  Expect.equals(r"b-$s-", 'b' r'-$s-');
 }
 
 testMultiline() {

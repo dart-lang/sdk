@@ -195,9 +195,6 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   Type& type = Type::ZoneHandle(reader->isolate(), NEW_OBJECT(Type));
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
-  // Set the object tags.
-  type.set_tags(tags);
-
   // Set all non object fields.
   type.set_token_pos(reader->ReadIntptrValue());
   type.set_type_state(reader->Read<int8_t>());
@@ -211,9 +208,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && type.IsCanonical()) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     type ^= type.Canonicalize();
   }
+
+  // Set the object tags (This is done after 'Canonicalize', which
+  // does not canonicalize a type already marked as canonical).
+  type.set_tags(tags);
+
   return type.raw();
 }
 
@@ -332,15 +334,17 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
-  // Set the object tags (This is done after setting the object fields
-  // because 'SetTypeAt' has an assertion to check if the object is not
-  // already canonical).
-  type_arguments.set_tags(tags);
-
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && type_arguments.IsCanonical()) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     type_arguments ^= type_arguments.Canonicalize();
   }
+
+  // Set the object tags (This is done after setting the object fields
+  // because 'SetTypeAt' has an assertion to check if the object is not
+  // already canonical. Also, this is done after 'Canonicalize', which
+  // does not canonicalize a type already marked as canonical).
+  type_arguments.set_tags(tags);
+
   return type_arguments.raw();
 }
 
@@ -513,6 +517,54 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
+                                              intptr_t object_id,
+                                              intptr_t tags,
+                                              Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate redirection data object.
+  RedirectionData& data = RedirectionData::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(RedirectionData));
+  reader->AddBackRef(object_id, &data, kIsDeserialized);
+
+  // Set the object tags.
+  data.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (data.raw()->to() - data.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(data.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return data.raw();
+}
+
+
+void RawRedirectionData::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kRedirectionDataCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
@@ -536,7 +588,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
-  func.set_kind_tag(reader->ReadIntptrValue());
+  func.set_kind_tag(reader->Read<uint16_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -571,7 +623,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
-  writer->WriteIntptrValue(ptr()->kind_tag_);
+  writer->Write<uint16_t>(ptr()->kind_tag_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -626,7 +678,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->kind_bits_);
+  writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -907,7 +959,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.set_tags(tags);
 
   // Set all non object fields.
-  prefix.raw_ptr()->num_libs_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -936,7 +988,55 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->WriteIntptrValue(ptr()->num_libs_);
+  writer->WriteIntptrValue(ptr()->num_imports_);
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
+RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate Namespace object.
+  Namespace& ns = Namespace::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(Namespace));
+  reader->AddBackRef(object_id, &ns, kIsDeserialized);
+
+  // Set the object tags.
+  ns.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (ns.raw()->to() - ns.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(ns.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return ns.raw();
+}
+
+
+void RawNamespace::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT((kind != Snapshot::kMessage) &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kNamespaceCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

@@ -20,7 +20,7 @@ main() {
     try {
       42.toRadixString(radix);
       Expect.fail("Exception expected");
-    } on IllegalArgumentException catch (e) {
+    } on ArgumentError catch (e) {
       // Nothing to do.
     }
   }

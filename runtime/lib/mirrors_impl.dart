@@ -220,28 +220,28 @@ String _dartEscape(String str) {
     String output;
     switch (input) {
       case '\\' :
-        output = @'\\';
+        output = r'\\';
         break;
       case "\'" :
-        output = @"\'";
+        output = r"\'";
         break;
       case '\n' :
-        output = @'\n';
+        output = r'\n';
         break;
       case '\r' :
-        output = @'\r';
+        output = r'\r';
         break;
       case '\f' :
-        output = @'\f';
+        output = r'\f';
         break;
       case '\b' :
-        output = @'\b';
+        output = r'\b';
         break;
       case '\t' :
-        output = @'\t';
+        output = r'\t';
         break;
       case '\v' :
-        output = @'\v';
+        output = r'\v';
         break;
       default:
         int code = input.charCodeAt(0);

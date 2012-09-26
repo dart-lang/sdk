@@ -182,7 +182,7 @@ class DateFormat {
    * However, the skeleton version would also adapt to other locales.
    *
    * If [locale] does not exist in our set of supported locales then an
-   * [IllegalArgumentException] is thrown.
+   * [ArgumentError] is thrown.
    */
   DateFormat([String newPattern, String locale]) {
     // TODO(alanknight): It should be possible to specify multiple skeletons eg

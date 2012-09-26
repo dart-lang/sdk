@@ -393,56 +393,56 @@ class _FileUtils {
   static SendPort newServicePort() native "File_NewServicePort";
 
   static bool checkedExists(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = exists(name);
     throwIfError(result, "Cannot check existence of file '$name'");
     return result;
   }
 
   static int checkedOpen(String name, int mode) {
-    if (name is !String || mode is !int) throw new IllegalArgumentException();
+    if (name is !String || mode is !int) throw new ArgumentError();
     var result = open(name, mode);
     throwIfError(result, "Cannot open file '$name'");
     return result;
   }
 
   static bool checkedCreate(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = create(name);
     throwIfError(result, "Cannot create file '$name'");
     return true;
   }
 
   static bool checkedDelete(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = delete(name);
     throwIfError(result, "Cannot delete file '$name'");
     return true;
   }
 
   static String checkedFullPath(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = fullPath(name);
     throwIfError(result, "Cannot retrieve full path for file '$name'");
     return result;
   }
 
   static String checkedDirectory(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = directory(name);
     throwIfError(result, "Cannot retrieve directory for file '$name'");
     return result;
   }
 
   static int checkedLengthFromName(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = lengthFromName(name);
     throwIfError(result, "Cannot retrieve length of file '$name'");
     return result;
   }
 
   static int checkedLastModified(String name) {
-    if (name is !String) throw new IllegalArgumentException();
+    if (name is !String) throw new ArgumentError();
     var result = lastModified(name);
     throwIfError(result, "Cannot retrieve modification time for file '$name'");
     return result;
@@ -456,7 +456,7 @@ class _FileUtils {
   }
 
   static int checkedWriteString(int id, String string) {
-    if (string is !String) throw new IllegalArgumentException();
+    if (string is !String) throw new ArgumentError();
     return writeString(id, string);
   }
 
@@ -477,7 +477,7 @@ class _FileBase {
     assert(_isErrorResponse(response));
     switch (response[_FileUtils.ERROR_RESPONSE_ERROR_TYPE]) {
       case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
-        return new IllegalArgumentException();
+        return new ArgumentError();
       case _FileUtils.OSERROR_RESPONSE:
         var err = new OSError(response[_FileUtils.OSERROR_RESPONSE_MESSAGE],
                               response[_FileUtils.OSERROR_RESPONSE_ERROR_CODE]);
@@ -579,7 +579,7 @@ class _File extends _FileBase implements File {
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       new Timer(0, (t) {
-        completer.completeException(new IllegalArgumentException());
+        completer.completeException(new ArgumentError());
       });
       return completer.future;
     }

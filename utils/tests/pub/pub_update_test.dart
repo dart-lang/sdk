@@ -15,7 +15,7 @@ main() {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['update'],
-          error: const RegExp(@'^Could not find a file named "pubspec.yaml"'),
+          error: const RegExp(r'^Could not find a file named "pubspec.yaml"'),
           exitCode: 1);
 
       run();
@@ -27,8 +27,8 @@ main() {
       ]).scheduleCreate();
 
       schedulePub(args: ['update'],
-          error: const RegExp(@'^pubspec.yaml is missing the required "name" '
-              @'field \(e\.g\. "name: myapp"\)\.'),
+          error: const RegExp(r'^pubspec.yaml is missing the required "name" '
+              r'field \(e\.g\. "name: myapp"\)\.'),
           exitCode: 1);
 
       run();
@@ -44,7 +44,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     dir(packagesPath, [
       dir("myapp_name", [
@@ -63,7 +63,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     dir(packagesPath, [
       nothing("myapp_name")
@@ -77,7 +77,9 @@ main() {
     dir(sdkPath, [
       file('revision', '1234'),
       dir('pkg', [
-        dir('foo', [])
+        dir('foo', [
+          libPubspec('foo', '0.0.0-not.used')
+        ])
       ])
     ]).scheduleCreate();
 

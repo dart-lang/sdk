@@ -323,7 +323,7 @@ int _requireInteger(object) {
   if (object is int) {
     return object;
   }
-  throw new IllegalArgumentException("$object is not an integer");
+  throw new ArgumentError("$object is not an integer");
 }
 
 
@@ -334,7 +334,7 @@ int _requireIntegerOrNull(object, value) {
   if (object === null) {
     return _requireInteger(value);
   }
-  throw new IllegalArgumentException("$object is not an integer or null");
+  throw new ArgumentError("$object is not an integer or null");
 }
 
 

@@ -52,7 +52,7 @@ class _Random implements Random {
   const _Random();
 
   int nextInt(int max) {
-    if (max < 0) throw new IllegalArgumentException("negative max: $max");
+    if (max < 0) throw new ArgumentError("negative max: $max");
     if (max > 0xFFFFFFFF) max = 0xFFFFFFFF;
     return JS("int", "(Math.random() * #) >>> 0", max);
   }

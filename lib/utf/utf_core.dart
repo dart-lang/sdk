@@ -106,7 +106,7 @@ List<int> _codepointsToUtf16CodeUnits(
     } else if (replacementCodepoint != null) {
       codeUnitsBuffer[j++] = replacementCodepoint;
     } else {
-      throw new IllegalArgumentException("Invalid encoding");
+      throw new ArgumentError("Invalid encoding");
     }
   }
   return codeUnitsBuffer;
@@ -139,7 +139,7 @@ List<int> _utf16CodeUnitsToCodepoints(
 /**
  * An Iterator<int> of codepoints built on an Iterator of UTF-16 code units.
  * The parameters can override the default Unicode replacement character. Set
- * the replacementCharacter to null to throw an IllegalArgumentException
+ * the replacementCharacter to null to throw an ArgumentError
  * rather than replace the bad value.
  */
 class Utf16CodeUnitDecoder implements Iterator<int> {
@@ -166,7 +166,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
       if (replacementCodepoint != null) {
         return replacementCodepoint;
       } else {
-        throw new IllegalArgumentException(
+        throw new ArgumentError(
             "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
       }
     } else if (value < UNICODE_UTF16_RESERVED_LO ||
@@ -191,14 +191,14 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
         if (replacementCodepoint != null) {
           return replacementCodepoint;
         } else {
-          throw new IllegalArgumentException(
+          throw new ArgumentError(
               "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
         }
       }
     } else if (replacementCodepoint != null) {
       return replacementCodepoint;
     } else {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
     }
   }

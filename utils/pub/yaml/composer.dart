@@ -154,7 +154,7 @@ class _Composer extends _Visitor {
     if (match != null) {
       // YAML allows floats of the form "0.", but Dart does not. Fix up those
       // floats by removing the trailing dot.
-      var matchStr = match.group(0).replaceAll(new RegExp(@"\.$"), "");
+      var matchStr = match.group(0).replaceAll(new RegExp(r"\.$"), "");
       return new _ScalarNode(_Tag.yaml("float"),
           value: Math.parseDouble(matchStr));
     }

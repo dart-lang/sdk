@@ -945,6 +945,9 @@ class FunctionSignature {
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
+
+  List<Element> _orderedOptionalParameters;
+
   FunctionSignature(this.requiredParameters,
                     this.optionalParameters,
                     this.requiredParameterCount,
@@ -968,9 +971,26 @@ class FunctionSignature {
     }
   }
 
+  List<Element> get orderedOptionalParameters {
+    if (_orderedOptionalParameters != null) return _orderedOptionalParameters;
+    List<Element> list = new List<Element>.from(optionalParameters);
+    if (optionalParametersAreNamed) {
+      list.sort((Element a, Element b) {
+        return a.name.slowToString().compareTo(b.name.slowToString());
+      });
+    }
+    _orderedOptionalParameters = list;
+    return list;
+  }
+
   void forEachParameter(void function(Element parameter)) {
     forEachRequiredParameter(function);
     forEachOptionalParameter(function);
+  }
+
+  void orderedForEachParameter(void function(Element parameter)) {
+    forEachRequiredParameter(function);
+    orderedOptionalParameters.forEach(function);
   }
 
   int get parameterCount => requiredParameterCount + optionalParameterCount;
@@ -1653,6 +1673,25 @@ class Elements {
       throw new Exception('Unhandled selector: ${selector.slowToString()}');
     }
     return new SourceString('operator\$$str');
+  }
+
+  static SourceString mapToUserOperator(SourceString op) {
+    String value = op.stringValue;
+
+    if (value === '!=') return const SourceString('==');
+    if (value === '*=') return const SourceString('*');
+    if (value === '/=') return const SourceString('/');
+    if (value === '%=') return const SourceString('%');
+    if (value === '~/=') return const SourceString('~/');
+    if (value === '+=') return const SourceString('+');
+    if (value === '-=') return const SourceString('-');
+    if (value === '<<=') return const SourceString('<<');
+    if (value === '>>=') return const SourceString('>>');
+    if (value === '&=') return const SourceString('&');
+    if (value === '^=') return const SourceString('^');
+    if (value === '|=') return const SourceString('|');
+
+    throw 'Unhandled operator: ${op.slowToString()}';
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {

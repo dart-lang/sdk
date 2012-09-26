@@ -172,7 +172,7 @@ void compile(List<String> argv) {
 
   Future<String> provider(Uri uri) {
     if (uri.scheme != 'file') {
-      throw new IllegalArgumentException(uri);
+      throw new ArgumentError(uri);
     }
     String source;
     try {

@@ -26,7 +26,7 @@ main() {
     appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -48,7 +48,7 @@ main() {
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -73,7 +73,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -87,8 +87,8 @@ main() {
     ]).scheduleCommit();
 
     schedulePub(args: ['update'],
-        error: const RegExp(@'The name you specified for your dependency, '
-            @'"foo", doesn' @"'" @'t match the name "zoo" in its pubspec.'),
+        error: const RegExp(r'The name you specified for your dependency, '
+            r'"foo", doesn' "'" r't match the name "zoo" in its pubspec.'),
         exitCode: 1);
 
     dir(packagesPath, [
@@ -112,7 +112,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -124,8 +124,8 @@ main() {
     repo.scheduleGit(['commit', '-m', 'delete']);
 
     schedulePub(args: ['update'],
-        error: const RegExp(@'Package "foo" doesn' @"'" @'t have a '
-            @'pubspec.yaml file.'),
+        error: const RegExp(r'Package "foo" doesn' "'" r't have a '
+            r'pubspec.yaml file.'),
         exitCode: 1);
 
     dir(packagesPath, [
@@ -154,7 +154,7 @@ main() {
       appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+          output: const RegExp(r"Dependencies installed!$"));
 
       dir(packagesPath, [
         dir('foo', [
@@ -176,7 +176,7 @@ main() {
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
-          output: const RegExp(@"Dependencies updated!$"));
+          output: const RegExp(r"Dependencies updated!$"));
 
       dir(packagesPath, [
         dir('foo', [
@@ -207,7 +207,7 @@ main() {
       appDir([{"git": "../foo.git"}]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+          output: const RegExp(r"Dependencies installed!$"));
 
       dir(packagesPath, [
         dir('foo', [
@@ -229,7 +229,7 @@ main() {
       ]).scheduleCommit();
 
       schedulePub(args: ['update', 'foo'],
-          output: const RegExp(@"Dependencies updated!$"));
+          output: const RegExp(r"Dependencies updated!$"));
 
       dir(packagesPath, [
         dir('foo', [

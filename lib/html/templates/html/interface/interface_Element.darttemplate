@@ -58,7 +58,7 @@ abstract class CSSClassSet implements Set<String> {
    * Returns [:true:] classes cannot be added or removed from this
    * [:CSSClassSet:].
    */
-  bool get isFrozen;
+  bool get frozen;
 }
 
 $!COMMENT

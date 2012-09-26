@@ -48,14 +48,14 @@ class StringBaseTest {
     Expect.equals(s, s3);
     try {
       String s4 = new String.fromCharCodes([0.0]);
-    } on IllegalArgumentException catch (ex) {
+    } on ArgumentError catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       String s4 = new String.fromCharCodes([-1]);
-    } on IllegalArgumentException catch (ex) {
+    } on ArgumentError catch (ex) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

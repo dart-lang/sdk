@@ -29,12 +29,12 @@ main() {
 
       test('with too many nodes', () {
         Expect.throws(() => new XMLElement.xml("<xml></xml>foo"),
-            (e) => e is IllegalArgumentException);
+            (e) => e is ArgumentError);
       });
 
       test('with a parse error', () {
         Expect.throws(() => new XMLElement.xml("<xml></xml>>"),
-            (e) => e is IllegalArgumentException);
+            (e) => e is ArgumentError);
       });
 
       test('with a PARSERERROR tag', () {

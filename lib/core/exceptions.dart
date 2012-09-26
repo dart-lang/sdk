@@ -46,13 +46,6 @@ class ObjectNotClosureException implements Exception {
 }
 
 
-class IllegalArgumentException implements Exception {
-  const IllegalArgumentException([arg = ""]) : _arg = arg;
-  String toString() => "Illegal argument(s): $_arg";
-  final _arg;
-}
-
-
 class OutOfMemoryException implements Exception {
   const OutOfMemoryException();
   String toString() => "Out of Memory";

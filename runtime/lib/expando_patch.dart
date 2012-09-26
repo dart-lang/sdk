@@ -58,7 +58,7 @@ patch class Expando<T> {
       throw new NullPointerException();
     }
     if (object is bool || object is num || object is String) {
-      throw new IllegalArgumentException(object);
+      throw new ArgumentError(object);
     }
   }
 

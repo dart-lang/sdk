@@ -9,13 +9,14 @@ webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
 xmlelement_test: Skip  # XML in dart:html is incomplete
 
+[ $runtime == chrome ]
+contentelement_test: Fail   # Issue 5445: not currently supported on chrome stable.
+
 [ $runtime == drt ]
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-url_test: Fail   # createObjectURL not implemented.
-transferables_test: Fail # Under investigation by antonm
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -53,6 +54,7 @@ unknownelement_test: Fail # Issue 4189
 history_test: Fail
 
 [ $runtime == ie ]
+contentelement_test: Fail   # ie does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
@@ -118,6 +120,7 @@ css_test: Fail               # No analog to WebKitCSSMatrix
 callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
+contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
 element_test: Fail
@@ -129,8 +132,6 @@ indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
-js_interop_3_test: Fail
-js_interop_4_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
@@ -197,6 +198,7 @@ css_test: Pass, Fail # Issue #2823
 
 [ $compiler == dart2js && $runtime == ff && $system == windows]
 js_interop_2_test: Fail # Issue 4658.
+js_interop_3_test: Fail # Issue 4658.
 
 [ $compiler == dart2js && $checked && $browser]
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'

@@ -287,8 +287,8 @@ class Grammar {
     var line = state._text.substring(start, end);
     var indicator = '';
     for (var i = 0; i < line.length && start + i < state.max_pos; i++)
-      indicator = indicator + ' ';
-    indicator = indicator + '^';
+      indicator = ' $indicator';
+    indicator = '$indicator^';
     // TODO: Convert to an exception.
     print(message);
     print(line);
@@ -614,7 +614,7 @@ String _formatMultiRule(String functor, List rules) {
 class _SequenceRule extends _Rule {
   // This rule matches the component rules in order.
   final List<_Rule> _rules;
-  final int _generatingSubRules = 0;
+  final int _generatingSubRules;
   final Function _reducer;
   bool _generatesValue;
   _SequenceRule(List<_Rule> this._rules,

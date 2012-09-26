@@ -78,7 +78,7 @@ class Arrays {
 
   static void rangeCheck(List a, int start, int length) {
     if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
+      throw new ArgumentError("negative length $length");
     }
     if (start < 0 ) {
       String message = "$start must be greater than or equal to 0";

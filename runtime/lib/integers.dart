@@ -158,7 +158,7 @@ class _IntegerImplementation {
                          "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
                          "u", "v", "w", "x", "y", "z"];
     if (radix < 2 || radix > 36) {
-      throw new IllegalArgumentException(radix);
+      throw new ArgumentError(radix);
     }
     final bool isNegative = this < 0;
     var value = isNegative ? -this : this;

@@ -16,6 +16,61 @@ namespace dart {
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DEFINE_FLAG(bool, code_comments, false,
             "Include comments into code and disassembly");
+DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
+
+
+bool CPUFeatures::sse3_supported_ = false;
+bool CPUFeatures::sse4_1_supported_ = false;
+#ifdef DEBUG
+bool CPUFeatures::initialized_ = false;
+#endif
+
+bool CPUFeatures::sse3_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse3_supported_;
+}
+
+
+bool CPUFeatures::sse4_1_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse4_1_supported_;
+}
+
+
+#define __ assembler.
+
+void CPUFeatures::InitOnce() {
+  Assembler assembler;
+  __ pushq(RBP);
+  __ pushq(RBX);
+  __ movq(RBP, RSP);
+  // Get feature information in ECX:EDX and return it in RAX.
+  // Note that cpuid operates the same in 64-bit and 32-bit mode.
+  __ movq(RAX, Immediate(1));
+  __ cpuid();
+  __ movl(RAX, RCX);  // Zero extended.
+  __ shlq(RAX, Immediate(32));
+  __ movl(RCX, RDX);  // Zero extended.
+  __ orq(RAX, RCX);
+  __ movq(RSP, RBP);
+  __ popq(RBX);
+  __ popq(RBP);
+  __ ret();
+
+  const Code& code =
+      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef uint64_t (*DetectCPUFeatures)();
+  uint64_t features =
+      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
+  sse3_supported_ = (features & kSSE3BitMask) != 0;
+  sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
+#ifdef DEBUG
+  initialized_ = true;
+#endif
+}
+
+#undef __
 
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
@@ -1470,6 +1525,13 @@ void Assembler::cmpxchgq(const Address& address, Register reg) {
   EmitUint8(0x0F);
   EmitUint8(0xB1);
   EmitOperand(reg & 7, address);
+}
+
+
+void Assembler::cpuid() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xA2);
 }
 
 

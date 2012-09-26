@@ -16,6 +16,33 @@ class TypeError implements AssertionError {
 class CastException implements Error {
 }
 
+/**
+ * Error thrown when a function is passed an unacceptable argument.
+ */
+class ArgumentError implements Error {
+  final message;
+
+  /** The [message] describes the erroneous argument. */
+  const ArgumentError([this.message = ""]);
+
+  String toString() {
+    if (message != null) {
+      return "Illegal argument(s): $message";
+    }
+    return "Illegal argument(s)";
+  }
+}
+
+/**
+ * Temporary backwards compatibility class.
+ *
+ * Removed when users have had time to change to using [ArgumentError].
+ */
+class IllegalArgumentException extends ArgumentError {
+  const IllegalArgumentException([argument = ""]) : super(argument);
+}
+
+
 class FallThroughError implements Error {
   const FallThroughError();
 }

@@ -319,6 +319,14 @@ module storage {
     [DartName=getObject] IDBRequest get(in IDBKeyRange key);
   };
 
+  [Supplemental]
+  interface IDBKeyRange {
+    [DartName=only_] static IDBKeyRange only(in IDBKey value) raises (IDBDatabaseException);
+    [DartName=lowerBound_] static IDBKeyRange lowerBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
+    [DartName=upperBound_] static IDBKeyRange upperBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
+    [DartName=bound_] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
+  };
+
   interface EntrySync {
     // Native implementation is declared to return EntrySync.
     [Suppressed] DirectoryEntrySync getParent();

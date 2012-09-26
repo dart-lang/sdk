@@ -11,12 +11,12 @@ class FileTest {
       file.openSync();
       Expect.fail('exception expected');
     } catch (e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
     }
 
     var openFuture = file.open(FileMode.READ);
     openFuture.handleException((e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
       return true;
     });
     openFuture.then((opened) {
@@ -30,12 +30,12 @@ class FileTest {
       file.existsSync();
       Expect.fail('exception expected');
     } catch (e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
     }
 
     var existsFuture = file.exists();
     existsFuture.handleException((e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
       return true;
     });
     existsFuture.then((bool) {
@@ -49,12 +49,12 @@ class FileTest {
       file.createSync();
       Expect.fail('exception expected');
     } catch (e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
     }
 
     var createFuture = file.create();
     createFuture.handleException((e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
       return true;
     });
     createFuture.then((ignore) => Expect.fail('non-string name exists'));
@@ -167,12 +167,12 @@ class FileTest {
       file.fullPathSync();
       Expect.fail('exception expected');
     } catch (e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
     }
 
     var fullPathFuture = file.fullPath();
     fullPathFuture.handleException((e) {
-      Expect.isTrue(e is IllegalArgumentException);
+      Expect.isTrue(e is ArgumentError);
       return true;
     });
     fullPathFuture.then((path) {

@@ -442,12 +442,7 @@ public class DartParser extends CompletionHooksParserBase {
     while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
       if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
         DartImportDirective importDirective = parseImportDirective();
-        LibraryNode importPath;
-        if (importDirective.getPrefix() != null) {
-          importPath = new LibraryNode(importDirective);
-        } else {
-          importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
-        }
+        LibraryNode importPath = new LibraryNode(importDirective);
         importPath.setSourceInfo(importDirective.getSourceInfo());
         libUnit.addImportPath(importPath);
       }

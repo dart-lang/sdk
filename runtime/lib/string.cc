@@ -27,12 +27,12 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     if (!index_object.IsSmi()) {
       GrowableArray<const Object*> args;
       args.Add(&index_object);
-      Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     intptr_t value = Smi::Cast(index_object).Value();
     if (value < 0) {
       GrowableArray<const Object*> args;
-      Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
     } else if (value > 0xFFFF) {
       is_one_byte_string = false;
       is_two_byte_string = false;
@@ -151,7 +151,7 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
     if (!elem.IsString()) {
       GrowableArray<const Object*> args;
       args.Add(&elem);
-      Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
   }
   return String::ConcatAll(strings);

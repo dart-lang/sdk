@@ -17,15 +17,15 @@ void main() {
                 (e) => e is IndexOutOfRangeException,
                 "too large");
   Expect.throws(() { l1.removeAt(null); },
-                (e) => e is IllegalArgumentException,
+                (e) => e is ArgumentError,
                 "too large");
   Expect.throws(() { l1.removeAt("1"); },
                 (e) => (checkedMode ? e is TypeError
-                                    : e is IllegalArgumentException),
+                                    : e is ArgumentError),
                 "string");
   Expect.throws(() { l1.removeAt(1.5); },
                 (e) => (checkedMode ? e is TypeError
-                                    : e is IllegalArgumentException),
+                                    : e is ArgumentError),
                 "double");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");

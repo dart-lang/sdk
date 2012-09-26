@@ -10,12 +10,12 @@ main() {
   useHtmlConfiguration();
 
   test('test1', () {
-    document.body.elements.add(new Element.html(@'''
+    document.body.elements.add(new Element.html(r'''
 <div id='div1'>
 Hello World!
 </div>'''));
     Element e = document.query('#div1');
-    Element e2 = new Element.html(@"<div id='xx'>XX</div>");
+    Element e2 = new Element.html(r"<div id='xx'>XX</div>");
     Expect.isTrue(e != null);
 
     checkNoSuchMethod(() { confuse(e).appendChild(e2); });
