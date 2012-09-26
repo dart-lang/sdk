@@ -202,81 +202,81 @@ class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
 
   String get charset native "HTMLAnchorElement_charset_Getter";
 
-  void set charset(String) native "HTMLAnchorElement_charset_Setter";
+  void set charset(String value) native "HTMLAnchorElement_charset_Setter";
 
   String get coords native "HTMLAnchorElement_coords_Getter";
 
-  void set coords(String) native "HTMLAnchorElement_coords_Setter";
+  void set coords(String value) native "HTMLAnchorElement_coords_Setter";
 
   String get download native "HTMLAnchorElement_download_Getter";
 
-  void set download(String) native "HTMLAnchorElement_download_Setter";
+  void set download(String value) native "HTMLAnchorElement_download_Setter";
 
   String get hash native "HTMLAnchorElement_hash_Getter";
 
-  void set hash(String) native "HTMLAnchorElement_hash_Setter";
+  void set hash(String value) native "HTMLAnchorElement_hash_Setter";
 
   String get host native "HTMLAnchorElement_host_Getter";
 
-  void set host(String) native "HTMLAnchorElement_host_Setter";
+  void set host(String value) native "HTMLAnchorElement_host_Setter";
 
   String get hostname native "HTMLAnchorElement_hostname_Getter";
 
-  void set hostname(String) native "HTMLAnchorElement_hostname_Setter";
+  void set hostname(String value) native "HTMLAnchorElement_hostname_Setter";
 
   String get href native "HTMLAnchorElement_href_Getter";
 
-  void set href(String) native "HTMLAnchorElement_href_Setter";
+  void set href(String value) native "HTMLAnchorElement_href_Setter";
 
   String get hreflang native "HTMLAnchorElement_hreflang_Getter";
 
-  void set hreflang(String) native "HTMLAnchorElement_hreflang_Setter";
+  void set hreflang(String value) native "HTMLAnchorElement_hreflang_Setter";
 
   String get name native "HTMLAnchorElement_name_Getter";
 
-  void set name(String) native "HTMLAnchorElement_name_Setter";
+  void set name(String value) native "HTMLAnchorElement_name_Setter";
 
   String get origin native "HTMLAnchorElement_origin_Getter";
 
   String get pathname native "HTMLAnchorElement_pathname_Getter";
 
-  void set pathname(String) native "HTMLAnchorElement_pathname_Setter";
+  void set pathname(String value) native "HTMLAnchorElement_pathname_Setter";
 
   String get ping native "HTMLAnchorElement_ping_Getter";
 
-  void set ping(String) native "HTMLAnchorElement_ping_Setter";
+  void set ping(String value) native "HTMLAnchorElement_ping_Setter";
 
   String get port native "HTMLAnchorElement_port_Getter";
 
-  void set port(String) native "HTMLAnchorElement_port_Setter";
+  void set port(String value) native "HTMLAnchorElement_port_Setter";
 
   String get protocol native "HTMLAnchorElement_protocol_Getter";
 
-  void set protocol(String) native "HTMLAnchorElement_protocol_Setter";
+  void set protocol(String value) native "HTMLAnchorElement_protocol_Setter";
 
   String get rel native "HTMLAnchorElement_rel_Getter";
 
-  void set rel(String) native "HTMLAnchorElement_rel_Setter";
+  void set rel(String value) native "HTMLAnchorElement_rel_Setter";
 
   String get rev native "HTMLAnchorElement_rev_Getter";
 
-  void set rev(String) native "HTMLAnchorElement_rev_Setter";
+  void set rev(String value) native "HTMLAnchorElement_rev_Setter";
 
   String get search native "HTMLAnchorElement_search_Getter";
 
-  void set search(String) native "HTMLAnchorElement_search_Setter";
+  void set search(String value) native "HTMLAnchorElement_search_Setter";
 
   String get shape native "HTMLAnchorElement_shape_Getter";
 
-  void set shape(String) native "HTMLAnchorElement_shape_Setter";
+  void set shape(String value) native "HTMLAnchorElement_shape_Setter";
 
   String get target native "HTMLAnchorElement_target_Getter";
 
-  void set target(String) native "HTMLAnchorElement_target_Setter";
+  void set target(String value) native "HTMLAnchorElement_target_Setter";
 
   String get type native "HTMLAnchorElement_type_Getter";
 
-  void set type(String) native "HTMLAnchorElement_type_Setter";
+  void set type(String value) native "HTMLAnchorElement_type_Setter";
 
   String toString() native "HTMLAnchorElement_toString_Callback";
 
@@ -379,7 +379,7 @@ class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation
 
   num get elapsedTime native "WebKitAnimation_elapsedTime_Getter";
 
-  void set elapsedTime(num) native "WebKitAnimation_elapsedTime_Setter";
+  void set elapsedTime(num value) native "WebKitAnimation_elapsedTime_Setter";
 
   bool get ended native "WebKitAnimation_ended_Getter";
 
@@ -476,47 +476,47 @@ class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
 
   String get align native "HTMLAppletElement_align_Getter";
 
-  void set align(String) native "HTMLAppletElement_align_Setter";
+  void set align(String value) native "HTMLAppletElement_align_Setter";
 
   String get alt native "HTMLAppletElement_alt_Getter";
 
-  void set alt(String) native "HTMLAppletElement_alt_Setter";
+  void set alt(String value) native "HTMLAppletElement_alt_Setter";
 
   String get archive native "HTMLAppletElement_archive_Getter";
 
-  void set archive(String) native "HTMLAppletElement_archive_Setter";
+  void set archive(String value) native "HTMLAppletElement_archive_Setter";
 
   String get code native "HTMLAppletElement_code_Getter";
 
-  void set code(String) native "HTMLAppletElement_code_Setter";
+  void set code(String value) native "HTMLAppletElement_code_Setter";
 
   String get codeBase native "HTMLAppletElement_codeBase_Getter";
 
-  void set codeBase(String) native "HTMLAppletElement_codeBase_Setter";
+  void set codeBase(String value) native "HTMLAppletElement_codeBase_Setter";
 
   String get height native "HTMLAppletElement_height_Getter";
 
-  void set height(String) native "HTMLAppletElement_height_Setter";
+  void set height(String value) native "HTMLAppletElement_height_Setter";
 
   String get hspace native "HTMLAppletElement_hspace_Getter";
 
-  void set hspace(String) native "HTMLAppletElement_hspace_Setter";
+  void set hspace(String value) native "HTMLAppletElement_hspace_Setter";
 
   String get name native "HTMLAppletElement_name_Getter";
 
-  void set name(String) native "HTMLAppletElement_name_Setter";
+  void set name(String value) native "HTMLAppletElement_name_Setter";
 
   String get object native "HTMLAppletElement_object_Getter";
 
-  void set object(String) native "HTMLAppletElement_object_Setter";
+  void set object(String value) native "HTMLAppletElement_object_Setter";
 
   String get vspace native "HTMLAppletElement_vspace_Getter";
 
-  void set vspace(String) native "HTMLAppletElement_vspace_Setter";
+  void set vspace(String value) native "HTMLAppletElement_vspace_Setter";
 
   String get width native "HTMLAppletElement_width_Getter";
 
-  void set width(String) native "HTMLAppletElement_width_Setter";
+  void set width(String value) native "HTMLAppletElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -582,11 +582,11 @@ class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 
   String get alt native "HTMLAreaElement_alt_Getter";
 
-  void set alt(String) native "HTMLAreaElement_alt_Setter";
+  void set alt(String value) native "HTMLAreaElement_alt_Setter";
 
   String get coords native "HTMLAreaElement_coords_Getter";
 
-  void set coords(String) native "HTMLAreaElement_coords_Setter";
+  void set coords(String value) native "HTMLAreaElement_coords_Setter";
 
   String get hash native "HTMLAreaElement_hash_Getter";
 
@@ -596,17 +596,17 @@ class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 
   String get href native "HTMLAreaElement_href_Getter";
 
-  void set href(String) native "HTMLAreaElement_href_Setter";
+  void set href(String value) native "HTMLAreaElement_href_Setter";
 
   bool get noHref native "HTMLAreaElement_noHref_Getter";
 
-  void set noHref(bool) native "HTMLAreaElement_noHref_Setter";
+  void set noHref(bool value) native "HTMLAreaElement_noHref_Setter";
 
   String get pathname native "HTMLAreaElement_pathname_Getter";
 
   String get ping native "HTMLAreaElement_ping_Getter";
 
-  void set ping(String) native "HTMLAreaElement_ping_Setter";
+  void set ping(String value) native "HTMLAreaElement_ping_Setter";
 
   String get port native "HTMLAreaElement_port_Getter";
 
@@ -616,11 +616,11 @@ class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 
   String get shape native "HTMLAreaElement_shape_Getter";
 
-  void set shape(String) native "HTMLAreaElement_shape_Setter";
+  void set shape(String value) native "HTMLAreaElement_shape_Setter";
 
   String get target native "HTMLAreaElement_target_Getter";
 
-  void set target(String) native "HTMLAreaElement_target_Setter";
+  void set target(String value) native "HTMLAreaElement_target_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -737,7 +737,7 @@ class _AttrImpl extends _NodeImpl implements Attr {
 
   String get value native "Attr_value_Getter";
 
-  void set value(String) native "Attr_value_Setter";
+  void set value(String value) native "Attr_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -786,7 +786,7 @@ class _AudioBufferImpl extends NativeFieldWrapperClass1 implements AudioBuffer {
 
   num get gain native "AudioBuffer_gain_Getter";
 
-  void set gain(num) native "AudioBuffer_gain_Setter";
+  void set gain(num value) native "AudioBuffer_gain_Setter";
 
   int get length native "AudioBuffer_length_Getter";
 
@@ -848,17 +848,17 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
 
-  void set buffer(AudioBuffer) native "AudioBufferSourceNode_buffer_Setter";
+  void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
 
   AudioGain get gain native "AudioBufferSourceNode_gain_Getter";
 
   bool get loop native "AudioBufferSourceNode_loop_Getter";
 
-  void set loop(bool) native "AudioBufferSourceNode_loop_Setter";
+  void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
 
   bool get looping native "AudioBufferSourceNode_looping_Getter";
 
-  void set looping(bool) native "AudioBufferSourceNode_looping_Setter";
+  void set looping(bool value) native "AudioBufferSourceNode_looping_Setter";
 
   AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
@@ -1253,11 +1253,11 @@ class _AudioListenerImpl extends NativeFieldWrapperClass1 implements AudioListen
 
   num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
 
-  void set dopplerFactor(num) native "AudioListener_dopplerFactor_Setter";
+  void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
 
   num get speedOfSound native "AudioListener_speedOfSound_Getter";
 
-  void set speedOfSound(num) native "AudioListener_speedOfSound_Setter";
+  void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
 
@@ -1395,37 +1395,37 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 
   num get coneInnerAngle native "AudioPannerNode_coneInnerAngle_Getter";
 
-  void set coneInnerAngle(num) native "AudioPannerNode_coneInnerAngle_Setter";
+  void set coneInnerAngle(num value) native "AudioPannerNode_coneInnerAngle_Setter";
 
   num get coneOuterAngle native "AudioPannerNode_coneOuterAngle_Getter";
 
-  void set coneOuterAngle(num) native "AudioPannerNode_coneOuterAngle_Setter";
+  void set coneOuterAngle(num value) native "AudioPannerNode_coneOuterAngle_Setter";
 
   num get coneOuterGain native "AudioPannerNode_coneOuterGain_Getter";
 
-  void set coneOuterGain(num) native "AudioPannerNode_coneOuterGain_Setter";
+  void set coneOuterGain(num value) native "AudioPannerNode_coneOuterGain_Setter";
 
   AudioGain get distanceGain native "AudioPannerNode_distanceGain_Getter";
 
   int get distanceModel native "AudioPannerNode_distanceModel_Getter";
 
-  void set distanceModel(int) native "AudioPannerNode_distanceModel_Setter";
+  void set distanceModel(int value) native "AudioPannerNode_distanceModel_Setter";
 
   num get maxDistance native "AudioPannerNode_maxDistance_Getter";
 
-  void set maxDistance(num) native "AudioPannerNode_maxDistance_Setter";
+  void set maxDistance(num value) native "AudioPannerNode_maxDistance_Setter";
 
   int get panningModel native "AudioPannerNode_panningModel_Getter";
 
-  void set panningModel(int) native "AudioPannerNode_panningModel_Setter";
+  void set panningModel(int value) native "AudioPannerNode_panningModel_Setter";
 
   num get refDistance native "AudioPannerNode_refDistance_Getter";
 
-  void set refDistance(num) native "AudioPannerNode_refDistance_Setter";
+  void set refDistance(num value) native "AudioPannerNode_refDistance_Setter";
 
   num get rolloffFactor native "AudioPannerNode_rolloffFactor_Getter";
 
-  void set rolloffFactor(num) native "AudioPannerNode_rolloffFactor_Setter";
+  void set rolloffFactor(num value) native "AudioPannerNode_rolloffFactor_Setter";
 
   void setOrientation(num x, num y, num z) native "AudioPannerNode_setOrientation_Callback";
 
@@ -1499,7 +1499,7 @@ class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 
   num get value native "AudioParam_value_Getter";
 
-  void set value(num) native "AudioParam_value_Setter";
+  void set value(num value) native "AudioParam_value_Setter";
 
   void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
 
@@ -1584,7 +1584,7 @@ class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
 
   String get clear native "HTMLBRElement_clear_Getter";
 
-  void set clear(String) native "HTMLBRElement_clear_Setter";
+  void set clear(String value) native "HTMLBRElement_clear_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1637,11 +1637,11 @@ class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
 
   String get href native "HTMLBaseElement_href_Getter";
 
-  void set href(String) native "HTMLBaseElement_href_Setter";
+  void set href(String value) native "HTMLBaseElement_href_Setter";
 
   String get target native "HTMLBaseElement_target_Getter";
 
-  void set target(String) native "HTMLBaseElement_target_Setter";
+  void set target(String value) native "HTMLBaseElement_target_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1672,15 +1672,15 @@ class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontEleme
 
   String get color native "HTMLBaseFontElement_color_Getter";
 
-  void set color(String) native "HTMLBaseFontElement_color_Setter";
+  void set color(String value) native "HTMLBaseFontElement_color_Setter";
 
   String get face native "HTMLBaseFontElement_face_Getter";
 
-  void set face(String) native "HTMLBaseFontElement_face_Setter";
+  void set face(String value) native "HTMLBaseFontElement_face_Setter";
 
   int get size native "HTMLBaseFontElement_size_Getter";
 
-  void set size(int) native "HTMLBaseFontElement_size_Setter";
+  void set size(int value) native "HTMLBaseFontElement_size_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1846,7 +1846,7 @@ class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 
   int get type native "BiquadFilterNode_type_Getter";
 
-  void set type(int) native "BiquadFilterNode_type_Setter";
+  void set type(int value) native "BiquadFilterNode_type_Setter";
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
@@ -2016,23 +2016,23 @@ class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 
   String get aLink native "HTMLBodyElement_aLink_Getter";
 
-  void set aLink(String) native "HTMLBodyElement_aLink_Setter";
+  void set aLink(String value) native "HTMLBodyElement_aLink_Setter";
 
   String get background native "HTMLBodyElement_background_Getter";
 
-  void set background(String) native "HTMLBodyElement_background_Setter";
+  void set background(String value) native "HTMLBodyElement_background_Setter";
 
   String get bgColor native "HTMLBodyElement_bgColor_Getter";
 
-  void set bgColor(String) native "HTMLBodyElement_bgColor_Setter";
+  void set bgColor(String value) native "HTMLBodyElement_bgColor_Setter";
 
   String get link native "HTMLBodyElement_link_Getter";
 
-  void set link(String) native "HTMLBodyElement_link_Setter";
+  void set link(String value) native "HTMLBodyElement_link_Setter";
 
   String get vLink native "HTMLBodyElement_vLink_Getter";
 
-  void set vLink(String) native "HTMLBodyElement_vLink_Setter";
+  void set vLink(String value) native "HTMLBodyElement_vLink_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2107,43 +2107,43 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
   bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
-  void set autofocus(bool) native "HTMLButtonElement_autofocus_Setter";
+  void set autofocus(bool value) native "HTMLButtonElement_autofocus_Setter";
 
   bool get disabled native "HTMLButtonElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLButtonElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLButtonElement_disabled_Setter";
 
   FormElement get form native "HTMLButtonElement_form_Getter";
 
   String get formAction native "HTMLButtonElement_formAction_Getter";
 
-  void set formAction(String) native "HTMLButtonElement_formAction_Setter";
+  void set formAction(String value) native "HTMLButtonElement_formAction_Setter";
 
   String get formEnctype native "HTMLButtonElement_formEnctype_Getter";
 
-  void set formEnctype(String) native "HTMLButtonElement_formEnctype_Setter";
+  void set formEnctype(String value) native "HTMLButtonElement_formEnctype_Setter";
 
   String get formMethod native "HTMLButtonElement_formMethod_Getter";
 
-  void set formMethod(String) native "HTMLButtonElement_formMethod_Setter";
+  void set formMethod(String value) native "HTMLButtonElement_formMethod_Setter";
 
   bool get formNoValidate native "HTMLButtonElement_formNoValidate_Getter";
 
-  void set formNoValidate(bool) native "HTMLButtonElement_formNoValidate_Setter";
+  void set formNoValidate(bool value) native "HTMLButtonElement_formNoValidate_Setter";
 
   String get formTarget native "HTMLButtonElement_formTarget_Getter";
 
-  void set formTarget(String) native "HTMLButtonElement_formTarget_Setter";
+  void set formTarget(String value) native "HTMLButtonElement_formTarget_Setter";
 
   NodeList get labels native "HTMLButtonElement_labels_Getter";
 
   String get name native "HTMLButtonElement_name_Getter";
 
-  void set name(String) native "HTMLButtonElement_name_Setter";
+  void set name(String value) native "HTMLButtonElement_name_Setter";
 
   String get type native "HTMLButtonElement_type_Getter";
 
-  void set type(String) native "HTMLButtonElement_type_Setter";
+  void set type(String value) native "HTMLButtonElement_type_Setter";
 
   String get validationMessage native "HTMLButtonElement_validationMessage_Getter";
 
@@ -2151,7 +2151,7 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
   String get value native "HTMLButtonElement_value_Getter";
 
-  void set value(String) native "HTMLButtonElement_value_Setter";
+  void set value(String value) native "HTMLButtonElement_value_Setter";
 
   bool get willValidate native "HTMLButtonElement_willValidate_Getter";
 
@@ -2200,7 +2200,7 @@ class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule {
 
   String get encoding native "CSSCharsetRule_encoding_Getter";
 
-  void set encoding(String) native "CSSCharsetRule_encoding_Setter";
+  void set encoding(String value) native "CSSCharsetRule_encoding_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2284,7 +2284,7 @@ class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule
 
   String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
-  void set keyText(String) native "WebKitCSSKeyframeRule_keyText_Setter";
+  void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
 
   CSSStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
 
@@ -2299,7 +2299,7 @@ class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule
 abstract class CSSKeyframesRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  abstract CSSRuleList get cssRules;
+  abstract List<CSSRule> get cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name */
   String name;
@@ -2321,11 +2321,11 @@ abstract class CSSKeyframesRule implements CSSRule {
 
 class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
 
-  CSSRuleList get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+  List<CSSRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
   String get name native "WebKitCSSKeyframesRule_name_Getter";
 
-  void set name(String) native "WebKitCSSKeyframesRule_name_Setter";
+  void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
 
   void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
 
@@ -2456,91 +2456,91 @@ class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix
 
   num get a native "WebKitCSSMatrix_a_Getter";
 
-  void set a(num) native "WebKitCSSMatrix_a_Setter";
+  void set a(num value) native "WebKitCSSMatrix_a_Setter";
 
   num get b native "WebKitCSSMatrix_b_Getter";
 
-  void set b(num) native "WebKitCSSMatrix_b_Setter";
+  void set b(num value) native "WebKitCSSMatrix_b_Setter";
 
   num get c native "WebKitCSSMatrix_c_Getter";
 
-  void set c(num) native "WebKitCSSMatrix_c_Setter";
+  void set c(num value) native "WebKitCSSMatrix_c_Setter";
 
   num get d native "WebKitCSSMatrix_d_Getter";
 
-  void set d(num) native "WebKitCSSMatrix_d_Setter";
+  void set d(num value) native "WebKitCSSMatrix_d_Setter";
 
   num get e native "WebKitCSSMatrix_e_Getter";
 
-  void set e(num) native "WebKitCSSMatrix_e_Setter";
+  void set e(num value) native "WebKitCSSMatrix_e_Setter";
 
   num get f native "WebKitCSSMatrix_f_Getter";
 
-  void set f(num) native "WebKitCSSMatrix_f_Setter";
+  void set f(num value) native "WebKitCSSMatrix_f_Setter";
 
   num get m11 native "WebKitCSSMatrix_m11_Getter";
 
-  void set m11(num) native "WebKitCSSMatrix_m11_Setter";
+  void set m11(num value) native "WebKitCSSMatrix_m11_Setter";
 
   num get m12 native "WebKitCSSMatrix_m12_Getter";
 
-  void set m12(num) native "WebKitCSSMatrix_m12_Setter";
+  void set m12(num value) native "WebKitCSSMatrix_m12_Setter";
 
   num get m13 native "WebKitCSSMatrix_m13_Getter";
 
-  void set m13(num) native "WebKitCSSMatrix_m13_Setter";
+  void set m13(num value) native "WebKitCSSMatrix_m13_Setter";
 
   num get m14 native "WebKitCSSMatrix_m14_Getter";
 
-  void set m14(num) native "WebKitCSSMatrix_m14_Setter";
+  void set m14(num value) native "WebKitCSSMatrix_m14_Setter";
 
   num get m21 native "WebKitCSSMatrix_m21_Getter";
 
-  void set m21(num) native "WebKitCSSMatrix_m21_Setter";
+  void set m21(num value) native "WebKitCSSMatrix_m21_Setter";
 
   num get m22 native "WebKitCSSMatrix_m22_Getter";
 
-  void set m22(num) native "WebKitCSSMatrix_m22_Setter";
+  void set m22(num value) native "WebKitCSSMatrix_m22_Setter";
 
   num get m23 native "WebKitCSSMatrix_m23_Getter";
 
-  void set m23(num) native "WebKitCSSMatrix_m23_Setter";
+  void set m23(num value) native "WebKitCSSMatrix_m23_Setter";
 
   num get m24 native "WebKitCSSMatrix_m24_Getter";
 
-  void set m24(num) native "WebKitCSSMatrix_m24_Setter";
+  void set m24(num value) native "WebKitCSSMatrix_m24_Setter";
 
   num get m31 native "WebKitCSSMatrix_m31_Getter";
 
-  void set m31(num) native "WebKitCSSMatrix_m31_Setter";
+  void set m31(num value) native "WebKitCSSMatrix_m31_Setter";
 
   num get m32 native "WebKitCSSMatrix_m32_Getter";
 
-  void set m32(num) native "WebKitCSSMatrix_m32_Setter";
+  void set m32(num value) native "WebKitCSSMatrix_m32_Setter";
 
   num get m33 native "WebKitCSSMatrix_m33_Getter";
 
-  void set m33(num) native "WebKitCSSMatrix_m33_Setter";
+  void set m33(num value) native "WebKitCSSMatrix_m33_Setter";
 
   num get m34 native "WebKitCSSMatrix_m34_Getter";
 
-  void set m34(num) native "WebKitCSSMatrix_m34_Setter";
+  void set m34(num value) native "WebKitCSSMatrix_m34_Setter";
 
   num get m41 native "WebKitCSSMatrix_m41_Getter";
 
-  void set m41(num) native "WebKitCSSMatrix_m41_Setter";
+  void set m41(num value) native "WebKitCSSMatrix_m41_Setter";
 
   num get m42 native "WebKitCSSMatrix_m42_Getter";
 
-  void set m42(num) native "WebKitCSSMatrix_m42_Setter";
+  void set m42(num value) native "WebKitCSSMatrix_m42_Setter";
 
   num get m43 native "WebKitCSSMatrix_m43_Getter";
 
-  void set m43(num) native "WebKitCSSMatrix_m43_Setter";
+  void set m43(num value) native "WebKitCSSMatrix_m43_Setter";
 
   num get m44 native "WebKitCSSMatrix_m44_Getter";
 
-  void set m44(num) native "WebKitCSSMatrix_m44_Setter";
+  void set m44(num value) native "WebKitCSSMatrix_m44_Setter";
 
   CSSMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
 
@@ -2573,7 +2573,7 @@ class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix
 abstract class CSSMediaRule implements CSSRule {
 
   /** @domName CSSMediaRule.cssRules */
-  abstract CSSRuleList get cssRules;
+  abstract List<CSSRule> get cssRules;
 
   /** @domName CSSMediaRule.media */
   abstract MediaList get media;
@@ -2592,7 +2592,7 @@ abstract class CSSMediaRule implements CSSRule {
 
 class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule {
 
-  CSSRuleList get cssRules native "CSSMediaRule_cssRules_Getter";
+  List<CSSRule> get cssRules native "CSSMediaRule_cssRules_Getter";
 
   MediaList get media native "CSSMediaRule_media_Getter";
 
@@ -2626,7 +2626,7 @@ class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule {
 
   String get selectorText native "CSSPageRule_selectorText_Getter";
 
-  void set selectorText(String) native "CSSPageRule_selectorText_Setter";
+  void set selectorText(String value) native "CSSPageRule_selectorText_Setter";
 
   CSSStyleDeclaration get style native "CSSPageRule_style_Getter";
 
@@ -2796,7 +2796,7 @@ class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 
   String get cssText native "CSSRule_cssText_Getter";
 
-  void set cssText(String) native "CSSRule_cssText_Setter";
+  void set cssText(String value) native "CSSRule_cssText_Setter";
 
   CSSRule get parentRule native "CSSRule_parentRule_Getter";
 
@@ -2811,22 +2811,7 @@ class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName CSSRuleList
-abstract class CSSRuleList implements List<CSSRule> {
-
-  /** @domName CSSRuleList.length */
-  abstract int get length;
-
-  /** @domName CSSRuleList.item */
-  CSSRule item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
+class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule> {
 
   int get length native "CSSRuleList_length_Getter";
 
@@ -2894,7 +2879,6 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -4829,7 +4813,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   String get cssText native "CSSStyleDeclaration_cssText_Getter";
 
-  void set cssText(String) native "CSSStyleDeclaration_cssText_Setter";
+  void set cssText(String value) native "CSSStyleDeclaration_cssText_Setter";
 
   int get length native "CSSStyleDeclaration_length_Getter";
 
@@ -7642,7 +7626,7 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule {
 
   String get selectorText native "CSSStyleRule_selectorText_Getter";
 
-  void set selectorText(String) native "CSSStyleRule_selectorText_Setter";
+  void set selectorText(String value) native "CSSStyleRule_selectorText_Setter";
 
   CSSStyleDeclaration get style native "CSSStyleRule_style_Getter";
 
@@ -7657,13 +7641,13 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule {
 abstract class CSSStyleSheet implements StyleSheet {
 
   /** @domName CSSStyleSheet.cssRules */
-  abstract CSSRuleList get cssRules;
+  abstract List<CSSRule> get cssRules;
 
   /** @domName CSSStyleSheet.ownerRule */
   abstract CSSRule get ownerRule;
 
   /** @domName CSSStyleSheet.rules */
-  abstract CSSRuleList get rules;
+  abstract List<CSSRule> get rules;
 
   /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
@@ -7685,11 +7669,11 @@ abstract class CSSStyleSheet implements StyleSheet {
 
 class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
-  CSSRuleList get cssRules native "CSSStyleSheet_cssRules_Getter";
+  List<CSSRule> get cssRules native "CSSStyleSheet_cssRules_Getter";
 
   CSSRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
 
-  CSSRuleList get rules native "CSSStyleSheet_rules_Getter";
+  List<CSSRule> get rules native "CSSStyleSheet_rules_Getter";
 
   int addRule(selector, style, [index]) {
     if (?index) {
@@ -7716,7 +7700,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSTransformValue
-abstract class CSSTransformValue implements CSSValueList {
+abstract class CSSTransformValue implements List<CSSValue> {
 
   static const int CSS_MATRIX = 11;
 
@@ -7825,7 +7809,7 @@ class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 
   String get cssText native "CSSValue_cssText_Getter";
 
-  void set cssText(String) native "CSSValue_cssText_Setter";
+  void set cssText(String value) native "CSSValue_cssText_Setter";
 
   int get cssValueType native "CSSValue_cssValueType_Getter";
 
@@ -7836,22 +7820,7 @@ class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName CSSValueList
-abstract class CSSValueList implements CSSValue, List<CSSValue> {
-
-  /** @domName CSSValueList.length */
-  abstract int get length;
-
-  /** @domName CSSValueList.item */
-  CSSValue item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
+class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 
   int get length native "CSSValueList_length_Getter";
 
@@ -7919,7 +7888,6 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -7981,11 +7949,11 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   int get height native "HTMLCanvasElement_height_Getter";
 
-  void set height(int) native "HTMLCanvasElement_height_Setter";
+  void set height(int value) native "HTMLCanvasElement_height_Setter";
 
   int get width native "HTMLCanvasElement_width_Getter";
 
-  void set width(int) native "HTMLCanvasElement_width_Setter";
+  void set width(int value) native "HTMLCanvasElement_width_Setter";
 
   Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
 
@@ -8270,23 +8238,23 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   Dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
-  void set fillStyle(Dynamic) native "CanvasRenderingContext2D_fillStyle_Setter";
+  void set fillStyle(Dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
 
   String get font native "CanvasRenderingContext2D_font_Getter";
 
-  void set font(String) native "CanvasRenderingContext2D_font_Setter";
+  void set font(String value) native "CanvasRenderingContext2D_font_Setter";
 
   num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
 
-  void set globalAlpha(num) native "CanvasRenderingContext2D_globalAlpha_Setter";
+  void set globalAlpha(num value) native "CanvasRenderingContext2D_globalAlpha_Setter";
 
   String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
 
-  void set globalCompositeOperation(String) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
+  void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
   String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
 
-  void set lineCap(String) native "CanvasRenderingContext2D_lineCap_Setter";
+  void set lineCap(String value) native "CanvasRenderingContext2D_lineCap_Setter";
 
   num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
 
@@ -8294,57 +8262,57 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
-  void set lineJoin(String) native "CanvasRenderingContext2D_lineJoin_Setter";
+  void set lineJoin(String value) native "CanvasRenderingContext2D_lineJoin_Setter";
 
   num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
 
-  void set lineWidth(num) native "CanvasRenderingContext2D_lineWidth_Setter";
+  void set lineWidth(num value) native "CanvasRenderingContext2D_lineWidth_Setter";
 
   num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
 
-  void set miterLimit(num) native "CanvasRenderingContext2D_miterLimit_Setter";
+  void set miterLimit(num value) native "CanvasRenderingContext2D_miterLimit_Setter";
 
   num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
 
-  void set shadowBlur(num) native "CanvasRenderingContext2D_shadowBlur_Setter";
+  void set shadowBlur(num value) native "CanvasRenderingContext2D_shadowBlur_Setter";
 
   String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
 
-  void set shadowColor(String) native "CanvasRenderingContext2D_shadowColor_Setter";
+  void set shadowColor(String value) native "CanvasRenderingContext2D_shadowColor_Setter";
 
   num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
 
-  void set shadowOffsetX(num) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
+  void set shadowOffsetX(num value) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
 
   num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
 
-  void set shadowOffsetY(num) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
+  void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
 
   Dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
-  void set strokeStyle(Dynamic) native "CanvasRenderingContext2D_strokeStyle_Setter";
+  void set strokeStyle(Dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
   String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
 
-  void set textAlign(String) native "CanvasRenderingContext2D_textAlign_Setter";
+  void set textAlign(String value) native "CanvasRenderingContext2D_textAlign_Setter";
 
   String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
 
-  void set textBaseline(String) native "CanvasRenderingContext2D_textBaseline_Setter";
+  void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
 
   num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
   bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
 
-  void set webkitImageSmoothingEnabled(bool) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
+  void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
   List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
-  void set webkitLineDash(List) native "CanvasRenderingContext2D_webkitLineDash_Setter";
+  void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
 
   num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
 
-  void set webkitLineDashOffset(num) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
+  void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
@@ -8813,7 +8781,7 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 
   String get data native "CharacterData_data_Getter";
 
-  void set data(String) native "CharacterData_data_Setter";
+  void set data(String value) native "CharacterData_data_Setter";
 
   int get length native "CharacterData_length_Getter";
 
@@ -8884,22 +8852,7 @@ class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName ClientRectList
-abstract class ClientRectList implements List<ClientRect> {
-
-  /** @domName ClientRectList.length */
-  abstract int get length;
-
-  /** @domName ClientRectList.item */
-  ClientRect item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRectList {
+class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<ClientRect> {
 
   int get length native "ClientRectList_length_Getter";
 
@@ -8967,7 +8920,6 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRect
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -9004,7 +8956,7 @@ abstract class Clipboard {
   String effectAllowed;
 
   /** @domName Clipboard.files */
-  abstract FileList get files;
+  abstract List<File> get files;
 
   /** @domName Clipboard.items */
   abstract DataTransferItemList get items;
@@ -9034,13 +8986,13 @@ class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 
   String get dropEffect native "Clipboard_dropEffect_Getter";
 
-  void set dropEffect(String) native "Clipboard_dropEffect_Setter";
+  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
 
   String get effectAllowed native "Clipboard_effectAllowed_Getter";
 
-  void set effectAllowed(String) native "Clipboard_effectAllowed_Setter";
+  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
 
-  FileList get files native "Clipboard_files_Getter";
+  List<File> get files native "Clipboard_files_Getter";
 
   DataTransferItemList get items native "Clipboard_items_Getter";
 
@@ -9281,7 +9233,7 @@ class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement
 
   String get select native "HTMLContentElement_select_Getter";
 
-  void set select(String) native "HTMLContentElement_select_Setter";
+  void set select(String value) native "HTMLContentElement_select_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9309,11 +9261,11 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode {
 
   AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
 
-  void set buffer(AudioBuffer) native "ConvolverNode_buffer_Setter";
+  void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
 
   bool get normalize native "ConvolverNode_normalize_Getter";
 
-  void set normalize(bool) native "ConvolverNode_normalize_Setter";
+  void set normalize(bool value) native "ConvolverNode_normalize_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9477,7 +9429,7 @@ class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
 
   bool get compact native "HTMLDListElement_compact_Getter";
 
-  void set compact(bool) native "HTMLDListElement_compact_Setter";
+  void set compact(bool value) native "HTMLDListElement_compact_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9915,7 +9867,6 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -10102,7 +10053,6 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -10318,7 +10268,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
   String get value native "DOMSettableTokenList_value_Getter";
 
-  void set value(String) native "DOMSettableTokenList_value_Setter";
+  void set value(String value) native "DOMSettableTokenList_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10413,7 +10363,6 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringLi
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -11064,7 +11013,7 @@ class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement
 
   bool get open native "HTMLDetailsElement_open_Getter";
 
-  void set open(bool) native "HTMLDetailsElement_open_Setter";
+  void set open(bool value) native "HTMLDetailsElement_open_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11155,7 +11104,7 @@ class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryEle
 
   bool get compact native "HTMLDirectoryElement_compact_Getter";
 
-  void set compact(bool) native "HTMLDirectoryElement_compact_Setter";
+  void set compact(bool value) native "HTMLDirectoryElement_compact_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11287,7 +11236,7 @@ class _DirectoryReaderImpl extends NativeFieldWrapperClass1 implements Directory
 abstract class DirectoryReaderSync {
 
   /** @domName DirectoryReaderSync.readEntries */
-  EntryArraySync readEntries();
+  List<EntrySync> readEntries();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11297,7 +11246,7 @@ abstract class DirectoryReaderSync {
 
 class _DirectoryReaderSyncImpl extends NativeFieldWrapperClass1 implements DirectoryReaderSync {
 
-  EntryArraySync readEntries() native "DirectoryReaderSync_readEntries_Callback";
+  List<EntrySync> readEntries() native "DirectoryReaderSync_readEntries_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11324,7 +11273,7 @@ class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
 
   String get align native "HTMLDivElement_align_Getter";
 
-  void set align(String) native "HTMLDivElement_align_Setter";
+  void set align(String value) native "HTMLDivElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11383,7 +11332,7 @@ abstract class Document extends HtmlElement {
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  abstract StyleSheetList get styleSheets;
+  abstract List<StyleSheet> get styleSheets;
 
   /** @domName Document.title */
   String title;
@@ -12112,15 +12061,15 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   Element get body native "Document_body_Getter";
 
-  void set body(Element) native "Document_body_Setter";
+  void set body(Element value) native "Document_body_Setter";
 
   String get charset native "Document_charset_Getter";
 
-  void set charset(String) native "Document_charset_Setter";
+  void set charset(String value) native "Document_charset_Setter";
 
   String get cookie native "Document_cookie_Getter";
 
-  void set cookie(String) native "Document_cookie_Setter";
+  void set cookie(String value) native "Document_cookie_Setter";
 
   Window get window native "Document_defaultView_Getter";
 
@@ -12142,13 +12091,13 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
-  void set selectedStylesheetSet(String) native "Document_selectedStylesheetSet_Setter";
+  void set selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
-  StyleSheetList get styleSheets native "Document_styleSheets_Getter";
+  List<StyleSheet> get styleSheets native "Document_styleSheets_Getter";
 
   String get title native "Document_title_Getter";
 
-  void set title(String) native "Document_title_Setter";
+  void set title(String value) native "Document_title_Setter";
 
   Element get webkitCurrentFullScreenElement native "Document_webkitCurrentFullScreenElement_Getter";
 
@@ -12661,7 +12610,7 @@ abstract class Element implements Node, NodeSelector {
   ClientRect $dom_getBoundingClientRect();
 
   /** @domName Element.getClientRects */
-  ClientRectList $dom_getClientRects();
+  List<ClientRect> $dom_getClientRects();
 
   /** @domName Element.getElementsByClassName */
   NodeList $dom_getElementsByClassName(String name);
@@ -13669,7 +13618,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   String get $dom_className native "Element_className_Getter";
 
-  void set $dom_className(String) native "Element_className_Setter";
+  void set $dom_className(String value) native "Element_className_Setter";
 
   int get $dom_clientHeight native "Element_clientHeight_Getter";
 
@@ -13703,11 +13652,11 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   int get $dom_scrollLeft native "Element_scrollLeft_Getter";
 
-  void set $dom_scrollLeft(int) native "Element_scrollLeft_Setter";
+  void set $dom_scrollLeft(int value) native "Element_scrollLeft_Setter";
 
   int get $dom_scrollTop native "Element_scrollTop_Getter";
 
-  void set $dom_scrollTop(int) native "Element_scrollTop_Setter";
+  void set $dom_scrollTop(int value) native "Element_scrollTop_Setter";
 
   int get $dom_scrollWidth native "Element_scrollWidth_Getter";
 
@@ -13723,7 +13672,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   ClientRect $dom_getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
-  ClientRectList $dom_getClientRects() native "Element_getClientRects_Callback";
+  List<ClientRect> $dom_getClientRects() native "Element_getClientRects_Callback";
 
   NodeList $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
@@ -13838,55 +13787,55 @@ class _HTMLElementImpl extends _ElementImpl implements Element {
 
   String get contentEditable native "HTMLElement_contentEditable_Getter";
 
-  void set contentEditable(String) native "HTMLElement_contentEditable_Setter";
+  void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
 
   String get dir native "HTMLElement_dir_Getter";
 
-  void set dir(String) native "HTMLElement_dir_Setter";
+  void set dir(String value) native "HTMLElement_dir_Setter";
 
   bool get draggable native "HTMLElement_draggable_Getter";
 
-  void set draggable(bool) native "HTMLElement_draggable_Setter";
+  void set draggable(bool value) native "HTMLElement_draggable_Setter";
 
   bool get hidden native "HTMLElement_hidden_Getter";
 
-  void set hidden(bool) native "HTMLElement_hidden_Setter";
+  void set hidden(bool value) native "HTMLElement_hidden_Setter";
 
   String get id native "HTMLElement_id_Getter";
 
-  void set id(String) native "HTMLElement_id_Setter";
+  void set id(String value) native "HTMLElement_id_Setter";
 
   String get innerHTML native "HTMLElement_innerHTML_Getter";
 
-  void set innerHTML(String) native "HTMLElement_innerHTML_Setter";
+  void set innerHTML(String value) native "HTMLElement_innerHTML_Setter";
 
   bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
 
   String get lang native "HTMLElement_lang_Getter";
 
-  void set lang(String) native "HTMLElement_lang_Setter";
+  void set lang(String value) native "HTMLElement_lang_Setter";
 
   String get outerHTML native "HTMLElement_outerHTML_Getter";
 
   bool get spellcheck native "HTMLElement_spellcheck_Getter";
 
-  void set spellcheck(bool) native "HTMLElement_spellcheck_Setter";
+  void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
 
   int get tabIndex native "HTMLElement_tabIndex_Getter";
 
-  void set tabIndex(int) native "HTMLElement_tabIndex_Setter";
+  void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
 
   String get title native "HTMLElement_title_Getter";
 
-  void set title(String) native "HTMLElement_title_Setter";
+  void set title(String value) native "HTMLElement_title_Setter";
 
   bool get translate native "HTMLElement_translate_Getter";
 
-  void set translate(bool) native "HTMLElement_translate_Setter";
+  void set translate(bool value) native "HTMLElement_translate_Setter";
 
   String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
 
-  void set webkitdropzone(String) native "HTMLElement_webkitdropzone_Setter";
+  void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
 
   void click() native "HTMLElement_click_Callback";
 
@@ -13981,27 +13930,27 @@ class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
 
   String get align native "HTMLEmbedElement_align_Getter";
 
-  void set align(String) native "HTMLEmbedElement_align_Setter";
+  void set align(String value) native "HTMLEmbedElement_align_Setter";
 
   String get height native "HTMLEmbedElement_height_Getter";
 
-  void set height(String) native "HTMLEmbedElement_height_Setter";
+  void set height(String value) native "HTMLEmbedElement_height_Setter";
 
   String get name native "HTMLEmbedElement_name_Getter";
 
-  void set name(String) native "HTMLEmbedElement_name_Setter";
+  void set name(String value) native "HTMLEmbedElement_name_Setter";
 
   String get src native "HTMLEmbedElement_src_Getter";
 
-  void set src(String) native "HTMLEmbedElement_src_Setter";
+  void set src(String value) native "HTMLEmbedElement_src_Setter";
 
   String get type native "HTMLEmbedElement_type_Getter";
 
-  void set type(String) native "HTMLEmbedElement_type_Setter";
+  void set type(String value) native "HTMLEmbedElement_type_Setter";
 
   String get width native "HTMLEmbedElement_width_Getter";
 
-  void set width(String) native "HTMLEmbedElement_width_Setter";
+  void set width(String value) native "HTMLEmbedElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14061,7 +14010,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntriesCallback(EntryArray entries);
+typedef bool EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14110,22 +14059,7 @@ abstract class Entry {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName EntryArray
-abstract class EntryArray implements List<Entry> {
-
-  /** @domName EntryArray.length */
-  abstract int get length;
-
-  /** @domName EntryArray.item */
-  Entry item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
+class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
 
   int get length native "EntryArray_length_Getter";
 
@@ -14193,7 +14127,6 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -14220,22 +14153,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName EntryArraySync
-abstract class EntryArraySync implements List<EntrySync> {
-
-  /** @domName EntryArraySync.length */
-  abstract int get length;
-
-  /** @domName EntryArraySync.item */
-  EntrySync item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArraySync {
+class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<EntrySync> {
 
   int get length native "EntryArraySync_length_Getter";
 
@@ -14303,7 +14221,6 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArray
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -14655,7 +14572,7 @@ class _EventImpl extends NativeFieldWrapperClass1 implements Event {
 
   bool get cancelBubble native "Event_cancelBubble_Getter";
 
-  void set cancelBubble(bool) native "Event_cancelBubble_Setter";
+  void set cancelBubble(bool value) native "Event_cancelBubble_Setter";
 
   bool get cancelable native "Event_cancelable_Getter";
 
@@ -14669,7 +14586,7 @@ class _EventImpl extends NativeFieldWrapperClass1 implements Event {
 
   bool get returnValue native "Event_returnValue_Getter";
 
-  void set returnValue(bool) native "Event_returnValue_Setter";
+  void set returnValue(bool value) native "Event_returnValue_Setter";
 
   EventTarget get srcElement native "Event_srcElement_Getter";
 
@@ -14928,7 +14845,7 @@ class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetEleme
 
   bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLFieldSetElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLFieldSetElement_disabled_Setter";
 
   HTMLCollection get elements native "HTMLFieldSetElement_elements_Getter";
 
@@ -14936,7 +14853,7 @@ class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetEleme
 
   String get name native "HTMLFieldSetElement_name_Getter";
 
-  void set name(String) native "HTMLFieldSetElement_name_Setter";
+  void set name(String value) native "HTMLFieldSetElement_name_Setter";
 
   String get type native "HTMLFieldSetElement_type_Getter";
 
@@ -15162,22 +15079,7 @@ class _FileImpl extends _BlobImpl implements File {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName FileList
-abstract class FileList implements List<File> {
-
-  /** @domName FileList.length */
-  abstract int get length;
-
-  /** @domName FileList.item */
-  File item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _FileListImpl extends NativeFieldWrapperClass1 implements FileList {
+class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
 
   int get length native "FileList_length_Getter";
 
@@ -15245,7 +15147,6 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements FileList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -15721,7 +15622,6 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -15854,7 +15754,6 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -15914,15 +15813,15 @@ class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 
   String get color native "HTMLFontElement_color_Getter";
 
-  void set color(String) native "HTMLFontElement_color_Setter";
+  void set color(String value) native "HTMLFontElement_color_Setter";
 
   String get face native "HTMLFontElement_face_Getter";
 
-  void set face(String) native "HTMLFontElement_face_Setter";
+  void set face(String value) native "HTMLFontElement_face_Setter";
 
   String get size native "HTMLFontElement_size_Getter";
 
-  void set size(String) native "HTMLFontElement_size_Setter";
+  void set size(String value) native "HTMLFontElement_size_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16015,41 +15914,41 @@ class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
 
   String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
-  void set acceptCharset(String) native "HTMLFormElement_acceptCharset_Setter";
+  void set acceptCharset(String value) native "HTMLFormElement_acceptCharset_Setter";
 
   String get action native "HTMLFormElement_action_Getter";
 
-  void set action(String) native "HTMLFormElement_action_Setter";
+  void set action(String value) native "HTMLFormElement_action_Setter";
 
   String get autocomplete native "HTMLFormElement_autocomplete_Getter";
 
-  void set autocomplete(String) native "HTMLFormElement_autocomplete_Setter";
+  void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
 
   String get encoding native "HTMLFormElement_encoding_Getter";
 
-  void set encoding(String) native "HTMLFormElement_encoding_Setter";
+  void set encoding(String value) native "HTMLFormElement_encoding_Setter";
 
   String get enctype native "HTMLFormElement_enctype_Getter";
 
-  void set enctype(String) native "HTMLFormElement_enctype_Setter";
+  void set enctype(String value) native "HTMLFormElement_enctype_Setter";
 
   int get length native "HTMLFormElement_length_Getter";
 
   String get method native "HTMLFormElement_method_Getter";
 
-  void set method(String) native "HTMLFormElement_method_Setter";
+  void set method(String value) native "HTMLFormElement_method_Setter";
 
   String get name native "HTMLFormElement_name_Getter";
 
-  void set name(String) native "HTMLFormElement_name_Setter";
+  void set name(String value) native "HTMLFormElement_name_Setter";
 
   bool get noValidate native "HTMLFormElement_noValidate_Getter";
 
-  void set noValidate(bool) native "HTMLFormElement_noValidate_Setter";
+  void set noValidate(bool value) native "HTMLFormElement_noValidate_Setter";
 
   String get target native "HTMLFormElement_target_Getter";
 
-  void set target(String) native "HTMLFormElement_target_Setter";
+  void set target(String value) native "HTMLFormElement_target_Setter";
 
   bool checkValidity() native "HTMLFormElement_checkValidity_Callback";
 
@@ -16121,41 +16020,41 @@ class _HTMLFrameElementImpl extends _HTMLElementImpl implements FrameElement {
 
   String get frameBorder native "HTMLFrameElement_frameBorder_Getter";
 
-  void set frameBorder(String) native "HTMLFrameElement_frameBorder_Setter";
+  void set frameBorder(String value) native "HTMLFrameElement_frameBorder_Setter";
 
   int get height native "HTMLFrameElement_height_Getter";
 
   String get location native "HTMLFrameElement_location_Getter";
 
-  void set location(String) native "HTMLFrameElement_location_Setter";
+  void set location(String value) native "HTMLFrameElement_location_Setter";
 
   String get longDesc native "HTMLFrameElement_longDesc_Getter";
 
-  void set longDesc(String) native "HTMLFrameElement_longDesc_Setter";
+  void set longDesc(String value) native "HTMLFrameElement_longDesc_Setter";
 
   String get marginHeight native "HTMLFrameElement_marginHeight_Getter";
 
-  void set marginHeight(String) native "HTMLFrameElement_marginHeight_Setter";
+  void set marginHeight(String value) native "HTMLFrameElement_marginHeight_Setter";
 
   String get marginWidth native "HTMLFrameElement_marginWidth_Getter";
 
-  void set marginWidth(String) native "HTMLFrameElement_marginWidth_Setter";
+  void set marginWidth(String value) native "HTMLFrameElement_marginWidth_Setter";
 
   String get name native "HTMLFrameElement_name_Getter";
 
-  void set name(String) native "HTMLFrameElement_name_Setter";
+  void set name(String value) native "HTMLFrameElement_name_Setter";
 
   bool get noResize native "HTMLFrameElement_noResize_Getter";
 
-  void set noResize(bool) native "HTMLFrameElement_noResize_Setter";
+  void set noResize(bool value) native "HTMLFrameElement_noResize_Setter";
 
   String get scrolling native "HTMLFrameElement_scrolling_Getter";
 
-  void set scrolling(String) native "HTMLFrameElement_scrolling_Setter";
+  void set scrolling(String value) native "HTMLFrameElement_scrolling_Setter";
 
   String get src native "HTMLFrameElement_src_Getter";
 
-  void set src(String) native "HTMLFrameElement_src_Setter";
+  void set src(String value) native "HTMLFrameElement_src_Setter";
 
   int get width native "HTMLFrameElement_width_Getter";
 
@@ -16252,11 +16151,11 @@ class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetEleme
 
   String get cols native "HTMLFrameSetElement_cols_Getter";
 
-  void set cols(String) native "HTMLFrameSetElement_cols_Setter";
+  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
 
   String get rows native "HTMLFrameSetElement_rows_Getter";
 
-  void set rows(String) native "HTMLFrameSetElement_rows_Setter";
+  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16308,22 +16207,7 @@ class _GamepadImpl extends NativeFieldWrapperClass1 implements Gamepad {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName GamepadList
-abstract class GamepadList implements List<Gamepad> {
-
-  /** @domName GamepadList.length */
-  abstract int get length;
-
-  /** @domName GamepadList.item */
-  Gamepad item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _GamepadListImpl extends NativeFieldWrapperClass1 implements GamepadList {
+class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   int get length native "GamepadList_length_Getter";
 
@@ -16391,7 +16275,6 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements GamepadList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -16506,19 +16389,19 @@ class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
 
   String get align native "HTMLHRElement_align_Getter";
 
-  void set align(String) native "HTMLHRElement_align_Setter";
+  void set align(String value) native "HTMLHRElement_align_Setter";
 
   bool get noShade native "HTMLHRElement_noShade_Getter";
 
-  void set noShade(bool) native "HTMLHRElement_noShade_Setter";
+  void set noShade(bool value) native "HTMLHRElement_noShade_Setter";
 
   String get size native "HTMLHRElement_size_Getter";
 
-  void set size(String) native "HTMLHRElement_size_Setter";
+  void set size(String value) native "HTMLHRElement_size_Setter";
 
   String get width native "HTMLHRElement_width_Getter";
 
-  void set width(String) native "HTMLHRElement_width_Setter";
+  void set width(String value) native "HTMLHRElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16616,7 +16499,6 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -16733,7 +16615,6 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -16784,11 +16665,11 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 
   int get length native "HTMLOptionsCollection_length_Getter";
 
-  void set length(int) native "HTMLOptionsCollection_length_Setter";
+  void set length(int value) native "HTMLOptionsCollection_length_Setter";
 
   int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
 
-  void set selectedIndex(int) native "HTMLOptionsCollection_selectedIndex_Setter";
+  void set selectedIndex(int value) native "HTMLOptionsCollection_selectedIndex_Setter";
 
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
 
@@ -16852,7 +16733,7 @@ class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
 
   String get profile native "HTMLHeadElement_profile_Getter";
 
-  void set profile(String) native "HTMLHeadElement_profile_Setter";
+  void set profile(String value) native "HTMLHeadElement_profile_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16889,7 +16770,7 @@ class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement
 
   String get align native "HTMLHeadingElement_align_Getter";
 
-  void set align(String) native "HTMLHeadingElement_align_Setter";
+  void set align(String value) native "HTMLHeadingElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17149,7 +17030,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   String get responseType native "XMLHttpRequest_responseType_Getter";
 
-  void set responseType(String) native "XMLHttpRequest_responseType_Setter";
+  void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
 
   Document get responseXML native "XMLHttpRequest_responseXML_Getter";
 
@@ -17161,7 +17042,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
-  void set withCredentials(bool) native "XMLHttpRequest_withCredentials_Setter";
+  void set withCredentials(bool value) native "XMLHttpRequest_withCredentials_Setter";
 
   void abort() native "XMLHttpRequest_abort_Callback";
 
@@ -18583,53 +18464,53 @@ class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
 
   String get align native "HTMLIFrameElement_align_Getter";
 
-  void set align(String) native "HTMLIFrameElement_align_Setter";
+  void set align(String value) native "HTMLIFrameElement_align_Setter";
 
   Window get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
   String get frameBorder native "HTMLIFrameElement_frameBorder_Getter";
 
-  void set frameBorder(String) native "HTMLIFrameElement_frameBorder_Setter";
+  void set frameBorder(String value) native "HTMLIFrameElement_frameBorder_Setter";
 
   String get height native "HTMLIFrameElement_height_Getter";
 
-  void set height(String) native "HTMLIFrameElement_height_Setter";
+  void set height(String value) native "HTMLIFrameElement_height_Setter";
 
   String get longDesc native "HTMLIFrameElement_longDesc_Getter";
 
-  void set longDesc(String) native "HTMLIFrameElement_longDesc_Setter";
+  void set longDesc(String value) native "HTMLIFrameElement_longDesc_Setter";
 
   String get marginHeight native "HTMLIFrameElement_marginHeight_Getter";
 
-  void set marginHeight(String) native "HTMLIFrameElement_marginHeight_Setter";
+  void set marginHeight(String value) native "HTMLIFrameElement_marginHeight_Setter";
 
   String get marginWidth native "HTMLIFrameElement_marginWidth_Getter";
 
-  void set marginWidth(String) native "HTMLIFrameElement_marginWidth_Setter";
+  void set marginWidth(String value) native "HTMLIFrameElement_marginWidth_Setter";
 
   String get name native "HTMLIFrameElement_name_Getter";
 
-  void set name(String) native "HTMLIFrameElement_name_Setter";
+  void set name(String value) native "HTMLIFrameElement_name_Setter";
 
   String get sandbox native "HTMLIFrameElement_sandbox_Getter";
 
-  void set sandbox(String) native "HTMLIFrameElement_sandbox_Setter";
+  void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
 
   String get scrolling native "HTMLIFrameElement_scrolling_Getter";
 
-  void set scrolling(String) native "HTMLIFrameElement_scrolling_Setter";
+  void set scrolling(String value) native "HTMLIFrameElement_scrolling_Setter";
 
   String get src native "HTMLIFrameElement_src_Getter";
 
-  void set src(String) native "HTMLIFrameElement_src_Setter";
+  void set src(String value) native "HTMLIFrameElement_src_Setter";
 
   String get srcdoc native "HTMLIFrameElement_srcdoc_Getter";
 
-  void set srcdoc(String) native "HTMLIFrameElement_srcdoc_Setter";
+  void set srcdoc(String value) native "HTMLIFrameElement_srcdoc_Setter";
 
   String get width native "HTMLIFrameElement_width_Getter";
 
-  void set width(String) native "HTMLIFrameElement_width_Setter";
+  void set width(String value) native "HTMLIFrameElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18791,45 +18672,45 @@ class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
 
   String get align native "HTMLImageElement_align_Getter";
 
-  void set align(String) native "HTMLImageElement_align_Setter";
+  void set align(String value) native "HTMLImageElement_align_Setter";
 
   String get alt native "HTMLImageElement_alt_Getter";
 
-  void set alt(String) native "HTMLImageElement_alt_Setter";
+  void set alt(String value) native "HTMLImageElement_alt_Setter";
 
   String get border native "HTMLImageElement_border_Getter";
 
-  void set border(String) native "HTMLImageElement_border_Setter";
+  void set border(String value) native "HTMLImageElement_border_Setter";
 
   bool get complete native "HTMLImageElement_complete_Getter";
 
   String get crossOrigin native "HTMLImageElement_crossOrigin_Getter";
 
-  void set crossOrigin(String) native "HTMLImageElement_crossOrigin_Setter";
+  void set crossOrigin(String value) native "HTMLImageElement_crossOrigin_Setter";
 
   int get height native "HTMLImageElement_height_Getter";
 
-  void set height(int) native "HTMLImageElement_height_Setter";
+  void set height(int value) native "HTMLImageElement_height_Setter";
 
   int get hspace native "HTMLImageElement_hspace_Getter";
 
-  void set hspace(int) native "HTMLImageElement_hspace_Setter";
+  void set hspace(int value) native "HTMLImageElement_hspace_Setter";
 
   bool get isMap native "HTMLImageElement_isMap_Getter";
 
-  void set isMap(bool) native "HTMLImageElement_isMap_Setter";
+  void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
   String get longDesc native "HTMLImageElement_longDesc_Getter";
 
-  void set longDesc(String) native "HTMLImageElement_longDesc_Setter";
+  void set longDesc(String value) native "HTMLImageElement_longDesc_Setter";
 
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
-  void set lowsrc(String) native "HTMLImageElement_lowsrc_Setter";
+  void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
 
   String get name native "HTMLImageElement_name_Getter";
 
-  void set name(String) native "HTMLImageElement_name_Setter";
+  void set name(String value) native "HTMLImageElement_name_Setter";
 
   int get naturalHeight native "HTMLImageElement_naturalHeight_Getter";
 
@@ -18837,19 +18718,19 @@ class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
 
   String get src native "HTMLImageElement_src_Getter";
 
-  void set src(String) native "HTMLImageElement_src_Setter";
+  void set src(String value) native "HTMLImageElement_src_Setter";
 
   String get useMap native "HTMLImageElement_useMap_Getter";
 
-  void set useMap(String) native "HTMLImageElement_useMap_Setter";
+  void set useMap(String value) native "HTMLImageElement_useMap_Setter";
 
   int get vspace native "HTMLImageElement_vspace_Getter";
 
-  void set vspace(int) native "HTMLImageElement_vspace_Setter";
+  void set vspace(int value) native "HTMLImageElement_vspace_Setter";
 
   int get width native "HTMLImageElement_width_Getter";
 
-  void set width(int) native "HTMLImageElement_width_Setter";
+  void set width(int value) native "HTMLImageElement_width_Setter";
 
   int get x native "HTMLImageElement_x_Getter";
 
@@ -18905,7 +18786,7 @@ abstract class InputElement implements Element {
   bool disabled;
 
   /** @domName HTMLInputElement.files */
-  FileList files;
+  List<File> files;
 
   /** @domName HTMLInputElement.form */
   abstract FormElement get form;
@@ -19007,7 +18888,7 @@ abstract class InputElement implements Element {
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries */
-  abstract EntryArray get webkitEntries;
+  abstract List<Entry> get webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -19066,77 +18947,77 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   String get accept native "HTMLInputElement_accept_Getter";
 
-  void set accept(String) native "HTMLInputElement_accept_Setter";
+  void set accept(String value) native "HTMLInputElement_accept_Setter";
 
   String get align native "HTMLInputElement_align_Getter";
 
-  void set align(String) native "HTMLInputElement_align_Setter";
+  void set align(String value) native "HTMLInputElement_align_Setter";
 
   String get alt native "HTMLInputElement_alt_Getter";
 
-  void set alt(String) native "HTMLInputElement_alt_Setter";
+  void set alt(String value) native "HTMLInputElement_alt_Setter";
 
   String get autocomplete native "HTMLInputElement_autocomplete_Getter";
 
-  void set autocomplete(String) native "HTMLInputElement_autocomplete_Setter";
+  void set autocomplete(String value) native "HTMLInputElement_autocomplete_Setter";
 
   bool get autofocus native "HTMLInputElement_autofocus_Getter";
 
-  void set autofocus(bool) native "HTMLInputElement_autofocus_Setter";
+  void set autofocus(bool value) native "HTMLInputElement_autofocus_Setter";
 
   bool get checked native "HTMLInputElement_checked_Getter";
 
-  void set checked(bool) native "HTMLInputElement_checked_Setter";
+  void set checked(bool value) native "HTMLInputElement_checked_Setter";
 
   bool get defaultChecked native "HTMLInputElement_defaultChecked_Getter";
 
-  void set defaultChecked(bool) native "HTMLInputElement_defaultChecked_Setter";
+  void set defaultChecked(bool value) native "HTMLInputElement_defaultChecked_Setter";
 
   String get defaultValue native "HTMLInputElement_defaultValue_Getter";
 
-  void set defaultValue(String) native "HTMLInputElement_defaultValue_Setter";
+  void set defaultValue(String value) native "HTMLInputElement_defaultValue_Setter";
 
   bool get disabled native "HTMLInputElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLInputElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLInputElement_disabled_Setter";
 
-  FileList get files native "HTMLInputElement_files_Getter";
+  List<File> get files native "HTMLInputElement_files_Getter";
 
-  void set files(FileList) native "HTMLInputElement_files_Setter";
+  void set files(List<File> value) native "HTMLInputElement_files_Setter";
 
   FormElement get form native "HTMLInputElement_form_Getter";
 
   String get formAction native "HTMLInputElement_formAction_Getter";
 
-  void set formAction(String) native "HTMLInputElement_formAction_Setter";
+  void set formAction(String value) native "HTMLInputElement_formAction_Setter";
 
   String get formEnctype native "HTMLInputElement_formEnctype_Getter";
 
-  void set formEnctype(String) native "HTMLInputElement_formEnctype_Setter";
+  void set formEnctype(String value) native "HTMLInputElement_formEnctype_Setter";
 
   String get formMethod native "HTMLInputElement_formMethod_Getter";
 
-  void set formMethod(String) native "HTMLInputElement_formMethod_Setter";
+  void set formMethod(String value) native "HTMLInputElement_formMethod_Setter";
 
   bool get formNoValidate native "HTMLInputElement_formNoValidate_Getter";
 
-  void set formNoValidate(bool) native "HTMLInputElement_formNoValidate_Setter";
+  void set formNoValidate(bool value) native "HTMLInputElement_formNoValidate_Setter";
 
   String get formTarget native "HTMLInputElement_formTarget_Getter";
 
-  void set formTarget(String) native "HTMLInputElement_formTarget_Setter";
+  void set formTarget(String value) native "HTMLInputElement_formTarget_Setter";
 
   int get height native "HTMLInputElement_height_Getter";
 
-  void set height(int) native "HTMLInputElement_height_Setter";
+  void set height(int value) native "HTMLInputElement_height_Setter";
 
   bool get incremental native "HTMLInputElement_incremental_Getter";
 
-  void set incremental(bool) native "HTMLInputElement_incremental_Setter";
+  void set incremental(bool value) native "HTMLInputElement_incremental_Setter";
 
   bool get indeterminate native "HTMLInputElement_indeterminate_Getter";
 
-  void set indeterminate(bool) native "HTMLInputElement_indeterminate_Setter";
+  void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
   NodeList get labels native "HTMLInputElement_labels_Getter";
 
@@ -19144,71 +19025,71 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   String get max native "HTMLInputElement_max_Getter";
 
-  void set max(String) native "HTMLInputElement_max_Setter";
+  void set max(String value) native "HTMLInputElement_max_Setter";
 
   int get maxLength native "HTMLInputElement_maxLength_Getter";
 
-  void set maxLength(int) native "HTMLInputElement_maxLength_Setter";
+  void set maxLength(int value) native "HTMLInputElement_maxLength_Setter";
 
   String get min native "HTMLInputElement_min_Getter";
 
-  void set min(String) native "HTMLInputElement_min_Setter";
+  void set min(String value) native "HTMLInputElement_min_Setter";
 
   bool get multiple native "HTMLInputElement_multiple_Getter";
 
-  void set multiple(bool) native "HTMLInputElement_multiple_Setter";
+  void set multiple(bool value) native "HTMLInputElement_multiple_Setter";
 
   String get name native "HTMLInputElement_name_Getter";
 
-  void set name(String) native "HTMLInputElement_name_Setter";
+  void set name(String value) native "HTMLInputElement_name_Setter";
 
   String get pattern native "HTMLInputElement_pattern_Getter";
 
-  void set pattern(String) native "HTMLInputElement_pattern_Setter";
+  void set pattern(String value) native "HTMLInputElement_pattern_Setter";
 
   String get placeholder native "HTMLInputElement_placeholder_Getter";
 
-  void set placeholder(String) native "HTMLInputElement_placeholder_Setter";
+  void set placeholder(String value) native "HTMLInputElement_placeholder_Setter";
 
   bool get readOnly native "HTMLInputElement_readOnly_Getter";
 
-  void set readOnly(bool) native "HTMLInputElement_readOnly_Setter";
+  void set readOnly(bool value) native "HTMLInputElement_readOnly_Setter";
 
   bool get required native "HTMLInputElement_required_Getter";
 
-  void set required(bool) native "HTMLInputElement_required_Setter";
+  void set required(bool value) native "HTMLInputElement_required_Setter";
 
   String get selectionDirection native "HTMLInputElement_selectionDirection_Getter";
 
-  void set selectionDirection(String) native "HTMLInputElement_selectionDirection_Setter";
+  void set selectionDirection(String value) native "HTMLInputElement_selectionDirection_Setter";
 
   int get selectionEnd native "HTMLInputElement_selectionEnd_Getter";
 
-  void set selectionEnd(int) native "HTMLInputElement_selectionEnd_Setter";
+  void set selectionEnd(int value) native "HTMLInputElement_selectionEnd_Setter";
 
   int get selectionStart native "HTMLInputElement_selectionStart_Getter";
 
-  void set selectionStart(int) native "HTMLInputElement_selectionStart_Setter";
+  void set selectionStart(int value) native "HTMLInputElement_selectionStart_Setter";
 
   int get size native "HTMLInputElement_size_Getter";
 
-  void set size(int) native "HTMLInputElement_size_Setter";
+  void set size(int value) native "HTMLInputElement_size_Setter";
 
   String get src native "HTMLInputElement_src_Getter";
 
-  void set src(String) native "HTMLInputElement_src_Setter";
+  void set src(String value) native "HTMLInputElement_src_Setter";
 
   String get step native "HTMLInputElement_step_Getter";
 
-  void set step(String) native "HTMLInputElement_step_Setter";
+  void set step(String value) native "HTMLInputElement_step_Setter";
 
   String get type native "HTMLInputElement_type_Getter";
 
-  void set type(String) native "HTMLInputElement_type_Setter";
+  void set type(String value) native "HTMLInputElement_type_Setter";
 
   String get useMap native "HTMLInputElement_useMap_Getter";
 
-  void set useMap(String) native "HTMLInputElement_useMap_Setter";
+  void set useMap(String value) native "HTMLInputElement_useMap_Setter";
 
   String get validationMessage native "HTMLInputElement_validationMessage_Getter";
 
@@ -19216,33 +19097,33 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   String get value native "HTMLInputElement_value_Getter";
 
-  void set value(String) native "HTMLInputElement_value_Setter";
+  void set value(String value) native "HTMLInputElement_value_Setter";
 
   Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
-  void set valueAsDate(Date) native "HTMLInputElement_valueAsDate_Setter";
+  void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
 
   num get valueAsNumber native "HTMLInputElement_valueAsNumber_Getter";
 
-  void set valueAsNumber(num) native "HTMLInputElement_valueAsNumber_Setter";
+  void set valueAsNumber(num value) native "HTMLInputElement_valueAsNumber_Setter";
 
-  EntryArray get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
+  List<Entry> get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
 
   bool get webkitGrammar native "HTMLInputElement_webkitGrammar_Getter";
 
-  void set webkitGrammar(bool) native "HTMLInputElement_webkitGrammar_Setter";
+  void set webkitGrammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
 
   bool get webkitSpeech native "HTMLInputElement_webkitSpeech_Getter";
 
-  void set webkitSpeech(bool) native "HTMLInputElement_webkitSpeech_Setter";
+  void set webkitSpeech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
 
   bool get webkitdirectory native "HTMLInputElement_webkitdirectory_Getter";
 
-  void set webkitdirectory(bool) native "HTMLInputElement_webkitdirectory_Setter";
+  void set webkitdirectory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
 
   int get width native "HTMLInputElement_width_Getter";
 
-  void set width(int) native "HTMLInputElement_width_Setter";
+  void set width(int value) native "HTMLInputElement_width_Setter";
 
   bool get willValidate native "HTMLInputElement_willValidate_Getter";
 
@@ -19380,7 +19261,6 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -19513,7 +19393,6 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -19646,7 +19525,6 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -19927,27 +19805,27 @@ class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
-  void set autofocus(bool) native "HTMLKeygenElement_autofocus_Setter";
+  void set autofocus(bool value) native "HTMLKeygenElement_autofocus_Setter";
 
   String get challenge native "HTMLKeygenElement_challenge_Getter";
 
-  void set challenge(String) native "HTMLKeygenElement_challenge_Setter";
+  void set challenge(String value) native "HTMLKeygenElement_challenge_Setter";
 
   bool get disabled native "HTMLKeygenElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLKeygenElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLKeygenElement_disabled_Setter";
 
   FormElement get form native "HTMLKeygenElement_form_Getter";
 
   String get keytype native "HTMLKeygenElement_keytype_Getter";
 
-  void set keytype(String) native "HTMLKeygenElement_keytype_Setter";
+  void set keytype(String value) native "HTMLKeygenElement_keytype_Setter";
 
   NodeList get labels native "HTMLKeygenElement_labels_Getter";
 
   String get name native "HTMLKeygenElement_name_Getter";
 
-  void set name(String) native "HTMLKeygenElement_name_Setter";
+  void set name(String value) native "HTMLKeygenElement_name_Setter";
 
   String get type native "HTMLKeygenElement_type_Getter";
 
@@ -19989,11 +19867,11 @@ class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
 
   String get type native "HTMLLIElement_type_Getter";
 
-  void set type(String) native "HTMLLIElement_type_Setter";
+  void set type(String value) native "HTMLLIElement_type_Setter";
 
   int get value native "HTMLLIElement_value_Getter";
 
-  void set value(int) native "HTMLLIElement_value_Setter";
+  void set value(int value) native "HTMLLIElement_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20030,7 +19908,7 @@ class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
 
   String get htmlFor native "HTMLLabelElement_htmlFor_Getter";
 
-  void set htmlFor(String) native "HTMLLabelElement_htmlFor_Setter";
+  void set htmlFor(String value) native "HTMLLabelElement_htmlFor_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20060,7 +19938,7 @@ class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
 
   String get align native "HTMLLegendElement_align_Getter";
 
-  void set align(String) native "HTMLLegendElement_align_Setter";
+  void set align(String value) native "HTMLLegendElement_align_Setter";
 
   FormElement get form native "HTMLLegendElement_form_Getter";
 
@@ -20119,45 +19997,45 @@ class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
 
   String get charset native "HTMLLinkElement_charset_Getter";
 
-  void set charset(String) native "HTMLLinkElement_charset_Setter";
+  void set charset(String value) native "HTMLLinkElement_charset_Setter";
 
   bool get disabled native "HTMLLinkElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLLinkElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLLinkElement_disabled_Setter";
 
   String get href native "HTMLLinkElement_href_Getter";
 
-  void set href(String) native "HTMLLinkElement_href_Setter";
+  void set href(String value) native "HTMLLinkElement_href_Setter";
 
   String get hreflang native "HTMLLinkElement_hreflang_Getter";
 
-  void set hreflang(String) native "HTMLLinkElement_hreflang_Setter";
+  void set hreflang(String value) native "HTMLLinkElement_hreflang_Setter";
 
   String get media native "HTMLLinkElement_media_Getter";
 
-  void set media(String) native "HTMLLinkElement_media_Setter";
+  void set media(String value) native "HTMLLinkElement_media_Setter";
 
   String get rel native "HTMLLinkElement_rel_Getter";
 
-  void set rel(String) native "HTMLLinkElement_rel_Setter";
+  void set rel(String value) native "HTMLLinkElement_rel_Setter";
 
   String get rev native "HTMLLinkElement_rev_Getter";
 
-  void set rev(String) native "HTMLLinkElement_rev_Setter";
+  void set rev(String value) native "HTMLLinkElement_rev_Setter";
 
   StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
   DOMSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
 
-  void set sizes(DOMSettableTokenList) native "HTMLLinkElement_sizes_Setter";
+  void set sizes(DOMSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
 
   String get target native "HTMLLinkElement_target_Getter";
 
-  void set target(String) native "HTMLLinkElement_target_Setter";
+  void set target(String value) native "HTMLLinkElement_target_Setter";
 
   String get type native "HTMLLinkElement_type_Getter";
 
-  void set type(String) native "HTMLLinkElement_type_Setter";
+  void set type(String value) native "HTMLLinkElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20252,37 +20130,37 @@ class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
 
   String get hash native "Location_hash_Getter";
 
-  void set hash(String) native "Location_hash_Setter";
+  void set hash(String value) native "Location_hash_Setter";
 
   String get host native "Location_host_Getter";
 
-  void set host(String) native "Location_host_Setter";
+  void set host(String value) native "Location_host_Setter";
 
   String get hostname native "Location_hostname_Getter";
 
-  void set hostname(String) native "Location_hostname_Setter";
+  void set hostname(String value) native "Location_hostname_Setter";
 
   String get href native "Location_href_Getter";
 
-  void set href(String) native "Location_href_Setter";
+  void set href(String value) native "Location_href_Setter";
 
   String get origin native "Location_origin_Getter";
 
   String get pathname native "Location_pathname_Getter";
 
-  void set pathname(String) native "Location_pathname_Setter";
+  void set pathname(String value) native "Location_pathname_Setter";
 
   String get port native "Location_port_Getter";
 
-  void set port(String) native "Location_port_Setter";
+  void set port(String value) native "Location_port_Setter";
 
   String get protocol native "Location_protocol_Getter";
 
-  void set protocol(String) native "Location_protocol_Setter";
+  void set protocol(String value) native "Location_protocol_Setter";
 
   String get search native "Location_search_Getter";
 
-  void set search(String) native "Location_search_Setter";
+  void set search(String value) native "Location_search_Setter";
 
   void assign(String url) native "Location_assign_Callback";
 
@@ -20322,7 +20200,7 @@ class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
 
   String get name native "HTMLMapElement_name_Getter";
 
-  void set name(String) native "HTMLMapElement_name_Setter";
+  void set name(String value) native "HTMLMapElement_name_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20383,47 +20261,47 @@ class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement
 
   String get behavior native "HTMLMarqueeElement_behavior_Getter";
 
-  void set behavior(String) native "HTMLMarqueeElement_behavior_Setter";
+  void set behavior(String value) native "HTMLMarqueeElement_behavior_Setter";
 
   String get bgColor native "HTMLMarqueeElement_bgColor_Getter";
 
-  void set bgColor(String) native "HTMLMarqueeElement_bgColor_Setter";
+  void set bgColor(String value) native "HTMLMarqueeElement_bgColor_Setter";
 
   String get direction native "HTMLMarqueeElement_direction_Getter";
 
-  void set direction(String) native "HTMLMarqueeElement_direction_Setter";
+  void set direction(String value) native "HTMLMarqueeElement_direction_Setter";
 
   String get height native "HTMLMarqueeElement_height_Getter";
 
-  void set height(String) native "HTMLMarqueeElement_height_Setter";
+  void set height(String value) native "HTMLMarqueeElement_height_Setter";
 
   int get hspace native "HTMLMarqueeElement_hspace_Getter";
 
-  void set hspace(int) native "HTMLMarqueeElement_hspace_Setter";
+  void set hspace(int value) native "HTMLMarqueeElement_hspace_Setter";
 
   int get loop native "HTMLMarqueeElement_loop_Getter";
 
-  void set loop(int) native "HTMLMarqueeElement_loop_Setter";
+  void set loop(int value) native "HTMLMarqueeElement_loop_Setter";
 
   int get scrollAmount native "HTMLMarqueeElement_scrollAmount_Getter";
 
-  void set scrollAmount(int) native "HTMLMarqueeElement_scrollAmount_Setter";
+  void set scrollAmount(int value) native "HTMLMarqueeElement_scrollAmount_Setter";
 
   int get scrollDelay native "HTMLMarqueeElement_scrollDelay_Getter";
 
-  void set scrollDelay(int) native "HTMLMarqueeElement_scrollDelay_Setter";
+  void set scrollDelay(int value) native "HTMLMarqueeElement_scrollDelay_Setter";
 
   bool get trueSpeed native "HTMLMarqueeElement_trueSpeed_Getter";
 
-  void set trueSpeed(bool) native "HTMLMarqueeElement_trueSpeed_Setter";
+  void set trueSpeed(bool value) native "HTMLMarqueeElement_trueSpeed_Setter";
 
   int get vspace native "HTMLMarqueeElement_vspace_Getter";
 
-  void set vspace(int) native "HTMLMarqueeElement_vspace_Setter";
+  void set vspace(int value) native "HTMLMarqueeElement_vspace_Setter";
 
   String get width native "HTMLMarqueeElement_width_Getter";
 
-  void set width(String) native "HTMLMarqueeElement_width_Setter";
+  void set width(String value) native "HTMLMarqueeElement_width_Setter";
 
   void start() native "HTMLMarqueeElement_start_Callback";
 
@@ -20498,23 +20376,23 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   num get currentTime native "MediaController_currentTime_Getter";
 
-  void set currentTime(num) native "MediaController_currentTime_Setter";
+  void set currentTime(num value) native "MediaController_currentTime_Setter";
 
   num get defaultPlaybackRate native "MediaController_defaultPlaybackRate_Getter";
 
-  void set defaultPlaybackRate(num) native "MediaController_defaultPlaybackRate_Setter";
+  void set defaultPlaybackRate(num value) native "MediaController_defaultPlaybackRate_Setter";
 
   num get duration native "MediaController_duration_Getter";
 
   bool get muted native "MediaController_muted_Getter";
 
-  void set muted(bool) native "MediaController_muted_Setter";
+  void set muted(bool value) native "MediaController_muted_Setter";
 
   bool get paused native "MediaController_paused_Getter";
 
   num get playbackRate native "MediaController_playbackRate_Getter";
 
-  void set playbackRate(num) native "MediaController_playbackRate_Setter";
+  void set playbackRate(num value) native "MediaController_playbackRate_Setter";
 
   TimeRanges get played native "MediaController_played_Getter";
 
@@ -20522,7 +20400,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   num get volume native "MediaController_volume_Getter";
 
-  void set volume(num) native "MediaController_volume_Setter";
+  void set volume(num value) native "MediaController_volume_Setter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
 
@@ -20830,31 +20708,31 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   bool get autoplay native "HTMLMediaElement_autoplay_Getter";
 
-  void set autoplay(bool) native "HTMLMediaElement_autoplay_Setter";
+  void set autoplay(bool value) native "HTMLMediaElement_autoplay_Setter";
 
   TimeRanges get buffered native "HTMLMediaElement_buffered_Getter";
 
   MediaController get controller native "HTMLMediaElement_controller_Getter";
 
-  void set controller(MediaController) native "HTMLMediaElement_controller_Setter";
+  void set controller(MediaController value) native "HTMLMediaElement_controller_Setter";
 
   bool get controls native "HTMLMediaElement_controls_Getter";
 
-  void set controls(bool) native "HTMLMediaElement_controls_Setter";
+  void set controls(bool value) native "HTMLMediaElement_controls_Setter";
 
   String get currentSrc native "HTMLMediaElement_currentSrc_Getter";
 
   num get currentTime native "HTMLMediaElement_currentTime_Getter";
 
-  void set currentTime(num) native "HTMLMediaElement_currentTime_Setter";
+  void set currentTime(num value) native "HTMLMediaElement_currentTime_Setter";
 
   bool get defaultMuted native "HTMLMediaElement_defaultMuted_Getter";
 
-  void set defaultMuted(bool) native "HTMLMediaElement_defaultMuted_Setter";
+  void set defaultMuted(bool value) native "HTMLMediaElement_defaultMuted_Setter";
 
   num get defaultPlaybackRate native "HTMLMediaElement_defaultPlaybackRate_Getter";
 
-  void set defaultPlaybackRate(num) native "HTMLMediaElement_defaultPlaybackRate_Setter";
+  void set defaultPlaybackRate(num value) native "HTMLMediaElement_defaultPlaybackRate_Setter";
 
   num get duration native "HTMLMediaElement_duration_Getter";
 
@@ -20866,15 +20744,15 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   bool get loop native "HTMLMediaElement_loop_Getter";
 
-  void set loop(bool) native "HTMLMediaElement_loop_Setter";
+  void set loop(bool value) native "HTMLMediaElement_loop_Setter";
 
   String get mediaGroup native "HTMLMediaElement_mediaGroup_Getter";
 
-  void set mediaGroup(String) native "HTMLMediaElement_mediaGroup_Setter";
+  void set mediaGroup(String value) native "HTMLMediaElement_mediaGroup_Setter";
 
   bool get muted native "HTMLMediaElement_muted_Getter";
 
-  void set muted(bool) native "HTMLMediaElement_muted_Setter";
+  void set muted(bool value) native "HTMLMediaElement_muted_Setter";
 
   int get networkState native "HTMLMediaElement_networkState_Getter";
 
@@ -20882,13 +20760,13 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   num get playbackRate native "HTMLMediaElement_playbackRate_Getter";
 
-  void set playbackRate(num) native "HTMLMediaElement_playbackRate_Setter";
+  void set playbackRate(num value) native "HTMLMediaElement_playbackRate_Setter";
 
   TimeRanges get played native "HTMLMediaElement_played_Getter";
 
   String get preload native "HTMLMediaElement_preload_Getter";
 
-  void set preload(String) native "HTMLMediaElement_preload_Setter";
+  void set preload(String value) native "HTMLMediaElement_preload_Setter";
 
   int get readyState native "HTMLMediaElement_readyState_Getter";
 
@@ -20898,7 +20776,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   String get src native "HTMLMediaElement_src_Getter";
 
-  void set src(String) native "HTMLMediaElement_src_Setter";
+  void set src(String value) native "HTMLMediaElement_src_Setter";
 
   num get startTime native "HTMLMediaElement_startTime_Getter";
 
@@ -20906,19 +20784,19 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   num get volume native "HTMLMediaElement_volume_Getter";
 
-  void set volume(num) native "HTMLMediaElement_volume_Setter";
+  void set volume(num value) native "HTMLMediaElement_volume_Setter";
 
   int get webkitAudioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
   bool get webkitClosedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
-  void set webkitClosedCaptionsVisible(bool) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
+  void set webkitClosedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
   bool get webkitHasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
   bool get webkitPreservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
-  void set webkitPreservesPitch(bool) native "HTMLMediaElement_webkitPreservesPitch_Setter";
+  void set webkitPreservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
@@ -21101,7 +20979,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaList
-abstract class MediaList implements List<String> {
+abstract class MediaList {
 
   /** @domName MediaList.length */
   abstract int get length;
@@ -21130,89 +21008,7 @@ class _MediaListImpl extends NativeFieldWrapperClass1 implements MediaList {
 
   String get mediaText native "MediaList_mediaText_Getter";
 
-  void set mediaText(String) native "MediaList_mediaText_Setter";
-
-  String operator[](int index) native "MediaList_item_Callback";
-
-  void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-  // -- start List<String> mixins.
-  // String is the element type.
-
-  // From Iterable<String>:
-
-  Iterator<String> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<String>(this);
-  }
-
-  // From Collection<String>:
-
-  void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(String element)) => _Collections.forEach(this, f);
-
-  Collection map(f(String element)) => _Collections.map(this, [], f);
-
-  Collection<String> filter(bool f(String element)) =>
-     _Collections.filter(this, <String>[], f);
-
-  bool every(bool f(String element)) => _Collections.every(this, f);
-
-  bool some(bool f(String element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<String>:
-
-  void sort(int compare(String a, String b)) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(String element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  String last() => this[length - 1];
-
-  String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<String> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <String>[]);
-
-  // -- end List<String> mixins.
+  void set mediaText(String value) native "MediaList_mediaText_Setter";
 
   void appendMedium(String newMedium) native "MediaList_appendMedium_Callback";
 
@@ -21324,7 +21120,7 @@ class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
 
   num get duration native "MediaSource_duration_Getter";
 
-  void set duration(num) native "MediaSource_duration_Setter";
+  void set duration(num value) native "MediaSource_duration_Setter";
 
   String get readyState native "MediaSource_readyState_Getter";
 
@@ -21473,22 +21269,7 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName MediaStreamList
-abstract class MediaStreamList implements List<MediaStream> {
-
-  /** @domName MediaStreamList.length */
-  abstract int get length;
-
-  /** @domName MediaStreamList.item */
-  MediaStream item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStreamList {
+class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<MediaStream> {
 
   int get length native "MediaStreamList_length_Getter";
 
@@ -21556,7 +21337,6 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStre
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -21673,7 +21453,7 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 
   bool get enabled native "MediaStreamTrack_enabled_Getter";
 
-  void set enabled(bool) native "MediaStreamTrack_enabled_Setter";
+  void set enabled(bool value) native "MediaStreamTrack_enabled_Setter";
 
   String get kind native "MediaStreamTrack_kind_Getter";
 
@@ -21821,7 +21601,7 @@ class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
 
   bool get compact native "HTMLMenuElement_compact_Getter";
 
-  void set compact(bool) native "HTMLMenuElement_compact_Setter";
+  void set compact(bool value) native "HTMLMenuElement_compact_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22005,19 +21785,19 @@ class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
 
   String get content native "HTMLMetaElement_content_Getter";
 
-  void set content(String) native "HTMLMetaElement_content_Setter";
+  void set content(String value) native "HTMLMetaElement_content_Setter";
 
   String get httpEquiv native "HTMLMetaElement_httpEquiv_Getter";
 
-  void set httpEquiv(String) native "HTMLMetaElement_httpEquiv_Setter";
+  void set httpEquiv(String value) native "HTMLMetaElement_httpEquiv_Setter";
 
   String get name native "HTMLMetaElement_name_Getter";
 
-  void set name(String) native "HTMLMetaElement_name_Setter";
+  void set name(String value) native "HTMLMetaElement_name_Setter";
 
   String get scheme native "HTMLMetaElement_scheme_Getter";
 
-  void set scheme(String) native "HTMLMetaElement_scheme_Setter";
+  void set scheme(String value) native "HTMLMetaElement_scheme_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22097,29 +21877,29 @@ class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 
   num get high native "HTMLMeterElement_high_Getter";
 
-  void set high(num) native "HTMLMeterElement_high_Setter";
+  void set high(num value) native "HTMLMeterElement_high_Setter";
 
   NodeList get labels native "HTMLMeterElement_labels_Getter";
 
   num get low native "HTMLMeterElement_low_Getter";
 
-  void set low(num) native "HTMLMeterElement_low_Setter";
+  void set low(num value) native "HTMLMeterElement_low_Setter";
 
   num get max native "HTMLMeterElement_max_Getter";
 
-  void set max(num) native "HTMLMeterElement_max_Setter";
+  void set max(num value) native "HTMLMeterElement_max_Setter";
 
   num get min native "HTMLMeterElement_min_Getter";
 
-  void set min(num) native "HTMLMeterElement_min_Setter";
+  void set min(num value) native "HTMLMeterElement_min_Setter";
 
   num get optimum native "HTMLMeterElement_optimum_Getter";
 
-  void set optimum(num) native "HTMLMeterElement_optimum_Setter";
+  void set optimum(num value) native "HTMLMeterElement_optimum_Setter";
 
   num get value native "HTMLMeterElement_value_Getter";
 
-  void set value(num) native "HTMLMeterElement_value_Setter";
+  void set value(num value) native "HTMLMeterElement_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22147,11 +21927,11 @@ class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
 
   String get cite native "HTMLModElement_cite_Getter";
 
-  void set cite(String) native "HTMLModElement_cite_Setter";
+  void set cite(String value) native "HTMLModElement_cite_Setter";
 
   String get dateTime native "HTMLModElement_dateTime_Getter";
 
-  void set dateTime(String) native "HTMLModElement_dateTime_Setter";
+  void set dateTime(String value) native "HTMLModElement_dateTime_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22616,7 +22396,6 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -22713,7 +22492,7 @@ abstract class Navigator {
   bool javaEnabled();
 
   /** @domName Navigator.webkitGetGamepads */
-  GamepadList webkitGetGamepads();
+  List<Gamepad> webkitGetGamepads();
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -22762,7 +22541,7 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
 
-  GamepadList webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
+  List<Gamepad> webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
@@ -23143,7 +22922,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   String get text native "Node_textContent_Getter";
 
-  void set text(String) native "Node_textContent_Setter";
+  void set text(String value) native "Node_textContent_Setter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
@@ -23588,17 +23367,17 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   String get dir native "Notification_dir_Getter";
 
-  void set dir(String) native "Notification_dir_Setter";
+  void set dir(String value) native "Notification_dir_Setter";
 
   String get permission native "Notification_permission_Getter";
 
   String get replaceId native "Notification_replaceId_Getter";
 
-  void set replaceId(String) native "Notification_replaceId_Setter";
+  void set replaceId(String value) native "Notification_replaceId_Setter";
 
   String get tag native "Notification_tag_Getter";
 
-  void set tag(String) native "Notification_tag_Setter";
+  void set tag(String value) native "Notification_tag_Setter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
 
@@ -23733,19 +23512,19 @@ class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
 
   bool get compact native "HTMLOListElement_compact_Getter";
 
-  void set compact(bool) native "HTMLOListElement_compact_Setter";
+  void set compact(bool value) native "HTMLOListElement_compact_Setter";
 
   bool get reversed native "HTMLOListElement_reversed_Getter";
 
-  void set reversed(bool) native "HTMLOListElement_reversed_Setter";
+  void set reversed(bool value) native "HTMLOListElement_reversed_Setter";
 
   int get start native "HTMLOListElement_start_Getter";
 
-  void set start(int) native "HTMLOListElement_start_Setter";
+  void set start(int value) native "HTMLOListElement_start_Setter";
 
   String get type native "HTMLOListElement_type_Getter";
 
-  void set type(String) native "HTMLOListElement_type_Setter";
+  void set type(String value) native "HTMLOListElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23838,61 +23617,61 @@ class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
 
   String get align native "HTMLObjectElement_align_Getter";
 
-  void set align(String) native "HTMLObjectElement_align_Setter";
+  void set align(String value) native "HTMLObjectElement_align_Setter";
 
   String get archive native "HTMLObjectElement_archive_Getter";
 
-  void set archive(String) native "HTMLObjectElement_archive_Setter";
+  void set archive(String value) native "HTMLObjectElement_archive_Setter";
 
   String get border native "HTMLObjectElement_border_Getter";
 
-  void set border(String) native "HTMLObjectElement_border_Setter";
+  void set border(String value) native "HTMLObjectElement_border_Setter";
 
   String get code native "HTMLObjectElement_code_Getter";
 
-  void set code(String) native "HTMLObjectElement_code_Setter";
+  void set code(String value) native "HTMLObjectElement_code_Setter";
 
   String get codeBase native "HTMLObjectElement_codeBase_Getter";
 
-  void set codeBase(String) native "HTMLObjectElement_codeBase_Setter";
+  void set codeBase(String value) native "HTMLObjectElement_codeBase_Setter";
 
   String get codeType native "HTMLObjectElement_codeType_Getter";
 
-  void set codeType(String) native "HTMLObjectElement_codeType_Setter";
+  void set codeType(String value) native "HTMLObjectElement_codeType_Setter";
 
   String get data native "HTMLObjectElement_data_Getter";
 
-  void set data(String) native "HTMLObjectElement_data_Setter";
+  void set data(String value) native "HTMLObjectElement_data_Setter";
 
   bool get declare native "HTMLObjectElement_declare_Getter";
 
-  void set declare(bool) native "HTMLObjectElement_declare_Setter";
+  void set declare(bool value) native "HTMLObjectElement_declare_Setter";
 
   FormElement get form native "HTMLObjectElement_form_Getter";
 
   String get height native "HTMLObjectElement_height_Getter";
 
-  void set height(String) native "HTMLObjectElement_height_Setter";
+  void set height(String value) native "HTMLObjectElement_height_Setter";
 
   int get hspace native "HTMLObjectElement_hspace_Getter";
 
-  void set hspace(int) native "HTMLObjectElement_hspace_Setter";
+  void set hspace(int value) native "HTMLObjectElement_hspace_Setter";
 
   String get name native "HTMLObjectElement_name_Getter";
 
-  void set name(String) native "HTMLObjectElement_name_Setter";
+  void set name(String value) native "HTMLObjectElement_name_Setter";
 
   String get standby native "HTMLObjectElement_standby_Getter";
 
-  void set standby(String) native "HTMLObjectElement_standby_Setter";
+  void set standby(String value) native "HTMLObjectElement_standby_Setter";
 
   String get type native "HTMLObjectElement_type_Getter";
 
-  void set type(String) native "HTMLObjectElement_type_Setter";
+  void set type(String value) native "HTMLObjectElement_type_Setter";
 
   String get useMap native "HTMLObjectElement_useMap_Getter";
 
-  void set useMap(String) native "HTMLObjectElement_useMap_Setter";
+  void set useMap(String value) native "HTMLObjectElement_useMap_Setter";
 
   String get validationMessage native "HTMLObjectElement_validationMessage_Getter";
 
@@ -23900,11 +23679,11 @@ class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
 
   int get vspace native "HTMLObjectElement_vspace_Getter";
 
-  void set vspace(int) native "HTMLObjectElement_vspace_Setter";
+  void set vspace(int value) native "HTMLObjectElement_vspace_Setter";
 
   String get width native "HTMLObjectElement_width_Getter";
 
-  void set width(String) native "HTMLObjectElement_width_Setter";
+  void set width(String value) native "HTMLObjectElement_width_Setter";
 
   bool get willValidate native "HTMLObjectElement_willValidate_Getter";
 
@@ -23963,11 +23742,11 @@ class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupEleme
 
   bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLOptGroupElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLOptGroupElement_disabled_Setter";
 
   String get label native "HTMLOptGroupElement_label_Getter";
 
-  void set label(String) native "HTMLOptGroupElement_label_Setter";
+  void set label(String value) native "HTMLOptGroupElement_label_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24026,11 +23805,11 @@ class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
 
   bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
-  void set defaultSelected(bool) native "HTMLOptionElement_defaultSelected_Setter";
+  void set defaultSelected(bool value) native "HTMLOptionElement_defaultSelected_Setter";
 
   bool get disabled native "HTMLOptionElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLOptionElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLOptionElement_disabled_Setter";
 
   FormElement get form native "HTMLOptionElement_form_Getter";
 
@@ -24038,15 +23817,15 @@ class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
 
   String get label native "HTMLOptionElement_label_Getter";
 
-  void set label(String) native "HTMLOptionElement_label_Setter";
+  void set label(String value) native "HTMLOptionElement_label_Setter";
 
   bool get selected native "HTMLOptionElement_selected_Getter";
 
-  void set selected(bool) native "HTMLOptionElement_selected_Setter";
+  void set selected(bool value) native "HTMLOptionElement_selected_Setter";
 
   String get value native "HTMLOptionElement_value_Getter";
 
-  void set value(String) native "HTMLOptionElement_value_Setter";
+  void set value(String value) native "HTMLOptionElement_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24113,7 +23892,7 @@ class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
 
   int get type native "Oscillator_type_Getter";
 
-  void set type(int) native "Oscillator_type_Setter";
+  void set type(int value) native "Oscillator_type_Setter";
 
   void setWaveTable(WaveTable waveTable) native "Oscillator_setWaveTable_Callback";
 
@@ -24179,19 +23958,19 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
   String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
-  void set defaultValue(String) native "HTMLOutputElement_defaultValue_Setter";
+  void set defaultValue(String value) native "HTMLOutputElement_defaultValue_Setter";
 
   FormElement get form native "HTMLOutputElement_form_Getter";
 
   DOMSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
-  void set htmlFor(DOMSettableTokenList) native "HTMLOutputElement_htmlFor_Setter";
+  void set htmlFor(DOMSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
   NodeList get labels native "HTMLOutputElement_labels_Getter";
 
   String get name native "HTMLOutputElement_name_Getter";
 
-  void set name(String) native "HTMLOutputElement_name_Setter";
+  void set name(String value) native "HTMLOutputElement_name_Setter";
 
   String get type native "HTMLOutputElement_type_Getter";
 
@@ -24201,7 +23980,7 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
   String get value native "HTMLOutputElement_value_Getter";
 
-  void set value(String) native "HTMLOutputElement_value_Setter";
+  void set value(String value) native "HTMLOutputElement_value_Setter";
 
   bool get willValidate native "HTMLOutputElement_willValidate_Getter";
 
@@ -24324,7 +24103,7 @@ class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphEle
 
   String get align native "HTMLParagraphElement_align_Getter";
 
-  void set align(String) native "HTMLParagraphElement_align_Setter";
+  void set align(String value) native "HTMLParagraphElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24360,19 +24139,19 @@ class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
 
   String get name native "HTMLParamElement_name_Getter";
 
-  void set name(String) native "HTMLParamElement_name_Setter";
+  void set name(String value) native "HTMLParamElement_name_Setter";
 
   String get type native "HTMLParamElement_type_Getter";
 
-  void set type(String) native "HTMLParamElement_type_Setter";
+  void set type(String value) native "HTMLParamElement_type_Setter";
 
   String get value native "HTMLParamElement_value_Getter";
 
-  void set value(String) native "HTMLParamElement_value_Setter";
+  void set value(String value) native "HTMLParamElement_value_Setter";
 
   String get valueType native "HTMLParamElement_valueType_Getter";
 
-  void set valueType(String) native "HTMLParamElement_valueType_Setter";
+  void set valueType(String value) native "HTMLParamElement_valueType_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24426,7 +24205,7 @@ abstract class PeerConnection00 implements EventTarget {
   abstract SessionDescription get localDescription;
 
   /** @domName PeerConnection00.localStreams */
-  abstract MediaStreamList get localStreams;
+  abstract List<MediaStream> get localStreams;
 
   /** @domName PeerConnection00.readyState */
   abstract int get readyState;
@@ -24435,7 +24214,7 @@ abstract class PeerConnection00 implements EventTarget {
   abstract SessionDescription get remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams */
-  abstract MediaStreamList get remoteStreams;
+  abstract List<MediaStream> get remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -24515,13 +24294,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   SessionDescription get localDescription native "PeerConnection00_localDescription_Getter";
 
-  MediaStreamList get localStreams native "PeerConnection00_localStreams_Getter";
+  List<MediaStream> get localStreams native "PeerConnection00_localStreams_Getter";
 
   int get readyState native "PeerConnection00_readyState_Getter";
 
   SessionDescription get remoteDescription native "PeerConnection00_remoteDescription_Getter";
 
-  MediaStreamList get remoteStreams native "PeerConnection00_remoteStreams_Getter";
+  List<MediaStream> get remoteStreams native "PeerConnection00_remoteStreams_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
@@ -24810,11 +24589,11 @@ class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
 
   num get x native "WebKitPoint_x_Getter";
 
-  void set x(num) native "WebKitPoint_x_Setter";
+  void set x(num value) native "WebKitPoint_x_Setter";
 
   num get y native "WebKitPoint_y_Getter";
 
-  void set y(num) native "WebKitPoint_y_Setter";
+  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24915,11 +24694,11 @@ class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
 
   int get width native "HTMLPreElement_width_Getter";
 
-  void set width(int) native "HTMLPreElement_width_Setter";
+  void set width(int value) native "HTMLPreElement_width_Setter";
 
   bool get wrap native "HTMLPreElement_wrap_Getter";
 
-  void set wrap(bool) native "HTMLPreElement_wrap_Setter";
+  void set wrap(bool value) native "HTMLPreElement_wrap_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24950,7 +24729,7 @@ class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruct
 
   String get data native "ProcessingInstruction_data_Getter";
 
-  void set data(String) native "ProcessingInstruction_data_Setter";
+  void set data(String value) native "ProcessingInstruction_data_Setter";
 
   StyleSheet get sheet native "ProcessingInstruction_sheet_Getter";
 
@@ -24992,13 +24771,13 @@ class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressEleme
 
   num get max native "HTMLProgressElement_max_Getter";
 
-  void set max(num) native "HTMLProgressElement_max_Setter";
+  void set max(num value) native "HTMLProgressElement_max_Setter";
 
   num get position native "HTMLProgressElement_position_Getter";
 
   num get value native "HTMLProgressElement_value_Getter";
 
-  void set value(num) native "HTMLProgressElement_value_Setter";
+  void set value(num value) native "HTMLProgressElement_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25056,7 +24835,7 @@ class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
 
   String get cite native "HTMLQuoteElement_cite_Getter";
 
-  void set cite(String) native "HTMLQuoteElement_cite_Setter";
+  void set cite(String value) native "HTMLQuoteElement_cite_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25185,7 +24964,7 @@ abstract class RTCPeerConnection implements EventTarget {
   abstract RTCSessionDescription get localDescription;
 
   /** @domName RTCPeerConnection.localStreams */
-  abstract MediaStreamList get localStreams;
+  abstract List<MediaStream> get localStreams;
 
   /** @domName RTCPeerConnection.readyState */
   abstract String get readyState;
@@ -25194,7 +24973,7 @@ abstract class RTCPeerConnection implements EventTarget {
   abstract RTCSessionDescription get remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams */
-  abstract MediaStreamList get remoteStreams;
+  abstract List<MediaStream> get remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -25282,13 +25061,13 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   RTCSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
 
-  MediaStreamList get localStreams native "RTCPeerConnection_localStreams_Getter";
+  List<MediaStream> get localStreams native "RTCPeerConnection_localStreams_Getter";
 
   String get readyState native "RTCPeerConnection_readyState_Getter";
 
   RTCSessionDescription get remoteDescription native "RTCPeerConnection_remoteDescription_Getter";
 
-  MediaStreamList get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
+  List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
 
@@ -25349,11 +25128,11 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 
   String get sdp native "RTCSessionDescription_sdp_Getter";
 
-  void set sdp(String) native "RTCSessionDescription_sdp_Setter";
+  void set sdp(String value) native "RTCSessionDescription_sdp_Setter";
 
   String get type native "RTCSessionDescription_type_Getter";
 
-  void set type(String) native "RTCSessionDescription_type_Setter";
+  void set type(String value) native "RTCSessionDescription_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25378,7 +25157,7 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
 
   String get value native "RadioNodeList_value_Getter";
 
-  void set value(String) native "RadioNodeList_value_Setter";
+  void set value(String value) native "RadioNodeList_value_Setter";
 
   Node operator[](int index) native "RadioNodeList_item_Callback";
 
@@ -25444,7 +25223,6 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -25540,7 +25318,7 @@ abstract class Range {
   ClientRect getBoundingClientRect();
 
   /** @domName Range.getClientRects */
-  ClientRectList getClientRects();
+  List<ClientRect> getClientRects();
 
   /** @domName Range.insertNode */
   void insertNode(Node newNode);
@@ -25665,7 +25443,7 @@ class _RangeImpl extends NativeFieldWrapperClass1 implements Range {
 
   ClientRect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
-  ClientRectList getClientRects() native "Range_getClientRects_Callback";
+  List<ClientRect> getClientRects() native "Range_getClientRects_Callback";
 
   void insertNode(Node newNode) native "Range_insertNode_Callback";
 
@@ -25737,21 +25515,21 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 
   int get fftSize native "RealtimeAnalyserNode_fftSize_Getter";
 
-  void set fftSize(int) native "RealtimeAnalyserNode_fftSize_Setter";
+  void set fftSize(int value) native "RealtimeAnalyserNode_fftSize_Setter";
 
   int get frequencyBinCount native "RealtimeAnalyserNode_frequencyBinCount_Getter";
 
   num get maxDecibels native "RealtimeAnalyserNode_maxDecibels_Getter";
 
-  void set maxDecibels(num) native "RealtimeAnalyserNode_maxDecibels_Setter";
+  void set maxDecibels(num value) native "RealtimeAnalyserNode_maxDecibels_Setter";
 
   num get minDecibels native "RealtimeAnalyserNode_minDecibels_Getter";
 
-  void set minDecibels(num) native "RealtimeAnalyserNode_minDecibels_Setter";
+  void set minDecibels(num value) native "RealtimeAnalyserNode_minDecibels_Setter";
 
   num get smoothingTimeConstant native "RealtimeAnalyserNode_smoothingTimeConstant_Getter";
 
-  void set smoothingTimeConstant(num) native "RealtimeAnalyserNode_smoothingTimeConstant_Setter";
+  void set smoothingTimeConstant(num value) native "RealtimeAnalyserNode_smoothingTimeConstant_Setter";
 
   void getByteFrequencyData(Uint8Array array) native "RealtimeAnalyserNode_getByteFrequencyData_Callback";
 
@@ -26069,11 +25847,11 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   String get xmllang native "SVGAElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGAElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGAElement_xmllang_Setter";
 
   String get xmlspace native "SVGAElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGAElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGAElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
@@ -26141,11 +25919,11 @@ class _SVGAltGlyphElementImpl extends _SVGTextPositioningElementImpl implements 
 
   String get format native "SVGAltGlyphElement_format_Getter";
 
-  void set format(String) native "SVGAltGlyphElement_format_Setter";
+  void set format(String value) native "SVGAltGlyphElement_format_Setter";
 
   String get glyphRef native "SVGAltGlyphElement_glyphRef_Getter";
 
-  void set glyphRef(String) native "SVGAltGlyphElement_glyphRef_Setter";
+  void set glyphRef(String value) native "SVGAltGlyphElement_glyphRef_Setter";
 
   SVGAnimatedString get href native "SVGAltGlyphElement_href_Getter";
 
@@ -26217,15 +25995,15 @@ class _SVGAngleImpl extends NativeFieldWrapperClass1 implements SVGAngle {
 
   num get value native "SVGAngle_value_Getter";
 
-  void set value(num) native "SVGAngle_value_Setter";
+  void set value(num value) native "SVGAngle_value_Setter";
 
   String get valueAsString native "SVGAngle_valueAsString_Getter";
 
-  void set valueAsString(String) native "SVGAngle_valueAsString_Setter";
+  void set valueAsString(String value) native "SVGAngle_valueAsString_Setter";
 
   num get valueInSpecifiedUnits native "SVGAngle_valueInSpecifiedUnits_Getter";
 
-  void set valueInSpecifiedUnits(num) native "SVGAngle_valueInSpecifiedUnits_Setter";
+  void set valueInSpecifiedUnits(num value) native "SVGAngle_valueInSpecifiedUnits_Setter";
 
   void convertToSpecifiedUnits(int unitType) native "SVGAngle_convertToSpecifiedUnits_Callback";
 
@@ -26359,7 +26137,7 @@ class _SVGAnimatedBooleanImpl extends NativeFieldWrapperClass1 implements SVGAni
 
   bool get baseVal native "SVGAnimatedBoolean_baseVal_Getter";
 
-  void set baseVal(bool) native "SVGAnimatedBoolean_baseVal_Setter";
+  void set baseVal(bool value) native "SVGAnimatedBoolean_baseVal_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26389,7 +26167,7 @@ class _SVGAnimatedEnumerationImpl extends NativeFieldWrapperClass1 implements SV
 
   int get baseVal native "SVGAnimatedEnumeration_baseVal_Getter";
 
-  void set baseVal(int) native "SVGAnimatedEnumeration_baseVal_Setter";
+  void set baseVal(int value) native "SVGAnimatedEnumeration_baseVal_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26419,7 +26197,7 @@ class _SVGAnimatedIntegerImpl extends NativeFieldWrapperClass1 implements SVGAni
 
   int get baseVal native "SVGAnimatedInteger_baseVal_Getter";
 
-  void set baseVal(int) native "SVGAnimatedInteger_baseVal_Setter";
+  void set baseVal(int value) native "SVGAnimatedInteger_baseVal_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26541,7 +26319,6 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -26587,7 +26364,7 @@ class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnim
 
   num get baseVal native "SVGAnimatedNumber_baseVal_Getter";
 
-  void set baseVal(num) native "SVGAnimatedNumber_baseVal_Setter";
+  void set baseVal(num value) native "SVGAnimatedNumber_baseVal_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26681,7 +26458,6 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -26783,7 +26559,7 @@ class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnim
 
   String get baseVal native "SVGAnimatedString_baseVal_Getter";
 
-  void set baseVal(String) native "SVGAnimatedString_baseVal_Setter";
+  void set baseVal(String value) native "SVGAnimatedString_baseVal_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26877,7 +26653,6 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -26994,11 +26769,11 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   String get xmllang native "SVGCircleElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGCircleElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGCircleElement_xmllang_Setter";
 
   String get xmlspace native "SVGCircleElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGCircleElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGCircleElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
@@ -27055,11 +26830,11 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   String get xmllang native "SVGClipPathElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGClipPathElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGClipPathElement_xmllang_Setter";
 
   String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGClipPathElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGClipPathElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
@@ -27267,11 +27042,11 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   String get xmllang native "SVGDefsElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGDefsElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGDefsElement_xmllang_Setter";
 
   String get xmlspace native "SVGDefsElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGDefsElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGDefsElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
@@ -27315,11 +27090,11 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   String get xmllang native "SVGDescElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGDescElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGDescElement_xmllang_Setter";
 
   String get xmlspace native "SVGDescElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGDescElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGDescElement_xmlspace_Setter";
 
   SVGAnimatedString get $dom_svgClassName native "SVGDescElement_className_Getter";
 
@@ -27439,7 +27214,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 
   String get id native "SVGElement_id_Getter";
 
-  void set id(String) native "SVGElement_id_Setter";
+  void set id(String value) native "SVGElement_id_Setter";
 
   SVGSVGElement get ownerSVGElement native "SVGElement_ownerSVGElement_Getter";
 
@@ -27447,7 +27222,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 
   String get xmlbase native "SVGElement_xmlbase_Getter";
 
-  void set xmlbase(String) native "SVGElement_xmlbase_Setter";
+  void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27465,7 +27240,7 @@ abstract class SVGElementInstance implements EventTarget {
   SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
-  abstract SVGElementInstanceList get childNodes;
+  abstract List<SVGElementInstance> get childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
   abstract SVGElement get correspondingElement;
@@ -27666,7 +27441,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   _SVGElementInstanceEventsImpl get on =>
     new _SVGElementInstanceEventsImpl(this);
 
-  SVGElementInstanceList get childNodes native "SVGElementInstance_childNodes_Getter";
+  List<SVGElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
 
   SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
 
@@ -27689,22 +27464,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
 // WARNING: Do not edit - generated code.
 
-/// @domName SVGElementInstanceList
-abstract class SVGElementInstanceList implements List<SVGElementInstance> {
-
-  /** @domName SVGElementInstanceList.length */
-  abstract int get length;
-
-  /** @domName SVGElementInstanceList.item */
-  SVGElementInstance item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SVGElementInstanceList {
+class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements List<SVGElementInstance> {
 
   int get length native "SVGElementInstanceList_length_Getter";
 
@@ -27772,7 +27532,6 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SV
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -27840,11 +27599,11 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   String get xmllang native "SVGEllipseElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGEllipseElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGEllipseElement_xmllang_Setter";
 
   String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGEllipseElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGEllipseElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
 
@@ -28675,11 +28434,11 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   String get xmllang native "SVGFEImageElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGFEImageElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
 
   String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGFEImageElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
@@ -29197,11 +28956,11 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   String get xmllang native "SVGFilterElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGFilterElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGFilterElement_xmllang_Setter";
 
   String get xmlspace native "SVGFilterElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGFilterElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
@@ -29406,11 +29165,11 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGForeignObjectElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGForeignObjectElement_xmllang_Setter";
 
   String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGForeignObjectElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGForeignObjectElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
@@ -29462,11 +29221,11 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   String get xmllang native "SVGGElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGGElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGGElement_xmllang_Setter";
 
   String get xmlspace native "SVGGElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGGElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGGElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
@@ -29546,27 +29305,27 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   num get dx native "SVGGlyphRefElement_dx_Getter";
 
-  void set dx(num) native "SVGGlyphRefElement_dx_Setter";
+  void set dx(num value) native "SVGGlyphRefElement_dx_Setter";
 
   num get dy native "SVGGlyphRefElement_dy_Getter";
 
-  void set dy(num) native "SVGGlyphRefElement_dy_Setter";
+  void set dy(num value) native "SVGGlyphRefElement_dy_Setter";
 
   String get format native "SVGGlyphRefElement_format_Getter";
 
-  void set format(String) native "SVGGlyphRefElement_format_Setter";
+  void set format(String value) native "SVGGlyphRefElement_format_Setter";
 
   String get glyphRef native "SVGGlyphRefElement_glyphRef_Getter";
 
-  void set glyphRef(String) native "SVGGlyphRefElement_glyphRef_Setter";
+  void set glyphRef(String value) native "SVGGlyphRefElement_glyphRef_Setter";
 
   num get x native "SVGGlyphRefElement_x_Getter";
 
-  void set x(num) native "SVGGlyphRefElement_x_Setter";
+  void set x(num value) native "SVGGlyphRefElement_x_Setter";
 
   num get y native "SVGGlyphRefElement_y_Getter";
 
-  void set y(num) native "SVGGlyphRefElement_y_Setter";
+  void set y(num value) native "SVGGlyphRefElement_y_Setter";
 
   SVGAnimatedString get href native "SVGGlyphRefElement_href_Getter";
 
@@ -29700,11 +29459,11 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   String get xmllang native "SVGImageElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGImageElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGImageElement_xmllang_Setter";
 
   String get xmlspace native "SVGImageElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGImageElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGImageElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
@@ -29805,15 +29564,15 @@ class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 
   num get value native "SVGLength_value_Getter";
 
-  void set value(num) native "SVGLength_value_Setter";
+  void set value(num value) native "SVGLength_value_Setter";
 
   String get valueAsString native "SVGLength_valueAsString_Getter";
 
-  void set valueAsString(String) native "SVGLength_valueAsString_Setter";
+  void set valueAsString(String value) native "SVGLength_valueAsString_Setter";
 
   num get valueInSpecifiedUnits native "SVGLength_valueInSpecifiedUnits_Getter";
 
-  void set valueInSpecifiedUnits(num) native "SVGLength_valueInSpecifiedUnits_Setter";
+  void set valueInSpecifiedUnits(num value) native "SVGLength_valueInSpecifiedUnits_Setter";
 
   void convertToSpecifiedUnits(int unitType) native "SVGLength_convertToSpecifiedUnits_Callback";
 
@@ -29927,7 +29686,6 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -30007,11 +29765,11 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   String get xmllang native "SVGLineElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGLineElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGLineElement_xmllang_Setter";
 
   String get xmlspace native "SVGLineElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGLineElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGLineElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
@@ -30199,11 +29957,11 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   String get xmllang native "SVGMarkerElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGMarkerElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGMarkerElement_xmllang_Setter";
 
   String get xmlspace native "SVGMarkerElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGMarkerElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
 
@@ -30275,11 +30033,11 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   String get xmllang native "SVGMaskElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGMaskElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGMaskElement_xmllang_Setter";
 
   String get xmlspace native "SVGMaskElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGMaskElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
@@ -30360,27 +30118,27 @@ class _SVGMatrixImpl extends NativeFieldWrapperClass1 implements SVGMatrix {
 
   num get a native "SVGMatrix_a_Getter";
 
-  void set a(num) native "SVGMatrix_a_Setter";
+  void set a(num value) native "SVGMatrix_a_Setter";
 
   num get b native "SVGMatrix_b_Getter";
 
-  void set b(num) native "SVGMatrix_b_Setter";
+  void set b(num value) native "SVGMatrix_b_Setter";
 
   num get c native "SVGMatrix_c_Getter";
 
-  void set c(num) native "SVGMatrix_c_Setter";
+  void set c(num value) native "SVGMatrix_c_Setter";
 
   num get d native "SVGMatrix_d_Getter";
 
-  void set d(num) native "SVGMatrix_d_Setter";
+  void set d(num value) native "SVGMatrix_d_Setter";
 
   num get e native "SVGMatrix_e_Getter";
 
-  void set e(num) native "SVGMatrix_e_Setter";
+  void set e(num value) native "SVGMatrix_e_Setter";
 
   num get f native "SVGMatrix_f_Getter";
 
-  void set f(num) native "SVGMatrix_f_Setter";
+  void set f(num value) native "SVGMatrix_f_Setter";
 
   SVGMatrix flipX() native "SVGMatrix_flipX_Callback";
 
@@ -30463,7 +30221,7 @@ class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 
   num get value native "SVGNumber_value_Getter";
 
-  void set value(num) native "SVGNumber_value_Setter";
+  void set value(num value) native "SVGNumber_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30573,7 +30331,6 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -30826,11 +30583,11 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   String get xmllang native "SVGPathElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGPathElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGPathElement_xmllang_Setter";
 
   String get xmlspace native "SVGPathElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGPathElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGPathElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
@@ -30950,31 +30707,31 @@ class _SVGPathSegArcAbsImpl extends _SVGPathSegImpl implements SVGPathSegArcAbs 
 
   num get angle native "SVGPathSegArcAbs_angle_Getter";
 
-  void set angle(num) native "SVGPathSegArcAbs_angle_Setter";
+  void set angle(num value) native "SVGPathSegArcAbs_angle_Setter";
 
   bool get largeArcFlag native "SVGPathSegArcAbs_largeArcFlag_Getter";
 
-  void set largeArcFlag(bool) native "SVGPathSegArcAbs_largeArcFlag_Setter";
+  void set largeArcFlag(bool value) native "SVGPathSegArcAbs_largeArcFlag_Setter";
 
   num get r1 native "SVGPathSegArcAbs_r1_Getter";
 
-  void set r1(num) native "SVGPathSegArcAbs_r1_Setter";
+  void set r1(num value) native "SVGPathSegArcAbs_r1_Setter";
 
   num get r2 native "SVGPathSegArcAbs_r2_Getter";
 
-  void set r2(num) native "SVGPathSegArcAbs_r2_Setter";
+  void set r2(num value) native "SVGPathSegArcAbs_r2_Setter";
 
   bool get sweepFlag native "SVGPathSegArcAbs_sweepFlag_Getter";
 
-  void set sweepFlag(bool) native "SVGPathSegArcAbs_sweepFlag_Setter";
+  void set sweepFlag(bool value) native "SVGPathSegArcAbs_sweepFlag_Setter";
 
   num get x native "SVGPathSegArcAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegArcAbs_x_Setter";
+  void set x(num value) native "SVGPathSegArcAbs_x_Setter";
 
   num get y native "SVGPathSegArcAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegArcAbs_y_Setter";
+  void set y(num value) native "SVGPathSegArcAbs_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31017,31 +30774,31 @@ class _SVGPathSegArcRelImpl extends _SVGPathSegImpl implements SVGPathSegArcRel 
 
   num get angle native "SVGPathSegArcRel_angle_Getter";
 
-  void set angle(num) native "SVGPathSegArcRel_angle_Setter";
+  void set angle(num value) native "SVGPathSegArcRel_angle_Setter";
 
   bool get largeArcFlag native "SVGPathSegArcRel_largeArcFlag_Getter";
 
-  void set largeArcFlag(bool) native "SVGPathSegArcRel_largeArcFlag_Setter";
+  void set largeArcFlag(bool value) native "SVGPathSegArcRel_largeArcFlag_Setter";
 
   num get r1 native "SVGPathSegArcRel_r1_Getter";
 
-  void set r1(num) native "SVGPathSegArcRel_r1_Setter";
+  void set r1(num value) native "SVGPathSegArcRel_r1_Setter";
 
   num get r2 native "SVGPathSegArcRel_r2_Getter";
 
-  void set r2(num) native "SVGPathSegArcRel_r2_Setter";
+  void set r2(num value) native "SVGPathSegArcRel_r2_Setter";
 
   bool get sweepFlag native "SVGPathSegArcRel_sweepFlag_Getter";
 
-  void set sweepFlag(bool) native "SVGPathSegArcRel_sweepFlag_Setter";
+  void set sweepFlag(bool value) native "SVGPathSegArcRel_sweepFlag_Setter";
 
   num get x native "SVGPathSegArcRel_x_Getter";
 
-  void set x(num) native "SVGPathSegArcRel_x_Setter";
+  void set x(num value) native "SVGPathSegArcRel_x_Setter";
 
   num get y native "SVGPathSegArcRel_y_Getter";
 
-  void set y(num) native "SVGPathSegArcRel_y_Setter";
+  void set y(num value) native "SVGPathSegArcRel_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31099,27 +30856,27 @@ class _SVGPathSegCurvetoCubicAbsImpl extends _SVGPathSegImpl implements SVGPathS
 
   num get x native "SVGPathSegCurvetoCubicAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoCubicAbs_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoCubicAbs_x_Setter";
 
   num get x1 native "SVGPathSegCurvetoCubicAbs_x1_Getter";
 
-  void set x1(num) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
+  void set x1(num value) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
 
   num get x2 native "SVGPathSegCurvetoCubicAbs_x2_Getter";
 
-  void set x2(num) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
+  void set x2(num value) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
 
   num get y native "SVGPathSegCurvetoCubicAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoCubicAbs_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoCubicAbs_y_Setter";
 
   num get y1 native "SVGPathSegCurvetoCubicAbs_y1_Getter";
 
-  void set y1(num) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
+  void set y1(num value) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
 
   num get y2 native "SVGPathSegCurvetoCubicAbs_y2_Getter";
 
-  void set y2(num) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
+  void set y2(num value) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31159,27 +30916,27 @@ class _SVGPathSegCurvetoCubicRelImpl extends _SVGPathSegImpl implements SVGPathS
 
   num get x native "SVGPathSegCurvetoCubicRel_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoCubicRel_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoCubicRel_x_Setter";
 
   num get x1 native "SVGPathSegCurvetoCubicRel_x1_Getter";
 
-  void set x1(num) native "SVGPathSegCurvetoCubicRel_x1_Setter";
+  void set x1(num value) native "SVGPathSegCurvetoCubicRel_x1_Setter";
 
   num get x2 native "SVGPathSegCurvetoCubicRel_x2_Getter";
 
-  void set x2(num) native "SVGPathSegCurvetoCubicRel_x2_Setter";
+  void set x2(num value) native "SVGPathSegCurvetoCubicRel_x2_Setter";
 
   num get y native "SVGPathSegCurvetoCubicRel_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoCubicRel_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoCubicRel_y_Setter";
 
   num get y1 native "SVGPathSegCurvetoCubicRel_y1_Getter";
 
-  void set y1(num) native "SVGPathSegCurvetoCubicRel_y1_Setter";
+  void set y1(num value) native "SVGPathSegCurvetoCubicRel_y1_Setter";
 
   num get y2 native "SVGPathSegCurvetoCubicRel_y2_Getter";
 
-  void set y2(num) native "SVGPathSegCurvetoCubicRel_y2_Setter";
+  void set y2(num value) native "SVGPathSegCurvetoCubicRel_y2_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31213,19 +30970,19 @@ class _SVGPathSegCurvetoCubicSmoothAbsImpl extends _SVGPathSegImpl implements SV
 
   num get x native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
 
   num get x2 native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
 
-  void set x2(num) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
+  void set x2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
 
   num get y native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
 
   num get y2 native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
 
-  void set y2(num) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
+  void set y2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31259,19 +31016,19 @@ class _SVGPathSegCurvetoCubicSmoothRelImpl extends _SVGPathSegImpl implements SV
 
   num get x native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
 
   num get x2 native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
 
-  void set x2(num) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
+  void set x2(num value) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
 
   num get y native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
 
   num get y2 native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
 
-  void set y2(num) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
+  void set y2(num value) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31305,19 +31062,19 @@ class _SVGPathSegCurvetoQuadraticAbsImpl extends _SVGPathSegImpl implements SVGP
 
   num get x native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
 
   num get x1 native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
 
-  void set x1(num) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
+  void set x1(num value) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
 
   num get y native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
 
   num get y1 native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
 
-  void set y1(num) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
+  void set y1(num value) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31351,19 +31108,19 @@ class _SVGPathSegCurvetoQuadraticRelImpl extends _SVGPathSegImpl implements SVGP
 
   num get x native "SVGPathSegCurvetoQuadraticRel_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
 
   num get x1 native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
 
-  void set x1(num) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
+  void set x1(num value) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
 
   num get y native "SVGPathSegCurvetoQuadraticRel_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
 
   num get y1 native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
 
-  void set y1(num) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
+  void set y1(num value) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31391,11 +31148,11 @@ class _SVGPathSegCurvetoQuadraticSmoothAbsImpl extends _SVGPathSegImpl implement
 
   num get x native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
 
   num get y native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31423,11 +31180,11 @@ class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implement
 
   num get x native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
 
-  void set x(num) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
+  void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
 
   num get y native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
 
-  void set y(num) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
+  void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31468,11 +31225,11 @@ class _SVGPathSegLinetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegLine
 
   num get x native "SVGPathSegLinetoAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegLinetoAbs_x_Setter";
+  void set x(num value) native "SVGPathSegLinetoAbs_x_Setter";
 
   num get y native "SVGPathSegLinetoAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegLinetoAbs_y_Setter";
+  void set y(num value) native "SVGPathSegLinetoAbs_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31497,7 +31254,7 @@ class _SVGPathSegLinetoHorizontalAbsImpl extends _SVGPathSegImpl implements SVGP
 
   num get x native "SVGPathSegLinetoHorizontalAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
+  void set x(num value) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31522,7 +31279,7 @@ class _SVGPathSegLinetoHorizontalRelImpl extends _SVGPathSegImpl implements SVGP
 
   num get x native "SVGPathSegLinetoHorizontalRel_x_Getter";
 
-  void set x(num) native "SVGPathSegLinetoHorizontalRel_x_Setter";
+  void set x(num value) native "SVGPathSegLinetoHorizontalRel_x_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31550,11 +31307,11 @@ class _SVGPathSegLinetoRelImpl extends _SVGPathSegImpl implements SVGPathSegLine
 
   num get x native "SVGPathSegLinetoRel_x_Getter";
 
-  void set x(num) native "SVGPathSegLinetoRel_x_Setter";
+  void set x(num value) native "SVGPathSegLinetoRel_x_Setter";
 
   num get y native "SVGPathSegLinetoRel_y_Getter";
 
-  void set y(num) native "SVGPathSegLinetoRel_y_Setter";
+  void set y(num value) native "SVGPathSegLinetoRel_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31579,7 +31336,7 @@ class _SVGPathSegLinetoVerticalAbsImpl extends _SVGPathSegImpl implements SVGPat
 
   num get y native "SVGPathSegLinetoVerticalAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegLinetoVerticalAbs_y_Setter";
+  void set y(num value) native "SVGPathSegLinetoVerticalAbs_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31604,7 +31361,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 
   num get y native "SVGPathSegLinetoVerticalRel_y_Getter";
 
-  void set y(num) native "SVGPathSegLinetoVerticalRel_y_Setter";
+  void set y(num value) native "SVGPathSegLinetoVerticalRel_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31714,7 +31471,6 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -31772,11 +31528,11 @@ class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMove
 
   num get x native "SVGPathSegMovetoAbs_x_Getter";
 
-  void set x(num) native "SVGPathSegMovetoAbs_x_Setter";
+  void set x(num value) native "SVGPathSegMovetoAbs_x_Setter";
 
   num get y native "SVGPathSegMovetoAbs_y_Getter";
 
-  void set y(num) native "SVGPathSegMovetoAbs_y_Setter";
+  void set y(num value) native "SVGPathSegMovetoAbs_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31804,11 +31560,11 @@ class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMove
 
   num get x native "SVGPathSegMovetoRel_x_Getter";
 
-  void set x(num) native "SVGPathSegMovetoRel_x_Setter";
+  void set x(num value) native "SVGPathSegMovetoRel_x_Setter";
 
   num get y native "SVGPathSegMovetoRel_y_Getter";
 
-  void set y(num) native "SVGPathSegMovetoRel_y_Setter";
+  void set y(num value) native "SVGPathSegMovetoRel_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31875,11 +31631,11 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   String get xmllang native "SVGPatternElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGPatternElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGPatternElement_xmllang_Setter";
 
   String get xmlspace native "SVGPatternElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGPatternElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
@@ -31922,11 +31678,11 @@ class _SVGPointImpl extends NativeFieldWrapperClass1 implements SVGPoint {
 
   num get x native "SVGPoint_x_Getter";
 
-  void set x(num) native "SVGPoint_x_Setter";
+  void set x(num value) native "SVGPoint_x_Setter";
 
   num get y native "SVGPoint_y_Getter";
 
-  void set y(num) native "SVGPoint_y_Setter";
+  void set y(num value) native "SVGPoint_y_Setter";
 
   SVGPoint matrixTransform(SVGMatrix matrix) native "SVGPoint_matrixTransform_Callback";
 
@@ -32026,11 +31782,11 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   String get xmllang native "SVGPolygonElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGPolygonElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGPolygonElement_xmllang_Setter";
 
   String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGPolygonElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGPolygonElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
@@ -32092,11 +31848,11 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   String get xmllang native "SVGPolylineElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGPolylineElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGPolylineElement_xmllang_Setter";
 
   String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGPolylineElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGPolylineElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
@@ -32174,11 +31930,11 @@ class _SVGPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SV
 
   int get align native "SVGPreserveAspectRatio_align_Getter";
 
-  void set align(int) native "SVGPreserveAspectRatio_align_Setter";
+  void set align(int value) native "SVGPreserveAspectRatio_align_Setter";
 
   int get meetOrSlice native "SVGPreserveAspectRatio_meetOrSlice_Getter";
 
-  void set meetOrSlice(int) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
+  void set meetOrSlice(int value) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32302,11 +32058,11 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   String get xmllang native "SVGRectElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGRectElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGRectElement_xmllang_Setter";
 
   String get xmlspace native "SVGRectElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGRectElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGRectElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
@@ -32341,19 +32097,19 @@ class _SVGRectImpl extends NativeFieldWrapperClass1 implements SVGRect {
 
   num get height native "SVGRect_height_Getter";
 
-  void set height(num) native "SVGRect_height_Setter";
+  void set height(num value) native "SVGRect_height_Setter";
 
   num get width native "SVGRect_width_Getter";
 
-  void set width(num) native "SVGRect_width_Setter";
+  void set width(num value) native "SVGRect_width_Setter";
 
   num get x native "SVGRect_x_Getter";
 
-  void set x(num) native "SVGRect_x_Setter";
+  void set x(num value) native "SVGRect_x_Setter";
 
   num get y native "SVGRect_y_Getter";
 
-  void set y(num) native "SVGRect_y_Setter";
+  void set y(num value) native "SVGRect_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32520,15 +32276,15 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   String get contentScriptType native "SVGSVGElement_contentScriptType_Getter";
 
-  void set contentScriptType(String) native "SVGSVGElement_contentScriptType_Setter";
+  void set contentScriptType(String value) native "SVGSVGElement_contentScriptType_Setter";
 
   String get contentStyleType native "SVGSVGElement_contentStyleType_Getter";
 
-  void set contentStyleType(String) native "SVGSVGElement_contentStyleType_Setter";
+  void set contentStyleType(String value) native "SVGSVGElement_contentStyleType_Setter";
 
   num get currentScale native "SVGSVGElement_currentScale_Getter";
 
-  void set currentScale(num) native "SVGSVGElement_currentScale_Setter";
+  void set currentScale(num value) native "SVGSVGElement_currentScale_Setter";
 
   SVGPoint get currentTranslate native "SVGSVGElement_currentTranslate_Getter";
 
@@ -32610,11 +32366,11 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   String get xmllang native "SVGSVGElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGSVGElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGSVGElement_xmllang_Setter";
 
   String get xmlspace native "SVGSVGElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGSVGElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGSVGElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
 
@@ -32642,7 +32398,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
 
-  void set zoomAndPan(int) native "SVGSVGElement_zoomAndPan_Setter";
+  void set zoomAndPan(int value) native "SVGSVGElement_zoomAndPan_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32667,7 +32423,7 @@ class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement 
 
   String get type native "SVGScriptElement_type_Getter";
 
-  void set type(String) native "SVGScriptElement_type_Setter";
+  void set type(String value) native "SVGScriptElement_type_Setter";
 
   SVGAnimatedString get href native "SVGScriptElement_href_Getter";
 
@@ -32828,7 +32584,6 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -32910,27 +32665,27 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
 
   bool get disabled native "SVGStyleElement_disabled_Getter";
 
-  void set disabled(bool) native "SVGStyleElement_disabled_Setter";
+  void set disabled(bool value) native "SVGStyleElement_disabled_Setter";
 
   String get media native "SVGStyleElement_media_Getter";
 
-  void set media(String) native "SVGStyleElement_media_Setter";
+  void set media(String value) native "SVGStyleElement_media_Setter";
 
   String get title native "SVGStyleElement_title_Getter";
 
-  void set title(String) native "SVGStyleElement_title_Setter";
+  void set title(String value) native "SVGStyleElement_title_Setter";
 
   String get type native "SVGStyleElement_type_Getter";
 
-  void set type(String) native "SVGStyleElement_type_Setter";
+  void set type(String value) native "SVGStyleElement_type_Setter";
 
   String get xmllang native "SVGStyleElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGStyleElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGStyleElement_xmllang_Setter";
 
   String get xmlspace native "SVGStyleElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGStyleElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGStyleElement_xmlspace_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32960,11 +32715,11 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   String get xmllang native "SVGSwitchElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGSwitchElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGSwitchElement_xmllang_Setter";
 
   String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGSwitchElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGSwitchElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
 
@@ -33008,11 +32763,11 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   String get xmllang native "SVGSymbolElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGSymbolElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGSymbolElement_xmllang_Setter";
 
   String get xmlspace native "SVGSymbolElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGSymbolElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
 
@@ -33174,11 +32929,11 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   String get xmllang native "SVGTextContentElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGTextContentElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGTextContentElement_xmllang_Setter";
 
   String get xmlspace native "SVGTextContentElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGTextContentElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
@@ -33330,11 +33085,11 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   String get xmllang native "SVGTitleElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGTitleElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGTitleElement_xmllang_Setter";
 
   String get xmlspace native "SVGTitleElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGTitleElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGTitleElement_xmlspace_Setter";
 
   SVGAnimatedString get $dom_svgClassName native "SVGTitleElement_className_Getter";
 
@@ -33533,7 +33288,6 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -33677,11 +33431,11 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   String get xmllang native "SVGUseElement_xmllang_Getter";
 
-  void set xmllang(String) native "SVGUseElement_xmllang_Setter";
+  void set xmllang(String value) native "SVGUseElement_xmllang_Setter";
 
   String get xmlspace native "SVGUseElement_xmlspace_Getter";
 
-  void set xmlspace(String) native "SVGUseElement_xmlspace_Setter";
+  void set xmlspace(String value) native "SVGUseElement_xmlspace_Setter";
 
   SVGAnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
@@ -33754,7 +33508,7 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
   int get zoomAndPan native "SVGViewElement_zoomAndPan_Getter";
 
-  void set zoomAndPan(int) native "SVGViewElement_zoomAndPan_Setter";
+  void set zoomAndPan(int value) native "SVGViewElement_zoomAndPan_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33819,7 +33573,7 @@ class _SVGViewSpecImpl extends NativeFieldWrapperClass1 implements SVGViewSpec {
 
   int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
 
-  void set zoomAndPan(int) native "SVGViewSpec_zoomAndPan_Setter";
+  void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33986,35 +33740,35 @@ class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
 
   bool get async native "HTMLScriptElement_async_Getter";
 
-  void set async(bool) native "HTMLScriptElement_async_Setter";
+  void set async(bool value) native "HTMLScriptElement_async_Setter";
 
   String get charset native "HTMLScriptElement_charset_Getter";
 
-  void set charset(String) native "HTMLScriptElement_charset_Setter";
+  void set charset(String value) native "HTMLScriptElement_charset_Setter";
 
   String get crossOrigin native "HTMLScriptElement_crossOrigin_Getter";
 
-  void set crossOrigin(String) native "HTMLScriptElement_crossOrigin_Setter";
+  void set crossOrigin(String value) native "HTMLScriptElement_crossOrigin_Setter";
 
   bool get defer native "HTMLScriptElement_defer_Getter";
 
-  void set defer(bool) native "HTMLScriptElement_defer_Setter";
+  void set defer(bool value) native "HTMLScriptElement_defer_Setter";
 
   String get event native "HTMLScriptElement_event_Getter";
 
-  void set event(String) native "HTMLScriptElement_event_Setter";
+  void set event(String value) native "HTMLScriptElement_event_Setter";
 
   String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
 
-  void set htmlFor(String) native "HTMLScriptElement_htmlFor_Setter";
+  void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
   String get src native "HTMLScriptElement_src_Getter";
 
-  void set src(String) native "HTMLScriptElement_src_Setter";
+  void set src(String value) native "HTMLScriptElement_src_Setter";
 
   String get type native "HTMLScriptElement_type_Getter";
 
-  void set type(String) native "HTMLScriptElement_type_Setter";
+  void set type(String value) native "HTMLScriptElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34197,11 +33951,11 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
-  void set autofocus(bool) native "HTMLSelectElement_autofocus_Setter";
+  void set autofocus(bool value) native "HTMLSelectElement_autofocus_Setter";
 
   bool get disabled native "HTMLSelectElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLSelectElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLSelectElement_disabled_Setter";
 
   FormElement get form native "HTMLSelectElement_form_Getter";
 
@@ -34209,31 +33963,31 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   int get length native "HTMLSelectElement_length_Getter";
 
-  void set length(int) native "HTMLSelectElement_length_Setter";
+  void set length(int value) native "HTMLSelectElement_length_Setter";
 
   bool get multiple native "HTMLSelectElement_multiple_Getter";
 
-  void set multiple(bool) native "HTMLSelectElement_multiple_Setter";
+  void set multiple(bool value) native "HTMLSelectElement_multiple_Setter";
 
   String get name native "HTMLSelectElement_name_Getter";
 
-  void set name(String) native "HTMLSelectElement_name_Setter";
+  void set name(String value) native "HTMLSelectElement_name_Setter";
 
   HTMLOptionsCollection get options native "HTMLSelectElement_options_Getter";
 
   bool get required native "HTMLSelectElement_required_Getter";
 
-  void set required(bool) native "HTMLSelectElement_required_Setter";
+  void set required(bool value) native "HTMLSelectElement_required_Setter";
 
   int get selectedIndex native "HTMLSelectElement_selectedIndex_Getter";
 
-  void set selectedIndex(int) native "HTMLSelectElement_selectedIndex_Setter";
+  void set selectedIndex(int value) native "HTMLSelectElement_selectedIndex_Setter";
 
   HTMLCollection get selectedOptions native "HTMLSelectElement_selectedOptions_Getter";
 
   int get size native "HTMLSelectElement_size_Getter";
 
-  void set size(int) native "HTMLSelectElement_size_Setter";
+  void set size(int value) native "HTMLSelectElement_size_Setter";
 
   String get type native "HTMLSelectElement_type_Getter";
 
@@ -34243,7 +33997,7 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   String get value native "HTMLSelectElement_value_Getter";
 
-  void set value(String) native "HTMLSelectElement_value_Setter";
+  void set value(String value) native "HTMLSelectElement_value_Setter";
 
   bool get willValidate native "HTMLSelectElement_willValidate_Getter";
 
@@ -34354,15 +34108,15 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   bool get applyAuthorStyles native "ShadowRoot_applyAuthorStyles_Getter";
 
-  void set applyAuthorStyles(bool) native "ShadowRoot_applyAuthorStyles_Setter";
+  void set applyAuthorStyles(bool value) native "ShadowRoot_applyAuthorStyles_Setter";
 
   String get innerHTML native "ShadowRoot_innerHTML_Getter";
 
-  void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
+  void set innerHTML(String value) native "ShadowRoot_innerHTML_Setter";
 
   bool get resetStyleInheritance native "ShadowRoot_resetStyleInheritance_Getter";
 
-  void set resetStyleInheritance(bool) native "ShadowRoot_resetStyleInheritance_Setter";
+  void set resetStyleInheritance(bool value) native "ShadowRoot_resetStyleInheritance_Setter";
 
   Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
 
@@ -34480,7 +34234,7 @@ class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer
 
   num get timestampOffset native "SourceBuffer_timestampOffset_Getter";
 
-  void set timestampOffset(num) native "SourceBuffer_timestampOffset_Setter";
+  void set timestampOffset(num value) native "SourceBuffer_timestampOffset_Setter";
 
   void abort() native "SourceBuffer_abort_Callback";
 
@@ -34585,7 +34339,6 @@ class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBu
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -34642,15 +34395,15 @@ class _HTMLSourceElementImpl extends _HTMLElementImpl implements SourceElement {
 
   String get media native "HTMLSourceElement_media_Getter";
 
-  void set media(String) native "HTMLSourceElement_media_Setter";
+  void set media(String value) native "HTMLSourceElement_media_Setter";
 
   String get src native "HTMLSourceElement_src_Getter";
 
-  void set src(String) native "HTMLSourceElement_src_Setter";
+  void set src(String value) native "HTMLSourceElement_src_Setter";
 
   String get type native "HTMLSourceElement_type_Getter";
 
-  void set type(String) native "HTMLSourceElement_type_Setter";
+  void set type(String value) native "HTMLSourceElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34700,11 +34453,11 @@ class _SpeechGrammarImpl extends NativeFieldWrapperClass1 implements SpeechGramm
 
   String get src native "SpeechGrammar_src_Getter";
 
-  void set src(String) native "SpeechGrammar_src_Setter";
+  void set src(String value) native "SpeechGrammar_src_Setter";
 
   num get weight native "SpeechGrammar_weight_Getter";
 
-  void set weight(num) native "SpeechGrammar_weight_Setter";
+  void set weight(num value) native "SpeechGrammar_weight_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34804,7 +34557,6 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -34859,7 +34611,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 abstract class SpeechInputEvent implements Event {
 
   /** @domName SpeechInputEvent.results */
-  abstract SpeechInputResultList get results;
+  abstract List<SpeechInputResult> get results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34869,7 +34621,7 @@ abstract class SpeechInputEvent implements Event {
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
 
-  SpeechInputResultList get results native "SpeechInputEvent_results_Getter";
+  List<SpeechInputResult> get results native "SpeechInputEvent_results_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34906,22 +34658,7 @@ class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechI
 
 // WARNING: Do not edit - generated code.
 
-/// @domName SpeechInputResultList
-abstract class SpeechInputResultList implements List<SpeechInputResult> {
-
-  /** @domName SpeechInputResultList.length */
-  abstract int get length;
-
-  /** @domName SpeechInputResultList.item */
-  SpeechInputResult item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements SpeechInputResultList {
+class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements List<SpeechInputResult> {
 
   int get length native "SpeechInputResultList_length_Getter";
 
@@ -34989,7 +34726,6 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Spe
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -35170,7 +34906,7 @@ abstract class SpeechRecognitionEvent implements Event {
   abstract SpeechRecognitionResult get result;
 
   /** @domName SpeechRecognitionEvent.resultHistory */
-  abstract SpeechRecognitionResultList get resultHistory;
+  abstract List<SpeechRecognitionResult> get resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex */
   abstract int get resultIndex;
@@ -35185,7 +34921,7 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
 
   SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
 
-  SpeechRecognitionResultList get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
+  List<SpeechRecognitionResult> get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
 
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
@@ -35231,19 +34967,19 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   bool get continuous native "SpeechRecognition_continuous_Getter";
 
-  void set continuous(bool) native "SpeechRecognition_continuous_Setter";
+  void set continuous(bool value) native "SpeechRecognition_continuous_Setter";
 
   SpeechGrammarList get grammars native "SpeechRecognition_grammars_Getter";
 
-  void set grammars(SpeechGrammarList) native "SpeechRecognition_grammars_Setter";
+  void set grammars(SpeechGrammarList value) native "SpeechRecognition_grammars_Setter";
 
   String get lang native "SpeechRecognition_lang_Getter";
 
-  void set lang(String) native "SpeechRecognition_lang_Setter";
+  void set lang(String value) native "SpeechRecognition_lang_Setter";
 
   int get maxAlternatives native "SpeechRecognition_maxAlternatives_Getter";
 
-  void set maxAlternatives(int) native "SpeechRecognition_maxAlternatives_Setter";
+  void set maxAlternatives(int value) native "SpeechRecognition_maxAlternatives_Setter";
 
   void abort() native "SpeechRecognition_abort_Callback";
 
@@ -35302,22 +35038,7 @@ class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements S
 
 // WARNING: Do not edit - generated code.
 
-/// @domName SpeechRecognitionResultList
-abstract class SpeechRecognitionResultList implements List<SpeechRecognitionResult> {
-
-  /** @domName SpeechRecognitionResultList.length */
-  abstract int get length;
-
-  /** @domName SpeechRecognitionResultList.item */
-  SpeechRecognitionResult item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResultList {
+class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implements List<SpeechRecognitionResult> {
 
   int get length native "SpeechRecognitionResultList_length_Getter";
 
@@ -35385,7 +35106,6 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -35642,21 +35362,21 @@ class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
 
   bool get disabled native "HTMLStyleElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLStyleElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLStyleElement_disabled_Setter";
 
   String get media native "HTMLStyleElement_media_Getter";
 
-  void set media(String) native "HTMLStyleElement_media_Setter";
+  void set media(String value) native "HTMLStyleElement_media_Setter";
 
   bool get scoped native "HTMLStyleElement_scoped_Getter";
 
-  void set scoped(bool) native "HTMLStyleElement_scoped_Setter";
+  void set scoped(bool value) native "HTMLStyleElement_scoped_Setter";
 
   StyleSheet get sheet native "HTMLStyleElement_sheet_Getter";
 
   String get type native "HTMLStyleElement_type_Getter";
 
-  void set type(String) native "HTMLStyleElement_type_Setter";
+  void set type(String value) native "HTMLStyleElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35727,7 +35447,7 @@ class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 
   bool get disabled native "StyleSheet_disabled_Getter";
 
-  void set disabled(bool) native "StyleSheet_disabled_Setter";
+  void set disabled(bool value) native "StyleSheet_disabled_Setter";
 
   String get href native "StyleSheet_href_Getter";
 
@@ -35748,22 +35468,7 @@ class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName StyleSheetList
-abstract class StyleSheetList implements List<StyleSheet> {
-
-  /** @domName StyleSheetList.length */
-  abstract int get length;
-
-  /** @domName StyleSheetList.item */
-  StyleSheet item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheetList {
+class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<StyleSheet> {
 
   int get length native "StyleSheetList_length_Getter";
 
@@ -35831,7 +35536,6 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheet
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -35876,7 +35580,7 @@ class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCapt
 
   String get align native "HTMLTableCaptionElement_align_Getter";
 
-  void set align(String) native "HTMLTableCaptionElement_align_Setter";
+  void set align(String value) native "HTMLTableCaptionElement_align_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35945,61 +35649,61 @@ class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellEle
 
   String get abbr native "HTMLTableCellElement_abbr_Getter";
 
-  void set abbr(String) native "HTMLTableCellElement_abbr_Setter";
+  void set abbr(String value) native "HTMLTableCellElement_abbr_Setter";
 
   String get align native "HTMLTableCellElement_align_Getter";
 
-  void set align(String) native "HTMLTableCellElement_align_Setter";
+  void set align(String value) native "HTMLTableCellElement_align_Setter";
 
   String get axis native "HTMLTableCellElement_axis_Getter";
 
-  void set axis(String) native "HTMLTableCellElement_axis_Setter";
+  void set axis(String value) native "HTMLTableCellElement_axis_Setter";
 
   String get bgColor native "HTMLTableCellElement_bgColor_Getter";
 
-  void set bgColor(String) native "HTMLTableCellElement_bgColor_Setter";
+  void set bgColor(String value) native "HTMLTableCellElement_bgColor_Setter";
 
   int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
 
   String get ch native "HTMLTableCellElement_ch_Getter";
 
-  void set ch(String) native "HTMLTableCellElement_ch_Setter";
+  void set ch(String value) native "HTMLTableCellElement_ch_Setter";
 
   String get chOff native "HTMLTableCellElement_chOff_Getter";
 
-  void set chOff(String) native "HTMLTableCellElement_chOff_Setter";
+  void set chOff(String value) native "HTMLTableCellElement_chOff_Setter";
 
   int get colSpan native "HTMLTableCellElement_colSpan_Getter";
 
-  void set colSpan(int) native "HTMLTableCellElement_colSpan_Setter";
+  void set colSpan(int value) native "HTMLTableCellElement_colSpan_Setter";
 
   String get headers native "HTMLTableCellElement_headers_Getter";
 
-  void set headers(String) native "HTMLTableCellElement_headers_Setter";
+  void set headers(String value) native "HTMLTableCellElement_headers_Setter";
 
   String get height native "HTMLTableCellElement_height_Getter";
 
-  void set height(String) native "HTMLTableCellElement_height_Setter";
+  void set height(String value) native "HTMLTableCellElement_height_Setter";
 
   bool get noWrap native "HTMLTableCellElement_noWrap_Getter";
 
-  void set noWrap(bool) native "HTMLTableCellElement_noWrap_Setter";
+  void set noWrap(bool value) native "HTMLTableCellElement_noWrap_Setter";
 
   int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
-  void set rowSpan(int) native "HTMLTableCellElement_rowSpan_Setter";
+  void set rowSpan(int value) native "HTMLTableCellElement_rowSpan_Setter";
 
   String get scope native "HTMLTableCellElement_scope_Getter";
 
-  void set scope(String) native "HTMLTableCellElement_scope_Setter";
+  void set scope(String value) native "HTMLTableCellElement_scope_Setter";
 
   String get vAlign native "HTMLTableCellElement_vAlign_Getter";
 
-  void set vAlign(String) native "HTMLTableCellElement_vAlign_Setter";
+  void set vAlign(String value) native "HTMLTableCellElement_vAlign_Setter";
 
   String get width native "HTMLTableCellElement_width_Getter";
 
-  void set width(String) native "HTMLTableCellElement_width_Setter";
+  void set width(String value) native "HTMLTableCellElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36041,27 +35745,27 @@ class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColEleme
 
   String get align native "HTMLTableColElement_align_Getter";
 
-  void set align(String) native "HTMLTableColElement_align_Setter";
+  void set align(String value) native "HTMLTableColElement_align_Setter";
 
   String get ch native "HTMLTableColElement_ch_Getter";
 
-  void set ch(String) native "HTMLTableColElement_ch_Setter";
+  void set ch(String value) native "HTMLTableColElement_ch_Setter";
 
   String get chOff native "HTMLTableColElement_chOff_Getter";
 
-  void set chOff(String) native "HTMLTableColElement_chOff_Setter";
+  void set chOff(String value) native "HTMLTableColElement_chOff_Setter";
 
   int get span native "HTMLTableColElement_span_Getter";
 
-  void set span(int) native "HTMLTableColElement_span_Setter";
+  void set span(int value) native "HTMLTableColElement_span_Setter";
 
   String get vAlign native "HTMLTableColElement_vAlign_Getter";
 
-  void set vAlign(String) native "HTMLTableColElement_vAlign_Setter";
+  void set vAlign(String value) native "HTMLTableColElement_vAlign_Setter";
 
   String get width native "HTMLTableColElement_width_Getter";
 
-  void set width(String) native "HTMLTableColElement_width_Setter";
+  void set width(String value) native "HTMLTableColElement_width_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36154,55 +35858,55 @@ class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
 
   String get align native "HTMLTableElement_align_Getter";
 
-  void set align(String) native "HTMLTableElement_align_Setter";
+  void set align(String value) native "HTMLTableElement_align_Setter";
 
   String get bgColor native "HTMLTableElement_bgColor_Getter";
 
-  void set bgColor(String) native "HTMLTableElement_bgColor_Setter";
+  void set bgColor(String value) native "HTMLTableElement_bgColor_Setter";
 
   String get border native "HTMLTableElement_border_Getter";
 
-  void set border(String) native "HTMLTableElement_border_Setter";
+  void set border(String value) native "HTMLTableElement_border_Setter";
 
   TableCaptionElement get caption native "HTMLTableElement_caption_Getter";
 
-  void set caption(TableCaptionElement) native "HTMLTableElement_caption_Setter";
+  void set caption(TableCaptionElement value) native "HTMLTableElement_caption_Setter";
 
   String get cellPadding native "HTMLTableElement_cellPadding_Getter";
 
-  void set cellPadding(String) native "HTMLTableElement_cellPadding_Setter";
+  void set cellPadding(String value) native "HTMLTableElement_cellPadding_Setter";
 
   String get cellSpacing native "HTMLTableElement_cellSpacing_Getter";
 
-  void set cellSpacing(String) native "HTMLTableElement_cellSpacing_Setter";
+  void set cellSpacing(String value) native "HTMLTableElement_cellSpacing_Setter";
 
   String get frame native "HTMLTableElement_frame_Getter";
 
-  void set frame(String) native "HTMLTableElement_frame_Setter";
+  void set frame(String value) native "HTMLTableElement_frame_Setter";
 
   HTMLCollection get rows native "HTMLTableElement_rows_Getter";
 
   String get rules native "HTMLTableElement_rules_Getter";
 
-  void set rules(String) native "HTMLTableElement_rules_Setter";
+  void set rules(String value) native "HTMLTableElement_rules_Setter";
 
   String get summary native "HTMLTableElement_summary_Getter";
 
-  void set summary(String) native "HTMLTableElement_summary_Setter";
+  void set summary(String value) native "HTMLTableElement_summary_Setter";
 
   HTMLCollection get tBodies native "HTMLTableElement_tBodies_Getter";
 
   TableSectionElement get tFoot native "HTMLTableElement_tFoot_Getter";
 
-  void set tFoot(TableSectionElement) native "HTMLTableElement_tFoot_Setter";
+  void set tFoot(TableSectionElement value) native "HTMLTableElement_tFoot_Setter";
 
   TableSectionElement get tHead native "HTMLTableElement_tHead_Getter";
 
-  void set tHead(TableSectionElement) native "HTMLTableElement_tHead_Setter";
+  void set tHead(TableSectionElement value) native "HTMLTableElement_tHead_Setter";
 
   String get width native "HTMLTableElement_width_Getter";
 
-  void set width(String) native "HTMLTableElement_width_Setter";
+  void set width(String value) native "HTMLTableElement_width_Setter";
 
   Element createCaption() native "HTMLTableElement_createCaption_Callback";
 
@@ -36274,21 +35978,21 @@ class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowEleme
 
   String get align native "HTMLTableRowElement_align_Getter";
 
-  void set align(String) native "HTMLTableRowElement_align_Setter";
+  void set align(String value) native "HTMLTableRowElement_align_Setter";
 
   String get bgColor native "HTMLTableRowElement_bgColor_Getter";
 
-  void set bgColor(String) native "HTMLTableRowElement_bgColor_Setter";
+  void set bgColor(String value) native "HTMLTableRowElement_bgColor_Setter";
 
   HTMLCollection get cells native "HTMLTableRowElement_cells_Getter";
 
   String get ch native "HTMLTableRowElement_ch_Getter";
 
-  void set ch(String) native "HTMLTableRowElement_ch_Setter";
+  void set ch(String value) native "HTMLTableRowElement_ch_Setter";
 
   String get chOff native "HTMLTableRowElement_chOff_Getter";
 
-  void set chOff(String) native "HTMLTableRowElement_chOff_Setter";
+  void set chOff(String value) native "HTMLTableRowElement_chOff_Setter";
 
   int get rowIndex native "HTMLTableRowElement_rowIndex_Getter";
 
@@ -36296,7 +36000,7 @@ class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowEleme
 
   String get vAlign native "HTMLTableRowElement_vAlign_Getter";
 
-  void set vAlign(String) native "HTMLTableRowElement_vAlign_Setter";
+  void set vAlign(String value) native "HTMLTableRowElement_vAlign_Setter";
 
   void deleteCell(int index) native "HTMLTableRowElement_deleteCell_Callback";
 
@@ -36343,21 +36047,21 @@ class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSect
 
   String get align native "HTMLTableSectionElement_align_Getter";
 
-  void set align(String) native "HTMLTableSectionElement_align_Setter";
+  void set align(String value) native "HTMLTableSectionElement_align_Setter";
 
   String get ch native "HTMLTableSectionElement_ch_Getter";
 
-  void set ch(String) native "HTMLTableSectionElement_ch_Setter";
+  void set ch(String value) native "HTMLTableSectionElement_ch_Setter";
 
   String get chOff native "HTMLTableSectionElement_chOff_Getter";
 
-  void set chOff(String) native "HTMLTableSectionElement_chOff_Setter";
+  void set chOff(String value) native "HTMLTableSectionElement_chOff_Setter";
 
   HTMLCollection get rows native "HTMLTableSectionElement_rows_Getter";
 
   String get vAlign native "HTMLTableSectionElement_vAlign_Getter";
 
-  void set vAlign(String) native "HTMLTableSectionElement_vAlign_Setter";
+  void set vAlign(String value) native "HTMLTableSectionElement_vAlign_Setter";
 
   void deleteRow(int index) native "HTMLTableSectionElement_deleteRow_Callback";
 
@@ -36483,19 +36187,19 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
-  void set autofocus(bool) native "HTMLTextAreaElement_autofocus_Setter";
+  void set autofocus(bool value) native "HTMLTextAreaElement_autofocus_Setter";
 
   int get cols native "HTMLTextAreaElement_cols_Getter";
 
-  void set cols(int) native "HTMLTextAreaElement_cols_Setter";
+  void set cols(int value) native "HTMLTextAreaElement_cols_Setter";
 
   String get defaultValue native "HTMLTextAreaElement_defaultValue_Getter";
 
-  void set defaultValue(String) native "HTMLTextAreaElement_defaultValue_Setter";
+  void set defaultValue(String value) native "HTMLTextAreaElement_defaultValue_Setter";
 
   bool get disabled native "HTMLTextAreaElement_disabled_Getter";
 
-  void set disabled(bool) native "HTMLTextAreaElement_disabled_Setter";
+  void set disabled(bool value) native "HTMLTextAreaElement_disabled_Setter";
 
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
@@ -36503,39 +36207,39 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
-  void set maxLength(int) native "HTMLTextAreaElement_maxLength_Setter";
+  void set maxLength(int value) native "HTMLTextAreaElement_maxLength_Setter";
 
   String get name native "HTMLTextAreaElement_name_Getter";
 
-  void set name(String) native "HTMLTextAreaElement_name_Setter";
+  void set name(String value) native "HTMLTextAreaElement_name_Setter";
 
   String get placeholder native "HTMLTextAreaElement_placeholder_Getter";
 
-  void set placeholder(String) native "HTMLTextAreaElement_placeholder_Setter";
+  void set placeholder(String value) native "HTMLTextAreaElement_placeholder_Setter";
 
   bool get readOnly native "HTMLTextAreaElement_readOnly_Getter";
 
-  void set readOnly(bool) native "HTMLTextAreaElement_readOnly_Setter";
+  void set readOnly(bool value) native "HTMLTextAreaElement_readOnly_Setter";
 
   bool get required native "HTMLTextAreaElement_required_Getter";
 
-  void set required(bool) native "HTMLTextAreaElement_required_Setter";
+  void set required(bool value) native "HTMLTextAreaElement_required_Setter";
 
   int get rows native "HTMLTextAreaElement_rows_Getter";
 
-  void set rows(int) native "HTMLTextAreaElement_rows_Setter";
+  void set rows(int value) native "HTMLTextAreaElement_rows_Setter";
 
   String get selectionDirection native "HTMLTextAreaElement_selectionDirection_Getter";
 
-  void set selectionDirection(String) native "HTMLTextAreaElement_selectionDirection_Setter";
+  void set selectionDirection(String value) native "HTMLTextAreaElement_selectionDirection_Setter";
 
   int get selectionEnd native "HTMLTextAreaElement_selectionEnd_Getter";
 
-  void set selectionEnd(int) native "HTMLTextAreaElement_selectionEnd_Setter";
+  void set selectionEnd(int value) native "HTMLTextAreaElement_selectionEnd_Setter";
 
   int get selectionStart native "HTMLTextAreaElement_selectionStart_Getter";
 
-  void set selectionStart(int) native "HTMLTextAreaElement_selectionStart_Setter";
+  void set selectionStart(int value) native "HTMLTextAreaElement_selectionStart_Setter";
 
   int get textLength native "HTMLTextAreaElement_textLength_Getter";
 
@@ -36547,13 +36251,13 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   String get value native "HTMLTextAreaElement_value_Getter";
 
-  void set value(String) native "HTMLTextAreaElement_value_Setter";
+  void set value(String value) native "HTMLTextAreaElement_value_Setter";
 
   bool get willValidate native "HTMLTextAreaElement_willValidate_Getter";
 
   String get wrap native "HTMLTextAreaElement_wrap_Getter";
 
-  void set wrap(String) native "HTMLTextAreaElement_wrap_Setter";
+  void set wrap(String value) native "HTMLTextAreaElement_wrap_Setter";
 
   bool checkValidity() native "HTMLTextAreaElement_checkValidity_Callback";
 
@@ -36784,49 +36488,49 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   String get align native "TextTrackCue_align_Getter";
 
-  void set align(String) native "TextTrackCue_align_Setter";
+  void set align(String value) native "TextTrackCue_align_Setter";
 
   num get endTime native "TextTrackCue_endTime_Getter";
 
-  void set endTime(num) native "TextTrackCue_endTime_Setter";
+  void set endTime(num value) native "TextTrackCue_endTime_Setter";
 
   String get id native "TextTrackCue_id_Getter";
 
-  void set id(String) native "TextTrackCue_id_Setter";
+  void set id(String value) native "TextTrackCue_id_Setter";
 
   int get line native "TextTrackCue_line_Getter";
 
-  void set line(int) native "TextTrackCue_line_Setter";
+  void set line(int value) native "TextTrackCue_line_Setter";
 
   bool get pauseOnExit native "TextTrackCue_pauseOnExit_Getter";
 
-  void set pauseOnExit(bool) native "TextTrackCue_pauseOnExit_Setter";
+  void set pauseOnExit(bool value) native "TextTrackCue_pauseOnExit_Setter";
 
   int get position native "TextTrackCue_position_Getter";
 
-  void set position(int) native "TextTrackCue_position_Setter";
+  void set position(int value) native "TextTrackCue_position_Setter";
 
   int get size native "TextTrackCue_size_Getter";
 
-  void set size(int) native "TextTrackCue_size_Setter";
+  void set size(int value) native "TextTrackCue_size_Setter";
 
   bool get snapToLines native "TextTrackCue_snapToLines_Getter";
 
-  void set snapToLines(bool) native "TextTrackCue_snapToLines_Setter";
+  void set snapToLines(bool value) native "TextTrackCue_snapToLines_Setter";
 
   num get startTime native "TextTrackCue_startTime_Getter";
 
-  void set startTime(num) native "TextTrackCue_startTime_Setter";
+  void set startTime(num value) native "TextTrackCue_startTime_Setter";
 
   String get text native "TextTrackCue_text_Getter";
 
-  void set text(String) native "TextTrackCue_text_Setter";
+  void set text(String value) native "TextTrackCue_text_Setter";
 
   TextTrack get track native "TextTrackCue_track_Getter";
 
   String get vertical native "TextTrackCue_vertical_Getter";
 
-  void set vertical(String) native "TextTrackCue_vertical_Setter";
+  void set vertical(String value) native "TextTrackCue_vertical_Setter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
@@ -36929,7 +36633,6 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -36981,7 +36684,7 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
   String get mode native "TextTrack_mode_Getter";
 
-  void set mode(String) native "TextTrack_mode_Setter";
+  void set mode(String value) native "TextTrack_mode_Setter";
 
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
@@ -37111,7 +36814,6 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -37423,7 +37125,6 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -37494,25 +37195,25 @@ class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
 
   bool get defaultValue native "HTMLTrackElement_default_Getter";
 
-  void set defaultValue(bool) native "HTMLTrackElement_default_Setter";
+  void set defaultValue(bool value) native "HTMLTrackElement_default_Setter";
 
   String get kind native "HTMLTrackElement_kind_Getter";
 
-  void set kind(String) native "HTMLTrackElement_kind_Setter";
+  void set kind(String value) native "HTMLTrackElement_kind_Setter";
 
   String get label native "HTMLTrackElement_label_Getter";
 
-  void set label(String) native "HTMLTrackElement_label_Setter";
+  void set label(String value) native "HTMLTrackElement_label_Setter";
 
   int get readyState native "HTMLTrackElement_readyState_Getter";
 
   String get src native "HTMLTrackElement_src_Getter";
 
-  void set src(String) native "HTMLTrackElement_src_Setter";
+  void set src(String value) native "HTMLTrackElement_src_Setter";
 
   String get srclang native "HTMLTrackElement_srclang_Getter";
 
-  void set srclang(String) native "HTMLTrackElement_srclang_Setter";
+  void set srclang(String value) native "HTMLTrackElement_srclang_Setter";
 
   TextTrack get track native "HTMLTrackElement_track_Getter";
 
@@ -37623,7 +37324,7 @@ class _TreeWalkerImpl extends NativeFieldWrapperClass1 implements TreeWalker {
 
   Node get currentNode native "TreeWalker_currentNode_Getter";
 
-  void set currentNode(Node) native "TreeWalker_currentNode_Setter";
+  void set currentNode(Node value) native "TreeWalker_currentNode_Setter";
 
   bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
 
@@ -37743,11 +37444,11 @@ class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 
   bool get compact native "HTMLUListElement_compact_Getter";
 
-  void set compact(bool) native "HTMLUListElement_compact_Setter";
+  void set compact(bool value) native "HTMLUListElement_compact_Setter";
 
   String get type native "HTMLUListElement_type_Getter";
 
-  void set type(String) native "HTMLUListElement_type_Setter";
+  void set type(String value) native "HTMLUListElement_type_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37851,7 +37552,6 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -37984,7 +37684,6 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -38117,7 +37816,6 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
     throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  // FIXME: implement these.
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw const UnsupportedOperationException("Cannot setRange on immutable List.");
   }
@@ -38345,11 +38043,11 @@ class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElemen
 
   int get height native "HTMLVideoElement_height_Getter";
 
-  void set height(int) native "HTMLVideoElement_height_Setter";
+  void set height(int value) native "HTMLVideoElement_height_Setter";
 
   String get poster native "HTMLVideoElement_poster_Getter";
 
-  void set poster(String) native "HTMLVideoElement_poster_Setter";
+  void set poster(String value) native "HTMLVideoElement_poster_Setter";
 
   int get videoHeight native "HTMLVideoElement_videoHeight_Getter";
 
@@ -38365,7 +38063,7 @@ class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElemen
 
   int get width native "HTMLVideoElement_width_Getter";
 
-  void set width(int) native "HTMLVideoElement_width_Setter";
+  void set width(int value) native "HTMLVideoElement_width_Setter";
 
   void webkitEnterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
 
@@ -38405,7 +38103,7 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
 
   Float32Array get curve native "WaveShaperNode_curve_Getter";
 
-  void set curve(Float32Array) native "WaveShaperNode_curve_Setter";
+  void set curve(Float32Array value) native "WaveShaperNode_curve_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38540,27 +38238,27 @@ class _WebGLContextAttributesImpl extends NativeFieldWrapperClass1 implements We
 
   bool get alpha native "WebGLContextAttributes_alpha_Getter";
 
-  void set alpha(bool) native "WebGLContextAttributes_alpha_Setter";
+  void set alpha(bool value) native "WebGLContextAttributes_alpha_Setter";
 
   bool get antialias native "WebGLContextAttributes_antialias_Getter";
 
-  void set antialias(bool) native "WebGLContextAttributes_antialias_Setter";
+  void set antialias(bool value) native "WebGLContextAttributes_antialias_Setter";
 
   bool get depth native "WebGLContextAttributes_depth_Getter";
 
-  void set depth(bool) native "WebGLContextAttributes_depth_Setter";
+  void set depth(bool value) native "WebGLContextAttributes_depth_Setter";
 
   bool get premultipliedAlpha native "WebGLContextAttributes_premultipliedAlpha_Getter";
 
-  void set premultipliedAlpha(bool) native "WebGLContextAttributes_premultipliedAlpha_Setter";
+  void set premultipliedAlpha(bool value) native "WebGLContextAttributes_premultipliedAlpha_Setter";
 
   bool get preserveDrawingBuffer native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
 
-  void set preserveDrawingBuffer(bool) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
+  void set preserveDrawingBuffer(bool value) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
 
   bool get stencil native "WebGLContextAttributes_stencil_Getter";
 
-  void set stencil(bool) native "WebGLContextAttributes_stencil_Setter";
+  void set stencil(bool value) native "WebGLContextAttributes_stencil_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40246,7 +39944,7 @@ class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitCSSFilterValue
-abstract class WebKitCSSFilterValue implements CSSValueList {
+abstract class WebKitCSSFilterValue implements List<CSSValue> {
 
   static const int CSS_FILTER_BLUR = 10;
 
@@ -40447,7 +40145,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   String get binaryType native "WebSocket_binaryType_Getter";
 
-  void set binaryType(String) native "WebSocket_binaryType_Setter";
+  void set binaryType(String value) native "WebSocket_binaryType_Setter";
 
   int get bufferedAmount native "WebSocket_bufferedAmount_Getter";
 
@@ -40770,7 +40468,7 @@ abstract class Window implements EventTarget {
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
   /** @domName DOMWindow.getMatchedCSSRules */
-  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
+  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
 
   /** @domName DOMWindow.getSelection */
   DOMSelection getSelection();
@@ -41196,11 +40894,11 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   String get defaultStatus native "DOMWindow_defaultStatus_Getter";
 
-  void set defaultStatus(String) native "DOMWindow_defaultStatus_Setter";
+  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
 
   String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
-  void set defaultstatus(String) native "DOMWindow_defaultstatus_Setter";
+  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
 
   num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
@@ -41224,7 +40922,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   Location get location native "DOMWindow_location_Getter";
 
-  void set location(Location) native "DOMWindow_location_Setter";
+  void set location(Location value) native "DOMWindow_location_Setter";
 
   BarInfo get locationbar native "DOMWindow_locationbar_Getter";
 
@@ -41232,7 +40930,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   String get name native "DOMWindow_name_Getter";
 
-  void set name(String) native "DOMWindow_name_Setter";
+  void set name(String value) native "DOMWindow_name_Setter";
 
   Navigator get navigator native "DOMWindow_navigator_Getter";
 
@@ -41278,7 +40976,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   String get status native "DOMWindow_status_Getter";
 
-  void set status(String) native "DOMWindow_status_Setter";
+  void set status(String value) native "DOMWindow_status_Setter";
 
   BarInfo get statusbar native "DOMWindow_statusbar_Getter";
 
@@ -41324,7 +41022,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
-  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
   DOMSelection getSelection() native "DOMWindow_getSelection_Callback";
 

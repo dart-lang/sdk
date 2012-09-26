@@ -371,7 +371,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = 'void set %s(%s)' % (html_name, self._DartType(attr.type.id))
+    dart_declaration = 'void set %s(%s value)' % (html_name, self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
