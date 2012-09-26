@@ -26,7 +26,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "0.0.1234"}).scheduleValidate();
 
@@ -53,7 +53,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({
       'foo': '0.0.1234',

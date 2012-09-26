@@ -96,8 +96,8 @@ class HostedSource extends Source {
    */
   String systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
-    var url = parsed.last.replaceAll(new RegExp(@"^https?://"), "");
-    var urlDir = replace(url, new RegExp(@'[<>:"\\/|?*%]'), (match) {
+    var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
+    var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
       return '%${match[0].charCodeAt(0)}';
     });
     return join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}");

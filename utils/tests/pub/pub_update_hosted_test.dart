@@ -55,7 +55,7 @@ main() {
     appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -68,7 +68,7 @@ main() {
     ]);
 
     schedulePub(args: ['update', 'foo'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "2.0.0",
@@ -88,7 +88,7 @@ main() {
     appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -101,7 +101,7 @@ main() {
     ]);
 
     schedulePub(args: ['update', 'bar'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "2.0.0",
@@ -120,7 +120,7 @@ main() {
     appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -130,7 +130,7 @@ main() {
     appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -154,7 +154,7 @@ main() {
     appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -166,7 +166,7 @@ main() {
     appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -189,7 +189,7 @@ main() {
     appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",
@@ -200,7 +200,7 @@ main() {
     appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: const RegExp(@"Dependencies updated!$"));
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({
       "foo": "1.0.0",

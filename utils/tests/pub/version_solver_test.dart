@@ -469,7 +469,7 @@ class MockSource extends Source {
     dependencyStrings.forEach((name, constraint) {
       var parsed = parseSource(name);
       var description = parsed.first;
-      var packageName = description.replaceFirst(new RegExp(@"-[^-]+$"), "");
+      var packageName = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
       dependencies.add(new PackageRef(packageName, parsed.last,
           new VersionConstraint.parse(constraint), description));
     });
@@ -521,7 +521,7 @@ Future fakeAsync(callback()) {
 }
 
 Pair<String, Source> parseSource(String name) {
-  var match = new RegExp(@"(.*) from (.*)").firstMatch(name);
+  var match = new RegExp(r"(.*) from (.*)").firstMatch(name);
   if (match == null) return new Pair<String, Source>(name, source1);
   switch (match[2]) {
   case 'mock1': return new Pair<String, Source>(match[1], source1);

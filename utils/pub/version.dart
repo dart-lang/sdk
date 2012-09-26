@@ -19,11 +19,11 @@ class Version implements Comparable, Hashable, VersionConstraint {
   static Version get none => new Version(0, 0, 0);
 
   static const _PARSE_REGEX = const RegExp(
-      @'^'                                        // Start at beginning.
-      @'(\d+).(\d+).(\d+)'                        // Version number.
-      @'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'  // Pre-release.
-      @'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
-      @'$');                                      // Consume entire string.
+      r'^'                                       // Start at beginning.
+      r'(\d+).(\d+).(\d+)'                       // Version number.
+      r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'   // Pre-release.
+      r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'  // Build.
+      r'$');                                     // Consume entire string.
 
   /** The major version number: "1" in "1.2.3". */
   final int major;
@@ -411,7 +411,7 @@ class _VersionConstraintFactory {
     // unfortunately meaningful in YAML, requiring it to be quoted in a
     // pubspec.
     // See if it's a comparison operator followed by a version, like ">1.2.3".
-    var match = const RegExp(@"^([<>]=?)?(.*)$").firstMatch(text);
+    var match = const RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
     if (match != null) {
       var comparison = match[1];
       var version = new Version.parse(match[2]);

@@ -21,7 +21,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(cachePath, [
       dir('git', [
@@ -99,7 +99,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('weirdname', [
@@ -122,7 +122,7 @@ main() {
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
     schedulePub(args: ['install'],
-        error: const RegExp(@'^Package "foo" doesn' @"'" 't have a '
+        error: const RegExp('^Package "foo" doesn\'t have a '
             'pubspec.yaml file.'),
         exitCode: 1);
 
@@ -142,8 +142,8 @@ main() {
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
     schedulePub(args: ['install'],
-        error: const RegExp(@'^Package "foo"' @"'" 's pubspec.yaml file is '
-            @'missing the required "name" field \(e\.g\. "name: foo"\)\.'),
+        error: const RegExp(r'^Package "foo"' "'" 's pubspec.yaml file is '
+            r'missing the required "name" field \(e\.g\. "name: foo"\)\.'),
         exitCode: 1);
 
     run();
@@ -169,9 +169,9 @@ main() {
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
     schedulePub(args: ['install'],
-        error: const RegExp(@'^The name you specified for your dependency, '
-            @'"weirdname", doesn' @"'" @'t match the name "foo" in its '
-            @'pubspec\.'),
+        error: const RegExp(r'^The name you specified for your dependency, '
+            '"weirdname", doesn\'t match the name "foo" in its '
+            r'pubspec\.'),
         exitCode: 1);
 
     run();
@@ -188,7 +188,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(cachePath, [
       dir('git', [
@@ -213,7 +213,7 @@ main() {
     ]).scheduleCommit();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     // When we download a new version of the git package, we should re-use the
     // git/cache directory but create a new git/ directory.
@@ -245,7 +245,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(cachePath, [
       dir('git', [
@@ -266,7 +266,7 @@ main() {
     // Verify that nothing breaks if we install a Git revision that's already
     // in the cache.
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     run();
   });
@@ -289,7 +289,7 @@ main() {
     appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -318,7 +318,7 @@ main() {
     appDir([{"git": {"url": "../foo.git", "ref": "old"}}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -341,7 +341,7 @@ main() {
 
     // This install should lock the foo.git dependency to the current revision.
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -359,7 +359,7 @@ main() {
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -381,7 +381,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -397,7 +397,7 @@ main() {
     appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -420,7 +420,7 @@ main() {
     appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -436,7 +436,7 @@ main() {
     appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        output: const RegExp(@"Dependencies installed!$"));
+        output: const RegExp(r"Dependencies installed!$"));
 
     dir(packagesPath, [
       dir('foo', [
@@ -459,7 +459,7 @@ main() {
       appDir([{"git": "../foo.git/"}]).scheduleCreate();
 
       schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+          output: const RegExp(r"Dependencies installed!$"));
 
       dir(cachePath, [
         dir('git', [
