@@ -7715,6 +7715,9 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.setCompositeOperation */
   void setCompositeOperation(String compositeOperation);
 
+  /** @domName CanvasRenderingContext2D.setFillColor */
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+
   /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
 
@@ -7729,6 +7732,9 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.setShadow */
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+
+  /** @domName CanvasRenderingContext2D.setStrokeColor */
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setTransform */
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
@@ -7753,39 +7759,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
-
-
-  /**
-   * Sets the color used inside shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setFillColorRgb(int r, int g, int b, [double a]);
-
-  /**
-   * Sets the color used inside shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setFillColorHsl(int h, double s, double l, [double a]);
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [r], [g], [b] are 0-255, [a] is 0-1.
-   */
-  void setStrokeColorRgb(int r, int g, int b, [double a]);
-
-  /**
-   * Sets the color used for stroking shapes.
-   * [h] is in degrees, 0-360.
-   * [s], [l] are in percent, 0-100.
-   * [a] is 0-1.
-   */
-  void setStrokeColorHsl(int h, double s, double l, [double a]);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
@@ -7925,6 +7899,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native;
 
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
+
   void setLineCap(String cap) native;
 
   void setLineJoin(String join) native;
@@ -7934,6 +7910,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void setMiterLimit(num limit) native;
 
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
+
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -7973,23 +7951,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   }
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "webkitPutImageDataHD";
   void _webkitPutImageDataHD_2(imagedata, dx, dy, num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight) native "webkitPutImageDataHD";
-
-
-  void setFillColorRgb(int r, int g, int b, [double a = 1]) {
-    this.fillStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  void setFillColorHsl(int h, double s, double l, [double a = 1]) {
-    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
-  }
-
-  void setStrokeColorRgb(int r, int g, int b, [double a = 1]) {
-    this.strokeStyle = 'rgba($r, $g, $b, $a)';
-  }
-
-  void setStrokeColorHsl(int h, double s, double l, [double a = 1]) {
-    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
-  }
 }
 
 class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*CanvasRenderingContext" {
