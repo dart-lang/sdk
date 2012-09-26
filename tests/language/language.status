@@ -269,6 +269,7 @@ string_escape1_negative_test: Skip
 
 [ $compiler == dart2dart ]
 import_combinators_test: Fail
+throw_expr_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 bad_constructor_test/04: Fail

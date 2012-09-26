@@ -6373,33 +6373,30 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if (CurrentToken() == Token::kTHROW) {
+  } else if ((CurrentToken() == Token::kTHROW) &&
+             (LookaheadToken(1) == Token::kSEMICOLON)) {
+    // Rethrow of current exception. Throwing of an exception object
+    // is an expression and is handled in ParseExpr().
     ConsumeToken();
-    AstNode* expr = NULL;
-    if (CurrentToken() != Token::kSEMICOLON) {
-      expr = ParseExpr(kAllowConst, kConsumeCascades);
-      ExpectSemicolon();
-      statement = new ThrowNode(statement_pos, expr, NULL);
-    } else {  // No exception object seen so must be a rethrow.
-      // Check if it is ok to do a rethrow.
-      SourceLabel* label = current_block_->scope->LookupInnermostCatchLabel();
-      if (label == NULL ||
-          label->FunctionLevel() != current_block_->scope->function_level()) {
-        ErrorMsg("rethrow of an exception is not valid here");
-      }
-      ASSERT(label->owner() != NULL);
-      LocalScope* scope = label->owner()->parent();
-      ASSERT(scope != NULL);
-      LocalVariable* excp_var = scope->LocalLookupVariable(
-          String::ZoneHandle(Symbols::ExceptionVar()));
-      ASSERT(excp_var != NULL);
-      LocalVariable* trace_var = scope->LocalLookupVariable(
-          String::ZoneHandle(Symbols::StacktraceVar()));
-      ASSERT(trace_var != NULL);
-      statement = new ThrowNode(statement_pos,
-                                new LoadLocalNode(statement_pos, excp_var),
-                                new LoadLocalNode(statement_pos, trace_var));
+    ExpectSemicolon();
+    // Check if it is ok to do a rethrow.
+    SourceLabel* label = current_block_->scope->LookupInnermostCatchLabel();
+    if (label == NULL ||
+        label->FunctionLevel() != current_block_->scope->function_level()) {
+      ErrorMsg(statement_pos, "rethrow of an exception is not valid here");
     }
+    ASSERT(label->owner() != NULL);
+    LocalScope* scope = label->owner()->parent();
+    ASSERT(scope != NULL);
+    LocalVariable* excp_var = scope->LocalLookupVariable(
+        String::ZoneHandle(Symbols::ExceptionVar()));
+    ASSERT(excp_var != NULL);
+    LocalVariable* trace_var = scope->LocalLookupVariable(
+        String::ZoneHandle(Symbols::StacktraceVar()));
+    ASSERT(trace_var != NULL);
+    statement = new ThrowNode(statement_pos,
+                              new LoadLocalNode(statement_pos, excp_var),
+                              new LoadLocalNode(statement_pos, trace_var));
   } else {
     statement = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
@@ -7007,6 +7004,13 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
                            bool consume_cascades) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = TokenPos();
+
+  if (CurrentToken() == Token::kTHROW) {
+    ConsumeToken();
+    ASSERT(CurrentToken() != Token::kSEMICOLON);
+    AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
+    return new ThrowNode(expr_pos, expr, NULL);
+  }
   AstNode* expr = ParseConditionalExpr();
   if (!Token::IsAssignmentOperator(CurrentToken())) {
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
@@ -9666,6 +9670,9 @@ void Parser::SkipConditionalExpr() {
 
 
 void Parser::SkipExpr() {
+  while (CurrentToken() == Token::kTHROW) {
+    ConsumeToken();
+  }
   SkipConditionalExpr();
   if (CurrentToken() == Token::kCASCADE) {
     SkipSelectors();
