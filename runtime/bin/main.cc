@@ -655,9 +655,11 @@ int main(int argc, char** argv) {
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
-  Dart_Initialize(CreateIsolateAndSetup,
-                  NULL,
-                  ShutdownIsolate);
+  if (!Dart_Initialize(CreateIsolateAndSetup,
+                       NULL,
+                       ShutdownIsolate)) {
+    return ErrorExit("VM initialization failed\n");
+  }
 
   DartUtils::SetOriginalWorkingDirectory();
 

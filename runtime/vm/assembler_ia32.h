@@ -255,6 +255,24 @@ class Label : public ValueObject {
 };
 
 
+class CPUFeatures : public AllStatic {
+ public:
+  static void InitOnce();
+  static bool sse3_supported();
+  static bool sse4_1_supported();
+
+ private:
+  static const uint64_t kSSE3BitMask = static_cast<uint64_t>(1) << 32;
+  static const uint64_t kSSE4_1BitMask = static_cast<uint64_t>(1) << 51;
+
+  static bool sse3_supported_;
+  static bool sse4_1_supported_;
+#ifdef DEBUG
+  static bool initialized_;
+#endif
+};
+
+
 class Assembler : public ValueObject {
  public:
   Assembler() : buffer_(), prolog_offset_(-1), comments_() { }
@@ -482,6 +500,8 @@ class Assembler : public ValueObject {
 
   void lock();
   void cmpxchgl(const Address& address, Register reg);
+
+  void cpuid();
 
   /*
    * Macros for High-level operations and implemented on all architectures.
