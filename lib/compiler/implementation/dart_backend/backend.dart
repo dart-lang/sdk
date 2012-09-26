@@ -218,6 +218,10 @@ class DartBackend extends Backend {
       for (final element in library.localMembers) {
         if (element is ClassElement) {
           ClassElement classElement = element;
+          // Make sure we parsed the class to initialize its local members.
+          // TODO(smok): Figure out if there is a better way to fill local
+          // members.
+          element.parseNode(compiler);
           for (final member in classElement.localMembers) {
             final name = member.name.slowToString();
             // Skip operator names.
