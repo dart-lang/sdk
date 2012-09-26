@@ -12498,6 +12498,18 @@ abstract class Element implements Node, NodeSelector {
 
   Element get parent;
 
+  /**
+   * Experimental support for [web components][wc]. This field stores a
+   * reference to the component implementation. It was inspired by Mozilla's
+   * [x-tags][] project. Please note: in the future it may be possible to
+   * `extend Element` from your class, in which case this field will be
+   * deprecated and will simply return this [Element] object.
+   *
+   * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
+   * [x-tags]: http://x-tags.org/
+   */
+  var xtag;
+
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
