@@ -23,7 +23,7 @@ patch class Object {
     throw new NoSuchMethodError(this, name, args);
   }
 
-  patch Type runtimeType() {
+  patch Type get runtimeType {
     String key = getRuntimeTypeString(this);
     return getOrCreateCachedRuntimeType(key);
   }

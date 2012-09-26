@@ -16,6 +16,7 @@
     'expect.dart',
     'future.dart',
     'function.dart',
+    'identical.dart',
     'int.dart',
     'hashable.dart',
     'iterable.dart',
@@ -34,5 +35,6 @@
     'string.dart',
     'strings.dart',
     'string_buffer.dart',
+    'type.dart',
   ],
 }

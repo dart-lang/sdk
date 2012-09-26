@@ -128,8 +128,8 @@ class Enqueuer {
 
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
 
-    // Enable runtime type support if we discover a method called runtimeType.
-    if (element.isFunction() && element.name == Compiler.RUNTIME_TYPE) {
+    // Enable runtime type support if we discover a getter called runtimeType.
+    if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
     }
 
@@ -145,7 +145,7 @@ class Enqueuer {
   /**
    * Documentation wanted -- johnniwinther
    *
-   * Invariant: [element] must be an declaration element.
+   * Invariant: [element] must be a declaration element.
    */
   void eagerRecompile(Element element) {
     assert(invariant(element, element.isDeclaration));

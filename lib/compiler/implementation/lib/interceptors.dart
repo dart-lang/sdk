@@ -653,16 +653,16 @@ isOdd(receiver) {
 
 get$toString(receiver) => () => toString(receiver);
 
-runtimeType(receiver) {
+get$runtimeType(receiver) {
   if (receiver is int) {
     return getOrCreateCachedRuntimeType('int');
   } else if (receiver is String) {
     return getOrCreateCachedRuntimeType('String');
   } else if (receiver is double) {
     return getOrCreateCachedRuntimeType('double');
-  } else if (receiver is List) {
+  } else if (isJsArray(receiver)) {
     return getOrCreateCachedRuntimeType('List');
   } else {
-    return UNINTERCEPTED(receiver.runtimeType());
+    return UNINTERCEPTED(receiver.runtimeType);
   }
 }
