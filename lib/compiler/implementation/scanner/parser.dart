@@ -1189,13 +1189,11 @@ class Parser {
   }
 
   Token parseExpression(Token token) {
-    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE,
-                                     withoutCascades: false);
+    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE,
-                                     withoutCascades: true);
+    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -1210,24 +1208,24 @@ class Parser {
   }
 
   Token parsePrecedenceExpression(Token token, int precedence,
-                                  [bool withoutCascades]) {
+                                  bool allowCascades) {
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
-    token = parseUnaryExpression(token, withoutCascades);
+    token = parseUnaryExpression(token, allowCascades);
     PrecedenceInfo info = token.info;
     int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
         if (tokenLevel === CASCADE_PRECEDENCE) {
-          if (withoutCascades) {
+          if (!allowCascades) {
             return token;
           }
           token = parseCascadeExpression(token);
         } else if (tokenLevel === ASSIGNMENT_PRECEDENCE) {
           // Right associative, so we recurse at the same precedence
           // level.
-          token = parsePrecedenceExpression(token.next, level, withoutCascades);
+          token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (tokenLevel === POSTFIX_PRECEDENCE) {
           if (info === PERIOD_INFO) {
@@ -1235,7 +1233,7 @@ class Parser {
             // precedence level. However, POSTFIX_PRECEDENCE is the
             // highest level, so we just call parseUnaryExpression
             // directly.
-            token = parseUnaryExpression(token.next, withoutCascades);
+            token = parseUnaryExpression(token.next, allowCascades);
             listener.handleBinaryExpression(operator);
           } else if ((info === OPEN_PAREN_INFO) ||
                      (info === OPEN_SQUARE_BRACKET_INFO)) {
@@ -1257,7 +1255,7 @@ class Parser {
           // Left associative, so we recurse at the next higher
           // precedence level.
           token = parsePrecedenceExpression(token.next, level + 1,
-                                            withoutCascades);
+                                            allowCascades);
           listener.handleBinaryExpression(operator);
         }
         info = token.info;
@@ -1300,7 +1298,7 @@ class Parser {
     return token;
   }
 
-  Token parseUnaryExpression(Token token, bool withoutCascades) {
+  Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
     if (value === '+') {
@@ -1320,7 +1318,7 @@ class Parser {
       }
       listener.recoverableError("Unexpected token '+'", token: token);
       return parsePrecedenceExpression(next, POSTFIX_PRECEDENCE,
-                                       withoutCascades);
+                                       allowCascades);
     } else if ((value === '!') ||
                (value === '-') ||
                (value === '~')) {
@@ -1328,7 +1326,7 @@ class Parser {
       // Right associative, so we recurse at the same precedence
       // level.
       token = parsePrecedenceExpression(token.next, POSTFIX_PRECEDENCE,
-                                        withoutCascades);
+                                        allowCascades);
       listener.handleUnaryPrefixExpression(operator);
     } else if ((value === '++') || value === '--') {
       // TODO(ahe): Validate this is used correctly.
@@ -1336,7 +1334,7 @@ class Parser {
       // Right associative, so we recurse at the same precedence
       // level.
       token = parsePrecedenceExpression(token.next, POSTFIX_PRECEDENCE,
-                                        withoutCascades);
+                                        allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
     } else {
       token = parsePrimary(token);
