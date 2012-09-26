@@ -158,13 +158,16 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   Map<Element, String> getParameterNames(WorkItem work) {
+    // Make sure the map preserves insertion order, so that fetching
+    // the values will keep the order of parameters.
     Map<Element, String> parameterNames = new LinkedHashMap<Element, String>();
     FunctionElement function = work.element.implementation;
 
     // The dom/html libraries have inline JS code that reference
     // parameter names directly. Long-term such code will be rejected.
     // Now, just don't mangle the parameter name.
-    function.computeSignature(compiler).forEachParameter((Element element) {
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.orderedForEachParameter((Element element) {
       parameterNames[element] = function.isNative()
           ? element.name.slowToString()
           : JsNames.getValid('${element.name.slowToString()}');

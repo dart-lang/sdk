@@ -698,7 +698,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     // Assign arguments to parameters.
     FunctionSignature parameters = constructor.computeSignature(compiler);
     int index = 0;
-    parameters.forEachParameter((Element parameter) {
+    parameters.orderedForEachParameter((Element parameter) {
       Constant argument = arguments[index++];
       Node node = parameter.parseNode(compiler);
       potentiallyCheckType(node, parameter, argument);

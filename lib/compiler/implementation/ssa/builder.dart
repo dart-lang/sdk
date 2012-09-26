@@ -212,7 +212,7 @@ class SsaBuilderTask extends CompilerTask {
                                              defaultValueTypes);
         if (!parameterTypes.allUnknown) {
           int i = 0;
-          signature.forEachParameter((Element param) {
+          signature.orderedForEachParameter((Element param) {
             builder.parameters[param].guaranteedType = parameterTypes[i++];
           });
         }
@@ -365,7 +365,7 @@ class LocalsHandler {
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
             node, builder.elements);
     FunctionSignature signature = function.computeSignature(compiler);
-    signature.forEachParameter((Element element) {
+    signature.orderedForEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
       builder.parameters[element] = parameter;
@@ -1014,7 +1014,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(elements !== null);
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
-    signature.forEachParameter((Element parameter) {
+    signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
       potentiallyCheckType(argument, parameter);
@@ -1119,7 +1119,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       int index = 0;
       FunctionSignature params = constructor.computeSignature(compiler);
-      params.forEachParameter((Element parameter) {
+      params.orderedForEachParameter((Element parameter) {
         HInstruction argument = compiledArguments[index++];
         localsHandler.updateLocal(parameter, argument);
         // Don't forget to update the field, if the parameter is of the
@@ -1271,7 +1271,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.computeSignature(compiler);
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
@@ -1319,7 +1319,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bodyCallInputs.add(newObject);
       FunctionSignature functionSignature = body.computeSignature(compiler);
       int arity = functionSignature.parameterCount;
-      functionSignature.forEachParameter((parameter) {
+      functionSignature.orderedForEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
       // TODO(ahe): The constructor name is statically resolved. See
@@ -1401,7 +1401,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     open(block);
 
     FunctionSignature params = functionElement.computeSignature(compiler);
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       if (elements.isParameterChecked(element)) {
         addParameterCheckInstruction(element);
       }
@@ -1411,7 +1411,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // because that is where the type guards will also be inserted.
     // This way we ensure that a type guard will dominate the type
     // check.
-    params.forEachParameter((Element element) {
+    params.orderedForEachParameter((Element element) {
       HInstruction newParameter = potentiallyCheckType(
           localsHandler.directLocals[element], element);
       localsHandler.directLocals[element] = newParameter;

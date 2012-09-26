@@ -388,7 +388,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
-    parameters.forEachParameter((Element element) {
+    parameters.orderedForEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
       if (count < positionalArgumentCount) {
         parametersBuffer[count] = jsName;

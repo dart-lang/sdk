@@ -110,13 +110,12 @@ class Namer {
         '${privateName(lib, name)}\$${signature.parameterCount}';
     if (!signature.optionalParametersAreNamed) {
       return methodName;
-    } else {
-      StringBuffer suffix = new StringBuffer();
-      signature.forEachOptionalParameter((Element element) {
-        String jsName = JsNames.getValid(element.name.slowToString());        
-        suffix.add('\$$jsName');
+    } else if (!signature.optionalParameters.isEmpty()) {
+      StringBuffer buffer = new StringBuffer();
+      signature.orderedOptionalParameters.forEach((Element element) {
+        buffer.add('\$${JsNames.getValid(element.name.slowToString())}');
       });
-      return '$methodName$suffix';
+      return '$methodName$buffer';
     }
   }
 
