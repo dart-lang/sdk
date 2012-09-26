@@ -508,21 +508,6 @@ class RawTypeParameter : public RawAbstractType {
 };
 
 
-class RawInstantiatedType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(InstantiatedType);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->uninstantiated_type_);
-  }
-  RawAbstractType* uninstantiated_type_;
-  RawAbstractTypeArguments* instantiator_type_arguments_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
-  }
-};
-
-
 class RawAbstractTypeArguments : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments);
