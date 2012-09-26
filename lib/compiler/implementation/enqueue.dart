@@ -129,7 +129,9 @@ class Enqueuer {
     queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
 
     // Enable runtime type support if we discover a getter called runtimeType.
-    if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
+    if (!isResolutionQueue &&
+        element.isGetter() &&
+        element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
     }
 
