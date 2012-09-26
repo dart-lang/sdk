@@ -1113,7 +1113,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             element: constructor);
       }
 
+      sourceElementStack.add(constructor.enclosingElement);
       buildFieldInitializers(constructor.enclosingElement, fieldValues);
+      sourceElementStack.removeLast();
 
       int index = 0;
       FunctionSignature params = constructor.computeSignature(compiler);
@@ -2297,8 +2299,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         typeInfo = pop();
       }
       if (type.element.isTypeVariable()) {
-        // TODO(karlklose): We currently answer true to any is check 
-        // involving a type variable -- both is T and is !T -- until 
+        // TODO(karlklose): We currently answer true to any is check
+        // involving a type variable -- both is T and is !T -- until
         // we have a proper implementation of reified generics.
         stack.add(graph.addConstantBool(true, constantSystem));
       } else {
