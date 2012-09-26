@@ -50,9 +50,9 @@ class Q {
 
 void test3() {
   try {
-    throw throw throw "throw";
+    throw throw throw "up";
   } catch(e) {
-    Expect.equals("throw", e);
+    Expect.equals("up", e);
   }
 
   var x = 10;
