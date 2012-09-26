@@ -43,7 +43,7 @@ testBlockComment() {
   check(g, a, "x /*/***/ x", 'EOF in block comment');
   check(g, a, "x /*/*/x**/**/ x", '[x,x]');
 
-  check(g, a, @"""
+  check(g, a, r"""
 /* Comment */
 /* Following comment with /* nested comment*/ */
 x
@@ -126,9 +126,9 @@ testC() {
 
   // Lexical elements.
   var idStartChar = CHAR(
-      @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+      r"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
   var idNextChar = CHAR(
-      @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$_");
+      r"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$_");
 
   var id = TEXT(LEX('identifier', [idStartChar, MANY(idNextChar, min: 0)]));
 
