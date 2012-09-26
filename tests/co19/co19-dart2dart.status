@@ -4,14 +4,14 @@
 
 [ $compiler == dart2dart ]
 
-Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail # co19 issue 218
-Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail # co19 issue 218
-Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail # co19 issue 218
-Language/11_Statements/15_Assert_A05_t01: Fail # co19 issue 218
-Language/11_Statements/15_Assert_A05_t02: Fail # co19 issue 218
-Language/11_Statements/15_Assert_A05_t03: Fail # co19 issue 218
-Language/11_Statements/15_Assert_A05_t04: Fail # co19 issue 218
-Language/11_Statements/15_Assert_A05_t05: Fail # co19 issue 218
+Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, Pass # co19 issue 218
+Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, Pass # co19 issue 218
+Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, Pass # co19 issue 218
+Language/11_Statements/15_Assert_A05_t01: Fail, Pass # co19 issue 218
+Language/11_Statements/15_Assert_A05_t02: Fail, Pass # co19 issue 218
+Language/11_Statements/15_Assert_A05_t03: Fail, Pass # co19 issue 218
+Language/11_Statements/15_Assert_A05_t04: Fail, Pass # co19 issue 218
+Language/11_Statements/15_Assert_A05_t05: Fail, Pass # co19 issue 218
 
 Language/03_Overview/03_Overview_A01_t01: Fail # inherited from VM
 Language/03_Overview/03_Overview_A01_t02: Fail # inherited from VM
