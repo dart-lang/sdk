@@ -64,7 +64,7 @@ void checkHTypeList(HTypeList types, List<HType> expected) {
   }
 }
 
-const String TEST_1 = @"""
+const String TEST_1 = r"""
   class A {
     x(p) => null;
   }
@@ -81,7 +81,7 @@ test1() {
   checkHTypeList(types, I);
 }
 
-const String TEST_2 = @"""
+const String TEST_2 = r"""
   class A {
     x(p1, [p2, p3]) => null;
   }
@@ -134,7 +134,7 @@ test2_3() {
 }
 
 
-const String TEST_3 = @"""
+const String TEST_3 = r"""
   class A {
     x(p1, [p2, p3]) => null;
   }
@@ -190,7 +190,7 @@ test3_2() {
 }
 
 
-const String TEST_4 = @"""
+const String TEST_4 = r"""
   class A {
     x([p1, p2, p3]) => null;
   }

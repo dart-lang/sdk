@@ -245,7 +245,7 @@ void InvalidStringEscapes() {
 
 void RawString() {
   // rs = @"\' \\"
-  const Scanner::GrowableTokenStream& tokens = Scan("rs = @\"\\\' \\\\\"");
+  const Scanner::GrowableTokenStream& tokens = Scan("rs = r\"\\\' \\\\\"");
 
   EXPECT_EQ(4, tokens.length());
   CheckIdent(tokens, 0, "rs");

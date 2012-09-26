@@ -302,7 +302,7 @@ DirectoryDescriptor packageCacheDir(String name, String version) {
 DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
   var value = name;
   if (modifier != null) value = "$name $modifier";
-  return dir(new RegExp("$name${@'-[a-f0-9]+'}"), [
+  return dir(new RegExp("$name${r'-[a-f0-9]+'}"), [
     libDir(name, value)
   ]);
 }
@@ -312,7 +312,7 @@ DirectoryDescriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
  * in the repo cache of the global package cache.
  */
 DirectoryDescriptor gitPackageRepoCacheDir(String name) {
-  return dir(new RegExp("$name${@'-[a-f0-9]+'}"), [
+  return dir(new RegExp("$name${r'-[a-f0-9]+'}"), [
     dir('branches'),
     dir('hooks'),
     dir('info'),

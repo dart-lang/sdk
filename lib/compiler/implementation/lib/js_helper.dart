@@ -425,7 +425,7 @@ class Primitives {
     return result;
   }
 
-  /** [: @"$".charCodeAt(0) :] */
+  /** [: r"$".charCodeAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
   static String objectTypeName(Object object) {

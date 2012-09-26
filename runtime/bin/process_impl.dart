@@ -98,9 +98,9 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
         }
         sb.add(argument.substring(nextPos, quotePos - numBackslash));
         for (var i = 0; i < numBackslash; i++) {
-          sb.add(@'\\');
+          sb.add(r'\\');
         }
-        sb.add(@'\"');
+        sb.add(r'\"');
         nextPos = quotePos + 1;
         quotePos = argument.indexOf('"', nextPos);
       }

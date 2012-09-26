@@ -74,13 +74,13 @@ void testBaseFunctions() {
   } else {
     // Make sure that backslashes are uninterpreted on other platforms.
     testGetters(new Path.fromNative(r"/foo\bar/bif/fisk.hest"),
-                [@'/foo\bar/bif', 'fisk.hest', 'fisk', 'hest'],
+                [r'/foo\bar/bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute canonical');
     testGetters(new Path.fromNative(r"//foo\bar///bif////fisk.hest"),
-                [@'//foo\bar///bif', 'fisk.hest', 'fisk', 'hest'],
+                [r'//foo\bar///bif', 'fisk.hest', 'fisk', 'hest'],
                 'absolute');
     testGetters(new Path.fromNative(r"/foo\ bar/bif/gule\ fisk.hest"),
-                [@'/foo\ bar/bif', @'gule\ fisk.hest', @'gule\ fisk', 'hest'],
+                [r'/foo\ bar/bif', r'gule\ fisk.hest', r'gule\ fisk', 'hest'],
                 'absolute canonical');
   }
 }

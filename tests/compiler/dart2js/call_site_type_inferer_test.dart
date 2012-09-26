@@ -25,35 +25,35 @@ void compileAndFind(String code,
   return check(compiler.backend, member);
 }
 
-const String TEST_1 = @"""
+const String TEST_1 = r"""
   class A {
     x(p) => p;
   }
   main() { new A().x("s"); }
 """;
 
-const String TEST_2 = @"""
+const String TEST_2 = r"""
   class A {
     x(p) => p;
   }
   main() { new A().x(1); }
 """;
 
-const String TEST_3 = @"""
+const String TEST_3 = r"""
   class A {
     x(p) => x(p - 1);
   }
   main() { new A().x(1); }
 """;
 
-const String TEST_4 = @"""
+const String TEST_4 = r"""
   class A {
     x(p) => x(p - 1);
   }
   main() { new A().x(1.5); }
 """;
 
-const String TEST_5 = @"""
+const String TEST_5 = r"""
   class A {
     x(p) => p;
   }
@@ -143,7 +143,7 @@ const String TEST_13 = r"""
   }
 """;
 
-const String TEST_14 = @"""
+const String TEST_14 = r"""
   class A {
     x(p1, [p2 = "s"]) => 1;
   }
@@ -152,7 +152,7 @@ const String TEST_14 = @"""
   }
 """;
 
-const String TEST_15 = @"""
+const String TEST_15 = r"""
   class A {
     x(p1, [p2 = true]) => 1;
   }
@@ -164,7 +164,7 @@ const String TEST_15 = @"""
   }
 """;
 
-const String TEST_16 = @"""
+const String TEST_16 = r"""
   class A {
     x(p1, [p2 = 1, p3 = "s"]) => 1;
   }
@@ -179,7 +179,7 @@ const String TEST_16 = @"""
   }
 """;
 
-const String TEST_17 = @"""
+const String TEST_17 = r"""
   class A {
     x(p1, [p2 = 1, p3 = "s"]) => 1;
   }

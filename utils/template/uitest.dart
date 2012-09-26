@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,7 +21,7 @@ String sample(String sampleName) {
   final String with = '\${#with';
   final String endWith = '\${/with}';
 
-  final String simpleTemplate = @'''
+  final String simpleTemplate = r'''
 template NameEntry(String name, int age) {
   <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
     <span var=spanElem>${name}</span>
@@ -31,7 +31,7 @@ template NameEntry(String name, int age) {
 }
   ''';
 
-  final String simpleTemplate2 = @'''
+  final String simpleTemplate2 = r'''
 template NameEntry(String name, int age) {
   <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
     <h1>
@@ -47,7 +47,7 @@ template NameEntry(String name, int age) {
 }
   ''';
 
-  final String simpleTemplateCSS = @'''
+  final String simpleTemplateCSS = r'''
 template NameEntry(String name, int age) {
   css {
     .foo {
@@ -63,7 +63,7 @@ template NameEntry(String name, int age) {
   ''';
 
 
-  final String eachTemplate = @'''
+  final String eachTemplate = r'''
 template Applications(var products) {
   <div>
     ${each} products
@@ -77,7 +77,7 @@ template Applications(var products) {
 }
   ''';
 
-  final String withTemplate = @'''
+  final String withTemplate = r'''
 template Product(Person person) {
   <div>
     ${with} person
@@ -91,7 +91,7 @@ template Product(Person person) {
 }
   ''';
 
-  final String withTemplate2 = @'''
+  final String withTemplate2 = r'''
 template Product(Person person) {
   <div>
     <span var=a1>
@@ -109,7 +109,7 @@ template Product(Person person) {
 }
   ''';
 
-  final String complexTemplate = @'''
+  final String complexTemplate = r'''
 template ProductsForPerson(Person person, var products) {
   <div>
     ${with} person person
@@ -128,7 +128,7 @@ template ProductsForPerson(Person person, var products) {
 }
   ''';
 
-  final String complexTemplate2 = @'''
+  final String complexTemplate2 = r'''
 template ProductsForPerson(Person person, var products) {
   <div>
     ${with} person person
@@ -147,7 +147,7 @@ template ProductsForPerson(Person person, var products) {
 }
   ''';
 
-  final String complexTemplate3 = @'''
+  final String complexTemplate3 = r'''
 template ProductsForPerson(Person person, var products) {
   css {
     .sales-item {
@@ -201,7 +201,7 @@ template NameEntry(String name, int age) {
 
   // Test #each in a #each where the nested #each is a top-level child of the
   // outer #each.
-  final String complexTemplate4 = @'''
+  final String complexTemplate4 = r'''
 template DivisionSales(var divisions) {
   <div>
     ${each} divisions division
@@ -232,7 +232,7 @@ template DivisionSales(var divisions) {
 ''';
 
 
-  final String realWorldList = @'''
+  final String realWorldList = r'''
 template DivisionSales(var divisions) {
   css {
     .division-item {
