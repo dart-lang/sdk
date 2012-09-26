@@ -30,6 +30,14 @@
  */
 typedef bool Predicate<T>(T arg);
 
+typedef void CreateTest(Path filePath,
+                        bool isNegative,
+                        {bool isNegativeIfChecked,
+                         bool hasFatalTypeErrors,
+                         bool hasRuntimeErrors,
+                         Set<String> multitestOutcome});
+
+typedef void VoidFunction();
 
 /**
  * A TestSuite represents a collection of tests.  It creates a [TestCase]
@@ -47,7 +55,7 @@ interface TestSuite {
    * cache information about the test suite, so that directories do not need
    * to be listed each time.
    */
-  void forEachTest(Function onTest, Map testCache, [Function onDone]);
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]);
 }
 
 
@@ -101,8 +109,8 @@ class CCTestSuite implements TestSuite {
   String runnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   ReceivePort receiveTestName;
   TestExpectations testExpectations;
 
@@ -118,7 +126,7 @@ class CCTestSuite implements TestSuite {
   void testNameHandler(String testName, ignore) {
     if (testName == "") {
       receiveTestName.close();
-      doDone(true);
+      doDone();
     } else {
       // Only run the tests that match the pattern. Use the name
       // "suiteName/testName" for cc tests.
@@ -148,9 +156,9 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
     doTest = onTest;
-    doDone = (ignore) => (onDone != null) ? onDone() : null;
+    doDone = () => (onDone != null) ? onDone() : null;
 
     var filesRead = 0;
     void statusFileRead() {
@@ -203,8 +211,8 @@ class StandardTestSuite implements TestSuite {
   String suiteName;
   Path suiteDir;
   List<String> statusFilePaths;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   int activeTestGenerators = 0;
   bool listingDone = false;
   TestExpectations testExpectations;
@@ -277,7 +285,7 @@ class StandardTestSuite implements TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
     // If DumpRenderTree/Dartium is required, and not yet updated,
     // wait for update.
     var updater = runtimeUpdater(configuration);
@@ -503,13 +511,13 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  Function makeTestCaseCreator(Map optionsFromFile) {
+  CreateTest makeTestCaseCreator(Map optionsFromFile) {
     return (Path filePath,
             bool isNegative,
-            [bool isNegativeIfChecked = false,
-             bool hasFatalTypeErrors = false,
-             bool hasRuntimeErrors = false,
-             Set<String> multitestOutcome = null]) {
+            {bool isNegativeIfChecked: false,
+             bool hasFatalTypeErrors: false,
+             bool hasRuntimeErrors: false,
+             Set<String> multitestOutcome: null}) {
       // Cache the test information for each test case.
       var info = new TestInformation(filePath,
                                      optionsFromFile,
@@ -533,7 +541,7 @@ class StandardTestSuite implements TestSuite {
     if (filePath.filename.endsWith('test_config.dart')) return;
 
     var optionsFromFile = readOptionsFromFile(filePath);
-    Function createTestCase = makeTestCaseCreator(optionsFromFile);
+    CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
       testGeneratorStarted();
@@ -1134,8 +1142,8 @@ class JUnitTestSuite implements TestSuite {
   String buildDir;
   String classPath;
   List<String> testClasses;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   TestExpectations testExpectations;
 
   JUnitTestSuite(Map this.configuration,
@@ -1148,9 +1156,9 @@ class JUnitTestSuite implements TestSuite {
       !filename.contains('com/google/dart/compiler/vm') &&
       !filename.contains('com/google/dart/corelib/SharedTests.java');
 
-  void forEachTest(Function onTest,
+  void forEachTest(TestCaseEvent onTest,
                    Map testCacheIgnored,
-                   [Function onDone = null]) {
+                   [VoidFunction onDone]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
 

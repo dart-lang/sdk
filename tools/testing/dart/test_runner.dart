@@ -20,6 +20,10 @@
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
+typedef void TestCaseEvent(TestCase testCase);
+typedef void ExitCodeEvent(int exitCode);
+typedef bool EnqueMoreWork(ProcessQueue queue);
+
 /** A command executed as a step in a test case. */
 class Command {
   /** Path to the executable of this command. */
@@ -74,7 +78,7 @@ class TestCase {
   TestOutput output;
   bool isNegative;
   Set<String> expectedOutcomes;
-  Function completedHandler;
+  TestCaseEvent completedHandler;
   TestInformation info;
 
   TestCase(this.displayName,
@@ -525,7 +529,6 @@ class RunningProcess {
   Timer timeoutTimer;
   List<String> stdout;
   List<String> stderr;
-  List<Function> handlers;
   bool allowRetries;
 
   /** Which command of [testCase.commands] is currently being executed. */
@@ -599,15 +602,16 @@ class RunningProcess {
     }
   }
 
-  Function makeReadHandler(StringInputStream source, List<String> destination) {
-    return () {
+  VoidFunction makeReadHandler(StringInputStream source, List<String> destination) {
+    void handler () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
         destination.add(line);
         line = source.readLine();
       }
-    };
+    }
+    return handler;
   }
 
   void start() {
@@ -787,9 +791,9 @@ class BatchRunnerProcess {
     if (_stderrDrained) _reportResult();
   }
 
-  Function _readStdout(StringInputStream stream, List<String> buffer) {
+  VoidFunction _readStdout(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    return () {
+    void reader() {
       if (ignoreStreams.value) {
          while (stream.readLine() != null) {
           // Do nothing.
@@ -814,17 +818,18 @@ class BatchRunnerProcess {
         _timer.cancel();
         _stdoutDone();
       }
-    };
+    }
+    return reader;
   }
 
-  Function _readStderr(StringInputStream stream, List<String> buffer) {
+  VoidFunction _readStderr(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    return () {
+    void reader() {
       if (ignoreStreams.value) {
         while (stream.readLine() != null) {
-	  // Do nothing.
+          // Do nothing.
         }
-	return;
+        return;
       }
       // Otherwise, process output and call _reportResult() when done.
       var line = stream.readLine();
@@ -836,11 +841,12 @@ class BatchRunnerProcess {
         }
         line = stream.readLine();
       }
-    };
+    }
+    return reader;
   }
 
-  Function makeExitHandler(String status) {
-    return (exitCode) {
+  ExitCodeEvent makeExitHandler(String status) {
+    void handler(int exitCode) {
       if (active) {
         if (_timer != null) _timer.cancel();
         _status = status;
@@ -864,7 +870,8 @@ class BatchRunnerProcess {
         _process.close();
         _process = null;
       }
-    };
+    }
+    return handler;
   }
 
   void _timeoutHandler(ignore) {
@@ -909,7 +916,7 @@ class ProcessQueue {
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
-  Function _enqueueMoreWork;
+  EnqueMoreWork _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
 
@@ -943,7 +950,7 @@ class ProcessQueue {
                String progress,
                Date startTime,
                bool printTiming,
-               Function this._enqueueMoreWork,
+               this._enqueueMoreWork,
                [bool verbose = false,
                 bool listTests = false])
       : _verbose = verbose,
@@ -1064,8 +1071,8 @@ class ProcessQueue {
    * begin running tests.
    * source: Output(Stream) from the Java server.
    */
-  Function makeSeleniumServerHandler(StringInputStream source) {
-    return () {
+  VoidFunction makeSeleniumServerHandler(StringInputStream source) {
+    void handler() {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
@@ -1076,7 +1083,8 @@ class ProcessQueue {
         }
         line = source.readLine();
       }
-    };
+    }
+    return handler;
   }
 
   /**
@@ -1168,8 +1176,8 @@ class ProcessQueue {
         }
       }
       _progress.start(test);
-      Function oldCallback = test.completedHandler;
-      Function wrapper = (TestCase test_arg) {
+      TestCaseEvent oldCallback = test.completedHandler;
+      void wrapper(TestCase test_arg) {
         _numProcesses--;
         _progress.done(test_arg);
         _tryRunTest();
