@@ -117,6 +117,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # generated on merged interface implementation instead.
     return False
 
+  def HasCustomEventImplementation(self, member_name):
+    return False
+
   def StartInterface(self):
     # Create emitters for c++ implementation.
     if self.HasImplementation():

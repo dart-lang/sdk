@@ -12597,6 +12597,9 @@ class _ElementFactoryProvider {
   static Element createElement_tag(String tag)
       native "return document.createElement(tag)";
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   _ElementEventsImpl(_ptr) : super(_ptr);
@@ -12667,8 +12670,6 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
   EventListenerList get mouseUp => this['mouseup'];
 
-  EventListenerList get mouseWheel => this['mousewheel'];
-
   EventListenerList get paste => this['paste'];
 
   EventListenerList get reset => this['reset'];
@@ -12696,6 +12697,19 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get touchStart => this['touchstart'];
 
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+
+  EventListenerList get mouseWheel {
+    if (JS('bool', '#.onwheel !== undefined', _ptr)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return this['wheel'];
+    } else if (JS('bool', '#.onmousewheel !== undefined', _ptr)) {
+      // Chrome & IE
+      return this['mousewheel'];
+    } else {
+      // Firefox
+      return this['DOMMouseScroll'];
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37664,38 +37678,106 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 /// @domName WheelEvent
 abstract class WheelEvent implements MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   abstract bool get webkitDirectionInvertedFromDevice;
 
-  /** @domName WheelEvent.wheelDelta */
-  abstract int get wheelDelta;
-
-  /** @domName WheelEvent.wheelDeltaX */
-  abstract int get wheelDeltaX;
-
-  /** @domName WheelEvent.wheelDeltaY */
-  abstract int get wheelDeltaY;
-
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+
+
+  /** @domName WheelEvent.deltaX */
+  num get deltaX;
+
+  /** @domName WheelEvent.deltaY */
+  num get deltaY;
+
+  /** @domName WheelEvent.deltaMode */
+  int get deltaMode;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*WheelEvent" {
 
   final bool webkitDirectionInvertedFromDevice;
 
-  final int wheelDelta;
-
-  final int wheelDeltaX;
-
-  final int wheelDeltaY;
-
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+
+
+  num get deltaY {
+    if (JS('bool', '#.deltaY !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaY;
+    } else if (JS('bool', '#.wheelDelta !== undefined', this)) {
+      // Chrome and IE
+      return this._wheelDelta;
+    } else if (JS('bool', '#.detail !== undefined', this)) {
+      // Firefox
+
+      // Handle DOMMouseScroll case where it uses detail and the axis to
+      // differentiate.
+      if (JS('bool', '#.axis == MouseScrollEvent.VERTICAL_AXIS', this)) {
+        var detail = this._detail;
+        // Firefox is normally the number of lines to scale (normally 3)
+        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
+        if (detail < 100) {
+          return detail * 40;
+        }
+        return detail;
+      }
+      return 0;
+    }
+    throw const UnsupportedOperationException(
+        'deltaY is not supported');
+  }
+
+  num get deltaX {
+    if (JS('bool', '#.deltaX !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaX;
+    } else if (JS('bool', '#.wheelDeltaX !== undefined', this)) {
+      // Chrome
+      return this._wheelDeltaX;
+    } else if (JS('bool', '#.detail !== undefined', this)) {
+      // Firefox and IE.
+      // IE will have detail set but will not set axis.
+
+      // Handle DOMMouseScroll case where it uses detail and the axis to
+      // differentiate.
+      if (JS('bool', '#.axis !== undefined && #.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
+        var detail = this._detail;
+        // Firefox is normally the number of lines to scale (normally 3)
+        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
+        if (detail < 100) {
+          return detail * 40;
+        }
+        return detail;
+      }
+      return 0;
+    }
+    throw const UnsupportedOperationException(
+        'deltaX is not supported');
+  }
+
+  int get deltaMode {
+    if (JS('bool', '!!#.deltaMode', this)) {
+      // If not available then we're poly-filling and doing pixel scroll.
+      return 0;
+    }
+    return this._deltaMode;
+  }
+
+  num get _deltaY() native 'return this.deltaY';
+  num get _deltaX() native 'return this.deltaX';
+  num get _wheelDelta() native 'return this.wheelDelta';
+  num get _wheelDeltaX() native 'return this.wheelDeltaX';
+  num get _detail() native 'return this.detail';
+  int get _deltaMode() native 'return this.deltaMode';
+
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42042,6 +42124,11 @@ class _Device {
    * Determines if the current device is running Firefox.
    */
   static bool get isFirefox => userAgent.contains("Firefox", 0);
+
+  /**
+   * Determines if the current device is running WebKit.
+   */
+  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

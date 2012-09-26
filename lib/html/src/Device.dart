@@ -27,4 +27,9 @@ class _Device {
    * Determines if the current device is running Firefox.
    */
   static bool get isFirefox => userAgent.contains("Firefox", 0);
+
+  /**
+   * Determines if the current device is running WebKit.
+   */
+  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
 }

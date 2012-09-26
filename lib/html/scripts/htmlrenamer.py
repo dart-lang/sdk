@@ -270,6 +270,9 @@ _removed_html_members = set([
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     'ShadowRoot.getElementsByTagNameNS',
     "IFrameElement.get:contentDocument",
+    "WheelEvent.wheelDelta",
+    "WheelEvent.wheelDeltaX",
+    "WheelEvent.wheelDeltaY",
     "Window.get:frameElement",
     ])
 

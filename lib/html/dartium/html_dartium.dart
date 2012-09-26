@@ -40484,43 +40484,39 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 /// @domName WheelEvent
 abstract class WheelEvent implements MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   abstract bool get webkitDirectionInvertedFromDevice;
 
-  /** @domName WheelEvent.wheelDelta */
-  abstract int get wheelDelta;
-
-  /** @domName WheelEvent.wheelDeltaX */
-  abstract int get wheelDeltaX;
-
-  /** @domName WheelEvent.wheelDeltaY */
-  abstract int get wheelDeltaY;
-
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+
+
+  /** @domName WheelEvent.deltaX */
+  num get deltaX;
+
+  /** @domName WheelEvent.deltaY */
+  num get deltaY;
+
+  /** @domName WheelEvent.deltaMode */
+  int get deltaMode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 
   bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
-  int get wheelDelta native "WheelEvent_wheelDelta_Getter";
-
-  int get wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
-
-  int get wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
-
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+
+
+  num get deltaY native 'WheelEvent_wheelDelta_Getter';
+  num get deltaX native 'WheelEvent_wheelDeltaX_Getter';
+  int get deltaMode => 0;
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -43500,6 +43496,11 @@ class _Device {
    * Determines if the current device is running Firefox.
    */
   static bool get isFirefox => userAgent.contains("Firefox", 0);
+
+  /**
+   * Determines if the current device is running WebKit.
+   */
+  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

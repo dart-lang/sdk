@@ -16,6 +16,7 @@ _js_custom_members = set([
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
+    'ElementEvents.mouseWheel',
     'IDBDatabase.transaction',
     'IFrameElement.contentWindow',
     'MouseEvent.offsetX',
@@ -711,12 +712,16 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         PARENTS=', '.join(
             self._shared.GetParentsEventsClasses(self._interface)))
 
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    implementation_events_members = self._implementation_emitter.Emit(
+    template_file = 'impl_%s.darttemplate' % events_interface
+    template = (self._backend._system._templates.TryLoad(template_file) or
         '\n'
         'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
         '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n',
+        '$!MEMBERS}\n')
+
+    # TODO(jacobr): specify the type of _ptr as EventTarget
+    implementation_events_members = self._implementation_emitter.Emit(
+        template,
         CLASSNAME=events_class,
         INTERFACE=events_interface,
         SUPER=parent_events_class)
@@ -724,13 +729,15 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
     for event_name in event_attrs:
       if event_name in _html_event_names:
+        dart_event_name = _html_event_names[event_name]
         events_members.Emit('\n  EventListenerList get $NAME;\n',
-          NAME=_html_event_names[event_name])
-        implementation_events_members.Emit(
-            "\n"
-            "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
-            NAME=_html_event_names[event_name],
-            DOM_NAME=event_name)
+          NAME=dart_event_name)
+        if not self._backend.HasCustomEventImplementation(dart_event_name):
+          implementation_events_members.Emit(
+              "\n"
+              "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
+              NAME=dart_event_name,
+              DOM_NAME=event_name)
       else:
         raise Exception('No known html even name for event: ' + event_name)
 
@@ -1208,6 +1215,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
 
   def _HasCustomImplementation(self, member_name):
     member_name = '%s.%s' % (self._html_interface_name, member_name)
+    return member_name in _js_custom_members
+
+  def HasCustomEventImplementation(self, member_name):
+    member_name = '%sEvents.%s' % (self._html_interface_name, member_name)
     return member_name in _js_custom_members
 
   def _HasJavaScriptIndexingBehaviour(self):

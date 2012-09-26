@@ -1,0 +1,20 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME extends $SUPER implements $INTERFACE {
+  $CLASSNAME(_ptr) : super(_ptr);
+$!MEMBERS
+  EventListenerList get mouseWheel {
+    if (JS('bool', '#.onwheel !== undefined', _ptr)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return this['wheel'];
+    } else if (JS('bool', '#.onmousewheel !== undefined', _ptr)) {
+      // Chrome & IE
+      return this['mousewheel'];
+    } else {
+      // Firefox
+      return this['DOMMouseScroll'];
+    }
+  }
+}

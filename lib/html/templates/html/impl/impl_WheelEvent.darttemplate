@@ -1,0 +1,85 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+$if DART2JS
+  num get deltaY {
+    if (JS('bool', '#.deltaY !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaY;
+    } else if (JS('bool', '#.wheelDelta !== undefined', this)) {
+      // Chrome and IE
+      return this._wheelDelta;
+    } else if (JS('bool', '#.detail !== undefined', this)) {
+      // Firefox
+
+      // Handle DOMMouseScroll case where it uses detail and the axis to
+      // differentiate.
+      if (JS('bool', '#.axis == MouseScrollEvent.VERTICAL_AXIS', this)) {
+        var detail = this._detail;
+        // Firefox is normally the number of lines to scale (normally 3)
+        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
+        if (detail < 100) {
+          return detail * 40;
+        }
+        return detail;
+      }
+      return 0;
+    }
+    throw const UnsupportedOperationException(
+        'deltaY is not supported');
+  }
+
+  num get deltaX {
+    if (JS('bool', '#.deltaX !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaX;
+    } else if (JS('bool', '#.wheelDeltaX !== undefined', this)) {
+      // Chrome
+      return this._wheelDeltaX;
+    } else if (JS('bool', '#.detail !== undefined', this)) {
+      // Firefox and IE.
+      // IE will have detail set but will not set axis.
+
+      // Handle DOMMouseScroll case where it uses detail and the axis to
+      // differentiate.
+      if (JS('bool', '#.axis !== undefined && #.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
+        var detail = this._detail;
+        // Firefox is normally the number of lines to scale (normally 3)
+        // so multiply it by 40 to get pixels to move, matching IE & WebKit.
+        if (detail < 100) {
+          return detail * 40;
+        }
+        return detail;
+      }
+      return 0;
+    }
+    throw const UnsupportedOperationException(
+        'deltaX is not supported');
+  }
+
+  int get deltaMode {
+    if (JS('bool', '!!#.deltaMode', this)) {
+      // If not available then we're poly-filling and doing pixel scroll.
+      return 0;
+    }
+    return this._deltaMode;
+  }
+
+  num get _deltaY() native 'return this.deltaY';
+  num get _deltaX() native 'return this.deltaX';
+  num get _wheelDelta() native 'return this.wheelDelta';
+  num get _wheelDeltaX() native 'return this.wheelDeltaX';
+  num get _detail() native 'return this.detail';
+  int get _deltaMode() native 'return this.deltaMode';
+
+$else
+  num get deltaY native 'WheelEvent_wheelDelta_Getter';
+  num get deltaX native 'WheelEvent_wheelDeltaX_Getter';
+  int get deltaMode => 0;
+
+$endif
+}
