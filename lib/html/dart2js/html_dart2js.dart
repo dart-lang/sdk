@@ -16428,17 +16428,17 @@ abstract class IDBKeyRange {
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
 
-  /** @domName IDBKeyRange.bound */
-  static final bound = _IDBKeyRangeImpl.bound;
+  /** @domName IDBKeyRange.bound_ */
+  static final bound_ = _IDBKeyRangeImpl.bound_;
 
-  /** @domName IDBKeyRange.lowerBound */
-  static final lowerBound = _IDBKeyRangeImpl.lowerBound;
+  /** @domName IDBKeyRange.lowerBound_ */
+  static final lowerBound_ = _IDBKeyRangeImpl.lowerBound_;
 
-  /** @domName IDBKeyRange.only */
-  static final only = _IDBKeyRangeImpl.only;
+  /** @domName IDBKeyRange.only_ */
+  static final only_ = _IDBKeyRangeImpl.only_;
 
-  /** @domName IDBKeyRange.upperBound */
-  static final upperBound = _IDBKeyRangeImpl.upperBound;
+  /** @domName IDBKeyRange.upperBound_ */
+  static final upperBound_ = _IDBKeyRangeImpl.upperBound_;
 }
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
@@ -16453,52 +16453,52 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
   final bool upperOpen;
 
-  static _IDBKeyRangeImpl bound(lower, upper, [lowerOpen, upperOpen]) {
+  static _IDBKeyRangeImpl bound_(lower, upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
       var upper_2 = _convertDartToNative_IDBKey(upper);
-      return _bound_1(lower_1, upper_2, lowerOpen, upperOpen);
+      return _bound__1(lower_1, upper_2, lowerOpen, upperOpen);
     }
     if (?lowerOpen) {
       var lower_3 = _convertDartToNative_IDBKey(lower);
       var upper_4 = _convertDartToNative_IDBKey(upper);
-      return _bound_2(lower_3, upper_4, lowerOpen);
+      return _bound__2(lower_3, upper_4, lowerOpen);
     }
     var lower_5 = _convertDartToNative_IDBKey(lower);
     var upper_6 = _convertDartToNative_IDBKey(upper);
-    return _bound_3(lower_5, upper_6);
+    return _bound__3(lower_5, upper_6);
   }
-  _IDBKeyRangeImpl _bound_1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
-  _IDBKeyRangeImpl _bound_2(lower, upper, bool lowerOpen) native "bound";
-  _IDBKeyRangeImpl _bound_3(lower, upper) native "bound";
+  _IDBKeyRangeImpl _bound__1(lower, upper, bool lowerOpen, bool upperOpen) native "bound";
+  _IDBKeyRangeImpl _bound__2(lower, upper, bool lowerOpen) native "bound";
+  _IDBKeyRangeImpl _bound__3(lower, upper) native "bound";
 
-  static _IDBKeyRangeImpl lowerBound(bound, [open]) {
+  static _IDBKeyRangeImpl lowerBound_(bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _lowerBound_1(bound_1, open);
+      return _lowerBound__1(bound_1, open);
     }
     var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _lowerBound_2(bound_2);
+    return _lowerBound__2(bound_2);
   }
-  _IDBKeyRangeImpl _lowerBound_1(bound, bool open) native "lowerBound";
-  _IDBKeyRangeImpl _lowerBound_2(bound) native "lowerBound";
+  _IDBKeyRangeImpl _lowerBound__1(bound, bool open) native "lowerBound";
+  _IDBKeyRangeImpl _lowerBound__2(bound) native "lowerBound";
 
-  static _IDBKeyRangeImpl only(value) {
+  static _IDBKeyRangeImpl only_(value) {
     var value_1 = _convertDartToNative_IDBKey(value);
-    return _only_1(value_1);
+    return _only__1(value_1);
   }
-  _IDBKeyRangeImpl _only_1(value) native "only";
+  _IDBKeyRangeImpl _only__1(value) native "only";
 
-  static _IDBKeyRangeImpl upperBound(bound, [open]) {
+  static _IDBKeyRangeImpl upperBound_(bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _upperBound_1(bound_1, open);
+      return _upperBound__1(bound_1, open);
     }
     var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _upperBound_2(bound_2);
+    return _upperBound__2(bound_2);
   }
-  _IDBKeyRangeImpl _upperBound_1(bound, bool open) native "upperBound";
-  _IDBKeyRangeImpl _upperBound_2(bound) native "upperBound";
+  _IDBKeyRangeImpl _upperBound__1(bound, bool open) native "upperBound";
+  _IDBKeyRangeImpl _upperBound__2(bound) native "upperBound";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37714,6 +37714,12 @@ abstract class Window implements EventTarget {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  void cancelAnimationFrame(int id);
+
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
@@ -37990,7 +37996,10 @@ abstract class Window implements EventTarget {
   void stop();
 
   /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
+  void webkitCancelAnimationFrame(int id);
+
+  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
+  void webkitCancelRequestAnimationFrame(int id);
 
   /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
@@ -38002,7 +38011,7 @@ abstract class Window implements EventTarget {
   void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
@@ -38470,11 +38479,17 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void stop() native;
 
+  void webkitCancelAnimationFrame(int id) native;
+
+  void webkitCancelRequestAnimationFrame(int id) native;
+
   _PointImpl webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
 
   _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
 
   void webkitPostMessage(message, String targetOrigin, [List transferList]) native;
+
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 

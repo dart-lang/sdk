@@ -108,9 +108,6 @@ _renamed_html_members = {
     'SVGElement.className': '$dom_svgClassName',
     'SVGAnimatedString.className': '$dom_svgClassName',
     'SVGStylable.className': '$dom_svgClassName',
-    'Window.webkitCancelAnimationFrame': 'cancelAnimationFrame',
-    'Window.webkitCancelRequestAnimationFrame': 'cancelRequestAnimationFrame',
-    'Window.webkitRequestAnimationFrame': 'requestAnimationFrame',
 }
 
 # Members and classes from the dom that should be removed completely from
@@ -274,7 +271,6 @@ _removed_html_members = set([
     'ShadowRoot.getElementsByTagNameNS',
     "IFrameElement.get:contentDocument",
     "Window.get:frameElement",
-    "Window.webkitCancelRequestAnimationFrame",
     ])
 
 class HtmlRenamer(object):

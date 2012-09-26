@@ -77,6 +77,7 @@ websql_test: Fail # IE does not support web SQL
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test: Fail
+callbacks_test: Fail
 canvas_test: Fail
 canvas_using_html_test: Fail
 css_test: Fail
@@ -116,6 +117,7 @@ svgelement2_test: Fail
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
+callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 contentelement_test: Fail    # FF does not support content element.

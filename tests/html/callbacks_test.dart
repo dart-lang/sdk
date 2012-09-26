@@ -6,6 +6,6 @@
 main() {
   useHtmlConfiguration();
   test('RequestAnimationFrameCallback', () {
-    window.requestAnimationFrame((int time) => false);
+    window.webkitRequestAnimationFrame((int time) => false);
   });
 }

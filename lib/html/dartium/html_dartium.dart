@@ -17888,17 +17888,17 @@ abstract class IDBKeyRange {
   /** @domName IDBKeyRange.upperOpen */
   abstract bool get upperOpen;
 
-  /** @domName IDBKeyRange.bound */
-  static final bound = _IDBKeyRangeImpl.bound;
+  /** @domName IDBKeyRange.bound_ */
+  static final bound_ = _IDBKeyRangeImpl.bound_;
 
-  /** @domName IDBKeyRange.lowerBound */
-  static final lowerBound = _IDBKeyRangeImpl.lowerBound;
+  /** @domName IDBKeyRange.lowerBound_ */
+  static final lowerBound_ = _IDBKeyRangeImpl.lowerBound_;
 
-  /** @domName IDBKeyRange.only */
-  static final only = _IDBKeyRangeImpl.only;
+  /** @domName IDBKeyRange.only_ */
+  static final only_ = _IDBKeyRangeImpl.only_;
 
-  /** @domName IDBKeyRange.upperBound */
-  static final upperBound = _IDBKeyRangeImpl.upperBound;
+  /** @domName IDBKeyRange.upperBound_ */
+  static final upperBound_ = _IDBKeyRangeImpl.upperBound_;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17916,7 +17916,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound(lower, upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(lower, upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -17932,7 +17932,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound(bound, [open]) {
+  static IDBKeyRange lowerBound_(bound, [open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -17943,9 +17943,9 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
-  static IDBKeyRange only(value) native "IDBKeyRange_only_Callback";
+  static IDBKeyRange only_(value) native "IDBKeyRange_only__Callback";
 
-  static IDBKeyRange upperBound(bound, [open]) {
+  static IDBKeyRange upperBound_(bound, [open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -40540,6 +40540,12 @@ abstract class Window implements EventTarget {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  void cancelAnimationFrame(int id);
+
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
@@ -40816,7 +40822,10 @@ abstract class Window implements EventTarget {
   void stop();
 
   /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
+  void webkitCancelAnimationFrame(int id);
+
+  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
+  void webkitCancelRequestAnimationFrame(int id);
 
   /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
@@ -40828,7 +40837,7 @@ abstract class Window implements EventTarget {
   void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
@@ -41150,6 +41159,11 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
     _addMeasurementFrameCallback(callback);
   }
 
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
+      webkitRequestAnimationFrame(callback);
+
+  void cancelAnimationFrame(int id) => webkitCancelAnimationFrame(id);
+
   // TODO(kasperl): Document these.
   lookupPort(String name) {
     var port = JSON.parse(localStorage['dart-port:$name']);
@@ -41350,7 +41364,9 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   void stop() native "DOMWindow_stop_Callback";
 
-  void cancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+
+  void webkitCancelRequestAnimationFrame(int id) native "DOMWindow_webkitCancelRequestAnimationFrame_Callback";
 
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
@@ -41358,7 +41374,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
 
   void webkitPostMessage(message, String targetOrigin, [List transferList]) native "DOMWindow_webkitPostMessage_Callback";
 
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 

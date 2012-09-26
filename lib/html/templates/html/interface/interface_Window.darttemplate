@@ -27,6 +27,12 @@ abstract class $ID$EXTENDS {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  void cancelAnimationFrame(int id);
+
   /**
    * Creates a new object URL for the specified object. The URL will be
    * available until revokeObjectUrl is called.
