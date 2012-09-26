@@ -561,7 +561,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 Language/10_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
 

@@ -1332,7 +1332,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // for us here?
       LibraryElement library = body.getLibrary();
       Selector selector = new Selector.call(name, library, arity);
-      add(new HInvokeDynamicMethod(selector, bodyCallInputs));
+      HInstruction invoke = new HInvokeDynamicMethod(selector, bodyCallInputs);
+      invoke.element = body;
+      add(invoke);
     }
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();

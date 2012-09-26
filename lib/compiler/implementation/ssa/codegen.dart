@@ -1469,12 +1469,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     SourceString name = node.selector.name;
     String methodName;
     List<js.Expression> arguments;
+    Element target = node.element;
 
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
-    if (node.inputs[0] is HForeignNew) {
-      // TODO(ahe): The constructor name was statically resolved in
-      // SsaBuilder.buildFactory. Is there a cleaner way to do this?
+    if (target != null && target.isGenerativeConstructorBody()) {
       methodName = name.slowToString();
       arguments = visitArguments(node.inputs);
     } else {
@@ -1490,7 +1489,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
       // with the same arguments.
-      Element target = node.element;
       if (target === null || target.isGetter()) {
         // TODO(kasperl): If we have a typed selector for the call, we
         // may know something about the types of closures that need
