@@ -544,7 +544,7 @@ dart2js_conversions = {
               '_convertDartToNative_StringArray', 'List<String>', 'List'),
         },
 
-    'SerializedScriptValue': {
+    'any': {
         'set IDBObjectStore.add':
           Conversion('_convertDartToNative_SerializedScriptValue',
                      'Dynamic', 'Dynamic'),

@@ -20,7 +20,7 @@ abstract class $ID$EXTENDS {
    * Removes this node from the DOM.
    * @domName Node.removeChild
    */
-  Node remove();
+  void remove();
 
 $!MEMBERS
 }
