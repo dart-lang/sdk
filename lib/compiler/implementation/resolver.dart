@@ -1585,10 +1585,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
     }
 
-    var interceptor =
-        new Interceptors(compiler).getStaticInterceptorBySelector(selector);
-    if (interceptor !== null) {
-      world.registerStaticUse(interceptor);
+    if (target == null) {
+      // If we haven't found an element for this send, it might be a
+      // dynamic send on a primitive value. If there is an interceptor
+      // for that send, register it.
+      var interceptor =
+          new Interceptors(compiler).getStaticInterceptorBySelector(selector);
+      if (interceptor !== null) {
+        world.registerStaticUse(interceptor);
+      }
     }
   }
 
