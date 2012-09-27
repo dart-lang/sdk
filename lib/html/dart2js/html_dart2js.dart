@@ -31391,7 +31391,14 @@ abstract class ShadowRoot implements DocumentFragment {
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
+
+  static bool get supported => _ShadowRootImpl.supported;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
 
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native "*ShadowRoot" {
 
@@ -31412,6 +31419,9 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
   _NodeListImpl $dom_getElementsByTagName(String tagName) native "getElementsByTagName";
 
   _DOMSelectionImpl getSelection() native;
+
+  static bool get supported =>
+      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39537,7 +39547,7 @@ class _SessionDescriptionFactoryProvider {
 
 class _ShadowRootFactoryProvider {
   static ShadowRoot createShadowRoot(Element host) native '''
-      return new WebKitShadowRoot(host);
+      return new (window.ShadowRoot || window.WebKitShadowRoot)(host);
     ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -8258,7 +8258,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
 
-  void set lineDashOffset(num) native "CanvasRenderingContext2D_lineDashOffset_Setter";
+  void set lineDashOffset(num value) native "CanvasRenderingContext2D_lineDashOffset_Setter";
 
   String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
@@ -34095,6 +34095,8 @@ abstract class ShadowRoot implements DocumentFragment {
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
+
+  static bool get supported => _ShadowRootImpl.supported;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34128,6 +34130,15 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
+  static bool get supported {
+    // TODO: move this to native code.
+    try {
+      new ShadowRoot(new DivElement());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+$if DART2JS
+  static bool get supported =>
+      JS('bool', '!!(window.ShadowRoot || window.WebKitShadowRoot)');
+$else
+  static bool get supported {
+    // TODO: move this to native code.
+    try {
+      new ShadowRoot(new DivElement());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+$endif
+}

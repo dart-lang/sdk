@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class $FACTORYPROVIDER {
-  static ShadowRoot createShadowRoot(Element host) native '''
-      return new (window.ShadowRoot || window.WebKitShadowRoot)(host);
-    ''';
+// WARNING: Do not edit - generated code.
+
+$!COMMENT
+abstract class $ID$EXTENDS {
+$!MEMBERS
+  static bool get supported => _$(ID)Impl.supported;
 }
