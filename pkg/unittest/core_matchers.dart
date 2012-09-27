@@ -238,7 +238,7 @@ class isInstanceOf<T> extends BaseMatcher {
  *     return immediately and execution will continue. Later, when the future
  *     completes, the actual expectation will run.
  */
-const Matcher throws = const _Throws();
+const Matcher throws = const Throws();
 
 /**
  * This can be used to match two kinds of objects:
@@ -257,7 +257,7 @@ const Matcher throws = const _Throws();
  * object matches [matcher]. If [matcher] is not an instance of [Matcher], it
  * will implicitly be treated as `equals(matcher)`.
  */
-Matcher throwsA(matcher) => new _Throws(wrapMatcher(matcher));
+Matcher throwsA(matcher) => new Throws(wrapMatcher(matcher));
 
 /**
  * A matcher that matches a function call against no exception.
@@ -268,10 +268,10 @@ Matcher throwsA(matcher) => new _Throws(wrapMatcher(matcher));
  */
 const Matcher returnsNormally = const _ReturnsNormally();
 
-class _Throws extends BaseMatcher {
+class Throws extends BaseMatcher {
   final Matcher _matcher;
 
-  const _Throws([Matcher matcher]) :
+  const Throws([Matcher matcher]) :
     this._matcher = matcher;
 
   bool matches(item, MatchState matchState) {
@@ -393,9 +393,9 @@ class _ReturnsNormally extends BaseMatcher {
  * for each exception type.
  */
 
-/* abstract */ class _ExceptionMatcher extends BaseMatcher {
+/* abstract */ class ExceptionMatcher extends BaseMatcher {
   final String _name;
-  const _ExceptionMatcher(this._name);
+  const ExceptionMatcher(this._name);
   Description describe(Description description) =>
       description.add(_name);
 }
@@ -405,9 +405,9 @@ const isFormatException = const _FormatException();
 
 /** A matcher for functions that throw FormatException */
 const Matcher throwsFormatException =
-    const _Throws(isFormatException);
+    const Throws(isFormatException);
 
-class _FormatException extends _ExceptionMatcher {
+class _FormatException extends ExceptionMatcher {
   const _FormatException() : super("FormatException");
   bool matches(item, MatchState matchState) => item is FormatException;
 }
@@ -416,9 +416,9 @@ class _FormatException extends _ExceptionMatcher {
 const isException = const _Exception();
 
 /** A matcher for functions that throw Exception */
-const Matcher throwsException = const _Throws(isException);
+const Matcher throwsException = const Throws(isException);
 
-class _Exception extends _ExceptionMatcher {
+class _Exception extends ExceptionMatcher {
   const _Exception() : super("Exception");
   bool matches(item, MatchState matchState) => item is Exception;
 }
@@ -428,9 +428,9 @@ const isArgumentError = const _ArgumentError();
 
 /** A matcher for functions that throw ArgumentError */
 const Matcher throwsArgumentError =
-    const _Throws(isArgumentError);
+    const Throws(isArgumentError);
 
-class _ArgumentError extends _ExceptionMatcher {
+class _ArgumentError extends ExceptionMatcher {
   const _ArgumentError() : super("ArgumentError");
   bool matches(item, MatchState matchState) => item is ArgumentError;
 }
@@ -440,9 +440,9 @@ const isIllegalJSRegExpException = const _IllegalJSRegExpException();
 
 /** A matcher for functions that throw IllegalJSRegExpException */
 const Matcher throwsIllegalJSRegExpException =
-    const _Throws(isIllegalJSRegExpException);
+    const Throws(isIllegalJSRegExpException);
 
-class _IllegalJSRegExpException extends _ExceptionMatcher {
+class _IllegalJSRegExpException extends ExceptionMatcher {
   const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
   bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
 }
@@ -452,9 +452,9 @@ const isIndexOutOfRangeException = const _IndexOutOfRangeException();
 
 /** A matcher for functions that throw IndexOutOfRangeException */
 const Matcher throwsIndexOutOfRangeException =
-    const _Throws(isIndexOutOfRangeException);
+    const Throws(isIndexOutOfRangeException);
 
-class _IndexOutOfRangeException extends _ExceptionMatcher {
+class _IndexOutOfRangeException extends ExceptionMatcher {
   const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
   bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
 }
@@ -464,9 +464,9 @@ const isNoSuchMethodError = const _NoSuchMethodError();
 
 /** A matcher for functions that throw NoSuchMethodError */
 const Matcher throwsNoSuchMethodError =
-    const _Throws(isNoSuchMethodError);
+    const Throws(isNoSuchMethodError);
 
-class _NoSuchMethodError extends _ExceptionMatcher {
+class _NoSuchMethodError extends ExceptionMatcher {
   const _NoSuchMethodError() : super("NoSuchMethodError");
   bool matches(item, MatchState matchState) => item is NoSuchMethodError;
 }
@@ -476,9 +476,9 @@ const isNotImplementedException = const _NotImplementedException();
 
 /** A matcher for functions that throw Exception */
 const Matcher throwsNotImplementedException =
-    const _Throws(isNotImplementedException);
+    const Throws(isNotImplementedException);
 
-class _NotImplementedException extends _ExceptionMatcher {
+class _NotImplementedException extends ExceptionMatcher {
   const _NotImplementedException() : super("NotImplementedException");
   bool matches(item, MatchState matchState) => item is NotImplementedException;
 }
@@ -488,9 +488,9 @@ const isNullPointerException = const _NullPointerException();
 
 /** A matcher for functions that throw NotNullPointerException */
 const Matcher throwsNullPointerException =
-    const _Throws(isNullPointerException);
+    const Throws(isNullPointerException);
 
-class _NullPointerException extends _ExceptionMatcher {
+class _NullPointerException extends ExceptionMatcher {
   const _NullPointerException() : super("NullPointerException");
   bool matches(item, MatchState matchState) => item is NullPointerException;
 }
@@ -500,12 +500,13 @@ const isUnsupportedOperationException = const _UnsupportedOperationException();
 
 /** A matcher for functions that throw UnsupportedOperationException */
 const Matcher throwsUnsupportedOperationException =
-    const _Throws(isUnsupportedOperationException);
+    const Throws(isUnsupportedOperationException);
 
-class _UnsupportedOperationException extends _ExceptionMatcher {
+class _UnsupportedOperationException extends ExceptionMatcher {
   const _UnsupportedOperationException() :
       super("UnsupportedOperationException");
-  bool matches(item, MatchState matchState) => item is UnsupportedOperationException;
+  bool matches(item, MatchState matchState) =>
+      item is UnsupportedOperationException;
 }
 
 /**
