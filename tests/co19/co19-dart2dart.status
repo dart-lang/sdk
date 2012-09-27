@@ -226,7 +226,6 @@ Language/11_Statements/15_Assert_A05_t03: Fail, Pass # co19 issue 218
 Language/11_Statements/15_Assert_A05_t04: Fail, Pass # co19 issue 218
 Language/11_Statements/15_Assert_A05_t05: Fail, Pass # co19 issue 218
 
-Language/03_Overview/03_Overview_A01_t01: Fail # inherited from VM
 Language/03_Overview/03_Overview_A01_t02: Fail # inherited from VM
 Language/03_Overview/1_Scoping_A02_t05: Fail # inherited from VM
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js

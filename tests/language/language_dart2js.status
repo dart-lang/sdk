@@ -66,6 +66,7 @@ bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 external_test/10: Fail # http://dartbug.com/5519
+first_class_types_test: Fail # http://dartbug.com/5539
 getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
