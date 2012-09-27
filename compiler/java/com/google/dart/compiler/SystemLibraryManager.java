@@ -24,17 +24,21 @@ public class SystemLibraryManager  {
   
   private HashMap<String, String> expansionMap;
   private Map<String, SystemLibrary> hostMap;
-  private final File sdkLibPath;
   private final URI sdkLibPathUri;
   
   private Map<URI, URI> longToShortUriMap;
 
   private List<SystemLibrary> libraries;
+  private final SystemLibraryProvider libraryProvider;
 
   public SystemLibraryManager(File sdkPath) {
-    this.sdkLibPath = new File(sdkPath, "lib").getAbsoluteFile();
-    this.sdkLibPathUri = sdkLibPath.toURI();
-    setLibraries(getDefaultLibraries());  
+    this(new FileBasedSystemLibraryProvider(sdkPath));  
+  }
+
+  public SystemLibraryManager(SystemLibraryProvider libraryProvider) {
+    this.libraryProvider = libraryProvider;
+    this.sdkLibPathUri = libraryProvider.getSdkLibPathUri();
+    setLibraries(getDefaultLibraries());
   }
   
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
@@ -94,8 +98,8 @@ public class SystemLibraryManager  {
       if (library != null) {
         return library.translateUri(uri);
       }
-      if (host != null) {
-        return new File(getSdkLibPath(), host).toURI().resolve("." + uri.getPath());
+      if (host != null) {        
+        return libraryProvider.resolveHost(host, uri);
       }
       throw new RuntimeException("No system library defined for " + uri);
    
@@ -124,8 +128,7 @@ public class SystemLibraryManager  {
     // Cycle through the import.config, extracting explicit mappings and searching directories
     URI base = this.sdkLibPathUri;
     
-    SystemLibrariesReader reader = new SystemLibrariesReader(sdkLibPath);
-    Map<String, DartLibrary> declaredLibraries = reader.getLibrariesMap();
+    Map<String, DartLibrary> declaredLibraries = libraryProvider.getLibraryMap();
     
     HashSet<String> explicitShortNames = new HashSet<String>();
     
@@ -142,11 +145,12 @@ public class SystemLibraryManager  {
       } catch (URISyntaxException e) {
         continue;
       }
-      File file = new File(libFileUri);
-      if (!file.exists()) {
+      
+      if (!libraryProvider.exists(libFileUri)) {
         throw new InternalCompilerException("Can't find system library dart:" + shortName
-                                            + " at " + file);
+          + " at " + libFileUri);
       }
+      
       int index = shortName.indexOf(':');
       if (index == -1) {
         continue;
@@ -161,13 +165,11 @@ public class SystemLibraryManager  {
         continue;
       }
       String host = relPath.substring(0, index);
-      File dir = new File(sdkLibPath, host);
       String pathToLib = relPath.substring(index + 1);
       
       addLib(scheme, 
           host, 
           name, 
-          dir, 
           pathToLib, 
           library.getCategory(),
           library.isDocumented(), 
@@ -177,17 +179,13 @@ public class SystemLibraryManager  {
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
   
-  private boolean addLib(String scheme, String host, String name, File dir, String pathToLib, 
+  protected boolean addLib(String scheme, String host, String name, String pathToLib, 
                           String category, boolean documented, boolean implementation)
       throws AssertionError {
-    File libFile = new File(dir, pathToLib);
-    if (!libFile.isFile()) {
-      throw new InternalCompilerException("Error mapping dart:" + host + ", path "
-          + libFile.getAbsolutePath() + " is not a file.");
-    }
-    SystemLibrary lib = new SystemLibrary(
-        name, host, pathToLib, dir, category, documented, implementation);
+    
+    SystemLibrary lib = libraryProvider.createSystemLibrary(name, host, pathToLib, category, documented, implementation);
     libraries.add(lib);
+    
     String libSpec = scheme + name;
     URI libUri;
     URI expandedUri;
@@ -223,10 +221,6 @@ public class SystemLibraryManager  {
       expansionMap.put(library.getShortName(),
           "//" + host + "/" + library.getPathToLib());
     }
-  }
-  
-  public File getSdkLibPath() {
-    return sdkLibPath;
   }
 
 }

@@ -87,20 +87,20 @@ public class PackageLibraryManager {
   }
 
   public PackageLibraryManager(File sdkPath, String platformName) {
-    initLibraryManager(sdkPath);
-    setPackageRoots(DEFAULT_PACKAGE_ROOTS);
+    this(new FileBasedSystemLibraryProvider(sdkPath));
   }
 
-  /**
-   * Initialize the SDK system library manager.
-   * 
-   * @param sdkPath the path to the SDK
-   */
-  protected void initLibraryManager(File sdkPath) {
-    if (SDK_LIBRARY_MANAGER == null){
-      SDK_LIBRARY_MANAGER = new SystemLibraryManager(sdkPath);
+  public PackageLibraryManager(SystemLibraryProvider libraryProvider) {
+    initLibraryManager(libraryProvider);
+    setPackageRoots(DEFAULT_PACKAGE_ROOTS);
+  }
+  
+  protected void initLibraryManager(SystemLibraryProvider libraryProvider) {
+    if (SDK_LIBRARY_MANAGER == null) {
+      SDK_LIBRARY_MANAGER = new SystemLibraryManager(libraryProvider);
     }
   }
+
 
   /**
    * Expand a relative or short URI (e.g. "dart:html") which is implementation independent to its
@@ -329,12 +329,6 @@ public class PackageLibraryManager {
   
   public Collection<SystemLibrary> getSystemLibraries(){
     return SDK_LIBRARY_MANAGER.getAllSystemLibraries();
-  }
-  
-  public File getSdkLibPath() {
-    return SDK_LIBRARY_MANAGER.getSdkLibPath();
-  }
-  
-  
+  } 
   
 }
