@@ -326,8 +326,9 @@ def Main(argv):
       f.write(revision + '\n')
       f.close()
 
+  Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
+
   move(SDK_tmp, SDK)
-  utils.Touch(os.path.join(SDK, 'create.stamp'))
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))
