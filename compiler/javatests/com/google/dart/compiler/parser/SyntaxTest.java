@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -50,6 +51,15 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("test.dart", Joiner.on("\n").join(
         "library lib;",
         "export 'a.dart';"));
+  }
+
+  public void test_importDirective_noUri() {
+    DartUnit unit = parseUnit("test.dart", Joiner.on("\n").join(
+        "library lib;",
+        "import;"),
+        ParserErrorCode.EXPECTED_TOKEN, 2, 7);
+    DartImportDirective dir = (DartImportDirective) unit.getDirectives().get(1);
+    System.out.println(dir.toSource());
   }
 
   public void test_getter() {

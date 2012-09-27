@@ -816,6 +816,9 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitStringLiteral(DartStringLiteral x) {
+    if (x.getValue() == null) {
+      return null;
+    }
     p("\"");
     // 'replaceAll' takes regular expressions as first argument and parses the second argument
     // for captured groups. We must escape backslashes twice: once to escape them in the source
