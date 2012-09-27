@@ -1302,7 +1302,8 @@ class SsaConstructionFieldTypes
     Element field = node.element;
     HInstruction value = node.value;
     HType type = types[value];
-    allSetters.add(field);
+    // [HFieldSet] is also used for variables in try/catch.
+    if (field.isField()) allSetters.add(field);
     // Don't handle fields defined in superclasses. Given that the field is
     // always added to the [allSetters] set, setting a field defined in a
     // superclass will get an inferred type of UNKNOWN.
