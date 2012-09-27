@@ -1972,7 +1972,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
 
 // TODO(hpayer): value should always be smaller then 0xff. Add error handling.
 #define GET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
-                                  length)                                      \
+                                   length)                                     \
   const type& array = type::Cast(obj);                                         \
   if (Utils::RangeCheck(offset, length, array.Length())) {                     \
     Object& element = Object::Handle(isolate);                                 \

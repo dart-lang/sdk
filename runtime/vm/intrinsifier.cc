@@ -52,16 +52,6 @@ static bool TestFunction(const Function& function,
                          const char* function_name,
                          const char* test_class_name,
                          const char* test_function_name) {
-  // If test_function_name starts with a '.' we use that to indicate
-  // that it is a named constructor in the class. Therefore, if
-  // the class matches and the rest of the method name starting with
-  // the dot matches, we have found a match.
-  if (test_function_name[0] == '.') {
-    function_name = strstr(function_name, ".");
-    if (function_name == NULL) {
-      return false;
-    }
-  }
   return CompareNames(test_class_name, function_class_name) &&
          CompareNames(test_function_name, function_name);
 }

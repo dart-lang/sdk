@@ -101,9 +101,9 @@ class ObjectPointerVisitor;
   V(Bigint, "_Bigint")                                                         \
   V(Double, "_Double")                                                         \
   V(Bool, "bool")                                                              \
-  V(ObjectArray, "_ObjectArray")                                               \
-  V(GrowableObjectArray, "_GrowableObjectArray")                               \
-  V(ImmutableArray, "_ImmutableArray")                                         \
+  V(ObjectArray, "ObjectArray")                                                \
+  V(GrowableObjectArray, "GrowableObjectArray")                                \
+  V(ImmutableArray, "ImmutableArray")                                          \
   V(OneByteString, "OneByteString")                                            \
   V(TwoByteString, "TwoByteString")                                            \
   V(FourByteString, "FourByteString")                                          \

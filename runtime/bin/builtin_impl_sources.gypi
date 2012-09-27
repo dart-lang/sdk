@@ -6,7 +6,6 @@
 # libraries.
 {
   'sources': [
-    'common.cc',
     'dartutils.cc',
     'dartutils.h',
     'dbg_connection.cc',

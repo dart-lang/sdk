@@ -20,12 +20,12 @@ class StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(List<int> charCodes) {
-    _ObjectArray objectArray;
-    if (charCodes is _ObjectArray) {
+    ObjectArray objectArray;
+    if (charCodes is ObjectArray) {
       objectArray = charCodes;
     } else {
       int len = charCodes.length;
-      objectArray = new _ObjectArray(len);
+      objectArray = new ObjectArray(len);
       for (int i = 0; i < len; i++) {
         objectArray[i] = charCodes[i];
       }
@@ -33,7 +33,7 @@ class StringBase {
     return _createFromCodePoints(objectArray);
   }
 
-  static String _createFromCodePoints(_ObjectArray<int> codePoints)
+  static String _createFromCodePoints(ObjectArray<int> codePoints)
       native "StringBase_createFromCodePoints";
 
   String operator [](int index) native "String_charAt";
@@ -232,7 +232,7 @@ class StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new _ObjectArray(numValues);
+    var stringList = new ObjectArray(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }
@@ -336,12 +336,12 @@ class StringBase {
   }
 
   static String concatAll(List<String> strings) {
-    _ObjectArray stringsArray;
-    if (strings is _ObjectArray) {
+    ObjectArray stringsArray;
+    if (strings is ObjectArray) {
       stringsArray = strings;
     } else {
       int len = strings.length;
-      stringsArray = new _ObjectArray(len);
+      stringsArray = new ObjectArray(len);
       for (int i = 0; i < len; i++) {
         stringsArray[i] = strings[i];
       }
@@ -349,7 +349,7 @@ class StringBase {
     return _concatAll(stringsArray);
   }
 
-  static String _concatAll(_ObjectArray<String> strings)
+  static String _concatAll(ObjectArray<String> strings)
       native "Strings_concatAll";
 }
 

@@ -1237,17 +1237,15 @@ static intptr_t GetOffsetForField(const char* class_name_p,
                                   const char* field_name_p) {
   const String& class_name = String::Handle(Symbols::New(class_name_p));
   const String& field_name = String::Handle(Symbols::New(field_name_p));
-  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Class& cls =
-      Class::Handle(coreimpl_lib.LookupClassAllowPrivate(class_name));
+  const Class& cls = Class::Handle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
   ASSERT(!cls.IsNull());
   const Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
   ASSERT(!field.IsNull());
   return field.Offset();
 }
 
-
-static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
+static const char* kFixedSizeArrayIteratorClassName = "FixedSizeArrayIterator";
 
 // Class 'FixedSizeArrayIterator':
 //   T next() {

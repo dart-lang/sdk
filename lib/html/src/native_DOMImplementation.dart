@@ -41,7 +41,7 @@ class _NPObject extends NativeFieldWrapperClass1 {
   _NPObject();
   static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
-  invoke(String methodName, [List args = null]) native "NPObject_invoke";
+  invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 }
 
 class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Window {

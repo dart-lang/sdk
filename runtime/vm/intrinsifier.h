@@ -48,32 +48,30 @@ namespace dart {
   V(_Double, /, Double_div)                                                    \
   V(_Double, toDouble, Double_toDouble)                                        \
   V(_Double, mulFromInteger, Double_mulFromInteger)                            \
-  V(_Double, .fromInteger, Double_fromInteger)                                 \
+  V(_Double, _Double.fromInteger, Double_fromInteger)                          \
   V(_Double, isNaN, Double_isNaN)                                              \
   V(_Double, isNegative, Double_isNegative)                                    \
   V(_Double, toInt, Double_toInt)                                              \
-  V(_ObjectArray, ., ObjectArray_Allocate)                                     \
-  V(_ObjectArray, get:length, Array_getLength)                                 \
-  V(_ObjectArray, [], Array_getIndexed)                                        \
-  V(_ObjectArray, []=, Array_setIndexed)                                       \
-  V(_GrowableObjectArray,                                                      \
-    .fromObjectArray,                                                          \
-    GArray_Allocate)                                                           \
-  V(_GrowableObjectArray, get:length, GrowableArray_getLength)                 \
-  V(_GrowableObjectArray, get:capacity, GrowableArray_getCapacity)             \
-  V(_GrowableObjectArray, [], GrowableArray_getIndexed)                        \
-  V(_GrowableObjectArray, []=, GrowableArray_setIndexed)                       \
-  V(_GrowableObjectArray, _setLength, GrowableArray_setLength)                 \
-  V(_GrowableObjectArray, _setData, GrowableArray_setData)                     \
-  V(_GrowableObjectArray, add, GrowableArray_add)                              \
-  V(_ImmutableArray, [], ImmutableArray_getIndexed)                            \
-  V(_ImmutableArray, get:length, ImmutableArray_getLength)                     \
+  V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
+  V(ObjectArray, get:length, Array_getLength)                                  \
+  V(ObjectArray, [], Array_getIndexed)                                         \
+  V(ObjectArray, []=, Array_setIndexed)                                        \
+  V(GrowableObjectArray, GrowableObjectArray.fromObjectArray, GArray_Allocate) \
+  V(GrowableObjectArray, get:length, GrowableArray_getLength)                  \
+  V(GrowableObjectArray, get:capacity, GrowableArray_getCapacity)              \
+  V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
+  V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
+  V(GrowableObjectArray, _setLength, GrowableArray_setLength)                  \
+  V(GrowableObjectArray, _setData, GrowableArray_setData)                      \
+  V(GrowableObjectArray, add, GrowableArray_add)                               \
+  V(ImmutableArray, [], ImmutableArray_getIndexed)                             \
+  V(ImmutableArray, get:length, ImmutableArray_getLength)                      \
   V(::, sqrt, Math_sqrt)                                                       \
   V(::, sin, Math_sin)                                                         \
   V(::, cos, Math_cos)                                                         \
   V(Object, ==, Object_equal)                                                  \
-  V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                \
-  V(_FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)          \
+  V(FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                 \
+  V(FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)           \
   V(StringBase, get:length, String_getLength)                                  \
   V(StringBase, charCodeAt, String_charCodeAt)                                 \
   V(StringBase, hashCode, String_hashCode)                                     \
