@@ -2134,6 +2134,8 @@ public class DartParser extends CompletionHooksParserBase {
 
     if (optional(Token.FINAL)) {
       modifiers = modifiers.makeFinal();
+    } else if (optional(Token.CONST)) {
+      reportError(position(), ParserErrorCode.FORMAL_PARAMETER_IS_CONST);
     } else if (optional(Token.VAR)) {
       hasVar = true;
     }
