@@ -62,7 +62,7 @@ namespace dart {
   V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
   V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
   V(GrowableObjectArray, _setLength, GrowableArray_setLength)                  \
-  V(GrowableObjectArray, set:data, GrowableArray_setData)                      \
+  V(GrowableObjectArray, _setData, GrowableArray_setData)                      \
   V(GrowableObjectArray, add, GrowableArray_add)                               \
   V(ImmutableArray, [], ImmutableArray_getIndexed)                             \
   V(ImmutableArray, get:length, ImmutableArray_getLength)                      \

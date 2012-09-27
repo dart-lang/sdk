@@ -10,7 +10,7 @@ class _ListLiteralFactory<E> {
   factory List.fromLiteral(List elements) {
     var list = new GrowableObjectArray<E>();
     if (elements.length > 0) {
-      list.data = elements;
+      list._setData(elements);
       list.length = elements.length;
     }
     return list;

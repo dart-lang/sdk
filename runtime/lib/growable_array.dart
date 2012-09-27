@@ -108,7 +108,7 @@ class GrowableObjectArray<T> implements List<T> {
 
   void _setLength(int new_length) native "GrowableObjectArray_setLength";
 
-  void set data(ObjectArray<T> array) native "GrowableObjectArray_setData";
+  void _setData(ObjectArray<T> array) native "GrowableObjectArray_setData";
 
   T operator [](int index) native "GrowableObjectArray_getIndexed";
 
@@ -163,7 +163,7 @@ class GrowableObjectArray<T> implements List<T> {
     for (int i = 0; i < length; i++) {
       new_data[i] = this[i];
     }
-    data = new_data;
+    _setData(new_data);
   }
 
   /**

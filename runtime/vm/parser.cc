@@ -1289,17 +1289,17 @@ static RawClass* LookupImplClass(const String& class_name) {
 }
 
 
-// Lookup class in the corelib which also contains various VM
+// Lookup class in the coreimpl lib which also contains various VM
 // helper methods and classes. Allow look up of private classes.
-static RawClass* LookupCoreClass(const String& class_name) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+static RawClass* LookupCoreImplClass(const String& class_name) {
+  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
   String& name = String::Handle(class_name.raw());
   if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
-    name = String::Concat(name, String::Handle(core_lib.private_key()));
+    name = String::Concat(name, String::Handle(coreimpl_lib.private_key()));
     name = Symbols::New(name);
   }
-  return core_lib.LookupClass(name);
+  return coreimpl_lib.LookupClass(name);
 }
 
 
@@ -8552,7 +8552,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     String& list_literal_factory_class_name = String::Handle(
         Symbols::ListLiteralFactoryClass());
     const Class& list_literal_factory_class =
-        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
+        Class::Handle(LookupCoreImplClass(list_literal_factory_class_name));
     ASSERT(!list_literal_factory_class.IsNull());
     const String& list_literal_factory_name =
         String::Handle(Symbols::ListLiteralFactory());
@@ -8777,7 +8777,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     String& map_literal_factory_class_name = String::Handle(
         Symbols::MapLiteralFactoryClass());
     const Class& map_literal_factory_class =
-        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
+        Class::Handle(LookupCoreImplClass(map_literal_factory_class_name));
     ASSERT(!map_literal_factory_class.IsNull());
     const String& map_literal_factory_name =
         String::Handle(Symbols::MapLiteralFactory());
