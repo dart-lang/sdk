@@ -374,6 +374,8 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
+LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
+
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210

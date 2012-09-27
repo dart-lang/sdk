@@ -237,6 +237,8 @@ LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
 LibTest/core/List/getRange_A03_t01: Fail # co19 issue 224
 
+LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
+
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.

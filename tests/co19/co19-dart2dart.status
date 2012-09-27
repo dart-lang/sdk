@@ -490,6 +490,7 @@ LibTest/core/String/replaceFirst_A02_t01: Fail, OK # co19 issue 103
 LibTest/core/Strings/concatAll_A04_t01: Fail # co19 issue 224
 LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
+LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # inherited from VM
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
