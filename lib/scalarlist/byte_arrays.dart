@@ -353,12 +353,12 @@ abstract class ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int8List implements List<int>, ByteArrayViewable {
+abstract class Int8List implements List<int>, ByteArrayViewable {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Int8List(int length);
+  external factory Int8List(int length);
 
   /**
    * Creates an [Int8List] _view_ of the specified region in the specified
@@ -368,7 +368,7 @@ class Int8List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    */
-  external Int8List.view(ByteArray array, [int start, int length]);
+  external factory Int8List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -377,12 +377,12 @@ class Int8List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint8List implements List<int>, ByteArrayViewable {
+abstract class Uint8List implements List<int>, ByteArrayViewable {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Uint8List(int length);
+  external factory Uint8List(int length);
 
   /**
    * Creates a [Uint8List] _view_ of the specified region in the specified
@@ -392,7 +392,7 @@ class Uint8List implements List<int>, ByteArrayViewable {
    * not specified, it defaults to null, which indicates that the view extends
    * to the end of the byte array.
    */
-  external Uint8List.view(ByteArray array, [int start, int length]);
+  external factory Uint8List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -401,12 +401,12 @@ class Uint8List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int16List implements List<int>, ByteArrayViewable {
+abstract class Int16List implements List<int>, ByteArrayViewable {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Int16List(int length);
+  external factory Int16List(int length);
 
   /**
    * Creates an [Int16List] _view_ of the specified region in the specified
@@ -426,7 +426,7 @@ class Int16List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int16s," or if it
    * is not "int16-aligned."
    */
-  external Int16List.view(ByteArray array, [int start, int length]);
+  external factory Int16List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -435,12 +435,12 @@ class Int16List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint16List implements List<int>, ByteArrayViewable {
+abstract class Uint16List implements List<int>, ByteArrayViewable {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  external Uint16List(int length);
+  external factory Uint16List(int length);
 
   /**
    * Creates a [Uint16List] _view_ of the specified region in
@@ -460,7 +460,7 @@ class Uint16List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint16s," or if it
    * is not "uint16-aligned."
    */
-  external Uint16List.view(ByteArray array, [int start, int length]);
+  external factory Uint16List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -469,12 +469,12 @@ class Uint16List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int32List implements List<int>, ByteArrayViewable {
+abstract class Int32List implements List<int>, ByteArrayViewable {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Int32List(int length);
+  external factory Int32List(int length);
 
   /**
    * Creates an [Int32List] _view_ of the specified region in the specified
@@ -494,7 +494,7 @@ class Int32List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int32s," or if it
    * is not "int32-aligned."
    */
-  external Int32List.view(ByteArray array, [int start, int length]);
+  external factory Int32List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -503,12 +503,12 @@ class Int32List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint32List implements List<int>, ByteArrayViewable {
+abstract class Uint32List implements List<int>, ByteArrayViewable {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  external Uint32List(int length);
+  external factory Uint32List(int length);
 
   /**
    * Creates a [Uint32List] _view_ of the specified region in
@@ -528,7 +528,7 @@ class Uint32List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint32s," or if it
    * is not "uint32-aligned."
    */
-  external Uint32List.view(ByteArray array, [int start, int length]);
+  external factory Uint32List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -537,12 +537,12 @@ class Uint32List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int64List implements List<int>, ByteArrayViewable {
+abstract class Int64List implements List<int>, ByteArrayViewable {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Int64List(int length);
+  external factory Int64List(int length);
 
   /**
    * Creates an [Int64List] _view_ of the specified region in the specified
@@ -562,7 +562,7 @@ class Int64List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "int64s," or if it
    * is not "int64-aligned."
    */
-  external Int64List.view(ByteArray array, [int start, int length]);
+  external factory Int64List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -571,12 +571,12 @@ class Int64List implements List<int>, ByteArrayViewable {
  * [ByteArray]. For long lists, this implementation will be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint64List implements List<int>, ByteArrayViewable {
+abstract class Uint64List implements List<int>, ByteArrayViewable {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  external Uint64List(int length);
+  external factory Uint64List(int length);
 
   /**
    * Creates an [Uint64List] _view_ of the specified region in
@@ -596,7 +596,7 @@ class Uint64List implements List<int>, ByteArrayViewable {
    * region does not contain an integral number of "uint64s," or if it
    * is not "uint64-aligned."
    */
-  external Uint64List.view(ByteArray array, [int start, int length]);
+  external factory Uint64List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -606,12 +606,12 @@ class Uint64List implements List<int>, ByteArrayViewable {
  * implementation will be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float32List implements List<double>, ByteArrayViewable {
+abstract class Float32List implements List<double>, ByteArrayViewable {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Float32List(int length);
+  external factory Float32List(int length);
 
   /**
    * Creates a [Float32List] _view_ of the specified region in the specified
@@ -631,7 +631,7 @@ class Float32List implements List<double>, ByteArrayViewable {
    * region does not contain an integral number of "float32s," or if it
    * is not "float32-aligned."
    */
-  external Float32List.view(ByteArray array, [int start, int length]);
+  external factory Float32List.view(ByteArray array, [int start, int length]);
 }
 
 
@@ -641,12 +641,12 @@ class Float32List implements List<double>, ByteArrayViewable {
  * implementation will be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float64List implements List<double>, ByteArrayViewable {
+abstract class Float64List implements List<double>, ByteArrayViewable {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  external Float64List(int length);
+  external factory Float64List(int length);
 
   /**
    * Creates a [Float64List] _view_ of the specified region in the specified
@@ -666,5 +666,5 @@ class Float64List implements List<double>, ByteArrayViewable {
    * region does not contain an integral number of "float64s," or if it
    * is not "float64-aligned."
    */
-  external Float64List.view(ByteArray array, [int start, int length]);
+  external factory Float64List.view(ByteArray array, [int start, int length]);
 }
