@@ -178,7 +178,7 @@ Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that does
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # Issue 5289
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 Language/03_Overview/2_Privacy_A01_t12: Fail, OK # deprecated import directive without parens
-Language/06_Functions/06_Functions_A01_t03: Fail # Issue 5288
+Language/06_Functions/06_Functions_A01_t03: Fail, OK # co19 issue 232
 Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # deprecated use of "default"
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail, OK # should expect error
 Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail, OK # should expect error
