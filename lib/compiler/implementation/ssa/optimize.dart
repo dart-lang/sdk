@@ -41,8 +41,10 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
+          new SsaConstantFolder(constantSystem, backend, work, types),
           new SsaGlobalValueNumberer(compiler, types),
           new SsaCodeMotion(),
+          new SsaValueRangeAnalyzer(constantSystem, types, work),
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work, types),
@@ -198,6 +200,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeInterceptor(HInvokeInterceptor node) {
+    // Try to recognize the length interceptor with input [:new List(int):].
+    if (node.isLengthGetter() && node.inputs[1] is HInvokeStatic) {
+      HInvokeStatic call = node.inputs[1];
+      Element element = call.inputs[0].element;
+      if (element.isConstructor() &&
+          element.enclosingElement == compiler.listClass.defaultClass.element) {
+        if (call.inputs.length == 2 && call.inputs[1].isInteger(types)) {
+          return call.inputs[1];
+        }
+      }
+    }
     HInstruction input = node.inputs[1];
     if (node.isLengthGetter()) {
       if (input.isConstantString()) {
@@ -269,44 +282,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       result.element = concrete.lookupMember(selector.name);
     }
     return result;
-  }
-
-  HInstruction visitBoundsCheck(HBoundsCheck node) {
-    int tryGetIntConstantValue(HInstruction instruction, String errorMessage) {
-      // Tests whether an [HInstruction] is a constant.
-      // If it is a constant, and not an int constant, it fails.
-      // If it's an int constant it returns the value.
-      // Otherwise it's not a constant, and this function returns null.
-      if (!instruction.isConstant()) return null;
-      HConstant constantInstruction = instruction;
-      Constant constant = constantInstruction.constant;
-      if (!constant.isInt()) {
-        compiler.internalError(errorMessage, instruction: instruction);
-      }
-      IntConstant intConstant = constant;
-      return intConstant.value;
-    }
-    int index = tryGetIntConstantValue(node.index,
-                                       'String or List index not a number');
-    if (index !== null) {
-      if (index < 0) {
-        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
-        return node;
-      }
-      int length = tryGetIntConstantValue(node.length,
-                                          'String or List length not a number');
-      if (length !== null) {
-        if (index >= length) {
-          node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
-        } else {
-          // Could have set the staticChecks to ALWAYS_TRUE instead.
-          return node.index;
-        }
-        return node;
-      }
-      node.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
-    }
-    return node;
   }
 
   HInstruction visitIntegerCheck(HIntegerCheck node) {
@@ -721,6 +696,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
+    assert(node.isBuiltin(types));
   }
 
   void visitIndexAssign(HIndexAssign node) {
@@ -732,6 +708,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
+    assert(node.isBuiltin(types));
   }
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {

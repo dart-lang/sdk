@@ -26,7 +26,7 @@ class Environment {
   }
 
   void add(HInstruction instruction) {
-    // If the instruction is a type guard, we add its checked input
+    // If the instruction is a check, we add its checked input
     // instead. This allows sharing the same environment between
     // different type guards.
     //
@@ -34,7 +34,7 @@ class Environment {
     // in the live set (because we generate them at use-site), except
     // for parameters that are not 'this', which is always passed as
     // the receiver.
-    if (instruction is HTypeGuard) {
+    if (instruction is HCheck) {
       add(instruction.checkedInput);
     } else if (!instruction.isCodeMotionInvariant()
                || (instruction is HParameterValue && instruction is !HThis)) {

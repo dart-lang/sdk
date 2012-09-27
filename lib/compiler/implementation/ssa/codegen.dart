@@ -1892,6 +1892,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitRangeConversion(HRangeConversion node) {
+    // Range conversion instructions are removed by the value range
+    // analyzer.
+    assert(false);
+  }
+
   visitBoundsCheck(HBoundsCheck node) {
     // TODO(ngeoffray): Separate the two checks of the bounds check, so,
     // e.g., the zero checks can be shared if possible.
@@ -1900,18 +1906,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // completely.
     assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
     if (node.staticChecks != HBoundsCheck.ALWAYS_FALSE) {
-      js.Binary under;
+      js.Expression under;
+      js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
-        assert(node.staticChecks == HBoundsCheck.FULL_CHECK);
         use(node.index);
         under = new js.Binary("<", pop(), new js.LiteralNumber("0"));
       }
-      use(node.index);
-      js.Expression index = pop();
-      use(node.length);
-      js.Binary over = new js.Binary(">=", index, pop());
-      js.Binary underOver =
-          under == null ? over : new js.Binary("||", under, over);
+      if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
+        var index = node.index;
+        use(index);
+        js.Expression jsIndex = pop();
+        use(node.length);
+        over = new js.Binary(">=", jsIndex, pop());
+      }
+      assert(over != null || under != null);
+      js.Expression underOver = under == null
+          ? over
+          : over == null
+              ? under
+              : new js.Binary("||", under, over);
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;

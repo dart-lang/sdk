@@ -142,8 +142,8 @@ class HUnknownType extends HAnalysisType {
 
 class HConflictingType extends HAnalysisType {
   const HConflictingType() : super("conflicting");
-  bool canBePrimitive() => false;
-  bool canBeNull() => false;
+  bool canBePrimitive() => true;
+  bool canBeNull() => true;
 
   HType union(HType other) => other;
   HType intersection(HType other) => this;
