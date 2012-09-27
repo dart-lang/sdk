@@ -7,7 +7,7 @@
 // representation graph.
 
 /** A tag that indicates the type of a YAML node. */
-class _Tag implements Hashable {
+class _Tag {
   // TODO(nweiz): it would better match the semantics of the spec if there were
   // a singleton instance of this class for each tag.
 
@@ -50,7 +50,7 @@ class _Tag implements Hashable {
 }
 
 /** The abstract class for YAML nodes. */
-class _Node implements Hashable {
+class _Node {
   /** Every YAML node has a tag that describes its type. */
   _Tag tag;
 

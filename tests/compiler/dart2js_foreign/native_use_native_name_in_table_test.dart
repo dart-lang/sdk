@@ -6,7 +6,7 @@
 // dispatch table.
 
 @native("*NativeA")
-class A  {
+class A {
   @native foo();
 }
 

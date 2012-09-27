@@ -16,7 +16,7 @@
 
 // The exception type.
 @native("*E")
-class E  {
+class E {
   @native E._used();  // Bogus native constructor, called only from fake body.
 
   final int code;
@@ -24,7 +24,7 @@ class E  {
 
 // Type with exception-throwing methods.
 @native("*A")
-class A  {
+class A {
   @native op(int x) {
     // Fake body calls constructor to mark the exception class (E) as used.
     throw new E._used();

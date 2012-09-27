@@ -5,12 +5,12 @@
 // Test that type checks occur on assignment to fields of native methods.
 
 @native("*A")
-class A  {
+class A {
   int foo;
 }
 
 @native("*B")
-class B  {
+class B {
   String foo;
 }
 

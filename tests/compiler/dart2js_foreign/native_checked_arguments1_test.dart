@@ -5,13 +5,13 @@
 // Test that type checks occur on native methods.
 
 @native("*A")
-class A  {
+class A {
   @native int foo(int x);
   @native int cmp(A other);
 }
 
 @native("*B")
-class B  {
+class B {
   @native String foo(String x);
   @native int cmp(B other);
 }

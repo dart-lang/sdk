@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @native("*A")
-class A  {
+class A {
   bar() => 42;
   noSuchMethod(x,y) => "native($x:$y)";
 }
 
 @native("*B")
-class B  {
+class B {
   baz() => 42;
 }
 

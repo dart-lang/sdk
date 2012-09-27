@@ -9,7 +9,7 @@
  * useful path manipulations and queries.  Joining of paths and normalization
  * interpret '.' and '..' in the usual way.
  */
-abstract class Path extends Hashable {
+abstract class Path {
   /**
    * Creates a Path from the String [source].  [source] is used as-is, so if
    * the string does not consist of segments separated by forward slashes, the

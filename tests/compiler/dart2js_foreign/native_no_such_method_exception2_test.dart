@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @native("*A")
-class A  {
+class A {
 }
 
 @native("*B")

@@ -7,7 +7,7 @@
 
 
 @native("*A")
-class A  {
+class A {
 
   // No static methods in this class.
 

@@ -94,7 +94,7 @@ class Package {
  * the same package may be available from multiple sources. As far as Pub is
  * concerned, those packages are different.
  */
-class PackageId implements Comparable, Hashable {
+class PackageId implements Comparable {
   /// The name of the package being identified.
   final String name;
 

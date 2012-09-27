@@ -7,11 +7,11 @@
  * implementation, with the following differences:
  *
  * * It allows null, NaN, boolean, list, and map keys.
- * * It is itself Hashable.
  * * It defines `==` structurally. That is, `yamlMap1 == yamlMap2` if they have
  *   the same contents.
+ * * It has a compatible [hashCode] method.
  */
-class YamlMap implements Map, Hashable {
+class YamlMap implements Map {
   Map _map;
 
   YamlMap() : _map = new Map();
@@ -62,7 +62,7 @@ class YamlMap implements Map, Hashable {
  * A class for wrapping normally-unhashable objects that are being used as keys
  * in a YamlMap.
  */
-class _WrappedHashKey implements Hashable {
+class _WrappedHashKey {
   var value;
 
   _WrappedHashKey(this.value);

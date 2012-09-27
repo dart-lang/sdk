@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Hash map implementation with open addressing and quadratic probing.
-class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
+class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   // The [_keys] list contains the keys inserted in the map.
   // The [_keys] list must be a raw list because it
@@ -276,7 +276,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 }
 
-class HashSetImplementation<E extends Hashable> implements HashSet<E> {
+class HashSetImplementation<E > implements HashSet<E> {
 
   HashSetImplementation() {
     _backingMap = new HashMapImplementation<E, E>();

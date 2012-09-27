@@ -7,7 +7,7 @@
 /**
  * A [Duration] represents a time span. A duration can be negative.
  */
-class Duration implements Comparable, Hashable {
+class Duration implements Comparable {
   static const int MILLISECONDS_PER_SECOND = 1000;
   static const int SECONDS_PER_MINUTE = 60;
   static const int MINUTES_PER_HOUR = 60;

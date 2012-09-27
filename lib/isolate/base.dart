@@ -50,7 +50,7 @@ external SendPort spawnUri(String uri);
  *
  * [SendPort]s can be transmitted to other isolates.
  */
-abstract class SendPort implements Hashable {
+abstract class SendPort {
 
   /**
    * Sends an asynchronous [message] to this send port. The message is copied to

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @native("*A")
-class A  {
+class A {
   bar() => 42;
 }
 
 @native("*B")
-class B  {
+class B {
   foo() => 42;
 }
 

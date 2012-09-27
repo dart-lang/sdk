@@ -5,7 +5,7 @@
 typedef void MyFunctionType();
 
 @native("*A")
-class A  {
+class A {
   @native setClosure(MyFunctionType f);
   @native check(MyFunctionType f);
   @native invoke();

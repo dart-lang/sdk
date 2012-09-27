@@ -432,7 +432,7 @@ class HInstructionList {
   }
 }
 
-class HBasicBlock extends HInstructionList implements Hashable {
+class HBasicBlock extends HInstructionList {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
   int id;
@@ -739,7 +739,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 }
 
 
-class HInstruction implements Hashable, Spannable {
+class HInstruction implements Spannable {
   Element sourceElement;
   SourceFileLocation sourcePosition;
 

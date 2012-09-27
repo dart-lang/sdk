@@ -368,7 +368,7 @@ void ScanLargeText() {
       "  const Number radius;"
       "}"
       ""
-      "interface Map<K extends Hashable,V> default HashMap<K, V> {"
+      "interface Map<K ,V> default HashMap<K, V> {"
       "  V operator [](K key);"
       "  void operator []=(K key, V value);"
       "  void forEach(function f(K key, V value));"

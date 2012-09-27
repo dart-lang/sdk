@@ -25,7 +25,7 @@ syn keyword dartOperator       new is in factory const
 syn match   dartOperator       "+=\=\|-=\=\|*=\=\|/=\=\|%=\=\|\~/=\=\|<<=\=\|>>=\=\|[<>]=\=\|===\=\|\!==\=\|&=\=\|\^=\=\||=\=\|||\|&&\|\[\]=\=\|=>\|!\|\~"
 syn keyword dartType           void var final bool int double num
 syn keyword dartCommonInterfaces String Object Math RegExp Date
-syn keyword dartInterfaces       Collection Comparable Completer Duration Dynamic Function Future Hashable HashMap HashSet Iterable Iterator LinkedHashMap List Map Match Options Pattern Queue Set Stopwatch StringBuffer TimeZone
+syn keyword dartInterfaces       Collection Comparable Completer Duration Dynamic Function Future HashMap HashSet Iterable Iterator LinkedHashMap List Map Match Options Pattern Queue Set Stopwatch StringBuffer TimeZone
 syn keyword dartErrors         AssertionError TypeError FallThroughError
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static abstract

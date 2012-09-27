@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class LocalPlaceholder implements Hashable {
+class LocalPlaceholder {
   final String identifier;
   final Set<Node> nodes;
   LocalPlaceholder(this.identifier) : nodes = new Set<Node>();
@@ -432,7 +432,7 @@ class PlaceholderCollector extends AbstractVisitor {
                typeDeclarationElement, node.typeName)) {
       return;
     }
-    // We call [resolveReturnType] to allow having 'void'.    
+    // We call [resolveReturnType] to allow having 'void'.
     final type = compiler.resolveReturnType(currentElement, node);
     if (type is InterfaceType || type is TypedefType) {
       Node target = node.typeName;

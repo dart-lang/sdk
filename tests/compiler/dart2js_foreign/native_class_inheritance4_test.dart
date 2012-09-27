@@ -7,7 +7,7 @@
 // subclass.
 
 @native("*A")
-class A  {
+class A {
   var _field;
 
   int get X => _field;

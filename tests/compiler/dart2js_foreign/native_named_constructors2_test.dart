@@ -6,7 +6,7 @@
 
 
 @native("*A")
-class A  {
+class A {
 
   factory A(int len) => _construct(len);
 

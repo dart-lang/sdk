@@ -177,7 +177,7 @@ class StringToken extends Token {
   String slowToString() => value.slowToString();
 }
 
-interface SourceString extends Hashable, Iterable<int> default StringWrapper {
+interface SourceString extends Iterable<int> default StringWrapper {
   const SourceString(String string);
 
   void printOn(StringBuffer sb);

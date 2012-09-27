@@ -119,7 +119,7 @@ class SelectorKind {
   toString() => name;
 }
 
-class Selector implements Hashable {
+class Selector {
   final SelectorKind kind;
   final SourceString name;
   final LibraryElement library; // Library is null for non-private selectors.

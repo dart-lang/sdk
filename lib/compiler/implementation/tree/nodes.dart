@@ -84,7 +84,7 @@ class NodeAssertionFailure implements Exception {
  * token stream. These references are stored in fields ending with
  * "Token".
  */
-class Node implements Hashable, Spannable {
+class Node implements Spannable {
   final int _hashCode;
   static int _HASH_COUNTER = 0;
 

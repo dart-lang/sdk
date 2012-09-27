@@ -62,7 +62,7 @@ abstract class MirrorSystem {
 /**
  * An entity in the mirror system.
  */
-abstract class Mirror implements Hashable {
+abstract class Mirror {
   /**
    * The simple name of the entity. The simple name is in most cases the
    * the declared single identifier name of the entity, such as 'method' for

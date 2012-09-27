@@ -24,7 +24,7 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-abstract class DartType implements Hashable {
+abstract class DartType {
   abstract SourceString get name;
   /**
    * Returns the [Element] which declared this type.

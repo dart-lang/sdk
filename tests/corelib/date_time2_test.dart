@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program for Date's Hashable.
+// Dart test program for Date's hashCode.
 
 main() {
   var d = new Date.fromString("2000-01-01T00:00:00Z");
   var d2 = new Date.fromString("2000-01-01T00:00:01Z");
   // There is no guarantee that the hashcode for these two dates is different,
   // but in the worst case we will have to fix this test.
-  // The important test here is, that Date implements Hashable.
+  // The important test here is, that Date .
   Expect.isFalse(d.hashCode() == d2.hashCode());
-  Expect.isTrue(d is Hashable);
 }

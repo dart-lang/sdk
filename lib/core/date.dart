@@ -13,7 +13,7 @@
  *
  * Also see [Stopwatch] for means to measure time-spans.
  */
-abstract class Date implements Comparable, Hashable {
+abstract class Date implements Comparable {
   // Weekday constants that are returned by [weekday] method:
   static const int MON = 1;
   static const int TUE = 2;

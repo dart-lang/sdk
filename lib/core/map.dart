@@ -6,7 +6,7 @@
  * A [Map] is an associative container, mapping a key to a value.
  * Null values are supported, but null keys are not.
  */
-interface Map<K, V> default HashMapImplementation<K extends Hashable, V> {
+interface Map<K, V> default HashMapImplementation<K, V> {
   /**
    * Creates a map with the default implementation.
    */
@@ -92,8 +92,8 @@ interface Map<K, V> default HashMapImplementation<K extends Hashable, V> {
  * provide any guarantees on the order of keys and values in [getKeys]
  * and [getValues].
  */
-interface HashMap<K extends Hashable, V> extends Map<K, V>
-    default HashMapImplementation<K extends Hashable, V> {
+interface HashMap<K, V> extends Map<K, V>
+    default HashMapImplementation<K, V> {
   /**
    * Creates a map with the default implementation.
    */
@@ -109,8 +109,8 @@ interface HashMap<K extends Hashable, V> extends Map<K, V>
  * Hash map version of the [Map] interface that preserves insertion
  * order.
  */
-interface LinkedHashMap<K extends Hashable, V> extends HashMap<K, V>
-    default LinkedHashMapImplementation<K extends Hashable, V> {
+interface LinkedHashMap<K, V> extends HashMap<K, V>
+    default LinkedHashMapImplementation<K, V> {
   /**
    * Creates a map with the default implementation.
    */

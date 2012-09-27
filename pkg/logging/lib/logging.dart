@@ -247,7 +247,7 @@ class LoggerHandlerList {
  * own level, make sure you use a value between those used in [Level.ALL] and
  * [Level.OFF].
  */
-class Level implements Comparable, Hashable {
+class Level implements Comparable {
 
   // TODO(sigmund): mark name/value as 'const' when the language supports it.
   final String name;
