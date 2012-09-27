@@ -1509,7 +1509,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType type = element.getType();
       checkCyclicBounds(type.getArguments());
       // remember unimplemented members
-      findUnimplementedMembers(element);
+      {
+        List<Element> unimplementedMembers = findUnimplementedMembers(element);
+        if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty()) {
+          StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
+          onError(node.getName(), TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
+              node.getName(), sb.toString());
+        }
+      }
+      //
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
@@ -2135,19 +2143,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       } else {
         ClassElement cls = (ClassElement) constructorElement.getEnclosingElement();
         // Add warning for instantiating abstract class.
-        if (!constructorElement.getModifiers().isFactory()) {
-          if (cls.isAbstract()) {
+        if (cls.getModifiers().isAbstract()) {
+          if (!constructorElement.getModifiers().isFactory()) {
             typeError(typeName, TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, cls.getName());
-          } else {
-            List<Element> unimplementedMembers = findUnimplementedMembers(cls);
-            if (unimplementedMembers.size() > 0) {
-              StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
-              typeError(
-                  typeName,
-                  TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
-                  cls.getName(),
-                  sb);
-            }
           }
         }
         // Check type arguments.
@@ -3037,13 +3035,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         // cull out duplicate elements in the supertype list - inheriting more than one interface
         // of the same type is valid.
-        Set<ClassElement> supertypeElements = Sets.newHashSet();
+        Set<ClassElement> typesForAbstractMembers = Sets.newHashSet();
+        typesForAbstractMembers.add(currentClass.getElement());
         for (InterfaceType supertype : supertypes) {
-          supertypeElements.add(supertype.getElement());
+          typesForAbstractMembers.add(supertype.getElement());
         }
         Set<String> artificialNames = Sets.newHashSet();
-        for (ClassElement interfaceElement : supertypeElements) {
+        for (ClassElement interfaceElement : typesForAbstractMembers) {
           for (Element member : interfaceElement.getMembers()) {
+            if (interfaceElement == currentClass.getElement() && !member.getModifiers().isAbstract()) {
+              continue;
+            }
             String name = member.getName();
             if (DartIdentifier.isPrivateName(name)) {
               if (currentLibrary != member.getEnclosingElement().getEnclosingElement()) {
@@ -3110,6 +3112,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
           }
         }
+        
+        // add abstract members of current class
+        for (Element member : currentClass.getElement().getMembers()) {
+          if (member.getModifiers().isAbstract()) {
+            unimplementedElements.add(member);
+          }
+        }
+        
         return null;
       }
 
@@ -3121,68 +3131,69 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       @Override
       public Void visitField(DartField node) {
-        if (superMembers != null) {
-          FieldElement field = node.getElement();
-          // prepare overridden elements
-          String name = field.getName();
-          Set<Element> overridden = Sets.newHashSet();
-          if (node.getAccessor() != null) {
-            if (node.getAccessor().getModifiers().isSetter()) {
-              if (!name.startsWith("setter ")) {
-                name = "setter " + name;
-              }
+        if (superMembers == null) {
+          return null;
+        }
+        FieldElement field = node.getElement();
+        // prepare overridden elements
+        String name = field.getName();
+        Set<Element> overridden = Sets.newHashSet();
+        if (node.getAccessor() != null) {
+          if (node.getAccessor().getModifiers().isSetter()) {
+            if (!name.startsWith("setter ")) {
+              name = "setter " + name;
             }
-            overridden.addAll(superMembers.removeAll(name));
-          } else {
-            overridden.addAll(superMembers.removeAll(name));
-            overridden.addAll(superMembers.removeAll("setter " + name));
           }
-          // check override
-          for (Element superElement : overridden) {
-            if (!(field.isStatic() && superElement.getModifiers().isStatic())) {
-              if (canOverride(node.getName(), field.getModifiers(), superElement)
-                  && !superElement.getModifiers().isStatic()) {
-                switch (superElement.getKind()) {
-                  case FIELD:
-                    checkOverride(node.getName(), field, superElement);
-                    break;
-                  case METHOD:
-                    typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
-                        superElement.getEnclosingElement().getName());
-                    break;
+          overridden.addAll(superMembers.removeAll(name));
+        } else {
+          overridden.addAll(superMembers.removeAll(name));
+          overridden.addAll(superMembers.removeAll("setter " + name));
+        }
+        // check override
+        for (Element superElement : overridden) {
+          if (!(field.isStatic() && superElement.getModifiers().isStatic())) {
+            if (canOverride(node.getName(), field.getModifiers(), superElement)
+                && !superElement.getModifiers().isStatic()) {
+              switch (superElement.getKind()) {
+                case FIELD:
+                  checkOverride(node.getName(), field, superElement);
+                  break;
+                case METHOD:
+                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
+                      superElement.getEnclosingElement().getName());
+                  break;
 
-                  default:
-                    typeError(node, TypeErrorCode.INTERNAL_ERROR, superElement);
-                    break;
-                }
+                default:
+                  typeError(node, TypeErrorCode.INTERNAL_ERROR, superElement);
+                  break;
               }
             }
           }
-          // set super-elements for FieldElement
-          Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
-          // set super-elements for getter/setter
-          if (node.getAccessor() != null) {
-            Set<Element> superGetters = Sets.newHashSet();
-            Set<Element> superSetters = Sets.newHashSet();
-            for (Element superElement : overridden) {
-              if (superElement instanceof FieldElement) {
-                FieldElement superField = (FieldElement) superElement;
-                if (superField.getGetter() != null) {
-                  superGetters.add(superField.getGetter());
-                } else if (superField.getSetter() != null) {
-                  superSetters.add(superField.getSetter());
-                } else {
-                  superGetters.add(superField);
-                  superSetters.add(superField);
-                }
+        }
+        // set super-elements for FieldElement
+        Elements.setOverridden(field, ImmutableSet.copyOf(overridden));
+        // set super-elements for getter/setter
+        if (node.getAccessor() != null) {
+          Set<Element> superGetters = Sets.newHashSet();
+          Set<Element> superSetters = Sets.newHashSet();
+          for (Element superElement : overridden) {
+            if (superElement instanceof FieldElement) {
+              FieldElement superField = (FieldElement) superElement;
+              if (superField.getGetter() != null) {
+                superGetters.add(superField.getGetter());
+              } else if (superField.getSetter() != null) {
+                superSetters.add(superField.getSetter());
+              } else {
+                superGetters.add(superField);
+                superSetters.add(superField);
               }
             }
-            if (node.getAccessor().getModifiers().isGetter()) {
-              Elements.setOverridden(node.getAccessor().getElement(), superGetters);
-            }
-            if (node.getAccessor().getModifiers().isSetter()) {
-              Elements.setOverridden(node.getAccessor().getElement(), superSetters);
-            }
+          }
+          if (node.getAccessor().getModifiers().isGetter()) {
+            Elements.setOverridden(node.getAccessor().getElement(), superGetters);
+          }
+          if (node.getAccessor().getModifiers().isSetter()) {
+            Elements.setOverridden(node.getAccessor().getElement(), superSetters);
           }
         }
         return null;

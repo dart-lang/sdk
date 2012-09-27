@@ -292,19 +292,6 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   }
 
   @Override
-  public boolean isAbstract() {
-    if (modifiers.isAbstract()) {
-      return true;
-    }
-    for (Element element : getMembers()) {
-      if (element.getModifiers().isAbstract()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public EnclosingElement getEnclosingElement() {
     return library;
   }

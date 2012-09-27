@@ -616,7 +616,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
    * methods, but allow clients to instantiate it freely.
    */
-  public void test_warnAbstract_onConcreteClassDeclaration_whenHasUnimplementedMethods()
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_method_fromInterface()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
@@ -631,14 +631,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}",
                 "class A implements Foo, Bar {",
                 "}",
-                "class C {",
-                "  foo() {",
-                "    return new A();",
-                "  }",
+                "main() {",
+                "  new A();",
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 12, 16, 1));
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
       String message = typeError.getMessage();
@@ -651,12 +649,39 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
    * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
    * methods, but allow clients to instantiate it freely.
    */
-  public void test_warnAbstract_onConcreteClassDeclaration_whenHasInheritedUnimplementedMethod()
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_method_inherited()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "abstract class A {",
+                "  abstract void foo();",
+                "}",
+                "class B extends A {",
+                "}",
+                "main() {",
+                "  new B();",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
+    {
+      DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
+      String message = typeError.getMessage();
+      assertTrue(message.contains("# From A:"));
+      assertTrue(message.contains("void foo()"));
+    }
+  }
+  
+  /**
+   * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
+   * methods, but allow clients to instantiate it freely.
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_method_self()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
@@ -665,16 +690,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "class A {",
                 "  abstract void foo();",
                 "}",
-                "class B extends A {",
-                "}",
-                "class C {",
-                "  foo() {",
-                "    return new B();",
-                "  }",
+                "main() {",
+                "  new A();",
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 16, 1));
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
       String message = typeError.getMessage();
@@ -683,95 +704,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * If A is intended to be abstract, we want the static checker to warn about any attempt to
-   * instantiate A, and we do not want the checker to complain about unimplemented methods in A.
-   * <p>
-   * Here:
-   * <ul>
-   * <li>"A" has unimplemented methods, but we don't show warnings, because it is explicitly marked
-   * as abstract.</li>
-   * <li>When we try to create instance of "A", we show warning that it is abstract.</li>
-   * </ul>
-   */
-  public void test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()
+  public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_getter()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
             getName(),
             makeCode(
-                "interface Foo {",
-                "  int fooA;",
-                "  void fooB();",
-                "}",
-                "abstract class A implements Foo {",
-                "}",
-                "class C {",
-                "  foo() {",
-                "    return new A();",
-                "  }",
-                "}"));
-    assertErrors(
-        libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
-  }
-
-  /**
-   * Variant of {@link #test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()}.
-   * <p>
-   * An abstract class is either a class that is explicitly declared with the abstract modifier, or
-   * a class that declares at least one abstract method (7.1.1).
-   */
-  public void test_warnAbstract_onClassWithAbstractMethod_whenInstantiate_normalConstructor()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            getName(),
-            makeCode(
-                "interface Foo {",
-                "  void foo();",
-                "}",
-                "class A implements Foo {",
-                "  abstract void bar();",
-                "}",
-                "class C {",
-                "  foo() {",
-                "    return new A();",
-                "  }",
-                "}"));
-    assertErrors(
-        libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
-  }
-
-  /**
-   * Variant of {@link #test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()}.
-   * <p>
-   * An abstract class is either a class that is explicitly declared with the abstract modifier, or
-   * a class that declares at least one abstract method (7.1.1).
-   */
-  public void test_warnAbstract_onClassWithAbstractGetter_whenInstantiate_normalConstructor()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            getName(),
-            makeCode(
-                "interface Foo {",
-                "  void foo();",
-                "}",
-                "class A implements Foo {",
+                "class A {",
                 "  abstract get x();",
                 "}",
-                "class C {",
-                "  foo() {",
-                "    return new A();",
-                "  }",
+                "main() {",
+                "  new A();",
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 16, 1));
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
   }
 
   /**
@@ -812,7 +759,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 7, 1));
+        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
   }
   
   /**
@@ -825,7 +772,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  get foo();",
         "  set foo(x);",
         "}",
-        "class A implements I {",
+        "abstract class A implements I {",
         "  abstract get foo();",
         "  set foo(x) {}",
         "}",
@@ -838,12 +785,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors());
   }
 
+  public void test_warnAbstract_onAbstractClass_whenInstantiate_normalConstructor()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "abstract class A {",
+                "  abstract void bar();",
+                "}",
+                "main() {",
+                "  new A();",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 5, 7, 1));
+  }
+
   /**
    * Factory constructor can instantiate any class and return it non-abstract class instance, Even
    * thought this is an abstract class, there should be no warnings for the invocation of the
    * factory constructor.
    */
-  public void test_abstractClass_whenInstantiate_factoryConstructor()
+  public void test_warnAbstract_onAbstractClass_whenInstantiate_factoryConstructor()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
@@ -868,18 +832,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * thought this is an abstract class, there should be no warnings for the invocation of the
    * factory constructor.
    */
-  public void test_abstractClass_whenInstantiate_factoryConstructor2()
+  public void test_wanrAbstract_onAbstractClass_whenInstantiate_factoryConstructor2()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
             getName(),
             makeCode(
-                "class A extends B {",  // class doesn't implement all abstract methods
+                "abstract class A {", // class is abstract
                 "  factory A() {",
                 "    return null;",
                 "  }",
-                "}",
-                "class B {",
                 "  abstract method();",
                 "}",
                 "class C {",
@@ -1154,7 +1116,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "interface A {",
                 "  get foo() {}",
                 "}",
-                "class B implements A {",
+                "abstract class B implements A {",
                 "  set foo(arg) {}",
                 "}",
                 "",
@@ -1166,7 +1128,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 13, 1));
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 13, 1));
   }
 
   public void test_getterOnlyProperty_noSetter() throws Exception {
@@ -1227,7 +1189,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "interface A {",
                 "  set foo(arg) {}",
                 "}",
-                "class B implements A {",
+                "abstract class B implements A {",
                 "  get foo() {}",
                 "}",
                 "",
@@ -1239,7 +1201,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 9, 13, 1));
+        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 13, 1));
   }
 
   public void test_assert_notUserFunction() throws Exception {
@@ -1660,6 +1622,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(result.getErrors());
   }
+  
+  public void test_implementsAndOverrides_lessNamedParameter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "abstract class A {",
+        "  abstract foo([x, y]);",
+        "}",
+        "abstract class B extends A {",
+        "  abstract foo([x]);",
+        "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 12, 3));
+  }
 
   /**
    * We override "foo" with method that has named parameter. So, this method is not abstract and
@@ -1668,7 +1643,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_additionalNamedParameter_notAbstract() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "class A {",
+            "abstract class A {",
             "  abstract foo();",
             "}",
             "class B extends A {",
@@ -4383,7 +4358,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "external topFunction() {}",
-        "class A {",
+        "abstract class A {",
         "  external A() {}",
         "  external factory A.named() {}",
         "  external classMethod() {}",

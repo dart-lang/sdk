@@ -59,7 +59,7 @@ public class SyntaxTest extends AbstractParserTest {
         "import;"),
         ParserErrorCode.EXPECTED_TOKEN, 2, 7);
     DartImportDirective dir = (DartImportDirective) unit.getDirectives().get(1);
-    System.out.println(dir.toSource());
+    assertEquals("import ;\n", dir.toSource());
   }
 
   public void test_getter() {

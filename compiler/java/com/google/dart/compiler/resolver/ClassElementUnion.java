@@ -105,11 +105,6 @@ public class ClassElementUnion implements ClassElement {
   }
 
   @Override
-  public boolean isAbstract() {
-    return lastElement.isAbstract();
-  }
-
-  @Override
   public ConstructorElement lookupConstructor(String name) {
     throw new UnsupportedOperationException();
   }

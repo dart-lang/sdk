@@ -17,6 +17,7 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
+  CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS("Concrete class %s has unimplemented member(s) %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),
   DEPRECATED_ELEMENT(ErrorSeverity.INFO, "%s is deprecated"),
@@ -38,8 +39,6 @@ public enum TypeErrorCode implements ErrorCode {
   INCOMPATIBLE_TYPES_IN_HIERARCHY(ErrorSeverity.INFO,
       "Class inherits two variations of the same interface '%s' and '%s' with parameters that are not assignable to each other."),
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),
-  INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
-      "instantiation of class %s with the inherited abstract members: %s"),
   INTERFACE_HAS_NO_METHOD_NAMED("\"%s\" has no method named \"%s\""),
   INTERFACE_HAS_NO_METHOD_NAMED_INFERRED(ErrorSeverity.INFO, "\"%s\" has no method named \"%s\""),
   INTERNAL_ERROR("internal error: %s", true),

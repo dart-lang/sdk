@@ -212,6 +212,10 @@ naming_test: Fail, OK
 # test issue 5337
 bad_constructor_test/05: Fail, OK
 
+# test issue 5529
+abstract_factory_constructor_test/none: Fail, OK
+abstract_syntax_test/none: Fail, OK
+interface_test/none: Fail, OK
 
 
 #
