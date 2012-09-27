@@ -129,6 +129,8 @@ _removed_html_members = set([
 #    "CDATASection.*",
 #    "Comment.*",
 #    "DOMImplementation.*",
+    "CanvasRenderingContext2D.setFillColor",
+    "CanvasRenderingContext2D.setStrokeColor",
     "Document.get:forms",
 #    "Document.get:selectedStylesheetSet",
 #    "Document.set:selectedStylesheetSet",
