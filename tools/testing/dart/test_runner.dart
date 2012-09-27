@@ -631,6 +631,7 @@ class RunningProcess {
       print("Error starting process:");
       print("  Command: $command");
       print("  Error: $e");
+      testComplete(-1);
     };
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
@@ -888,6 +889,10 @@ class BatchRunnerProcess {
       print("Error starting process:");
       print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
       print("  Error: $e");
+      // If there is an error starting a batch process, chances are that
+      // it will always fail. So rather than re-trying a 1000+ times, we
+      // exit.
+      exit(1);
     };
     _process.onStart = then;
   }
@@ -1039,6 +1044,8 @@ class ProcessQueue {
         print("Error starting process:");
         print("  Command: $cmd ${Strings.join(arg, ' ')}");
         print("  Error: $e");
+        // TODO(ahe): How to report this as a test failure?
+        exit(1);
       };
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
@@ -1106,6 +1113,8 @@ class ProcessQueue {
           print("Error starting process:");
           print("  Command: java -jar $file");
           print("  Error: $e");
+          // TODO(ahe): How to report this as a test failure?
+          exit(1);
         };
         // Heads up: there seems to an obscure data race of some form in
         // the VM between launching the server process and launching the test

@@ -443,9 +443,7 @@ class StandardTestSuite implements TestSuite {
     var commands = [];
     var command = optionsFromFile['extraCommand'];
     var args = optionsFromFile['extraCommandArgs'];
-    if (command != null) {
-      commands.add(new Command(command, args));
-    }
+    addExtraCommand(command, args, commands);
 
     List _append(list1,list2) => []..addAll(list1)..addAll(list2);
 
@@ -509,6 +507,18 @@ class StandardTestSuite implements TestSuite {
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
     }
+  }
+
+  void addExtraCommand(String command, List<String> arguments, List commands) {
+    if (command == null) return;
+    // As a special case, a command of "dart" should run with the
+    // dart VM that we are testing.
+    if (command == 'dart') {
+      command = TestUtils.vmFileName(configuration);
+    }
+    arguments =
+        arguments.map((arg)=>arg.replaceAll(r"$dartDir", dartDir.toString()));
+    commands.add(new Command(command, arguments));
   }
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
@@ -688,16 +698,8 @@ class StandardTestSuite implements TestSuite {
       }
 
       var extraCommand = optionsFromFile['extraCommand'];
-      if (extraCommand != null) {
-        var args = optionsFromFile['extraCommandArgs'];
-        // As a special case, a command of "dart" should run with the
-        // dart VM that we are testing.
-        if (extraCommand == 'dart') {
-          extraCommand = TestUtils.vmFileName(configuration);
-        }
-        args= args.map((arg)=>arg.replaceAll(r"$dartDir", dartDir.toString()));
-        commands.add(new Command(extraCommand, args));
-      }
+      var args = optionsFromFile['extraCommandArgs'];
+      addExtraCommand(extraCommand, args, commands);
 
       // Construct the command that executes the browser test
       List<String> args;
