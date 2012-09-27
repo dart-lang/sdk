@@ -65,6 +65,7 @@ lazy_static3_test: Fail # Issue 3558
 
 type_error_test: Fail # http://dartbug.com/5280
 
+first_class_types_test: Fail # Issue 3902
 
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -231,7 +232,6 @@ import_combinators_test: Fail
 
 
 [ $runtime == vm ]
-first_class_types_test: Fail # Issue 3902
 call_nonexistent_static_test/01: Fail # Issues 3094
 call_nonexistent_static_test/02: Fail # Issues 3088
 call_nonexistent_static_test/03: Fail # Issues 3085
