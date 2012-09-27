@@ -16,9 +16,6 @@ namespace dart {
 #define CLASS_LIST_NO_OBJECT(V)                                                \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
-  V(AbstractType)                                                              \
-    V(Type)                                                                    \
-    V(TypeParameter)                                                           \
   V(AbstractTypeArguments)                                                     \
     V(TypeArguments)                                                           \
     V(InstantiatedTypeArguments)                                               \
@@ -50,6 +47,9 @@ namespace dart {
     V(UnhandledException)                                                      \
     V(UnwindError)                                                             \
   V(Instance)                                                                  \
+    V(AbstractType)                                                            \
+      V(Type)                                                                  \
+      V(TypeParameter)                                                         \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -454,57 +454,6 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
   }
   intptr_t token_pos_;
-};
-
-
-class RawAbstractType : public RawObject {
- protected:
-  enum TypeState {
-    kAllocated,  // Initial state.
-    kBeingFinalized,  // In the process of being finalized.
-    kFinalizedInstantiated,  // Instantiated type ready for use.
-    kFinalizedUninstantiated,  // Uninstantiated type ready for use.
-  };
-
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
-
-  friend class ObjectStore;
-};
-
-
-class RawType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_class_);
-  }
-  RawObject* type_class_;  // Either resolved class or unresolved class.
-  RawAbstractTypeArguments* arguments_;
-  RawError* malformed_error_;  // Error object if type is malformed.
-  RawObject** to() {
-      return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
-  }
-  intptr_t token_pos_;
-  int8_t type_state_;
-};
-
-
-class RawTypeParameter : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
-
-  RawObject** from() {
-      return reinterpret_cast<RawObject**>(&ptr()->parameterized_class_);
-  }
-  RawClass* parameterized_class_;
-  RawString* name_;
-  RawAbstractType* bound_;  // DynamicType if no explicit bound specified.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  intptr_t index_;
-  intptr_t token_pos_;
-  int8_t type_state_;
 };
 
 
@@ -1035,6 +984,57 @@ class RawUnwindError : public RawError {
 
 class RawInstance : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
+};
+
+
+class RawAbstractType : public RawInstance {
+ protected:
+  enum TypeState {
+    kAllocated,  // Initial state.
+    kBeingFinalized,  // In the process of being finalized.
+    kFinalizedInstantiated,  // Instantiated type ready for use.
+    kFinalizedUninstantiated,  // Uninstantiated type ready for use.
+  };
+
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
+
+  friend class ObjectStore;
+};
+
+
+class RawType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_class_);
+  }
+  RawObject* type_class_;  // Either resolved class or unresolved class.
+  RawAbstractTypeArguments* arguments_;
+  RawError* malformed_error_;  // Error object if type is malformed.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
+  }
+  intptr_t token_pos_;
+  int8_t type_state_;
+};
+
+
+class RawTypeParameter : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->parameterized_class_);
+  }
+  RawClass* parameterized_class_;
+  RawString* name_;
+  RawAbstractType* bound_;  // DynamicType if no explicit bound specified.
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
+  intptr_t index_;
+  intptr_t token_pos_;
+  int8_t type_state_;
 };
 
 

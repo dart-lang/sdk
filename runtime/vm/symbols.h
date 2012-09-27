@@ -64,8 +64,8 @@ class ObjectPointerVisitor;
   V(Dynamic, "Dynamic")                                                        \
   V(Void, "void")                                                              \
   V(UnresolvedClass, "UnresolvedClass")                                        \
-  V(Type, "Type")                                                              \
-  V(TypeParameter, "TypeParameter")                                            \
+  V(Type, "_Type")                                                             \
+  V(TypeParameter, "_TypeParameter")                                           \
   V(TypeArguments, "TypeArguments")                                            \
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \

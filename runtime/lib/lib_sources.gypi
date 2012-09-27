@@ -20,6 +20,7 @@
     'object_patch.dart',
     'print_patch.dart',
     'stopwatch.cc',
+    'type_patch.dart',
     'weak_property.dart',
     'weak_property.cc',
   ],

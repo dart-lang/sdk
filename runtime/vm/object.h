@@ -257,8 +257,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
-  static RawClass* type_class() { return type_class_; }
-  static RawClass* type_parameter_class() { return type_parameter_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
       return instantiated_type_arguments_class_;
@@ -391,8 +389,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* dynamic_class_;  // Class of the 'Dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
-  static RawClass* type_class_;  // Class of Type.
-  static RawClass* type_parameter_class_;  // Class of TypeParameter vm object.
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
@@ -819,293 +815,6 @@ class UnresolvedClass : public Object {
   static RawUnresolvedClass* New();
 
   HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
-  friend class Class;
-};
-
-
-// AbstractType is an abstract superclass.
-// Subclasses of AbstractType are Type and TypeParameter.
-class AbstractType : public Object {
- public:
-  virtual bool IsFinalized() const;
-  virtual bool IsBeingFinalized() const;
-  virtual bool IsMalformed() const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
-  virtual bool IsResolved() const;
-  virtual bool HasResolvedTypeClass() const;
-  virtual RawClass* type_class() const;
-  virtual RawUnresolvedClass* unresolved_class() const;
-  virtual RawAbstractTypeArguments* arguments() const;
-  virtual intptr_t token_pos() const;
-  virtual bool IsInstantiated() const;
-  virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
-
-  // Instantiate this type using the given type argument vector.
-  // Return a new type, or return 'this' if it is already instantiated.
-  virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
-
-  // Return the canonical version of this type.
-  virtual RawAbstractType* Canonicalize() const;
-
-  // The name of this type, including the names of its type arguments, if any.
-  virtual RawString* Name() const {
-    return BuildName(kInternalName);
-  }
-
-  // The name of this type, including the names of its type arguments, if any.
-  // Names of internal classes are mapped to their public interfaces.
-  virtual RawString* UserVisibleName() const {
-    return BuildName(kUserVisibleName);
-  }
-
-  // The name of this type's class, i.e. without the type argument names of this
-  // type.
-  RawString* ClassName() const;
-
-  // Check if this type represents the 'Dynamic' type.
-  bool IsDynamicType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
-  }
-
-  // Check if this type represents the 'Null' type.
-  bool IsNullType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::null_class());
-  }
-
-  // Check if this type represents the 'void' type.
-  bool IsVoidType() const {
-    return HasResolvedTypeClass() && (type_class() == Object::void_class());
-  }
-
-  bool IsObjectType() const {
-    return HasResolvedTypeClass() &&
-        Class::Handle(type_class()).IsObjectClass();
-  }
-
-  // Check if this type represents the 'bool' type.
-  bool IsBoolType() const;
-
-  // Check if this type represents the 'int' type.
-  bool IsIntType() const;
-
-  // Check if this type represents the 'double' type.
-  bool IsDoubleType() const;
-
-  // Check if this type represents the 'num' type.
-  bool IsNumberType() const;
-
-  // Check if this type represents the 'String' interface.
-  bool IsStringInterface() const;
-
-  // Check if this type represents the 'Function' type.
-  bool IsFunctionType() const;
-
-  // Check if this type represents the 'List' interface.
-  bool IsListInterface() const;
-
-  // Check if this type is an interface type.
-  bool IsInterfaceType() const {
-    if (!HasResolvedTypeClass()) {
-      return false;
-    }
-    const Class& cls = Class::Handle(type_class());
-    return !cls.IsNull() && cls.is_interface();
-  }
-
-  // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
-    return TypeTest(kIsSubtypeOf, other, malformed_error);
-  }
-
-  // Check the 'more specific' relationship.
-  bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* malformed_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, malformed_error);
-  }
-
- private:
-  // Check the subtype or 'more specific' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const AbstractType& other,
-                Error* malformed_error) const;
-
-  // Return the internal or public name of this type, including the names of its
-  // type arguments, if any.
-  RawString* BuildName(NameVisibility visibility) const;
-
- protected:
-  HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
-  friend class AbstractTypeArguments;
-  friend class Class;
-  friend class Function;
-};
-
-
-// A Type consists of a class, possibly parameterized with type
-// arguments. Example: C<T1, T2>.
-// An unresolved class is a String specifying the class name.
-//
-// Caution: 'RawType*' denotes a 'raw' pointer to a VM object of class Type, as
-// opposed to 'Type' denoting a 'handle' to the same object. 'RawType' does not
-// relate to a 'raw type', as opposed to a 'cooked type' or 'rare type'.
-class Type : public AbstractType {
- public:
-  static intptr_t type_class_offset() {
-    return OFFSET_OF(RawType, type_class_);
-  }
-  virtual bool IsFinalized() const {
-    return
-        (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
-        (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
-  }
-  void set_is_finalized_instantiated() const;
-  void set_is_finalized_uninstantiated() const;
-  virtual bool IsBeingFinalized() const {
-    return raw_ptr()->type_state_ == RawType::kBeingFinalized;
-  }
-  void set_is_being_finalized() const;
-  virtual bool IsMalformed() const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
-  virtual bool IsResolved() const;  // Class and all arguments classes resolved.
-  virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
-  virtual RawClass* type_class() const;
-  void set_type_class(const Object& value) const;
-  virtual RawUnresolvedClass* unresolved_class() const;
-  RawString* TypeClassName() const;
-  virtual RawAbstractTypeArguments* arguments() const;
-  void set_arguments(const AbstractTypeArguments& value) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated() const;
-  virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
-  virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
-  virtual RawAbstractType* Canonicalize() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawType));
-  }
-
-  // The type of the literal 'null'.
-  static RawType* NullType();
-
-  // The 'Dynamic' type.
-  static RawType* DynamicType();
-
-  // The 'void' type.
-  static RawType* VoidType();
-
-  // The 'Object' type.
-  static RawType* ObjectType();
-
-  // The 'bool' type.
-  static RawType* BoolType();
-
-  // The 'int' type.
-  static RawType* IntType();
-
-  // The 'Smi' type.
-  static RawType* SmiType();
-
-  // The 'Mint' type.
-  static RawType* MintType();
-
-  // The 'double' type.
-  static RawType* Double();
-
-  // The 'num' interface type.
-  static RawType* Number();
-
-  // The 'String' interface type.
-  static RawType* StringInterface();
-
-  // The 'Function' interface type.
-  static RawType* Function();
-
-  // The 'List' interface type.
-  static RawType* ListInterface();
-
-  // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(const Class& type_class);
-
-  static RawType* New(const Object& clazz,
-                      const AbstractTypeArguments& arguments,
-                      intptr_t token_pos,
-                      Heap::Space space = Heap::kOld);
-
- private:
-  void set_token_pos(intptr_t token_pos) const;
-  void set_type_state(int8_t state) const;
-
-  static RawType* New(Heap::Space space = Heap::kOld);
-
-  HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
-  friend class Class;
-};
-
-
-// A TypeParameter represents a type parameter of a parameterized class.
-// It specifies its index (and its name for debugging purposes), as well as its
-// upper bound.
-// For example, the type parameter 'V' is specified as index 1 in the context of
-// the class HashMap<K, V>. At compile time, the TypeParameter is not
-// instantiated yet, i.e. it is only a place holder.
-// Upon finalization, the TypeParameter index is changed to reflect its position
-// as type argument (rather than type parameter) of the parameterized class.
-// If the type parameter is declared without an extends clause, its bound is set
-// to the DynamicType.
-class TypeParameter : public AbstractType {
- public:
-  virtual bool IsFinalized() const {
-    ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
-    return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
-  }
-  void set_is_finalized() const;
-  virtual bool IsBeingFinalized() const { return false; }
-  virtual bool IsMalformed() const { return false; }
-  virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return false; }
-  RawClass* parameterized_class() const {
-      return raw_ptr()->parameterized_class_;
-  }
-  RawString* name() const { return raw_ptr()->name_; }
-  intptr_t index() const { return raw_ptr()->index_; }
-  void set_index(intptr_t value) const;
-  RawAbstractType* bound() const { return raw_ptr()->bound_; }
-  void set_bound(const AbstractType& value) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated() const { return false; }
-  virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other,
-                           bool check_type_parameter_bound) const;
-  virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
-  virtual RawAbstractType* Canonicalize() const { return raw(); }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawTypeParameter));
-  }
-
-  static RawTypeParameter* New(const Class& parameterized_class,
-                               intptr_t index,
-                               const String& name,
-                               const AbstractType& bound,
-                               intptr_t token_pos);
-
- private:
-  void set_parameterized_class(const Class& value) const;
-  void set_name(const String& value) const;
-  void set_token_pos(intptr_t token_pos) const;
-  void set_type_state(int8_t state) const;
-  static RawTypeParameter* New();
-
-  HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
 };
 
@@ -3306,6 +3015,293 @@ class Instance : public Object {
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
+  friend class Class;
+};
+
+
+// AbstractType is an abstract superclass.
+// Subclasses of AbstractType are Type and TypeParameter.
+class AbstractType : public Instance {
+ public:
+  virtual bool IsFinalized() const;
+  virtual bool IsBeingFinalized() const;
+  virtual bool IsMalformed() const;
+  virtual RawError* malformed_error() const;
+  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsResolved() const;
+  virtual bool HasResolvedTypeClass() const;
+  virtual RawClass* type_class() const;
+  virtual RawUnresolvedClass* unresolved_class() const;
+  virtual RawAbstractTypeArguments* arguments() const;
+  virtual intptr_t token_pos() const;
+  virtual bool IsInstantiated() const;
+  virtual bool Equals(const Instance& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
+
+  // Instantiate this type using the given type argument vector.
+  // Return a new type, or return 'this' if it is already instantiated.
+  virtual RawAbstractType* InstantiateFrom(
+      const AbstractTypeArguments& instantiator_type_arguments) const;
+
+  // Return the canonical version of this type.
+  virtual RawAbstractType* Canonicalize() const;
+
+  // The name of this type, including the names of its type arguments, if any.
+  virtual RawString* Name() const {
+    return BuildName(kInternalName);
+  }
+
+  // The name of this type, including the names of its type arguments, if any.
+  // Names of internal classes are mapped to their public interfaces.
+  virtual RawString* UserVisibleName() const {
+    return BuildName(kUserVisibleName);
+  }
+
+  // The name of this type's class, i.e. without the type argument names of this
+  // type.
+  RawString* ClassName() const;
+
+  // Check if this type represents the 'Dynamic' type.
+  bool IsDynamicType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
+  }
+
+  // Check if this type represents the 'Null' type.
+  bool IsNullType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::null_class());
+  }
+
+  // Check if this type represents the 'void' type.
+  bool IsVoidType() const {
+    return HasResolvedTypeClass() && (type_class() == Object::void_class());
+  }
+
+  bool IsObjectType() const {
+    return HasResolvedTypeClass() &&
+    Class::Handle(type_class()).IsObjectClass();
+  }
+
+  // Check if this type represents the 'bool' type.
+  bool IsBoolType() const;
+
+  // Check if this type represents the 'int' type.
+  bool IsIntType() const;
+
+  // Check if this type represents the 'double' type.
+  bool IsDoubleType() const;
+
+  // Check if this type represents the 'num' type.
+  bool IsNumberType() const;
+
+  // Check if this type represents the 'String' interface.
+  bool IsStringInterface() const;
+
+  // Check if this type represents the 'Function' type.
+  bool IsFunctionType() const;
+
+  // Check if this type represents the 'List' interface.
+  bool IsListInterface() const;
+
+  // Check if this type is an interface type.
+  bool IsInterfaceType() const {
+    if (!HasResolvedTypeClass()) {
+      return false;
+    }
+    const Class& cls = Class::Handle(type_class());
+    return !cls.IsNull() && cls.is_interface();
+  }
+
+  // Check the subtype relationship.
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
+    return TypeTest(kIsSubtypeOf, other, malformed_error);
+  }
+
+  // Check the 'more specific' relationship.
+  bool IsMoreSpecificThan(const AbstractType& other,
+                          Error* malformed_error) const {
+    return TypeTest(kIsMoreSpecificThan, other, malformed_error);
+  }
+
+ private:
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const AbstractType& other,
+                Error* malformed_error) const;
+
+  // Return the internal or public name of this type, including the names of its
+  // type arguments, if any.
+  RawString* BuildName(NameVisibility visibility) const;
+
+ protected:
+  HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
+  friend class AbstractTypeArguments;
+  friend class Class;
+  friend class Function;
+};
+
+
+// A Type consists of a class, possibly parameterized with type
+// arguments. Example: C<T1, T2>.
+// An unresolved class is a String specifying the class name.
+//
+// Caution: 'RawType*' denotes a 'raw' pointer to a VM object of class Type, as
+// opposed to 'Type' denoting a 'handle' to the same object. 'RawType' does not
+// relate to a 'raw type', as opposed to a 'cooked type' or 'rare type'.
+class Type : public AbstractType {
+ public:
+  static intptr_t type_class_offset() {
+    return OFFSET_OF(RawType, type_class_);
+  }
+  virtual bool IsFinalized() const {
+    return
+    (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+    (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
+  }
+  void set_is_finalized_instantiated() const;
+  void set_is_finalized_uninstantiated() const;
+  virtual bool IsBeingFinalized() const {
+    return raw_ptr()->type_state_ == RawType::kBeingFinalized;
+  }
+  void set_is_being_finalized() const;
+  virtual bool IsMalformed() const;
+  virtual RawError* malformed_error() const;
+  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsResolved() const;  // Class and all arguments classes resolved.
+  virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
+  virtual RawClass* type_class() const;
+  void set_type_class(const Object& value) const;
+  virtual RawUnresolvedClass* unresolved_class() const;
+  RawString* TypeClassName() const;
+  virtual RawAbstractTypeArguments* arguments() const;
+  void set_arguments(const AbstractTypeArguments& value) const;
+  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual bool IsInstantiated() const;
+  virtual bool Equals(const Instance& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
+  virtual RawAbstractType* InstantiateFrom(
+      const AbstractTypeArguments& instantiator_type_arguments) const;
+  virtual RawAbstractType* Canonicalize() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawType));
+  }
+
+  // The type of the literal 'null'.
+  static RawType* NullType();
+
+  // The 'Dynamic' type.
+  static RawType* DynamicType();
+
+  // The 'void' type.
+  static RawType* VoidType();
+
+  // The 'Object' type.
+  static RawType* ObjectType();
+
+  // The 'bool' type.
+  static RawType* BoolType();
+
+  // The 'int' type.
+  static RawType* IntType();
+
+  // The 'Smi' type.
+  static RawType* SmiType();
+
+  // The 'Mint' type.
+  static RawType* MintType();
+
+  // The 'double' type.
+  static RawType* Double();
+
+  // The 'num' interface type.
+  static RawType* Number();
+
+  // The 'String' interface type.
+  static RawType* StringInterface();
+
+  // The 'Function' interface type.
+  static RawType* Function();
+
+  // The 'List' interface type.
+  static RawType* ListInterface();
+
+  // The finalized type of the given non-parameterized class.
+  static RawType* NewNonParameterizedType(const Class& type_class);
+
+  static RawType* New(const Object& clazz,
+                      const AbstractTypeArguments& arguments,
+                      intptr_t token_pos,
+                      Heap::Space space = Heap::kOld);
+
+ private:
+  void set_token_pos(intptr_t token_pos) const;
+  void set_type_state(int8_t state) const;
+
+  static RawType* New(Heap::Space space = Heap::kOld);
+
+  HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
+  friend class Class;
+};
+
+
+// A TypeParameter represents a type parameter of a parameterized class.
+// It specifies its index (and its name for debugging purposes), as well as its
+// upper bound.
+// For example, the type parameter 'V' is specified as index 1 in the context of
+// the class HashMap<K, V>. At compile time, the TypeParameter is not
+// instantiated yet, i.e. it is only a place holder.
+// Upon finalization, the TypeParameter index is changed to reflect its position
+// as type argument (rather than type parameter) of the parameterized class.
+// If the type parameter is declared without an extends clause, its bound is set
+// to the DynamicType.
+class TypeParameter : public AbstractType {
+ public:
+  virtual bool IsFinalized() const {
+    ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
+    return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
+  }
+  void set_is_finalized() const;
+  virtual bool IsBeingFinalized() const { return false; }
+  virtual bool IsMalformed() const { return false; }
+  virtual bool IsResolved() const { return true; }
+  virtual bool HasResolvedTypeClass() const { return false; }
+  RawClass* parameterized_class() const {
+    return raw_ptr()->parameterized_class_;
+  }
+  RawString* name() const { return raw_ptr()->name_; }
+  intptr_t index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const;
+  RawAbstractType* bound() const { return raw_ptr()->bound_; }
+  void set_bound(const AbstractType& value) const;
+  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual bool IsInstantiated() const { return false; }
+  virtual bool Equals(const Instance& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
+  virtual RawAbstractType* InstantiateFrom(
+      const AbstractTypeArguments& instantiator_type_arguments) const;
+  virtual RawAbstractType* Canonicalize() const { return raw(); }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTypeParameter));
+  }
+
+  static RawTypeParameter* New(const Class& parameterized_class,
+                               intptr_t index,
+                               const String& name,
+                               const AbstractType& bound,
+                               intptr_t token_pos);
+
+ private:
+  void set_parameterized_class(const Class& value) const;
+  void set_name(const String& value) const;
+  void set_token_pos(intptr_t token_pos) const;
+  void set_type_state(int8_t state) const;
+  static RawTypeParameter* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
 };
 

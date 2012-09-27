@@ -229,7 +229,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kTypeCid);
+  writer->WriteIndexedObject(kTypeCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
@@ -284,7 +284,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kTypeParameterCid);
+  writer->WriteIndexedObject(kTypeParameterCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.

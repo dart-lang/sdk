@@ -19,17 +19,12 @@ patch class Object {
     return result;
   }
 
-  /* patch */ String toString() => _toString(this);
+  /* patch */ String toString() native "Object_toString";
+  // A statically dispatched version of Object.toString.
+  static String _toString(obj) native "Object_toString";
 
-  /* patch */ Dynamic noSuchMethod(String functionName, List args) {
-    _noSuchMethod(this, functionName, args);
-  }
-
-  // Not yet supported.
-  /* patch */ Type get runtimeType => null;
-
-  static void _noSuchMethod(Object obj, String functionName, List args)
+  /* patch */ Dynamic noSuchMethod(String functionName, List args)
       native "Object_noSuchMethod";
 
-  static String _toString(Object obj) native "Object_toString";
+  /* patch */ Type get runtimeType native "Object_runtimeType";
 }

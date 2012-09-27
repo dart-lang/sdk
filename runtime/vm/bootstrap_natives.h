@@ -15,6 +15,8 @@ namespace dart {
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 3)                                                    \
+  V(Object_runtimeType, 1)                                                     \
+  V(AbstractType_toString, 1)                                                  \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
   V(Integer_bitXorFromInteger, 2)                                              \
