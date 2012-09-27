@@ -61,7 +61,7 @@ class Dart2JSSystem(System):
 class Dart2JSInterfaceGenerator(BaseGenerator):
   """Generates a Dart2JS class for a DOM IDL interface."""
 
-  def __init__(self, system, interface, template, dart_code):
+  def __init__(self, options, interface, template, dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -73,13 +73,13 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
-    super(Dart2JSInterfaceGenerator, self).__init__(system._database, interface)
-    self._system = system
+    super(Dart2JSInterfaceGenerator, self).__init__(
+        options.database, options.type_registry, interface)
+    self._template_loader = options.templates
     self._interface = interface
     self._template = template
     self._dart_code = dart_code
     self._current_secondary_parent = None
-
 
   def StartInterface(self):
     interface = self._interface
@@ -141,9 +141,9 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
-    template = self._system._templates.TryLoad(template_file)
+    template = self._template_loader.TryLoad(template_file)
     if not template:
-      template = self._system._templates.Load('factoryprovider.darttemplate')
+      template = self._template_loader.Load('factoryprovider.darttemplate')
 
     factory_provider = '_' + interface_name + 'FactoryProvider'
     emitter = self._system._ImplFileEmitter(factory_provider)
@@ -161,8 +161,8 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
                      'IDBAny', 'IDBKey', 'MediaQueryListListener']
     if type_name in do_not_narrow:
       return False
-    if self._system._database.HasInterface(type_name):
-      interface = self._system._database.GetInterface(type_name)
+    if self._database.HasInterface(type_name):
+      interface = self._database.GetInterface(type_name)
       # Callbacks are typedef functions so don't have a class.
       return 'Callback' not in interface.ext_attrs
     return False
@@ -282,7 +282,7 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
           return (None, None)
         if IsPureInterface(parent.type.id):
           return (None, None)
-        if self._system._database.HasInterface(parent.type.id):
+        if self._database.HasInterface(parent.type.id):
           interfaces_to_search_in = []
           if parent.type.id in merged_interfaces:
             # IDL parent was merged into another interface, which became a
@@ -299,13 +299,13 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
 
           interfaces_to_search_in.append(parent_interface_name)
           for interface_name in interfaces_to_search_in:
-            interface = self._system._database.GetInterface(interface_name)
+            interface = self._database.GetInterface(interface_name)
             attr2 = FindMatchingAttribute(interface, attr)
             if attr2:
               return (attr2, parent_interface_name)
 
           return FindInParent(
-              self._system._database.GetInterface(parent_interface_name))
+              self._database.GetInterface(parent_interface_name))
       return (None, None)
 
     return FindInParent(self._interface) if attr else (None, None)
@@ -364,7 +364,7 @@ class Dart2JSInterfaceGenerator(BaseGenerator):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
-    template = self._system._templates.Load(template_file)
+    template = self._template_loader.Load(template_file)
     self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def AddOperation(self, info):

@@ -8,35 +8,52 @@ native binding from the IDL database."""
 
 import emitter
 import os
-import systembase
 from generator import *
+from systembase import BaseGenerator
 
 
-class NativeImplementationSystem(systembase.System):
+class DartiumBackend(BaseGenerator):
+  """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, options, cpp_library_emitter):
-    super(NativeImplementationSystem, self).__init__(options)
+  def __init__(self, interface, cpp_library_emitter, options):
+    super(DartiumBackend, self).__init__(
+        options.database, options.type_registry, interface)
     self._cpp_library_emitter = cpp_library_emitter
+    self._template_loader = options.templates
+    self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
-  def ImplementationGenerator(self, interface):
-    return NativeImplementationGenerator(self, interface)
+  def HasImplementation(self):
+    return not IsPureInterface(self._interface.id)
 
-  def ProcessCallback(self, interface, info):
-    self._interface = interface
+  def ImplementationClassName(self):
+    return self._ImplClassName(self._interface.id)
 
+  def SetImplementationEmitter(self, implementation_emitter):
+    self._dart_impl_emitter = implementation_emitter
+
+  def ImplementsMergedMembers(self):
+    # We could not add merged functions to implementation class because
+    # underlying c++ object doesn't implement them. Merged functions are
+    # generated on merged interface implementation instead.
+    return False
+
+  def HasCustomEventImplementation(self, member_name):
+    return False
+
+  def GenerateCallback(self, info):
     if IsPureInterface(self._interface.id):
-      return None
+      return
 
     cpp_impl_includes = set()
     cpp_header_handlers_emitter = emitter.Emitter()
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
-    for operation in interface.operations:
+    for operation in self._interface.operations:
       parameters = []
       arguments = []
       conversion_includes = []
       for argument in operation.arguments:
-        argument_type_info = self._type_registry.TypeInfo(argument.type.id)
+        argument_type_info = self._TypeInfo(argument.type.id)
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
@@ -72,59 +89,22 @@ class NativeImplementationSystem(systembase.System):
 
     cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id, True)
     cpp_header_emitter.Emit(
-        self._templates.Load('cpp_callback_header.template'),
+        self._template_loader.Load('cpp_callback_header.template'),
         INTERFACE=self._interface.id,
         HANDLERS=cpp_header_handlers_emitter.Fragments())
 
     cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     cpp_impl_emitter.Emit(
-        self._templates.Load('cpp_callback_implementation.template'),
-        INCLUDES=_GenerateCPPIncludes(cpp_impl_includes),
+        self._template_loader.Load('cpp_callback_implementation.template'),
+        INCLUDES=self._GenerateCPPIncludes(cpp_impl_includes),
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
-
-
-class NativeImplementationGenerator(systembase.BaseGenerator):
-  """Generates Dart implementation for one DOM IDL interface."""
-
-  def __init__(self, system, interface):
-    """Generates Dart and C++ code for the given interface.
-
-    Args:
-      system: The NativeImplementationSystem.
-      interface: an IDLInterface instance. It is assumed that all types have
-          been converted to Dart types (e.g. int, String), unless they are in
-          the same package as the interface.
-    """
-    super(NativeImplementationGenerator, self).__init__(
-        system._database, interface)
-    self._system = system
-    self._current_secondary_parent = None
-    self._html_interface_name = system._renamer.RenameInterface(self._interface)
-
-  def HasImplementation(self):
-    return not IsPureInterface(self._interface.id)
-
-  def ImplementationClassName(self):
-    return self._ImplClassName(self._interface.id)
-
-  def SetImplementationEmitter(self, implementation_emitter):
-    self._dart_impl_emitter = implementation_emitter
-
-  def ImplementsMergedMembers(self):
-    # We could not add merged functions to implementation class because
-    # underlying c++ object doesn't implement them. Merged functions are
-    # generated on merged interface implementation instead.
-    return False
-
-  def HasCustomEventImplementation(self, member_name):
-    return False
 
   def StartInterface(self):
     # Create emitters for c++ implementation.
     if self.HasImplementation():
-      self._cpp_header_emitter = self._system._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
-      self._cpp_impl_emitter = self._system._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
+      self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
+      self._cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     else:
       self._cpp_header_emitter = emitter.Emitter()
       self._cpp_impl_emitter = emitter.Emitter()
@@ -230,9 +210,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name
-    template = self._system._templates.TryLoad(template_file)
+    template = self._template_loader.TryLoad(template_file)
     if not template:
-      template = self._system._templates.Load('factoryprovider.darttemplate')
+      template = self._template_loader.Load('factoryprovider.darttemplate')
 
     native_binding = '%s_constructor_Callback' % self._interface.id
     emitter.Emit(
@@ -247,9 +227,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     template = None
     if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
       template_file = 'impl_%s.darttemplate' % self._html_interface_name
-      template = self._system._templates.TryLoad(template_file)
+      template = self._template_loader.TryLoad(template_file)
     if not template:
-      template = self._system._templates.Load('dart_implementation.darttemplate')
+      template = self._template_loader.Load('dart_implementation.darttemplate')
 
     class_name = self._ImplClassName(self._interface.id)
     members_emitter = self._dart_impl_emitter.Emit(
@@ -263,9 +243,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateCPPHeader()
 
     self._cpp_impl_emitter.Emit(
-        self._system._templates.Load('cpp_implementation.template'),
+        self._template_loader.Load('cpp_implementation.template'),
         INTERFACE=self._interface.id,
-        INCLUDES=_GenerateCPPIncludes(self._cpp_impl_includes),
+        INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
         DART_IMPLEMENTATION_CLASS=class_name)
@@ -302,7 +282,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '    }\n',
           INTERFACE=self._interface.id)
 
-    webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
+    webcore_includes = self._GenerateCPPIncludes(
+        self._interface_type_info.webcore_includes())
 
     is_node_test = lambda interface: interface.id == 'Node'
     is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
@@ -311,7 +292,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
 
     self._cpp_header_emitter.Emit(
-        self._system._templates.Load('cpp_header.template'),
+        self._template_loader.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
@@ -355,7 +336,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
       else:
-        webcore_function_name = _ToWebKitName(attr.id)
+        webcore_function_name = self._ToWebKitName(attr.id)
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
@@ -447,7 +428,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
-    template = self._system._templates.Load(template_file)
+    template = self._template_loader.Load(template_file)
     self._members_emitter.Emit(template, E=dart_element_type)
 
   def AmendIndexer(self, element_type):
@@ -667,7 +648,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
-          FEATURE=_ToWebKitName(v8EnabledAtRuntime))
+          FEATURE=self._ToWebKitName(v8EnabledAtRuntime))
 
     body_emitter = self._cpp_definitions_emitter.Emit(
         '\n'
@@ -848,9 +829,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
     return '%s%s' % (self._interface_type_info.receiver(), function_name)
 
-  def _TypeInfo(self, type_name):
-    return self._system._type_registry.TypeInfo(type_name)
-
   def _IsArgumentOptionalInWebCore(self, operation, argument):
     if not IsOptional(argument):
       return False
@@ -863,6 +841,17 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
       return False
     return True
+
+  def _GenerateCPPIncludes(self, includes):
+    return ''.join(['#include %s\n' % include for include in sorted(includes)])
+
+  def _ToWebKitName(self, name):
+    name = name[0].lower() + name[1:]
+    name = re.sub(r'^(hTML|uRL|jS|xML|xSLT)', lambda s: s.group(1).lower(),
+                  name)
+    return re.sub(r'^(create|exclusive)',
+                  lambda s: 'is' + s.group(1).capitalize(),
+                  name)
 
 
 class CPPLibraryEmitter():
@@ -903,26 +892,3 @@ class CPPLibraryEmitter():
           '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
           '        return func;\n',
           CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
-
-
-def _GenerateCPPIncludes(includes):
-  return ''.join(['#include %s\n' % include for include in sorted(includes)])
-
-def _FindInHierarchy(database, interface, test):
-  if test(interface):
-    return interface
-  for parent in interface.parents:
-    parent_name = parent.type.id
-    if not database.HasInterface(parent.type.id):
-      continue
-    parent_interface = database.GetInterface(parent.type.id)
-    parent_interface = _FindInHierarchy(database, parent_interface, test)
-    if parent_interface:
-      return parent_interface
-
-def _ToWebKitName(name):
-  name = name[0].lower() + name[1:]
-  name = re.sub(r'^(hTML|uRL|jS|xML|xSLT)', lambda s: s.group(1).lower(),
-                name)
-  return re.sub(r'^(create|exclusive)', lambda s: 'is' + s.group(1).capitalize(),
-                name)

@@ -15,7 +15,7 @@ class System(object):
   This is a base class for all the specific systems.
   The life-cycle of a System is:
   - construction (__init__)
-  - (InterfaceGenerator | ProcessCallback)*  # for each IDL interface
+  - (ProcessInterface)*  # for each IDL interface
   """
 
   def __init__(self, options):
@@ -27,11 +27,6 @@ class System(object):
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
     pass
-
-  def ProcessCallback(self, interface, info):
-    """Processes an interface that is a callback function."""
-    pass
-
 
   # Helper methods used by several systems.
 
@@ -58,15 +53,26 @@ class System(object):
     return result
 
 class BaseGenerator(object):
-  def __init__(self, database, interface):
+  def __init__(self, database, type_registry, interface):
     self._database = database
+    self._type_registry = type_registry
     self._interface = interface
 
   def Generate(self):
+    if 'Callback' in self._interface.ext_attrs:
+      handlers = [operation for operation in self._interface.operations
+                  if operation.id == 'handleEvent']
+      info = AnalyzeOperation(self._interface, handlers)
+      self.GenerateCallback(info)
+      return
+
     self.StartInterface()
     self.AddMembers(self._interface)
     self.AddSecondaryMembers(self._interface)
     self.FinishInterface()
+
+  def GenerateCallback(self, info):
+    pass
 
   def AddMembers(self, interface):
     for const in sorted(interface.constants, ConstantOutputOrder):
@@ -171,8 +177,11 @@ class BaseGenerator(object):
         walk(interface.parents[1:])
     return result
 
+  def _TypeInfo(self, type_name):
+    return self._type_registry.TypeInfo(type_name)
+
   def _DartType(self, type_name):
-    return self._system._type_registry.DartType(type_name)
+    return self._type_registry.DartType(type_name)
 
 
 class GeneratorOptions(object):

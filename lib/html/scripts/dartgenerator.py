@@ -226,13 +226,8 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      if 'Callback' in interface.ext_attrs:
-        handlers = [op for op in interface.operations if op.id == 'handleEvent']
-        info = AnalyzeOperation(interface, handlers)
-        system.ProcessCallback(interface, info)
-      else:
-        _logger.info('Generating %s' % interface.id)
-        system.ProcessInterface(interface)
+      _logger.info('Generating %s' % interface.id)
+      system.ProcessInterface(interface)
 
   def _PreOrderInterfaces(self, interfaces):
     """Returns the interfaces in pre-order, i.e. parents first."""
