@@ -26,7 +26,7 @@ class SsaOptimizerTask extends CompilerTask {
     compiler.tracer.traceGraph(phase.name, graph);
   }
 
-  void optimize(WorkItem work, HGraph graph) {
+  void optimize(WorkItem work, HGraph graph, bool speculative) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     HTypeMap types = context.types;
@@ -46,9 +46,11 @@ class SsaOptimizerTask extends CompilerTask {
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work, types),
-          new SsaDeadCodeEliminator(types),
-          new SsaRegisterRecompilationCandidates(backend, work, types)];
+          new SsaDeadCodeEliminator(types)];
       runPhases(graph, phases);
+      if (!speculative) {
+        runPhase(graph, new SsaConstructionFieldTypes(backend, work, types));
+      }
     });
   }
 
@@ -62,7 +64,6 @@ class SsaOptimizerTask extends CompilerTask {
     return measure(() {
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          new SsaRecompilationFieldTypePropagator(backend, work, types),
           new SsaSpeculativeTypePropagator(compiler, types),
           new SsaTypeGuardInserter(compiler, work, types),
           new SsaEnvironmentBuilder(compiler),
@@ -612,23 +613,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       // initializer list.
       isFinalOrConst = true;
     }
-    if (!isFinalOrConst &&
-        !compiler.codegenWorld.hasInvokedSetter(field, compiler) &&
-        !compiler.codegenWorld.hasFieldSetter(field, compiler)) {
-      switch (compiler.phase) {
-        case Compiler.PHASE_COMPILING:
-          compiler.enqueuer.codegen.registerRecompilationCandidate(
-              work.element);
-          break;
-        case Compiler.PHASE_RECOMPILING:
-          // If field is not final or const but no setters are used then the
-          // field might be considered final anyway as it will be either
-          // un-initialized or initialized in the constructor initializer list.
-          isFinalOrConst = true;
-          break;
-      }
+    HFieldGet result = new HFieldGet(
+        field, node.inputs[0], isAssignable: !isFinalOrConst);
+    HType type = backend.optimisticFieldType(field);
+    if (type != null) {
+      result.guaranteedType = type;
+      backend.registerFieldTypesOptimization(
+          work.element, field, result.guaranteedType);
     }
-    return new HFieldGet(field, node.inputs[0], isAssignable: !isFinalOrConst);
+    return result;
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1220,159 +1213,146 @@ class SsaTypeConversionInserter extends HBaseVisitor
 }
 
 
-// Base class for the handling of recompilation based on inferred
-// field types.
-class BaseRecompilationVisitor extends HBaseVisitor {
+// Analyze the constructors to see if some fields will always have a specific
+// type after construction. If this is the case we can ignore the type given
+// by the field initializer. This is especially useful when the field
+// initializer is initializing the field to null.
+class SsaConstructionFieldTypes
+    extends HBaseVisitor implements OptimizationPhase {
   final JavaScriptBackend backend;
   final WorkItem work;
   final HTypeMap types;
-  Compiler get compiler => backend.compiler;
+  final String name = "SsaConstructionFieldTypes";
+  final Set<HInstruction> thisUsers;
+  final Set<Element> allSetters;
+  final Map<HBasicBlock, Map<Element, HType>> blockFieldSetters;
+  bool thisExposed = false;
+  HGraph currentGraph;
+  HInstruction thisInstruction;
+  Map<Element, HType> currentFieldSetters;
 
-  BaseRecompilationVisitor(this.backend, this.work, this.types);
+  SsaConstructionFieldTypes(JavaScriptBackend this.backend,
+         WorkItem this.work,
+         HTypeMap this.types)
+      : thisUsers = new Set<HInstruction>(),
+        allSetters = new Set<Element>(),
+        blockFieldSetters = new Map<HBasicBlock, Map<Element, HType>>();
 
-  abstract void handleFieldGet(HFieldGet node, HType type);
-  abstract void handleFieldNumberOperation(HFieldGet field, HType type);
-
-  // Checks if the binary invocation operates on a field and a
-  // constant number. If it does [handleFieldNumberOperation] is
-  // called with the field and the type inferred for the field so far.
-  void checkFieldNumberOperation(HInvokeBinary node) {
-    // Determine if one of the operands is an HFieldGet.
-    HFieldGet field;
-    HInstruction other;
-    if (node.left is HFieldGet) {
-      field = node.left;
-      other = node.right;
-    } else if (node.right is HFieldGet) {
-      field = node.right;
-      other = node.left;
-    }
-    // Try to optimize the case where a field which is known to always
-    // be an integer is compared with a constant number.
-    if (other != null &&
-        other.isConstantNumber() &&
-        field.element != null &&
-        field.element.isMember()) {
-      // Calculate the field type from the information available.  If
-      // we have type information for the field and it contains NUMBER
-      // we use it as a candidate for recompilation.
-      Element fieldElement = field.element;
-      HType fieldSettersType = backend.fieldSettersTypeSoFar(fieldElement);
-      HType initializersType = backend.typeFromInitializersSoFar(fieldElement);
-      HType fieldType = fieldSettersType.union(initializersType);
-      HType type = HType.NUMBER.union(fieldType);
-      if (type == HType.NUMBER) {
-        handleFieldNumberOperation(field, fieldType);
-      }
+  void visitGraph(HGraph graph) {
+    currentGraph = graph;
+    if (!work.element.isGenerativeConstructorBody() &&
+        !work.element.isGenerativeConstructor()) return;
+    visitDominatorTree(graph);
+    if (work.element.isGenerativeConstructor()) {
+      backend.registerConstructor(work.element);
     }
   }
 
-  void visitFieldGet(HFieldGet node) {
-    if (!node.element.isInstanceMember()) return;
-    Element field = node.element;
-    if (field != null) {
-      HType type = backend.optimisticFieldTypeAfterConstruction(field);
-      if (!type.isUnknown()) {
-        // Allow handling even if we haven't seen any types for this
-        // field yet. There might still be only one setter in an
-        // initializer list or constructor body and recompilation
-        // can therefore pay off.
-        handleFieldGet(node, type);
-      }
-    }
-  }
-
-  HInstruction visitEquals(HEquals node) {
-    checkFieldNumberOperation(node);
-  }
-
-  HInstruction visitBinaryArithmetic(HBinaryArithmetic node) {
-    checkFieldNumberOperation(node);
-  }
-}
-
-
-// Visitor that registers candidates for recompilation.
-class SsaRegisterRecompilationCandidates
-    extends BaseRecompilationVisitor implements OptimizationPhase {
-  final String name = "SsaRegisterRecompileCandidates";
-  HGraph graph;
-
-  SsaRegisterRecompilationCandidates(JavaScriptBackend backend,
-                                     WorkItem work,
-                                     HTypeMap types)
-      : super(backend, work, types);
-
-  void visitGraph(HGraph visitee) {
-    graph = visitee;
-    if (compiler.phase == Compiler.PHASE_COMPILING) {
-      visitDominatorTree(visitee);
-    }
-  }
-
-  void handleFieldGet(HFieldGet node, HType type) {
-    assert(compiler.phase == Compiler.PHASE_COMPILING);
-    compiler.enqueuer.codegen.registerRecompilationCandidate(
-        work.element);
-  }
-
-  void handleFieldNumberOperation(HFieldGet node, HType type) {
-    assert(compiler.phase == Compiler.PHASE_COMPILING);
-    compiler.enqueuer.codegen.registerRecompilationCandidate(
-        work.element);
-  }
-}
-
-
-// Visitor that sets the known or suspected type of fields during
-// recompilation.
-class SsaRecompilationFieldTypePropagator
-    extends BaseRecompilationVisitor implements OptimizationPhase {
-  final String name = "SsaRecompilationFieldTypePropagator";
-  HGraph graph;
-
-  SsaRecompilationFieldTypePropagator(JavaScriptBackend backend,
-                                      WorkItem work,
-                                      HTypeMap types)
-      : super(backend, work, types);
-
-  void visitGraph(HGraph visitee) {
-    graph = visitee;
-    if (compiler.phase == Compiler.PHASE_RECOMPILING) {
-      visitDominatorTree(visitee);
-    }
-  }
-
-  void handleFieldGet(HFieldGet field, HType type) {
-    assert(compiler.phase == Compiler.PHASE_RECOMPILING);
-    if (!type.isConflicting()) {
-      // If there are no invoked setters with this name, the union of
-      // the types of the initializers and the setters is guaranteed
-      // otherwise it is only speculative.
-      Element element = field.element;
-      assert(!element.isGenerativeConstructorBody());
-      if (!compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
-        field.guaranteedType =
-            type.union(backend.fieldSettersTypeSoFar(element));
-      } else {
-        types[field] = type.union(backend.fieldSettersTypeSoFar(element));
-      }
-    }
-  }
-
-  void handleFieldNumberOperation(HFieldGet field, HType type) {
-    assert(compiler.phase == Compiler.PHASE_RECOMPILING);
-    if (compiler.codegenWorld.hasInvokedSetter(field.element, compiler)) {
-      // If there are invoked setters we don't know for sure
-      // that the field will hold a value of the calculated
-      // type, but the fact that the class itself sticks to
-      // this type for the field is still a strong signal
-      // indicating the expected type of the field.
-      types[field] = type;
+  visitBasicBlock(HBasicBlock block) {
+    if (block.predecessors.length == 0) {
+      // Create a new empty map for the first block.
+      currentFieldSetters = new Map<Element, HType>();
     } else {
-      // If there are no invoked setters we know the type of
-      // this field for sure.
-      field.guaranteedType = type;
+      // Build a map which intersects the fields from all predecessors. For
+      // each field in this intersection it unions the types.
+      currentFieldSetters =
+          new Map.from(blockFieldSetters[block.predecessors[0]]);
+      // Loop headers are the only nodes with back edges.
+      if (!block.isLoopHeader()) {
+        for (int i = 1; i < block.predecessors.length; i++) {
+          Map<Element, HType> predecessorsFieldSetters =
+              blockFieldSetters[block.predecessors[i]];
+          Map<Element, HType> newFieldSetters = new Map<Element, HType>();
+          predecessorsFieldSetters.forEach((Element element, HType type) {
+            HType currentType = currentFieldSetters[element];
+            if (currentType != null) {
+              newFieldSetters[element] = currentType.union(type);
+            }
+          });
+          currentFieldSetters = newFieldSetters;
+        }
+      } else {
+        assert(block.predecessors.length <= 2);
+      }
     }
+    block.forEachPhi((HPhi phi) => phi.accept(this));
+    block.forEachInstruction(
+        (HInstruction instruction) => instruction.accept(this));
+    assert(currentFieldSetters != null);
+    blockFieldSetters[block] = currentFieldSetters;
+  }
+
+  visitInstruction(HInstruction instruction) {
+    // All instructions not explicitly handled below will flag the this
+    // exposure if using this.
+    thisExposed = thisExposed || thisUsers.contains(instruction);
+  }
+
+  visitPhi(HPhi phi) {
+    if (phi.inputs.indexOf(thisInstruction) != -1) {
+      thisUsers.addAll(phi.usedBy);
+    }
+  }
+
+  visitThis(HThis instruction) {
+    thisInstruction = instruction;
+    // Collect all users of this in a set to make the this exposed check simple
+    // and cheap.
+    thisUsers.addAll(instruction.usedBy);
+  }
+
+  visitFieldGet(HInstruction _) {
+    // The field get instruction is allowed to use this.
+  }
+
+  visitForeignNew(HForeignNew node) {
+    // The HForeignNew instruction is used in the generative constructor to
+    // initialize all fields in newly created objects. The fields are
+    // initialized to the value present in the initializer list or set to null
+    // if not otherwise initialized.
+    // Here we handle members in superclasses as well, as the handling of
+    // the generative constructor bodies will ensure, that the initializer
+    // type will not be used if the field is in any of these.
+    int j = 0;
+    node.element.forEachInstanceField(
+      includeBackendMembers: false,
+      includeSuperMembers: true,
+      f: (ClassElement enclosingClass, Element element) {
+        backend.registerFieldInitializer(element, types[node.inputs[j]]);
+        j++;
+      });
+  }
+
+  visitFieldSet(HFieldSet node) {
+    Element field = node.element;
+    HInstruction value = node.value;
+    HType type = types[value];
+    allSetters.add(field);
+    // Don't handle fields defined in superclasses. Given that the field is
+    // always added to the [allSetters] set, setting a field defined in a
+    // superclass will get an inferred type of UNKNOWN.
+    if (work.element.getEnclosingClass() === field.getEnclosingClass() &&
+        value.hasGuaranteedType()) {
+      currentFieldSetters[field] = type;
+    }
+  }
+
+  visitExit(HExit node) {
+    // If this has been exposed then we cannot say anything about types after
+    // construction.
+    if (!thisExposed) {
+      // Register the known field types.
+      currentFieldSetters.forEach((Element element, HType type) {
+        backend.registerFieldConstructor(element, type);
+        allSetters.remove(element);
+      });
+    }
+
+    // For other fields having setters in the generative constructor body, set
+    // the type to UNKNOWN to avoid relying on the type set in the initializer
+    // list.
+    allSetters.forEach((Element element) {
+      backend.registerFieldConstructor(element, HType.UNKNOWN);
+    });
   }
 }

@@ -1528,8 +1528,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector setter = node.selector;
     String name = backend.namer.setterName(setter.library, setter.name);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    world.registerDynamicSetter(
-        setter.name, getOptimizedSelectorFor(node, setter));
+    Selector selector = getOptimizedSelectorFor(node, setter);
+    world.registerDynamicSetter(setter.name, selector);
+    backend.addedDynamicSetter(selector, types[node.inputs[1]]);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1638,33 +1639,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    if (work.element.isGenerativeConstructorBody() &&
-        node.element.isMember() &&
-        node.value.hasGuaranteedType() &&
-        node.block.dominates(currentGraph.exit)) {
-      backend.updateFieldConstructorSetters(node.element,
-                                            node.value.guaranteedType);
-    }
     String name = backend.namer.getName(node.element);
     DartType type = types[node.receiver].computeType(compiler);
     if (type != null) {
+      // Field setters in the generative constructor body are handled in a
+      // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(
             node.element.name, node.element.getLibrary(), type);
-      }
-      // Determine the types seen so far for the field. If only number
-      // types have been seen and the value of the field set is a
-      // simple number computation only depending on that field, we
-      // can safely keep the number type for the field.
-      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
-      HType initializersType =
-          backend.typeFromInitializersSoFar(node.element);
-      HType fieldType = fieldSettersType.union(initializersType);
-      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
-          isSimpleFieldNumberComputation(node.value, node)) {
-        backend.updateFieldSetters(node.element, HType.NUMBER);
-      } else {
-        backend.updateFieldSetters(node.element, types[node.value]);
+        backend.registerFieldSetter(
+            work.element, node.element, types[node.value]);
       }
     }
     use(node.receiver);
@@ -1703,14 +1687,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    int j = 0;
-    node.element.forEachInstanceField(
-      includeBackendMembers: true,
-      includeSuperMembers: true,
-      f: (ClassElement enclosingClass, Element member) {
-        backend.updateFieldInitializers(member, types[node.inputs[j]]);
-        j++;
-      });
     String jsClassReference = backend.namer.isolateAccess(node.element);
     List<HInstruction> inputs = node.inputs;
     // We can't use 'visitArguments', since our arguments start at input[0].

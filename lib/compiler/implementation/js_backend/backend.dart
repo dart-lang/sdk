@@ -223,6 +223,214 @@ class HTypeList {
       allUnknown ? "HTypeList.ALL_UNKNOWN" : "HTypeList $types";
 }
 
+class FieldTypesRegistry {
+  final JavaScriptBackend backend;
+
+  /**
+   * For each class, [constructors] holds the set of constructors. If there is
+   * more than one constructor for a class it is currently not possible to
+   * infer the field types from construction, as the information collected does
+   * not correlate the generative constructors and generative constructor
+   * body/bodies.
+   */
+  final Map<Element, Set<ClassElement>> constructors;
+
+  /**
+   * The collected type information is stored in three maps. One for types
+   * assigned in the initializer list(s) [fieldInitializerTypeMap], one for
+   * types assigned in the constructor(s) [fieldConstructorTypeMap], and one
+   * for types assigned in the rest of the code, where the field can be
+   * resolved [fieldTypeMap].
+   *
+   * If a field has a type both from constructors and from the initializer
+   * list(s), then the type from the constructor(s) will owerride the one from
+   * the initializer list(s).
+   *
+   * Because the order in which generative constructors, generative constructor
+   * bodies and normal method/function bodies are compiled is undefined, and
+   * because they can all be recompiled, it is not possible to combine this
+   * information into one map at the moment.
+   */
+  final Map<Element, HType> fieldInitializerTypeMap;
+  final Map<Element, HType> fieldConstructorTypeMap;
+  final Map<Element, HType> fieldTypeMap;
+
+  /**
+   * The set of current names setter selectors used. If a named selector is
+   * used it is currently not possible to infer the type of the field.
+   */
+  final Set<SourceString> setterSelectorsUsed;
+
+  final Map<Element, Set<Element>> optimizedStaticFunctions;
+  final Map<Element, FunctionSet> optimizedFunctions;
+
+  FieldTypesRegistry(JavaScriptBackend backend)
+      : constructors =  new Map<Element, Set<Element>>(),
+        fieldInitializerTypeMap = new Map<Element, HType>(),
+        fieldConstructorTypeMap = new Map<Element, HType>(),
+        fieldTypeMap = new Map<Element, HType>(),
+        setterSelectorsUsed = new Set<SourceString>(),
+        optimizedStaticFunctions = new Map<Element, Set<Element>>(),
+        optimizedFunctions = new Map<Element, FunctionSet>(),
+        this.backend = backend;
+
+  Compiler get compiler => backend.compiler;
+
+  void scheduleRecompilation(Element field) {
+    Set optimizedStatics = optimizedStaticFunctions[field];
+    if (optimizedStatics != null) {
+      optimizedStatics.forEach(backend.scheduleForRecompilation);
+      optimizedStaticFunctions.remove(field);
+    }
+    FunctionSet optimized = optimizedFunctions[field];
+    if (optimized != null) {
+      optimized.forEach(backend.scheduleForRecompilation);
+      optimizedFunctions.remove(field);
+    }
+  }
+
+  int constructorCount(Element element) {
+    assert(element.isClass());
+    Set<Element> ctors = constructors[element];
+    return ctors === null ? 0 : ctors.length;
+  }
+
+  void registerFieldType(Map<Element, HType> typeMap,
+                         Element field,
+                         HType type) {
+    assert(field.isField());
+    HType before = optimisticFieldType(field);
+
+    HType oldType = typeMap[field];
+    HType newType;
+
+    if (oldType != null) {
+      newType = oldType.union(type);
+    } else {
+      newType = type;
+    }
+    typeMap[field] = newType;
+    if (oldType != newType) {
+      scheduleRecompilation(field);
+    }
+  }
+
+  void registerConstructor(Element element) {
+    assert(element.isGenerativeConstructor());
+    Element cls = element.enclosingElement;
+    constructors.putIfAbsent(cls, () => new Set<Element>());
+    Set<Element> ctors = constructors[cls];
+    if (ctors.contains(element)) return;
+    ctors.add(element);
+    // We cannot infer field types for classes with more than one constructor.
+    // When the second constructor is seen, recompile all functions relying on
+    // optimistic field types for that class.
+    // TODO(sgjesse): Handle field types for classes with more than one
+    // constructor.
+    if (ctors.length == 2) {
+      optimizedFunctions.forEach((Element field, _) {
+        if (field.enclosingElement === cls) {
+          scheduleRecompilation(field);
+        }
+      });
+    }
+  }
+
+  void registerFieldInitializer(Element field, HType type) {
+    registerFieldType(fieldInitializerTypeMap, field, type);
+  }
+
+  void registerFieldConstructor(Element field, HType type) {
+    registerFieldType(fieldConstructorTypeMap, field, type);
+  }
+
+  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+    HType initializerType = fieldInitializerTypeMap[field];
+    HType constructorType = fieldConstructorTypeMap[field];
+    HType setterType = fieldTypeMap[field];
+    if (type == HType.UNKNOWN
+        && initializerType == null
+        && constructorType == null
+        && setterType == null) {
+      // Don't register UNKONWN if there is currently no type information
+      // present for the field. Instead register the function holding the
+      // setter for recompilation if better type information for the field
+      // becomes available.
+      registerOptimizedFunction(element, field, type);
+      return;
+    }
+    registerFieldType(fieldTypeMap, field, type);
+  }
+
+  void addedDynamicSetter(Selector setter, HType type) {
+    // Field type optimizations are disabled for all fields matching a
+    // setter selector.
+    assert(setter.isSetter());
+    // TODO(sgjesse): Take the type of the setter into account.
+    if (setterSelectorsUsed.contains(setter.name)) return;
+    setterSelectorsUsed.add(setter.name);
+    optimizedStaticFunctions.forEach((Element field, _) {
+      if (field.name == setter.name) {
+        scheduleRecompilation(field);
+      }
+    });
+    optimizedFunctions.forEach((Element field, _) {
+      if (field.name == setter.name) {
+        scheduleRecompilation(field);
+      }
+    });
+  }
+
+  HType optimisticFieldType(Element field) {
+    assert(field.isField());
+    if (constructorCount(field.enclosingElement) > 1) {
+      return HType.UNKNOWN;
+    }
+    if (setterSelectorsUsed.contains(field.name)) {
+      return HType.UNKNOWN;
+    }
+    HType initializerType = fieldInitializerTypeMap[field];
+    HType constructorType = fieldConstructorTypeMap[field];
+    if (initializerType === null && constructorType === null) {
+      // If there are no constructor type information return UNKNOWN. This
+      // ensures that the function will be recompiled if useful constructor
+      // type information becomes available.
+      return HType.UNKNOWN;
+    }
+    // A type set through the constructor overrides the type from the
+    // initializer list.
+    HType result = constructorType != null ? constructorType : initializerType;
+    HType type = fieldTypeMap[field];
+    if (type !== null) result = result.union(type);
+    return result;
+  }
+
+  void registerOptimizedFunction(FunctionElement element,
+                                 Element field,
+                                 HType type) {
+    assert(field.isField());
+    if (Elements.isStaticOrTopLevel(element)) {
+      optimizedStaticFunctions.putIfAbsent(
+          field, () => new Set<Element>());
+      optimizedStaticFunctions[field].add(element);
+    } else {
+      optimizedFunctions.putIfAbsent(
+          field, () => new FunctionSet(backend.compiler));
+      optimizedFunctions[field].add(element);
+    }
+  }
+
+  void dump() {
+    Set<Element> allFields = new Set<Element>();
+    fieldInitializerTypeMap.getKeys().forEach(allFields.add);
+    fieldConstructorTypeMap.getKeys().forEach(allFields.add);
+    fieldTypeMap.getKeys().forEach(allFields.add);
+    allFields.forEach((Element field) {
+      print("Inferred $field has type ${optimisticFieldType(field)}");
+    });
+  }
+}
+
 class ArgumentTypesRegistry {
   final JavaScriptBackend backend;
 
@@ -385,10 +593,9 @@ class ArgumentTypesRegistry {
     return found !== null ? found : HTypeList.ALL_UNKNOWN;
   }
 
-  void registerOptimization(Element element,
-                            HTypeList parameterTypes,
-                            OptionalParameterTypes defaultValueTypes) {
-    assert(invariant(element, element.isDeclaration));
+  void registerOptimizedFunction(Element element,
+                                 HTypeList parameterTypes,
+                                 OptionalParameterTypes defaultValueTypes) {
     if (Elements.isStaticOrTopLevelFunction(element)) {
       if (parameterTypes.allUnknown) {
         optimizedStaticFunctions.remove(element);
@@ -443,10 +650,6 @@ class JavaScriptBackend extends Backend {
    */
   ClassElement jsIndexingBehaviorInterface;
 
-  final Map<Element, Map<Element, HType>> fieldInitializers;
-  final Map<Element, Map<Element, HType>> fieldConstructorSetters;
-  final Map<Element, Map<Element, HType>> fieldSettersType;
-
   final Map<Element, ReturnInfo> returnInfo;
 
   /**
@@ -456,16 +659,14 @@ class JavaScriptBackend extends Backend {
    */
   final List<Element> invalidateAfterCodegen;
   ArgumentTypesRegistry argumentTypes;
+  FieldTypesRegistry fieldTypes;
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
-      : fieldInitializers = new Map<Element, Map<Element, HType>>(),
-        fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
-        fieldSettersType = new Map<Element, Map<Element, HType>>(),
-        namer = new Namer(compiler),
+      : namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         super(compiler, constantSystem: JAVA_SCRIPT_CONSTANT_SYSTEM) {
@@ -474,6 +675,7 @@ class JavaScriptBackend extends Backend {
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     argumentTypes = new ArgumentTypesRegistry(this);
+    fieldTypes = new FieldTypesRegistry(this);
   }
 
   Element get cyclicThrowHelper {
@@ -516,13 +718,13 @@ class JavaScriptBackend extends Backend {
     }
 
     HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
+    optimizer.optimize(work, graph, false);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
       CodeBuffer codeBuffer = generator.generateBailoutMethod(work, graph);
       compiler.codegenWorld.addBailoutCode(work, codeBuffer);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
-      optimizer.optimize(work, graph);
+      optimizer.optimize(work, graph, true);
     }
     CodeBuffer codeBuffer = generator.generateCode(work, graph);
     compiler.codegenWorld.addGeneratedCode(work, codeBuffer);
@@ -537,106 +739,6 @@ class JavaScriptBackend extends Backend {
 
   void assembleProgram() {
     emitter.assembleProgram();
-  }
-
-  void updateFieldInitializers(Element field, HType propagatedType) {
-    assert(field.isField());
-    assert(field.isMember());
-    Map<Element, HType> fields =
-        fieldInitializers.putIfAbsent(
-          field.getEnclosingClass(), () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = propagatedType;
-    } else {
-      fields[field] = fields[field].union(propagatedType);
-    }
-  }
-
-  HType typeFromInitializersSoFar(Element field) {
-    assert(field.isField());
-    assert(field.isMember());
-    if (!fieldInitializers.containsKey(field.getEnclosingClass())) {
-      return HType.CONFLICTING;
-    }
-    Map<Element, HType> fields = fieldInitializers[field.getEnclosingClass()];
-    return fields[field];
-  }
-
-  void updateFieldConstructorSetters(Element field, HType type) {
-    assert(field.isField());
-    assert(field.isMember());
-    Map<Element, HType> fields =
-        fieldConstructorSetters.putIfAbsent(
-            field.getEnclosingClass(), () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = type;
-    } else {
-      fields[field] = fields[field].union(type);
-    }
-  }
-
-  // Check if this field is set in the constructor body.
-  bool hasConstructorBodyFieldSetter(Element field) {
-    ClassElement enclosingClass = field.getEnclosingClass();
-    if (!fieldConstructorSetters.containsKey(enclosingClass)) {
-      return false;
-    }
-    return fieldConstructorSetters[enclosingClass][field] != null;
-  }
-
-  // Provide an optimistic estimate of the type of a field after construction.
-  // If the constructor body has setters for fields returns HType.UNKNOWN.
-  // This only takes the initializer lists and field assignments in the
-  // constructor body into account. The constructor body might have method calls
-  // that could alter the field.
-  HType optimisticFieldTypeAfterConstruction(Element field) {
-    assert(field.isField());
-    assert(field.isMember());
-
-    ClassElement classElement = field.getEnclosingClass();
-    if (hasConstructorBodyFieldSetter(field)) {
-      // If there are field setters but there is only constructor then the type
-      // of the field is determined by the assignments in the constructor
-      // body.
-      var constructors = classElement.constructors;
-      if (constructors.head !== null && constructors.tail.isEmpty()) {
-        return fieldConstructorSetters[classElement][field];
-      } else {
-        return HType.UNKNOWN;
-      }
-    } else if (fieldInitializers.containsKey(classElement)) {
-      HType type = fieldInitializers[classElement][field];
-      return type == null ? HType.CONFLICTING : type;
-    } else {
-      return HType.CONFLICTING;
-    }
-  }
-
-  void updateFieldSetters(Element field, HType type) {
-    assert(field.isField());
-    assert(field.isMember());
-    Map<Element, HType> fields =
-        fieldSettersType.putIfAbsent(
-          field.getEnclosingClass(), () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = type;
-    } else {
-      fields[field] = fields[field].union(type);
-    }
-  }
-
-  // Returns the type that field setters are setting the field to based on what
-  // have been seen during compilation so far.
-  HType fieldSettersTypeSoFar(Element field) {
-    assert(field.isField());
-    assert(field.isMember());
-    ClassElement enclosingClass = field.getEnclosingClass();
-    if (!fieldSettersType.containsKey(enclosingClass)) {
-      return HType.CONFLICTING;
-    }
-    Map<Element, HType> fields = fieldSettersType[enclosingClass];
-    if (!fields.containsKey(field)) return HType.CONFLICTING;
-    return fields[field];
   }
 
   /**
@@ -707,8 +809,14 @@ class JavaScriptBackend extends Backend {
       OptionalParameterTypes defaultValueTypes) {
     assert(invariant(element, element.isDeclaration));
     if (element.parameterCount(compiler) == 0) return;
-    argumentTypes.registerOptimization(
+    argumentTypes.registerOptimizedFunction(
         element, parameterTypes, defaultValueTypes);
+  }
+
+  registerFieldTypesOptimization(FunctionElement element,
+                                 Element field,
+                                 HType type) {
+    fieldTypes.registerOptimizedFunction(element, field, type);
   }
 
   /**
@@ -753,6 +861,30 @@ class JavaScriptBackend extends Backend {
         print("Inferred $element has return type ${info.returnType}");
       }
     });
+  }
+
+  void registerConstructor(Element element) {
+    fieldTypes.registerConstructor(element);
+  }
+
+  void registerFieldInitializer(Element field, HType type) {
+    fieldTypes.registerFieldInitializer(field, type);
+  }
+
+  void registerFieldConstructor(Element field, HType type) {
+    fieldTypes.registerFieldConstructor(field, type);
+  }
+
+  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+    fieldTypes.registerFieldSetter(element, field, type);
+  }
+
+  void addedDynamicSetter(Selector setter, HType type) {
+    fieldTypes.addedDynamicSetter(setter, type);
+  }
+
+  HType optimisticFieldType(Element element) {
+    return fieldTypes.optimisticFieldType(element);
   }
 
   SourceString getCheckedModeHelper(DartType type) {

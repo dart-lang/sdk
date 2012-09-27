@@ -476,7 +476,7 @@ class TypedSelector extends Selector {
    */
   final DartType receiverType;
 
-  TypedSelector(this.receiverType, Selector selector)
+  TypedSelector(DartType this.receiverType, Selector selector)
     : super(selector.kind,
             selector.name,
             selector.library,

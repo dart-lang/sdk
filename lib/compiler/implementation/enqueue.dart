@@ -19,35 +19,6 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
-class RecompilationQueue {
-  final Function itemCompilationContextCreator;
-  final Queue<WorkItem> queue;
-  final Set<Element> queueElements;
-  int processed = 0;
-
-  RecompilationQueue(ItemCompilationContext itemCompilationContextCreator())
-    : this.itemCompilationContextCreator = itemCompilationContextCreator,
-      queue = new Queue<WorkItem>(),
-      queueElements = new Set<Element>();
-
-  void add(Element element, TreeElements elements) {
-    if (queueElements.contains(element)) return;
-    queueElements.add(element);
-    queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
-  }
-
-  int get length => queue.length;
-
-  bool isEmpty() => queue.isEmpty();
-
-  WorkItem next() {
-    WorkItem item = queue.removeLast();
-    queueElements.remove(item.element);
-    processed++;
-    return item;
-  }
-}
-
 class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
@@ -64,7 +35,6 @@ class Enqueuer {
    * Invariant: Key elements are declaration elements.
    */
   final Map<Element, TreeElements> resolvedElements;
-  final RecompilationQueue recompilationCandidates;
 
   bool queueIsClosed = false;
   EnqueueTask task;
@@ -76,9 +46,7 @@ class Enqueuer {
       seenClasses = new Set<ClassElement>(),
       universe = new Universe(),
       queue = new Queue<WorkItem>(),
-      resolvedElements = new Map<Element, TreeElements>(),
-      recompilationCandidates =
-          new RecompilationQueue(itemCompilationContextCreator);
+      resolvedElements = new Map<Element, TreeElements>();
 
   bool get isResolutionQueue => compiler.enqueuer.resolution === this;
 
@@ -110,7 +78,6 @@ class Enqueuer {
   void addToWorkList(Element element, [TreeElements elements]) {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign()) return;
-    if (compiler.phase == Compiler.PHASE_RECOMPILING) return;
     if (queueIsClosed) {
       if (isResolutionQueue && getCachedElements(element) !== null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
@@ -154,14 +121,6 @@ class Enqueuer {
     universe.generatedCode.remove(element);
     universe.generatedBailoutCode.remove(element);
     addToWorkList(element);
-  }
-
-  void registerRecompilationCandidate(Element element,
-                                      [TreeElements elements]) {
-    if (queueIsClosed) {
-      compiler.internalErrorOnElement(element, "$name work list is closed.");
-    }
-    recompilationCandidates.add(element, elements);
   }
 
   void registerInstantiatedClass(ClassElement cls) {

@@ -38,6 +38,9 @@ type_parameter_test/02: Fail # Issue 4932
 type_parameter_test/03: Fail # Issue 4932
 type_parameter_test/04: Fail # Issue 4932
 
+execute_finally3_test: Fail # Issue 5517
+execute_finally6_test: Fail # Issue 5517
+
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
 
