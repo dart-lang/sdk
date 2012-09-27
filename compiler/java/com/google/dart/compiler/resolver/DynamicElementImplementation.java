@@ -307,4 +307,14 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public LabeledStatementType getStatementType() {
     return LabeledStatementType.STATEMENT;
   }
+
+  @Override
+  public int getOpenBraceOffset() {
+    return -1;
+  }
+  
+  @Override
+  public int getCloseBraceOffset() {
+    return -1;
+  }
 }

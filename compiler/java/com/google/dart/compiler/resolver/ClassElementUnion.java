@@ -193,4 +193,14 @@ public class ClassElementUnion implements ClassElement {
   public List<ConstructorNodeElement> getConstructors() {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public int getOpenBraceOffset() {
+    return -1;
+  }
+  
+  @Override
+  public int getCloseBraceOffset() {
+    return -1;
+  }
 }

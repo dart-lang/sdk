@@ -57,4 +57,8 @@ public interface ClassElement extends EnclosingElement {
    *         {@link ClassNodeElement} and was not analyzed yet.
    */
   List<Element> getUnimplementedMembers();
+  
+  int getOpenBraceOffset();
+  
+  int getCloseBraceOffset();
 }

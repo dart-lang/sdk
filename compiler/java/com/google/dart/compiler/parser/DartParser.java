@@ -963,16 +963,28 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Parse the members.
+    int openBraceOffset = -1;
+    int closeBraceOffset = -1;
     List<DartNode> members = new ArrayList<DartNode>();
-    parseClassOrInterfaceBody(members);
+    if (optional(Token.LBRACE)) {
+      openBraceOffset = ctx.getTokenLocation().getBegin();
+      parseClassOrInterfaceBody(members);
+      expectCloseBrace(true);
+      closeBraceOffset = ctx.getTokenLocation().getBegin();
+    } else {
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
+    }
 
     if (isParsingInterface) {
-      return done(new DartClass(name, superType, interfaces, members, typeParameters, defaultClass));
+      return done(new DartClass(name, superType, interfaces, openBraceOffset, closeBraceOffset,
+          members, typeParameters, defaultClass));
     } else {
       return done(new DartClass(name,
           nativeName,
           superType,
           interfaces,
+          openBraceOffset,
+          closeBraceOffset,
           members,
           typeParameters,
           modifiers));
@@ -982,26 +994,21 @@ public class DartParser extends CompletionHooksParserBase {
   /**
    * Helper for {@link #parseClass()}.
    *
-   * '{' classMemberDefinition* '}'
+   * classMemberDefinition*
    */
   @Terminals(tokens={Token.RBRACE, Token.SEMICOLON})
   private void parseClassOrInterfaceBody(List<DartNode> members) {
-    if (optional(Token.LBRACE)) {
-      while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
-        List<DartAnnotation> metadata = parseMetadata();
-        DartNodeWithMetadata member = parseFieldOrMethod(true);
-        if (member != null) {
-          setMetadata(member, metadata);
-          members.add(member);
-        }
-        // Recover at a semicolon
-        if (optional(Token.SEMICOLON)) {
-          reportUnexpectedToken(position(), null, Token.SEMICOLON);
-        }
+    while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
+      List<DartAnnotation> metadata = parseMetadata();
+      DartNodeWithMetadata member = parseFieldOrMethod(true);
+      if (member != null) {
+        setMetadata(member, metadata);
+        members.add(member);
       }
-      expectCloseBrace(true);
-    } else {
-      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
+      // Recover at a semicolon
+      if (optional(Token.SEMICOLON)) {
+        reportUnexpectedToken(position(), null, Token.SEMICOLON);
+      }
     }
   }
 

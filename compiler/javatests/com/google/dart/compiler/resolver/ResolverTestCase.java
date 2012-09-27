@@ -109,7 +109,7 @@ abstract class ResolverTestCase extends TestCase {
     }
     List<DartNode> members = Arrays.<DartNode>asList();
     return new DartClass(new DartIdentifier(name), null, supertype,
-                         interfaces, members, parameterNodes, Modifiers.NONE);
+                         interfaces, -1, -1, members, parameterNodes, Modifiers.NONE);
   }
 
   static DartClass makeInterface(String name, List<DartTypeNode> interfaces,
@@ -118,9 +118,9 @@ abstract class ResolverTestCase extends TestCase {
     for (String parameter : typeParameters) {
       parameterNodes.add(makeTypeVariable(parameter));
     }
-    List<DartNode> members = Arrays.<DartNode>asList();
-    return new DartClass(new DartIdentifier(name), null, null,
-                         interfaces, members, parameterNodes, defaultClass, true, Modifiers.NONE);
+    List<DartNode> members = Arrays.<DartNode> asList();
+    return new DartClass(new DartIdentifier(name), null, null, interfaces, -1, -1, members,
+        parameterNodes, defaultClass, true, Modifiers.NONE);
   }
 
   static DartParameterizedTypeNode makeDefault(String name) {
