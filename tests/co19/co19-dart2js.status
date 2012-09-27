@@ -98,7 +98,6 @@ LibTest/core/int/operator_left_shift_A01_t03: Fail # co19 issue 224
 LibTest/core/int/operator_right_shift_A01_t03: Fail # co19 issue 224
 LibTest/core/List/insertRange_A05_t01: Fail # co19 issue 224
 LibTest/core/List/List_A03_t01: Fail # co19 issue 224
-LibTest/core/List/List_A04_t01: Fail # co19 issue 224
 LibTest/core/List/operator_subscript_A03_t01: Fail # co19 issue 224
 LibTest/core/List/operator_subscript_A04_t01: Fail # co19 issue 224
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # co19 issue 224
@@ -111,6 +110,7 @@ LibTest/core/Strings/join_A04_t01: Fail # co19 issue 224
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail # co19 issue 224
 
 [ $compiler == dart2js && $unchecked ]
+LibTest/core/List/List_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
 
