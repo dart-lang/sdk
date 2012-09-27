@@ -6,6 +6,8 @@
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
+null_test: Fail           # Bug 5511
+null_nosuchmethod_test: Fail # BUg 5518
 
 [ $compiler == dartc ]
 *vm_test: Skip
@@ -46,6 +48,8 @@ compare_to2_test: Fail, OK    # Requires bigint support.
 growable_object_array2_vm_test: Fail, OK # VM specific test.
 growable_object_array_vm_test: Fail, OK # VM specific test.
 string_base_vm_test: Fail, OK # VM specific test.
+
+null_nosuchmethod_test: Fail # Bug 5513
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

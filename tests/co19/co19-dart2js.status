@@ -495,7 +495,6 @@ LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const cons
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
-LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
 LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
 LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
@@ -762,6 +761,7 @@ Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # 
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # http://dartbug.com/3566
 
 Language/03_Overview/03_Overview_A01_t01: Fail # http://dartbug.com/3903
+Language/03_Overview/03_Overview_A01_t02: Fail, OK # co19 issue 229
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
 

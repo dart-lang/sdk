@@ -47,6 +47,8 @@ class Interceptors {
   // use this function.
   Element getStaticInterceptorBySelector(Selector selector) {
     if (selector.isGetter()) {
+      // TODO(lrn): If there is no get-interceptor, but there is a
+      // method-interceptor, we should generate a get-interceptor automatically.
       return getStaticGetInterceptor(selector.name);
     } else if (selector.isSetter()) {
       return getStaticSetInterceptor(selector.name);

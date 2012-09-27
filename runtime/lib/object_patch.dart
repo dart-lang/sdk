@@ -25,6 +25,9 @@ patch class Object {
     _noSuchMethod(this, functionName, args);
   }
 
+  // Not yet supported.
+  /* patch */ Type get runtimeType => null;
+
   static void _noSuchMethod(Object obj, String functionName, List args)
       native "Object_noSuchMethod";
 

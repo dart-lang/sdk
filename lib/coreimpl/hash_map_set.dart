@@ -69,6 +69,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 
   int _probeForAdding(K key) {
+    if (key == null) throw const NullPointerException();
     int hash = _firstProbe(key.hashCode(), _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
@@ -102,6 +103,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 
   int _probeForLookup(K key) {
+    if (key == null) throw const NullPointerException();
     int hash = _firstProbe(key.hashCode(), _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
@@ -196,7 +198,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
 
   V putIfAbsent(K key, V ifAbsent()) {
     int index = _probeForLookup(key);
-    if (index >=0) return _values[index];
+    if (index >= 0) return _values[index];
 
     V value = ifAbsent();
     this[key] = value;

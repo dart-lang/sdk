@@ -4,7 +4,7 @@
 
 /**
  * A [Map] is an associative container, mapping a key to a value.
- * Null values are supported.
+ * Null values are supported, but null keys are not.
  */
 interface Map<K, V> default HashMapImplementation<K extends Hashable, V> {
   /**

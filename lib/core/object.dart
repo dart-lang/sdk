@@ -56,7 +56,6 @@ class Object {
    * [noSuchMethodError].
    */
   external Dynamic noSuchMethod(String name, List args);
-
   /**
    * A representation of the runtime type of the object.
    */
