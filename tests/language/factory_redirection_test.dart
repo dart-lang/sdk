@@ -5,11 +5,19 @@
 class A<T> {
   A() : x = null;
 
-  const A.constant(T x) : this.x = x;
+  const A.constant(this.x);
 
   factory A.factory() {
     return new B<Set>();
   }
+
+  factory A.test01() = T;  /// 01: runtime error
+
+  factory A.test02() = Dynamic;  /// 02: runtime error
+
+  factory A.test03() = Undefined;  /// 03: runtime error
+
+  factory A.test04() = C.test04;  /// 04: compile-time error
 
   final T x;
 }
@@ -22,6 +30,10 @@ class B<T> extends A<T> {
   const factory B.A_constant(T x) = A<T>.constant;
 
   factory B.A_factory() = A<T>.factory;
+
+  factory B.test04() = A.test04;  /// 04: continued
+
+  factory B.test05(int incompatible) = A<T>.factory;  /// 05: runtime error
 }
 
 class C<K, V> extends B<V> {
@@ -32,9 +44,22 @@ class C<K, V> extends B<V> {
   factory C.A_factory() = A<V>.factory;
 
   const factory C.B_constant(V x) = B<V>.A_constant;
+
+  factory C.test04() = B.test04;  /// 04: continued
+
+  factory C.test06(int incompatible) = B<K>.test05;  /// 06: runtime error
+
+  const factory C.test07(V x) = B<V>.A;  /// 07: compile-time error
 }
 
 main() {
+  new A<List>.test01();  /// 01: continued
+  new A<List>.test02();  /// 02: continued
+  new A<List>.test03();  /// 03: continued
+  new C.test04();  /// 04: continued
+  new B.test05(0);  /// 05: continued
+  new C.test06<int, int>(0);  /// 06: continued
+  new C.test07<int, int>(0);  /// 07: continued
   Expect.isTrue(new A<List>() is A<List>);
   Expect.isTrue(new A<bool>.constant(true).x);
   Expect.isTrue(new A<List>.factory() is B<Set>);

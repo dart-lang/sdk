@@ -46,9 +46,18 @@ class ClassFinalizer : public AllStatic {
                                        const AbstractType& type,
                                        FinalizationKind finalization);
 
-  // Replace the malformed type with Dynamic and, depending on the given type
-  // finalization mode and execution mode, mark the type as malformed or report
-  // a compile time error. Prepend prev_error if not null.
+  // Allocate, finalize, and return a new malformed type as if it was declared
+  // in class cls at the given token position. Build the error message from the
+  // format string and its arguments.
+  static RawType* NewFinalizedMalformedType(const Class& cls,
+                                            intptr_t type_pos,
+                                            const char* format, ...)
+       PRINTF_ATTRIBUTE(3, 4);
+
+  // Depending on the given type, finalization mode, and execution mode, mark
+  // the given type as malformed or report a compile time error.
+  // If not null, prepend prev_error to the error message built from the format
+  // string and its arguments.
   static void FinalizeMalformedType(const Error& prev_error,
                                     const Class& cls,
                                     const Type& type,
@@ -100,6 +109,12 @@ class ClassFinalizer : public AllStatic {
   static void PrintClassInformation(const Class& cls);
   static void CollectInterfaces(const Class& cls,
                                 const GrowableObjectArray& interfaces);
+  static void ReportMalformedType(const Error& prev_error,
+                                  const Class& cls,
+                                  const Type& type,
+                                  FinalizationKind finalization,
+                                  const char* format,
+                                  va_list args);
   static void ReportError(const Error& error);
   static void ReportError(const Script& script,
                           intptr_t token_index,

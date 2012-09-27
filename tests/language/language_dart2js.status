@@ -121,7 +121,14 @@ char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
-factory_redirection_test: Fail # Not implemented.
+factory_redirection_test/none: Fail # Not implemented.
+factory_redirection_test/01: Fail # Not implemented.
+factory_redirection_test/02: Fail # Not implemented.
+factory_redirection_test/03: Fail # Not implemented.
+factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
+factory_redirection_test/05: Fail # Not implemented.
+factory_redirection_test/06: Fail # Not implemented.
+factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_literals2_test: Fail # Closures inside initializers not implemented.
 function_syntax_test/none: Fail # Closures inside initializers not implemented.

@@ -6,6 +6,7 @@
 Language/03_Overview/03_Overview_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/03_Overview_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/03_Overview/1_Scoping_A02_t06: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(vm-team): Please triage this failure.
@@ -59,6 +60,7 @@ Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(vm-team): Pl
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # TODO(vm-team): Please triage this failure.
@@ -100,6 +102,19 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage 
 Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t07: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t06: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t07: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_New_A03_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -166,6 +181,7 @@ Language/11_Statements/09_Try_A06_t02: Fail # TODO(vm-team): Please triage this 
 Language/11_Statements/09_Try_A06_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Try_A06_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/3_Includes_A03_t02: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error. More importantly, interface factory clauses are obsolete.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(vm-team): Please triage this failure.
