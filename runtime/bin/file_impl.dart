@@ -335,32 +335,6 @@ class _FileUtils {
   static const OSERROR_RESPONSE_ERROR_CODE = 1;
   static const OSERROR_RESPONSE_MESSAGE = 2;
 
-  static List ensureFastAndSerializableBuffer(
-      List buffer, int offset, int bytes) {
-    // When using the Dart C API to access raw data, using a ByteArray is
-    // currently much faster. This function will make a copy of the
-    // supplied List to a ByteArray if it isn't already.
-    List outBuffer;
-    int outOffset = offset;
-    if (buffer is Uint8List || buffer is ObjectArray) {
-      outBuffer = buffer;
-    } else {
-      outBuffer = new Uint8List(bytes);
-      outOffset = 0;
-      int j = offset;
-      for (int i = 0; i < bytes; i++) {
-        int value = buffer[j];
-        if (value is! int) {
-          throw new FileIOException(
-              "List element is not an integer at index $j");
-        }
-        outBuffer[i] = value;
-        j++;
-      }
-    }
-    return [outBuffer, outOffset];
-  }
-
   static exists(String name) native "File_Exists";
   static open(String name, int mode) native "File_Open";
   static create(String name) native "File_Create";
@@ -375,8 +349,7 @@ class _FileUtils {
       native "File_ReadList";
   static writeByte(int id, int value) native "File_WriteByte";
   static writeList(int id, List<int> buffer, int offset, int bytes) {
-    List result =
-        _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
+    List result = _ensureFastAndSerializableBuffer(buffer, offset, bytes);
     List outBuffer = result[0];
     int outOffset = result[1];
     return writeListNative(id, outBuffer, outOffset, bytes);
@@ -946,8 +919,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
     List result;
     try {
-      result =
-          _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
+      result = _ensureFastAndSerializableBuffer(buffer, offset, bytes);
     } catch (e) {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the

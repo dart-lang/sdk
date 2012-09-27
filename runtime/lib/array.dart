@@ -4,9 +4,9 @@
 
 
 // TODO(srdjan): Use shared array implementation.
-class ObjectArray<E> implements List<E> {
+class _ObjectArray<E> implements List<E> {
 
-  factory ObjectArray(int length) native "ObjectArray_allocate";
+  factory _ObjectArray(int length) native "ObjectArray_allocate";
 
   E operator [](int index) native "ObjectArray_getIndexed";
 
@@ -18,7 +18,7 @@ class ObjectArray<E> implements List<E> {
 
   int get length native "ObjectArray_getLength";
 
-  void _copyFromObjectArray(ObjectArray src,
+  void _copyFromObjectArray(_ObjectArray src,
                             int srcStart,
                             int dstStart,
                             int count)
@@ -33,7 +33,7 @@ class ObjectArray<E> implements List<E> {
     if (length < 0) {
       throw new ArgumentError("negative length $length");
     }
-      if (from is ObjectArray) {
+      if (from is _ObjectArray) {
       _copyFromObjectArray(from, startFrom, start, length);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
@@ -53,7 +53,7 @@ class ObjectArray<E> implements List<E> {
   List<E> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new GrowableObjectArray<E>.withCapacity(length);
+    List list = new _GrowableObjectArray<E>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -68,7 +68,8 @@ class ObjectArray<E> implements List<E> {
   }
 
   Collection map(f(E element)) {
-    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+    return Collections.map(
+        this, new _GrowableObjectArray.withCapacity(length), f);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
@@ -76,7 +77,7 @@ class ObjectArray<E> implements List<E> {
   }
 
   Collection<E> filter(bool f(E element)) {
-    return Collections.filter(this, new GrowableObjectArray<E>(), f);
+    return Collections.filter(this, new _GrowableObjectArray<E>(), f);
   }
 
   bool every(bool f(E element)) {
@@ -105,7 +106,7 @@ class ObjectArray<E> implements List<E> {
   }
 
   Iterator<E> iterator() {
-    return new FixedSizeArrayIterator<E>(this);
+    return new _FixedSizeArrayIterator<E>(this);
   }
 
   void add(E element) {
@@ -143,16 +144,16 @@ class ObjectArray<E> implements List<E> {
 }
 
 
-// This is essentially the same class as ObjectArray, but it does not
+// This is essentially the same class as _ObjectArray, but it does not
 // permit any modification of array elements from Dart code. We use
 // this class for arrays constructed from Dart array literals.
 // TODO(hausner): We should consider the trade-offs between two
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class ImmutableArray<E> implements List<E> {
+class _ImmutableArray<E> implements List<E> {
 
-  factory ImmutableArray._uninstantiable() {
+  factory _ImmutableArray._uninstantiable() {
     throw const UnsupportedOperationException(
         "ImmutableArray can only be allocated by the VM");
   }
@@ -209,7 +210,8 @@ class ImmutableArray<E> implements List<E> {
   }
 
   Collection map(f(E element)) {
-    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+    return Collections.map(
+        this, new _GrowableObjectArray.withCapacity(length), f);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
@@ -217,7 +219,7 @@ class ImmutableArray<E> implements List<E> {
   }
 
   Collection<E> filter(bool f(E element)) {
-    return Collections.filter(this, new GrowableObjectArray<E>(), f);
+    return Collections.filter(this, new _GrowableObjectArray<E>(), f);
   }
 
   bool every(bool f(E element)) {
@@ -251,7 +253,7 @@ class ImmutableArray<E> implements List<E> {
   }
 
   Iterator<E> iterator() {
-    return new FixedSizeArrayIterator<E>(this);
+    return new _FixedSizeArrayIterator<E>(this);
   }
 
   void add(E element) {
@@ -290,10 +292,10 @@ class ImmutableArray<E> implements List<E> {
 
 
 // Iterator for arrays with fixed size.
-class FixedSizeArrayIterator<E> implements Iterator<E> {
-  FixedSizeArrayIterator(List array)
+class _FixedSizeArrayIterator<E> implements Iterator<E> {
+  _FixedSizeArrayIterator(List array)
       : _array = array, _length = array.length, _pos = 0 {
-    assert(array is ObjectArray || array is ImmutableArray);
+    assert(array is _ObjectArray || array is _ImmutableArray);
   }
 
   bool hasNext() {

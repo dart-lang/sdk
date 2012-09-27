@@ -1,12 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Immutable map class for compiler generated map literals.
 
 class ImmutableMap<K, V> implements Map<K, V> {
-  final ImmutableArray kvPairs_;
+  final _ImmutableArray kvPairs_;
 
-  const ImmutableMap._create(ImmutableArray keyValuePairs)
+  const ImmutableMap._create(_ImmutableArray keyValuePairs)
       : kvPairs_ = keyValuePairs;
 
 

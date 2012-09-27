@@ -7,10 +7,13 @@
   * operating system.
   */
 class OSError {
+  /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
+  /** Creates an OSError object from a message and an errorCode. */
   const OSError([String this.message = "", int this.errorCode = noErrorCode]);
 
+  /** Converts an OSError object to a string representation. */
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("OS Error");
@@ -39,4 +42,41 @@ class OSError {
     * [noErrorCode] if there is no error code associated with the error.
     */
   final int errorCode;
+}
+
+
+// Check if a List is a builtin VM List type. Returns true
+// if the List is a builtin VM List type and false if it is
+// a user defined List type.
+//
+// TODO(5474): At this point it actually return false for
+// _GrowableObjectArrays because of serialization issues.
+bool _isBuiltinList(List buffer) native "Common_IsBuiltinList";
+
+
+// Ensure that the input List can be serialized through a native port.
+// Only builtin Lists can be serialized through. If user-defined Lists
+// get here, the contents is copied to a Uint8List. This has the added
+// benefit that it is faster to access from the C code as well.
+List _ensureFastAndSerializableBuffer(
+    List buffer, int offset, int bytes) {
+  List outBuffer;
+  int outOffset = offset;
+  if (buffer is Uint8List || _isBuiltinList(buffer)) {
+    outBuffer = buffer;
+  } else {
+    outBuffer = new Uint8List(bytes);
+    outOffset = 0;
+    int j = offset;
+    for (int i = 0; i < bytes; i++) {
+      int value = buffer[j];
+      if (value is! int) {
+        throw new FileIOException(
+            "List element is not an integer at index $j");
+      }
+      outBuffer[i] = value;
+      j++;
+    }
+  }
+  return [outBuffer, outOffset];
 }

@@ -45,8 +45,6 @@ reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
 big_integer_vm_test: Fail, OK # VM specific test.
 compare_to2_test: Fail, OK    # Requires bigint support.
-growable_object_array2_vm_test: Fail, OK # VM specific test.
-growable_object_array_vm_test: Fail, OK # VM specific test.
 string_base_vm_test: Fail, OK # VM specific test.
 
 null_nosuchmethod_test: Fail # Bug 5513
