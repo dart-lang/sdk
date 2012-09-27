@@ -148,7 +148,6 @@ String classify(Token token) {
     case CARET_EQ_TOKEN:
     case AMPERSAND_EQ_TOKEN:
     case LT_LT_EQ_TOKEN:
-    case GT_GT_GT_EQ_TOKEN:
     case GT_GT_EQ_TOKEN:
     case PLUS_EQ_TOKEN:
     case MINUS_EQ_TOKEN:
@@ -163,7 +162,6 @@ String classify(Token token) {
     case CARET_TOKEN:
     case AMPERSAND_TOKEN:
     case LT_LT_TOKEN:
-    case GT_GT_GT_TOKEN:
     case GT_GT_TOKEN:
     case PLUS_TOKEN:
     case MINUS_TOKEN:
