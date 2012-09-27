@@ -86,13 +86,10 @@ class TestCase {
            this.configuration,
            this.completedHandler,
            this.expectedOutcomes,
-           [this.isNegative = false,
-            this.info = null]) {
+           {this.isNegative: false,
+            this.info: null}) {
     if (!isNegative) {
-      // TODO(sigmund): use only 'negative_test' (and not 'NegativeTest') once
-      // the test rename overhaul is done.
-      this.isNegative = displayName.contains("NegativeTest")
-          || displayName.contains("negative_test");
+      this.isNegative = displayName.contains("negative_test");
     }
 
     // Special command handling. If a special command is specified
@@ -176,9 +173,9 @@ class BrowserTestCase extends TestCase {
   int numRetries;
 
   BrowserTestCase(displayName, commands, configuration, completedHandler,
-      expectedOutcomes, [isNegative = false])
+      expectedOutcomes, info, isNegative)
     : super(displayName, commands, configuration, completedHandler,
-        expectedOutcomes, isNegative) {
+        expectedOutcomes, isNegative: isNegative, info: info) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
@@ -198,8 +195,9 @@ class BrowserTestCase extends TestCase {
  * [TestCase] this is the output of.
  */
 interface TestOutput default TestOutputImpl {
-  TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
-    List<String> stdout, List<String> stderr, Duration time);
+  TestOutput.fromCase(TestCase testCase, int exitCode, bool incomplete,
+                      bool timedOut,
+                      List<String> stdout, List<String> stderr, Duration time);
 
   String get result;
 
@@ -227,6 +225,10 @@ interface TestOutput default TestOutputImpl {
 class TestOutputImpl implements TestOutput {
   TestCase testCase;
   int exitCode;
+
+  /// Records if all commands were run, true if they weren't.
+  final bool incomplete;
+
   bool timedOut;
   bool failed = false;
   List<String> stdout;
@@ -246,10 +248,11 @@ class TestOutputImpl implements TestOutput {
    */
   bool requestRetry = false;
 
-  // Don't call  this constructor, call TestOutput.fromCase() to
-  // get anew TestOutput instance.
+  // Don't call this constructor, call TestOutput.fromCase() to
+  // get a new TestOutput instance.
   TestOutputImpl(TestCase this.testCase,
                  int this.exitCode,
+                 bool this.incomplete,
                  bool this.timedOut,
                  List<String> this.stdout,
                  List<String> this.stderr,
@@ -260,19 +263,20 @@ class TestOutputImpl implements TestOutput {
 
   factory TestOutputImpl.fromCase (TestCase testCase,
                                    int exitCode,
+                                   bool incomplete,
                                    bool timedOut,
                                    List<String> stdout,
                                    List<String> stderr,
                                    Duration time) {
     if (testCase is BrowserTestCase) {
-      return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
-        stdout, stderr, time);
+      return new BrowserTestOutputImpl(testCase, exitCode, incomplete,
+          timedOut, stdout, stderr, time);
     } else if (testCase.configuration['compiler'] == 'dartc') {
       return new AnalysisTestOutputImpl(testCase, exitCode, timedOut,
-        stdout, stderr, time);
+          stdout, stderr, time);
     }
-    return new TestOutputImpl(testCase, exitCode, timedOut,
-      stdout, stderr, time);
+    return new TestOutputImpl(testCase, exitCode, incomplete, timedOut,
+        stdout, stderr, time);
   }
 
   String get result =>
@@ -302,13 +306,20 @@ class TestOutputImpl implements TestOutput {
   }
 
   // Reverse result of a negative test.
-  bool get hasFailed => testCase.isNegative ? !didFail : didFail;
+  bool get hasFailed {
+    // Always fail if a runtime-error is expected and compilation failed.
+    if (testCase.info != null && testCase.info.hasRuntimeError && incomplete) {
+      return true;
+    }
+    return testCase.isNegative ? !didFail : didFail;
+  }
 
 }
 
 class BrowserTestOutputImpl extends TestOutputImpl {
-  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, timedOut, stdout, stderr, time);
+  BrowserTestOutputImpl(testCase, exitCode, incomplete,
+                        timedOut, stdout, stderr, time) :
+    super(testCase, exitCode, incomplete, timedOut, stdout, stderr, time);
 
   bool get didFail {
     // Browser case:
@@ -360,8 +371,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
   bool alreadyComputed = false;
   bool failResult;
   AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, timedOut, stdout, stderr, time) {
-  }
+    super(testCase, exitCode, false, timedOut, stdout, stderr, time);
 
   bool get didFail {
     if (!alreadyComputed) {
@@ -542,8 +552,8 @@ class RunningProcess {
    * succeded, otherwise it will have the exit code of the first failing
    * command.
    */
-  void testComplete(int exitCode) {
-    new TestOutput.fromCase(testCase, exitCode, timedOut, stdout,
+  void testComplete(int exitCode, bool incomplete) {
+    new TestOutput.fromCase(testCase, exitCode, incomplete, timedOut, stdout,
                             stderr, new Date.now().difference(startTime));
     timeoutTimer.cancel();
     if (testCase.output.unexpectedOutput
@@ -581,10 +591,10 @@ class RunningProcess {
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
     if (currentStep == totalSteps) { // done with test command
-      testComplete(exitCode);
+      testComplete(exitCode, false);
     } else if (exitCode != 0) {
       stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
-      testComplete(exitCode);
+      testComplete(exitCode, true);
     } else {
       stderr.add('test.dart: Compilation finished $suffix\n');
       stdout.add('test.dart: Compilation finished $suffix\n');
@@ -631,7 +641,7 @@ class RunningProcess {
       print("Error starting process:");
       print("  Command: $command");
       print("  Error: $e");
-      testComplete(-1);
+      testComplete(-1, false);
     };
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
@@ -772,7 +782,8 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
+    new TestOutput.fromCase(_currentTest, exitCode, false,
+                            (outcome == "TIMEOUT"),
                             _testStdout, _testStderr,
                             new Date.now().difference(_startTime));
     var test = _currentTest;

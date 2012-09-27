@@ -191,8 +191,6 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
 void DoMultitest(Path filePath,
                  String outputDir,
                  Path suiteDir,
-                 // TODO(zundel): Are the boolean flags now redundant
-                 // with the 'multitestOutcome' field?
                  CreateTest doTest,
                  VoidFunction multitestDone) {
   // Each new test is a single String value in the Map tests.
@@ -234,14 +232,13 @@ void DoMultitest(Path filePath,
       Set<String> outcome = outcomes[key];
       bool enableFatalTypeErrors = outcome.contains('static type warning');
       bool hasRuntimeErrors = outcome.contains('runtime error');
-      bool isNegative = hasRuntimeErrors
-          || outcome.contains('compile-time error');
+      bool hasCompileError = outcome.contains('compile-time error');
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
       doTest(multitestFilename,
-             isNegative,
+             hasCompileError,
+             hasRuntimeErrors,
              isNegativeIfChecked: isNegativeIfChecked,
              hasFatalTypeErrors: enableFatalTypeErrors,
-             hasRuntimeErrors: hasRuntimeErrors,
              multitestOutcome: outcome);
     }
     multitestDone();

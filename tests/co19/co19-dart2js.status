@@ -231,6 +231,10 @@ Language/08_Interfaces/Interfaces_A01_t04: Pass, OK # TODO(ahe): Is this a bad t
 Language/10_Expressions/01_Constants_A15_t48: Pass, OK # co19 issue 171
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Pass, OK # Missing check for const initializer
 
+Language/10_Expressions/02_Null_A03_t01: Fail, OK # co19 issue 227
+
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail, OK # co19 issue 228
+
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
@@ -240,6 +244,10 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
+Language/11_Statements/14_Throw_A03_t01: Fail # http://dartbug.com/5519
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5519
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5519
+
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.

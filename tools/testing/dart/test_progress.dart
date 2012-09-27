@@ -124,6 +124,18 @@ class ProgressIndicator {
     }
     output.add(expected.toString());
     output.add('Actual: ${test.output.result}');
+    if (test.info != null) {
+      if (test.output.incomplete && !test.info.hasCompileError) {
+        output.add('Unexpected compile-time error.');
+      } else {
+        if (test.info.hasCompileError) {
+          output.add('Compile-time error expected.');
+        }
+        if (test.info.hasRuntimeError) {
+          output.add('Runtime error expected.');
+        }
+      }
+    }
     if (!test.output.diagnostics.isEmpty()) {
       String prefix = 'diagnostics:';
       for (var s in test.output.diagnostics) {
