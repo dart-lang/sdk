@@ -233,7 +233,7 @@ class FieldTypesRegistry {
    * not correlate the generative constructors and generative constructor
    * body/bodies.
    */
-  final Map<Element, Set<ClassElement>> constructors;
+  final Map<ClassElement, Set<Element>> constructors;
 
   /**
    * The collected type information is stored in three maps. One for types
@@ -265,7 +265,7 @@ class FieldTypesRegistry {
   final Map<Element, FunctionSet> optimizedFunctions;
 
   FieldTypesRegistry(JavaScriptBackend backend)
-      : constructors =  new Map<Element, Set<ClassElement>>(),
+      : constructors =  new Map<ClassElement, Set<Element>>(),
         fieldInitializerTypeMap = new Map<Element, HType>(),
         fieldConstructorTypeMap = new Map<Element, HType>(),
         fieldTypeMap = new Map<Element, HType>(),
