@@ -698,8 +698,8 @@ class StandardTestSuite implements TestSuite {
       }
 
       var extraCommand = optionsFromFile['extraCommand'];
-      var args = optionsFromFile['extraCommandArgs'];
-      addExtraCommand(extraCommand, args, commands);
+      var extraArgs = optionsFromFile['extraCommandArgs'];
+      addExtraCommand(extraCommand, extraArgs, commands);
 
       // Construct the command that executes the browser test
       List<String> args;
