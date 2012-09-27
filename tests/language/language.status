@@ -154,8 +154,7 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test/03: Fail, OK # we are going to remove interfaces
 duplicate_implements_test/04: Fail, OK # we are going to remove interfaces
-factory_redirection_test/01: Crash # Not implemented.
-factory_redirection_test/04: Crash # Not implemented.
+factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 field7_negative_test: Fail, OK # language changed, test issue 5249
@@ -408,13 +407,7 @@ number_identifier_negative_test: Fail
 switch_label_test: Fail
 # Common with language_dart2js.
 factory_redirection_test/none: Fail # Not implemented.
-factory_redirection_test/01: Fail # Not implemented.
-factory_redirection_test/02: Fail # Not implemented.
-factory_redirection_test/03: Fail # Not implemented.
-factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
-factory_redirection_test/05: Fail # Not implemented.
-factory_redirection_test/06: Fail # Not implemented.
-factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
+factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
