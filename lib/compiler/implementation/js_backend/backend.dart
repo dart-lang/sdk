@@ -317,7 +317,7 @@ class FieldTypesRegistry {
 
   void registerConstructor(Element element) {
     assert(element.isGenerativeConstructor());
-    Element cls = element.enclosingElement;
+    Element cls = element.getEnclosingClass();
     constructors.putIfAbsent(cls, () => new Set<Element>());
     Set<Element> ctors = constructors[cls];
     if (ctors.contains(element)) return;
@@ -383,7 +383,7 @@ class FieldTypesRegistry {
 
   HType optimisticFieldType(Element field) {
     assert(field.isField());
-    if (constructorCount(field.enclosingElement) > 1) {
+    if (constructorCount(field.getEnclosingClass()) > 1) {
       return HType.UNKNOWN;
     }
     if (setterSelectorsUsed.contains(field.name)) {
