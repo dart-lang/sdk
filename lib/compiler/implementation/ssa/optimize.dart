@@ -1205,7 +1205,6 @@ class SsaConstructionFieldTypes
   final Map<HBasicBlock, Map<Element, HType>> blockFieldSetters;
   bool thisExposed = false;
   HGraph currentGraph;
-  HInstruction thisInstruction;
   Map<Element, HType> currentFieldSetters;
 
   SsaConstructionFieldTypes(JavaScriptBackend this.backend,
@@ -1266,13 +1265,12 @@ class SsaConstructionFieldTypes
   }
 
   visitPhi(HPhi phi) {
-    if (phi.inputs.indexOf(thisInstruction) != -1) {
+    if (thisUsers.contains(phi)) {
       thisUsers.addAll(phi.usedBy);
     }
   }
 
   visitThis(HThis instruction) {
-    thisInstruction = instruction;
     // Collect all users of this in a set to make the this exposed check simple
     // and cheap.
     thisUsers.addAll(instruction.usedBy);

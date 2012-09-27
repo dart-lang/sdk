@@ -265,7 +265,7 @@ class FieldTypesRegistry {
   final Map<Element, FunctionSet> optimizedFunctions;
 
   FieldTypesRegistry(JavaScriptBackend backend)
-      : constructors =  new Map<Element, Set<Element>>(),
+      : constructors =  new Map<Element, Set<ClassElement>>(),
         fieldInitializerTypeMap = new Map<Element, HType>(),
         fieldConstructorTypeMap = new Map<Element, HType>(),
         fieldTypeMap = new Map<Element, HType>(),
