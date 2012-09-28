@@ -201,6 +201,11 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   bool get isDeclaration;
 
   /**
+   * Is [:true:] if this class is declared abstract.
+   */
+  bool get isAbstract;
+
+  /**
    * Returns a list of the type arguments for this type.
    */
   List<TypeMirror> get typeArguments;
@@ -348,6 +353,11 @@ abstract class MethodMirror implements MemberMirror {
    * Returns the return type of this method.
    */
   TypeMirror get returnType;
+
+  /**
+   * Is [:true:] if this method is declared abstract.
+   */
+  bool get isAbstract;
 
   /**
    * Is [:true:] if this method is a constant constructor.

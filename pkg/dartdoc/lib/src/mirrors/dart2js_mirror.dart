@@ -754,6 +754,9 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   bool get isInterface => _class.isInterface();
 
+  bool get isAbstract =>
+      _class.modifiers !== null && _class.modifiers.isAbstract();
+
   bool get isPrivate => _isPrivate(simpleName);
 
   bool get isDeclaration => true;
@@ -1021,6 +1024,8 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   bool get isClass => declaration.isClass;
 
   bool get isInterface => declaration.isInterface;
+
+  bool get isAbstract => declaration.isAbstract;
 
   bool get isPrivate => declaration.isPrivate;
 
@@ -1316,6 +1321,9 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
   TypeMirror get returnType => _convertTypeToTypeMirror(
       system, _function.computeSignature(system.compiler).returnType,
       system.compiler.types.dynamicType);
+
+  bool get isAbstract =>
+      _function.modifiers !== null && _function.modifiers.isAbstract();
 
   bool get isConst => _kind == Dart2JsMethodKind.CONST;
 
