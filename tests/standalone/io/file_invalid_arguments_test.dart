@@ -5,61 +5,6 @@
 #import("dart:io");
 
 class FileTest {
-  static void testOpenInvalidArgs(name) {
-    var file = new File(name);
-    try {
-      file.openSync();
-      Expect.fail('exception expected');
-    } catch (e) {
-      Expect.isTrue(e is ArgumentError);
-    }
-
-    var openFuture = file.open(FileMode.READ);
-    openFuture.handleException((e) {
-      Expect.isTrue(e is ArgumentError);
-      return true;
-    });
-    openFuture.then((opened) {
-      Expect.fail('non-string name open');
-    });
-  }
-
-  static void testExistsInvalidArgs(name) {
-    var file = new File(name);
-    try {
-      file.existsSync();
-      Expect.fail('exception expected');
-    } catch (e) {
-      Expect.isTrue(e is ArgumentError);
-    }
-
-    var existsFuture = file.exists();
-    existsFuture.handleException((e) {
-      Expect.isTrue(e is ArgumentError);
-      return true;
-    });
-    existsFuture.then((bool) {
-      Expect.fail('non-string name exists');
-    });
-  }
-
-  static void testCreateInvalidArgs(name) {
-    var file = new File(name);
-    try {
-      file.createSync();
-      Expect.fail('exception expected');
-    } catch (e) {
-      Expect.isTrue(e is ArgumentError);
-    }
-
-    var createFuture = file.create();
-    createFuture.handleException((e) {
-      Expect.isTrue(e is ArgumentError);
-      return true;
-    });
-    createFuture.then((ignore) => Expect.fail('non-string name exists'));
-  }
-
   static void testReadListInvalidArgs(buffer, offset, length) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     var file = (new File(filename)).openSync();
@@ -161,33 +106,11 @@ class FileTest {
     file.close();
   }
 
-  static void testFullPathInvalidArgs(name) {
-    var file = new File(name);
-    try {
-      file.fullPathSync();
-      Expect.fail('exception expected');
-    } catch (e) {
-      Expect.isTrue(e is ArgumentError);
-    }
-
-    var fullPathFuture = file.fullPath();
-    fullPathFuture.handleException((e) {
-      Expect.isTrue(e is ArgumentError);
-      return true;
-    });
-    fullPathFuture.then((path) {
-      Expect.fail('full path invalid argument');
-    });
-  }
-
   static String getFilename(String path) =>
       new File(path).existsSync() ? path : 'runtime/$path';
 }
 
 main() {
-  FileTest.testOpenInvalidArgs(0);
-  FileTest.testExistsInvalidArgs(0);
-  FileTest.testCreateInvalidArgs(0);
   FileTest.testReadListInvalidArgs(12, 0, 1);
   FileTest.testReadListInvalidArgs(new List(10), '0', 1);
   FileTest.testReadListInvalidArgs(new List(10), 0, '1');
@@ -195,5 +118,4 @@ main() {
   FileTest.testWriteListInvalidArgs(12, 0, 1);
   FileTest.testWriteListInvalidArgs(new List(10), '0', 1);
   FileTest.testWriteListInvalidArgs(new List(10), 0, '1');
-  FileTest.testFullPathInvalidArgs(12);
 }
