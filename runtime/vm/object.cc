@@ -586,12 +586,12 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->array_class();  // Was allocated above.
   name = Symbols::ObjectArray();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
   name = Symbols::GrowableObjectArray();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
@@ -599,7 +599,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   name = Symbols::ImmutableArray();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.

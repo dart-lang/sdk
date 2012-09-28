@@ -174,9 +174,10 @@ bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const String& class_name = String::Handle(Symbols::New("ObjectArray"));
-  const Class& cls = Class::Handle(
-      Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name));
+  const String& class_name = String::Handle(Symbols::New("_ObjectArray"));
+  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Class& cls =
+      Class::Handle(coreimpl_lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
@@ -251,8 +252,9 @@ static intptr_t GetOffsetForField(const char* class_name_p,
                                   const char* field_name_p) {
   const String& class_name = String::Handle(Symbols::New(class_name_p));
   const String& field_name = String::Handle(Symbols::New(field_name_p));
-  const Class& cls = Class::Handle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
+  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
+  const Class& cls =
+      Class::Handle(coreimpl_lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   const Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
   ASSERT(!field.IsNull());
@@ -1290,7 +1292,7 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 }
 
 
-static const char* kFixedSizeArrayIteratorClassName = "FixedSizeArrayIterator";
+static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
 
 
 // Class 'FixedSizeArrayIterator':

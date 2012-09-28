@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class GrowableObjectArray<T> implements List<T> {
-  factory GrowableObjectArray._uninstantiable() {
+class _GrowableObjectArray<T> implements List<T> {
+  factory _GrowableObjectArray._uninstantiable() {
     throw const UnsupportedOperationException(
         "GrowableObjectArray can only be allocated by the VM");
   }
@@ -66,29 +66,29 @@ class GrowableObjectArray<T> implements List<T> {
   List<T> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new GrowableObjectArray<T>.withCapacity(length);
+    List list = new _GrowableObjectArray<T>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
 
-  factory GrowableObjectArray() {
-    var data = new ObjectArray<T>(4);
-    return new GrowableObjectArray<T>.fromObjectArray(data);
+  factory _GrowableObjectArray() {
+    var data = new _ObjectArray<T>(4);
+    return new _GrowableObjectArray<T>.fromObjectArray(data);
   }
 
-  factory GrowableObjectArray.withCapacity(int capacity) {
-    var data = new ObjectArray<T>((capacity == 0)? 4 : capacity);
-    return new GrowableObjectArray<T>.fromObjectArray(data);
+  factory _GrowableObjectArray.withCapacity(int capacity) {
+    var data = new _ObjectArray<T>((capacity == 0)? 4 : capacity);
+    return new _GrowableObjectArray<T>.fromObjectArray(data);
   }
 
-  factory GrowableObjectArray.from(Collection<T> other) {
-    List<T> result = new GrowableObjectArray<T>();
+  factory _GrowableObjectArray.from(Collection<T> other) {
+    List<T> result = new _GrowableObjectArray<T>();
     result.addAll(other);
     return result;
   }
 
-  factory GrowableObjectArray.fromObjectArray(ObjectArray<T> data)
+  factory _GrowableObjectArray.fromObjectArray(_ObjectArray<T> data)
     native "GrowableObjectArray_allocate";
 
   int get length native "GrowableObjectArray_getLength";
@@ -108,7 +108,7 @@ class GrowableObjectArray<T> implements List<T> {
 
   void _setLength(int new_length) native "GrowableObjectArray_setLength";
 
-  void _setData(ObjectArray<T> array) native "GrowableObjectArray_setData";
+  void _setData(_ObjectArray<T> array) native "GrowableObjectArray_setData";
 
   T operator [](int index) native "GrowableObjectArray_getIndexed";
 
@@ -159,7 +159,7 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   void _grow(int new_length) {
-    var new_data = new ObjectArray<T>(new_length);
+    var new_data = new _ObjectArray<T>(new_length);
     for (int i = 0; i < length; i++) {
       new_data[i] = this[i];
     }
@@ -180,7 +180,7 @@ class GrowableObjectArray<T> implements List<T> {
 
   Collection map(f(T element)) {
     return Collections.map(this,
-                           new GrowableObjectArray.withCapacity(length), f);
+                           new _GrowableObjectArray.withCapacity(length), f);
   }
 
   reduce(initialValue, combine(previousValue, T element)) {
@@ -188,7 +188,7 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   Collection<T> filter(bool f(T element)) {
-    return Collections.filter(this, new GrowableObjectArray<T>(), f);
+    return Collections.filter(this, new _GrowableObjectArray<T>(), f);
   }
 
   bool every(bool f(T element)) {
@@ -223,7 +223,7 @@ class GrowableObjectArray<T> implements List<T> {
 
 // Iterator for arrays with variable size.
 class VariableSizeArrayIterator<T> implements Iterator<T> {
-  VariableSizeArrayIterator(GrowableObjectArray<T> array)
+  VariableSizeArrayIterator(_GrowableObjectArray<T> array)
       : _array = array,  _pos = 0 {
   }
 
@@ -238,6 +238,6 @@ class VariableSizeArrayIterator<T> implements Iterator<T> {
     return _array[_pos++];
   }
 
-  final GrowableObjectArray<T> _array;
+  final _GrowableObjectArray<T> _array;
   int _pos;
 }

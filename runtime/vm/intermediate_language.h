@@ -31,10 +31,10 @@ class Range;
 // TODO(srdjan): Add _ByteArrayBase, get:length.
 
 #define RECOGNIZED_LIST(V)                                                     \
-  V(ObjectArray, get:length, ObjectArrayLength)                                \
-  V(ImmutableArray, get:length, ImmutableArrayLength)                          \
-  V(GrowableObjectArray, get:length, GrowableArrayLength)                      \
-  V(GrowableObjectArray, get:capacity, GrowableArrayCapacity)                  \
+  V(_ObjectArray, get:length, ObjectArrayLength)                               \
+  V(_ImmutableArray, get:length, ImmutableArrayLength)                         \
+  V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
+  V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
   V(StringBase, get:length, StringBaseLength)                                  \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toDouble, DoubleToDouble)                                         \

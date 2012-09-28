@@ -27,7 +27,8 @@
 #import("dart:crypto");
 #import("dart:utf");
 #source('../../../../runtime/bin/buffer_list.dart');
-#source('../../../../runtime/bin/common.dart');
+// Uses native keyword.
+//#source('../../../../runtime/bin/common.dart');
 #source('../../../../runtime/bin/chunked_stream.dart');
 #source('../../../../runtime/bin/directory.dart');
 // Uses native keyword.
@@ -65,6 +66,39 @@
 #source('../../../../runtime/bin/timer_impl.dart');
 #source('../../../../runtime/bin/websocket.dart');
 #source('../../../../runtime/bin/websocket_impl.dart');
+
+/**
+  * An [OSError] object holds information about an error from the
+  * operating system.
+  */
+class OSError {
+  /** Constant used to indicate that no OS error code is available. */
+  static const int noErrorCode = -1;
+
+  /** Creates an OSError object from a message and an errorCode. */
+  const OSError([String this.message = "", int this.errorCode = noErrorCode]);
+
+  /** Converts an OSError object to a string representation. */
+  String toString() {
+    throw UnsupportedOperationException('OSError.toString');
+  }
+
+  /**
+    * Error message supplied by the operating system. null if no message is
+    * associated with the error.
+    */
+  final String message;
+
+  /**
+    * Error code supplied by the operating system. Will have the value
+    * [noErrorCode] if there is no error code associated with the error.
+    */
+  final int errorCode;
+}
+
+List _ensureFastAndSerializableBuffer(List buffer, int offset, int bytes) {
+  throw new UnsupportedOperationException('_ensureFastAndSerializableBuffer');
+}
 
 class _File {
   factory File(arg) {
