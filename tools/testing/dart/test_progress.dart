@@ -30,6 +30,8 @@ class ProgressIndicator {
         return new StatusProgressIndicator(startTime, printTiming);
       case 'buildbot':
         return new BuildbotProgressIndicator(startTime, printTiming);
+      case 'diff':
+        return new DiffProgressIndicator(startTime, printTiming);
       default:
         assert(false);
         break;
@@ -377,5 +379,31 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       print('@@@BUILD_STEP $stepName failures@@@');
     }
     super._printFailureSummary();
+  }
+}
+
+class DiffProgressIndicator extends ColorProgressIndicator {
+  Map<String, List<String>> failures = new Map<String, List<String>>();
+
+  DiffProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
+
+  void _printFailureOutput(TestCase test) {
+    List<String> configurationFailures =
+      failures.putIfAbsent(test.configurationString, () => <String>[]);
+    configurationFailures.add('${test.displayName}: ${test.output.result}');
+  }
+
+  void _printFailureSummary() {
+    failures.forEach((key, lines) {
+      print('');
+      print('');
+      print('$key:');
+      lines.sort((a, b) => a.compareTo(b));
+      for (String line in lines) {
+        print('  $line');
+      }
+    });
+    _printStatus();
   }
 }
