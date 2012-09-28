@@ -408,40 +408,67 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return visitInstruction(interceptor);
     }
     LengthValue value = new LengthValue(interceptor);
-    return new Range(value, value);
+    // We know this range is above zero. To simplify the analysis, we
+    // put the zero value as the lower bound of this range. This
+    // allows to easily remove the second bound check in the following
+    // expression: a[1] + a[0].
+    return new Range(const IntValue(0), value);
   }
 
-  /**
-   * Returns true if the bounds check was eliminated.
-   */
-  bool handleBoundsCheck(HBoundsCheck check) {
+  Range visitBoundsCheck(HBoundsCheck check) {
+    // Save the next instruction, in case the check gets removed.
+    HInstruction next = check.next;
     Range indexRange = ranges[check.index];
     Range lengthRange = ranges[check.length];
+
+    // Check if the index is strictly below the upper bound of the length
+    // range.
     Value maxIndex = lengthRange.upper - const IntValue(1);
     bool belowLength = maxIndex != const MaxIntValue()
         && indexRange.upper.min(maxIndex) == indexRange.upper;
+
+    // Check if the index is strictly below the lower bound of the length
+    // range.
+    belowLength = belowLength
+        || (indexRange.upper != lengthRange.lower
+            && indexRange.upper.min(lengthRange.lower) == indexRange.upper);
     if (indexRange.isPositive() && belowLength) {
       check.block.rewrite(check, check.index);
       check.block.remove(check);
-      return true;
     } else if (indexRange.isNegative() || lengthRange.isLessThan(indexRange)) {
       check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+      // The check is always false, and whatever instruction it
+      // dominates is dead code.
+      return indexRange;
     } else if (indexRange.isPositive()) {
       check.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
     } else if (belowLength) {
       check.staticChecks = HBoundsCheck.ALWAYS_BELOW_LENGTH;
     }
-    return false;
-  }
 
-  Range visitBoundsCheck(HBoundsCheck check) {
-    HInstruction next = check.next;
-    Range indexRange = ranges[check.index];
-    Range lengthRange = ranges[check.length];
-    if (handleBoundsCheck(check)) return indexRange;
-    Range newIndexRange = indexRange.intersection(lengthRange);
-    // TODO(ngeoffray): Update the range of the index.
-    return newIndexRange;
+    if (indexRange.isPositive()) {
+      // If the test passes, we know the lower bound of the length is
+      // greater or equal than the lower bound of the index.
+      Value low = lengthRange.lower.max(indexRange.lower);
+      if (low != const UnknownValue()) {
+        HInstruction instruction =
+            createRangeConversion(next, check.length);
+        ranges[instruction] = new Range(low, lengthRange.upper);
+      }
+    }
+
+    if (!belowLength) {
+      // Update the range of the index if using the length bounds
+      // narrows it.
+      Range newIndexRange = indexRange.intersection(
+          new Range(lengthRange.lower, maxIndex));
+      if (indexRange == newIndexRange) return indexRange;
+      HInstruction instruction = createRangeConversion(next, check.index);
+      ranges[instruction] = newIndexRange;
+      return newIndexRange;
+    }
+
+    return indexRange;
   }
 
   Range visitLess(HLess less) {

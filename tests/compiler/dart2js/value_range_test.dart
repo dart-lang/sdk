@@ -8,6 +8,8 @@ const int REMOVED = 0;
 const int ABOVE_ZERO = 1;
 const int BELOW_LENGTH = 2;
 const int KEPT = 3;
+const int ONE_CHECK = 4;
+const int ONE_ZERO_CHECK = 5;
 
 final List TESTS = [
 """
@@ -110,7 +112,23 @@ main(value) {
   return a[1];
 }
 """,
-ABOVE_ZERO
+ABOVE_ZERO,
+
+"""
+main(value, call) {
+  var a = new List();
+  return a[value] + call() + a[value];
+}
+""",
+ONE_ZERO_CHECK,
+
+"""
+main(value) {
+  var a = new List();
+  return a[1] + a[0];
+}
+""",
+ONE_CHECK
 ];
 
 expect(String code, int kind) {
@@ -121,7 +139,8 @@ expect(String code, int kind) {
       break;
 
     case ABOVE_ZERO:
-      Expect.isTrue(!generated.contains('> 0'));
+      Expect.isTrue(!generated.contains('< 0'));
+      Expect.isTrue(generated.contains('ioore'));
       Expect.isTrue(generated.contains('ioore'));
       break;
 
@@ -132,6 +151,18 @@ expect(String code, int kind) {
 
     case KEPT:
       Expect.isTrue(generated.contains('ioore'));
+      break;
+
+    case ONE_CHECK:
+      Regexp regexp = const RegExp('ioore');
+      Iterator matches = regexp.allMatches(generated).iterator();
+      checkNumberOfMatches(matches, 1);
+      break;
+
+    case ONE_ZERO_CHECK:
+      Regexp regexp = const RegExp('< 0');
+      Iterator matches = regexp.allMatches(generated).iterator();
+      checkNumberOfMatches(matches, 1);
       break;
   }
 }
