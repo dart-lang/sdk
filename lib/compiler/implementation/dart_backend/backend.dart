@@ -207,6 +207,14 @@ class DartBackend extends Backend {
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) { }
 
+  bool isUserLibrary(LibraryElement lib) {
+    final INTERNAL_HELPERS = [
+      compiler.jsHelperLibrary,
+      compiler.interceptorsLibrary,
+    ];
+    return INTERNAL_HELPERS.indexOf(lib) == -1 && !lib.isPlatformLibrary;
+  }
+
   void assembleProgram() {
     // Conservatively traverse all platform libraries and collect member names.
     // TODO(antonm): ideally we should only collect names of used members,
@@ -249,14 +257,9 @@ class DartBackend extends Backend {
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
      */
-    final LIBS_TO_IGNORE = [
-      compiler.jsHelperLibrary,
-      compiler.interceptorsLibrary,
-    ];
     bool shouldOutput(Element element) =>
       element.kind !== ElementKind.VOID &&
-      LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
-      !element.getLibrary().isPlatformLibrary &&
+      isUserLibrary(element.getLibrary()) &&
       element is !SynthesizedConstructorElement &&
       element is !AbstractFieldElement;
 
@@ -391,6 +394,25 @@ class DartBackend extends Backend {
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     compiler.assembledCode = unparser.result;
+
+    // Output verbose info about size ratio of resulting bundle to all
+    // referenced non-platform sources.
+    logResultBundleSizeInfo(topLevelElements);
+  }
+
+  void logResultBundleSizeInfo(Set<Element> topLevelElements) {
+    Collection<LibraryElement> referencedLibraries =
+        compiler.libraries.getValues().filter(isUserLibrary);
+    // Sum total size of scripts in each referenced library.
+    int nonPlatformSize = 0;
+    for (LibraryElement lib in referencedLibraries) {
+      for (CompilationUnitElement compilationUnit in lib.compilationUnits) {
+        nonPlatformSize += compilationUnit.script.text.length;
+      }
+    }
+    int percentage = compiler.assembledCode.length * 100 ~/ nonPlatformSize;
+    log('Total used non-platform files size: ${nonPlatformSize} bytes, '
+        'bundle size: ${compiler.assembledCode.length} bytes (${percentage}%)');
   }
 
   log(String message) => compiler.log('[DartBackend] $message');
