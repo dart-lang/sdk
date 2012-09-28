@@ -108,10 +108,15 @@ xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
 
 [ $runtime == safari ]
-canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
-node_test: Fail
-svgelement_test: Fail
-svgelement2_test: Fail
+performance_api_test: Fail # window.performance.timing not in Safari 6.
+indexeddb_1_test: Fail # indexedDB not in Safari 6.
+indexeddb_2_test: Fail # indexedDB not in Safari 6.
+indexeddb_3_test: Fail # indexedDB not in Safari 6.
+indexeddb_4_test: Fail # indexedDB not in Safari 6.
+indexeddb_1_test: Fail # indexedDB not in Safari 6.
+fileapi_test: Fail # requestFileSystem not supported in Safari 6.
+datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
+contentelement_test: Fail # Safari 6 does not support content element.
 
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
@@ -147,10 +152,6 @@ xhr_test: Fail
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ $runtime == safari ]
-# TODO(vsm): Triage DOM failures.
-*: Skip
-
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $compiler == dartc ]
@@ -177,7 +178,7 @@ transferables_test: Skip # until isInstance works in dart2js
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 
