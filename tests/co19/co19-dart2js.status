@@ -5,6 +5,8 @@
 [ $compiler == dart2js ]
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
+Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # http://dartbug.com/5429
+Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # http://dartbug.com/5429
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
@@ -64,6 +66,8 @@ Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this 
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
@@ -78,10 +82,13 @@ Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail # TODO(ahe): Pleas
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # TODO(ahe): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.

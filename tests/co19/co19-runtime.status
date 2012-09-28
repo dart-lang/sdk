@@ -80,6 +80,8 @@ Language/09_Generics/09_Generics_A05_t02: Fail # TODO(vm-team): Please triage th
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/02_Null_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(vm-team): Please triage this failure.
@@ -218,6 +220,7 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail # co19 issue 
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
+Language/10_Expressions/10_Instance_Creation/2_New_A03_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/13_Libraries_and_Scripts/3_Includes_A03_t02: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error. More importantly, interface factory clauses are obsolete.
 
 
