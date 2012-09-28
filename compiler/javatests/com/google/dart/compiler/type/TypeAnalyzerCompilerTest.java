@@ -5251,6 +5251,56 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 1));
   }
 
+  public void test_typeVariableScope_staticField() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  static T v;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 10, 1));
+  }
+
+  public void test_typeVariableScope_staticMethod() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  static foo() {",
+        "    T v = null;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 5, 1));
+  }
+
+  public void test_typeVariableScope_instanceField() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  final List<T> values = new List<T>();",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_unresolvedMethod_inFactoryConstructor() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  factory A() {",
+        "    foo();",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 4, 5, 3));
+  }
+
   private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
     final int index = testSource.indexOf(pattern);
     assertTrue(index != -1);

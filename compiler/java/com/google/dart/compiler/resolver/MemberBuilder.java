@@ -82,16 +82,6 @@ public class MemberBuilder {
     }
 
     @Override
-    boolean isStaticContext() {
-      return isStatic;
-    }
-
-    @Override
-    boolean isFactoryContext() {
-      return isFactory;
-    }
-
-    @Override
     protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
     }
