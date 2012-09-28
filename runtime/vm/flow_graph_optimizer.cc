@@ -626,6 +626,116 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   return true;
 }
 
+
+void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
+  ASSERT(call->HasICData());
+  const ICData& ic_data = *call->ic_data();
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  ic_data.GetCheckAt(0, &class_ids, &target);
+  ASSERT(class_ids.length() == 1);
+  // Inline implicit instance getter.
+  const String& field_name =
+      String::Handle(Field::NameFromGetter(call->function_name()));
+  const Field& field = Field::Handle(GetField(class_ids[0], field_name));
+  ASSERT(!field.IsNull());
+
+  if (InstanceCallNeedsClassCheck(call)) {
+    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+  }
+  // Detach environment from the original instruction because it can't
+  // deoptimize.
+  call->set_env(NULL);
+  LoadFieldInstr* load = new LoadFieldInstr(
+      call->ArgumentAt(0)->value(),
+      field.Offset(),
+      AbstractType::ZoneHandle(field.type()));
+  call->ReplaceWith(load, current_iterator());
+  RemovePushArguments(call);
+}
+
+
+void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
+                                                 intptr_t length_offset,
+                                                 bool is_immutable) {
+  // Check receiver class.
+  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+  LoadFieldInstr* load = new LoadFieldInstr(
+      call->ArgumentAt(0)->value(),
+      length_offset,
+      Type::ZoneHandle(Type::SmiType()),
+      is_immutable);
+  load->set_result_cid(kSmiCid);
+  call->ReplaceWith(load, current_iterator());
+  RemovePushArguments(call);
+}
+
+
+void FlowGraphOptimizer::InlineGArrayCapacityGetter(InstanceCallInstr* call) {
+  // Check receiver class.
+  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+  // TODO(srdjan): type of load should be GrowableObjectArrayType.
+  LoadFieldInstr* data_load = new LoadFieldInstr(
+      call->ArgumentAt(0)->value(),
+      Array::data_offset(),
+      Type::ZoneHandle(Type::DynamicType()));
+  data_load->set_result_cid(kArrayCid);
+  InsertBefore(call, data_load, NULL, Definition::kValue);
+
+  LoadFieldInstr* length_load = new LoadFieldInstr(
+      new Value(data_load),
+      Array::length_offset(),
+      Type::ZoneHandle(Type::SmiType()));
+  length_load->set_result_cid(kSmiCid);
+
+  call->ReplaceWith(length_load, current_iterator());
+  RemovePushArguments(call);
+}
+
+
+static LoadFieldInstr* BuildLoadStringLength(Value* str) {
+  const bool is_immutable = true;  // String length is immutable.
+  LoadFieldInstr* load = new LoadFieldInstr(
+      str,
+      String::length_offset(),
+      Type::ZoneHandle(Type::SmiType()),
+      is_immutable);
+  load->set_result_cid(kSmiCid);
+  return load;
+}
+
+
+void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
+  // Check receiver class.
+  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+  LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0)->value());
+  call->ReplaceWith(load, current_iterator());
+  RemovePushArguments(call);
+}
+
+
+void FlowGraphOptimizer::InlineStringIsEmptyTester(InstanceCallInstr* call) {
+  // Check receiver class.
+  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+
+  LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0)->value());
+  InsertBefore(call, load, NULL, Definition::kValue);
+
+  ConstantInstr* zero = new ConstantInstr(Smi::Handle(Smi::New(0)));
+  InsertBefore(call, zero, NULL, Definition::kValue);
+
+  StrictCompareInstr* compare =
+      new StrictCompareInstr(Token::kEQ_STRICT,
+                             new Value(load),
+                             new Value(zero));
+  call->ReplaceWith(compare, current_iterator());
+  RemovePushArguments(call);
+}
+
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -634,34 +744,13 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // No type feedback collected.
     return false;
   }
-  Function& target = Function::Handle();
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
-  ASSERT(class_ids.length() == 1);
-
+  Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (target.kind() == RawFunction::kImplicitGetter) {
     if (!ic_data.HasOneTarget()) {
       // TODO(srdjan): Implement for mutiple targets.
       return false;
     }
-    // Inline implicit instance getter.
-    const String& field_name =
-        String::Handle(Field::NameFromGetter(call->function_name()));
-    const Field& field = Field::Handle(GetField(class_ids[0], field_name));
-    ASSERT(!field.IsNull());
-
-    if (InstanceCallNeedsClassCheck(call)) {
-      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-    }
-    // Detach environment from the original instruction because it can't
-    // deoptimize.
-    call->set_env(NULL);
-    LoadFieldInstr* load = new LoadFieldInstr(
-        call->ArgumentAt(0)->value(),
-        field.Offset(),
-        AbstractType::ZoneHandle(field.type()));
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
+    InlineImplicitInstanceGetter(call);
     return true;
   }
 
@@ -677,54 +766,24 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       // TODO(srdjan): Implement for mutiple targets.
       return false;
     }
-    intptr_t length_offset = -1;
-    bool is_immutable = false;
     switch (recognized_kind) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
-        length_offset = Array::length_offset();
-        is_immutable = true;
+        InlineArrayLengthGetter(call, Array::length_offset(), true);
         break;
       case MethodRecognizer::kGrowableArrayLength:
-        length_offset = GrowableObjectArray::length_offset();
+        InlineArrayLengthGetter(call,
+                                GrowableObjectArray::length_offset(),
+                                false);
         break;
       default:
         UNREACHABLE();
     }
-    // Check receiver class.
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-
-    LoadFieldInstr* load = new LoadFieldInstr(
-        call->ArgumentAt(0)->value(),
-        length_offset,
-        Type::ZoneHandle(Type::SmiType()),
-        is_immutable);
-    load->set_result_cid(kSmiCid);
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
     return true;
   }
 
   if (recognized_kind == MethodRecognizer::kGrowableArrayCapacity) {
-    // Check receiver class.
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-
-    // TODO(srdjan): type of load should be GrowableObjectArrayType.
-    LoadFieldInstr* data_load = new LoadFieldInstr(
-        call->ArgumentAt(0)->value(),
-        Array::data_offset(),
-        Type::ZoneHandle(Type::DynamicType()));
-    data_load->set_result_cid(kArrayCid);
-    InsertBefore(call, data_load, NULL, Definition::kValue);
-
-    LoadFieldInstr* length_load = new LoadFieldInstr(
-        new Value(data_load),
-        Array::length_offset(),
-        Type::ZoneHandle(Type::SmiType()));
-    length_load->set_result_cid(kSmiCid);
-
-    call->ReplaceWith(length_load, current_iterator());
-    RemovePushArguments(call);
+    InlineGArrayCapacityGetter(call);
     return true;
   }
 
@@ -733,20 +792,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       // Target is not only StringBase_get_length.
       return false;
     }
-    // Check receiver class.
-    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-
-    const bool is_immutable = true;  // String length is immutable.
-    LoadFieldInstr* load = new LoadFieldInstr(
-        call->ArgumentAt(0)->value(),
-        String::length_offset(),
-        Type::ZoneHandle(Type::SmiType()),
-        is_immutable);
-    load->set_result_cid(kSmiCid);
-    call->ReplaceWith(load, current_iterator());
-    RemovePushArguments(call);
+    InlineStringLengthGetter(call);
     return true;
   }
+
   return false;
 }
 
@@ -773,6 +822,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     RemovePushArguments(call);
     return true;
   }
+
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
     SmiToDoubleInstr* s2d_instr = new SmiToDoubleInstr(call);
@@ -781,6 +831,16 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     // as a call.
     return true;
   }
+
+  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
+    if (!ic_data.HasOneTarget()) {
+      // Target is not only StringBase_get_length.
+      return false;
+    }
+    InlineStringIsEmptyTester(call);
+    return true;
+  }
+
   return false;
 }
 
