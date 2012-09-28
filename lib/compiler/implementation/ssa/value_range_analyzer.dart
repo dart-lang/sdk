@@ -203,6 +203,9 @@ class OperationValue extends Value {
   Value operator &(Value other) => const UnknownValue();
 
   Value operator -(Value other) {
+    if (operation is! SubtractOperation && operation is! AddOperation) {
+      return const UnknownValue();
+    }
     // We try to create a simple [Value] out of this operation. So we
     // first try to substract [other] to [left]. If the result is simple
     // enough (not unknown and not an operation), we return the result
@@ -213,15 +216,18 @@ class OperationValue extends Value {
     // OperationValue(LengthValue(i1), IntValue(42), '-') - LengthValue(i1)
     //
     // Will return IntValue(-42)
-    //
-    // We're using the fact that (a - b) - c == a - (b - c) == (a - c) - b.
     Value value = left - other;
     if (value != const UnknownValue() && value is! OperationValue) {
       return operation.apply(value, right);
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
-    value = right - other;
+    if (operation is SubtractOperation) {
+      value = right + other;
+    } else {
+      assert(operation is AddOperation);
+      value = right - other;
+    }
     if (value != const UnknownValue() && value is! OperationValue) {
       return operation.apply(left, value);
     }

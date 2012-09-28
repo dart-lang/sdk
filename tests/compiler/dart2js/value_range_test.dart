@@ -102,6 +102,14 @@ main(value) {
   return a[1024 & value];
 }
 """,
+ABOVE_ZERO,
+
+"""
+main(value) {
+  var a = new List();
+  return a[1];
+}
+""",
 ABOVE_ZERO
 ];
 
@@ -114,10 +122,12 @@ expect(String code, int kind) {
 
     case ABOVE_ZERO:
       Expect.isTrue(!generated.contains('> 0'));
+      Expect.isTrue(generated.contains('ioore'));
       break;
 
     case BELOW_LENGTH:
       Expect.isTrue(!generated.contains('||'));
+      Expect.isTrue(generated.contains('ioore'));
       break;
 
     case KEPT:
