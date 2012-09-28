@@ -44,6 +44,20 @@ public class DartMethodInvocation extends DartInvocation {
     return target;
   }
 
+  public DartExpression getRealTarget() {
+    if (isCascade) {
+      DartNode ancestor = getParent();
+      while (!(ancestor instanceof DartCascadeExpression)) {
+        if (ancestor == null) {
+          return target;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((DartCascadeExpression) ancestor).getTarget();
+    }
+    return target;
+  }
+
   public String getFunctionNameString() {
     return functionName.getName();
   }

@@ -1324,7 +1324,7 @@ public class Resolver {
 
     @Override
     public Element visitPropertyAccess(DartPropertyAccess x) {
-      Element qualifier = resolveQualifier(x.getQualifier());
+      Element qualifier = resolveQualifier(x.getRealTarget());
       Element element = null;
       switch (ElementKind.of(qualifier)) {
         case CLASS:
@@ -1435,11 +1435,11 @@ public class Resolver {
         case NONE: {
           // TODO(zundel): This is a bit awkward.  Maybe it would be better to have an
           // ElementKind of THIS just like we have for SUPER?
-          if (x.getQualifier() instanceof DartThisExpression) {
+          if (x.getRealTarget() instanceof DartThisExpression) {
             Element foundElement = Elements.findElement(currentHolder, x.getPropertyName());
             if (foundElement != null && !foundElement.getModifiers().isStatic()) {
               if (ElementKind.of(foundElement) == ElementKind.TYPE_VARIABLE) {
-                onError(x.getQualifier(), ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+                onError(x.getRealTarget(), ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
                 break;
               }
               element = foundElement;
@@ -1487,7 +1487,7 @@ public class Resolver {
     @Override
     public Element visitMethodInvocation(DartMethodInvocation x) {
       DartIdentifier name = x.getFunctionName();
-      Element target = resolveQualifier(x.getTarget());
+      Element target = resolveQualifier(x.getRealTarget());
       Element element = null;
 
       switch (ElementKind.of(target)) {
@@ -1587,7 +1587,9 @@ public class Resolver {
 
     @Override
     public Element visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
-      x.getTarget().accept(this);
+      if (!x.isCascade()) {
+        x.getTarget().accept(this);
+      }
       visit(x.getArguments());
       return null;
     }

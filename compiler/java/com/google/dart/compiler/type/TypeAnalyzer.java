@@ -436,7 +436,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (lhsNode instanceof DartPropertyAccess) {
             DartPropertyAccess lhsAccess = (DartPropertyAccess) lhsNode;
             if (lhsAccess.isCascade()) {
-              return lhsAccess.getQualifier().getType();
+              return lhsAccess.getRealTarget().getType();
             }
           }
           // use type or "rhs"

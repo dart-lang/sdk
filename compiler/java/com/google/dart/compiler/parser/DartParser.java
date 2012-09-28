@@ -23,6 +23,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartBreakStatement;
+import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
@@ -2299,11 +2300,12 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression result = parseConditionalExpression();
     Token token = peek(0);
     if (token == Token.CASCADE) {
+      List<DartExpression> cascadeSections = new ArrayList<DartExpression>();
       while (token == Token.CASCADE) {
-        result = parseCascadeSection(result);
+        cascadeSections.add(parseCascadeSection());
         token = peek(0);
       }
-      done(result);
+      result = done(new DartCascadeExpression(result, cascadeSections));
     } else if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
@@ -2364,18 +2366,17 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    *
-   * @param target the target of the method invocation
    * @return the expression representing the cascaded method invocation
    */
-  private DartExpression parseCascadeSection(DartExpression target) {
+  private DartExpression parseCascadeSection() {
     expect(Token.CASCADE);
-    DartExpression result = target;
+    DartExpression result = null;
     DartIdentifier functionName = null;
     if (peek(0) == Token.IDENTIFIER) {
       functionName = parseIdentifier();
     } else if (peek(0) == Token.LBRACK) {
       consume(Token.LBRACK);
-      result = doneWithoutConsuming(new DartArrayAccess(result, parseExpression()));
+      result = doneWithoutConsuming(new DartArrayAccess(result, true, parseExpression()));
       expect(Token.RBRACK);
     } else {
       reportUnexpectedToken(position(), null, next());
@@ -2384,14 +2385,14 @@ public class DartParser extends CompletionHooksParserBase {
     if (peek(0) == Token.LPAREN) {
       while (peek(0) == Token.LPAREN) {
         if (functionName != null) {
-          result = doneWithoutConsuming(new DartMethodInvocation(result, true, functionName, parseArguments()));
+          result = doneWithoutConsuming(new DartMethodInvocation(result, result == null, functionName, parseArguments()));
           functionName = null;
         } else {
-          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, parseArguments()));
+          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, result == null, parseArguments()));
         }
       }
     } else if (functionName != null) {
-      result = doneWithoutConsuming(new DartPropertyAccess(result, true, functionName));
+      result = doneWithoutConsuming(new DartPropertyAccess(result, result == null, functionName));
     }
     boolean progress = true;
     while (progress) {

@@ -87,6 +87,9 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
       }
     }
     // Skip rhs of property accesses, so that all identifiers we visit will be unqualified.
+    if (node.isCascade()) {
+      return null;
+    }
     return node.getQualifier().accept(this);
   }
 

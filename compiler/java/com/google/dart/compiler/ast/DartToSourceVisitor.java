@@ -684,10 +684,18 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitArrayAccess(DartArrayAccess x) {
+  public Void visitCascadeExpression(DartCascadeExpression x) {
     accept(x.getTarget());
+    acceptList(x.getCascadeSections());
+    return null;
+  }
+
+  @Override
+  public Void visitArrayAccess(DartArrayAccess x) {
     if (x.isCascade()) {
       p("..");
+    } else {
+      accept(x.getTarget());
     }
     p("[");
     accept(x.getKey());
@@ -710,17 +718,19 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
-    accept(x.getTarget());
+    if (!x.isCascade()) {
+      accept(x.getTarget());
+    }
     pArgs(x.getArguments());
     return null;
   }
 
   @Override
   public Void visitMethodInvocation(DartMethodInvocation x) {
-    accept(x.getTarget());
     if (x.isCascade()) {
       p("..");
     } else {
+      accept(x.getTarget());
       p(".");
     }
     accept(x.getFunctionName());
