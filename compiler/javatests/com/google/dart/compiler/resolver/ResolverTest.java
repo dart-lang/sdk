@@ -1130,7 +1130,33 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
-   }
+  }
+
+  public void test_cascade_complex() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class Spline {",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..a()..b().g();",
+        "  }",
+        "}",
+        "class Line {",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}"
+    ));
+  }
 
   /**
    * When {@link SupertypeResolver} can not find "UnknownA", it uses {@link DynamicType}, which
