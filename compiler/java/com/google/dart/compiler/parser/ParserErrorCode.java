@@ -43,6 +43,7 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (unreachable code?)
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
   DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
+  ESCAPED_NEWLINE("Escaped new-line characters are not allowed in string literals"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   // TODO(zundel): error message needs JUnit test (unreachable code?)
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),

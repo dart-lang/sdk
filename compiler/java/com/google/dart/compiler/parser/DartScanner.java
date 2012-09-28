@@ -4,8 +4,10 @@
 
 package com.google.dart.compiler.parser;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
@@ -878,11 +880,7 @@ public class DartScanner {
         advance();
         switch (c) {
           case '\n':
-            if (!multiLine) {
-              // TODO(zundel): better way to report error?
-              internalState.resetModes();
-              return Token.ILLEGAL;
-            }
+            reportError(position() - 1, ParserErrorCode.ESCAPED_NEWLINE);
             c = '\n';
             break;
           case 'b':
@@ -1215,13 +1213,8 @@ public class DartScanner {
         // Raw strings.
         advance();
         if (is('\'') || is('"')) {
-//          int offset = position() - 1;
           Token token = scanString(true);
-//          if (listener != null) {
-//            listener.onError(new DartCompilationError(
-//                new SourceInfo(sourceReference, offset, position() - offset),
-//                ParserErrorCode.DEPRECATED_RAW_STRING));
-//          }
+//          reportError(position() - 1, ParserErrorCode.DEPRECATED_RAW_STRING);
           return token;
         } else {
           return Token.AT;
@@ -1252,6 +1245,14 @@ public class DartScanner {
         if (isEos())
           return Token.EOS;
         return select(Token.ILLEGAL);
+    }
+  }
+
+  private void reportError(int offset, ParserErrorCode errorCode) {
+    if (listener != null) {
+      listener.onError(new DartCompilationError(
+        new SourceInfo(sourceReference, offset, position() - offset),
+        errorCode));
     }
   }
 

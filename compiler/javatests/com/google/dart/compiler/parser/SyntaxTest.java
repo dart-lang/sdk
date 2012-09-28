@@ -939,6 +939,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  var foo = \"not really multiline\\\n",
             "\";",
             "}"),
+            ParserErrorCode.ESCAPED_NEWLINE,  2, 35,
             ParserErrorCode.UNEXPECTED_TOKEN,  2, 13,
             ParserErrorCode.EXPECTED_TOKEN,  4, 1);
   }
