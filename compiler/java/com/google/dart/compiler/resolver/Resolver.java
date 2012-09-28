@@ -1479,6 +1479,9 @@ public class Resolver {
     }
 
     private Element resolveQualifier(DartNode qualifier) {
+      if (qualifier == null) {
+        return null;
+      }
       return (qualifier instanceof DartIdentifier)
           ? resolveIdentifier((DartIdentifier) qualifier, true)
           : qualifier.accept(this);
