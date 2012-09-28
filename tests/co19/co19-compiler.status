@@ -164,7 +164,6 @@ Language/10_Expressions/05_Strings_A02_t47: Fail, OK # no longer an error
 Language/10_Expressions/05_Strings_A02_t49: Fail, OK # no longer an error
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
-Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 5299
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail, OK # maps with type arguments are allowed
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail, OK # maps with type arguments are allowed
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail, OK # maps with type arguments are allowed

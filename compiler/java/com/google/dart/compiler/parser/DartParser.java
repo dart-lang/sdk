@@ -4222,7 +4222,14 @@ public class DartParser extends CompletionHooksParserBase {
         if (token == Token.STRING || token == Token.STRING_SEGMENT || token == Token.STRING_EMBED_EXP_START) {
           int offset = skipStringLiteral(1);
           if (peek(offset) == Token.COLON) {
-            return parseExpressionStatement();
+            DartStatement statement = parseExpressionStatement();
+            if (statement instanceof DartExprStmt
+                && ((DartExprStmt) statement).getExpression() instanceof DartMapLiteral) {
+              reportError(
+                  ((DartExprStmt) statement).getExpression(),
+                  ParserErrorCode.NON_CONST_MAP_LITERAL_STATEMENT);
+            }
+            return statement;
           }
         }
         return parseBlock();
