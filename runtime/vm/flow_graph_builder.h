@@ -35,7 +35,6 @@ class FlowGraphBuilder: public ValueObject {
   void Bailout(const char* reason);
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
-  void SetInitialBlockId(intptr_t id) { last_used_block_id_ = id; }
 
   void set_context_level(intptr_t value) { context_level_ = value; }
   intptr_t context_level() const { return context_level_; }

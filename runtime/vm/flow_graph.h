@@ -40,9 +40,7 @@ class BlockIterator : public ValueObject {
 // Class to incapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
-  FlowGraph(const FlowGraphBuilder& builder,
-            GraphEntryInstr* graph_entry,
-            intptr_t max_block_id);
+  FlowGraph(const FlowGraphBuilder& builder, GraphEntryInstr* graph_entry);
 
   // Function properties.
   const ParsedFunction& parsed_function() const {
@@ -89,10 +87,6 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
-  intptr_t max_block_id() const {
-    return max_block_id_;
-  }
-
   GraphEntryInstr* graph_entry() const {
     return graph_entry_;
   }
@@ -101,8 +95,6 @@ class FlowGraph : public ZoneAllocated {
   void set_exits(ZoneGrowableArray<ReturnInstr*>* exits) { exits_ = exits; }
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
-
-  intptr_t InstructionCount() const;
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number);
@@ -156,7 +148,6 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BitVector*> assigned_vars_;
 
   intptr_t current_ssa_temp_index_;
-  intptr_t max_block_id_;
 
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
