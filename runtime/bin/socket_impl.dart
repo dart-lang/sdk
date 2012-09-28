@@ -391,6 +391,10 @@ class _Socket extends _SocketBase implements Socket {
   _readList(List<int> buffer, int offset, int bytes) native "Socket_ReadList";
 
   int writeList(List<int> buffer, int offset, int bytes) {
+    if (buffer is! List || offset is! int || bytes is! int) {
+      throw new ArgumentError(
+          "Invalid arguments to writeList on Socket");
+    }
     if (!_closed) {
       if (bytes == 0) {
         return 0;
