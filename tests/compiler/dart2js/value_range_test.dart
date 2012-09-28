@@ -154,13 +154,13 @@ expect(String code, int kind) {
       break;
 
     case ONE_CHECK:
-      Regexp regexp = const RegExp('ioore');
+      RegExp regexp = const RegExp('ioore');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;
 
     case ONE_ZERO_CHECK:
-      Regexp regexp = const RegExp('< 0');
+      RegExp regexp = const RegExp('< 0');
       Iterator matches = regexp.allMatches(generated).iterator();
       checkNumberOfMatches(matches, 1);
       break;
