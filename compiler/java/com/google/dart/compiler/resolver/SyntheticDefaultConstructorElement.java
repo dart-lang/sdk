@@ -86,6 +86,11 @@ public class SyntheticDefaultConstructorElement extends AbstractNodeElement
   }
 
   @Override
+  public ConstructorElement getRedirectingFactoryConstructor() {
+    return null;
+  }
+
+  @Override
   public void setDefaultConstructor(ConstructorElement defaultConstructor) {
     this.defaultConstructor = defaultConstructor;
   }

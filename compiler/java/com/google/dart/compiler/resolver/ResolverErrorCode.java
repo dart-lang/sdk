@@ -185,6 +185,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Target of redirecting factory constructor is not a type"),
   REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST(
       "Target of constant redirecting factory constructor also should be constant"),
+  REDIRECTION_CONSTRUCTOR_CYCLE("Cycle in redirecting constructors"),
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   STATIC_METHOD_MUST_HAVE_BODY("Static method must have a body"),

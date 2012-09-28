@@ -234,9 +234,39 @@ public class Resolver {
       for (DartNode node : unit.getTopLevelNodes()) {
         node.accept(this);
       }
+      checkRedirectingFactoryConstructorsCycle(unit);
       return null;
     }
 
+    private void checkRedirectingFactoryConstructorsCycle(DartUnit unit) {
+      unit.accept(new ASTVisitor<Void>() {
+        @Override
+        public Void visitMethodDefinition(DartMethodDefinition node) {
+          MethodNodeElement element = node.getElement();
+          if (ElementKind.of(element) == ElementKind.CONSTRUCTOR) {
+            ConstructorElement constructor = (ConstructorElement) element;
+            if (hasRedirectingFactoryConstructorCycle(constructor)) {
+              onError(constructor.getNameLocation(),
+                  ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE);
+            }
+          }
+          return super.visitMethodDefinition(node);
+        }
+      });
+    }
+    
+    private boolean hasRedirectingFactoryConstructorCycle(ConstructorElement element) {
+      Set<ConstructorElement> constructors = Sets.newHashSet();
+      while (element != null) {
+        if (constructors.contains(element)) {
+          return true;
+        }
+        constructors.add(element);
+        element = element.getRedirectingFactoryConstructor();
+      }
+      return false;
+    }
+    
     @Override
     public Element visitFunctionTypeAlias(DartFunctionTypeAlias alias) {
       alias.getMetadata().accept(this);
@@ -699,12 +729,14 @@ public class Resolver {
               TypeErrorCode.NO_SUCH_TYPE, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           switch (TypeKind.of(rcType)) {
             case INTERFACE:
+              ConstructorElement targetConstructor = null;
               Element element = recordType(rcTypeName, rcType);
               DartIdentifier rcName = node.getRedirectedConstructorName();
               if (rcName != null) {
                 element = ((ClassElement) element).lookupConstructor(rcName.getName());
                 switch (ElementKind.of(element)) {
                   case CONSTRUCTOR:
+                    targetConstructor = (ConstructorElement) element;
                     recordElement(rcName, element);
                     if (member.getModifiers().isConstant() && !element.getModifiers().isConstant()) {
                       onError(rcName,
@@ -712,7 +744,11 @@ public class Resolver {
                     }
                     break;
                 }
+              } else {
+                targetConstructor = ((ClassElement) element).lookupConstructor(element.getName());
               }
+              Elements.setRedirectingFactoryConstructor(((ConstructorElement) member),
+                  targetConstructor);
               break;
             default:
               onError(rcTypeName, ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_TYPE);

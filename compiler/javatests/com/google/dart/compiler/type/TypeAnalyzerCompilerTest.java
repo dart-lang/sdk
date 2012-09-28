@@ -4794,6 +4794,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
   
+  public void test_redirectingFactoryConstructor_cycle() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  factory A.nameA() = C.nameC;",
+        "}",
+        "class B {",
+        "  factory B.nameB() = A.nameA;",
+        "}",
+        "class C {",
+        "  factory C.nameC() = B.nameB;",
+        "}",
+        ""));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 3, 11, 7),
+        errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 6, 11, 7),
+        errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 9, 11, 7));
+  }
+  
   public void test_redirectingFactoryConstructor_notConst_fromConst() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
