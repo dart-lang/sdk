@@ -135,14 +135,16 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
     ASSERT(use->use_index() == i);
-    ASSERT(1 == MembershipCount(use, use->definition()->input_use_list()));
+    // TODO(zerny): Make this a slow assert.
+    // ASSERT(1 == MembershipCount(use, use->definition()->input_use_list()));
   }
   if (instr->env() != NULL) {
     intptr_t use_index = 0;
     for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
       Value* use = it.CurrentValue();
       ASSERT(use->use_index() == use_index++);
-      ASSERT(1 == MembershipCount(use, use->definition()->env_use_list()));
+      // TODO(zerny): Make this a slow assert.
+      // ASSERT(1 == MembershipCount(use, use->definition()->env_use_list()));
     }
   }
   Definition* defn = instr->AsDefinition();
@@ -205,8 +207,9 @@ static void RecordInputUses(Instruction* instr) {
     ASSERT(use->instruction() == NULL);
     ASSERT(use->use_index() == -1);
     ASSERT(use->next_use() == NULL);
-    DEBUG_ASSERT(0 == MembershipCount(use,
-                                      use->definition()->input_use_list()));
+    // TODO(zerny): Make this a slow assert.
+    // DEBUG_ASSERT(0 == MembershipCount(use,
+    //                                   use->definition()->input_use_list()));
     use->set_instruction(instr);
     use->set_use_index(i);
     use->AddToInputUseList();
@@ -223,7 +226,9 @@ static void RecordEnvUses(Instruction* instr) {
     ASSERT(use->instruction() == NULL);
     ASSERT(use->use_index() == -1);
     ASSERT(use->next_use() == NULL);
-    DEBUG_ASSERT(0 == MembershipCount(use, use->definition()->env_use_list()));
+    // TODO(zerny): Make this a slow assert.
+    // DEBUG_ASSERT(0 ==
+    //              MembershipCount(use, use->definition()->env_use_list()));
     use->set_instruction(instr);
     use->set_use_index(use_index++);
     use->AddToEnvUseList();
