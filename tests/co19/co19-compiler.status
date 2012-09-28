@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
+
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
@@ -20,6 +22,7 @@ Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please
 Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -28,7 +31,9 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
@@ -62,7 +67,6 @@ Language/06_Functions/3_Type_of_a_Function_A01_t01: pass # http://dartbug.com/51
 Language/06_Functions/4_External_Functions_A01_t01: pass # http://dartbug.com/5179
 Language/07_Classes/10_Superinterfaces_A07_t01: pass # http://dartbug.com/5179
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/01_Constants_A15_t38: pass # http://dartbug.com/5179
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: pass # http://dartbug.com/5179
@@ -88,28 +92,9 @@ Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: pass # 
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: pass # http://dartbug.com/5179
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/15_Getter_Invocation_A06_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/15_Getter_Invocation_A07_t04: pass # http://dartbug.com/5179
-Language/10_Expressions/15_Getter_Invocation_A07_t05: pass # http://dartbug.com/5179
-Language/10_Expressions/16_Assignment_A01_t05: pass # http://dartbug.com/5179
-Language/10_Expressions/16_Assignment_A04_t03: pass # http://dartbug.com/5179
-Language/10_Expressions/16_Assignment_A04_t04: pass # http://dartbug.com/5179
-Language/10_Expressions/16_Assignment_A08_t03: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A04_t05: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A04_t07: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A05_t06: pass # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t17: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t18: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t19: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t20: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t33: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t34: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t35: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t36: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t37: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t38: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t39: fail # http://dartbug.com/5179
-Language/10_Expressions/28_Identifier_Reference_A06_t40: fail # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A07_t04: fail # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A07_t09: fail # http://dartbug.com/5179
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http://dartbug.com/5179
@@ -128,20 +113,9 @@ Language/07_Classes/6_Constructors_A03_t03: Fail, OK # this should be a warning,
 # co19 issue 217
 Language/07_Classes/07_Classes_A07_t03: Fail, OK
 Language/07_Classes/07_Classes_A07_t06: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK
 
 # co19 issue 218
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, OK
-Language/11_Statements/15_Assert_A05_t02: Fail, OK
-Language/11_Statements/15_Assert_A05_t03: Fail, OK
-Language/11_Statements/15_Assert_A05_t01: Fail, OK
-Language/11_Statements/15_Assert_A05_t04: Fail, OK
-Language/11_Statements/15_Assert_A05_t05: Fail, OK
 
 
 Language/07_Classes/7_Static_Methods_A01_t03: Fail, OK # this should be a warning, not an error
@@ -171,14 +145,14 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # contains syntax 
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error 
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail # Issue 5289
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail, OK # co19 issue 233
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 Language/03_Overview/2_Privacy_A01_t12: Fail, OK # deprecated import directive without parens
-Language/06_Functions/06_Functions_A01_t03: Fail # Issue 5288
+Language/06_Functions/06_Functions_A01_t03: Fail, OK # co19 issue 232
 Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # deprecated use of "default"
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail, OK # should expect error
 Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail, OK # should expect error
@@ -222,22 +196,12 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # Iss
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
-Language/07_Classes/07_Classes_A03_t07: Fail, OK # co19 issue 214
 Language/07_Classes/07_Classes_A09_t02: Fail, OK # co19 issue 215
 Language/07_Classes/07_Classes_A09_t04: Fail, OK # co19 issue 215
-Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail, OK # co19 issue 216
-Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail, OK # co19 issue 169
-Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
-Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/10_Expressions/02_Null_A03_t01: Fail # language change 1031
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # language change 3368
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
 Language/10_Expressions/10_Instance_Creation_A02_t01: Fail # language change 1031
@@ -255,16 +219,6 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
-Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
-Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Issue 3524
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # language change 1031
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # language change 1031
-Language/10_Expressions/16_Assignment_A04_t03: Fail # language change 1031
-Language/10_Expressions/16_Assignment_A04_t04: Fail # language change 1031
-Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
-Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
-Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
-Language/10_Expressions/16_Assignment_A08_t04: Fail # Issue 3524
 Language/10_Expressions/17_Conditional_A01_t10: Fail # language change 3368
 Language/10_Expressions/17_Conditional_A01_t11: Fail # language change 3368
 Language/10_Expressions/17_Conditional_A01_t12: Fail # language change 3368
@@ -362,26 +316,22 @@ Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail, OK
 Language/10_Expressions/19_Bitwise_Expressions_A01_t15: Fail, OK
 Language/10_Expressions/17_Conditional_A01_t13: Fail, OK
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t12: Fail, OK
-Language/10_Expressions/16_Assignment_A04_t04: Fail, OK
 Language/10_Expressions/19_Bitwise_Expressions_A01_t14: Fail, OK
 Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail, OK
 Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail, OK
 Language/10_Expressions/20_Equality_A01_t19: Fail, OK
 Language/10_Expressions/01_Constants_A17_t03: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A06_t02: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail, OK
 Language/10_Expressions/23_Additive_Expressions_A01_t09: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t14: Fail, OK
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail, OK
 Language/10_Expressions/29_Type_Test_A01_t02: Fail, OK
-Language/10_Expressions/16_Assignment_A08_t03: Fail, OK
 Language/10_Expressions/22_Shift_A01_t11: Fail, OK
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail, OK
@@ -393,8 +343,6 @@ Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail, OK
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail, OK
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/16_Assignment_A04_t03: Fail, OK
-Language/10_Expressions/16_Assignment_A01_t05: Fail, OK
 Language/10_Expressions/20_Equality_A01_t20: Fail, OK
 Language/10_Expressions/20_Equality_A01_t21: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t16: Fail, OK
@@ -426,7 +374,6 @@ Language/10_Expressions/17_Conditional_A01_t12: Fail, OK
 Language/10_Expressions/19_Bitwise_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/01_Constants_A16_t03: Fail, OK
 Language/10_Expressions/01_Constants_A16_t01: Fail, OK
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t15: Fail, OK
 Language/10_Expressions/22_Shift_A01_t12: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail, OK

@@ -4,7 +4,7 @@
 
 #import("dart:isolate");
 
-class Fields  {
+class Fields {
   Fields(int i, int j) : fld1 = i, fld2 = j, fld5 = true {}
   int fld1;
   final int fld2;

@@ -55,4 +55,17 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
+  const Instance& instance = Instance::CheckedHandle(arguments->At(0));
+  const Type& type = Type::Handle(instance.GetType());
+  return type.Canonicalize();
+}
+
+
+DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
+  const AbstractType& type = AbstractType::CheckedHandle(arguments->At(0));
+  return type.Name();
+}
+
 }  // namespace dart

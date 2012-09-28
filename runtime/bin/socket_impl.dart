@@ -391,6 +391,10 @@ class _Socket extends _SocketBase implements Socket {
   _readList(List<int> buffer, int offset, int bytes) native "Socket_ReadList";
 
   int writeList(List<int> buffer, int offset, int bytes) {
+    if (buffer is! List || offset is! int || bytes is! int) {
+      throw new ArgumentError(
+          "Invalid arguments to writeList on Socket");
+    }
     if (!_closed) {
       if (bytes == 0) {
         return 0;
@@ -404,28 +408,8 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      // When using the Dart C API to access raw data, using a ByteArray is
-      // currently much faster. This function will make a copy of the
-      // supplied List to a ByteArray if it isn't already.
-      List outBuffer;
-      int outOffset = offset;
-      if (buffer is Uint8List || buffer is ObjectArray) {
-        outBuffer = buffer;
-      } else {
-        outBuffer = new Uint8List(bytes);
-        outOffset = 0;
-        int j = offset;
-        for (int i = 0; i < bytes; i++) {
-          int value = buffer[j];
-          if (value is! int) {
-            throw new FileIOException(
-                "List element is not an integer at index $j");
-          }
-          outBuffer[i] = value;
-          j++;
-        }
-      }
-      var result = _writeList(outBuffer, outOffset, bytes);
+      var fastBuffer = _ensureFastAndSerializableBuffer(buffer, offset, bytes);
+      var result = _writeList(fastBuffer[0], fastBuffer[1], bytes);
       if (result is OSError) {
         _reportError(result, "Write failed");
         // If writing fails we return 0 as the number of bytes and

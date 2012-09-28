@@ -57,7 +57,7 @@ abstract class WebSocketHandler {
 /**
  * Server web socket connection.
  */
-abstract class WebSocketConnection implements Hashable {
+abstract class WebSocketConnection {
   /**
    * Sets the callback to be called when a message have been
    * received. The type on [message] is either [:String:] or
@@ -100,7 +100,7 @@ abstract class WebSocketConnection implements Hashable {
 /**
  * Client web socket connection.
  */
-abstract class WebSocketClientConnection implements Hashable {
+abstract class WebSocketClientConnection {
   /**
    * Creates a new web socket client connection based on a HTTP client
    * connection. The HTTP client connection must be freshly opened.

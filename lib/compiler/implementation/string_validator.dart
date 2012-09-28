@@ -12,7 +12,7 @@
 #import("elements/elements.dart");
 #import("util/characters.dart");
 
-class StringValidator  {
+class StringValidator {
   final DiagnosticListener listener;
 
   StringValidator(this.listener);

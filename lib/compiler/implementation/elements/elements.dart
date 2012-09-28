@@ -107,7 +107,7 @@ class ElementKind {
   toString() => id;
 }
 
-class Element implements Hashable, Spannable {
+class Element implements Spannable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
@@ -1696,8 +1696,7 @@ class Elements {
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('Comparable')))
-        || (element == coreLibrary.find(const SourceString('Hashable')));
+    return (element == coreLibrary.find(const SourceString('Comparable')));
   }
 
   static bool isStringOnlySupertype(Element element, Compiler compiler) {

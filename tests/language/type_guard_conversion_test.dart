@@ -11,7 +11,7 @@ main() {
     b = a[2];
   } while (b != 'r');
 
-  if (a is Hashable) {
+  if (a is Comparable) {
     a = a.concat(a);
   }
   Expect.equals('barbar', a);

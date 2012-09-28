@@ -5,6 +5,7 @@
 #ifndef BIN_ISOLATE_DATA_H_
 #define BIN_ISOLATE_DATA_H_
 
+#include "include/dart_api.h"
 #include "platform/globals.h"
 
 // Forward declaration.
@@ -15,9 +16,15 @@ class EventHandler;
 // when the isolate shuts down.
 class IsolateData {
  public:
-  IsolateData() : event_handler(NULL) {}
+  IsolateData()
+      : event_handler(NULL), object_array_class(NULL),
+        growable_object_array_class(NULL), immutable_array_class(NULL) {
+  }
 
   EventHandler* event_handler;
+  Dart_Handle object_array_class;
+  Dart_Handle growable_object_array_class;
+  Dart_Handle immutable_array_class;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);

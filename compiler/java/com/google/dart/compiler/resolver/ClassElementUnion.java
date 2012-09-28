@@ -105,11 +105,6 @@ public class ClassElementUnion implements ClassElement {
   }
 
   @Override
-  public boolean isAbstract() {
-    return lastElement.isAbstract();
-  }
-
-  @Override
   public ConstructorElement lookupConstructor(String name) {
     throw new UnsupportedOperationException();
   }
@@ -192,5 +187,15 @@ public class ClassElementUnion implements ClassElement {
   @Override
   public List<ConstructorNodeElement> getConstructors() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getOpenBraceOffset() {
+    return -1;
+  }
+  
+  @Override
+  public int getCloseBraceOffset() {
+    return -1;
   }
 }

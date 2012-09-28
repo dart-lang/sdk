@@ -14,7 +14,7 @@
 #import('utils.dart');
 
 /** A parsed semantic version number. */
-class Version implements Comparable, Hashable, VersionConstraint {
+class Version implements Comparable, VersionConstraint {
   /** No released version: i.e. "0.0.0". */
   static Version get none => new Version(0, 0, 0);
 

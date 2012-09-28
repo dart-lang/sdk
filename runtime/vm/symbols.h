@@ -64,8 +64,8 @@ class ObjectPointerVisitor;
   V(Dynamic, "Dynamic")                                                        \
   V(Void, "void")                                                              \
   V(UnresolvedClass, "UnresolvedClass")                                        \
-  V(Type, "Type")                                                              \
-  V(TypeParameter, "TypeParameter")                                            \
+  V(Type, "_Type")                                                             \
+  V(TypeParameter, "_TypeParameter")                                           \
   V(TypeArguments, "TypeArguments")                                            \
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
@@ -101,9 +101,9 @@ class ObjectPointerVisitor;
   V(Bigint, "_Bigint")                                                         \
   V(Double, "_Double")                                                         \
   V(Bool, "bool")                                                              \
-  V(ObjectArray, "ObjectArray")                                                \
-  V(GrowableObjectArray, "GrowableObjectArray")                                \
-  V(ImmutableArray, "ImmutableArray")                                          \
+  V(ObjectArray, "_ObjectArray")                                               \
+  V(GrowableObjectArray, "_GrowableObjectArray")                               \
+  V(ImmutableArray, "_ImmutableArray")                                         \
   V(OneByteString, "OneByteString")                                            \
   V(TwoByteString, "TwoByteString")                                            \
   V(FourByteString, "FourByteString")                                          \

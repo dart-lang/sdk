@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,9 +8,9 @@
 class _ListLiteralFactory<E> {
   // [elements] contains elements that are already type checked.
   factory List.fromLiteral(List elements) {
-    var list = new GrowableObjectArray<E>();
+    var list = new List<E>();
     if (elements.length > 0) {
-      list.data = elements;
+      list._setData(elements);
       list.length = elements.length;
     }
     return list;

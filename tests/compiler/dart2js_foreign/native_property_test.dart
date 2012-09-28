@@ -5,7 +5,7 @@
 // Properties on hidden native classes.
 
 @native("*A")
-class A  {
+class A {
 
   // Setters and getters should be similar to these methods:
   @native('return this._x;')

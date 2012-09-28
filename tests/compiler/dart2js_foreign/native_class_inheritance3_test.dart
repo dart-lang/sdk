@@ -7,7 +7,7 @@
 // noSuchMethod is cached on Object.prototype.
 
 @native("*A1")
-class A1  {
+class A1 {
 }
 
 @native("*B1")
@@ -19,7 +19,7 @@ class B1 extends A1  {
 
 
 @native("*A2")
-class A2  {
+class A2 {
   @native foo([a=99]);
 }
 

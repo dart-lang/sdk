@@ -5,7 +5,7 @@
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
 @native("*A")
-class A  {
+class A {
   @native int delete();
 }
 

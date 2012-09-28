@@ -1039,7 +1039,7 @@ stringTypeCheck(value) {
 stringTypeCast(value) {
   if (value is String || value === null) return value;
   // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'String');
 }
 
@@ -1051,7 +1051,7 @@ doubleTypeCheck(value) {
 
 doubleTypeCast(value) {
   if (value is double || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'double');
 }
 
@@ -1063,7 +1063,7 @@ numTypeCheck(value) {
 
 numTypeCast(value) {
   if (value is num || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'num');
 }
 
@@ -1075,7 +1075,7 @@ boolTypeCheck(value) {
 
 boolTypeCast(value) {
   if (value is bool || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'bool');
 }
 
@@ -1087,7 +1087,7 @@ functionTypeCheck(value) {
 
 functionTypeCast(value) {
   if (value is Function || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'Function');
 }
 
@@ -1099,7 +1099,7 @@ intTypeCheck(value) {
 
 intTypeCast(value) {
   if (value is int || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'int');
 }
 
@@ -1113,7 +1113,7 @@ void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
   String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastExceptionImplementation(actualType, expectedType);
+  throw new CastErrorImplementation(actualType, expectedType);
 }
 
 /**
@@ -1240,7 +1240,7 @@ listTypeCheck(value) {
 
 listTypeCast(value) {
   if (value is List || value === null) return value;
-  throw new CastExceptionImplementation(
+  throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'List');
 }
 
@@ -1290,17 +1290,17 @@ class TypeErrorImplementation implements TypeError {
 }
 
 /** Thrown by the 'as' operator if the cast isn't valid. */
-class CastExceptionImplementation implements CastException {
+class CastErrorImplementation implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   // TODO(lrn): Change actualType and expectedType to "Type" when reified
   // types are available.
   final Object actualType;
   final Object expectedType;
 
-  CastExceptionImplementation(this.actualType, this.expectedType);
+  CastErrorImplementation(this.actualType, this.expectedType);
 
   String toString() {
-    return "CastException: Casting value of type $actualType to"
+    return "CastError: Casting value of type $actualType to"
            " incompatible type $expectedType";
   }
 }

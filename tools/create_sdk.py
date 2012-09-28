@@ -226,9 +226,10 @@ def Main(argv):
   # Create and populate lib/{core, crypto, isolate, json, uri, utf, ...}.
   #
 
-  for library in ['_internal', 'html', 'core', 'coreimpl',
-                  'crypto', 'isolate', 'json', 'math', 'mirrors',
-                  'scalarlist', 'uri', 'utf']:
+  os.makedirs(join(LIB, 'html'))
+  for library in ['_internal', 'core', 'coreimpl', 'crypto', 'isolate',
+                  join('html', 'dart2js'), join('html', 'dartium'), 'json',
+                  'math', 'mirrors', 'scalarlist', 'uri', 'utf']:
     copytree(join(HOME, 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
@@ -325,8 +326,9 @@ def Main(argv):
       f.write(revision + '\n')
       f.close()
 
+  Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
+
   move(SDK_tmp, SDK)
-  utils.Touch(os.path.join(SDK, 'create.stamp'))
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))

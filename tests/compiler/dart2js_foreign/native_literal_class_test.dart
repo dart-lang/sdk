@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @native("= {log: function() { return 42 } }")
-class A  {
+class A {
   @native void log();
 }
 

@@ -38,6 +38,18 @@ class Platform {
 }
 ''';
 
+const htmlLib = r'''
+#library('html');
+Window __window;
+Window get window() => __window;
+abstract class Window {
+  abstract Navigator get navigator;
+}
+abstract class Navigator {
+  abstract String get userAgent;
+}
+''';
+
 testDart2Dart(String src, [void continuation(String s), bool minify = false,
     bool cutDeclarationTypes = false]) {
   // If continuation is not provided, check that source string remains the same.
@@ -66,6 +78,8 @@ testDart2DartWithLibrary(
     }
     if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
     if (uri.path.endsWith('/io.dart')) return new Future.immediate(ioLib);
+    // TODO(smok): The file should change to html_dartium at some point.
+    if (uri.path.endsWith('/html_dart2js.dart')) return new Future.immediate(htmlLib);
     return new Future.immediate('');
   }
 
@@ -741,6 +755,25 @@ main() {
       cutDeclarationTypes: true);
 }
 
+testPlatformLibraryMemberNamesAreFixed() {
+  var src = '''
+#import('dart:html');
+
+class A {
+  static String get userAgent => window.navigator.userAgent;
+}
+
+main() {
+  A.userAgent;
+}
+''';
+  var expectedResult = '#import("dart:html",prefix:"p");'
+      'class A{static String get userAgent=>p.window.navigator.userAgent;}'
+      'main(){A.userAgent;}';
+  testDart2Dart(src,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSimpleFileUnparse();
   testTopLevelField();
@@ -773,4 +806,5 @@ main() {
   testParametersMinified();
   testTypeVariablesInDifferentLibraries();
   testDeclarationTypePlaceholders();
+  testPlatformLibraryMemberNamesAreFixed();
 }

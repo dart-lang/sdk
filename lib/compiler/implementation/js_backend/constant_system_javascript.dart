@@ -42,6 +42,8 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
     }
     return result;
   }
+
+  apply(left, right) => dartBitOperation.apply(left, right);
 }
 
 class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
@@ -87,6 +89,7 @@ class JavaScriptNegateOperation implements UnaryOperation {
     }
     return dartNegateOperation.fold(constant);
   }
+  apply(value) => -value;
 }
 
 class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
@@ -102,6 +105,8 @@ class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
     if (result == null) return result;
     return JAVA_SCRIPT_CONSTANT_SYSTEM.convertToJavaScriptConstant(result);
   }
+
+  apply(left, right) => dartArithmeticOperation.apply(left, right);
 }
 
 class JavaScriptIdentityOperation implements BinaryOperation {

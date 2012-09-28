@@ -12,10 +12,10 @@ class TypeTest {
   static test() {
     int result = 0;
     try {
-      var i = "hello" as int;  // Throws a CastException
+      var i = "hello" as int;  // Throws a CastError
     } on TypeError catch (error) {
       result = 1;
-      Expect.isTrue(error is CastException);
+      Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
@@ -54,10 +54,10 @@ class TypeTest {
       return i;
     }
     try {
-      int i = f("hello" as int);  // Throws a CastException
+      int i = f("hello" as int);  // Throws a CastError
     } on TypeError catch (error) {
       result = 1;
-      Expect.isTrue(error is CastException);
+      Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
@@ -76,13 +76,13 @@ class TypeTest {
   static testReturn() {
     int result = 0;
     int f(String s) {
-      return s as int;  // Throws a CastException
+      return s as int;  // Throws a CastError
     }
     try {
       int i = f("hello");
     } on TypeError catch (error) {
       result = 1;
-      Expect.isTrue(error is CastException);
+      Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
@@ -103,7 +103,7 @@ class TypeTest {
     int result = 0;
     Expect.equals(5, (field as String).length);
     try {
-      field as int;  // Throws a CastException
+      field as int;  // Throws a CastError
     } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);

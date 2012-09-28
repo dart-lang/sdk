@@ -357,7 +357,7 @@ class _WebSocketProtocolProcessor {
 }
 
 
-class _WebSocketConnectionBase  {
+class _WebSocketConnectionBase {
   void _socketConnected(Socket socket) {
     _socket = socket;
     _socket.onError = (e) => _socket.close();

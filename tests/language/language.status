@@ -65,7 +65,6 @@ lazy_static3_test: Fail # Issue 3558
 
 type_error_test: Fail # http://dartbug.com/5280
 
-
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
@@ -155,6 +154,7 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Fail # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test/03: Fail, OK # we are going to remove interfaces
 duplicate_implements_test/04: Fail, OK # we are going to remove interfaces
+factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 field7_negative_test: Fail, OK # language changed, test issue 5249
@@ -209,6 +209,10 @@ naming_test: Fail, OK
 # test issue 5337
 bad_constructor_test/05: Fail, OK
 
+# test issue 5529
+abstract_factory_constructor_test/none: Fail, OK
+abstract_syntax_test/none: Fail, OK
+interface_test/none: Fail, OK
 
 
 #
@@ -231,7 +235,6 @@ import_combinators_test: Fail
 
 
 [ $runtime == vm ]
-first_class_types_test: Fail # Issue 3902
 call_nonexistent_static_test/01: Fail # Issues 3094
 call_nonexistent_static_test/02: Fail # Issues 3088
 call_nonexistent_static_test/03: Fail # Issues 3085
@@ -268,7 +271,71 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+class_literal_test/03: Fail # http://dartbug.com/5519
+class_literal_test/04: Fail # http://dartbug.com/5519
+class_literal_test/05: Fail # http://dartbug.com/5519
+class_literal_test/08: Fail # http://dartbug.com/5519
+class_literal_test/09: Fail # http://dartbug.com/5519
+class_literal_test/10: Fail # http://dartbug.com/5519
+class_literal_test/11: Fail # http://dartbug.com/5519
+class_literal_test/12: Fail # http://dartbug.com/5519
+class_literal_test/15: Fail # http://dartbug.com/5519
+class_literal_test/16: Fail # http://dartbug.com/5519
+class_literal_test/17: Fail # http://dartbug.com/5519
+class_literal_test/18: Fail # http://dartbug.com/5519
+class_literal_test/19: Fail # http://dartbug.com/5519
+class_literal_test/20: Fail # http://dartbug.com/5519
+class_literal_test/22: Fail # http://dartbug.com/5519
+class_literal_test/25: Fail # http://dartbug.com/5519
+class_literal_test/27: Fail # http://dartbug.com/5519
+class_literal_test/28: Fail # http://dartbug.com/5519
+class_literal_test/29: Fail # http://dartbug.com/5519
+compile_time_constant10_test/01: Fail # http://dartbug.com/5519
+compile_time_constant10_test/02: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/01: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/02: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/04: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
+compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
+compile_time_constant_test/02: Fail # http://dartbug.com/5519
+const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
+const_constructor_syntax_test/05: Fail # http://dartbug.com/5519
+const_syntax_test/01: Fail # http://dartbug.com/5519
+const_syntax_test/02: Fail # http://dartbug.com/5519
+const_syntax_test/03: Fail # http://dartbug.com/5519
+const_syntax_test/04: Fail # http://dartbug.com/5519
+const_syntax_test/05: Fail # http://dartbug.com/5519
+const_syntax_test/06: Fail # http://dartbug.com/5519
+const_syntax_test/07: Fail # http://dartbug.com/5519
+const_syntax_test/08: Fail # http://dartbug.com/5519
+const_syntax_test/09: Fail # http://dartbug.com/5519
+const_syntax_test/10: Fail # http://dartbug.com/5519
+constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
+final_for_in_variable_test/01: Fail # http://dartbug.com/5519
+final_is_not_const_test/01: Fail # http://dartbug.com/5519
+final_syntax_test/01: Fail # http://dartbug.com/5519
+final_syntax_test/02: Fail # http://dartbug.com/5519
+final_syntax_test/03: Fail # http://dartbug.com/5519
+final_syntax_test/04: Fail # http://dartbug.com/5519
+final_syntax_test/09: Fail # http://dartbug.com/5519
+getter_no_setter_test/01: Fail # http://dartbug.com/5519
+illegal_invocation_test/03: Fail # http://dartbug.com/5519
+isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
+method_override2_test/01: Fail # http://dartbug.com/5519
+named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
+named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
+named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
+new_expression_type_args_test/01: Fail # http://dartbug.com/5519
+not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
+override_field_test/04: Fail # http://dartbug.com/5519
+setter_no_getter_call_test/01: Fail # http://dartbug.com/5519
+setter_no_getter_test/01: Fail # http://dartbug.com/5519
+try_catch_syntax_test/16: Fail # http://dartbug.com/5519
+try_catch_syntax_test/17: Fail # http://dartbug.com/5519
+
 import_combinators_test: Fail
+throw_expr_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 bad_constructor_test/04: Fail
@@ -339,7 +406,8 @@ number_identifier_negative_test: Fail
 # Bug in dart2js frontent: does not support this feature.
 switch_label_test: Fail
 # Common with language_dart2js.
-factory_redirection_test: Fail # Not implemented.
+factory_redirection_test/none: Fail # Not implemented.
+factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail

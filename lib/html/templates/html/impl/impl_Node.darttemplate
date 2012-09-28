@@ -124,12 +124,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?
-  _NodeImpl remove() {
+  // TODO(vsm): Use the native remove when available.
+  void remove() {
     if (this.parent != null) {
       final _NodeImpl parent = this.parent;
       parent.$dom_removeChild(this);
     }
-    return this;
   }
 
   _NodeImpl replaceWith(Node otherNode) {

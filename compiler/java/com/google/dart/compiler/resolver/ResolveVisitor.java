@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
@@ -85,10 +86,6 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     return null;
   }
 
-  abstract boolean isStaticContext();
-
-  abstract boolean isFactoryContext();
-
   @Override
   public Element visitParameter(DartParameter node) {
     ErrorCode typeErrorCode;
@@ -100,8 +97,8 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       typeErrorCode = TypeErrorCode.NO_SUCH_TYPE;
       wrongNumberErrorCode = TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
     }
-    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), true,
-        typeErrorCode, wrongNumberErrorCode);
+    Type type = resolveType(node.getTypeNode(), ASTNodes.isStaticContext(node),
+        ASTNodes.isFactoryContext(node), true, typeErrorCode, wrongNumberErrorCode);
     VariableElement element =
         Elements.parameterElement(
             getEnclosingElement(),

@@ -24,7 +24,7 @@ class String;
 
 class Exceptions : AllStatic {
  public:
-  static const char* kCastExceptionDstName;
+  static const char* kCastErrorDstName;
 
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);

@@ -20,6 +20,10 @@
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
+typedef void TestCaseEvent(TestCase testCase);
+typedef void ExitCodeEvent(int exitCode);
+typedef bool EnqueMoreWork(ProcessQueue queue);
+
 /** A command executed as a step in a test case. */
 class Command {
   /** Path to the executable of this command. */
@@ -74,7 +78,7 @@ class TestCase {
   TestOutput output;
   bool isNegative;
   Set<String> expectedOutcomes;
-  Function completedHandler;
+  TestCaseEvent completedHandler;
   TestInformation info;
 
   TestCase(this.displayName,
@@ -82,13 +86,10 @@ class TestCase {
            this.configuration,
            this.completedHandler,
            this.expectedOutcomes,
-           [this.isNegative = false,
-            this.info = null]) {
+           {this.isNegative: false,
+            this.info: null}) {
     if (!isNegative) {
-      // TODO(sigmund): use only 'negative_test' (and not 'NegativeTest') once
-      // the test rename overhaul is done.
-      this.isNegative = displayName.contains("NegativeTest")
-          || displayName.contains("negative_test");
+      this.isNegative = displayName.contains("negative_test");
     }
 
     // Special command handling. If a special command is specified
@@ -172,9 +173,9 @@ class BrowserTestCase extends TestCase {
   int numRetries;
 
   BrowserTestCase(displayName, commands, configuration, completedHandler,
-      expectedOutcomes, [isNegative = false])
+      expectedOutcomes, info, isNegative)
     : super(displayName, commands, configuration, completedHandler,
-        expectedOutcomes, isNegative) {
+        expectedOutcomes, isNegative: isNegative, info: info) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
@@ -194,8 +195,9 @@ class BrowserTestCase extends TestCase {
  * [TestCase] this is the output of.
  */
 interface TestOutput default TestOutputImpl {
-  TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
-    List<String> stdout, List<String> stderr, Duration time);
+  TestOutput.fromCase(TestCase testCase, int exitCode, bool incomplete,
+                      bool timedOut,
+                      List<String> stdout, List<String> stderr, Duration time);
 
   String get result;
 
@@ -223,6 +225,10 @@ interface TestOutput default TestOutputImpl {
 class TestOutputImpl implements TestOutput {
   TestCase testCase;
   int exitCode;
+
+  /// Records if all commands were run, true if they weren't.
+  final bool incomplete;
+
   bool timedOut;
   bool failed = false;
   List<String> stdout;
@@ -242,10 +248,11 @@ class TestOutputImpl implements TestOutput {
    */
   bool requestRetry = false;
 
-  // Don't call  this constructor, call TestOutput.fromCase() to
-  // get anew TestOutput instance.
+  // Don't call this constructor, call TestOutput.fromCase() to
+  // get a new TestOutput instance.
   TestOutputImpl(TestCase this.testCase,
                  int this.exitCode,
+                 bool this.incomplete,
                  bool this.timedOut,
                  List<String> this.stdout,
                  List<String> this.stderr,
@@ -256,19 +263,20 @@ class TestOutputImpl implements TestOutput {
 
   factory TestOutputImpl.fromCase (TestCase testCase,
                                    int exitCode,
+                                   bool incomplete,
                                    bool timedOut,
                                    List<String> stdout,
                                    List<String> stderr,
                                    Duration time) {
     if (testCase is BrowserTestCase) {
-      return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
-        stdout, stderr, time);
+      return new BrowserTestOutputImpl(testCase, exitCode, incomplete,
+          timedOut, stdout, stderr, time);
     } else if (testCase.configuration['compiler'] == 'dartc') {
       return new AnalysisTestOutputImpl(testCase, exitCode, timedOut,
-        stdout, stderr, time);
+          stdout, stderr, time);
     }
-    return new TestOutputImpl(testCase, exitCode, timedOut,
-      stdout, stderr, time);
+    return new TestOutputImpl(testCase, exitCode, incomplete, timedOut,
+        stdout, stderr, time);
   }
 
   String get result =>
@@ -298,13 +306,20 @@ class TestOutputImpl implements TestOutput {
   }
 
   // Reverse result of a negative test.
-  bool get hasFailed => testCase.isNegative ? !didFail : didFail;
+  bool get hasFailed {
+    // Always fail if a runtime-error is expected and compilation failed.
+    if (testCase.info != null && testCase.info.hasRuntimeError && incomplete) {
+      return true;
+    }
+    return testCase.isNegative ? !didFail : didFail;
+  }
 
 }
 
 class BrowserTestOutputImpl extends TestOutputImpl {
-  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, timedOut, stdout, stderr, time);
+  BrowserTestOutputImpl(testCase, exitCode, incomplete,
+                        timedOut, stdout, stderr, time) :
+    super(testCase, exitCode, incomplete, timedOut, stdout, stderr, time);
 
   bool get didFail {
     // Browser case:
@@ -356,8 +371,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
   bool alreadyComputed = false;
   bool failResult;
   AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
-    super(testCase, exitCode, timedOut, stdout, stderr, time) {
-  }
+    super(testCase, exitCode, false, timedOut, stdout, stderr, time);
 
   bool get didFail {
     if (!alreadyComputed) {
@@ -525,7 +539,6 @@ class RunningProcess {
   Timer timeoutTimer;
   List<String> stdout;
   List<String> stderr;
-  List<Function> handlers;
   bool allowRetries;
 
   /** Which command of [testCase.commands] is currently being executed. */
@@ -539,8 +552,8 @@ class RunningProcess {
    * succeded, otherwise it will have the exit code of the first failing
    * command.
    */
-  void testComplete(int exitCode) {
-    new TestOutput.fromCase(testCase, exitCode, timedOut, stdout,
+  void testComplete(int exitCode, bool incomplete) {
+    new TestOutput.fromCase(testCase, exitCode, incomplete, timedOut, stdout,
                             stderr, new Date.now().difference(startTime));
     timeoutTimer.cancel();
     if (testCase.output.unexpectedOutput
@@ -578,10 +591,10 @@ class RunningProcess {
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
     if (currentStep == totalSteps) { // done with test command
-      testComplete(exitCode);
+      testComplete(exitCode, false);
     } else if (exitCode != 0) {
       stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
-      testComplete(exitCode);
+      testComplete(exitCode, true);
     } else {
       stderr.add('test.dart: Compilation finished $suffix\n');
       stdout.add('test.dart: Compilation finished $suffix\n');
@@ -599,15 +612,16 @@ class RunningProcess {
     }
   }
 
-  Function makeReadHandler(StringInputStream source, List<String> destination) {
-    return () {
+  VoidFunction makeReadHandler(StringInputStream source, List<String> destination) {
+    void handler () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
         destination.add(line);
         line = source.readLine();
       }
-    };
+    }
+    return handler;
   }
 
   void start() {
@@ -627,6 +641,7 @@ class RunningProcess {
       print("Error starting process:");
       print("  Command: $command");
       print("  Error: $e");
+      testComplete(-1, false);
     };
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
@@ -767,7 +782,8 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, (outcome == "TIMEOUT"),
+    new TestOutput.fromCase(_currentTest, exitCode, false,
+                            (outcome == "TIMEOUT"),
                             _testStdout, _testStderr,
                             new Date.now().difference(_startTime));
     var test = _currentTest;
@@ -787,9 +803,9 @@ class BatchRunnerProcess {
     if (_stderrDrained) _reportResult();
   }
 
-  Function _readStdout(StringInputStream stream, List<String> buffer) {
+  VoidFunction _readStdout(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    return () {
+    void reader() {
       if (ignoreStreams.value) {
          while (stream.readLine() != null) {
           // Do nothing.
@@ -814,17 +830,18 @@ class BatchRunnerProcess {
         _timer.cancel();
         _stdoutDone();
       }
-    };
+    }
+    return reader;
   }
 
-  Function _readStderr(StringInputStream stream, List<String> buffer) {
+  VoidFunction _readStderr(StringInputStream stream, List<String> buffer) {
     var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    return () {
+    void reader() {
       if (ignoreStreams.value) {
         while (stream.readLine() != null) {
-	  // Do nothing.
+          // Do nothing.
         }
-	return;
+        return;
       }
       // Otherwise, process output and call _reportResult() when done.
       var line = stream.readLine();
@@ -836,11 +853,12 @@ class BatchRunnerProcess {
         }
         line = stream.readLine();
       }
-    };
+    }
+    return reader;
   }
 
-  Function makeExitHandler(String status) {
-    return (exitCode) {
+  ExitCodeEvent makeExitHandler(String status) {
+    void handler(int exitCode) {
       if (active) {
         if (_timer != null) _timer.cancel();
         _status = status;
@@ -864,7 +882,8 @@ class BatchRunnerProcess {
         _process.close();
         _process = null;
       }
-    };
+    }
+    return handler;
   }
 
   void _timeoutHandler(ignore) {
@@ -881,6 +900,10 @@ class BatchRunnerProcess {
       print("Error starting process:");
       print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
       print("  Error: $e");
+      // If there is an error starting a batch process, chances are that
+      // it will always fail. So rather than re-trying a 1000+ times, we
+      // exit.
+      exit(1);
     };
     _process.onStart = then;
   }
@@ -909,7 +932,7 @@ class ProcessQueue {
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
-  Function _enqueueMoreWork;
+  EnqueMoreWork _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
 
@@ -943,7 +966,7 @@ class ProcessQueue {
                String progress,
                Date startTime,
                bool printTiming,
-               Function this._enqueueMoreWork,
+               this._enqueueMoreWork,
                [bool verbose = false,
                 bool listTests = false])
       : _verbose = verbose,
@@ -1032,6 +1055,8 @@ class ProcessQueue {
         print("Error starting process:");
         print("  Command: $cmd ${Strings.join(arg, ' ')}");
         print("  Error: $e");
+        // TODO(ahe): How to report this as a test failure?
+        exit(1);
       };
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
@@ -1064,8 +1089,8 @@ class ProcessQueue {
    * begin running tests.
    * source: Output(Stream) from the Java server.
    */
-  Function makeSeleniumServerHandler(StringInputStream source) {
-    return () {
+  VoidFunction makeSeleniumServerHandler(StringInputStream source) {
+    void handler() {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
       while (null != line) {
@@ -1076,7 +1101,8 @@ class ProcessQueue {
         }
         line = source.readLine();
       }
-    };
+    }
+    return handler;
   }
 
   /**
@@ -1098,6 +1124,8 @@ class ProcessQueue {
           print("Error starting process:");
           print("  Command: java -jar $file");
           print("  Error: $e");
+          // TODO(ahe): How to report this as a test failure?
+          exit(1);
         };
         // Heads up: there seems to an obscure data race of some form in
         // the VM between launching the server process and launching the test
@@ -1168,8 +1196,8 @@ class ProcessQueue {
         }
       }
       _progress.start(test);
-      Function oldCallback = test.completedHandler;
-      Function wrapper = (TestCase test_arg) {
+      TestCaseEvent oldCallback = test.completedHandler;
+      void wrapper(TestCase test_arg) {
         _numProcesses--;
         _progress.done(test_arg);
         _tryRunTest();

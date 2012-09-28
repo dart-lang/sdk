@@ -1197,7 +1197,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 }
 
 
-class _HttpConnectionBase implements Hashable {
+class _HttpConnectionBase {
   _HttpConnectionBase() : _sendBuffers = new Queue(),
                           _httpParser = new _HttpParser() {
     _hashCode = _nextHashCode;

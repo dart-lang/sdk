@@ -6,7 +6,7 @@
 // until we change all libraries to using the JS foreign element.
 
 @native("*A")
-class A  {
+class A {
   @native("return name;")
   foo(name);
   @native("return undefined;")

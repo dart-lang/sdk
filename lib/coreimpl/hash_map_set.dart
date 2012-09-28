@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Hash map implementation with open addressing and quadratic probing.
-class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
+class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   // The [_keys] list contains the keys inserted in the map.
   // The [_keys] list must be a raw list because it
@@ -69,6 +69,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 
   int _probeForAdding(K key) {
+    if (key == null) throw const NullPointerException();
     int hash = _firstProbe(key.hashCode(), _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
@@ -102,6 +103,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 
   int _probeForLookup(K key) {
+    if (key == null) throw const NullPointerException();
     int hash = _firstProbe(key.hashCode(), _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
@@ -196,7 +198,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
 
   V putIfAbsent(K key, V ifAbsent()) {
     int index = _probeForLookup(key);
-    if (index >=0) return _values[index];
+    if (index >= 0) return _values[index];
 
     V value = ifAbsent();
     this[key] = value;
@@ -274,7 +276,7 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   }
 }
 
-class HashSetImplementation<E extends Hashable> implements HashSet<E> {
+class HashSetImplementation<E > implements HashSet<E> {
 
   HashSetImplementation() {
     _backingMap = new HashMapImplementation<E, E>();

@@ -82,7 +82,7 @@ InstanceMirror reflect(Object reflectee) {
  *
  * Every [Mirror] originates from some [MirrorSystem].
  */
-abstract class Mirror implements Hashable {
+abstract class Mirror {
   /**
    * The [MirrorSystem] that contains this mirror.
    */

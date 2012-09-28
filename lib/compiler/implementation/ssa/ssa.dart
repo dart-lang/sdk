@@ -29,6 +29,7 @@
 #source('types_propagation.dart');
 #source('validate.dart');
 #source('variable_allocator.dart');
+#source('value_range_analyzer.dart');
 #source('value_set.dart');
 
 class RuntimeTypeInformation {

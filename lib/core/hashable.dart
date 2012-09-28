@@ -4,6 +4,14 @@
 
 // Dart core library.
 
+/**
+ * Temporary interface for backwards compatibility.
+ *
+ * All objects now have a [hashCode] method. This interface will be removed
+ * after a grace period. Code that use the [:Hashable:] interface should
+ * remove it, or use [:Object:] instead if a type is necessary.
+ */
 abstract class Hashable {
+  // TODO(lrn): http://darbug.com/5522
   abstract int hashCode();
 }

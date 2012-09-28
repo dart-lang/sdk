@@ -137,6 +137,10 @@ public class ASTVisitor<R> {
     return visitInvocation(node);
   }
 
+  public R visitCascadeExpression(DartCascadeExpression node) {
+    return visitExpression(node);
+  }
+
   public R visitCase(DartCase node) {
     return visitSwitchMember(node);
   }

@@ -6,7 +6,7 @@
 // #3. The name does not get
 
 @native("*A")
-class A  {
+class A {
   @native('fooA')
   int foo();
 }

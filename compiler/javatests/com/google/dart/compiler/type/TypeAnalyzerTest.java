@@ -379,21 +379,21 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(element, "fieldInInterface.noSuchField", 1);
     analyzeIn(element, "staticFieldInInterface.noSuchField", 1);
 
-    analyzeIn(element, "new ClassWithSupertypes()", 1); // Abstract class.
-    analyzeIn(element, "field = new ClassWithSupertypes().field", 1);
-    analyzeIn(element, "field = new ClassWithSupertypes().staticField", 2);
-    analyzeIn(element, "field = new ClassWithSupertypes().fieldInSuperclass", 1);
-    analyzeIn(element, "field = new ClassWithSupertypes().staticFieldInSuperclass", 2);
-    analyzeIn(element, "field = new ClassWithSupertypes().fieldInInterface", 1);
-    analyzeIn(element, "field = new ClassWithSupertypes().staticFieldInInterface", 2);
+    analyzeIn(element, "new ClassWithSupertypes()", 0); // concrete class with abstract members
+    analyzeIn(element, "field = new ClassWithSupertypes().field", 0);
+    analyzeIn(element, "field = new ClassWithSupertypes().staticField", 1);
+    analyzeIn(element, "field = new ClassWithSupertypes().fieldInSuperclass", 0);
+    analyzeIn(element, "field = new ClassWithSupertypes().staticFieldInSuperclass", 1);
+    analyzeIn(element, "field = new ClassWithSupertypes().fieldInInterface", 0);
+    analyzeIn(element, "field = new ClassWithSupertypes().staticFieldInInterface", 1);
 
-    analyzeIn(element, "new ClassWithSupertypes().field = 1", 1);
-    analyzeIn(element, "new ClassWithSupertypes().staticField = 1", 2);
-    analyzeIn(element, "new ClassWithSupertypes().fieldInSuperclass = 1", 1);
-    analyzeIn(element, "new ClassWithSupertypes().staticFieldInSuperclass = 1", 2);
+    analyzeIn(element, "new ClassWithSupertypes().field = 1", 0);
+    analyzeIn(element, "new ClassWithSupertypes().staticField = 1", 1);
+    analyzeIn(element, "new ClassWithSupertypes().fieldInSuperclass = 1", 0);
+    analyzeIn(element, "new ClassWithSupertypes().staticFieldInSuperclass = 1", 1);
     // Enable this test when constness is propagated:
     // analyzeIn(element, "new ClassWithSupertypes().fieldInInterface = 1", 1);
-    analyzeIn(element, "new ClassWithSupertypes().staticFieldInInterface = 1", 2);
+    analyzeIn(element, "new ClassWithSupertypes().staticFieldInInterface = 1", 1);
   }
 
   public void testFieldInitializers() {
@@ -597,12 +597,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
-        "class Class implements Interface {",
+        "abstract class Class implements Interface {",
         "  Class() {}",
         "  String bar() { return null; }",
         "}",
         // Abstract class not reported until first instantiation.
-        "class SubClass extends Class {",
+        "abstract class SubClass extends Class {",
         "  SubClass() : super() {}",
         "  Object bar() { return null; }",
         "}",

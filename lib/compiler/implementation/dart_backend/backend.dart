@@ -207,6 +207,14 @@ class DartBackend extends Backend {
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) { }
 
+  bool isUserLibrary(LibraryElement lib) {
+    final INTERNAL_HELPERS = [
+      compiler.jsHelperLibrary,
+      compiler.interceptorsLibrary,
+    ];
+    return INTERNAL_HELPERS.indexOf(lib) == -1 && !lib.isPlatformLibrary;
+  }
+
   void assembleProgram() {
     // Conservatively traverse all platform libraries and collect member names.
     // TODO(antonm): ideally we should only collect names of used members,
@@ -218,6 +226,10 @@ class DartBackend extends Backend {
       for (final element in library.localMembers) {
         if (element is ClassElement) {
           ClassElement classElement = element;
+          // Make sure we parsed the class to initialize its local members.
+          // TODO(smok): Figure out if there is a better way to fill local
+          // members.
+          element.parseNode(compiler);
           for (final member in classElement.localMembers) {
             final name = member.name.slowToString();
             // Skip operator names.
@@ -245,14 +257,9 @@ class DartBackend extends Backend {
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
      */
-    final LIBS_TO_IGNORE = [
-      compiler.jsHelperLibrary,
-      compiler.interceptorsLibrary,
-    ];
     bool shouldOutput(Element element) =>
       element.kind !== ElementKind.VOID &&
-      LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
-      !element.getLibrary().isPlatformLibrary &&
+      isUserLibrary(element.getLibrary()) &&
       element is !SynthesizedConstructorElement &&
       element is !AbstractFieldElement;
 
@@ -325,9 +332,47 @@ class DartBackend extends Backend {
       }
     });
 
+    // Add synthesized constructors to classes with no resolved constructors,
+    // but which originally had any constructor.  That should prevent
+    // those classes from being instantiable with default constructor.
+    Identifier synthesizedIdentifier =
+        new Identifier(new StringToken(IDENTIFIER_INFO, '', -1));
+
+    NextClassElement:
+    for (ClassElement classElement in classMembers.getKeys()) {
+      for (Element member in classMembers[classElement]) {
+        if (member.isConstructor()) continue NextClassElement;
+      }
+      if (classElement.constructors.isEmpty()) continue NextClassElement;
+
+      // TODO(antonm): check with AAR team if there is better approach.
+      // As an idea: provide template as a Dart code---class C { C.name(); }---
+      // and then overwrite necessary parts.
+      SynthesizedConstructorElement constructor =
+          new SynthesizedConstructorElement(classElement);
+      constructor.type = new FunctionType(
+          compiler.types.voidType, const EmptyLink<DartType>(),
+          constructor);
+      constructor.cachedNode = new FunctionExpression(
+          new Send(receiver: classElement.parseNode(compiler).name,
+                   selector: synthesizedIdentifier),
+          new NodeList(beginToken: new StringToken(OPEN_PAREN_INFO, '(', -1),
+                       endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
+                       nodes: const EmptyLink<Node>()),
+          new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
+          null, null, null, null);
+
+      classMembers[classElement].add(constructor);
+      elementAsts[constructor] =
+          new ElementAst(constructor.cachedNode, new TreeElementMapping());
+    }
+
     // Create all necessary placeholders.
     PlaceholderCollector collector =
         new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
+    // Add synthesizedIdentifier to set of unresolved names to rename it to
+    // some unused identifier.
+    collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
       collector.collect(element);
       if (element is ClassElement) {
@@ -387,6 +432,25 @@ class DartBackend extends Backend {
     final unparser = new Unparser.withRenamer((Node node) => renames[node]);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     compiler.assembledCode = unparser.result;
+
+    // Output verbose info about size ratio of resulting bundle to all
+    // referenced non-platform sources.
+    logResultBundleSizeInfo(topLevelElements);
+  }
+
+  void logResultBundleSizeInfo(Set<Element> topLevelElements) {
+    Collection<LibraryElement> referencedLibraries =
+        compiler.libraries.getValues().filter(isUserLibrary);
+    // Sum total size of scripts in each referenced library.
+    int nonPlatformSize = 0;
+    for (LibraryElement lib in referencedLibraries) {
+      for (CompilationUnitElement compilationUnit in lib.compilationUnits) {
+        nonPlatformSize += compilationUnit.script.text.length;
+      }
+    }
+    int percentage = compiler.assembledCode.length * 100 ~/ nonPlatformSize;
+    log('Total used non-platform files size: ${nonPlatformSize} bytes, '
+        'bundle size: ${compiler.assembledCode.length} bytes (${percentage}%)');
   }
 
   log(String message) => compiler.log('[DartBackend] $message');

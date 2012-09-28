@@ -166,11 +166,6 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   }
 
   @Override
-  public boolean isAbstract() {
-    return false;
-  }
-
-  @Override
   public Element lookupLocalElement(String name) {
     return this;
   }
@@ -306,5 +301,15 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   @Override
   public LabeledStatementType getStatementType() {
     return LabeledStatementType.STATEMENT;
+  }
+
+  @Override
+  public int getOpenBraceOffset() {
+    return -1;
+  }
+  
+  @Override
+  public int getCloseBraceOffset() {
+    return -1;
   }
 }

@@ -2,5 +2,6 @@
 # Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
 # structure.
 
-SCRIPTPATH=`dirname $0`
-$SCRIPTPATH/dart $SCRIPTPATH/../util/pub/pub.dart $@
+BIN_DIR=`cd "\$(dirname "\$0")"; pwd -P`
+export DART_SDK=`dirname $BIN_DIR`
+$DART_SDK/bin/dart $DART_SDK/util/pub/pub.dart $@

@@ -51,6 +51,7 @@ abstract class HVisitor<R> {
   R visitNot(HNot node);
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
+  R visitRangeConversion(HRangeConversion node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -315,6 +316,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
@@ -432,7 +434,7 @@ class HInstructionList {
   }
 }
 
-class HBasicBlock extends HInstructionList implements Hashable {
+class HBasicBlock extends HInstructionList {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
   int id;
@@ -579,8 +581,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 
   void addSuccessor(HBasicBlock block) {
-    // Forward branches are only allowed to new blocks.
-    assert(isClosed() && (block.isNew() || block.id < id));
     if (successors.isEmpty()) {
       successors = [block];
     } else {
@@ -707,16 +707,18 @@ class HBasicBlock extends HInstructionList implements Hashable {
   void forEachPhi(void f(HPhi phi)) {
     HPhi current = phis.first;
     while (current !== null) {
+      HInstruction saved = current.next;
       f(current);
-      current = current.next;
+      current = saved;
     }
   }
 
   void forEachInstruction(void f(HInstruction instruction)) {
     HInstruction current = first;
     while (current !== null) {
+      HInstruction saved = current.next;
       f(current);
-      current = current.next;
+      current = saved;
     }
   }
 
@@ -739,7 +741,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 }
 
 
-class HInstruction implements Hashable, Spannable {
+class HInstruction implements Spannable {
   Element sourceElement;
   SourceFileLocation sourcePosition;
 
@@ -1192,7 +1194,8 @@ class HBoundsCheck extends HCheck {
   static const int ALWAYS_FALSE = 0;
   static const int FULL_CHECK = 1;
   static const int ALWAYS_ABOVE_ZERO = 2;
-  static const int ALWAYS_TRUE = 3;
+  static const int ALWAYS_BELOW_LENGTH = 3;
+  static const int ALWAYS_TRUE = 4;
   /**
    * Details which tests have been done statically during compilation.
    * Default is that all checks must be performed dynamically.
@@ -2564,6 +2567,16 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return type == other.type && kind == other.kind;
   }
+}
+
+class HRangeConversion extends HCheck {
+  HRangeConversion(HInstruction input) : super(<HInstruction>[input]) {
+    sourceElement = input.sourceElement;
+  }
+  accept(HVisitor visitor) => visitor.visitRangeConversion(this);
+
+  // We currently only do range analysis for integers.
+  HType get guaranteedType => HType.INTEGER;
 }
 
 class HStringConcat extends HInstruction {

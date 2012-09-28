@@ -20,7 +20,6 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -696,7 +695,7 @@ public class Resolver {
       {
         DartTypeNode rcTypeName = node.getRedirectedTypeName();
         if (rcTypeName != null) {
-          InterfaceType rcType = (InterfaceType) resolveType(rcTypeName, true, true, false,
+          Type rcType = resolveType(rcTypeName, true, true, false,
               TypeErrorCode.NO_SUCH_TYPE, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
           switch (TypeKind.of(rcType)) {
             case INTERFACE:
@@ -715,6 +714,8 @@ public class Resolver {
                 }
               }
               break;
+            default:
+              onError(rcTypeName, ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_TYPE);
           }
         }
       }
@@ -827,8 +828,8 @@ public class Resolver {
       Type type =
           resolveType(
               node.getTypeNode(),
-              inStaticContext(currentMethod),
-              inFactoryContext(currentMethod),
+              ASTNodes.isStaticContext(node),
+              ASTNodes.isFactoryContext(node),
               true,
               TypeErrorCode.NO_SUCH_TYPE,
               TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
@@ -1190,7 +1191,7 @@ public class Resolver {
                             name, referencedElementName);
           }
         }
-        if (isStaticContextOrInitializer() && !isQualifier) {
+        if (isStaticOrFactoryContextOrInitializer(x) && !isQualifier) {
           onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
           x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
         }
@@ -1247,10 +1248,10 @@ public class Resolver {
                                             String name, Element element) {
       switch (element.getKind()) {
         case FIELD:
-          if (!inStaticContext(element)) {
+          if (!Elements.isStaticContext(element) && !element.getModifiers().isConstant()) {
             if (inInstanceVariableInitializer) {
               onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
-            } else if (inStaticContext(currentMethod)) {
+            } else if (ASTNodes.isStaticContext(x)) {
               onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
             }
           }
@@ -1259,7 +1260,7 @@ public class Resolver {
           }
           break;
         case METHOD:
-          if (inStaticContext(currentMethod) && !inStaticContext(element)) {
+          if (ASTNodes.isStaticContext(x) && !Elements.isStaticContext(element)) {
             onError(x, ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
                 name);
           }
@@ -1317,13 +1318,13 @@ public class Resolver {
         }
       }
       // do Type resolve
-      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod), false,
+      return resolveType(x, ASTNodes.isStaticContext(x), ASTNodes.isFactoryContext(x), false,
           errorCode, wrongNumberErrorCode).getElement();
     }
 
     @Override
     public Element visitPropertyAccess(DartPropertyAccess x) {
-      Element qualifier = resolveQualifier(x.getQualifier());
+      Element qualifier = resolveQualifier(x.getRealTarget());
       Element element = null;
       switch (ElementKind.of(qualifier)) {
         case CLASS:
@@ -1434,11 +1435,11 @@ public class Resolver {
         case NONE: {
           // TODO(zundel): This is a bit awkward.  Maybe it would be better to have an
           // ElementKind of THIS just like we have for SUPER?
-          if (x.getQualifier() instanceof DartThisExpression) {
+          if (x.getRealTarget() instanceof DartThisExpression) {
             Element foundElement = Elements.findElement(currentHolder, x.getPropertyName());
             if (foundElement != null && !foundElement.getModifiers().isStatic()) {
               if (ElementKind.of(foundElement) == ElementKind.TYPE_VARIABLE) {
-                onError(x.getQualifier(), ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+                onError(x.getRealTarget(), ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
                 break;
               }
               element = foundElement;
@@ -1478,6 +1479,9 @@ public class Resolver {
     }
 
     private Element resolveQualifier(DartNode qualifier) {
+      if (qualifier == null) {
+        return null;
+      }
       return (qualifier instanceof DartIdentifier)
           ? resolveIdentifier((DartIdentifier) qualifier, true)
           : qualifier.accept(this);
@@ -1486,7 +1490,7 @@ public class Resolver {
     @Override
     public Element visitMethodInvocation(DartMethodInvocation x) {
       DartIdentifier name = x.getFunctionName();
-      Element target = resolveQualifier(x.getTarget());
+      Element target = resolveQualifier(x.getRealTarget());
       Element element = null;
 
       switch (ElementKind.of(target)) {
@@ -1572,7 +1576,7 @@ public class Resolver {
       }
       if (Elements.isAbstractFieldWithoutGetter(element)) {
         String name = element.getName();
-        if (isStaticContextOrInitializer()) {
+        if (isStaticOrFactoryContextOrInitializer(x)) {
           onError(x.getTarget(), ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
         } else {
           onError(x.getTarget(), TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
@@ -1586,7 +1590,9 @@ public class Resolver {
 
     @Override
     public Element visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
-      x.getTarget().accept(this);
+      if (!x.isCascade()) {
+        x.getTarget().accept(this);
+      }
       visit(x.getArguments());
       return null;
     }
@@ -1600,8 +1606,8 @@ public class Resolver {
         @Override
         public Element visitTypeNode(DartTypeNode type) {
           ErrorCode errorCode = x.isConst() ? ResolverErrorCode.NO_SUCH_TYPE_CONST : TypeErrorCode.NO_SUCH_TYPE;
-          return recordType(type, resolveType(type, inStaticContext(currentMethod),
-                                              inFactoryContext(currentMethod),
+          return recordType(type, resolveType(type, ASTNodes.isStaticContext(x),
+                                              ASTNodes.isFactoryContext(x),
                                               false,
                                               errorCode,
                                               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS));
@@ -1855,7 +1861,7 @@ public class Resolver {
       ElementKind kind = ElementKind.of(element);
       switch (kind) {
         case NONE:
-          if (isStaticContextOrInitializer()) {
+          if (isStaticOrFactoryContextOrInitializer(node) || ASTNodes.isFactoryContext(node)) {
             node.getTarget().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
             onError(node.getTarget(), ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
           }
@@ -2114,8 +2120,8 @@ public class Resolver {
               defaultLiteralMapType.getElement(),
               node,
               typeArgs,
-              inStaticContext(node),
-              inFactoryContext(currentMethod),
+              ASTNodes.isStaticContext(node),
+              ASTNodes.isFactoryContext(node),
               ResolverErrorCode.NO_SUCH_TYPE,
               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
@@ -2135,8 +2141,8 @@ public class Resolver {
               rawArrayType.getElement(),
               node,
               typeArgs,
-              inStaticContext(node),
-              inFactoryContext(currentMethod),
+              ASTNodes.isStaticContext(node),
+              ASTNodes.isFactoryContext(node),
               ResolverErrorCode.NO_SUCH_TYPE,
               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
@@ -2319,42 +2325,8 @@ public class Resolver {
       context.onError(target, errorCode, arguments);
     }
 
-    private boolean inStaticContext(DartNode node) {
-      DartNode ancestor = node;
-      while (ancestor != null) {
-        if (ancestor instanceof DartClassMember<?>) {
-          return ((DartClassMember<?>) ancestor).getModifiers().isStatic();
-        }
-        ancestor = ancestor.getParent();
-      }
-      return true;
-    }
-
-
-    private boolean inFactoryContext(Element element) {
-      if (element != null) {
-        return element.getModifiers().isFactory();
-      }
-      return false;
-    }
-
-    @Override
-    boolean isStaticContext() {
-      return inStaticContext(currentMethod);
-    }
-
-    private boolean inStaticContext(Element element) {
-      return element == null || Elements.isTopLevel(element) || element.getModifiers().isStatic()
-          || element.getModifiers().isConstant() || element.getModifiers().isFactory();
-    }
-
-    @Override
-    boolean isFactoryContext() {
-    	return inFactoryContext(currentMethod);
-    }
-
-    boolean isStaticContextOrInitializer() {
-      return inStaticContext(currentMethod) || inInitializer;
+    boolean isStaticOrFactoryContextOrInitializer(DartNode x) {
+      return ASTNodes.isStaticOrFactoryContext(x) || inInitializer;
     }
   }
 

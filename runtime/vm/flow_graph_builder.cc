@@ -794,7 +794,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->left()->Visit(&for_value);
   const String& dst_name = String::ZoneHandle(
-      Symbols::New(Exceptions::kCastExceptionDstName));
+      Symbols::New(Exceptions::kCastErrorDstName));
   if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
     Append(for_value);
     Do(BuildAssertAssignable(
@@ -879,7 +879,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   node->left()->Visit(&for_value);
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
-      Symbols::New(Exceptions::kCastExceptionDstName));
+      Symbols::New(Exceptions::kCastErrorDstName));
   ReturnValue(BuildAssignableValue(node->token_pos(),
                                    for_value.value(),
                                    type,

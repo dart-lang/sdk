@@ -13,7 +13,6 @@ check(args) {
   Expect.isTrue(list is Collection);
   Expect.isTrue(list is Iterable);
   Expect.isFalse(list is Comparable);
-  Expect.isFalse(list is Hashable);
   Expect.isFalse(list is Pattern);
   Expect.isFalse(list is String);
 
@@ -21,7 +20,6 @@ check(args) {
   Expect.isFalse(list is !Collection);
   Expect.isFalse(list is !Iterable);
   Expect.isTrue(list is !Comparable);
-  Expect.isTrue(list is !Hashable);
   Expect.isTrue(list is !Pattern);
   Expect.isTrue(list is !String);
 
@@ -30,7 +28,6 @@ check(args) {
   Expect.isFalse(string is Collection);
   Expect.isFalse(string is Iterable);
   Expect.isTrue(string is Comparable);
-  Expect.isTrue(string is Hashable);
   Expect.isTrue(string is Pattern);
   Expect.isTrue(string is String);
 
@@ -38,7 +35,6 @@ check(args) {
   Expect.isTrue(string is !Collection);
   Expect.isTrue(string is !Iterable);
   Expect.isFalse(string is !Comparable);
-  Expect.isFalse(string is !Hashable);
   Expect.isFalse(string is !Pattern);
   Expect.isFalse(string is !String);
 
@@ -47,7 +43,6 @@ check(args) {
   Expect.isFalse(nullObject is Collection);
   Expect.isFalse(nullObject is Iterable);
   Expect.isFalse(nullObject is Comparable);
-  Expect.isFalse(nullObject is Hashable);
   Expect.isFalse(nullObject is Pattern);
   Expect.isFalse(nullObject is String);
 
@@ -55,7 +50,6 @@ check(args) {
   Expect.isTrue(nullObject is !Collection);
   Expect.isTrue(nullObject is !Iterable);
   Expect.isTrue(nullObject is !Comparable);
-  Expect.isTrue(nullObject is !Hashable);
   Expect.isTrue(nullObject is !Pattern);
   Expect.isTrue(nullObject is !String);
 }

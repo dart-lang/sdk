@@ -22,6 +22,7 @@ void checkAnnotation(String name, String declaration,
               main() {}""";
 
   compileAndCheck(source, name, (compiler, element) {
+    compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(1, length(element.metadata));
     MetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
@@ -37,6 +38,7 @@ void checkAnnotation(String name, String declaration,
               main() {}""";
 
   compileAndCheck(source, name, (compiler, element) {
+    compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(2, length(element.metadata));
     MetadataAnnotation annotation1 = element.metadata.head;
     MetadataAnnotation annotation2 = element.metadata.tail.head;
@@ -63,6 +65,7 @@ void checkAnnotation(String name, String declaration,
               main() {}""";
 
   compileAndCheck(source, 'Foo', (compiler, element) {
+    compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
     Expect.equals(0, length(element.metadata));
@@ -84,6 +87,7 @@ void checkAnnotation(String name, String declaration,
               main() {}""";
 
   compileAndCheck(source, 'Foo', (compiler, element) {
+    compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
     Expect.equals(0, length(element.metadata));

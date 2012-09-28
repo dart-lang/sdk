@@ -76,7 +76,7 @@ public interface CompilerConfiguration {
   /**
    * Return the system library manager 
    */
-  public PackageLibraryManager getPackageLibraryManager();
+  PackageLibraryManager getPackageLibraryManager();
   
   /**
    * Return {@link CompilerOptions} instance.

@@ -8,7 +8,7 @@
 // stored on Object.prototype.
 
 @native("*A")
-class A  {
+class A {
   @native foo([a=100]);
 }
 

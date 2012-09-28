@@ -5,7 +5,7 @@
 // Test the feature where the native string declares the native method's name.
 
 @native("*A")
-class A  {
+class A {
   @native('fooA') int foo();
   @native('barA') int bar();
   @native('bazA') int baz();

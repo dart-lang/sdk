@@ -10,11 +10,6 @@
 const bool REPORT_EXCESS_RESOLUTION = false;
 
 /**
- * If true, trace information on pass2 optimizations.
- */
-const bool REPORT_PASS2_OPTIMIZATIONS = false;
-
-/**
  * If true, dump the inferred types after compilation.
  */
 const bool DUMP_INFERRED_TYPES = false;
@@ -184,7 +179,6 @@ class Compiler implements DiagnosticListener {
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
   static const int PHASE_COMPILING = 2;
-  static const int PHASE_RECOMPILING = 3;
   int phase;
 
   bool compilationFailed = false;
@@ -578,10 +572,6 @@ class Compiler implements DiagnosticListener {
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
-    log("Recompiling ${enqueuer.codegen.recompilationCandidates.length} "
-        "methods...");
-    phase = PHASE_RECOMPILING;
-    processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
 
     if (compilationFailed) return;
@@ -609,24 +599,11 @@ class Compiler implements DiagnosticListener {
       print("Inferred return types:");
       print("----------------------");
       backend.dumpReturnTypes();
-    }
-  }
-
-  void processRecompilationQueue(Enqueuer world) {
-    assert(phase == PHASE_RECOMPILING);
-    while (!world.recompilationCandidates.isEmpty()) {
-      WorkItem work = world.recompilationCandidates.next();
-      Element element = work.element;
-      CodeBuffer oldCode = world.universe.generatedCode[element];
-      world.universe.generatedCode.remove(element);
-      world.universe.generatedBailoutCode.remove(element);
-      withCurrentElement(element, () => work.run(this, world));
-      CodeBuffer newCode = world.universe.generatedCode[element];
-      if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
-        log("Pass 2 optimization:");
-        log("Before:\n$oldCode");
-        log("After:\n$newCode");
-      }
+      print("");
+      print("Inferred field types:");
+      print("------------------------");
+      backend.fieldTypes.dump();
+      print("");
     }
   }
 
@@ -733,11 +710,7 @@ class Compiler implements DiagnosticListener {
     if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      if (phase == PHASE_COMPILING) {
-        log('Compiled ${codegenWorld.generatedCode.length} methods.');
-      } else {
-        log('Recompiled ${world.recompilationCandidates.processed} methods.');
-      }
+      log('Compiled ${codegenWorld.generatedCode.length} methods.');
       progress.reset();
     }
     backend.codegen(work);

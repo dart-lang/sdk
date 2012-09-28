@@ -44,6 +44,20 @@ public class DartArrayAccess extends DartExpression {
     return target;
   }
 
+  public DartExpression getRealTarget() {
+    if (isCascade) {
+      DartNode ancestor = getParent();
+      while (!(ancestor instanceof DartCascadeExpression)) {
+        if (ancestor == null) {
+          return target;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((DartCascadeExpression) ancestor).getTarget();
+    }
+    return target;
+  }
+
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(target, visitor);

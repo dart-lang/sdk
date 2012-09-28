@@ -9,7 +9,7 @@
 
 // Version 1: It might be possible to call foo directly.
 @native("*A1")
-class A1  {
+class A1 {
   @native foo();
 }
 
@@ -24,7 +24,7 @@ class B1 extends A1  {
 
 // Version 2: foo needs some kind of trampoline.
 @native("*A2")
-class A2  {
+class A2 {
   @native foo([a=99]);
 }
 

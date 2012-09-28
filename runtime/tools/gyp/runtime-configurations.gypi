@@ -11,6 +11,7 @@
     'configurations': {
 
       'Dart_Base': {
+        'abstract': 1,
         'xcode_settings': {
           'GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS': 'YES', # -Woverloaded-virtual
         },
@@ -33,18 +34,21 @@
       },
 
       'Dart_ia32_Base': {
+        'abstract': 1,
         'xcode_settings': {
           'ARCHS': [ 'i386' ],
         },
       },
 
       'Dart_x64_Base': {
+        'abstract': 1,
         'xcode_settings': {
           'ARCHS': [ 'x86_64' ],
         },
       },
 
       'Dart_simarm_Base': {
+        'abstract': 1,
         'xcode_settings': {
           'ARCHS': [ 'i386' ],
           'GCC_OPTIMIZATION_LEVEL': '3',
@@ -52,6 +56,7 @@
       },
 
       'Dart_Release': {
+        'abstract': 1,
         'xcode_settings': {
           'GCC_OPTIMIZATION_LEVEL': '3',
         },

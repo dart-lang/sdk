@@ -154,6 +154,8 @@ class FlowGraphCompiler : public ValueObject {
                              XmmRegister right,
                              Register result);
 
+  void EmitEqualityRegConstCompare(Register reg, const Object& obj);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.

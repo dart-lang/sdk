@@ -7,7 +7,7 @@
 // for the field must be based on the field's name, not the field's jsname.
 
 @native("*A")
-class A  {
+class A {
   int key;                    //  jsname is 'key'
   int getKey() => key;
 }
@@ -19,7 +19,7 @@ class B {
 }
 
 @native("*X")
-class X  {
+class X {
   @native('key') int native_key_method();
   // This should cause B.key to be renamed, but not A.key.
 

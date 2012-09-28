@@ -5,7 +5,7 @@
 // Additional Dart code may be 'placed on' hidden native classes.
 
 @native("*A")
-class A  {
+class A {
 
   var _field;
 

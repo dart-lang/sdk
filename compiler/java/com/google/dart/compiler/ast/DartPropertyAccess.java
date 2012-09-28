@@ -47,6 +47,20 @@ public class DartPropertyAccess extends DartExpression {
     return qualifier;
   }
 
+  public DartNode getRealTarget() {
+    if (isCascade) {
+      DartNode ancestor = getParent();
+      while (!(ancestor instanceof DartCascadeExpression)) {
+        if (ancestor == null) {
+          return qualifier;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((DartCascadeExpression) ancestor).getTarget();
+    }
+    return qualifier;
+  }
+
   public void setName(DartIdentifier newName) {
     name = becomeParentOf(newName);
   }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test using an identity hash.
 
-abstract class BigGame extends Hashable {
+abstract class BigGame {
   String get name;
 }
 
@@ -35,7 +35,7 @@ class Zebra implements BigGame {
 }
 
 
-class SavannahTest  {
+class SavannahTest {
 
   static void testMain() {
     Map<BigGame, String> savannah = new Map<BigGame, String>();

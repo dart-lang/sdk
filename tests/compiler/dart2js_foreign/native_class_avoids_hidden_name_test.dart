@@ -5,13 +5,13 @@
 // Test that hidden native class names are not used by generated code.
 
 @native("*B")
-class A  {
+class A {
   get name => 'A';
   static A create() => makeA();
 }
 
 @native("*C")
-class B  {
+class B {
   get name => 'B';
   static B create() => makeB();
 }

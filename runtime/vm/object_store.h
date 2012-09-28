@@ -55,6 +55,14 @@ class ObjectStore {
     function_type_ = value.raw();
   }
 
+  RawClass* type_class() const { return type_class_; }
+  void set_type_class(const Class& value) { type_class_ = value.raw(); }
+
+  RawClass* type_parameter_class() const { return type_parameter_class_; }
+  void set_type_parameter_class(const Class& value) {
+    type_parameter_class_ = value.raw();
+  }
+
   RawType* number_type() const { return number_type_; }
   void set_number_type(const Type& value) {
     number_type_ = value.raw();
@@ -469,6 +477,8 @@ class ObjectStore {
   RawType* dynamic_type_;
   RawType* void_type_;
   RawType* function_type_;
+  RawClass* type_class_;
+  RawClass* type_parameter_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;

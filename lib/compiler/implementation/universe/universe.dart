@@ -119,7 +119,7 @@ class SelectorKind {
   toString() => name;
 }
 
-class Selector implements Hashable {
+class Selector {
   final SelectorKind kind;
   final SourceString name;
   final LibraryElement library; // Library is null for non-private selectors.
@@ -476,7 +476,7 @@ class TypedSelector extends Selector {
    */
   final DartType receiverType;
 
-  TypedSelector(this.receiverType, Selector selector)
+  TypedSelector(DartType this.receiverType, Selector selector)
     : super(selector.kind,
             selector.name,
             selector.library,

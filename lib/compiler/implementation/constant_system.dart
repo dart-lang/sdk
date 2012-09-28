@@ -10,11 +10,13 @@ interface Operation {
 interface UnaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
   Constant fold(Constant constant);
+  apply(value);
 }
 
 interface BinaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
   Constant fold(Constant left, Constant right);
+  apply(left, right);
 }
 
 /**

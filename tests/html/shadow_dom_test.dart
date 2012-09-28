@@ -9,7 +9,7 @@
 
 main() {
   useHtmlConfiguration();
-  
+
   group('ShadowDOM tests', () {
 
     var div1, div2, shadowRoot, paragraph1, paragraph2;
@@ -39,7 +39,7 @@ main() {
       expect(shadowRoot.parent, isNull);
     });
 
-    
+
     // TODO(samhop): test that <content> and <content select="foo"> and
     // <shadow>
     // work properly. This is blocked on having a good way to do browser
@@ -47,6 +47,6 @@ main() {
 
     test('Querying in shadowed fragment respects the shadow boundary.', () {
       expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
-    }); 
+    });
   });
 }

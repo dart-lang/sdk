@@ -18,7 +18,7 @@ class KeyValuePair<K, V> {
  * when iterating over the keys or the values. Updating the value of a
  * key does not change the order.
  */
-class LinkedHashMapImplementation<K extends Hashable, V>
+class LinkedHashMapImplementation<K, V>
     implements LinkedHashMap<K, V> {
   DoubleLinkedQueue<KeyValuePair<K, V>> _list;
   HashMap<K, DoubleLinkedQueueEntry<KeyValuePair<K, V>>> _map;

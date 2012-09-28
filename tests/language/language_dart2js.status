@@ -58,7 +58,28 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+bad_constructor_test/04: Fail # http://dartbug.com/5519
+bad_constructor_test/05: Fail # http://dartbug.com/5519
+bad_constructor_test/06: Fail # http://dartbug.com/5519
+constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
+external_test/10: Fail # http://dartbug.com/5519
+getter_no_setter2_test/01: Fail # http://dartbug.com/5519
+getter_no_setter_test/01: Fail # http://dartbug.com/5519
+illegal_invocation_test/03: Fail # http://dartbug.com/5519
+isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
+new_expression_type_args_test/01: Fail # http://dartbug.com/5519
+not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
+not_enough_positional_arguments_test/02: Fail # http://dartbug.com/5519
+optional_named_parameters_test/01: Fail # http://dartbug.com/5519
+optional_named_parameters_test/03: Fail # http://dartbug.com/5519
+optional_named_parameters_test/05: Fail # http://dartbug.com/5519
+optional_named_parameters_test/07: Fail # http://dartbug.com/5519
+optional_named_parameters_test/09: Fail # http://dartbug.com/5519
+setter_no_getter_call_test/01: Fail # http://dartbug.com/5519
+setter_no_getter_test/01: Fail # http://dartbug.com/5519
+
 import_combinators_test: Fail
+throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
@@ -97,7 +118,14 @@ char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type
 dynamic_test: Fail # cannot resolve type F1
-factory_redirection_test: Fail # Not implemented.
+factory_redirection_test/none: Fail # Not implemented.
+factory_redirection_test/01: Fail # Not implemented.
+factory_redirection_test/02: Fail # Not implemented.
+factory_redirection_test/03: Fail # Not implemented.
+factory_redirection_test/04: Pass # For the wrong reason. Not implemented.
+factory_redirection_test/05: Fail # Not implemented.
+factory_redirection_test/06: Fail # Not implemented.
+factory_redirection_test/07: Pass # For the wrong reason. Not implemented.
 factory3_test: Fail # internal error: visitIs for type variables not implemented
 function_literals2_test: Fail # Closures inside initializers not implemented.
 function_syntax_test/none: Fail # Closures inside initializers not implemented.
@@ -332,3 +360,4 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 typed_message_test: Fail # http://dartbug.com/5383
+first_class_types_test: Fail # http://dartbug.com/5523

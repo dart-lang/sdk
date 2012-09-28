@@ -37,6 +37,7 @@ String typeNameInFirefox(obj) {
   if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'FormData') return 'DOMFormData';
+  if (name == 'MouseScrollEvent') return 'WheelEvent';
   return name;
 }
 

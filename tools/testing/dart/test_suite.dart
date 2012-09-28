@@ -30,6 +30,14 @@
  */
 typedef bool Predicate<T>(T arg);
 
+typedef void CreateTest(Path filePath,
+                        bool hasCompileError,
+                        bool hasRuntimeError,
+                        {bool isNegativeIfChecked,
+                         bool hasFatalTypeErrors,
+                         Set<String> multitestOutcome});
+
+typedef void VoidFunction();
 
 /**
  * A TestSuite represents a collection of tests.  It creates a [TestCase]
@@ -47,7 +55,7 @@ interface TestSuite {
    * cache information about the test suite, so that directories do not need
    * to be listed each time.
    */
-  void forEachTest(Function onTest, Map testCache, [Function onDone]);
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]);
 }
 
 
@@ -101,8 +109,8 @@ class CCTestSuite implements TestSuite {
   String runnerPath;
   final String dartDir;
   List<String> statusFilePaths;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   ReceivePort receiveTestName;
   TestExpectations testExpectations;
 
@@ -118,7 +126,7 @@ class CCTestSuite implements TestSuite {
   void testNameHandler(String testName, ignore) {
     if (testName == "") {
       receiveTestName.close();
-      doDone(true);
+      doDone();
     } else {
       // Only run the tests that match the pattern. Use the name
       // "suiteName/testName" for cc tests.
@@ -148,9 +156,9 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
     doTest = onTest;
-    doDone = (ignore) => (onDone != null) ? onDone() : null;
+    doDone = () => (onDone != null) ? onDone() : null;
 
     var filesRead = 0;
     void statusFileRead() {
@@ -180,15 +188,16 @@ class CCTestSuite implements TestSuite {
 class TestInformation {
   Path filePath;
   Map optionsFromFile;
-  bool isNegative;
+  bool hasCompileError;
+  bool hasRuntimeError;
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
-  bool hasRuntimeErrors;
   Set<String> multitestOutcome;
 
-  TestInformation(this.filePath, this.optionsFromFile, this.isNegative,
+  TestInformation(this.filePath, this.optionsFromFile,
+                  this.hasCompileError, this.hasRuntimeError,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
-                  this.hasRuntimeErrors, this.multitestOutcome) {
+                  this.multitestOutcome) {
     Expect.isTrue(filePath.isAbsolute);
   }
 }
@@ -203,8 +212,8 @@ class StandardTestSuite implements TestSuite {
   String suiteName;
   Path suiteDir;
   List<String> statusFilePaths;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   int activeTestGenerators = 0;
   bool listingDone = false;
   TestExpectations testExpectations;
@@ -277,7 +286,7 @@ class StandardTestSuite implements TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
+  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]) {
     // If DumpRenderTree/Dartium is required, and not yet updated,
     // wait for update.
     var updater = runtimeUpdater(configuration);
@@ -351,7 +360,10 @@ class StandardTestSuite implements TestSuite {
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
-    var isNegative = info.isNegative;
+    var isNegative = info.hasCompileError;
+    if (info.hasRuntimeError && hasRuntime) {
+      isNegative = true;
+    }
 
     // Look up expectations in status files using a test name generated
     // from the test file's path.
@@ -394,7 +406,12 @@ class StandardTestSuite implements TestSuite {
     }
     if (expectations.contains(SKIP)) return;
 
-    if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
+    if (configuration['compiler'] != 'none' && info.hasCompileError) {
+      // If a compile-time error is expected, and we're testing a
+      // compiler, we never need to attempt to run the program (in a
+      // browser or otherwise).
+      enqueueStandardTest(info, testName, expectations);
+    } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       bool isWrappingRequired = configuration['compiler'] != 'dart2js';
       if (configuration['runtime'] == 'ff' &&
           Platform.operatingSystem == 'windows') {
@@ -410,16 +427,17 @@ class StandardTestSuite implements TestSuite {
   void enqueueStandardTest(TestInformation info,
                            String testName,
                            Set<String> expectations) {
-    bool isNegative = info.isNegative ||
+    bool isNegative = info.hasCompileError ||
         (configuration['checked'] && info.isNegativeIfChecked);
+    if (info.hasRuntimeError && hasRuntime) {
+      isNegative = true;
+    }
 
     if (configuration['compiler'] == 'dartc') {
       // dartc can detect static type warnings by the
       // format of the error line
       if (info.hasFatalTypeErrors) {
         isNegative = true;
-      } else if (info.hasRuntimeErrors) {
-        isNegative = false;
       }
     }
 
@@ -435,9 +453,7 @@ class StandardTestSuite implements TestSuite {
     var commands = [];
     var command = optionsFromFile['extraCommand'];
     var args = optionsFromFile['extraCommandArgs'];
-    if (command != null) {
-      commands.add(new Command(command, args));
-    }
+    addExtraCommand(command, args, commands);
 
     List _append(list1,list2) => []..addAll(list1)..addAll(list2);
 
@@ -448,8 +464,8 @@ class StandardTestSuite implements TestSuite {
                           configuration,
                           completeHandler,
                           expectations,
-                          isNegative,
-                          info));
+                          isNegative: isNegative,
+                          info: info));
     }
   }
 
@@ -460,7 +476,10 @@ class StandardTestSuite implements TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
-      if (configuration['runtime'] == 'd8') {
+      if (info.hasCompileError) {
+        // Do not attempt to run the compiled result. A compilation
+        // error should be reported by the compilation command.
+      } else if (configuration['runtime'] == 'd8') {
         var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['$tempDir/out.js']));
       }
@@ -479,7 +498,10 @@ class StandardTestSuite implements TestSuite {
       compilerArguments.add('--out=$tempDir/out.dart');
       List<Command> commands =
           <Command>[new Command(shellPath(), compilerArguments)];
-      if (configuration['runtime'] == 'vm') {
+      if (info.hasCompileError) {
+        // Do not attempt to run the compiled result. A compilation
+        // error should be reported by the compilation command.
+      } else if (configuration['runtime'] == 'vm') {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
@@ -503,20 +525,32 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  Function makeTestCaseCreator(Map optionsFromFile) {
+  void addExtraCommand(String command, List<String> arguments, List commands) {
+    if (command == null) return;
+    // As a special case, a command of "dart" should run with the
+    // dart VM that we are testing.
+    if (command == 'dart') {
+      command = TestUtils.vmFileName(configuration);
+    }
+    arguments =
+        arguments.map((arg)=>arg.replaceAll(r"$dartDir", dartDir.toString()));
+    commands.add(new Command(command, arguments));
+  }
+
+  CreateTest makeTestCaseCreator(Map optionsFromFile) {
     return (Path filePath,
-            bool isNegative,
-            [bool isNegativeIfChecked = false,
-             bool hasFatalTypeErrors = false,
-             bool hasRuntimeErrors = false,
-             Set<String> multitestOutcome = null]) {
+            bool hasCompileError,
+            bool hasRuntimeError,
+            {bool isNegativeIfChecked: false,
+             bool hasFatalTypeErrors: false,
+             Set<String> multitestOutcome: null}) {
       // Cache the test information for each test case.
       var info = new TestInformation(filePath,
                                      optionsFromFile,
-                                     isNegative,
+                                     hasCompileError,
+                                     hasRuntimeError,
                                      isNegativeIfChecked,
                                      hasFatalTypeErrors,
-                                     hasRuntimeErrors,
                                      multitestOutcome);
       cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);
@@ -533,7 +567,7 @@ class StandardTestSuite implements TestSuite {
     if (filePath.filename.endsWith('test_config.dart')) return;
 
     var optionsFromFile = readOptionsFromFile(filePath);
-    Function createTestCase = makeTestCaseCreator(optionsFromFile);
+    CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
       testGeneratorStarted();
@@ -543,7 +577,9 @@ class StandardTestSuite implements TestSuite {
                   createTestCase,
                   testGeneratorDone);
     } else {
-      createTestCase(filePath, optionsFromFile['isNegative']);
+      createTestCase(filePath,
+                     optionsFromFile['hasCompileError'],
+                     optionsFromFile['hasRuntimeError']);
     }
   }
 
@@ -680,16 +716,8 @@ class StandardTestSuite implements TestSuite {
       }
 
       var extraCommand = optionsFromFile['extraCommand'];
-      if (extraCommand != null) {
-        var args = optionsFromFile['extraCommandArgs'];
-        // As a special case, a command of "dart" should run with the
-        // dart VM that we are testing.
-        if (extraCommand == 'dart') {
-          extraCommand = TestUtils.vmFileName(configuration);
-        }
-        args= args.map((arg)=>arg.replaceAll(r"$dartDir", dartDir.toString()));
-        commands.add(new Command(extraCommand, args));
-      }
+      var extraArgs = optionsFromFile['extraCommandArgs'];
+      addExtraCommand(extraCommand, extraArgs, commands);
 
       // Construct the command that executes the browser test
       List<String> args;
@@ -728,7 +756,7 @@ class StandardTestSuite implements TestSuite {
       // Create BrowserTestCase and queue it.
       var testCase = new BrowserTestCase('$suiteName/$testName',
           commands, configuration, completeHandler, expectations,
-          optionsFromFile['isNegative']);
+          info, info.hasCompileError || info.hasRuntimeError);
       doTest(testCase);
     }
   }
@@ -948,8 +976,11 @@ class StandardTestSuite implements TestSuite {
    *   Expectations can be recorded for the first time by creating an empty file
    *   with the right name (touch test_name_test.png), running the test, and
    *   executing the copy command printed by the test script.
+   *
+   * This method is static as the map is cached and shared amongst
+   * configurations, so it may not use [configuration].
    */
-  Map readOptionsFromFile(Path filePath) {
+  static Map readOptionsFromFile(Path filePath) {
     RegExp testOptionsRegExp = const RegExp(r"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = const RegExp(r"// OtherScripts=(.*)");
@@ -989,7 +1020,8 @@ class StandardTestSuite implements TestSuite {
     // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
-    bool isNegative = false;
+    bool hasCompileError = contents.contains("@compile-error");
+    bool hasRuntimeError = contents.contains("@runtime-error");
     bool isStaticClean = false;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
@@ -1027,14 +1059,6 @@ class StandardTestSuite implements TestSuite {
       otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
     }
 
-    if (contents.contains("@compile-error")) {
-      isNegative = true;
-    }
-
-    if (contents.contains("@runtime-error") && hasRuntime) {
-      isNegative = true;
-    }
-
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1053,7 +1077,8 @@ class StandardTestSuite implements TestSuite {
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
-             "isNegative": isNegative,
+             "hasCompileError": hasCompileError,
+             "hasRuntimeError": hasRuntimeError,
              "isStaticClean" : isStaticClean,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
@@ -1134,8 +1159,8 @@ class JUnitTestSuite implements TestSuite {
   String buildDir;
   String classPath;
   List<String> testClasses;
-  Function doTest;
-  Function doDone;
+  TestCaseEvent doTest;
+  VoidFunction doDone;
   TestExpectations testExpectations;
 
   JUnitTestSuite(Map this.configuration,
@@ -1148,9 +1173,9 @@ class JUnitTestSuite implements TestSuite {
       !filename.contains('com/google/dart/compiler/vm') &&
       !filename.contains('com/google/dart/corelib/SharedTests.java');
 
-  void forEachTest(Function onTest,
+  void forEachTest(TestCaseEvent onTest,
                    Map testCacheIgnored,
-                   [Function onDone = null]) {
+                   [VoidFunction onDone]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
 

@@ -14,7 +14,12 @@ namespace dart {
 
 ObjectStore::ObjectStore()
   : object_class_(Class::null()),
+    object_type_(Type::null()),
+    null_type_(Type::null()),
+    dynamic_type_(Type::null()),
+    void_type_(Type::null()),
     function_type_(Type::null()),
+    type_class_(Class::null()),
     number_type_(Type::null()),
     int_type_(Type::null()),
     integer_implementation_class_(Class::null()),

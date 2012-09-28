@@ -131,9 +131,7 @@ abstract class _ByteArrayBase {
   }
 
   Collection map(f(element)) {
-    return Collections.map(this,
-                           new GrowableObjectArray.withCapacity(length),
-                           f);
+    return Collections.map(this, new List(), f);
   }
 
   Dynamic reduce(Dynamic initialValue,
@@ -142,7 +140,7 @@ abstract class _ByteArrayBase {
   }
 
   Collection filter(bool f(element)) {
-    return Collections.filter(this, new GrowableObjectArray(), f);
+    return Collections.filter(this, new List(), f);
   }
 
   bool every(bool f(element)) {
@@ -1610,9 +1608,7 @@ class _ByteArrayViewBase {
   }
 
   Collection map(f(element)) {
-    return Collections.map(this,
-                           new GrowableObjectArray.withCapacity(length),
-                           f);
+    return Collections.map(this, new List(), f);
   }
 
   Dynamic reduce(Dynamic initialValue,
@@ -1621,7 +1617,7 @@ class _ByteArrayViewBase {
   }
 
   Collection filter(bool f(element)) {
-    return Collections.filter(this, new GrowableObjectArray(), f);
+    return Collections.filter(this, new List(), f);
   }
 
   bool every(bool f(element)) {

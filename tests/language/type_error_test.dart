@@ -153,11 +153,11 @@ checkCastError(o) {
   } on TypeError catch (e) {
     print('unexpected type error: ${NoSuchMethodError.safeToString(e)}');
     throw; // Unexpected type error.
-  } on CastException catch (e) {
+  } on CastError catch (e) {
     print(e); // This might provoke an error.
     return; // Expected a cast error.
   }
-  throw 'expected CastException';
+  throw 'expected CastError';
 }
 
 bool assertionsEnabled = false;

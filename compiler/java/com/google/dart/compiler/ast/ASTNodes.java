@@ -35,6 +35,53 @@ import java.util.List;
  * {@link DartNode} and its subclasses).
  */
 public class ASTNodes {
+
+  /**
+   * @return <code>true</code> if given {@link DartNode} is part of static method or top-level
+   *         function.
+   */
+  public static boolean isStaticContext(DartNode node ) {
+    while (node != null) {
+      DartNode parent = node.getParent();
+      if (node instanceof DartMethodDefinition) {
+        DartMethodDefinition method = (DartMethodDefinition) node;
+        if (method.getModifiers().isStatic()) {
+          return true;
+        }
+        return parent instanceof DartUnit;
+      }
+      if (node instanceof DartField) {
+        DartField field = (DartField) node;
+        if (field.getModifiers().isStatic() || field.getModifiers().isConstant()) {
+          return true;
+        }
+        return parent != null && parent.getParent() instanceof DartUnit;
+      }
+      node = parent;
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link DartNode} is part of factory method.
+   */
+  public static boolean isFactoryContext(DartNode node) {
+    while (node != null) {
+      if (node instanceof DartMethodDefinition) {
+        DartMethodDefinition method = (DartMethodDefinition) node;
+        return method.getModifiers().isFactory();
+      }
+      node = node.getParent();
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link DartNode} is part of static method or factory.
+   */
+  public static boolean isStaticOrFactoryContext(DartNode node) {
+    return isFactoryContext(node) || isStaticContext(node);
+  }
   
   /**
    * Returns complete field access node for given field name.

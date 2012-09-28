@@ -39,6 +39,8 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   private final SourceInfo nameLocation;
   private final String declarationNameWithTypeParameter;
   private List<Element> unimplementedMembers;
+  private final int openBraceOffset;
+  private final int closeBraceOffset;
 
   // declared volatile for thread-safety
   @SuppressWarnings("unused")
@@ -67,12 +69,16 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       modifiers = node.getModifiers();
       nameLocation = node.getName().getSourceInfo();
       declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
+      openBraceOffset = node.getOpenBraceOffset();
+      closeBraceOffset = node.getCloseBraceOffset();
     } else {
       isInterface = false;
       metadata = DartObsoleteMetadata.EMPTY;
       modifiers = Modifiers.NONE;
       nameLocation = SourceInfo.UNKNOWN;
       declarationNameWithTypeParameter = "";
+      openBraceOffset = -1;
+      closeBraceOffset = -1;
     }
   }
 
@@ -286,19 +292,6 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   }
 
   @Override
-  public boolean isAbstract() {
-    if (modifiers.isAbstract()) {
-      return true;
-    }
-    for (Element element : getMembers()) {
-      if (element.getModifiers().isAbstract()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public EnclosingElement getEnclosingElement() {
     return library;
   }
@@ -391,5 +384,15 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   @Override
   public void setUnimplementedMembers(List<Element> members) {
     this.unimplementedMembers = members;
+  }
+  
+  @Override
+  public int getOpenBraceOffset() {
+    return openBraceOffset;
+  }
+  
+  @Override
+  public int getCloseBraceOffset() {
+    return closeBraceOffset;
   }
 }

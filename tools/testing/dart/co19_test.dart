@@ -24,8 +24,7 @@
 
 #import("../../../tests/co19/test_config.dart");
 
-const List<String> COMMON_ARGUMENTS =
-    const <String>['--report', '-pcolor', '--time'];
+const List<String> COMMON_ARGUMENTS = const <String>['--report'];
 
 const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease,debug', '-rvm', '-cnone'],
@@ -55,8 +54,6 @@ void main() {
   var firstConfiguration = configurations[0];
   Map<String, RegExp> selectors = firstConfiguration['selectors'];
   var maxProcesses = firstConfiguration['tasks'];
-  var progressIndicator = firstConfiguration['progress'];
-  var printTiming = firstConfiguration['time'];
   var verbose = firstConfiguration['verbose'];
   var listTests = firstConfiguration['list'];
 
@@ -79,9 +76,9 @@ void main() {
 
   // Start process queue.
   var queue = new ProcessQueue(maxProcesses,
-                               progressIndicator,
+                               'diff',
                                startTime,
-                               printTiming,
+                               false,
                                enqueueConfiguration,
                                verbose,
                                listTests);

@@ -37,7 +37,7 @@ class HValidator extends HInstructionVisitor {
       markInvalid("Conditional node without two successors");
     }
     if (block.last is HGoto && block.successors.length != 1) {
-      markInvalid("Goto node without one successor");
+      markInvalid("Goto node with not exactly one successor");
     }
     if (block.last is HJump && block.successors.length != 1) {
       markInvalid("Break or continue node without one successor");

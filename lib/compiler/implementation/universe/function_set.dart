@@ -123,7 +123,7 @@ class FunctionSet extends PartialTypeTree {
     root.visitRecursively((FunctionSetNode node) {
       node.membersByName.forEach(
           (SourceString _, Element element) => f(element));
-        return true;
+      return true;
     });
   }
 }

@@ -11,12 +11,12 @@
 // arguments to be passed.
 
 @native("*A")
-class A  {
+class A {
   @native int foo(int x);
 }
 
 @native("*B")
-class B  {
+class B {
   @native int foo([x, y, z]);
 }
 

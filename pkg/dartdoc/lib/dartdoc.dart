@@ -801,11 +801,15 @@ class Dartdoc {
 
     startFile(typeUrl(type));
 
-    var kind = 'Interface';
+    var kind = 'interface';
     if (type.isTypedef) {
-      kind = 'Typedef';
+      kind = 'typedef';
     } else if (type.isClass) {
-      kind = 'Class';
+      if (type.isAbstract) {
+        kind = 'abstract class';
+      } else {
+        kind = 'class';
+      }
     }
 
     final typeTitle =
@@ -1048,9 +1052,11 @@ class Dartdoc {
     _totalMembers++;
     _currentMember = method;
 
+    bool showCode = includeSource && !method.isAbstract;
+
     writeln('<div class="method"><h4 id="${memberAnchor(method)}">');
 
-    if (includeSource) {
+    if (showCode) {
       writeln('<span class="show-code">Code</span>');
     }
 
@@ -1060,6 +1066,8 @@ class Dartdoc {
       } else {
         write(method.isConst ? 'const ' : 'new ');
       }
+    } else if (method.isAbstract) {
+      write('abstract ');
     }
 
     if (method.constructorName == null) {
@@ -1093,7 +1101,7 @@ class Dartdoc {
               title="Permalink to $prefix$name">#</a>''');
     writeln('</h4>');
 
-    docCode(method.location, getMethodComment(method), showCode: true);
+    docCode(method.location, getMethodComment(method), showCode: showCode);
 
     writeln('</div>');
   }

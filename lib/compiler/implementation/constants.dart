@@ -16,7 +16,7 @@ abstract class ConstantVisitor<R> {
   R visitConstructed(ConstructedConstant constant);
 }
 
-class Constant implements Hashable {
+class Constant {
   const Constant();
 
   bool isNull() => false;

@@ -4,6 +4,6 @@
 
 class $FACTORYPROVIDER {
   static ShadowRoot createShadowRoot(Element host) native '''
-      return new WebKitShadowRoot(host);
+      return new (window.ShadowRoot || window.WebKitShadowRoot)(host);
     ''';
 }

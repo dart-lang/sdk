@@ -16,15 +16,20 @@ _js_custom_members = set([
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
     'Element.insertAdjacentText',
+    'Element.remove',
+    'ElementEvents.mouseWheel',
     'IDBDatabase.transaction',
     'IFrameElement.contentWindow',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'TableElement.createTBody',
     'Window.document',
-    'Window.top',
+    'Window.indexedDB',
     'Window.location',
     'Window.open',
+    'Window.top',
+    'Window.webkitCancelAnimationFrame',
+    'Window.webkitRequestAnimationFrame',
     ])
 
 # This map controls merging of interfaces in dart:html library.
@@ -217,8 +222,6 @@ _html_event_names = {
   'writeend': 'writeEnd',
   'writestart': 'writeStart'
 }
-
-
 
 # Information for generating element constructors.
 #
@@ -438,26 +441,16 @@ class HtmlSystemShared(object):
 
 
 class HtmlInterfacesSystem(System):
-  def __init__(self, options, dart_library_generator, backend):
+  def __init__(self, options, dart_library_generator, backend_factory):
     super(HtmlInterfacesSystem, self).__init__(options)
     self._dart_library_generator = dart_library_generator
-    self._backend = backend
+    self._backend_factory = backend_factory
     self._shared = HtmlSystemShared(options)
-    self._dart_file_paths = []
     self._elements_factory_emitter = None
 
   def ProcessInterface(self, interface):
-    HtmlDartInterfaceGenerator(self, interface).Generate()
-
-  def ProcessCallback(self, interface, info):
-    """Generates a typedef for the callback interface."""
-    code = self._CreateEmitter('%s.dart' % interface.id)
-    code.Emit(self._templates.Load('callback.darttemplate'))
-    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
-              NAME=interface.id,
-              TYPE=DartType(info.type_name),
-              PARAMS=info.ParametersImplementationDeclaration(DartType))
-    self._backend.ProcessCallback(interface, info)
+    backend = self._backend_factory(interface)
+    HtmlDartInterfaceGenerator(self, interface, backend).Generate()
 
   def _CreateEmitter(self, filename):
     return self._dart_library_generator.CreateFileEmitter(filename)
@@ -467,16 +460,28 @@ class HtmlInterfacesSystem(System):
 class HtmlDartInterfaceGenerator(BaseGenerator):
   """Generates dart interface and implementation for the DOM IDL interface."""
 
-  def __init__(self, system, interface):
+  def __init__(self, system, interface, backend):
     super(HtmlDartInterfaceGenerator, self).__init__(
-        system._database, interface)
+        system._database, system._type_registry, interface)
     self._system = system
+    self._backend = backend
     self._shared = system._shared
     self._html_interface_name = system._renamer.RenameInterface(self._interface)
-    self._backend = system._backend.ImplementationGenerator(self._interface)
+
+  def GenerateCallback(self, info):
+    """Generates a typedef for the callback interface."""
+    code = self._system._CreateEmitter('%s.dart' % self._interface.id)
+    code.Emit(self._system._templates.Load('callback.darttemplate'))
+    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
+              NAME=self._interface.id,
+              TYPE=DartType(info.type_name),
+              PARAMS=info.ParametersImplementationDeclaration(DartType))
+    self._backend.GenerateCallback(info)
 
   def StartInterface(self):
-    if not self._interface.id in _merged_html_interfaces:
+    if (not self._interface.id in _merged_html_interfaces and
+        # Don't re-generate types that have been converted to native dart types.
+        self._html_interface_name not in nativified_classes):
       path = '%s.dart' % self._html_interface_name
       self._interface_emitter = self._system._CreateEmitter(path)
     else:
@@ -560,7 +565,10 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
     if self._backend.HasImplementation():
       if not self._interface.id in _merged_html_interfaces:
-        filename = '%sImpl.dart' % self._html_interface_name
+        name = self._html_interface_name
+        if self._html_interface_name in nativified_classes:
+          name = nativified_classes[self._html_interface_name]
+        filename = '%sImpl.dart' % name
       else:
         filename = '%sImpl_Merged.dart' % self._html_interface_name
       self._implementation_emitter = self._system._CreateEmitter(filename)
@@ -711,12 +719,16 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         PARENTS=', '.join(
             self._shared.GetParentsEventsClasses(self._interface)))
 
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    implementation_events_members = self._implementation_emitter.Emit(
+    template_file = 'impl_%s.darttemplate' % events_interface
+    template = (self._system._templates.TryLoad(template_file) or
         '\n'
         'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
         '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n',
+        '$!MEMBERS}\n')
+
+    # TODO(jacobr): specify the type of _ptr as EventTarget
+    implementation_events_members = self._implementation_emitter.Emit(
+        template,
         CLASSNAME=events_class,
         INTERFACE=events_interface,
         SUPER=parent_events_class)
@@ -724,13 +736,15 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
     for event_name in event_attrs:
       if event_name in _html_event_names:
+        dart_event_name = _html_event_names[event_name]
         events_members.Emit('\n  EventListenerList get $NAME;\n',
-          NAME=_html_event_names[event_name])
-        implementation_events_members.Emit(
-            "\n"
-            "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
-            NAME=_html_event_names[event_name],
-            DOM_NAME=event_name)
+          NAME=dart_event_name)
+        if not self._backend.HasCustomEventImplementation(dart_event_name):
+          implementation_events_members.Emit(
+              "\n"
+              "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
+              NAME=dart_event_name,
+              DOM_NAME=event_name)
       else:
         raise Exception('No known html even name for event: ' + event_name)
 
@@ -760,15 +774,14 @@ class HtmlGeneratorDummyBackend(object):
 
 # TODO(jmesserly): inheritance is probably not the right way to factor this long
 # term, but it makes merging better for now.
-class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
+class Dart2JSBackend(Dart2JSInterfaceGenerator):
   """Generates a dart2js class for the dart:html library from a DOM IDL
   interface.
   """
 
-  def __init__(self, system, interface):
-    super(HtmlDart2JSClassGenerator, self).__init__(
-        system, interface, None, None)
-    self._html_interface_name = system._renamer.RenameInterface(self._interface)
+  def __init__(self, interface, options):
+    super(Dart2JSBackend, self).__init__(options, interface, None, None)
+    self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
     return not (IsPureInterface(self._interface.id) or
@@ -784,7 +797,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     return True
 
   def _ImplClassName(self, type_name):
-    return '_%sImpl' % type_name
+    name = type_name
+    if type_name in nativified_classes:
+      name = nativified_classes[type_name]
+    return '_%sImpl' % name
 
   def StartInterface(self):
     interface = self._interface
@@ -817,8 +833,8 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
       implements.append('JavaScriptIndexingBehavior')
 
     template_file = 'impl_%s.darttemplate' % self._html_interface_name
-    template = (self._system._templates.TryLoad(template_file) or
-                self._system._templates.Load('dart2js_impl.darttemplate'))
+    template = (self._template_loader.TryLoad(template_file) or
+                self._template_loader.Load('dart2js_impl.darttemplate'))
     self._members_emitter = self._dart_code.Emit(
         template,
         #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -837,9 +853,9 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
                      self._html_interface_name)
-    template = self._system._templates.TryLoad(template_file)
+    template = self._template_loader.TryLoad(template_file)
     if not template:
-      template = self._system._templates.Load('factoryprovider.darttemplate')
+      template = self._template_loader.Load('factoryprovider.darttemplate')
 
     emitter.Emit(
         template,
@@ -894,7 +910,7 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     if self._interface.id != 'NodeList':
       template_file = 'immutable_list_mixin.darttemplate'
-      template = self._system._templates.Load(template_file)
+      template = self._template_loader.Load(template_file)
       self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def AddAttribute(self, attribute, html_name, read_only):
@@ -1210,6 +1226,10 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     member_name = '%s.%s' % (self._html_interface_name, member_name)
     return member_name in _js_custom_members
 
+  def HasCustomEventImplementation(self, member_name):
+    member_name = '%sEvents.%s' % (self._html_interface_name, member_name)
+    return member_name in _js_custom_members
+
   def _HasJavaScriptIndexingBehaviour(self):
     """Returns True if the native object has an indexer and length property."""
     (element_type, requires_indexer) = ListImplementationInfo(
@@ -1217,16 +1237,8 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     if element_type and requires_indexer: return True
     return False
 
+
 # ------------------------------------------------------------------------------
-
-class HtmlDart2JSSystem(System):
-
-  def __init__(self, options):
-    super(HtmlDart2JSSystem, self).__init__(options)
-
-  def ImplementationGenerator(self, interface):
-    return HtmlDart2JSClassGenerator(self, interface)
-
 
 class DartLibraryEmitter():
   def __init__(self, emitters, template, dart_sources_dir):

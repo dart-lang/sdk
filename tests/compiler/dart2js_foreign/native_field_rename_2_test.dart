@@ -23,7 +23,7 @@ class B implements I {
 }
 
 @native("*X")
-class X  {
+class X {
   @native('key') int native_key_method();
   // This should cause B.key to be renamed, but not A.key.
   @native('key') int key();

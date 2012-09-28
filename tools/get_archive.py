@@ -315,6 +315,12 @@ def TooEarlyError():
   sys.exit(1)
 
 
+def CopyDrtFont(drt_dir):
+  if platform.system() != 'Windows':
+    return
+  shutil.copy('third_party/drt_resources/AHEM____.TTF', drt_dir)
+
+
 def main():
   parser = optparse.OptionParser(usage='usage: %prog [options] download_name')
   parser.add_option('-r', '--revision', dest='revision',
@@ -341,6 +347,7 @@ def main():
     GetDartiumRevision('DumpRenderTree', DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
                          args.revision)
+    CopyDrtFont(DRT_DIR)
   else:
     print ('Please specify the target you wish to download from Google Storage '
         '("drt", "dartium", "chromedriver", or "sdk")')

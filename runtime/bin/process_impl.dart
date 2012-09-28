@@ -29,7 +29,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
       throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
-    _arguments = new ObjectArray<String>(len);
+    _arguments = new List<String>(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
@@ -282,7 +282,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
   }
 
   String _path;
-  ObjectArray<String> _arguments;
+  List<String> _arguments;
   String _workingDirectory;
   List<String> _environment;
   // Private methods of _Socket are used by _in, _out, and _err.

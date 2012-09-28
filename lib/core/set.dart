@@ -69,7 +69,7 @@ abstract class Set<E> extends Collection<E> {
 
 }
 
-abstract class HashSet<E extends Hashable> extends Set<E> {
+abstract class HashSet<E> extends Set<E> {
   factory HashSet() => new HashSetImplementation<E>();
 
   /**

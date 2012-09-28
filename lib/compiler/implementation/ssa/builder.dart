@@ -47,6 +47,8 @@ class Interceptors {
   // use this function.
   Element getStaticInterceptorBySelector(Selector selector) {
     if (selector.isGetter()) {
+      // TODO(lrn): If there is no get-interceptor, but there is a
+      // method-interceptor, we should generate a get-interceptor automatically.
       return getStaticGetInterceptor(selector.name);
     } else if (selector.isSetter()) {
       return getStaticSetInterceptor(selector.name);
@@ -1332,7 +1334,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // for us here?
       LibraryElement library = body.getLibrary();
       Selector selector = new Selector.call(name, library, arity);
-      add(new HInvokeDynamicMethod(selector, bodyCallInputs));
+      HInstruction invoke = new HInvokeDynamicMethod(selector, bodyCallInputs);
+      invoke.element = body;
+      add(invoke);
     }
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();
@@ -3807,22 +3811,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
-    List<HBasicBlock> blocks = <HBasicBlock>[];
-    blocks.add(close(tryInstruction));
+    close(tryInstruction);
 
-    HBasicBlock tryBody = graph.addNewBlock();
-    enterBlock.addSuccessor(tryBody);
-    open(tryBody);
+    HBasicBlock startTryBlock;
+    HBasicBlock endTryBlock;
+    HBasicBlock startCatchBlock;
+    HBasicBlock endCatchBlock;
+    HBasicBlock startFinallyBlock;
+    HBasicBlock endFinallyBlock;
+
+    startTryBlock = graph.addNewBlock();
+    open(startTryBlock);
     visit(node.tryBlock);
-    if (!isAborted()) blocks.add(close(new HGoto()));
-    SubGraph bodyGraph = new SubGraph(tryBody, lastOpenedBlock);
+    if (!isAborted()) endTryBlock = close(new HGoto());
+    SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
     SubGraph catchGraph = null;
     HParameterValue exception = null;
+
     if (!node.catchBlocks.isEmpty()) {
       localsHandler = new LocalsHandler.from(savedLocals);
-      HBasicBlock block = graph.addNewBlock();
-      enterBlock.addSuccessor(block);
-      open(block);
+      startCatchBlock = graph.addNewBlock();
+      open(startCatchBlock);
       // Note that the name of this element is irrelevant.
       Element element = new Element(
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
@@ -3896,29 +3905,53 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       CatchBlock firstBlock = link.head;
       handleIf(node, () { pushCondition(firstBlock); }, visitThen, visitElse);
-      if (!isAborted()) blocks.add(close(new HGoto()));
+      if (!isAborted()) endCatchBlock = close(new HGoto());
 
       rethrowableException = oldRethrowableException;
-      tryInstruction.catchBlock = block;
-      catchGraph = new SubGraph(block, lastOpenedBlock);
+      tryInstruction.catchBlock = startCatchBlock;
+      catchGraph = new SubGraph(startCatchBlock, lastOpenedBlock);
     }
 
     SubGraph finallyGraph = null;
     if (node.finallyBlock != null) {
       localsHandler = new LocalsHandler.from(savedLocals);
-      HBasicBlock finallyBlock = graph.addNewBlock();
-      enterBlock.addSuccessor(finallyBlock);
-      open(finallyBlock);
+      startFinallyBlock = graph.addNewBlock();
+      open(startFinallyBlock);
       visit(node.finallyBlock);
-      if (!isAborted()) blocks.add(close(new HGoto()));
-      tryInstruction.finallyBlock = finallyBlock;
-      finallyGraph = new SubGraph(finallyBlock, lastOpenedBlock);
+      if (!isAborted()) endFinallyBlock = close(new HGoto());
+      tryInstruction.finallyBlock = startFinallyBlock;
+      finallyGraph = new SubGraph(startFinallyBlock, lastOpenedBlock);
     }
 
     HBasicBlock exitBlock = graph.addNewBlock();
 
-    for (HBasicBlock block in blocks) {
-      block.addSuccessor(exitBlock);
+    addOptionalSuccessor(b1, b2) { if (b2 != null) b1.addSuccessor(b2); }
+
+    // Setup all successors. The entry block that contains the [HTry]
+    // has 1) the body, 2) the catch, 3) the finally, and 4) the exit
+    // blocks as successors.
+    enterBlock.addSuccessor(startTryBlock);
+    addOptionalSuccessor(enterBlock, startCatchBlock);
+    addOptionalSuccessor(enterBlock, startFinallyBlock);
+    enterBlock.addSuccessor(exitBlock);
+
+    // The body has either the catch or the finally block as successor.
+    if (endTryBlock != null) {
+      assert(startCatchBlock != null || startFinallyBlock != null);
+      endTryBlock.addSuccessor(
+          startCatchBlock != null ? startCatchBlock : startFinallyBlock);
+    }
+
+    // The catch block has either the finally or the exit block as
+    // successor.
+    if (endCatchBlock != null) {
+      endCatchBlock.addSuccessor(
+          startFinallyBlock != null ? startFinallyBlock : exitBlock);
+    }
+
+    // The finally block has the exit block as successor.
+    if (endFinallyBlock != null) {
+      endFinallyBlock.addSuccessor(exitBlock);
     }
 
     // Use the locals handler not altered by the catch and finally

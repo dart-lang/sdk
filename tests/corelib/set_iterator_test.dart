@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class FixedHashCode implements Hashable {
+class FixedHashCode {
   final int _hashCode;
   const FixedHashCode(this._hashCode);
   int hashCode() { return _hashCode; }

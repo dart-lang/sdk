@@ -206,24 +206,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       value->value.as_array.values[i] = ReadObjectRef();
     }
     return value;
-  } else if (class_id == kGrowableObjectArrayCid) {
-    // A GrowableObjectArray is serialized as its length followed by its backing
-    // store. The backing store is an array with a length which might be longer
-    // than the length of the GrowableObjectArray.
-    intptr_t len = ReadSmiValue();
-    Dart_CObject* value = GetBackRef(object_id);
-    ASSERT(value == NULL);
-    // Allocate an empty array for the GrowableObjectArray which will be updated
-    // to point to the content when the backing store has been deserialized.
-    value = AllocateDartCObjectArray(0);
-    AddBackRef(object_id, value, kIsDeserialized);
-    // Read the content of the GrowableObjectArray.
-    Dart_CObject* content = ReadObjectImpl();
-    ASSERT(content->type == Dart_CObject::kArray);
-    // Make the empty array allocated point to the backing store content.
-    value->value.as_array.length = len;
-    value->value.as_array.values = content->value.as_array.values;
-    return value;
   }
 
   return ReadInternalVMObject(class_id, object_id);
@@ -285,6 +267,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     AddBackRef(object_id, value, kIsNotDeserialized);
     return value;
   }
+
   intptr_t tags = ReadIntptrValue();
   USE(tags);
 
@@ -389,6 +372,28 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
         }
       }
       return object;
+    }
+    case kGrowableObjectArrayCid: {
+      // A GrowableObjectArray is serialized as its length followed by
+      // its backing store. The backing store is an array with a
+      // length which might be longer than the length of the
+      // GrowableObjectArray.
+      intptr_t len = ReadSmiValue();
+
+      Dart_CObject* value = GetBackRef(object_id);
+      ASSERT(value == NULL);
+      // Allocate an empty array for the GrowableObjectArray which
+      // will be updated to point to the content when the backing
+      // store has been deserialized.
+      value = AllocateDartCObjectArray(0);
+      AddBackRef(object_id, value, kIsDeserialized);
+      // Read the content of the GrowableObjectArray.
+      Dart_CObject* content = ReadObjectImpl();
+      ASSERT(content->type == Dart_CObject::kArray);
+      // Make the empty array allocated point to the backing store content.
+      value->value.as_array.length = len;
+      value->value.as_array.values = content->value.as_array.values;
+      return value;
     }
     default:
       // Everything else not supported.

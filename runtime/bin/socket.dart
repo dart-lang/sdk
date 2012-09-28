@@ -34,7 +34,7 @@ abstract class ServerSocket {
 }
 
 
-abstract class Socket implements Hashable {
+abstract class Socket {
   /**
    * Constructs a new socket and initiate connecting it to the given
    * host on the given port. The returned socket is not yet connected

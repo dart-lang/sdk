@@ -1469,12 +1469,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     SourceString name = node.selector.name;
     String methodName;
     List<js.Expression> arguments;
+    Element target = node.element;
 
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
-    if (node.inputs[0] is HForeignNew) {
-      // TODO(ahe): The constructor name was statically resolved in
-      // SsaBuilder.buildFactory. Is there a cleaner way to do this?
+    if (target != null && target.isGenerativeConstructorBody()) {
       methodName = name.slowToString();
       arguments = visitArguments(node.inputs);
     } else {
@@ -1490,7 +1489,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
       // with the same arguments.
-      Element target = node.element;
       if (target === null || target.isGetter()) {
         // TODO(kasperl): If we have a typed selector for the call, we
         // may know something about the types of closures that need
@@ -1530,8 +1528,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector setter = node.selector;
     String name = backend.namer.setterName(setter.library, setter.name);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    world.registerDynamicSetter(
-        setter.name, getOptimizedSelectorFor(node, setter));
+    Selector selector = getOptimizedSelectorFor(node, setter);
+    world.registerDynamicSetter(setter.name, selector);
+    backend.addedDynamicSetter(selector, types[node.inputs[1]]);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1640,33 +1639,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    if (work.element.isGenerativeConstructorBody() &&
-        node.element.isMember() &&
-        node.value.hasGuaranteedType() &&
-        node.block.dominates(currentGraph.exit)) {
-      backend.updateFieldConstructorSetters(node.element,
-                                            node.value.guaranteedType);
-    }
     String name = backend.namer.getName(node.element);
     DartType type = types[node.receiver].computeType(compiler);
     if (type != null) {
+      // Field setters in the generative constructor body are handled in a
+      // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(
             node.element.name, node.element.getLibrary(), type);
-      }
-      // Determine the types seen so far for the field. If only number
-      // types have been seen and the value of the field set is a
-      // simple number computation only depending on that field, we
-      // can safely keep the number type for the field.
-      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
-      HType initializersType =
-          backend.typeFromInitializersSoFar(node.element);
-      HType fieldType = fieldSettersType.union(initializersType);
-      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
-          isSimpleFieldNumberComputation(node.value, node)) {
-        backend.updateFieldSetters(node.element, HType.NUMBER);
-      } else {
-        backend.updateFieldSetters(node.element, types[node.value]);
+        backend.registerFieldSetter(
+            work.element, node.element, types[node.value]);
       }
     }
     use(node.receiver);
@@ -1705,14 +1687,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    int j = 0;
-    node.element.forEachInstanceField(
-      includeBackendMembers: true,
-      includeSuperMembers: true,
-      f: (ClassElement enclosingClass, Element member) {
-        backend.updateFieldInitializers(member, types[node.inputs[j]]);
-        j++;
-      });
     String jsClassReference = backend.namer.isolateAccess(node.element);
     List<HInstruction> inputs = node.inputs;
     // We can't use 'visitArguments', since our arguments start at input[0].
@@ -1918,6 +1892,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  visitRangeConversion(HRangeConversion node) {
+    // Range conversion instructions are removed by the value range
+    // analyzer.
+    assert(false);
+  }
+
   visitBoundsCheck(HBoundsCheck node) {
     // TODO(ngeoffray): Separate the two checks of the bounds check, so,
     // e.g., the zero checks can be shared if possible.
@@ -1926,18 +1906,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // completely.
     assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
     if (node.staticChecks != HBoundsCheck.ALWAYS_FALSE) {
-      js.Binary under;
+      js.Expression under;
+      js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
-        assert(node.staticChecks == HBoundsCheck.FULL_CHECK);
         use(node.index);
         under = new js.Binary("<", pop(), new js.LiteralNumber("0"));
       }
-      use(node.index);
-      js.Expression index = pop();
-      use(node.length);
-      js.Binary over = new js.Binary(">=", index, pop());
-      js.Binary underOver =
-          under == null ? over : new js.Binary("||", under, over);
+      if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
+        var index = node.index;
+        use(index);
+        js.Expression jsIndex = pop();
+        use(node.length);
+        over = new js.Binary(">=", jsIndex, pop());
+      }
+      assert(over != null || under != null);
+      js.Expression underOver = under == null
+          ? over
+          : over == null
+              ? under
+              : new js.Binary("||", under, over);
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;

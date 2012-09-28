@@ -7,7 +7,7 @@ typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
 @native("*A")
-class A  {
+class A {
   @native foo0(Callback0 closure);
   @native foo1(Callback1 closure, arg1);
   @native foo2(Callback2 closure, arg1, arg2);

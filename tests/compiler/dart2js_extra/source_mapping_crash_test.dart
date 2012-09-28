@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('source_mapping_crash_test');
+
 #source('source_mapping_crash_source.dart');
 
 class Sub extends Super {

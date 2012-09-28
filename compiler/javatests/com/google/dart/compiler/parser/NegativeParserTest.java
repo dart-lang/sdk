@@ -505,6 +505,15 @@ public class NegativeParserTest extends CompilerTestCase {
         parserRunner.getDartUnit().toSource());
   }
 
+  public void test_formalParameters_const() throws Exception {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "func_const(const x) {}",
+            "func_constTyped(const int $) {}"),
+        errEx(ParserErrorCode.FORMAL_PARAMETER_IS_CONST, 1, 12, 5),
+        errEx(ParserErrorCode.FORMAL_PARAMETER_IS_CONST, 2, 17, 5));
+  }
+
   /**
    * Test with variants of function declarations and function literal invocations.
    */

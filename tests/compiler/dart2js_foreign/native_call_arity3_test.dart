@@ -7,12 +7,12 @@
 // do not have a default value for the native methods.
 
 @native("*A")
-class A  {
+class A {
   @native int foo(int x);
 }
 
 @native("*B")
-class B  {
+class B {
   @native int foo([x = null, y, z = null]);
 }
 

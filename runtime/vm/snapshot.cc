@@ -511,12 +511,12 @@ RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {
 
 
 RawType* SnapshotReader::NewType() {
-  ALLOC_NEW_OBJECT(Type, Object::type_class());
+  ALLOC_NEW_OBJECT(Type, object_store()->type_class());
 }
 
 
 RawTypeParameter* SnapshotReader::NewTypeParameter() {
-  ALLOC_NEW_OBJECT(TypeParameter, Object::type_parameter_class());
+  ALLOC_NEW_OBJECT(TypeParameter, object_store()->type_parameter_class());
 }
 
 

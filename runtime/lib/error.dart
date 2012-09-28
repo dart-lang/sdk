@@ -50,15 +50,15 @@ class TypeErrorImplementation
   final String malformedError;
 }
 
-class CastExceptionImplementation
+class CastErrorImplementation
     extends TypeErrorImplementation
-    implements CastException {
-  factory CastException._uninstantiable() {
+    implements CastError {
+  factory CastError._uninstantiable() {
     throw const UnsupportedOperationException(
-        "CastException can only be allocated by the VM");
+        "CastError can only be allocated by the VM");
   }
-  // A CastException is allocated by TypeError._throwNew() when dst_name equals
-  // Exceptions::kCastExceptionDstName.
+  // A CastError is allocated by TypeError._throwNew() when dst_name equals
+  // Exceptions::kCastErrorDstName.
   String toString() {
     String str = (malformedError != null) ? malformedError : "";
     if ((dstName != null) && (dstName.length > 0)) {

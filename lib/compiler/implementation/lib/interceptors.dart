@@ -617,7 +617,10 @@ trim(receiver) {
 hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
+  if (receiver === null) return 0;
   if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
+  if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
+  if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.hashCode());
   int hash = 0;
   int length = JS('int', r'#.length', receiver);
@@ -651,8 +654,6 @@ isOdd(receiver) {
   return (receiver & 1) === 1;
 }
 
-get$toString(receiver) => () => toString(receiver);
-
 get$runtimeType(receiver) {
   if (receiver is int) {
     return getOrCreateCachedRuntimeType('int');
@@ -660,9 +661,19 @@ get$runtimeType(receiver) {
     return getOrCreateCachedRuntimeType('String');
   } else if (receiver is double) {
     return getOrCreateCachedRuntimeType('double');
+  } else if (receiver is bool) {
+    return getOrCreateCachedRuntimeType('bool');
+  } else if (receiver === null) {
+    return getOrCreateCachedRuntimeType('Null');
   } else if (isJsArray(receiver)) {
     return getOrCreateCachedRuntimeType('List');
   } else {
     return UNINTERCEPTED(receiver.runtimeType);
   }
 }
+
+// TODO(lrn): These getters should be generated automatically for all
+// intercepted methods.
+get$toString(receiver) => () => toString(receiver);
+
+get$hashCode(receiver) => () => hashCode(receiver);

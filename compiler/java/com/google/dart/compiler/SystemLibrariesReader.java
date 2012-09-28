@@ -36,7 +36,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -157,6 +159,10 @@ public class SystemLibrariesReader {
               library.setImplementation(((DartBooleanLiteral)expression).getValue());
             } else if (name.equals(DOCUMENTED)){
               library.setDocumented(((DartBooleanLiteral)expression).getValue());
+            } else if (name.equals(PATCH_PATH)) {
+              String path = ((DartStringLiteral) expression).getValue();
+              URI uri = sdkLibPath.getAbsoluteFile().toURI().resolve(URI.create(path));
+              patchPaths.add(uri);
             } else if (name.equals(PLATFORMS)){
               if (expression instanceof DartIdentifier){
                 String identifier = ((DartIdentifier)expression).getName();
@@ -183,14 +189,16 @@ public class SystemLibrariesReader {
   private static final String IMPLEMENTATION = "implementation";
   private static final String DOCUMENTED = "documented";
   private static final String CATEGORY = "category";
+  private static final String PATCH_PATH = "dart2jsPatchPath";
   private static final String PLATFORMS = "platforms";
+  
   
   private static final int DART2JS_PLATFORM = 1;
   private static final int VM_PLATFORM = 2;
   
   private final File sdkLibPath;
   private final Map<String, DartLibrary> librariesMap = new HashMap<String, DartLibrary>();
-  
+  private final List<URI> patchPaths = new ArrayList<URI>();
   
   public SystemLibrariesReader(File sdkLibPath) {
     this.sdkLibPath =sdkLibPath;
@@ -199,6 +207,10 @@ public class SystemLibrariesReader {
   
   public Map<String, DartLibrary> getLibrariesMap() {
     return librariesMap;
+  }
+  
+  public List<URI> getPatchPaths() {
+    return patchPaths;
   }
   
   private void loadLibraryInfo(){

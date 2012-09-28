@@ -6,7 +6,7 @@
 // that subclasses also get the right number of arguments.
 
 @native("*A")
-class A  {
+class A {
   @native int foo([x, y]);
 }
 

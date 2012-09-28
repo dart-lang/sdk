@@ -44,7 +44,7 @@
             '<(PRODUCT_DIR)/dart2js.bat',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/dart-sdk/create.stamp',
+            '<(PRODUCT_DIR)/dart-sdk/README',
           ],
           'action': [
             'python',
@@ -81,7 +81,7 @@
         {
           'action_name': 'upload_sdk_py',
           'inputs': [
-            '<(PRODUCT_DIR)/dart-sdk/create.stamp',
+            '<(PRODUCT_DIR)/dart-sdk/README',
             'tools/upload_sdk.py',
           ],
           'outputs': [

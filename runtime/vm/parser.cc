@@ -1289,17 +1289,17 @@ static RawClass* LookupImplClass(const String& class_name) {
 }
 
 
-// Lookup class in the corelib which also contains various VM
+// Lookup class in the coreimpl lib which also contains various VM
 // helper methods and classes. Allow look up of private classes.
-static RawClass* LookupCoreClass(const String& class_name) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+static RawClass* LookupCoreImplClass(const String& class_name) {
+  const Library& coreimpl_lib = Library::Handle(Library::CoreImplLibrary());
   String& name = String::Handle(class_name.raw());
   if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per script basis.
-    name = String::Concat(name, String::Handle(core_lib.private_key()));
+    name = String::Concat(name, String::Handle(coreimpl_lib.private_key()));
     name = Symbols::New(name);
   }
-  return core_lib.LookupClass(name);
+  return coreimpl_lib.LookupClass(name);
 }
 
 
@@ -2453,12 +2453,19 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     const intptr_t type_pos = TokenPos();
     const AbstractType& type = AbstractType::Handle(
         ParseType(ClassFinalizer::kTryResolve));
-    if (type.IsTypeParameter()) {
-      // TODO(regis): Spec is not clear. Throw dynamic error or report
-      // compile-time error? Same question for new and const operators.
-      ErrorMsg(type_pos, "factory may not redirect via a type parameter");
+    if (type.IsTypeParameter() || type.IsDynamicType()) {
+      // Replace the type with a malformed type and compile a throw when called.
+      redirection_type = ClassFinalizer::NewFinalizedMalformedType(
+          current_class(),
+          type_pos,
+          "factory '%s' may not redirect to %s'%s'",
+          method->name->ToCString(),
+          type.IsTypeParameter() ? "type parameter " : "",
+          type.IsTypeParameter() ?
+              String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
+    } else {
+      redirection_type ^= type.raw();
     }
-    redirection_type ^= type.raw();
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor or factory.
       ConsumeToken();
@@ -6373,33 +6380,30 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if (CurrentToken() == Token::kTHROW) {
+  } else if ((CurrentToken() == Token::kTHROW) &&
+             (LookaheadToken(1) == Token::kSEMICOLON)) {
+    // Rethrow of current exception. Throwing of an exception object
+    // is an expression and is handled in ParseExpr().
     ConsumeToken();
-    AstNode* expr = NULL;
-    if (CurrentToken() != Token::kSEMICOLON) {
-      expr = ParseExpr(kAllowConst, kConsumeCascades);
-      ExpectSemicolon();
-      statement = new ThrowNode(statement_pos, expr, NULL);
-    } else {  // No exception object seen so must be a rethrow.
-      // Check if it is ok to do a rethrow.
-      SourceLabel* label = current_block_->scope->LookupInnermostCatchLabel();
-      if (label == NULL ||
-          label->FunctionLevel() != current_block_->scope->function_level()) {
-        ErrorMsg("rethrow of an exception is not valid here");
-      }
-      ASSERT(label->owner() != NULL);
-      LocalScope* scope = label->owner()->parent();
-      ASSERT(scope != NULL);
-      LocalVariable* excp_var = scope->LocalLookupVariable(
-          String::ZoneHandle(Symbols::ExceptionVar()));
-      ASSERT(excp_var != NULL);
-      LocalVariable* trace_var = scope->LocalLookupVariable(
-          String::ZoneHandle(Symbols::StacktraceVar()));
-      ASSERT(trace_var != NULL);
-      statement = new ThrowNode(statement_pos,
-                                new LoadLocalNode(statement_pos, excp_var),
-                                new LoadLocalNode(statement_pos, trace_var));
+    ExpectSemicolon();
+    // Check if it is ok to do a rethrow.
+    SourceLabel* label = current_block_->scope->LookupInnermostCatchLabel();
+    if (label == NULL ||
+        label->FunctionLevel() != current_block_->scope->function_level()) {
+      ErrorMsg(statement_pos, "rethrow of an exception is not valid here");
     }
+    ASSERT(label->owner() != NULL);
+    LocalScope* scope = label->owner()->parent();
+    ASSERT(scope != NULL);
+    LocalVariable* excp_var = scope->LocalLookupVariable(
+        String::ZoneHandle(Symbols::ExceptionVar()));
+    ASSERT(excp_var != NULL);
+    LocalVariable* trace_var = scope->LocalLookupVariable(
+        String::ZoneHandle(Symbols::StacktraceVar()));
+    ASSERT(trace_var != NULL);
+    statement = new ThrowNode(statement_pos,
+                              new LoadLocalNode(statement_pos, excp_var),
+                              new LoadLocalNode(statement_pos, trace_var));
   } else {
     statement = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
@@ -7007,6 +7011,13 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
                            bool consume_cascades) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = TokenPos();
+
+  if (CurrentToken() == Token::kTHROW) {
+    ConsumeToken();
+    ASSERT(CurrentToken() != Token::kSEMICOLON);
+    AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
+    return new ThrowNode(expr_pos, expr, NULL);
+  }
   AstNode* expr = ParseConditionalExpr();
   if (!Token::IsAssignmentOperator(CurrentToken())) {
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
@@ -8548,7 +8559,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     String& list_literal_factory_class_name = String::Handle(
         Symbols::ListLiteralFactoryClass());
     const Class& list_literal_factory_class =
-        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
+        Class::Handle(LookupCoreImplClass(list_literal_factory_class_name));
     ASSERT(!list_literal_factory_class.IsNull());
     const String& list_literal_factory_name =
         String::Handle(Symbols::ListLiteralFactory());
@@ -8773,7 +8784,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     String& map_literal_factory_class_name = String::Handle(
         Symbols::MapLiteralFactoryClass());
     const Class& map_literal_factory_class =
-        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
+        Class::Handle(LookupCoreImplClass(map_literal_factory_class_name));
     ASSERT(!map_literal_factory_class.IsNull());
     const String& map_literal_factory_name =
         String::Handle(Symbols::MapLiteralFactory());
@@ -8854,28 +8865,18 @@ AstNode* Parser::ParseNewOperator() {
   intptr_t type_pos = TokenPos();
   AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
-  // Malformed bounds never result in a compile time error, therefore, the
-  // parsed type may be malformed although we requested kCanonicalizeWellFormed.
-  // In that case, we throw a dynamic type error instead of calling the
-  // constructor.
-  if (type.IsTypeParameter()) {
-    ErrorMsg(type_pos,
-             "type parameter '%s' cannot be instantiated",
-             String::Handle(type.UserVisibleName()).ToCString());
+  // In case the type is malformed, throw a dynamic type error after finishing
+  // parsing the instance creation expression.
+  if (type.IsTypeParameter() || type.IsDynamicType()) {
+    // Replace the type with a malformed type.
+    type = ClassFinalizer::NewFinalizedMalformedType(
+        current_class(),
+        type_pos,
+        "%s'%s' cannot be instantiated",
+        type.IsTypeParameter() ? "type parameter " : "",
+        type.IsTypeParameter() ?
+            String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
   }
-  if (type.IsDynamicType()) {
-    ErrorMsg(type_pos, "Dynamic cannot be instantiated");
-  }
-  Class& type_class = Class::Handle(type.type_class());
-  const String& type_class_name = String::Handle(type_class.Name());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
-
-  // The constructor class and its name are those of the parsed type, unless the
-  // parsed type is an interface and a default factory class is specified, in
-  // which case constructor_class and constructor_class_name are modified below.
-  Class& constructor_class = Class::ZoneHandle(type_class.raw());
-  String& constructor_class_name = String::Handle(type_class_name.raw());
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
   // is a named constructor. Note that ParseType(kMustResolve) above will not
@@ -8894,6 +8895,23 @@ AstNode* Parser::ParseNewOperator() {
   intptr_t call_pos = TokenPos();
   ArgumentListNode* arguments = ParseActualParameters(NULL, is_const);
 
+  // Parsing is complete, so we can return a throw in case of a malformed type.
+  if (type.IsMalformed()) {
+    return ThrowTypeError(type_pos, type);
+  }
+
+  // Resolve the type and optional identifier to a constructor or factory.
+  Class& type_class = Class::Handle(type.type_class());
+  const String& type_class_name = String::Handle(type_class.Name());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(type.arguments());
+
+  // The constructor class and its name are those of the parsed type, unless the
+  // parsed type is an interface and a default factory class is specified, in
+  // which case constructor_class and constructor_class_name are modified below.
+  Class& constructor_class = Class::ZoneHandle(type_class.raw());
+  String& constructor_class_name = String::Handle(type_class_name.raw());
+
   // A constructor has an implicit 'this' parameter (instance to construct)
   // and a factory has an implicit 'this' parameter (type_arguments).
   // A constructor has a second implicit 'phase' parameter.
@@ -8909,22 +8927,32 @@ AstNode* Parser::ParseNewOperator() {
     Function& constructor = Function::ZoneHandle(
         type_class.LookupConstructor(constructor_name));
     if (constructor.IsNull()) {
-      ErrorMsg(type_pos,
-               "interface '%s' has no constructor named '%s'",
-               type_class_name.ToCString(),
-               external_constructor_name.ToCString());
+      // Replace the type with a malformed type and compile a throw.
+      type = ClassFinalizer::NewFinalizedMalformedType(
+          current_class(),
+          type_pos,
+          "interface '%s' has no constructor named '%s'",
+          type_class_name.ToCString(),
+          external_constructor_name.ToCString());
+      return ThrowTypeError(type_pos, type);
     }
+    // TODO(regis): Throw a NoSuchMethodError instead of a TypeError.
     String& error_message = String::Handle();
     if (!constructor.AreValidArguments(arguments_length,
                                        arguments->names(),
                                        &error_message)) {
-      ErrorMsg(call_pos,
-               "invalid arguments passed to constructor '%s' "
-               "for interface '%s': %s",
-               external_constructor_name.ToCString(),
-               type_class_name.ToCString(),
-               error_message.ToCString());
+      // Replace the type with a malformed type and compile a throw.
+      type = ClassFinalizer::NewFinalizedMalformedType(
+          current_class(),
+          call_pos,
+          "invalid arguments passed to constructor '%s' "
+          "for interface '%s': %s",
+          external_constructor_name.ToCString(),
+          type_class_name.ToCString(),
+          error_message.ToCString());
+      return ThrowTypeError(call_pos, type);
     }
+    // TODO(regis): Remove support for obsolete default factory classes.
     if (!type_class.HasFactoryClass()) {
       ErrorMsg(type_pos,
                "cannot allocate interface '%s' without factory class",
@@ -8964,26 +8992,27 @@ AstNode* Parser::ParseNewOperator() {
     if (constructor.IsNull()) {
       const String& external_constructor_name =
           (named_constructor ? constructor_name : constructor_class_name);
-      ErrorMsg(type_pos,
-               "class '%s' has no constructor or factory named '%s'",
-               String::Handle(constructor_class.Name()).ToCString(),
-               external_constructor_name.ToCString());
+      // Replace the type with a malformed type and compile a throw.
+      type = ClassFinalizer::NewFinalizedMalformedType(
+          current_class(),
+          type_pos,
+          "class '%s' has no constructor or factory named '%s'",
+          String::Handle(constructor_class.Name()).ToCString(),
+          external_constructor_name.ToCString());
+      return ThrowTypeError(type_pos, type);
     } else if (constructor.IsRedirectingFactory()) {
       type = constructor.RedirectionType();
-      constructor = constructor.RedirectionTarget();
-      if (constructor.IsNull()) {
-        // TODO(regis): We normally report a compile-time error if the
-        // constructor is not found. See above. However, we should throw a
-        // dynamic error instead. We do it here. This is the first step.
-        ASSERT(type.IsMalformed());
-      } else {
-        type_class = type.type_class();
-        type_arguments = type.arguments();
-        constructor_class = constructor.Owner();
-        ASSERT(type_class.raw() == constructor_class.raw());
+      if (type.IsMalformed()) {
+        return ThrowTypeError(type.token_pos(), type);
       }
+      constructor = constructor.RedirectionTarget();
+      ASSERT(!constructor.IsNull());
+      type_class = type.type_class();
+      type_arguments = type.arguments();
+      constructor_class = constructor.Owner();
+      ASSERT(type_class.raw() == constructor_class.raw());
     }
-    if (!constructor.IsNull() && constructor.IsFactory()) {
+    if (constructor.IsFactory()) {
       // A factory does not have the implicit 'phase' parameter.
       arguments_length -= 1;
     }
@@ -8991,8 +9020,8 @@ AstNode* Parser::ParseNewOperator() {
 
   // It is ok to call a factory method of an abstract class, but it is
   // a dynamic error to instantiate an abstract class.
-  if (!constructor.IsNull() &&
-      constructor_class.is_abstract() &&
+  ASSERT(!constructor.IsNull());
+  if (constructor_class.is_abstract() &&
       !constructor.IsFactory()) {
     ArgumentListNode* arguments = new ArgumentListNode(type_pos);
     arguments->Add(new LiteralNode(
@@ -9004,19 +9033,22 @@ AstNode* Parser::ParseNewOperator() {
     const String& func_name = String::Handle(Symbols::ThrowNew());
     return MakeStaticCall(cls_name, func_name, arguments);
   }
-
+  // TODO(regis): Throw a NoSuchMethodError instead of a TypeError.
   String& error_message = String::Handle();
-  if (!constructor.IsNull() &&
-      !constructor.AreValidArguments(arguments_length,
+  if (!constructor.AreValidArguments(arguments_length,
                                      arguments->names(),
                                      &error_message)) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : constructor_class_name);
-    ErrorMsg(call_pos,
-             "invalid arguments passed to constructor '%s' for class '%s': %s",
-             external_constructor_name.ToCString(),
-             String::Handle(constructor_class.Name()).ToCString(),
-             error_message.ToCString());
+    // Replace the type with a malformed type and compile a throw when called.
+    type = ClassFinalizer::NewFinalizedMalformedType(
+      current_class(),
+      call_pos,
+      "invalid arguments passed to constructor '%s' for class '%s': %s",
+      external_constructor_name.ToCString(),
+      String::Handle(constructor_class.Name()).ToCString(),
+      error_message.ToCString());
+    return ThrowTypeError(call_pos, type);
   }
 
   // Now that the constructor to be called is identified, finalize the type
@@ -9062,8 +9094,7 @@ AstNode* Parser::ParseNewOperator() {
     }
   }
   if (type.IsMalformed()) {
-    // Compile the throw of a dynamic type error due to a bound error or to
-    // a redirection error.
+    // Return the throw of a dynamic type error if the type is malformed.
     return ThrowTypeError(type_pos, type);
   }
   type_arguments ^= type_arguments.Canonicalize();
@@ -9666,6 +9697,9 @@ void Parser::SkipConditionalExpr() {
 
 
 void Parser::SkipExpr() {
+  while (CurrentToken() == Token::kTHROW) {
+    ConsumeToken();
+  }
   SkipConditionalExpr();
   if (CurrentToken() == Token::kCASCADE) {
     SkipSelectors();

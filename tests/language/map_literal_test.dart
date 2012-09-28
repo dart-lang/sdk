@@ -37,7 +37,7 @@ class MapLiteralTest {
   }
 }
 
-class StaticInit  {
+class StaticInit {
   StaticInit() {}
 
   // Test construction of static const map literals

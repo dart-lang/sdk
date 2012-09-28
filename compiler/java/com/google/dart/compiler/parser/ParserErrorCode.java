@@ -88,6 +88,7 @@ public enum ParserErrorCode implements ErrorCode {
   FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
   FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),
+  FORMAL_PARAMETER_IS_CONST("Formal parameters cannot be declared 'const'"),
   FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
   FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
   FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),

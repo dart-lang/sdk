@@ -15,6 +15,7 @@ class BitNotOperation implements UnaryOperation {
     }
     return null;
   }
+  apply(value) => ~value;
 }
 
 class NegateOperation implements UnaryOperation {
@@ -32,6 +33,7 @@ class NegateOperation implements UnaryOperation {
     }
     return null;
   }
+  apply(value) => -value;
 }
 
 class NotOperation implements UnaryOperation {
@@ -45,6 +47,7 @@ class NotOperation implements UnaryOperation {
     }
     return null;
   }
+  apply(value) => !value;
 }
 
 /**
@@ -71,18 +74,21 @@ class BitOrOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('|');
   const BitOrOperation();
   int foldInts(int left, int right)  => left | right;
+  apply(left, right) => left | right;
 }
 
 class BitAndOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('&');
   const BitAndOperation();
   int foldInts(int left, int right) => left & right;
+  apply(left, right) => left & right;
 }
 
 class BitXorOperation extends BinaryBitOperation {
   final SourceString name = const SourceString('^');
   const BitXorOperation();
   int foldInts(int left, int right) => left ^ right;
+  apply(left, right) => left ^ right;
 }
 
 class ShiftLeftOperation extends BinaryBitOperation {
@@ -94,6 +100,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
     if (right > 100 || right < 0) return null;
     return left << right;
   }
+  apply(left, right) => left << right;
 }
 
 class ShiftRightOperation extends BinaryBitOperation {
@@ -103,6 +110,7 @@ class ShiftRightOperation extends BinaryBitOperation {
     if (right < 0) return null;
     return left >> right;
   }
+  apply(left, right) => left >> right;
 }
 
 class BinaryBoolOperation implements BinaryOperation {
@@ -125,12 +133,14 @@ class BooleanAndOperation extends BinaryBoolOperation {
   final SourceString name = const SourceString('&&');
   const BooleanAndOperation();
   bool foldBools(bool left, bool right) => left && right;
+  apply(left, right) => left && right;
 }
 
 class BooleanOrOperation extends BinaryBoolOperation {
   final SourceString name = const SourceString('||');
   const BooleanOrOperation();
   bool foldBools(bool left, bool right) => left || right;
+  apply(left, right) => left || right;
 }
 
 class ArithmeticNumOperation implements BinaryOperation {
@@ -167,12 +177,14 @@ class SubtractOperation extends ArithmeticNumOperation {
   final SourceString name = const SourceString('-');
   const SubtractOperation();
   num foldNums(num left, num right) => left - right;
+  apply(left, right) => left - right;
 }
 
 class MultiplyOperation extends ArithmeticNumOperation {
   final SourceString name = const SourceString('*');
   const MultiplyOperation();
   num foldNums(num left, num right) => left * right;
+  apply(left, right) => left * right;
 }
 
 class ModuloOperation extends ArithmeticNumOperation {
@@ -183,6 +195,7 @@ class ModuloOperation extends ArithmeticNumOperation {
     return left % right;
   }
   num foldNums(num left, num right) => left % right;
+  apply(left, right) => left % right;
 }
 
 class TruncatingDivideOperation extends ArithmeticNumOperation {
@@ -193,6 +206,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
     return left ~/ right;
   }
   num foldNums(num left, num right) => left ~/ right;
+  apply(left, right) => left ~/ right;
 }
 
 class DivideOperation extends ArithmeticNumOperation {
@@ -200,6 +214,7 @@ class DivideOperation extends ArithmeticNumOperation {
   const DivideOperation();
   num foldNums(num left, num right) => left / right;
   bool isDivide() => true;
+  apply(left, right) => left / right;
 }
 
 class AddOperation implements BinaryOperation {
@@ -221,6 +236,7 @@ class AddOperation implements BinaryOperation {
       return null;
     }
   }
+  apply(left, right) => left + right;
 }
 
 class RelationalNumOperation implements BinaryOperation {
@@ -243,24 +259,28 @@ class LessOperation extends RelationalNumOperation {
   final SourceString name = const SourceString('<');
   const LessOperation();
   bool foldNums(num left, num right) => left < right;
+  apply(left, right) => left < right;
 }
 
 class LessEqualOperation extends RelationalNumOperation {
   final SourceString name = const SourceString('<=');
   const LessEqualOperation();
   bool foldNums(num left, num right) => left <= right;
+  apply(left, right) => left <= right;
 }
 
 class GreaterOperation extends RelationalNumOperation {
   final SourceString name = const SourceString('>');
   const GreaterOperation();
   bool foldNums(num left, num right) => left > right;
+  apply(left, right) => left > right;
 }
 
 class GreaterEqualOperation extends RelationalNumOperation {
   final SourceString name = const SourceString('>=');
   const GreaterEqualOperation();
   bool foldNums(num left, num right) => left >= right;
+  apply(left, right) => left <= right;
 }
 
 class EqualsOperation implements BinaryOperation {
@@ -283,6 +303,7 @@ class EqualsOperation implements BinaryOperation {
     }
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
+  apply(left, right) => left == right;
 }
 
 class IdentityOperation implements BinaryOperation {
@@ -296,6 +317,7 @@ class IdentityOperation implements BinaryOperation {
     if (left.isNaN() && right.isNaN()) return null;
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
+  apply(left, right) => left === right;
 }
 
 /**

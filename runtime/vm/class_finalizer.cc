@@ -462,11 +462,12 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     const String& user_visible_target_name =
         identifier.IsNull() ? target_class_name : target_name;
     // Replace the type with a malformed type and compile a throw when called.
-    FinalizeMalformedType(Error::Handle(),  // No previous error.
-                          cls, type, kCanonicalize,
-                          "class '%s' has no constructor or factory named '%s'",
-                          target_class_name.ToCString(),
-                          user_visible_target_name.ToCString());
+    type = NewFinalizedMalformedType(
+        cls,
+        factory.token_pos(),
+        "class '%s' has no constructor or factory named '%s'",
+        target_class_name.ToCString(),
+        user_visible_target_name.ToCString());
     factory.SetRedirectionType(type);
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
@@ -474,12 +475,13 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
 
   // Verify that the target is compatible with the redirecting factory.
   if (!target.HasCompatibleParametersWith(factory)) {
-    FinalizeMalformedType(Error::Handle(),  // No previous error.
-                          cls, type, kCanonicalize,
-                          "constructor '%s' has incompatible parameters with "
-                          "redirecting factory '%s'",
-                          String::Handle(target.name()).ToCString(),
-                          String::Handle(factory.name()).ToCString());
+    type = NewFinalizedMalformedType(
+        cls,
+        factory.token_pos(),
+        "constructor '%s' has incompatible parameters with "
+        "redirecting factory '%s'",
+        String::Handle(target.name()).ToCString(),
+        String::Handle(factory.name()).ToCString());
     factory.SetRedirectionType(type);
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
@@ -1472,14 +1474,13 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   }
 }
 
-
-void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
-                                           const Class& cls,
-                                           const Type& type,
-                                           FinalizationKind finalization,
-                                           const char* format, ...) {
-  va_list args;
-  va_start(args, format);
+// Either report an error or mark the type as malformed.
+void ClassFinalizer::ReportMalformedType(const Error& prev_error,
+                                         const Class& cls,
+                                         const Type& type,
+                                         FinalizationKind finalization,
+                                         const char* format,
+                                         va_list args) {
   LanguageError& error = LanguageError::Handle();
   if (FLAG_enable_type_checks ||
       !type.HasResolvedTypeClass() ||
@@ -1520,6 +1521,35 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
 }
 
 
+RawType* ClassFinalizer::NewFinalizedMalformedType(const Class& cls,
+                                                   intptr_t type_pos,
+                                                   const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  const String& no_name = String::Handle(Symbols::Empty());
+  const UnresolvedClass& unresolved_class = UnresolvedClass::Handle(
+      UnresolvedClass::New(LibraryPrefix::Handle(), no_name, type_pos));
+  const Type& type = Type::Handle(
+      Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
+  ReportMalformedType(Error::Handle(), cls, type, kTryResolve, format, args);
+  va_end(args);
+  ASSERT(type.IsMalformed());
+  return type.raw();
+}
+
+
+void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
+                                           const Class& cls,
+                                           const Type& type,
+                                           FinalizationKind finalization,
+                                           const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  ReportMalformedType(prev_error, cls, type, finalization, format, args);
+  va_end(args);
+}
+
+
 void ClassFinalizer::ReportError(const Error& error) {
   Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
@@ -1533,6 +1563,7 @@ void ClassFinalizer::ReportError(const Script& script,
   va_start(args, format);
   const Error& error = Error::Handle(
       Parser::FormatError(script, token_pos, "Error", format, args));
+  va_end(args);
   ReportError(error);
 }
 

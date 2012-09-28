@@ -7,13 +7,13 @@ You can find more about Dart online at dartlang.org or code.google.com/p/dart.
 
 Here's a brief guide to what's in here:
 
-compiler/      dartc static analyzer
-corelib/       core libraries (collections, built-ins...)
-editor/        the Eclipse-based standalone Dart IDE
-language/      language specification
-lib/           libraries (dart2js compiler, html, isolate, json, math, ...)
-runtime/       the Dart VM and code for running it as a standalone app
-samples/       sample Dart programs 
-tests/         automated tests
-third_party/   external dependencies
-tools/         build scripts, text editor support files, etc.
+compiler/      Dart static analyzer.
+editor/        Eclipse-based standalone Dart IDE.
+lib/           Libraries that ship with the Dart runtime (core, html, etc.).
+pkg/           Packages that are not shipped with the core runtime.
+runtime/       Dart VM and code for running it as a standalone app.
+samples/       Sample Dart programs. 
+tests/         Automated tests.
+third_party/   External dependencies.
+tools/         Build scripts, text editor support files, etc.
+utils/         Utilities for Dart applications.
