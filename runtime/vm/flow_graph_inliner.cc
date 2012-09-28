@@ -28,6 +28,17 @@ DECLARE_FLAG(int, deoptimization_counter_threshold);
   } while (false)
 
 
+// Test if a call is recursive by looking in the deoptimization environment.
+static bool IsCallRecursive(const Function& function, Definition* call) {
+  Environment* env = call->env();
+  while (env != NULL) {
+    if (function.raw() == env->function().raw()) return true;
+    env = env->outer();
+  }
+  return false;
+}
+
+
 class CallSiteInliner : public FlowGraphVisitor {
  public:
   explicit CallSiteInliner(FlowGraph* flow_graph)
@@ -55,6 +66,13 @@ class CallSiteInliner : public FlowGraphVisitor {
 
     // Assuming no optional parameters the actual/formal count should match.
     ASSERT(arguments->length() == function.num_fixed_parameters());
+
+    // Abort if this is a recursive occurrence.
+    if (IsCallRecursive(function, call)) {
+      function.set_is_inlinable(false);
+      TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
+      return false;
+    }
 
     // Abort if the callee has an intrinsic translation.
     if (Intrinsifier::CanIntrinsify(function)) {
