@@ -102,6 +102,8 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
+  intptr_t InstructionCount() const;
+
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number);
   void ComputeUseLists();

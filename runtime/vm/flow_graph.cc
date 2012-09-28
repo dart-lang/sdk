@@ -920,4 +920,18 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
 }
 
 
+intptr_t FlowGraph::InstructionCount() const {
+  intptr_t size = 0;
+  // Iterate each block, skipping the graph entry.
+  for (intptr_t i = 1; i < preorder_.length(); ++i) {
+    for (ForwardInstructionIterator it(preorder_[i]);
+         !it.Done();
+         it.Advance()) {
+      ++size;
+    }
+  }
+  return size;
+}
+
+
 }  // namespace dart

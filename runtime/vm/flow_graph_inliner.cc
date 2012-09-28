@@ -19,6 +19,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
+DEFINE_FLAG(int, inlining_size_threshold, 250,
+            "Inline only functions with up to threshold instructions");
+DEFINE_FLAG(int, inlining_growth_factor, 3,
+            "Stop inlining when a function grows by the factor");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 
@@ -46,6 +50,8 @@ class CallSiteInliner : public FlowGraphVisitor {
         caller_graph_(flow_graph),
         next_ssa_temp_index_(flow_graph->max_virtual_register_number()),
         inlined_(false),
+        initial_size_(flow_graph->InstructionCount()),
+        inlined_size_(0),
         static_calls_(),
         closure_calls_(),
         instance_calls_() { }
@@ -73,6 +79,11 @@ class CallSiteInliner : public FlowGraphVisitor {
   }
 
   bool inlined() const { return inlined_; }
+
+  double GrowthFactor() const {
+    return static_cast<double>(inlined_size_) /
+        static_cast<double>(initial_size_);
+  }
 
  private:
   bool TryInlining(const Function& function,
@@ -157,7 +168,31 @@ class CallSiteInliner : public FlowGraphVisitor {
         printer.PrintBlocks();
       }
 
-      // TODO(zerny): If result is more than size threshold then abort.
+      // If result is more than size threshold then abort.
+      // TODO(zerny): Do this after CP and dead code elimination.
+      intptr_t size = callee_graph->InstructionCount();
+      if (size > FLAG_inlining_size_threshold) {
+        function.set_is_inlinable(false);
+        isolate->set_long_jump_base(base);
+        isolate->set_deopt_id(prev_deopt_id);
+        isolate->set_ic_data_array(prev_ic_data.raw());
+        TRACE_INLINING(OS::Print("     Bailout: graph size %"Pd"\n", size));
+        return false;
+      }
+
+      // If the growth factor is more than threshold abort.
+      double growth =
+          static_cast<double>(inlined_size_ + size) /
+          static_cast<double>(initial_size_);
+      if (growth > static_cast<double>(FLAG_inlining_growth_factor)) {
+        function.set_is_inlinable(false);
+        isolate->set_long_jump_base(base);
+        isolate->set_deopt_id(prev_deopt_id);
+        isolate->set_ic_data_array(prev_ic_data.raw());
+        TRACE_INLINING(OS::Print("     Bailout: growth factor %f\n",
+                                 growth));
+        return false;
+      }
 
       // TODO(zerny): If effort is less than threshold then inline recursively.
 
@@ -195,6 +230,7 @@ class CallSiteInliner : public FlowGraphVisitor {
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
+      inlined_size_ += size;
       isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
       isolate->set_ic_data_array(prev_ic_data.raw());
@@ -253,7 +289,7 @@ class CallSiteInliner : public FlowGraphVisitor {
       const ICData& ic_data = instr->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (instr->with_checks()) {
-        TRACE_INLINING(OS::Print("    Bailout: %"Pd" checks target '%s'\n",
+        TRACE_INLINING(OS::Print("     Bailout: %"Pd" checks target '%s'\n",
                                  ic_data.NumberOfChecks(),
                                  target.ToCString()));
         continue;
@@ -269,6 +305,8 @@ class CallSiteInliner : public FlowGraphVisitor {
   FlowGraph* caller_graph_;
   intptr_t next_ssa_temp_index_;
   bool inlined_;
+  intptr_t initial_size_;
+  intptr_t inlined_size_;
 
   GrowableArray<StaticCallInstr*> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
@@ -300,11 +338,14 @@ void FlowGraphInliner::Inline() {
   inliner.InlineCalls();
 
   if (inliner.inlined()) {
-    if (FLAG_trace_inlining && FLAG_print_flow_graph) {
-      OS::Print("After Inlining of %s\n", flow_graph_->
-                parsed_function().function().ToFullyQualifiedCString());
-      FlowGraphPrinter printer(*flow_graph_);
-      printer.PrintBlocks();
+    if (FLAG_trace_inlining) {
+      OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
+      if (FLAG_print_flow_graph) {
+        OS::Print("After Inlining of %s\n", flow_graph_->
+                  parsed_function().function().ToFullyQualifiedCString());
+        FlowGraphPrinter printer(*flow_graph_);
+        printer.PrintBlocks();
+      }
     }
   }
 }
