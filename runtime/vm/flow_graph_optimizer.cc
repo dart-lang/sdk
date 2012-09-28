@@ -468,8 +468,12 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kMOD:
-      // TODO(vegorov): implement fast path code for modulo.
-      return false;
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = kSmiCid;
+      } else {
+        return false;
+      }
+      break;
     case Token::kBIT_AND:
       if (HasOnlyTwoSmi(ic_data)) {
         operands_type = kSmiCid;
@@ -524,6 +528,28 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                                       right);
     call->ReplaceWith(bin_op, current_iterator());
     RemovePushArguments(call);
+  } else if (op_kind == Token::kMOD) {
+    // TODO(vegorov): implement fast path code for modulo.
+    ASSERT(operands_type == kSmiCid);
+    if (!call->ArgumentAt(1)->value()->BindsToConstant()) return false;
+    const Object& obj = call->ArgumentAt(1)->value()->BoundConstant();
+    if (!obj.IsSmi()) return false;
+    const intptr_t value = Smi::Cast(obj).Value();
+    if ((value > 0) && Utils::IsPowerOfTwo(value)) {
+      Value* left = call->ArgumentAt(0)->value();
+      // Insert smi check and attach a copy of the original
+      // environment because the smi operation can still deoptimize.
+      InsertBefore(call,
+                   new CheckSmiInstr(left->Copy(), call->deopt_id()),
+                   call->env(),
+                   Definition::kEffect);
+      ConstantInstr* c = new ConstantInstr(Smi::Handle(Smi::New(value - 1)));
+      InsertBefore(call, c, NULL, Definition::kValue);
+      BinarySmiOpInstr* bin_op =
+          new BinarySmiOpInstr(Token::kBIT_AND, call, left, new Value(c));
+      call->ReplaceWith(bin_op, current_iterator());
+      RemovePushArguments(call);
+    }
   } else {
     ASSERT(operands_type == kSmiCid);
     Value* left = call->ArgumentAt(0)->value();
