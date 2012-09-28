@@ -718,9 +718,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
-    if (!x.isCascade()) {
-      accept(x.getTarget());
-    }
+    accept(x.getTarget());
     pArgs(x.getArguments());
     return null;
   }

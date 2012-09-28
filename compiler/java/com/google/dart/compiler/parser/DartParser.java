@@ -2390,8 +2390,10 @@ public class DartParser extends CompletionHooksParserBase {
         if (functionName != null) {
           result = doneWithoutConsuming(new DartMethodInvocation(result, result == null, functionName, parseArguments()));
           functionName = null;
+        } else if (result == null) {
+          return null;
         } else {
-          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, result == null, parseArguments()));
+          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, parseArguments()));
         }
       }
     } else if (functionName != null) {

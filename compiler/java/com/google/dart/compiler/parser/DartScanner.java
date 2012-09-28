@@ -612,15 +612,12 @@ public class DartScanner {
 
   /**
    * Called when comments are identified to aggregate the total number of comment lines and comment
-   * characters then delegate to {@link #recordCommentLocation(int, int, int, int)}.  This provides
+   * characters then delegate to {@link #recordCommentLocation(int, int)}.  This provides
    * a light weight way to track how much of the code is made up of comments without having to keep
    * all comments.
    *
    * @param start the character position of the second character in the comment
    * @param stop the character position of the final character in the comment
-   * @param startLine the line number at <code>start</code>
-   * @param endLine the line number of the last line of the comment
-   * @param col the column number at <code>start</code>
    */
   private void commentLocation(int start, int stop) {
     if (start <= lastCommentStart && stop <= lastCommentStop) {

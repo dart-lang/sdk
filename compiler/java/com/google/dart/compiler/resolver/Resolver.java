@@ -1590,9 +1590,7 @@ public class Resolver {
 
     @Override
     public Element visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
-      if (!x.isCascade()) {
-        x.getTarget().accept(this);
-      }
+      x.getTarget().accept(this);
       visit(x.getArguments());
       return null;
     }
