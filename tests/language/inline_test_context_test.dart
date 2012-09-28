@@ -13,7 +13,7 @@ class B {
   var x = 0;
 }
 
-int bar(o) {
+bool bar(o) {
   if (o.x > 0) {  // <-- Deoptimize from inner frame.
     return true;
   } else {
