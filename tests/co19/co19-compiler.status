@@ -17,9 +17,8 @@ Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(analyzer-tea
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(analyzer-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -28,7 +27,9 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
@@ -133,9 +134,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK
 Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK
 
 # co19 issue 218
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, OK
 Language/11_Statements/15_Assert_A05_t02: Fail, OK
 Language/11_Statements/15_Assert_A05_t03: Fail, OK
@@ -222,14 +220,8 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # Iss
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
-Language/07_Classes/07_Classes_A03_t07: Fail, OK # co19 issue 214
 Language/07_Classes/07_Classes_A09_t02: Fail, OK # co19 issue 215
 Language/07_Classes/07_Classes_A09_t04: Fail, OK # co19 issue 215
-Language/07_Classes/4_Abstract_Instance_Members_A07_t01: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t06: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail, OK # co19 issue 216
-Language/07_Classes/4_Abstract_Instance_Members_A07_t08: Fail, OK # co19 issue 216
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail, OK # co19 issue 169
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
@@ -237,7 +229,6 @@ Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/10_Expressions/02_Null_A03_t01: Fail # language change 1031
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # language change 3368
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
 Language/10_Expressions/10_Instance_Creation_A02_t01: Fail # language change 1031
