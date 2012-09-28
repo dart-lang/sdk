@@ -558,6 +558,36 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
+bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  // After TestByteArrayIndex:
+  // * EAX has the base address of the byte array.
+  // * EBX has the index into the array.
+  // EBX contains the SMI index which is shifted left by 1.
+  // This shift means we only multiply the index by 2 not 4 (sizeof float).
+  // Load single precision float into XMM7.
+  __ movss(XMM7, FieldAddress(EAX, EBX, TIMES_2,
+                              Float32Array::data_offset()));
+  // Convert into a double precision float.
+  __ cvtss2sd(XMM7, XMM7);
+  // Allocate a double instance.
+  const Class& double_class = Class::Handle(
+                          Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               Assembler::kNearJump, EAX);
+  // Store XMM7 into double instance.
+  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM7);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
+    return false;
+}
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
