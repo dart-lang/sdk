@@ -15,54 +15,6 @@ Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this fai
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A04_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A04_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A04_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A04_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/1_Methods_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A01_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t07: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t08: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t09: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t10: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t06: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t07: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t08: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A10_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A10_t03: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A10_t04: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A10_t05: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A10_t06: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/Interfaces_A01_t02: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/Interfaces_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/08_Interfaces/Interfaces_A01_t07: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): Please triage this failure.
@@ -155,7 +107,6 @@ Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail, OK # Issue co19 208
 Language/11_Statements/06_While_A02_t02: Fail, OK # Issue co19 208
 
 Language/11_Statements/15_Assert_A04_t04: Fail # dart2js doesn't throw ClosureArgumentMismatchException
-Language/11_Statements/15_Assert_A05_t03: Fail # dart2js doesn't throw ClosureArgumentMismatchException
 
 
 [ $compiler == dart2js ]
@@ -206,13 +157,6 @@ LibTest/core/Set/removeAll_A01_t03: Fail, OK
 # Tests that used to fail before deprecating the old try-catch syntax.
 # The original issue that used to cause the test to fail is put in an
 # end-of-line comment. See co19 issue 184.
-Language/08_Interfaces/1_Methods_A03_t01: Pass, OK # co19 issue 188
-Language/08_Interfaces/1_Methods_A03_t02: Pass, OK # co19 issue 188
-Language/08_Interfaces/1_Methods_A03_t03: Pass, OK # co19 issue 188
-Language/08_Interfaces/1_Methods_A03_t04: Pass, OK # co19 issue 188
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Pass, OK # co19 issue 188
-Language/08_Interfaces/Interfaces_A01_t04: Pass, OK # TODO(ahe): Is this a bad test or a bug in dart2js?
-Language/10_Expressions/01_Constants_A15_t48: Pass, OK # co19 issue 171
 Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Pass, OK # Missing check for const initializer
 
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
@@ -251,27 +195,20 @@ Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail
 Language/10_Expressions/28_Identifier_Reference_A08_t02: Fail # Compile-time error: unexpected token ';'
 Language/10_Expressions/28_Identifier_Reference_A08_t32: Fail # Compile-time error: unexpected token ';'
 Language/11_Statements/05_For_A01_t11: Fail # Compile-time error: unexpected token 'const'
-Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/01_Constants_A18_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A02_t02: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A02_t04: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t01: Fail # Compile-time error: unexpected token 'equals'
 Language/10_Expressions/20_Equality_A03_t03: Fail # Compile-time error: unexpected token 'equals'
-Language/10_Expressions/16_Assignment_A05_t05: Fail # Runtime error: Expect.fail('Method noSuchMethod() was not properly executed!')
 Language/10_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
 Language/11_Statements/08_Switch_A02_t01: Fail # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Runtime error: NoSuchMethodException : method not found: '$call'
-Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Runtime error: NoSuchMethodException : method not found: 'get g3tt3r'
-Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'get v'
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
-Language/10_Expressions/16_Assignment_A08_t04: Fail # Runtime error: NoSuchMethodException : method not found: 'operator$indexSet'
-Language/10_Expressions/16_Assignment_A05_t04: Fail # Runtime error: NoSuchMethodException : method not found: 'set nonExistingSetter'
-Language/10_Expressions/16_Assignment_A05_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'set setter'
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
@@ -369,15 +306,10 @@ Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
-Language/08_Interfaces/4_Factories_and_Constructors_A02_t06: Fail, OK # co19 issue 210
-Language/10_Expressions/03_Numbers_A01_t19: Fail, OK # co19 issue 210
-Language/10_Expressions/03_Numbers_A01_t20: Fail, OK # co19 issue 210
-Language/10_Expressions/03_Numbers_A01_t28: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
 Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
-Language/11_Statements/11_Labels_A01_t05: Fail, OK # co19 issue 210
 Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
 Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
 Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
@@ -389,15 +321,6 @@ Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # co19 issue 188
 
 Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189
 

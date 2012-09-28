@@ -59,21 +59,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # TODO(
 Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t07: Fail # TODO(vm-team): Please triage this failure.
-Language/08_Interfaces/4_Factories_and_Constructors_A06_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -108,11 +93,6 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail #
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -220,17 +200,11 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail # co19 issue 
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
-Language/10_Expressions/10_Instance_Creation/2_New_A03_t01: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/13_Libraries_and_Scripts/3_Includes_A03_t02: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error. More importantly, interface factory clauses are obsolete.
 
 
 # Failures related to assert being a reserved word now. co19 issue 218.
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
-Language/11_Statements/15_Assert_A05_t01: Fail, OK
-Language/11_Statements/15_Assert_A05_t02: Fail, OK
-Language/11_Statements/15_Assert_A05_t03: Fail, OK
-Language/11_Statements/15_Assert_A05_t04: Fail, OK
-Language/11_Statements/15_Assert_A05_t05: Fail, OK
 
 LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
 
@@ -410,8 +384,6 @@ LibTest/core/Set/remove_A01_t04: Fail, OK # co19 issue 194
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 
 Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail
-Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail
-Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail
 LibTest/core/String/contains_A01_t02: Fail
 LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
@@ -440,10 +412,6 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail #
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail
 Language/11_Statements/08_Switch_A02_t01: Fail
 LibTest/core/Future/handleException_A01_t07: Fail
 LibTest/core/Future/then_A01_t05: Fail
@@ -482,12 +450,6 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3622
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3622
-Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail
-Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail
-Language/10_Expressions/16_Assignment_A05_t02: Fail
-Language/10_Expressions/16_Assignment_A05_t04: Fail
-Language/10_Expressions/16_Assignment_A05_t05: Fail
-Language/10_Expressions/16_Assignment_A08_t04: Fail
 
 
 # function 'func' not found in super class, getter 'func' should be invoked first.
@@ -509,7 +471,6 @@ Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail
 
 # invalid operator overloading
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail
-Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail
 Language/10_Expressions/20_Equality_A02_t02: Fail
 Language/10_Expressions/20_Equality_A02_t03: Fail
