@@ -7,6 +7,7 @@
 
 import dartgenerator
 import database
+import fremontcutbuilder
 import logging.config
 import multiemitter
 import optparse
@@ -38,20 +39,28 @@ _webkit_renames = {
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
 
+# TODO(vsm): Remove once we fix Dartium to pass in the database directly.
 def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
              dartium_output_dir=None):
+  database = LoadDatabase(database_dir, use_database_cache)
+  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
+
+def LoadDatabase(database_dir, use_database_cache):
+  common_database = database.Database(database_dir)
+  if use_database_cache:
+    common_database.LoadFromCache()
+  else:
+    common_database.Load()
+  return common_database
+
+def GenerateFromDatabase(common_database, dart2js_output_dir,
+                         dartium_output_dir):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
   template_dir = os.path.join(current_dir, '..', 'templates')
 
   generator = dartgenerator.DartGenerator()
   generator.LoadAuxiliary(auxiliary_dir)
-
-  common_database = database.Database(database_dir)
-  if use_database_cache:
-    common_database.LoadFromCache()
-  else:
-    common_database.Load()
 
   generator.FilterMembersWithUnidentifiedTypes(common_database)
   webkit_database = common_database.Clone()
@@ -136,6 +145,9 @@ def GenerateSingleFile(library_path, output_dir):
 
 def main():
   parser = optparse.OptionParser()
+  parser.add_option('--rebuild', dest='rebuild',
+                    action='store_true', default=False,
+                    help='Rebuild the database from IDL using fremontcut.')
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
                     default='htmldart2js,htmldartium',
@@ -164,8 +176,13 @@ def main():
   if 'htmldartium' in systems:
     dartium_output_dir = os.path.join(output_dir, 'dartium')
 
-  Generate(database_dir, options.use_database_cache, dart2js_output_dir,
-           dartium_output_dir)
+  if options.rebuild:
+    # Parse the IDL and create the database.
+    database = fremontcutbuilder.main()
+  else:
+    # Load the previously generated database.
+    database = LoadDatabase(database_dir, options.use_database_cache)
+  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
 
   if 'htmldart2js' in systems:
     _logger.info('Copy html_dart2js to dart2js/')

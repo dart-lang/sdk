@@ -131,8 +131,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
       })
 
   # Import WebKit IDLs.
-  for file_name in idl_files:
-    builder.import_idl_file(file_name, webkit_options)
+  builder.import_idl_files(idl_files, webkit_options)
 
   # Import Dart idl:
   dart_options = databasebuilder.DatabaseBuilderOptions(
@@ -140,8 +139,8 @@ def build_database(idl_files, database_dir, feature_defines = None):
     source='Dart',
     rename_operation_arguments_on_merge=True)
 
-  builder.import_idl_file(
-      os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl'),
+  builder.import_idl_files(
+      [ os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl') ],
       dart_options)
 
   # Merging:
@@ -154,6 +153,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
   builder.normalize_annotations(['WebKit', 'Dart'])
 
   db.Save()
+  return db
 
 def main():
   current_dir = os.path.dirname(__file__)
