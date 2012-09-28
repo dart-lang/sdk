@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
+
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
@@ -143,7 +145,7 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # contains syntax 
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error 
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # no longer an error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
