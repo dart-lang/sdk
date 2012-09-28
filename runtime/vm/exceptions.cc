@@ -18,7 +18,7 @@ DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
     "Prints a stack trace everytime a throw occurs.");
 
 
-const char* Exceptions::kCastExceptionDstName = "type cast";
+const char* Exceptions::kCastErrorDstName = "type cast";
 
 
 // Iterate through the stack frames and try to find a frame with an
@@ -256,11 +256,11 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& dst_type_name,
                                          const String& dst_name,
                                          const String& malformed_error) {
-  // Allocate a new instance of TypeError or CastException.
+  // Allocate a new instance of TypeError or CastError.
   Instance& type_error = Instance::Handle();
   Class& cls = Class::Handle();
-  if (dst_name.Equals(kCastExceptionDstName)) {
-    type_error = NewInstance("CastExceptionImplementation");
+  if (dst_name.Equals(kCastErrorDstName)) {
+    type_error = NewInstance("CastErrorImplementation");
     cls = type_error.clazz();
     cls = cls.SuperClass();
   } else {

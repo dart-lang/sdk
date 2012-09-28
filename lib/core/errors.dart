@@ -12,8 +12,7 @@ class AssertionError implements Error {
 class TypeError implements AssertionError {
 }
 
-// TODO(lrn): Rename to CastError according to specification.
-class CastException implements Error {
+class CastError implements Error {
 }
 
 /**

@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
+
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
