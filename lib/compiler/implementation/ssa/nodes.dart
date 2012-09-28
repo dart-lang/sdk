@@ -581,8 +581,6 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addSuccessor(HBasicBlock block) {
-    // Forward branches are only allowed to new blocks.
-    assert(isClosed() && (block.isNew() || block.id < id));
     if (successors.isEmpty()) {
       successors = [block];
     } else {
