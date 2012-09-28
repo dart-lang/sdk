@@ -332,9 +332,47 @@ class DartBackend extends Backend {
       }
     });
 
+    // Add synthesized constructors to classes with no resolved constructors,
+    // but which originally had any constructor.  That should prevent
+    // those classes from being instantiable with default constructor.
+    Identifier synthesizedIdentifier =
+        new Identifier(new StringToken(IDENTIFIER_INFO, '', -1));
+
+    NextClassElement:
+    for (ClassElement classElement in classMembers.getKeys()) {
+      for (Element member in classMembers[classElement]) {
+        if (member.isConstructor()) continue NextClassElement;
+      }
+      if (classElement.constructors.isEmpty()) continue NextClassElement;
+
+      // TODO(antonm): check with AAR team if there is better approach.
+      // As an idea: provide template as a Dart code---class C { C.name(); }---
+      // and then overwrite necessary parts.
+      SynthesizedConstructorElement constructor =
+          new SynthesizedConstructorElement(classElement);
+      constructor.type = new FunctionType(
+          compiler.types.voidType, const EmptyLink<DartType>(),
+          constructor);
+      constructor.cachedNode = new FunctionExpression(
+          new Send(receiver: classElement.parseNode(compiler).name,
+                   selector: synthesizedIdentifier),
+          new NodeList(beginToken: new StringToken(OPEN_PAREN_INFO, '(', -1),
+                       endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
+                       nodes: const EmptyLink<Node>()),
+          new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
+          null, null, null, null);
+
+      classMembers[classElement].add(constructor);
+      elementAsts[constructor] =
+          new ElementAst(constructor.cachedNode, new TreeElementMapping());
+    }
+
     // Create all necessary placeholders.
     PlaceholderCollector collector =
         new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
+    // Add synthesizedIdentifier to set of unresolved names to rename it to
+    // some unused identifier.
+    collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
       collector.collect(element);
       if (element is ClassElement) {

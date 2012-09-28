@@ -317,7 +317,7 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # inher
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # inherited from VM
 Language/07_Classes/6_Constructors_A01_t01: Fail # inherited from VM
-Language/07_Classes/6_Constructors_A03_t03: Fail # Issue 5349
+Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # inherited from VM
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # inherited from VM
 Language/09_Generics/09_Generics_A05_t02: Fail # inherited from VM
@@ -352,7 +352,7 @@ Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals ille
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # inherited from VM
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # inherited from dart2js
 Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # inherited from dart2js
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # inherited from dart2js
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # co19 issue
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2inherited from VM
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # inherited from VM
