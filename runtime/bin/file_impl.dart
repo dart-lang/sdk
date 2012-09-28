@@ -466,7 +466,12 @@ class _FileBase {
 // Class for encapsulating the native implementation of files.
 class _File extends _FileBase implements File {
   // Constructor for file.
-  _File(String this._name);
+  _File(String this._name) {
+    if (_name is! String) {
+      throw new ArgumentError('${NoSuchMethodError.safeToString(_name)} '
+                              'is not a String');
+    }
+  }
 
   // Constructor from Path for file.
   _File.fromPath(Path path) : this(path.toNativePath());
