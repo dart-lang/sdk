@@ -559,8 +559,7 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
-  // Temporary fix until cvtss2sd is implemented on x64.
-  /* Label fall_through;
+  Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   // After TestByteArrayIndex:
   // * EAX has the base address of the byte array.
@@ -582,7 +581,7 @@ bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   // Store XMM7 into double instance.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM7);
   __ ret();
-  __ Bind(&fall_through); */
+  __ Bind(&fall_through);
 
   return false;
 }
