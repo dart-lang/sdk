@@ -329,6 +329,13 @@ public class PackageLibraryManager {
   
   public Collection<SystemLibrary> getSystemLibraries(){
     return SDK_LIBRARY_MANAGER.getAllSystemLibraries();
+  }
+
+  /**
+   * Check if this URI denotes a patch file.
+   */
+  public static boolean isPatchFile(File file) {
+    return SDK_LIBRARY_MANAGER.isPatchFile(file.toURI());
   } 
   
 }

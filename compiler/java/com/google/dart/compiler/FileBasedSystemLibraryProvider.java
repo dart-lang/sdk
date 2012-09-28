@@ -27,6 +27,7 @@ public class FileBasedSystemLibraryProvider implements SystemLibraryProvider {
 
   private File sdkLibPath;
   private URI sdkLibPathUri;
+  private SystemLibrariesReader reader;
 
   /**
    * Create a {@link FileBasedSystemLibraryProvider} with the given path to the dart SDK.
@@ -42,10 +43,16 @@ public class FileBasedSystemLibraryProvider implements SystemLibraryProvider {
     return sdkLibPathUri;
   }
 
+  private SystemLibrariesReader getReader() {
+    if (reader == null) {
+      reader = new SystemLibrariesReader(sdkLibPath);
+    }
+    return reader;
+  }
+  
   @Override
   public Map<String, DartLibrary> getLibraryMap() {
-    SystemLibrariesReader reader = new SystemLibrariesReader(sdkLibPath);
-    return reader.getLibrariesMap();
+    return getReader().getLibrariesMap();
   }
 
   @Override
@@ -58,6 +65,10 @@ public class FileBasedSystemLibraryProvider implements SystemLibraryProvider {
     return new File(uri).exists();
   }
   
+  @Override
+  public boolean isPatchFile(URI uri) {    
+    return getReader().getPatchPaths().contains(uri);
+  }
   
   @Override
   public SystemLibrary createSystemLibrary(String name, String host, String pathToLib,

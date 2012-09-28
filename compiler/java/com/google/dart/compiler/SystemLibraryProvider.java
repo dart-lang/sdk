@@ -63,4 +63,9 @@ public interface SystemLibraryProvider {
    */
   SystemLibrary createSystemLibrary(String name, String host, String pathToLib, String category, boolean documented, boolean implementation);
 
+  /**
+   * Check if this URI denotes a patch file.
+   */
+  boolean isPatchFile(URI uri);
+
 }

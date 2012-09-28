@@ -223,4 +223,11 @@ public class SystemLibraryManager  {
     }
   }
 
+  /**
+   * Check if this URI denotes a patch file.
+   */
+  public boolean isPatchFile(URI uri) {
+    return libraryProvider.isPatchFile(uri);
+  }
+
 }
