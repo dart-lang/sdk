@@ -98,12 +98,19 @@ List<String> buildScript(String name,
 
   return [
 '''
-#!/bin/sh
+#!/bin/bash
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-BIN_DIR=`dirname \$0`
+# The following line MUST be the first command in the script.
+ABS_SCRIPT_PATH="\$_"
+
+# Setting BIN_DIR this way is ugly, but is needed to handle the case where
+# dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
+# with this case.
+BIN_DIR="\$(cd "\${ABS_SCRIPT_PATH%/*}" ; pwd -P)"
+
 unset COLORS
 if test -t 1; then
   # Stdout is a terminal.
@@ -112,7 +119,7 @@ if test -t 1; then
     COLORS="--enable-diagnostic-colors"
   fi
 fi
-exec \$BIN_DIR/dart$options \$BIN_DIR/$path \$COLORS "\$@"
+exec "\$BIN_DIR"/dart$options "\$BIN_DIR/$path" \$COLORS "\$@"
 ''',
 '''
 @echo off
