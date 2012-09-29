@@ -126,7 +126,7 @@ blob_constructor_test: Fail
 canvas_pixel_array_type_alias_test: Fail
 canvas_test: Fail
 canvas_using_html_test: Fail
-datalistelement_test: Fail
+datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
 element_add_test: Fail
