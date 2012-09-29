@@ -48,6 +48,7 @@ package/*: Skip # Do not run those in Dartium.
 *: Skip
 
 [ $compiler == dart2js ]
+float_array_test: Skip # This is a VM test
 medium_integer_test: Fail, OK # cannot resolve type Mint
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 
