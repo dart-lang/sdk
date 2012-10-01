@@ -911,6 +911,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
+  friend class FlowGraph;  // Access to predecessors_ when inlining.
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 

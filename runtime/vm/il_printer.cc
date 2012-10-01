@@ -538,7 +538,12 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[join]", block_id());
+  f->Print("B%"Pd"[join] pred(", block_id());
+  for (intptr_t i = 0; i < predecessors_.length(); ++i) {
+    if (i > 0) f->Print(", ");
+    f->Print("B%"Pd, predecessors_[i]->block_id());
+  }
+  f->Print(")");
   if (phis_ != NULL) {
     f->Print(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
@@ -563,6 +568,11 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
   }
   f->Print(")");
   PrintPropagatedType(f, *this);
+  if (is_alive()) {
+    f->Print(" alive");
+  } else {
+    f->Print(" dead");
+  }
   if (range_ != NULL) {
     f->Print(" ");
     range_->PrintTo(f);

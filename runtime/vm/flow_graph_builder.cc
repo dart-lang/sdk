@@ -1093,7 +1093,6 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
 // Note: The specification of switch/case is under discussion and may change
 // drastically.
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitCaseNode (control)");
   const intptr_t len = node->case_expressions()->length();
   // Create case statements instructions.
   EffectGraphVisitor for_case_statements(owner(), temp_index());
@@ -1189,7 +1188,6 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitWhileNode (control)");
   TestGraphVisitor for_test(owner(),
                             temp_index(),
                             node->condition()->token_pos());
@@ -1227,7 +1225,6 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // f) loop-exit-target
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitDoWhileNode (control)");
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   for_body.AddInstruction(
@@ -1282,7 +1279,6 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 // h) loop-exit-target
 // i) break-join
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitForNode (control)");
   EffectGraphVisitor for_initializer(owner(), temp_index());
   node->initializer()->Visit(&for_initializer);
   Append(for_initializer);
@@ -1356,7 +1352,6 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
-  InlineBailout("EffectGraphVisitor::VisitJumpNode (control)");
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     EffectGraphVisitor for_effect(owner(), temp_index());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
@@ -2636,7 +2631,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph(InliningContext context) {
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
-  FlowGraph* graph = new FlowGraph(*this, graph_entry_);
+  FlowGraph* graph = new FlowGraph(*this, graph_entry_, last_used_block_id_);
   if (InInliningContext()) graph->set_exits(exits_);
   return graph;
 }

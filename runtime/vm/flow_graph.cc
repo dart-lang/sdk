@@ -16,10 +16,12 @@ namespace dart {
 DECLARE_FLAG(bool, trace_optimization);
 
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
-                     GraphEntryInstr* graph_entry)
+                     GraphEntryInstr* graph_entry,
+                     intptr_t max_block_id)
   : parent_(),
     assigned_vars_(),
     current_ssa_temp_index_(0),
+    max_block_id_(max_block_id),
     parsed_function_(builder.parsed_function()),
     num_copied_params_(builder.num_copied_params()),
     num_non_copied_params_(builder.num_non_copied_params()),
@@ -531,6 +533,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instruction. First, each instruction
     // gets a full copy of the environment. Later we optimize this by
     // eliminating unnecessary environments.
+    // TODO(zerny): Avoid creating unnecessary environments. Note that some
+    // optimizations need deoptimization info for non-deoptable instructions,
+    // eg, LICM on GOTOs.
     current->set_env(Environment::From(*env,
                                        num_non_copied_params_,
                                        parsed_function_.function()));
@@ -727,10 +732,38 @@ void FlowGraph::Bailout(const char* reason) const {
 }
 
 
-// Helper to get the block-entry of an instruction.
-static BlockEntryInstr* GetBlockEntry(Instruction* instr) {
-  while (!instr->IsBlockEntry()) instr = instr->previous();
-  return instr->AsBlockEntry();
+// Helper to reorder phis after splitting a block.  The last instruction(s) of
+// the split block will now have a larger block id than any previously known
+// blocks. If the last instruction jumps to a join, we must reorder phi inputs
+// according to the block order, ie, we move this predecessor to the end.
+static void ReorderPhis(BlockEntryInstr* block) {
+  GotoInstr* jump = block->last_instruction()->AsGoto();
+  if (jump == NULL) return;
+  JoinEntryInstr* join = jump->successor();
+  intptr_t pred_index = join->IndexOfPredecessor(block);
+  intptr_t pred_count = join->PredecessorCount();
+  ASSERT(pred_index >= 0);
+  ASSERT(pred_index < pred_count);
+  // If the predecessor index is the last index there is nothing to update.
+  if ((join->phis() == NULL) || (pred_index + 1 == pred_count)) return;
+  // Otherwise, move the predecessor use to the end in each phi.
+  for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+    PhiInstr* phi = (*join->phis())[i];
+    if (phi == NULL) continue;
+    ASSERT(pred_count == phi->InputCount());
+    // Save the predecessor use.
+    Value* pred_use = phi->InputAt(pred_index);
+    // Move each of the following uses back by one.
+    ASSERT(pred_index < pred_count - 1);  // Will move at least one index.
+    for (intptr_t i = pred_index; i < pred_count - 1; ++i) {
+      Value* use = phi->InputAt(i + 1);
+      phi->SetInputAt(i, use);
+      use->set_use_index(i);
+    }
+    // Write the predecessor use at the end.
+    phi->SetInputAt(pred_count - 1, pred_use);
+    pred_use->set_use_index(pred_count - 1);
+  }
 }
 
 
@@ -739,6 +772,13 @@ static void Link(Instruction* prev, Instruction* next) {
   ASSERT(prev != next);
   prev->set_next(next);
   next->set_previous(prev);
+}
+
+
+// Helper to sort a list of blocks.
+static int LowestBlockIdFirst(BlockEntryInstr* const* a,
+                              BlockEntryInstr* const* b) {
+  return (*a)->block_id() - (*b)->block_id();
 }
 
 
@@ -751,47 +791,141 @@ static void Link(Instruction* prev, Instruction* next) {
 // After inlining the caller graph will correctly have adjusted the pre/post
 // orders, the dominator tree and the use lists.
 void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
+  ASSERT(call->previous() != NULL);
+  ASSERT(call->next() != NULL);
   ASSERT(callee_graph->exits() != NULL);
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
+  ASSERT(callee_graph->max_block_id() > max_block_id());
   ASSERT(callee_graph->max_virtual_register_number() >
          max_virtual_register_number());
 
-  // TODO(zerny): Implement support for callee graphs with control flow.
-  ASSERT(callee_graph->preorder().length() == 2);
+  // Adjust the max block id to the max block id of the callee graph.
+  max_block_id_ = callee_graph->max_block_id();
 
   // Adjust the SSA temp index by the callee graph's index.
   current_ssa_temp_index_ = callee_graph->max_virtual_register_number();
 
-  BlockEntryInstr* caller_entry = GetBlockEntry(call);
+  BlockEntryInstr* caller_entry = call->GetBlock();
   TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
   ZoneGrowableArray<ReturnInstr*>* callee_exits = callee_graph->exits();
 
-  // 0. Attach the outer environment on each instruction in the callee graph.
-  for (ForwardInstructionIterator it(callee_entry); !it.Done(); it.Advance()) {
-    Instruction* instr = it.Current();
-    if (instr->CanDeoptimize()) call->env()->DeepCopyToOuter(instr);
+  // Attach the outer environment on each instruction in the callee graph.
+  for (BlockIterator block_it = callee_graph->postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current());
+         !it.Done();
+         it.Advance()) {
+      Instruction* instr = it.Current();
+      // TODO(zerny): Avoid creating unnecessary environments. Note that some
+      // optimizations need deoptimization info for non-deoptable instructions,
+      // eg, LICM on GOTOs.
+      if (instr->env() != NULL) call->env()->DeepCopyToOuter(instr);
+    }
   }
 
-  // 1. Insert the callee graph into the caller graph.
+  // Insert the callee graph into the caller graph.
   if (callee_exits->is_empty()) {
-    // If no normal exits exist, inline and truncate the block after inlining.
-    Link(call->previous(), callee_entry->next());
-    caller_entry->set_last_instruction(callee_entry->last_instruction());
+    // TODO(zerny): Add support for non-local exits, such as throw.
+    UNREACHABLE();
   } else if (callee_exits->length() == 1) {
     ReturnInstr* exit = (*callee_exits)[0];
-    // TODO(zerny): Support one exit graph containing control flow.
-    ASSERT(callee_entry == GetBlockEntry(exit));
+    ASSERT(exit->previous() != NULL);
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(exit->value()->definition());
     Link(call->previous(), callee_entry->next());
     Link(exit->previous(), call->next());
+    // In case of control flow, locally update the dominator tree.
+    if (callee_graph->preorder().length() > 2) {
+      // The caller block is split and the new block id is that of the exit
+      // block. If the caller block had outgoing edges, reorder the phis so they
+      // are still ordered by block id.
+      ReorderPhis(caller_entry);
+      // The callee return is now the immediate dominator of blocks whose
+      // immediate dominator was the caller entry.
+      BlockEntryInstr* exit_block = exit->GetBlock();
+      ASSERT(exit_block->dominated_blocks().is_empty());
+      for (intptr_t i = 0; i < caller_entry->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = caller_entry->dominated_blocks()[i];
+        block->set_dominator(exit_block);
+        exit_block->AddDominatedBlock(block);
+      }
+      // The caller entry is now the immediate dominator of blocks whose
+      // immediate dominator was the callee entry.
+      caller_entry->ClearDominatedBlocks();
+      for (intptr_t i = 0; i < callee_entry->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
+        block->set_dominator(caller_entry);
+        caller_entry->AddDominatedBlock(block);
+      }
+      // Recompute the block orders.
+      DiscoverBlocks();
+    }
   } else {
-    // TODO(zerny): Support multiple exits.
-    UNREACHABLE();
+    // Sort the list of exits by block id.
+    GrowableArray<BlockEntryInstr*> exits(callee_exits->length());
+    for (intptr_t i = 0; i < callee_exits->length(); ++i) {
+      exits.Add((*callee_exits)[i]->GetBlock());
+    }
+    exits.Sort(LowestBlockIdFirst);
+    // Create a join of the returns.
+    JoinEntryInstr* join =
+        new JoinEntryInstr(++max_block_id_, CatchClauseNode::kInvalidTryIndex);
+    for (intptr_t i = 0; i < exits.length(); ++i) {
+      ReturnInstr* exit_instr = exits[i]->last_instruction()->AsReturn();
+      ASSERT(exit_instr != NULL);
+      exit_instr->previous()->Goto(join);
+      // Directly add the predecessors of the join in ascending block id order.
+      join->predecessors_.Add(exits[i]);
+    }
+    // If the call has uses, create a phi of the returns.
+    if ((call->input_use_list() != NULL) ||
+        (call->env_use_list() != NULL)) {
+      // Environment count: length before call - argument count (+ return)
+      intptr_t env_count = call->env()->Length() - call->ArgumentCount();
+      // Add a phi of the return values.
+      join->InsertPhi(env_count, env_count + 1);
+      PhiInstr* phi = join->phis()->Last();
+      phi->set_ssa_temp_index(alloc_ssa_temp_index());
+      phi->mark_alive();
+      for (intptr_t i = 0; i < exits.length(); ++i) {
+        ReturnInstr* exit_instr = exits[i]->last_instruction()->AsReturn();
+        ASSERT(exit_instr != NULL);
+        Value* use = exit_instr->value();
+        phi->SetInputAt(i, use);
+        use->set_instruction(phi);
+        use->set_use_index(i);
+      }
+      // Replace uses of the call with the phi.
+      call->ReplaceUsesWith(phi);
+    }
+    //  Remove the call from the graph.
+    Link(call->previous(), callee_entry->next());
+    Link(join, call->next());
+    // The caller block is split and the new block id is that of the join
+    // block. If the caller block had outgoing edges, reorder the phis so they
+    // are still ordered by block id.
+    ReorderPhis(caller_entry);
+    // Adjust pre/post orders and update the dominator tree.
+    DiscoverBlocks();
+    // TODO(zerny): Compute the dominator frontier locally.
+    GrowableArray<BitVector*> dominance_frontier;
+    ComputeDominators(&dominance_frontier);
   }
+}
 
-  // TODO(zerny): Adjust pre/post orders.
-  // TODO(zerny): Update dominator tree.
+
+intptr_t FlowGraph::InstructionCount() const {
+  intptr_t size = 0;
+  // Iterate each block, skipping the graph entry.
+  for (intptr_t i = 1; i < preorder_.length(); ++i) {
+    for (ForwardInstructionIterator it(preorder_[i]);
+         !it.Done();
+         it.Advance()) {
+      ++size;
+    }
+  }
+  return size;
 }
 
 
