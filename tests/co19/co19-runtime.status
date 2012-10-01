@@ -5,7 +5,6 @@
 [ $compiler == none && $runtime == vm ]
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(vm-team): Please triage this failure.
@@ -81,6 +80,27 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage 
 Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Throw_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Throw_A03_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Throw_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Throw_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/08_Throw_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A02_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A02_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A02_t07: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -149,6 +169,12 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # TODO(
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # TODO(vm-team): Please triage this failure.
@@ -188,7 +214,6 @@ LibTest/core/double/INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this f
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 
 
-Language/03_Overview/1_Scoping_A02_t06: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
 Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
@@ -212,6 +237,9 @@ LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.

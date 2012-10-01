@@ -10,7 +10,7 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.c
 Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # http://dartbug.com/5429
 Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # http://dartbug.com/5429
 
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
+Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
@@ -23,6 +23,20 @@ Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): Please triage th
 Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A04_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A05_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/08_Throw_A05_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(ahe): Please triage this failure.
@@ -34,6 +48,12 @@ Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(ahe): Please t
 Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail # TODO(ahe): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
@@ -80,10 +100,24 @@ Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(ahe): Pleas
 Language/10_Expressions/08_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/08_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/08_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A04_t03: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A06_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A09_t02: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/2_Const_A09_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/25_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
@@ -556,7 +590,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Check
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
 Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.
 Language/07_Classes/6_Constructors_A02_t01: Fail # Checks that a compile-error is produced when a named constructor definition does not begin with the name of its class.
-Language/07_Classes/6_Constructors_A03_t03: Fail # Checks that 'default' constructor is not generated if the class  declares a named constructor.
 Language/07_Classes/7_Static_Methods_A01_t03: Fail # Checks that it is a compile-time error when a superclass's static method is being accessed using a subclass's name.
 Language/10_Expressions/01_Constants_A16_t01: Fail # Checks that an IntegerDivisionByZeroException raised during evaluation  of a compile-time constant causes a compile-time error.
 Language/10_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryException raised during evaluation of a compile-time constant causes a compile-time error.
