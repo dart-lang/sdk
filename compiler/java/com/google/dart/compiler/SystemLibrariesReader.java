@@ -45,127 +45,110 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A reader that parses and reads the libraries dart-sdk/lib/_internal/libraries.dart file
- * for system library information 
- * 
- * library information is in the format 
- * 
- * 
- * final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
- *
- * // Used by VM applications
- * "builtin": const LibraryInfo(
- *    "builtin/builtin_runtime.dart",
- *     category: "Server",
- *     platforms: VM_PLATFORM),
- *
- * "compiler": const LibraryInfo(
- *     "compiler/compiler.dart",
- *     category: "Tools",
- *     platforms: 0),
- *  
- *  };
- *
+ * A reader that parses and reads the libraries dart-sdk/lib/_internal/libraries.dart file for
+ * system library information library information is in the format final Map<String, LibraryInfo>
+ * LIBRARIES = const <LibraryInfo> { // Used by VM applications "builtin": const LibraryInfo(
+ * "builtin/builtin_runtime.dart", category: "Server", platforms: VM_PLATFORM), "compiler": const
+ * LibraryInfo( "compiler/compiler.dart", category: "Tools", platforms: 0), };
  */
 public class SystemLibrariesReader {
-  
- class DartLibrary {
-    
+
+  class DartLibrary {
+
     private String shortName = null;
     private String path = null;
     private String category = "Shared";
     private boolean documented = true;
     private boolean implementation = false;
     private int platforms = 0;
-    
-    DartLibrary(String name){
+
+    DartLibrary(String name) {
       this.shortName = name;
     }
-    
+
     public String getShortName() {
       return shortName;
     }
-    
+
     public String getPath() {
       return path;
     }
-    
+
     public void setPath(String path) {
       this.path = path;
     }
-   
+
     public String getCategory() {
       return category;
     }
-    
+
     public void setCategory(String category) {
       this.category = category;
     }
-    
+
     public boolean isDocumented() {
       return documented;
     }
-   
+
     public void setDocumented(boolean documented) {
       this.documented = documented;
     }
-    
+
     public boolean isImplementation() {
       return implementation;
     }
-    
+
     public void setImplementation(boolean implementation) {
       this.implementation = implementation;
     }
-    
+
     public boolean isDart2JsLibrary() {
       return (platforms & DART2JS_PLATFORM) != 0;
     }
-    
+
     public boolean isVmLibrary() {
       return (platforms & VM_PLATFORM) != 0;
     }
-    
+
     public void setPlatforms(int platforms) {
       this.platforms = platforms;
-    }     
+    }
   }
-  
 
-  class LibrariesFileAstVistor extends ASTVisitor<Void>{
-     
+  class LibrariesFileAstVistor extends ASTVisitor<Void> {
+
     @Override
     public Void visitMapLiteralEntry(DartMapLiteralEntry node) {
-      
+
       String keyString = null;
       DartExpression key = node.getKey();
-      if (key instanceof DartStringLiteral){
+      if (key instanceof DartStringLiteral) {
         keyString = "dart:" + ((DartStringLiteral) key).getValue();
       }
       DartExpression value = node.getValue();
-      if (value instanceof DartNewExpression){
+      if (value instanceof DartNewExpression) {
         DartLibrary library = new DartLibrary(keyString);
         List<DartExpression> args = ((DartNewExpression) value).getArguments();
-        for (DartExpression arg : args){
-          if (arg instanceof DartStringLiteral){
+        for (DartExpression arg : args) {
+          if (arg instanceof DartStringLiteral) {
             library.setPath(((DartStringLiteral) arg).getValue());
           }
-          if (arg instanceof DartNamedExpression){
+          if (arg instanceof DartNamedExpression) {
             String name = ((DartNamedExpression) arg).getName().getName();
             DartExpression expression = ((DartNamedExpression) arg).getExpression();
-            if (name.equals(CATEGORY)){
+            if (name.equals(CATEGORY)) {
               library.setCategory(((DartStringLiteral) expression).getValue());
-            } else if (name.equals(IMPLEMENTATION)){
-              library.setImplementation(((DartBooleanLiteral)expression).getValue());
-            } else if (name.equals(DOCUMENTED)){
-              library.setDocumented(((DartBooleanLiteral)expression).getValue());
+            } else if (name.equals(IMPLEMENTATION)) {
+              library.setImplementation(((DartBooleanLiteral) expression).getValue());
+            } else if (name.equals(DOCUMENTED)) {
+              library.setDocumented(((DartBooleanLiteral) expression).getValue());
             } else if (name.equals(PATCH_PATH)) {
               String path = ((DartStringLiteral) expression).getValue();
-              URI uri = sdkLibPath.getAbsoluteFile().toURI().resolve(URI.create(path));
+              URI uri = sdkLibPath.resolve(URI.create(path));
               patchPaths.add(uri);
-            } else if (name.equals(PLATFORMS)){
-              if (expression instanceof DartIdentifier){
-                String identifier = ((DartIdentifier)expression).getName();
+            } else if (name.equals(PLATFORMS)) {
+              if (expression instanceof DartIdentifier) {
+                String identifier = ((DartIdentifier) expression).getName();
                 if (identifier.equals("VM_PLATFORM")) {
                   library.setPlatforms(VM_PLATFORM);
                 } else {
@@ -173,102 +156,107 @@ public class SystemLibrariesReader {
                 }
               }
             }
-          } 
+          }
         }
-        librariesMap.put(keyString,library);
+        librariesMap.put(keyString, library);
       }
       return null;
-    }   
-    
+    }
+
   }
-  
- 
+
   public static final String LIBRARIES_FILE = "libraries.dart";
   public static final String INTERNAL_DIR = "_internal";
-  
+
   private static final String IMPLEMENTATION = "implementation";
   private static final String DOCUMENTED = "documented";
   private static final String CATEGORY = "category";
   private static final String PATCH_PATH = "dart2jsPatchPath";
   private static final String PLATFORMS = "platforms";
-  
-  
+
   private static final int DART2JS_PLATFORM = 1;
   private static final int VM_PLATFORM = 2;
-  
-  private final File sdkLibPath;
+
+  private final URI sdkLibPath;
   private final Map<String, DartLibrary> librariesMap = new HashMap<String, DartLibrary>();
   private final List<URI> patchPaths = new ArrayList<URI>();
-  
-  public SystemLibrariesReader(File sdkLibPath) {
-    this.sdkLibPath =sdkLibPath;
-    loadLibraryInfo();
+
+  public SystemLibrariesReader(URI sdkLibPath, Reader sdkFileReader) {
+    this.sdkLibPath = sdkLibPath;
+    loadLibraryInfo(sdkFileReader);
   }
-  
+
+  public SystemLibrariesReader(File sdkLibPath) throws IOException {
+    this(sdkLibPath.getAbsoluteFile().toURI(), new InputStreamReader(new FileInputStream(
+        getLibrariesFile(sdkLibPath)), Charset.forName("UTF8")));
+  }
+
   public Map<String, DartLibrary> getLibrariesMap() {
     return librariesMap;
   }
-  
+
   public List<URI> getPatchPaths() {
     return patchPaths;
   }
-  
-  private void loadLibraryInfo(){
-    File librariesFile = getLibrariesFile();
-    
-    DartUnit unit = getDartUnit(librariesFile);
-    
+
+  private void loadLibraryInfo(Reader sdkFileReader) {
+
+    DartUnit unit = getDartUnit(sdkFileReader);
+
     List<DartNode> nodes = unit.getTopLevelNodes();
-    for (DartNode node : nodes){
-      if (node instanceof DartFieldDefinition){
+    for (DartNode node : nodes) {
+      if (node instanceof DartFieldDefinition) {
         node.accept(new LibrariesFileAstVistor());
       }
     }
   }
 
-
   /**
    * Parse the given dart file and return the AST
-   * @param librariesFile the dart file to parse
+   * 
+   * @param fileReader the dart file reader
    * @return the parsed AST
    */
-  private DartUnit getDartUnit(File librariesFile) {
-       
-    String srcCode = getSource(librariesFile);
-    DartSourceString  dartSource = new DartSourceString(LIBRARIES_FILE, srcCode);
-    DefaultDartCompilerListener listener = new DefaultDartCompilerListener(ErrorFormat.NORMAL);    
-    DartParser parser = new DartParser(dartSource, srcCode, false, new HashSet<String>(), listener, new CompilerMetrics());
+  private DartUnit getDartUnit(Reader fileReader) {
+
+    String srcCode = getSource(fileReader);
+    DartSourceString dartSource = new DartSourceString(LIBRARIES_FILE, srcCode);
+    DefaultDartCompilerListener listener = new DefaultDartCompilerListener(ErrorFormat.NORMAL);
+    DartParser parser = new DartParser(
+        dartSource,
+        srcCode,
+        false,
+        new HashSet<String>(),
+        listener,
+        new CompilerMetrics());
     return parser.parseUnit();
   }
 
-
-  private String getSource(File file) {
+  private String getSource(Reader reader) {
     String srcCode = null;
-    Reader r = null;
     boolean failed = true;
     try {
-      r =  new InputStreamReader(new FileInputStream(file), Charset.forName("UTF8"));
-      srcCode = CharStreams.toString(r);
+      srcCode = CharStreams.toString(reader);
       failed = false;
     } catch (IOException e) {
-        e.printStackTrace();
+      e.printStackTrace();
     } finally {
-        try {
-          Closeables.close(r, failed);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+      try {
+        Closeables.close(reader, failed);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
     return srcCode;
   }
-  
-  private File getLibrariesFile() {
-    File file = new File(new File(sdkLibPath, INTERNAL_DIR), LIBRARIES_FILE);
+
+  private static File getLibrariesFile(File sdkLibDir) {
+    File file = new File(new File(sdkLibDir, INTERNAL_DIR), LIBRARIES_FILE);
     if (!file.exists()) {
       throw new InternalCompilerException("Failed to find " + file.toString()
-                                          + ".  Is dart-sdk path correct?");
+          + ".  Is dart-sdk path correct?");
     }
     return file;
-  }  
-  
+  }
+
 }

@@ -13,63 +13,32 @@
  */
 package com.google.dart.compiler;
 
-import com.google.dart.compiler.SystemLibrariesReader.DartLibrary;
-
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
 
 /**
  * A file-based {@link SystemLibraryProvider} that reads dart-sdk/lib/_internal/libraries.dart for
  * system library information.
  */
-public class FileBasedSystemLibraryProvider implements SystemLibraryProvider {
+public class FileBasedSystemLibraryProvider extends SystemLibraryProvider {
 
   private File sdkLibPath;
-  private URI sdkLibPathUri;
-  private SystemLibrariesReader reader;
 
   /**
    * Create a {@link FileBasedSystemLibraryProvider} with the given path to the dart SDK.
    */
   public FileBasedSystemLibraryProvider(File sdkPath) {
+    super(new File(sdkPath, "lib").getAbsoluteFile().toURI());
+    //TODO(pquitslund): remove this duplicated file creation
     sdkLibPath = new File(sdkPath, "lib").getAbsoluteFile();
-    sdkLibPathUri = sdkLibPath.toURI();
-  }
-
-
-  @Override
-  public URI getSdkLibPathUri() {
-    return sdkLibPathUri;
-  }
-
-  private SystemLibrariesReader getReader() {
-    if (reader == null) {
-      reader = new SystemLibrariesReader(sdkLibPath);
-    }
-    return reader;
-  }
-  
-  @Override
-  public Map<String, DartLibrary> getLibraryMap() {
-    return getReader().getLibrariesMap();
   }
 
   @Override
-  public URI resolveHost(String host, URI uri) {
-    return new File(sdkLibPath, host).toURI().resolve("." + uri.getPath());
+  protected SystemLibrariesReader createReader() throws IOException {
+    return new SystemLibrariesReader(sdkLibPath);
   }
 
-  @Override
-  public boolean exists(URI uri) {
-    return new File(uri).exists();
-  }
-  
-  @Override
-  public boolean isPatchFile(URI uri) {    
-    return getReader().getPatchPaths().contains(uri);
-  }
-  
   @Override
   public SystemLibrary createSystemLibrary(String name, String host, String pathToLib,
       String category, boolean documented, boolean implementation) {
@@ -85,6 +54,16 @@ public class FileBasedSystemLibraryProvider implements SystemLibraryProvider {
     
     return new SystemLibrary(
         name, host, pathToLib, dir, category, documented, implementation);
+  }
+  
+  @Override
+  public boolean exists(URI uri) {
+    return new File(uri).exists();
+  }
+  
+  @Override
+  public URI resolveHost(String host, URI uri) {
+    return new File(sdkLibPath, host).toURI().resolve("." + uri.getPath());
   }
   
 }

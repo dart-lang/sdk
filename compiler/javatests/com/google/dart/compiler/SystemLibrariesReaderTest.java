@@ -8,6 +8,7 @@ import com.google.dart.compiler.SystemLibrariesReader.DartLibrary;
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class SystemLibrariesReaderTest extends TestCase {
     assertTrue(librariesFile.exists());
   }
   
-  public void testLibrariesFileContent() throws URISyntaxException{
+  public void testLibrariesFileContent() throws URISyntaxException, IOException{
     File sdkLibPath = new File(PackageLibraryManager.DEFAULT_SDK_PATH, "lib");
     URI base = sdkLibPath.toURI();
     SystemLibrariesReader reader = new SystemLibrariesReader(sdkLibPath);
