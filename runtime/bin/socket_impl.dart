@@ -207,10 +207,10 @@ class _SocketBase extends NativeFieldWrapperClass1 {
     } else if (error is List) {
       assert(_isErrorResponse(error));
       switch (error[0]) {
-        case _FileUtils.ILLEGAL_ARGUMENT_RESPONSE:
+        case _ILLEGAL_ARGUMENT_RESPONSE:
           doReportError(new ArgumentError());
           break;
-        case _FileUtils.OSERROR_RESPONSE:
+        case _OSERROR_RESPONSE:
           doReportError(new SocketIOException(
               message, new OSError(error[2], error[1])));
           break;
@@ -408,8 +408,10 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      var fastBuffer = _ensureFastAndSerializableBuffer(buffer, offset, bytes);
-      var result = _writeList(fastBuffer[0], fastBuffer[1], bytes);
+      _BufferAndOffset bufferAndOffset =
+          _ensureFastAndSerializableBuffer(buffer, offset, bytes);
+      var result =
+          _writeList(bufferAndOffset.buffer, bufferAndOffset.offset, bytes);
       if (result is OSError) {
         _reportError(result, "Write failed");
         // If writing fails we return 0 as the number of bytes and
@@ -425,7 +427,7 @@ class _Socket extends _SocketBase implements Socket {
       native "Socket_WriteList";
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.SUCCESS_RESPONSE;
+    return response is List && response[0] != _SUCCESS_RESPONSE;
   }
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";
