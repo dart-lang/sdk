@@ -45,7 +45,6 @@ intl/test/intl_message_basic_example_test: skip
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: fail
 unittest/test/mock_stepwise_negative_test: fail
-dartdoc/test/dartdoc_test: Fail, OK # dart2js issue 5332
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
