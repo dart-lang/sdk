@@ -35,6 +35,7 @@ class _Utils {
   static print(String message) native "Utils_print";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
+  static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
