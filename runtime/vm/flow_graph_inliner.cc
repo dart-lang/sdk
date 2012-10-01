@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_inliner.h"
 
+#include "vm/assert.h"
 #include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
@@ -145,9 +146,6 @@ class CallSiteInliner : public FlowGraphVisitor {
       caller_graph_->InlineCall(call, callee_graph);
       next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
-      // Check that inlining maintains use lists.
-      DEBUG_ASSERT(caller_graph_->ValidateUseLists());
-
       // Remove push arguments of the call.
       for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
         PushArgumentInstr* push = call->ArgumentAt(i);
@@ -172,6 +170,9 @@ class CallSiteInliner : public FlowGraphVisitor {
           caller_graph_->graph_entry()->constant_null());
 
       TRACE_INLINING(OS::Print("     Success\n"));
+
+      // Check that inlining maintains use lists.
+      SLOW_ASSERT(caller_graph_->ValidateUseLists());
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;

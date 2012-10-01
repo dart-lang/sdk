@@ -5,6 +5,8 @@
 #include "vm/compiler.h"
 
 #include "vm/assembler.h"
+
+#include "vm/assert.h"
 #include "vm/ast_printer.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
@@ -48,6 +50,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     " certain optimizations");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
+DEFINE_FLAG(bool, slow_asserts, false, "Enable slow assertions");
 DECLARE_FLAG(bool, print_flow_graph);
 
 
@@ -181,8 +184,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         if (FLAG_use_inlining) {
           FlowGraphInliner inliner(flow_graph);
           inliner.Inline();
-          // Verify that the use lists are still valid.
-          DEBUG_ASSERT(flow_graph->ValidateUseLists());
+          // Use lists are maintained and validated by the inliner.
         }
 
         // Propagate types and eliminate more type tests.
