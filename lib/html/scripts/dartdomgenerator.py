@@ -18,10 +18,8 @@ import sys
 from generator import TypeRegistry
 from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
-from systemdart2js import Dart2JSSystem
 from systemhtml import DartLibraryEmitter, HtmlInterfacesSystem,\
                        Dart2JSBackend
-from systeminterface import InterfacesSystem
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
