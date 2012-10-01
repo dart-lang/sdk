@@ -11574,7 +11574,7 @@ class _ChildrenElementList implements List {
   }
 
   List<Element> filter(bool f(Element element)) {
-    final output = <Element>[];
+    final output = [];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);

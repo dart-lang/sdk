@@ -12868,7 +12868,7 @@ class _ChildrenElementList implements List {
   }
 
   List<Element> filter(bool f(Element element)) {
-    final output = <Element>[];
+    final output = [];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
@@ -34097,15 +34097,7 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
-  static bool get supported {
-    // TODO: move this to native code.
-    try {
-      new ShadowRoot(new DivElement());
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  static bool get supported => _Utils.shadowRootSupported(window.document);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -43977,6 +43969,7 @@ class _Utils {
   static print(String message) native "Utils_print";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
+  static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
