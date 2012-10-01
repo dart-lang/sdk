@@ -579,10 +579,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (field == null) return node;
 
     Modifiers modifiers = field.modifiers;
-    bool isFinalOrConst = false;
-    if (modifiers != null) {
-      isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
-    }
+    bool isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
     if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
       // If no setter is ever used for this field it is only initialized in the
       // initializer list.

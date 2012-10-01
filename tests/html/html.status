@@ -108,10 +108,39 @@ xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
 
 [ $runtime == safari ]
-canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
+performance_api_test: Fail # window.performance.timing not in Safari 6.
+indexeddb_1_test: Fail # indexedDB not in Safari 6.
+indexeddb_2_test: Fail # indexedDB not in Safari 6.
+indexeddb_3_test: Fail # indexedDB not in Safari 6.
+indexeddb_4_test: Fail # indexedDB not in Safari 6.
+indexeddb_1_test: Fail # indexedDB not in Safari 6.
+fileapi_test: Fail # requestFileSystem not supported in Safari 6.
+datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
+contentelement_test: Fail # Safari 6 does not support content element.
+# The following tests all fail in Safari 5.1. (NOT Mountain Lion). These will go
+# away after we upgrade the buildbots to Mountain Lion after M1.
+# TODO(efortuna): Make our test framework able to separate tests out by browser
+# version.
+audiocontext_test: Fail
+blob_constructor_test: Fail
+canvas_pixel_array_type_alias_test: Fail
+canvas_test: Fail
+canvas_using_html_test: Fail
+datalistelement_test: Pass,Fail
+document_test: Fail
+dom_constructors_test: Fail
+element_add_test: Fail
+element_constructor_1_test: Fail
+element_test: Fail
+exceptions_test: Fail
+instance_of_test: Fail
+mutationobserver_test: Fail
+native_gc_test: Fail
 node_test: Fail
-svgelement_test: Fail
+serialized_script_value_test: Fail
 svgelement2_test: Fail
+svgelement_test: Fail
+url_test: Fail
 
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
@@ -147,10 +176,6 @@ xhr_test: Fail
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ $runtime == safari ]
-# TODO(vsm): Triage DOM failures.
-*: Skip
-
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $compiler == dartc ]
@@ -177,7 +202,7 @@ transferables_test: Skip # until isInstance works in dart2js
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 

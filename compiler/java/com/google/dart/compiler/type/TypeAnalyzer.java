@@ -1364,7 +1364,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitArrayAccess(DartArrayAccess node) {
-      Type target = typeOf(node.getTarget());
+      Type target = typeOf(node.getRealTarget());
       DartExpression argKey = node.getKey();
       // t[k] = v
       if (node.getParent() instanceof DartBinaryExpression) {
@@ -1437,7 +1437,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getFunctionName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
         return dynamicType;
       }
-      DartNode target = node.getTarget();
+      DartNode target = node.getRealTarget();
       DartIdentifier nameNode = node.getFunctionName();
       String name = node.getFunctionNameString();
       Element element = node.getElement();
@@ -2663,17 +2663,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         parameters = methodElement.getParameters();
       } else {
         parameters = null;
-      }
-      if (node instanceof DartMethodInvocation) {
-        DartMethodInvocation invocation = (DartMethodInvocation) node;
-        if (invocation.isCascade()) {
-          checkInvocation(argumentNodes, diagnosticNode, name, type, parameters);
-          DartExpression target = invocation.getTarget();
-          if (target == null) {
-            return getCurrentClass();
-          }
-          return target.accept(this);
-        }
       }
       return checkInvocation(argumentNodes, diagnosticNode, name, type, parameters);
     }

@@ -12,40 +12,15 @@ import java.util.List;
 public class DartFunctionObjectInvocation extends DartInvocation {
 
   private DartExpression target;
-  private boolean isCascade;
 
   public DartFunctionObjectInvocation(DartExpression target, List<DartExpression> args) {
-    this(target, false, args);
-  }
-
-  public DartFunctionObjectInvocation(DartExpression target, boolean isCascade,
-                                      List<DartExpression> args) {
     super(args);
     this.target = becomeParentOf(target);
-    this.isCascade = isCascade;
   }
 
   @Override
   public DartExpression getTarget() {
     return target;
-  }
-
-  public DartExpression getRealTarget() {
-    if (isCascade) {
-      DartNode ancestor = getParent();
-      while (!(ancestor instanceof DartCascadeExpression)) {
-        if (ancestor == null) {
-          return target;
-        }
-        ancestor = ancestor.getParent();
-      }
-      return ((DartCascadeExpression) ancestor).getTarget();
-    }
-    return target;
-  }
-
-  public boolean isCascade() {
-    return isCascade;
   }
 
   @Override

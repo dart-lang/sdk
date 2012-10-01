@@ -111,6 +111,11 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   }
 
   @Override
+  public ConstructorElement getRedirectingFactoryConstructor() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void setDefaultConstructor(ConstructorElement defaultConstructor) {
     throw new UnsupportedOperationException();
   }

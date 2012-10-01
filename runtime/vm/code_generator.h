@@ -47,49 +47,52 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
 
 #define DEOPT_REASONS(V)                                                       \
-  V(DeoptUnknown)                                                              \
-  V(DeoptIncrLocal)                                                            \
-  V(DeoptIncrInstance)                                                         \
-  V(DeoptIncrInstanceOneClass)                                                 \
-  V(DeoptInstanceGetterSameTarget)                                             \
-  V(DeoptInstanceGetter)                                                       \
-  V(DeoptStoreIndexed)                                                         \
-  V(DeoptStoreIndexedPolymorphic)                                              \
-  V(DeoptPolymorphicInstanceCallSmiOnly)                                       \
-  V(DeoptPolymorphicInstanceCallSmiFail)                                       \
-  V(DeoptPolymorphicInstanceCallTestFail)                                      \
-  V(DeoptIntegerToDouble)                                                      \
-  V(DeoptDoubleToDouble)                                                       \
-  V(DeoptBinarySmiOp)                                                          \
-  V(DeoptBinaryMintOp)                                                         \
-  V(DeoptBinaryDoubleOp)                                                       \
-  V(DeoptInstanceSetterSameTarget)                                             \
-  V(DeoptInstanceSetter)                                                       \
-  V(DeoptSmiEquality)                                                          \
-  V(DeoptEquality)                                                             \
-  V(DeoptRelationalOp)                                                         \
-  V(DeoptSmiCompareSmi)                                                        \
-  V(DeoptSmiCompareAny)                                                        \
-  V(DeoptDoubleCompareDouble)                                                  \
-  V(DeoptEqualityNoFeedback)                                                   \
-  V(DeoptEqualityClassCheck)                                                   \
-  V(DeoptDoubleComparison)                                                     \
-  V(DeoptLoadIndexedFixedArray)                                                \
-  V(DeoptLoadIndexedGrowableArray)                                             \
-  V(DeoptLoadIndexedPolymorphic)                                               \
-  V(DeoptNoTypeFeedback)                                                       \
-  V(DeoptSAR)                                                                  \
-  V(DeoptUnaryOp)                                                              \
-  V(DeoptCheckClass)                                                           \
-  V(DeoptCheckSmi)                                                             \
-  V(DeoptAtCall)                                                               \
-  V(DeoptNumReasons)                                                           \
+  V(Unknown)                                                                   \
+  V(IncrLocal)                                                                 \
+  V(IncrInstance)                                                              \
+  V(IncrInstanceOneClass)                                                      \
+  V(InstanceGetterSameTarget)                                                  \
+  V(InstanceGetter)                                                            \
+  V(StoreIndexed)                                                              \
+  V(StoreIndexedPolymorphic)                                                   \
+  V(PolymorphicInstanceCallSmiOnly)                                            \
+  V(PolymorphicInstanceCallSmiFail)                                            \
+  V(PolymorphicInstanceCallTestFail)                                           \
+  V(IntegerToDouble)                                                           \
+  V(DoubleToDouble)                                                            \
+  V(BinarySmiOp)                                                               \
+  V(BinaryMintOp)                                                              \
+  V(BinaryDoubleOp)                                                            \
+  V(InstanceSetterSameTarget)                                                  \
+  V(InstanceSetter)                                                            \
+  V(SmiEquality)                                                               \
+  V(Equality)                                                                  \
+  V(RelationalOp)                                                              \
+  V(SmiCompareSmi)                                                             \
+  V(SmiCompareAny)                                                             \
+  V(DoubleCompareDouble)                                                       \
+  V(EqualityNoFeedback)                                                        \
+  V(EqualityClassCheck)                                                        \
+  V(DoubleComparison)                                                          \
+  V(LoadIndexedFixedArray)                                                     \
+  V(LoadIndexedGrowableArray)                                                  \
+  V(LoadIndexedPolymorphic)                                                    \
+  V(NoTypeFeedback)                                                            \
+  V(SAR)                                                                       \
+  V(UnaryOp)                                                                   \
+  V(CheckClass)                                                                \
+  V(CheckSmi)                                                                  \
+  V(AtCall)                                                                    \
+  V(NumReasons)                                                                \
 
 enum DeoptReasonId {
-#define DEFINE_ENUM_LIST(name) k##name,
+#define DEFINE_ENUM_LIST(name) kDeopt##name,
 DEOPT_REASONS(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
 };
+
+
+const char* DeoptReasonToText(intptr_t deopt_id);
 
 
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,

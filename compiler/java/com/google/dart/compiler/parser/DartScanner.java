@@ -4,8 +4,10 @@
 
 package com.google.dart.compiler.parser;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
@@ -610,15 +612,12 @@ public class DartScanner {
 
   /**
    * Called when comments are identified to aggregate the total number of comment lines and comment
-   * characters then delegate to {@link #recordCommentLocation(int, int, int, int)}.  This provides
+   * characters then delegate to {@link #recordCommentLocation(int, int)}.  This provides
    * a light weight way to track how much of the code is made up of comments without having to keep
    * all comments.
    *
    * @param start the character position of the second character in the comment
    * @param stop the character position of the final character in the comment
-   * @param startLine the line number at <code>start</code>
-   * @param endLine the line number of the last line of the comment
-   * @param col the column number at <code>start</code>
    */
   private void commentLocation(int start, int stop) {
     if (start <= lastCommentStart && stop <= lastCommentStop) {
@@ -878,11 +877,7 @@ public class DartScanner {
         advance();
         switch (c) {
           case '\n':
-            if (!multiLine) {
-              // TODO(zundel): better way to report error?
-              internalState.resetModes();
-              return Token.ILLEGAL;
-            }
+            reportError(position() - 1, ParserErrorCode.ESCAPED_NEWLINE);
             c = '\n';
             break;
           case 'b':
@@ -1215,13 +1210,8 @@ public class DartScanner {
         // Raw strings.
         advance();
         if (is('\'') || is('"')) {
-//          int offset = position() - 1;
           Token token = scanString(true);
-//          if (listener != null) {
-//            listener.onError(new DartCompilationError(
-//                new SourceInfo(sourceReference, offset, position() - offset),
-//                ParserErrorCode.DEPRECATED_RAW_STRING));
-//          }
+//          reportError(position() - 1, ParserErrorCode.DEPRECATED_RAW_STRING);
           return token;
         } else {
           return Token.AT;
@@ -1252,6 +1242,14 @@ public class DartScanner {
         if (isEos())
           return Token.EOS;
         return select(Token.ILLEGAL);
+    }
+  }
+
+  private void reportError(int offset, ParserErrorCode errorCode) {
+    if (listener != null) {
+      listener.onError(new DartCompilationError(
+        new SourceInfo(sourceReference, offset, position() - offset),
+        errorCode));
     }
   }
 

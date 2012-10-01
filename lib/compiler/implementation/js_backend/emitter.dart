@@ -497,7 +497,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.isField());
-    return (member.modifiers === null || !member.modifiers.isFinalOrConst())
+    return (!member.modifiers.isFinalOrConst())
         && compiler.codegenWorld.hasInvokedSetter(member, compiler);
   }
 
@@ -523,7 +523,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         || member.isGenerativeConstructorBody()
         || member.isGetter()
         || member.isSetter()) {
-      if (member.modifiers !== null && member.modifiers.isAbstract()) return;
+      if (member.modifiers.isAbstract()) return;
       CodeBuffer codeBuffer = compiler.codegenWorld.generatedCode[member];
       if (codeBuffer == null) return;
       defineInstanceMember(namer.getName(member), codeBuffer);

@@ -23,6 +23,3 @@ dummy_compiler_test: Fail # Issue 2264.
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
-
-[ $compiler == dartc]
-dummy_compiler_test: Fail, OK # dart2js issue 5332

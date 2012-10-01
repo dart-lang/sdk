@@ -67,7 +67,7 @@ class FunctionBodyRewriter extends CloningVisitor {
   FunctionBodyRewriter(this.compiler, originalTreeElements)
       : super(originalTreeElements);
 
-  visitFunctionExpression(FunctionExpression node) {
+  visitBlock(Block block) {
     shouldOmit(Statement statement) {
       if (statement is EmptyStatement) return true;
       if (statement is ExpressionStatement) {
@@ -82,7 +82,7 @@ class FunctionBodyRewriter extends CloningVisitor {
       return false;
     }
 
-    rewritTo(Statement statement) {
+    rewiteStatement(Statement statement) {
       if (statement is Block) {
         Link statements = statement.statements.nodes;
         if (!statements.isEmpty() && statements.tail.isEmpty()) {
@@ -95,20 +95,14 @@ class FunctionBodyRewriter extends CloningVisitor {
       return statement;
     }
 
-    rewriteBody(Statement body) {
-      if (body is !Block) return visit(body);
-      Block block = body;
-      NodeList statements = block.statements;
-      LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
-      for (Statement statement in statements.nodes) {
-        if (!shouldOmit(statement)) {
-          builder.addLast(visit(rewritTo(statement)));
-        }
+    NodeList statements = block.statements;
+    LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
+    for (Statement statement in statements.nodes) {
+      if (!shouldOmit(statement)) {
+        builder.addLast(visit(rewiteStatement(statement)));
       }
-      return new Block(rewriteNodeList(statements, builder.toLink()));
     }
-
-    return rewriteFunctionExpression(node, rewriteBody(node.body));
+    return new Block(rewriteNodeList(statements, builder.toLink()));
   }
 }
 
@@ -360,7 +354,7 @@ class DartBackend extends Backend {
                        endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
                        nodes: const EmptyLink<Node>()),
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
-          null, null, null, null);
+          null, Modifiers.EMPTY, null, null);
 
       classMembers[classElement].add(constructor);
       elementAsts[constructor] =
@@ -462,7 +456,7 @@ class DartBackend extends Backend {
  * used in signatures, as/is operators or in super clauses
  * (just to name a few).  Retraverse AST to pick those up.
  */
-class ReferencedElementCollector extends AbstractVisitor {
+class ReferencedElementCollector extends Visitor {
   final Compiler compiler;
   final Element rootElement;
   final TreeElements treeElements;

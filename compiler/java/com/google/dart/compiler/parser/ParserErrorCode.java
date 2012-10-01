@@ -43,6 +43,7 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (unreachable code?)
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
   DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
+  ESCAPED_NEWLINE("Escaped new-line characters are not allowed in string literals"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   // TODO(zundel): error message needs JUnit test (unreachable code?)
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
@@ -110,6 +111,7 @@ public enum ParserErrorCode implements ErrorCode {
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
   NO_SOUP_FOR_YOU("Too many errors"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
+  NON_CONST_MAP_LITERAL_STATEMENT("Map literals appearing as a statement must be 'const'"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final/const static members are not allowed in interfaces"),
   ONLY_FACTORIES_CAN_REDIRECT("Only factory constructors can redirect to another constructor"),
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),

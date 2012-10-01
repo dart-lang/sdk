@@ -371,23 +371,25 @@ class Primitives {
    * by defining a function in JavaScript called "dartPrint".
    */
   static void printString(String string) {
-    var hasDartPrint = JS('bool', r'typeof dartPrint == "function"');
-    if (hasDartPrint) {
+    // Support overriding print from JavaScript.
+    if (JS('bool', r'typeof dartPrint == "function"')) {
       JS('void', r'dartPrint(#)', string);
       return;
     }
 
-    var hasConsole = JS('bool', r'typeof console == "object"');
-    if (hasConsole) {
+    // Inside browser.
+    if (JS('bool', r'typeof console == "object"')) {
       JS('void', r'console.log(#)', string);
       return;
     }
 
-    var hasWrite = JS('bool', r'typeof write == "function"');
-    if (hasWrite) {
-      JS('void', r'write(#)', string);
-      JS('void', r'write("\n")');
+    // Running in d8, the V8 developer shell, or in Firefox' js-shell.
+    if (JS('bool', r'typeof print == "function"')) {
+      JS('void', r'print(#)', string);
+      return;
     }
+
+    throw 'Unable to print message: ${NoSuchMethodError.safeToString(string)}';
   }
 
   static int parseInt(String string) {

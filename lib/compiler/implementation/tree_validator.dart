@@ -23,7 +23,7 @@ class TreeValidatorTask extends CompilerTask {
   }
 }
 
-class ValidatorVisitor extends AbstractVisitor {
+class ValidatorVisitor extends Visitor {
   final Function reportInvalidNode;
 
   ValidatorVisitor(Function this.reportInvalidNode);

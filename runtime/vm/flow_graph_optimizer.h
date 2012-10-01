@@ -64,6 +64,14 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
 
+  void InlineImplicitInstanceGetter(InstanceCallInstr* call);
+  void InlineArrayLengthGetter(InstanceCallInstr* call,
+                               intptr_t length_offset,
+                               bool is_immutable);
+  void InlineGArrayCapacityGetter(InstanceCallInstr* call);
+  void InlineStringLengthGetter(InstanceCallInstr* call);
+  void InlineStringIsEmptyTester(InstanceCallInstr* call);
+
   FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);

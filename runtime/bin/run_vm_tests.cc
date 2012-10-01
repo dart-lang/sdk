@@ -85,8 +85,8 @@ static void DumpPprofSymbolInfo(const char* pprof_filename) {
 static void PrintUsage() {
   fprintf(stderr, "run_vm_tests [--list | --benchmarks | "
                   "--tests | --all | <test name> | <benchmark name>]\n");
-  fprintf(stderr, "run_vm_tests  <test name> [vm-flags ...]\n");
-  fprintf(stderr, "run_vm_tests  <benchmark name> [flags ...]\n");
+  fprintf(stderr, "run_vm_tests [vm-flags ...] <test name>\n");
+  fprintf(stderr, "run_vm_tests [vm-flags ...] <benchmark name>\n");
 }
 
 
@@ -117,20 +117,22 @@ static int Main(int argc, const char** argv) {
       run_filter = argv[1];
     }
   } else {
-    // First argument is the test name, the rest are vm flags.
-    run_filter = argv[1];
+    // Last argument is the test name, the rest are vm flags.
+    run_filter = argv[argc - 1];
     const char* pprof_option = "--generate_pprof_symbols=";
     int length = strlen(pprof_option);
-    if (strncmp(pprof_option, argv[2], length) == 0) {
-      pprof_filename = (argv[2] + length);
+    if (strncmp(pprof_option, argv[1], length) == 0) {
+      pprof_filename = (argv[1] + length);
       Dart_InitPprofSupport();
-      // Remove the first three values from the arguments.
+      // Remove the first two values (executable, pprof flag) from the
+      // arguments and exclude the last argument which is the test name.
       dart_argc = argc - 3;
-      dart_argv = &argv[3];
-    } else {
-      // Remove the first two values from the arguments.
-      dart_argc = argc - 2;
       dart_argv = &argv[2];
+    } else {
+      // Remove the first value (executable) from the arguments and
+      // exclude the last argument which is the test name.
+      dart_argc = argc - 2;
+      dart_argv = &argv[1];
     }
   }
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,

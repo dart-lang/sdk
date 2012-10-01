@@ -15,6 +15,7 @@ class ConstructorElementImplementation extends MethodElementImplementation
   private final ClassElement constructorType;
   private final String rawName;
   private ConstructorElement defaultConstructor;
+  private ConstructorElement redirectingFactoryConstructor;
 
   private ConstructorElementImplementation(DartMethodDefinition node,
                              String name,
@@ -73,6 +74,15 @@ class ConstructorElementImplementation extends MethodElementImplementation
   @Override
   public void setDefaultConstructor(ConstructorElement defaultConstructor) {
     this.defaultConstructor = defaultConstructor;
+  }
+
+  @Override
+  public ConstructorElement getRedirectingFactoryConstructor() {
+    return redirectingFactoryConstructor;
+  }
+  
+  public void setRedirectingFactoryConstructor(ConstructorElement redirectingFactoryConstructor) {
+    this.redirectingFactoryConstructor = redirectingFactoryConstructor;
   }
 
   public static ConstructorElementImplementation fromMethodNode(DartMethodDefinition node,

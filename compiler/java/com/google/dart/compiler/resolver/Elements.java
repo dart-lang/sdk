@@ -680,6 +680,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
         && element.getParameters().isEmpty()
         && getRawMethodName(element).equals(element.getEnclosingElement().getName());
   }
+  
+  public static void setRedirectingFactoryConstructor(ConstructorElement source,
+      ConstructorElement target) {
+    ((ConstructorElementImplementation) source).setRedirectingFactoryConstructor(target);
+  }
 
   /**
    * @return the name of given {@link DartNode} if it is {@link DartIdentifier}, or

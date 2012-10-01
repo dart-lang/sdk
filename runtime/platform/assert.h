@@ -256,8 +256,7 @@ void DynamicAssertionHelper::NotNull(const T p) {
 
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
-#define DEBUG_ASSERT(cond)                                                     \
-  if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond);
+#define DEBUG_ASSERT(cond) ASSERT(cond)
 
 #else  // if defined(DEBUG)
 

@@ -7,6 +7,7 @@ import copy
 import database
 import idlparser
 import logging
+import multiprocessing
 import os
 import os.path
 import re
@@ -63,6 +64,30 @@ class DatabaseBuilderOptions(object):
     self.obsolete_old_declarations = obsolete_old_declarations
 
 
+def _load_idl_file(file_name, import_options, result_queue):
+  """Loads an IDL file into memory"""
+  idl_parser = idlparser.IDLParser(import_options.idl_syntax)
+
+  try:
+    f = open(file_name, 'r')
+    content = f.read()
+    f.close()
+
+    idl_ast = idl_parser.parse(
+      content,
+      defines=import_options.idl_defines)
+    result = IDLFile(idl_ast, file_name)
+    result_queue.put(result, False)
+    return 0
+  except SyntaxError, e:
+    result_queue.put(RuntimeError('Failed to load file %s: %s'
+                                  % (file_name, e)),
+                     False)
+    return 1
+  except:
+    result_queue.put('Unknown error loading %s' % file_name, False)
+    return 1
+
 class DatabaseBuilder(object):
   def __init__(self, database):
     """DatabaseBuilder is used for importing and merging interfaces into
@@ -70,21 +95,6 @@ class DatabaseBuilder(object):
     self._database = database
     self._imported_interfaces = []
     self._impl_stmts = []
-
-  def _load_idl_file(self, file_name, import_options):
-    """Loads an IDL file intor memory"""
-    idl_parser = idlparser.IDLParser(import_options.idl_syntax)
-
-    try:
-      f = open(file_name, 'r')
-      content = f.read()
-      f.close()
-
-      idl_ast = idl_parser.parse(content,
-        defines=import_options.idl_defines)
-      return IDLFile(idl_ast, file_name)
-    except SyntaxError, e:
-      raise RuntimeError('Failed to load file %s: %s' % (file_name, e))
 
   def _resolve_type_defs(self, idl_file):
     type_def_map = {}
@@ -115,7 +125,7 @@ class DatabaseBuilder(object):
       return name
 
     def rename_node(idl_node):
-      idl_node.id = rename(idl_node.id)
+      idl_node.reset_id(rename(idl_node.id))
 
     def rename_ext_attrs(ext_attrs_node):
       for type_valued_attribute_name in ['Supplemental']:
@@ -322,6 +332,7 @@ class DatabaseBuilder(object):
 
       if what != 'parents' and old_interface.id != new_interface.id:
         for node in new_list:
+          node.doc_js_interface_name = old_interface.id
           node.ext_attrs['ImplementedBy'] = new_interface.id
 
       changed = self._merge_nodes(old_list, new_list, import_options)
@@ -421,11 +432,31 @@ class DatabaseBuilder(object):
     self._impl_stmts = []
     self._imported_interfaces = []
 
-  def import_idl_file(self, file_path,
-            import_options=DatabaseBuilderOptions()):
-    """Parses, loads into memory and cleans up and IDL file"""
-    idl_file = self._load_idl_file(file_path, import_options)
+  def import_idl_files(self, file_paths, import_options):
+    # Parse the IDL files in parallel.
+    result_queue = multiprocessing.Queue(len(file_paths))
+    jobs = [ multiprocessing.Process(target=_load_idl_file,
+                                     args=(file_path, import_options,
+                                           result_queue))
+             for file_path in file_paths ]
+    try:
+      for job in jobs:
+        job.start()
+      for job in jobs:
+        # Timeout and throw after 5 sec.
+        result = result_queue.get(True, 5)
+        if isinstance(result, IDLFile):
+          self._process_idl_file(result, import_options)
+        else:
+          raise result
+    except:
+      # Clean up child processes on error.
+      for job in jobs:
+        job.terminate()
+      raise
 
+  def _process_idl_file(self, idl_file,
+                        import_options):
     self._strip_ext_attributes(idl_file)
     self._resolve_type_defs(idl_file)
     self._rename_types(idl_file, import_options)
@@ -436,14 +467,12 @@ class DatabaseBuilder(object):
     for module in idl_file.modules:
       for interface in module.interfaces:
         if not self._is_node_enabled(interface, import_options.idl_defines):
-          _logger.info('skipping interface %s/%s (source=%s file=%s)'
-            % (module.id, interface.id, import_options.source,
-               file_path))
+          _logger.info('skipping interface %s/%s (source=%s)'
+            % (module.id, interface.id, import_options.source))
           continue
 
-        _logger.info('importing interface %s/%s (source=%s file=%s)'
-          % (module.id, interface.id, import_options.source,
-             file_path))
+        _logger.info('importing interface %s/%s (source=%s)'
+          % (module.id, interface.id, import_options.source))
         interface.attributes = filter(enabled, interface.attributes)
         interface.operations = filter(enabled, interface.operations)
         self._imported_interfaces.append((interface, module.id, import_options))

@@ -62,11 +62,10 @@ class ParallelMoveResolver : public ValueObject {
 class CompilerDeoptInfo : public ZoneAllocated {
  public:
   CompilerDeoptInfo(intptr_t deopt_id, DeoptReasonId reason)
-      : deopt_id_(deopt_id), reason_(reason), deoptimization_env_(NULL) {}
-
-  void set_deoptimization_env(Environment* env) {
-    deoptimization_env_ = env;
-  }
+      : pc_offset_(-1),
+        deopt_id_(deopt_id),
+        reason_(reason),
+        deoptimization_env_(NULL) {}
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler);
 
@@ -81,11 +80,18 @@ class CompilerDeoptInfo : public ZoneAllocated {
                                   const Function& function,
                                   intptr_t slot_ix);
 
+  intptr_t pc_offset() const { return pc_offset_; }
+  void set_pc_offset(intptr_t offset) { pc_offset_ = offset; }
+
   intptr_t deopt_id() const { return deopt_id_; }
+
   DeoptReasonId reason() const { return reason_; }
+
   const Environment* deoptimization_env() const { return deoptimization_env_; }
+  void set_deoptimization_env(Environment* env) { deoptimization_env_ = env; }
 
  private:
+  intptr_t pc_offset_;
   const intptr_t deopt_id_;
   const DeoptReasonId reason_;
   Environment* deoptimization_env_;

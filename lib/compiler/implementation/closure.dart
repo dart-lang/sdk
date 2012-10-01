@@ -158,7 +158,7 @@ class ClosureClassMap {
   bool isClosure() => closureElement !== null;
 }
 
-class ClosureTranslator extends AbstractVisitor {
+class ClosureTranslator extends Visitor {
   final Compiler compiler;
   final TreeElements elements;
   int closureFieldCounter = 0;

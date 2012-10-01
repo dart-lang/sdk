@@ -8,7 +8,7 @@ Dart:html APIs from the IDL database."""
 
 import emitter
 
-from systemdart2js import *
+from systembase import *
 from systeminterface import *
 
 _js_custom_members = set([
@@ -772,16 +772,18 @@ class HtmlGeneratorDummyBackend(object):
 
 # ------------------------------------------------------------------------------
 
-# TODO(jmesserly): inheritance is probably not the right way to factor this long
-# term, but it makes merging better for now.
-class Dart2JSBackend(Dart2JSInterfaceGenerator):
+class Dart2JSBackend(BaseGenerator):
   """Generates a dart2js class for the dart:html library from a DOM IDL
   interface.
   """
 
   def __init__(self, interface, options):
-    super(Dart2JSBackend, self).__init__(options, interface, None, None)
+    super(Dart2JSBackend, self).__init__(None, None, interface)
+    self._database = options.database
+    self._template_loader = options.templates
+    self._type_registry = options.type_registry
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
+    self._current_secondary_parent = None
 
   def HasImplementation(self):
     return not (IsPureInterface(self._interface.id) or
@@ -850,6 +852,18 @@ class Dart2JSBackend(Dart2JSInterfaceGenerator):
 
     return self._members_emitter
 
+  def FinishInterface(self):
+    pass
+
+  def AddConstant(self, constant):
+    # Since we are currently generating native classes without interfaces,
+    # generate the constants as part of the class.  This will need to go away
+    # if we revert back to generating interfaces.
+    self._members_emitter.Emit('\n  static const $TYPE $NAME = $VALUE;\n',
+                               NAME=constant.id,
+                               TYPE=self._DartType(constant.type.id),
+                               VALUE=constant.value)
+
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
                      self._html_interface_name)
@@ -864,6 +878,11 @@ class Dart2JSBackend(Dart2JSInterfaceGenerator):
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
+
+  def SecondaryContext(self, interface):
+    if interface is not self._current_secondary_parent:
+      self._current_secondary_parent = interface
+      self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -1237,6 +1256,66 @@ class Dart2JSBackend(Dart2JSInterfaceGenerator):
     if element_type and requires_indexer: return True
     return False
 
+  def _ShouldNarrowToImplementationType(self, type_name):
+    # TODO(sra): Move into the 'system' and cache the result.
+    do_not_narrow = ['DOMStringList', 'DOMStringMap', 'EventListener',
+                     'IDBAny', 'IDBKey', 'MediaQueryListListener']
+    if type_name in do_not_narrow:
+      return False
+    if self._database.HasInterface(type_name):
+      interface = self._database.GetInterface(type_name)
+      # Callbacks are typedef functions so don't have a class.
+      return 'Callback' not in interface.ext_attrs
+    return False
+
+  def _NarrowToImplementationType(self, type_name):
+    if self._ShouldNarrowToImplementationType(type_name):
+      return self._ImplClassName(self._DartType(type_name))
+    return self._DartType(type_name)
+
+  def _NarrowInputType(self, type_name):
+    return self._NarrowToImplementationType(type_name)
+
+  def _NarrowOutputType(self, type_name):
+    return self._NarrowToImplementationType(type_name)
+
+  def _FindShadowedAttribute(self, attr, merged_interfaces={}):
+    """Returns (attribute, superinterface) or (None, None)."""
+    def FindInParent(interface):
+      """Returns matching attribute in parent, or None."""
+      if interface.parents:
+        parent = interface.parents[0]
+        if IsDartCollectionType(parent.type.id):
+          return (None, None)
+        if IsPureInterface(parent.type.id):
+          return (None, None)
+        if self._database.HasInterface(parent.type.id):
+          interfaces_to_search_in = []
+          if parent.type.id in merged_interfaces:
+            # IDL parent was merged into another interface, which became a
+            # parent interface in Dart.
+            interfaces_to_search_in.append(parent.type.id)
+            parent_interface_name = merged_interfaces[parent.type.id]
+          else:
+            parent_interface_name = parent.type.id
+
+          for interface_name in merged_interfaces:
+            if merged_interfaces[interface_name] == parent_interface_name:
+              # IDL parent has another interface that was merged into it.
+              interfaces_to_search_in.append(interface_name)
+
+          interfaces_to_search_in.append(parent_interface_name)
+          for interface_name in interfaces_to_search_in:
+            interface = self._database.GetInterface(interface_name)
+            attr2 = FindMatchingAttribute(interface, attr)
+            if attr2:
+              return (attr2, parent_interface_name)
+
+          return FindInParent(
+              self._database.GetInterface(parent_interface_name))
+      return (None, None)
+
+    return FindInParent(self._interface) if attr else (None, None)
 
 # ------------------------------------------------------------------------------
 

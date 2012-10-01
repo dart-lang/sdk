@@ -2104,9 +2104,7 @@ class PcDescriptors : public Object {
     kKindEntry = 1,
     kDeoptIdEntry = 2,      // Deopt id.
     kTokenPosEntry = 3,     // Token position in source.
-    kDeoptReasonEntry = 3,  // DeoptReasonId.
     kTryIndexEntry = 4,     // Try block index.
-    kDeoptIndexEntry = 4,   // Deoptimization array index.
     // We would potentially be adding other objects here like
     // pointer maps for optimized functions, local variables information  etc.
     kNumberOfEntries = 5,
@@ -2116,7 +2114,6 @@ class PcDescriptors : public Object {
   enum Kind {
     kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
     kDeoptAfter,       // Deoptimization continuation point after instruction.
-    kDeoptIndex,       // Index into deopt info array.
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
@@ -2133,10 +2130,6 @@ class PcDescriptors : public Object {
   intptr_t DeoptId(intptr_t index) const;
   intptr_t TokenPos(intptr_t index) const;
   intptr_t TryIndex(intptr_t index) const;
-  // Different encoding for kDeoptIndex.
-  // Index into the deopt-info array of Code object.
-  intptr_t DeoptIndex(intptr_t index) const;
-  intptr_t DeoptReason(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,

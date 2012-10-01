@@ -915,7 +915,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
     assert(function !== null);
-    assert(function.modifiers === null || !function.modifiers.isExternal());
+    assert(!function.modifiers.isExternal());
     assert(elements[function] !== null);
     openFunction(functionElement, function);
     function.body.accept(this);
@@ -4013,7 +4013,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
  * TODO(lrn): Consider whether to handle compile time constant int/boolean
  * expressions as well.
  */
-class StringBuilderVisitor extends AbstractVisitor {
+class StringBuilderVisitor extends Visitor {
   final SsaBuilder builder;
   final Node diagnosticNode;
 
@@ -4066,7 +4066,7 @@ class StringBuilderVisitor extends AbstractVisitor {
  * This class visits the method that is a candidate for inlining and
  * finds whether it is too difficult to inline.
  */
-class InlineWeeder extends AbstractVisitor {
+class InlineWeeder extends Visitor {
   final TreeElements elements;
   bool seenReturn = false;
   bool tooDifficult = false;

@@ -855,8 +855,12 @@ class ElementListener extends Listener {
   }
 
   void handleModifiers(int count) {
-    NodeList modifierNodes = makeNodeList(count, null, null, ' ');
-    pushNode(new Modifiers(modifierNodes));
+    if (count == 0) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      NodeList modifierNodes = makeNodeList(count, null, null, ' ');
+      pushNode(new Modifiers(modifierNodes));
+    }
   }
 
   Token expected(String string, Token token) {
@@ -1494,7 +1498,7 @@ class NodeListener extends ElementListener {
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
     pushNode(new FunctionExpression(name, formals, null, returnType,
-                                    null, null, null));
+                                    Modifiers.EMPTY, null, null));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -1608,7 +1612,7 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     NodeList formals = popNode();
     pushNode(new FunctionExpression(null, formals, body, null,
-                                    null, null, null));
+                                    Modifiers.EMPTY, null, null));
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {

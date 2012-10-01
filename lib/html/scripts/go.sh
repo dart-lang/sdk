@@ -48,6 +48,5 @@ if [[ $CACHED ]] ; then
   ./dartdomgenerator.py --use-database-cache --systems="$SYSTEMS"
 else
   reset &&
-  ./fremontcutbuilder.py &&
-  ./dartdomgenerator.py --systems="$SYSTEMS"
+  ./dartdomgenerator.py --rebuild --systems="$SYSTEMS"
 fi

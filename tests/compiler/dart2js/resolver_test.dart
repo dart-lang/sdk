@@ -31,7 +31,7 @@ createLocals(List variables) {
     }
   }
   var definitions = new NodeList(null, new Link.fromList(locals), null, null);
-  return new VariableDefinitions(null, null, definitions, null);
+  return new VariableDefinitions(null, Modifiers.EMPTY, definitions, null);
 }
 
 testLocals(List variables) {

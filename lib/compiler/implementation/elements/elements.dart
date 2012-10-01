@@ -117,7 +117,7 @@ class Element implements Spannable {
     assert(getLibrary() !== null);
   }
 
-  Modifiers get modifiers => null;
+  Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
     listener.cancel("Internal Error: $this.parseNode", token: position());
@@ -146,7 +146,7 @@ class Element implements Spannable {
     return enclosing !== null && enclosing.isClass();
   }
   bool isInstanceMember() => false;
-  bool isFactoryConstructor() => modifiers !== null && modifiers.isFactory();
+  bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
   bool isGenerativeConstructorBody() =>
       kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
@@ -229,7 +229,7 @@ class Element implements Spannable {
   }
 
   bool isAssignable() {
-    if (modifiers != null && modifiers.isFinalOrConst()) return false;
+    if (modifiers.isFinalOrConst()) return false;
     if (isFunction() || isGenerativeConstructor()) return false;
     return true;
   }
@@ -805,9 +805,11 @@ class VariableListElement extends Element {
   VariableListElement.node(VariableDefinitions node,
                            ElementKind kind,
                            Element enclosing)
-    : super(null, kind, enclosing),
-      this.cachedNode = node,
-      this.modifiers = node.modifiers;
+      : super(null, kind, enclosing),
+        this.cachedNode = node,
+        this.modifiers = node.modifiers {
+    assert(modifiers !== null);
+  }
 
   VariableDefinitions parseNode(DiagnosticListener listener) {
     return cachedNode;
@@ -1045,6 +1047,7 @@ class FunctionElement extends Element {
                                      Element enclosing,
                                      FunctionSignature this.functionSignature)
       : super(name, kind, enclosing) {
+    assert(modifiers !== null);
     defaultImplementation = this;
   }
 
@@ -1100,7 +1103,7 @@ class FunctionElement extends Element {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
     if (patch === null) {
-      if (modifiers != null && modifiers.isExternal()) {
+      if (modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
                         element: this);
       }
@@ -1142,7 +1145,7 @@ class ConstructorBodyElement extends FunctionElement {
       : this.constructor = constructor,
         super(constructor.name,
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
-              null,
+              Modifiers.EMPTY,
               constructor.enclosingElement) {
     functionSignature = constructor.functionSignature;
   }
@@ -1173,7 +1176,7 @@ class ConstructorBodyElement extends FunctionElement {
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
-            null, enclosing);
+            Modifiers.EMPTY, enclosing);
 
   Token position() => enclosingElement.position();
 
@@ -1563,7 +1566,6 @@ class Elements {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
     if (!Elements.isUnresolved(element)
-        && element.modifiers != null
         && element.modifiers.isStatic()) {
       return true;
     }

@@ -494,4 +494,39 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo() const {
   return deopt_info.raw();
 }
 
+
+intptr_t DeoptTable::SizeFor(intptr_t length) {
+  return length * kEntrySize;
+}
+
+void DeoptTable::SetEntry(const Array& table,
+                          intptr_t index,
+                          const Smi& offset,
+                          const DeoptInfo& info,
+                          const Smi& reason) {
+  ASSERT((table.Length() % kEntrySize) == 0);
+  intptr_t i = index * kEntrySize;
+  table.SetAt(i, offset);
+  table.SetAt(i + 1, info);
+  table.SetAt(i + 2, reason);
+}
+
+
+intptr_t DeoptTable::GetLength(const Array& table) {
+  ASSERT((table.Length() % kEntrySize) == 0);
+  return table.Length() / kEntrySize;
+}
+
+
+void DeoptTable::GetEntry(const Array& table,
+                          intptr_t index,
+                          Smi* offset,
+                          DeoptInfo* info,
+                          Smi* reason) {
+  intptr_t i = index * kEntrySize;
+  *offset ^= table.At(i);
+  *info ^= table.At(i + 1);
+  *reason ^= table.At(i + 2);
+}
+
 }  // namespace dart

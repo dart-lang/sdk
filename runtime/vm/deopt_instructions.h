@@ -114,7 +114,6 @@ class DeoptInstr : public ZoneAllocated {
 };
 
 
-
 // Builds one instance of DeoptInfo. Call AddXXX methods in the order of
 // their target, starting wih deoptimized code continuation pc and ending with
 // the first argument of the deoptimized code.
@@ -156,6 +155,38 @@ class DeoptInfoBuilder : public ValueObject {
   const intptr_t num_args_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptInfoBuilder);
+};
+
+
+// Utilities for managing the deopt table and its entries.  The table is
+// stored in an Array in the heap.  It consists of triples of (PC offset,
+// info, reason).  Elements of each entry are stored consecutively in the
+// array.
+class DeoptTable : public AllStatic {
+ public:
+  // Return the array size in elements for a given number of table entries.
+  static intptr_t SizeFor(intptr_t length);
+
+  // Set the entry at the given index into the table (not an array index).
+  static void SetEntry(const Array& table,
+                       intptr_t index,
+                       const Smi& offset,
+                       const DeoptInfo& info,
+                       const Smi& reason);
+
+  // Return the length of the table in entries.
+  static intptr_t GetLength(const Array& table);
+
+  // Set the output parameters (offset, info, reason) to the entry values at
+  // the index into the table (not an array index).
+  static void GetEntry(const Array& table,
+                       intptr_t index,
+                       Smi* offset,
+                       DeoptInfo* info,
+                       Smi* reason);
+
+ private:
+  static const intptr_t kEntrySize = 3;
 };
 
 }  // namespace dart

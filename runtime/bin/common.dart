@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Constants used when working with native ports.
+const int _SUCCESS_RESPONSE = 0;
+const int _ILLEGAL_ARGUMENT_RESPONSE = 1;
+const int _OSERROR_RESPONSE = 2;
+const int _FILE_CLOSED_RESPONSE = 3;
+
+const int _ERROR_RESPONSE_ERROR_TYPE = 0;
+const int _OSERROR_RESPONSE_ERROR_CODE = 1;
+const int _OSERROR_RESPONSE_MESSAGE = 2;
+
 /**
   * An [OSError] object holds information about an error from the
   * operating system.
@@ -51,29 +61,32 @@ class OSError {
 bool _isBuiltinList(List buffer) native "Common_IsBuiltinList";
 
 
+// Object for holding a buffer and an offset.
+class _BufferAndOffset {
+  _BufferAndOffset(List this.buffer, int this.offset);
+  List buffer;
+  int offset;
+}
+
+
 // Ensure that the input List can be serialized through a native port.
 // Only builtin Lists can be serialized through. If user-defined Lists
 // get here, the contents is copied to a Uint8List. This has the added
 // benefit that it is faster to access from the C code as well.
-List _ensureFastAndSerializableBuffer(
+_BufferAndOffset _ensureFastAndSerializableBuffer(
     List buffer, int offset, int bytes) {
-  List outBuffer;
-  int outOffset = offset;
   if (buffer is Uint8List || _isBuiltinList(buffer)) {
-    outBuffer = buffer;
-  } else {
-    outBuffer = new Uint8List(bytes);
-    outOffset = 0;
-    int j = offset;
-    for (int i = 0; i < bytes; i++) {
-      int value = buffer[j];
-      if (value is! int) {
-        throw new FileIOException(
-            "List element is not an integer at index $j");
-      }
-      outBuffer[i] = value;
-      j++;
-    }
+    return new _BufferAndOffset(buffer, offset);
   }
-  return [outBuffer, outOffset];
+  var newBuffer = new Uint8List(bytes);
+  int j = offset;
+  for (int i = 0; i < bytes; i++) {
+    int value = buffer[j];
+    if (value is! int) {
+      throw new FileIOException("List element is not an integer at index $j");
+    }
+    newBuffer[i] = value;
+    j++;
+  }
+  return new _BufferAndOffset(newBuffer, 0);
 }

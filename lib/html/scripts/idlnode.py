@@ -46,6 +46,11 @@ class IDLNode(object):
       return 1
     return self.__dict__.__cmp__(other.__dict__)
 
+  def reset_id(self, newId):
+    """Reset the id of the Node.  This is typically done during a normalization
+    phase (e.g., "DOMWindow" -> "Window")."""
+    self.id = newId
+
   def all(self, type_filter=None):
     """Returns a list containing this node and all it child nodes
     (recursive).
@@ -385,6 +390,19 @@ class IDLInterface(IDLNode):
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
+
+  def reset_id(self, new_id):
+    """Reset the id of the Interface and corresponding the JS names."""
+    if self.id != new_id:
+      self.id = new_id
+      self.doc_js_name = new_id
+      self.javascript_binding_name = new_id
+      for member in self.operations:
+        member.doc_js_interface_name = new_id
+      for member in self.attributes:
+        member.doc_js_interface_name = new_id
+      for member in self.constants:
+        member.doc_js_interface_name = new_id
 
   def has_attribute(self, candidate):
     for attribute in self.attributes:

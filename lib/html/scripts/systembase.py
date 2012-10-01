@@ -78,7 +78,7 @@ class BaseGenerator(object):
     for const in sorted(interface.constants, ConstantOutputOrder):
       self.AddConstant(const)
 
-    for attr in interface.attributes:
+    for attr in sorted(interface.attributes, ConstantOutputOrder):
       if attr.type.id != 'EventListener':
         self.AddAttribute(attr)
 
@@ -113,7 +113,7 @@ class BaseGenerator(object):
     for parent_interface in secondary_parents:
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
-      for attr in parent_interface.attributes:
+      for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
         if not FindMatchingAttribute(interface, attr):
           self.AddSecondaryAttribute(parent_interface, attr)
 

@@ -78,7 +78,7 @@ class TypesTask extends CompilerTask {
 /**
  * Infers concrete types for a single method or expression.
  */
-class ConcreteTypeInferencer extends AbstractVisitor {
+class ConcreteTypeInferencer extends Visitor {
   final TypesTask task;
   final TreeElements elements;
   final ClassElement boolClass;

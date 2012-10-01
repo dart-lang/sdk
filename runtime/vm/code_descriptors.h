@@ -60,10 +60,6 @@ class DescriptorList : public ZoneAllocated {
                      intptr_t deopt_id,
                      intptr_t token_index,
                      intptr_t try_index);
-  void AddDeoptIndex(intptr_t pc_offset,
-                     intptr_t deopt_id,
-                     DeoptReasonId deopt_reason,
-                     intptr_t deopt_array_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 

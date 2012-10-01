@@ -216,20 +216,20 @@ class PrettyPrinter implements Visitor {
   }
 
   // Custom.
-  visitLiteral(Literal node, String type) {
+  printLiteral(Literal node, String type) {
     openAndCloseNode(node, type, {"value" : node.value.toString()});
   }
 
   visitLiteralBool(LiteralBool node) {
-    visitLiteral(node, "LiteralBool");
+    printLiteral(node, "LiteralBool");
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    visitLiteral(node, "LiteralDouble");
+    printLiteral(node, "LiteralDouble");
   }
 
   visitLiteralInt(LiteralInt node) {
-    visitLiteral(node, "LiteralInt");
+    printLiteral(node, "LiteralInt");
   }
 
   /** Returns token string value or [null] if token is [null]. */
@@ -253,7 +253,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitLiteralNull(LiteralNull node) {
-    visitLiteral(node, "LiteralNull");
+    printLiteral(node, "LiteralNull");
   }
 
   visitLiteralString(LiteralString node) {

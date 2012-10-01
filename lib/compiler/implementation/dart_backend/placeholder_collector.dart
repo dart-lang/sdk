@@ -137,7 +137,7 @@ class SendVisitor extends ResolvedVisitor {
   }
 }
 
-class PlaceholderCollector extends AbstractVisitor {
+class PlaceholderCollector extends Visitor {
   final Compiler compiler;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Map<Element, ElementAst> elementAsts;
@@ -438,16 +438,21 @@ class PlaceholderCollector extends AbstractVisitor {
       Node target = node.typeName;
       bool hasPrefix = false;
       if (node.typeName is Send) {
-        final element = treeElements[node];
-        if (element !== null) {
-          final send = node.typeName.asSend();
-          Identifier receiver = send.receiver;
-          Identifier selector = send.selector;
-          getConstructor() =>
-              (element as ClassElement).lookupConstructor(
-                  receiver.source, selector.source);
-          hasPrefix = (element is TypedefElement) || getConstructor() === null;
-          if (!hasPrefix) target = receiver;
+        final send = node.typeName.asSend();
+        Identifier receiver = send.receiver;
+        Identifier selector = send.selector;
+        Element potentialPrefix =
+            currentElement.getLibrary().findLocal(receiver.source);
+        if (potentialPrefix !== null && potentialPrefix.isPrefix()) {
+          // prefix.Class case.
+          hasPrefix = true;
+        } else {
+          // Class.namedContructor case.
+          target = receiver;
+          // If element is unresolved, mark namedConstructor as unresolved.
+          if (treeElements[node] === null) {
+            makeUnresolvedPlaceholder(selector);
+          }
         }
       }
       // TODO(antonm): is there a better way to detect unresolved types?

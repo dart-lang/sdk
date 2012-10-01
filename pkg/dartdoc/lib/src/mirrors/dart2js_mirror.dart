@@ -754,8 +754,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
 
   bool get isInterface => _class.isInterface();
 
-  bool get isAbstract =>
-      _class.modifiers !== null && _class.modifiers.isAbstract();
+  bool get isAbstract => _class.modifiers.isAbstract();
 
   bool get isPrivate => _isPrivate(simpleName);
 
@@ -1253,13 +1252,12 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
         // canonical name is TypeName
         _canonicalName = _name;
       }
-      if (_function.modifiers !== null && _function.modifiers.isConst()) {
+      if (_function.modifiers.isConst()) {
         _kind = Dart2JsMethodKind.CONST;
       } else {
         _kind = Dart2JsMethodKind.CONSTRUCTOR;
       }
-    } else if (_function.modifiers !== null &&
-               _function.modifiers.isFactory()) {
+    } else if (_function.modifiers.isFactory()) {
       _kind = Dart2JsMethodKind.FACTORY;
       _constructorName = '';
       int dollarPos = _name.indexOf('\$');
@@ -1310,8 +1308,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
   bool get isPrivate => _isPrivate(simpleName);
 
-  bool get isStatic =>
-      _function.modifiers !== null && _function.modifiers.isStatic();
+  bool get isStatic => _function.modifiers.isStatic();
 
   List<ParameterMirror> get parameters {
     return _parametersFromFunctionSignature(system, this,
@@ -1322,8 +1319,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
       system, _function.computeSignature(system.compiler).returnType,
       system.compiler.types.dynamicType);
 
-  bool get isAbstract =>
-      _function.modifiers !== null && _function.modifiers.isAbstract();
+  bool get isAbstract => _function.modifiers.isAbstract();
 
   bool get isConst => _kind == Dart2JsMethodKind.CONST;
 

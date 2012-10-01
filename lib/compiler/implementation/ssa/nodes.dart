@@ -2779,7 +2779,7 @@ class HLabeledBlockInformation implements HStatementInformation {
     visitor.visitLabeledBlockInfo(this);
 }
 
-class LoopTypeVisitor extends AbstractVisitor {
+class LoopTypeVisitor extends Visitor {
   const LoopTypeVisitor();
   int visitNode(Node node) => HLoopBlockInformation.NOT_A_LOOP;
   int visitWhile(While node) => HLoopBlockInformation.WHILE_LOOP;

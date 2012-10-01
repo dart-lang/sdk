@@ -51,12 +51,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ popq(RAX);  // Restore RAX.
   }
   __ call(&StubCode::DeoptimizeLabel());
-  const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()->AddDeoptIndex(
-      compiler->assembler()->CodeSize(),
-      deopt_id(),
-      reason(),
-      deopt_info_index);
+  set_pc_offset(assem->CodeSize());
   __ int3();
 #undef __
 }

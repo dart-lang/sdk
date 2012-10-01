@@ -48,12 +48,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
     __ popl(EAX);
   }
   __ call(&StubCode::DeoptimizeLabel());
-  const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()->AddDeoptIndex(
-      compiler->assembler()->CodeSize(),
-      deopt_id(),
-      reason(),
-      deopt_info_index);
+  set_pc_offset(assem->CodeSize());
 #undef __
 }
 
