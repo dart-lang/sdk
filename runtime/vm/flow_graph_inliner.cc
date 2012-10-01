@@ -24,7 +24,7 @@ DEFINE_FLAG(int, inlining_size_threshold, 250,
     "Inline only functions with up to threshold instructions");
 DEFINE_FLAG(int, inlining_growth_factor, 3,
     "Stop inlining when a function grows by the factor");
-DEFINE_FLAG(bool, inline_control_flow, false,
+DEFINE_FLAG(bool, inline_control_flow, true,
     "Inline functions with control flow.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
