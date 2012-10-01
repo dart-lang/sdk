@@ -10,19 +10,19 @@ class _IntegerImplementation {
         "_IntegerImplementation can only be allocated by the VM");
   }
   num operator +(num other) {
-    return other.addFromInteger(this);
+    return other._addFromInteger(this);
   }
   num operator -(num other) {
-    return other.subFromInteger(this);
+    return other._subFromInteger(this);
   }
   num operator *(num other) {
-    return other.mulFromInteger(this);
+    return other._mulFromInteger(this);
   }
   num operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other.truncDivFromInteger(this);
+    return other._truncDivFromInteger(this);
   }
   num operator /(num other) {
     return this.toDouble() / other.toDouble();
@@ -31,45 +31,45 @@ class _IntegerImplementation {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other.moduloFromInteger(this);
+    return other._moduloFromInteger(this);
   }
   int operator -() {
     return 0 - this;
   }
   int operator &(int other) {
-    return other.bitAndFromInteger(this);
+    return other._bitAndFromInteger(this);
   }
   int operator |(int other) {
-    return other.bitOrFromInteger(this);
+    return other._bitOrFromInteger(this);
   }
   int operator ^(int other) {
-    return other.bitXorFromInteger(this);
+    return other._bitXorFromInteger(this);
   }
   num remainder(num other) {
-    return other.remainderFromInteger(this);
+    return other._remainderFromInteger(this);
   }
-  int bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
-  int bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
-  int bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
-  int addFromInteger(int other) native "Integer_addFromInteger";
-  int subFromInteger(int other) native "Integer_subFromInteger";
-  int mulFromInteger(int other) native "Integer_mulFromInteger";
-  int truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
-  int moduloFromInteger(int other) native "Integer_moduloFromInteger";
-  int remainderFromInteger(int other) {
+  int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
+  int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
+  int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
+  int _addFromInteger(int other) native "Integer_addFromInteger";
+  int _subFromInteger(int other) native "Integer_subFromInteger";
+  int _mulFromInteger(int other) native "Integer_mulFromInteger";
+  int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
+  int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
+  int _remainderFromInteger(int other) {
     return other - (other ~/ this) * this;
   }
   int operator >>(int other) {
-    return other.shrFromInt(this);
+    return other._shrFromInt(this);
   }
   int operator <<(int other) {
-    return other.shlFromInt(this);
+    return other._shlFromInt(this);
   }
   bool operator <(num other) {
     return other > this;
   }
   bool operator >(num other) {
-    return other.greaterThanFromInteger(this);
+    return other._greaterThanFromInteger(this);
   }
   bool operator >=(num other) {
     return (this == other) ||  (this > other);
@@ -77,15 +77,15 @@ class _IntegerImplementation {
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
-  bool greaterThanFromInteger(int other)
+  bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
   bool operator ==(other) {
     if (other is num) {
-      return other.equalToInteger(this);
+      return other._equalToInteger(this);
     }
     return false;
   }
-  bool equalToInteger(int other) native "Integer_equalToInteger";
+  bool _equalToInteger(int other) native "Integer_equalToInteger";
   int abs() {
     return this < 0 ? -this : this;
   }
@@ -189,8 +189,8 @@ class _Smi extends _IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Smi_bitNegate";
-  int shrFromInt(int other) native "Smi_shrFromInt";
-  int shlFromInt(int other) native "Smi_shlFromInt";
+  int _shrFromInt(int other) native "Smi_shrFromInt";
+  int _shlFromInt(int other) native "Smi_shlFromInt";
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
@@ -205,14 +205,14 @@ class _Mint extends _IntegerImplementation implements int {
   int operator ~() native "Mint_bitNegate";
 
   // Shift by mint exceeds range that can be handled by the VM.
-  int shrFromInt(int other) {
+  int _shrFromInt(int other) {
     if (other < 0) {
       return -1;
     } else {
       return 0;
     }
   }
-  int shlFromInt(int other) {
+  int _shlFromInt(int other) {
     throw const OutOfMemoryException();
   }
 }
@@ -230,14 +230,14 @@ class _Bigint extends _IntegerImplementation implements int {
   int operator ~() native "Bigint_bitNegate";
 
   // Shift by bigint exceeds range that can be handled by the VM.
-  int shrFromInt(int other) {
+  int _shrFromInt(int other) {
     if (other < 0) {
       return -1;
     } else {
       return 0;
     }
   }
-  int shlFromInt(int other) {
+  int _shlFromInt(int other) {
     throw const OutOfMemoryException();
   }
 

@@ -687,20 +687,6 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Integer_negate(Assembler* assembler) {
-  Label fall_through;
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
-  __ negq(RAX);
-  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  // Result is in RAX.
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);

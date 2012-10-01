@@ -12,25 +12,26 @@ namespace dart {
 
 // List of intrinsics: (class-name, function-name, intrinsification method).
 #define INTRINSIC_LIST(V)                                                      \
-  V(_IntegerImplementation, addFromInteger, Integer_addFromInteger)            \
+  V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger)           \
   V(_IntegerImplementation, +, Integer_add)                                    \
-  V(_IntegerImplementation, subFromInteger, Integer_subFromInteger)            \
+  V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger)           \
   V(_IntegerImplementation, -, Integer_sub)                                    \
-  V(_IntegerImplementation, mulFromInteger, Integer_mulFromInteger)            \
+  V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger)           \
   V(_IntegerImplementation, *, Integer_mul)                                    \
   V(_IntegerImplementation, %, Integer_modulo)                                 \
   V(_IntegerImplementation, ~/, Integer_truncDivide)                           \
-  V(_IntegerImplementation, negate, Integer_negate)                            \
-  V(_IntegerImplementation, bitAndFromInteger, Integer_bitAndFromInteger)      \
+  V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger)     \
   V(_IntegerImplementation, &, Integer_bitAnd)                                 \
-  V(_IntegerImplementation, bitOrFromInteger, Integer_bitOrFromInteger)        \
+  V(_IntegerImplementation, _bitOrFromInteger, Integer_bitOrFromInteger)       \
   V(_IntegerImplementation, |, Integer_bitOr)                                  \
-  V(_IntegerImplementation, bitXorFromInteger, Integer_bitXorFromInteger)      \
+  V(_IntegerImplementation, _bitXorFromInteger, Integer_bitXorFromInteger)     \
   V(_IntegerImplementation, ^, Integer_bitXor)                                 \
-  V(_IntegerImplementation, greaterThanFromInteger, Integer_greaterThanFromInt)\
+  V(_IntegerImplementation,                                                    \
+    _greaterThanFromInteger,                                                   \
+    Integer_greaterThanFromInt)                                                \
   V(_IntegerImplementation, >, Integer_greaterThan)                            \
   V(_IntegerImplementation, ==, Integer_equal)                                 \
-  V(_IntegerImplementation, equalToInteger, Integer_equalToInteger)            \
+  V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger)           \
   V(_IntegerImplementation, <, Integer_lessThan)                               \
   V(_IntegerImplementation, <=, Integer_lessEqualThan)                         \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan)                      \
@@ -47,7 +48,7 @@ namespace dart {
   V(_Double, *, Double_mul)                                                    \
   V(_Double, /, Double_div)                                                    \
   V(_Double, toDouble, Double_toDouble)                                        \
-  V(_Double, mulFromInteger, Double_mulFromInteger)                            \
+  V(_Double, _mulFromInteger, Double_mulFromInteger)                           \
   V(_Double, .fromInteger, Double_fromInteger)                                 \
   V(_Double, isNaN, Double_isNaN)                                              \
   V(_Double, isNegative, Double_isNegative)                                    \

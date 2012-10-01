@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,40 +13,39 @@ class _Double implements double {
     }
   }
   double operator +(num other) {
-    return add_(other.toDouble());
+    return _add(other.toDouble());
   }
-  double add_(double other) native "Double_add";
+  double _add(double other) native "Double_add";
 
   double operator -(num other) {
-    return sub_(other.toDouble());
+    return _sub(other.toDouble());
   }
-  double sub_(double other) native "Double_sub";
+  double _sub(double other) native "Double_sub";
 
   double operator *(num other) {
-    return mul_(other.toDouble());
+    return _mul(other.toDouble());
   }
-  double mul_(double other) native "Double_mul";
+  double _mul(double other) native "Double_mul";
 
   double operator ~/(num other) {
-    return trunc_div_(other.toDouble());
+    return _trunc_div(other.toDouble());
   }
-  double trunc_div_(double other) native "Double_trunc_div";
+  double _trunc_div(double other) native "Double_trunc_div";
 
   double operator /(num other) {
-    return div_(other.toDouble());
+    return _div(other.toDouble());
   }
-  double div_(double other) native "Double_div";
+  double _div(double other) native "Double_div";
 
   double operator %(num other) {
-    return modulo_(other.toDouble());
+    return _modulo(other.toDouble());
   }
-  double modulo_(double other) native "Double_modulo";
+  double _modulo(double other) native "Double_modulo";
 
   double remainder(num other) {
-    return remainder_(other.toDouble());
+    return _remainder(other.toDouble());
   }
-  double remainder_(double other) native "Double_remainder";
-
+  double _remainder(double other) native "Double_remainder";
   double operator -() {
     if (this == 0.0) {
       // -0.0 is canonicalized by the VM's parser, therefore no cycles.
@@ -56,43 +55,43 @@ class _Double implements double {
   }
   bool operator ==(other) {
     if (!(other is num)) return false;
-    return equal_(other.toDouble());
+    return _equal(other.toDouble());
   }
-  bool equal_(double other)native "Double_equal";
-  bool equalToInteger(int other) native "Double_equalToInteger";
+  bool _equal(double other)native "Double_equal";
+  bool _equalToInteger(int other) native "Double_equalToInteger";
   bool operator <(num other) {
     return other > this;
   }
   bool operator >(num other) {
-    return greaterThan_(other.toDouble());
+    return _greaterThan(other.toDouble());
   }
-  bool greaterThan_(double other) native "Double_greaterThan";
+  bool _greaterThan(double other) native "Double_greaterThan";
   bool operator >=(num other) {
     return (this == other) ||  (this > other);
   }
   bool operator <=(num other) {
     return (this == other) ||  (this < other);
   }
-  double addFromInteger(int other) {
+  double _addFromInteger(int other) {
     return new _Double.fromInteger(other) + this;
   }
-  double subFromInteger(int other) {
+  double _subFromInteger(int other) {
     return new _Double.fromInteger(other) - this;
   }
-  double mulFromInteger(int other) {
+  double _mulFromInteger(int other) {
     return new _Double.fromInteger(other) * this;
   }
-  double truncDivFromInteger(int other) {
+  double _truncDivFromInteger(int other) {
     return new _Double.fromInteger(other) ~/ this;
   }
-  double moduloFromInteger(int other) {
+  double _moduloFromInteger(int other) {
     return new _Double.fromInteger(other) % this;
   }
-  double remainderFromInteger(int other) {
+  double _remainderFromInteger(int other) {
     return new _Double.fromInteger(other).remainder(this);
   }
-
-  bool greaterThanFromInteger(int other) native "Double_greaterThanFromInteger";
+  bool _greaterThanFromInteger(int other)
+      native "Double_greaterThanFromInteger";
 
   bool isNegative() native "Double_isNegative";
   bool isInfinite() native "Double_isInfinite";
