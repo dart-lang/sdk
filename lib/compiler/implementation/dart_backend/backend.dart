@@ -462,7 +462,7 @@ class DartBackend extends Backend {
  * used in signatures, as/is operators or in super clauses
  * (just to name a few).  Retraverse AST to pick those up.
  */
-class ReferencedElementCollector extends AbstractVisitor {
+class ReferencedElementCollector extends Visitor {
   final Compiler compiler;
   final Element rootElement;
   final TreeElements treeElements;

@@ -239,7 +239,7 @@ class ConstantHandler extends CompilerTask {
   }
 }
 
-class CompileTimeConstantEvaluator extends AbstractVisitor {
+class CompileTimeConstantEvaluator extends Visitor {
   bool isEvaluatingConstant;
   final ConstantSystem constantSystem;
   final TreeElements elements;

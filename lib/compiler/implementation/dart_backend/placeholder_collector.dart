@@ -137,7 +137,7 @@ class SendVisitor extends ResolvedVisitor {
   }
 }
 
-class PlaceholderCollector extends AbstractVisitor {
+class PlaceholderCollector extends Visitor {
   final Compiler compiler;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Map<Element, ElementAst> elementAsts;

@@ -704,7 +704,7 @@ class InitializerResolver {
   }
 }
 
-class CommonResolverVisitor<R> extends AbstractVisitor<R> {
+class CommonResolverVisitor<R> extends Visitor<R> {
   final Compiler compiler;
 
   CommonResolverVisitor(Compiler this.compiler);
