@@ -300,15 +300,11 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
   ASSERT(is_optimizing());
-  const intptr_t deopt_index = deopt_infos_.length();
   CompilerDeoptInfo* info = new CompilerDeoptInfo(deopt_id, kDeoptAtCall);
   ASSERT(pending_deoptimization_env_ != NULL);
   info->set_deoptimization_env(pending_deoptimization_env_);
+  info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
-  pc_descriptors_list()->AddDeoptIndex(assembler()->CodeSize(),
-                                       deopt_id,
-                                       kDeoptAtCall,
-                                       deopt_index);
 }
 
 
@@ -394,11 +390,16 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   const Array& array =
-      Array::Handle(Array::New(deopt_infos_.length(), Heap::kOld));
+      Array::Handle(Array::New(DeoptTable::SizeFor(deopt_infos_.length()),
+                               Heap::kOld));
+  Smi& offset = Smi::Handle();
   DeoptInfo& info = DeoptInfo::Handle();
+  Smi& reason = Smi::Handle();
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    offset = Smi::New(deopt_infos_[i]->pc_offset());
     info = deopt_infos_[i]->CreateDeoptInfo(this);
-    array.SetAt(i, info);
+    reason = Smi::New(deopt_infos_[i]->reason());
+    DeoptTable::SetEntry(array, i, offset, info, reason);
   }
   code.set_deopt_info_array(array);
   const Array& object_array = Array::Handle(Array::MakeArray(object_table_));

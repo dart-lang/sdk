@@ -6400,7 +6400,6 @@ void PcDescriptors::SetDeoptId(intptr_t index, intptr_t value) const {
 
 
 intptr_t PcDescriptors::TokenPos(intptr_t index) const {
-  ASSERT(DescriptorKind(index) != kDeoptIndex);
   return *(EntryAddr(index, kTokenPosEntry));
 }
 
@@ -6411,25 +6410,12 @@ void PcDescriptors::SetTokenPos(intptr_t index, intptr_t value) const {
 
 
 intptr_t PcDescriptors::TryIndex(intptr_t index) const {
-  ASSERT(DescriptorKind(index) != kDeoptIndex);
   return *(EntryAddr(index, kTryIndexEntry));
 }
 
 
 void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
   *(EntryAddr(index, kTryIndexEntry)) = value;
-}
-
-
-intptr_t PcDescriptors::DeoptIndex(intptr_t index) const {
-  ASSERT(DescriptorKind(index) == kDeoptIndex);
-  return *(EntryAddr(index, kDeoptIndexEntry));
-}
-
-
-intptr_t PcDescriptors::DeoptReason(intptr_t index) const {
-  ASSERT(DescriptorKind(index) == kDeoptIndex);
-  return *(EntryAddr(index, kDeoptReasonEntry));
 }
 
 
@@ -6458,7 +6444,6 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
     case PcDescriptors::kDeoptBefore:   return "deopt-before ";
     case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
-    case PcDescriptors::kDeoptIndex:    return "deopt-ix     ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
     case PcDescriptors::kIcCall:        return "ic-call      ";
@@ -6476,7 +6461,7 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry/deopt-ix\n",
+  OS::Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
             addr_width, "pc");
 }
 
@@ -6494,32 +6479,24 @@ const char* PcDescriptors::ToCString() const {
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
-    intptr_t token_pos_or_deopt_reason = DescriptorKind(i) == kDeoptIndex ?
-        DeoptReason(i) : TokenPos(i);
-    intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
-        DeoptIndex(i) : TryIndex(i);
     len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-        PC(i),
-        KindAsStr(i),
-        DeoptId(i),
-        token_pos_or_deopt_reason,
-        multi_purpose_index);
+                       PC(i),
+                       KindAsStr(i),
+                       DeoptId(i),
+                       TokenPos(i),
+                       TryIndex(i));
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
-    intptr_t token_pos_or_deopt_reason = DescriptorKind(i) == kDeoptIndex ?
-        DeoptReason(i) : TokenPos(i);
-    intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
-        DeoptIndex(i) : TryIndex(i);
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
-        PC(i),
-        KindAsStr(i),
-        DeoptId(i),
-        token_pos_or_deopt_reason,
-        multi_purpose_index);
+                         PC(i),
+                         KindAsStr(i),
+                         DeoptId(i),
+                         TokenPos(i),
+                         TryIndex(i));
   }
   return buffer;
 }

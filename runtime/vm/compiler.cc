@@ -10,6 +10,7 @@
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/deopt_instructions.h"
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -334,12 +335,19 @@ static void DisassembleCode(const Function& function, bool optimized) {
       PcDescriptors::Handle(code.pc_descriptors());
   OS::Print("%s}\n", descriptors.ToCString());
 
-  const Array& deopt_info_array = Array::Handle(code.deopt_info_array());
-  if (deopt_info_array.Length() > 0) {
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
+  if (deopt_table_length > 0) {
     OS::Print("DeoptInfo: {\n");
-    for (intptr_t i = 0; i < deopt_info_array.Length(); i++) {
-      OS::Print("  %"Pd": %s\n",
-          i, Object::Handle(deopt_info_array.At(i)).ToCString());
+    Smi& offset = Smi::Handle();
+    DeoptInfo& info = DeoptInfo::Handle();
+    Smi& reason = Smi::Handle();
+    for (intptr_t i = 0; i < deopt_table_length; ++i) {
+      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason);
+      OS::Print("0x%"Px"  %s  (%s)\n",
+                start + offset.Value(),
+                info.ToCString(),
+                DeoptReasonToText(reason.Value()));
     }
     OS::Print("}\n");
   }

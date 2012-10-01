@@ -21,21 +21,6 @@ void DescriptorList::AddDescriptor(PcDescriptors::Kind kind,
 }
 
 
-void DescriptorList::AddDeoptIndex(intptr_t pc_offset,
-                                   intptr_t deopt_id,
-                                   DeoptReasonId deopt_reason,
-                                   intptr_t deopt_array_index) {
-  struct PcDesc data;
-  data.pc_offset = pc_offset;
-  data.kind = PcDescriptors::kDeoptIndex;
-  data.deopt_id = deopt_id;
-  data.SetDeoptReason(deopt_reason);
-  // Try_index is reused for deopt_array_index.
-  data.try_index = deopt_array_index;
-  list_.Add(data);
-}
-
-
 RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
   intptr_t num_descriptors = Length();
   const PcDescriptors& descriptors =
