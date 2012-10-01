@@ -24,7 +24,7 @@ class TreeElementMapping implements TreeElements {
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
-      if (node is FunctionExpression && node.modifiers != null) {
+      if (node is FunctionExpression) {
         return !node.modifiers.isExternal();
       }
       return true;
@@ -1242,7 +1242,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       name = node.name.asIdentifier().source;
     }
     FunctionElement enclosing = new FunctionElement.node(
-        name, node, ElementKind.FUNCTION, new Modifiers.empty(),
+        name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         scope.element);
     setupFunction(node, enclosing);
     defineElement(node, enclosing, doAddToScope: node.name !== null);
@@ -2305,7 +2305,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       new FunctionExpression(new Identifier(element.position()),
                              new NodeList.empty(),
                              new Block(new NodeList.empty()),
-                             null, null, null, null);
+                             null, Modifiers.EMPTY, null, null);
   }
 
   isBlackListed(DartType type) {
@@ -2667,8 +2667,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                           new SourceString(fullConstructorName),
                                           MessageKind.CANNOT_FIND_CONSTRUCTOR,
                                           [fullConstructorName]);
-    } else if (inConstContext &&
-               (result.modifiers == null || !result.modifiers.isConst())) {
+    } else if (inConstContext && !result.modifiers.isConst()) {
       error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
     return result;

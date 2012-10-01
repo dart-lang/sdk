@@ -124,7 +124,7 @@ class Unparser implements Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     // Check length to not print unnecessary whitespace.
-    if (node.modifiers !== null && node.modifiers.nodes.length() > 0) {
+    if (node.modifiers.nodes.length() > 0) {
       visit(node.modifiers);
       sb.add(' ');
     }

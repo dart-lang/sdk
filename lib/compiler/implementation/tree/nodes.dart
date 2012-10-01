@@ -609,7 +609,9 @@ class FunctionExpression extends Expression {
   final Token getOrSet;
 
   FunctionExpression(this.name, this.parameters, this.body, this.returnType,
-                     this.modifiers, this.initializers, this.getOrSet);
+                     this.modifiers, this.initializers, this.getOrSet) {
+    assert(modifiers !== null);
+  }
 
   FunctionExpression asFunctionExpression() => this;
 
@@ -994,7 +996,9 @@ class VariableDefinitions extends Statement {
   final Modifiers modifiers;
   final NodeList definitions;
   VariableDefinitions(this.type, this.modifiers, this.definitions,
-                      this.endToken);
+                      this.endToken) {
+    assert(modifiers !== null);
+  }
 
   VariableDefinitions asVariableDefinitions() => this;
 
@@ -1093,6 +1097,11 @@ class ParenthesizedExpression extends Expression {
 
 /** Representation of modifiers such as static, abstract, final, etc. */
 class Modifiers extends Node {
+  /**
+   * Pseudo-constant for empty modifiers. Use this instead of null.
+   */
+  static final Modifiers EMPTY = new Modifiers(new NodeList.empty());
+
   /* TODO(ahe): The following should be validated relating to modifiers:
    * 1. The nodes must come in a certain order.
    * 2. The keywords "var" and "final" may not be used at the same time.
@@ -1113,8 +1122,6 @@ class Modifiers extends Node {
   static const int FLAG_EXTERNAL = FLAG_FACTORY << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
-
-  Modifiers.empty() : this(new NodeList.empty());
 
   Modifiers.withFlags(this.nodes, this.flags);
 

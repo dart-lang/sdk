@@ -360,7 +360,7 @@ class DartBackend extends Backend {
                        endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
                        nodes: const EmptyLink<Node>()),
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
-          null, null, null, null);
+          null, Modifiers.EMPTY, null, null);
 
       classMembers[classElement].add(constructor);
       elementAsts[constructor] =

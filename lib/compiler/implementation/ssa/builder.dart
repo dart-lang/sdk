@@ -915,7 +915,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
     assert(function !== null);
-    assert(function.modifiers === null || !function.modifiers.isExternal());
+    assert(!function.modifiers.isExternal());
     assert(elements[function] !== null);
     openFunction(functionElement, function);
     function.body.accept(this);

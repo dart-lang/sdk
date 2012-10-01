@@ -398,12 +398,10 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         return constant;
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
-        if (element.modifiers !== null) {
-          if (element.modifiers.isConst()) {
-            result = compiler.compileConstant(element);
-          } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
-            result = compiler.compileVariable(element);
-          }
+        if (element.modifiers.isConst()) {
+          result = compiler.compileConstant(element);
+        } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
+          result = compiler.compileVariable(element);
         }
         if (result !== null) return result;
       }
