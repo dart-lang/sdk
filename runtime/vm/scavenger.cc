@@ -128,6 +128,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         // Visit all elements with a key equal to raw_obj.
         ret = delay_set_.equal_range(raw_obj);
         for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+          // Visit through the associated WeakProperty at this time.
           it->second->VisitPointers(this);
         }
         delay_set_.erase(ret.first, ret.second);
@@ -499,16 +500,17 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                      ScavengerVisitor* visitor) {
   // The fate of the weak property is determined by its key.
   RawObject* raw_key = raw_weak->ptr()->key_;
-  uword raw_addr = RawObject::ToAddr(raw_key);
-  uword header = *reinterpret_cast<uword*>(raw_addr);
-  if (!IsForwarding(header)) {
-    // Key is white.  Delay the weak property.
-    visitor->DelayWeakProperty(raw_weak);
-    return raw_weak->Size();
-  } else {
-    // Key is gray or black.  Make the weak property black.
-    return raw_weak->VisitPointers(visitor);
+  if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
+    uword raw_addr = RawObject::ToAddr(raw_key);
+    uword header = *reinterpret_cast<uword*>(raw_addr);
+    if (!IsForwarding(header)) {
+      // Key is white.  Delay the weak property.
+      visitor->DelayWeakProperty(raw_weak);
+      return raw_weak->Size();
+    }
   }
+  // Key is gray or black.  Make the weak property black.
+  return raw_weak->VisitPointers(visitor);
 }
 
 
