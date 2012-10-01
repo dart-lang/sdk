@@ -72,7 +72,7 @@ class HTypeList {
         namedArguments = null;
   HTypeList.withNamedArguments(int length, this.namedArguments)
       : types = new List<HType>(length);
-  const HTypeList.allUnknown()
+  const HTypeList.withAllUnknown()
       : types = null,
         namedArguments = null;
 
@@ -111,7 +111,7 @@ class HTypeList {
     return result;
   }
 
-  static const HTypeList ALL_UNKNOWN = const HTypeList.allUnknown();
+  static const HTypeList ALL_UNKNOWN = const HTypeList.withAllUnknown();
 
   bool get allUnknown => types === null;
   bool get hasNamedArguments => namedArguments != null;
