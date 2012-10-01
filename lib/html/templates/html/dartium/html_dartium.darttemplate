@@ -59,7 +59,7 @@ Document get document {
 Document get _document => _window.document;
 
 Element query(String selector) => _document.query(selector);
-List<Element> queryAll(String selector) => _document.queryAll(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 

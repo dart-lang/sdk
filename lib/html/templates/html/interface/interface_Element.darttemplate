@@ -4,6 +4,21 @@
 
 // WARNING: Do not edit - generated code.
 
+// TODO(vsm): Eliminate this type.
+
+// Note, ElementList implements List (instead of List<Element>) so
+// that its implementing classes may be cast to Lists of more specific
+// type such as List<CanvasElement>.
+abstract class ElementList implements List {
+  // TODO(jacobr): add element batch manipulation methods.
+  ElementList filter(bool f(Element element));
+
+  ElementList getRange(int start, int length);
+
+  Element get first;
+  // TODO(jacobr): add insertAt
+}
+
 /**
  * All your attribute manipulation needs in one place.
  * Extends the regular Map interface by automatically coercing non-string
@@ -60,7 +75,7 @@ abstract class Element implements Node, NodeSelector {
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements;
+  ElementList get elements;
 
   void set elements(Collection<Element> value);
 

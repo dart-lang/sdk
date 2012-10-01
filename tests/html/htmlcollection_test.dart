@@ -3,7 +3,7 @@
 #import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
-// Test that List<Element> implements List<T>
+// Test that ElementList implements List<T>
 main() {
   Element insertTestDiv() {
     Element element = new Element.tag('div');
@@ -36,7 +36,7 @@ main() {
   test('IsList', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
     Expect.isTrue(eachChecked is List);
@@ -46,13 +46,13 @@ main() {
   test('Every', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
@@ -71,13 +71,13 @@ main() {
   test('Some', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
@@ -96,13 +96,13 @@ main() {
   test('Filter', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
@@ -121,10 +121,10 @@ main() {
   test('IsEmpty', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> emptyDiv =
+    ElementList emptyDiv =
         document.query('#emptyDiv').elements;
 
     Expect.equals(4, someChecked.length);
@@ -147,13 +147,13 @@ main() {
   test('ForEach', () {
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
@@ -181,13 +181,13 @@ main() {
   test('ForLoop', () {  // Uses iterator.
     Element root = insertTestDiv();
 
-    List<Element> eachChecked =
+    ElementList eachChecked =
         document.query('#allChecked').elements;
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
@@ -206,7 +206,7 @@ main() {
   test('Last', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
     Expect.equals(4, someChecked.length);
@@ -218,10 +218,10 @@ main() {
   test('IndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, someChecked.length);
@@ -248,10 +248,10 @@ main() {
   test('LastIndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
+    ElementList someChecked =
         document.query('#someChecked').elements;
 
-    List<Element> noneChecked =
+    ElementList noneChecked =
         document.query('#noneChecked').elements;
 
     Expect.equals(4, someChecked.length);

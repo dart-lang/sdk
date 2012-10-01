@@ -41,7 +41,7 @@ Document get document {
 Document get _document => _window.document;
 
 Element query(String selector) => _document.query(selector);
-List<Element> queryAll(String selector) => _document.queryAll(selector);
+ElementList queryAll(String selector) => _document.queryAll(selector);
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
@@ -11582,11 +11582,11 @@ abstract class DocumentFragment extends Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FilteredElementList implements List {
+class FilteredElementList implements ElementList {
   final Node _node;
   final NodeList _childNodes;
 
-  _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
@@ -11594,6 +11594,16 @@ class _FilteredElementList implements List {
   // TODO(nweiz): Do we really need to copy the list to make the types work out?
   List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
+
+  // Don't use _filtered.first so we can short-circuit once we find an element.
+  Element get first {
+    for (final node in _childNodes) {
+      if (node is Element) {
+        return node;
+      }
+    }
+    return null;
+  }
 
   void forEach(void f(Element element)) {
     _filtered.forEach(f);
@@ -11705,11 +11715,11 @@ class _FrozenCSSClassSet extends _CssClassSet {
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
-  List<Element> _elements;
+  ElementList _elements;
 
-  List<Element> get elements {
+  ElementList get elements {
     if (_elements == null) {
-      _elements = new _FilteredElementList(this);
+      _elements = new FilteredElementList(this);
     }
     return _elements;
   }
@@ -11754,8 +11764,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
       case "beforebegin": return null;
       case "afterend": return null;
       case "afterbegin":
-        var first = this.nodes.length > 0 ? this.nodes[0] : null;
-        this.insertBefore(node, first);
+        this.insertBefore(node, this.nodes.first);
         return node;
       case "beforeend":
         this.nodes.add(node);
@@ -11804,12 +11813,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   String get tagName => "";
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
-  Element get $m_firstElementChild {
-    if (elements.length > 0) {
-      return elements[0];
-    }
-    return null;
-  }
+  Element get $m_firstElementChild() => elements.first();
   Element get $m_lastElementChild() => elements.last();
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
@@ -12339,6 +12343,21 @@ class _EXTTextureFilterAnisotropicImpl extends NativeFieldWrapperClass1 implemen
 
 // WARNING: Do not edit - generated code.
 
+// TODO(vsm): Eliminate this type.
+
+// Note, ElementList implements List (instead of List<Element>) so
+// that its implementing classes may be cast to Lists of more specific
+// type such as List<CanvasElement>.
+abstract class ElementList implements List {
+  // TODO(jacobr): add element batch manipulation methods.
+  ElementList filter(bool f(Element element));
+
+  ElementList getRange(int start, int length);
+
+  Element get first;
+  // TODO(jacobr): add insertAt
+}
+
 /**
  * All your attribute manipulation needs in one place.
  * Extends the regular Map interface by automatically coercing non-string
@@ -12395,7 +12414,7 @@ abstract class Element implements Node, NodeSelector {
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  List<Element> get elements;
+  ElementList get elements;
 
   void set elements(Collection<Element> value);
 
@@ -12844,7 +12863,7 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
-class _ChildrenElementList implements List {
+class _ChildrenElementList implements ElementList {
   // Raw Element.
   final _ElementImpl _element;
   final _HTMLCollectionImpl _childElements;
@@ -12861,14 +12880,18 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  _ElementImpl get first {
+    return _element.$dom_firstElementChild;
+  }
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
     }
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final output = [];
+  ElementList filter(bool f(Element element)) {
+    final output = <Element>[];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
@@ -12990,7 +13013,7 @@ class _ChildrenElementList implements List {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList implements List {
+class _FrozenElementList implements ElementList {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -13013,8 +13036,8 @@ class _FrozenElementList implements List {
     return out;
   }
 
-  List<Element> filter(bool f(Element element)) {
-    final out = <Element>[];
+  ElementList filter(bool f(Element element)) {
+    final out = new _ElementList([]);
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
@@ -13083,7 +13106,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  List<Element> getRange(int start, int rangeLength) =>
+  ElementList getRange(int start, int rangeLength) =>
     new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
@@ -13125,6 +13148,16 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
+}
+
+class _ElementList extends _ListWrapper<Element> implements ElementList {
+  _ElementList(List<Element> list) : super(list);
+
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(super.filter(f));
+
+  ElementList getRange(int start, int rangeLength) =>
+    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -13514,7 +13547,7 @@ class _ElementImpl extends _NodeImpl implements Element {
     elements.addAll(value);
   }
 
-  List<Element> get elements => new _ChildrenElementList._wrap(this);
+  ElementList get elements => new _ChildrenElementList._wrap(this);
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
@@ -13724,7 +13757,7 @@ class _ElementFactoryProvider {
 
     Element element;
     if (temp.elements.length == 1) {
-      element = temp.elements[0];
+      element = temp.elements.first;
     } else if (parentTag == 'html' && temp.elements.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
@@ -23069,10 +23102,10 @@ class _ListWrapper<E> implements List<E> {
 class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   _NodeListWrapper(List list) : super(list);
 
-  List<Node> filter(bool f(Node element)) =>
+  NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  List<Node> getRange(int start, int rangeLength) =>
+  NodeList getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
@@ -23103,7 +23136,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 
   void addAll(Collection<_NodeImpl> collection) {
     for (_NodeImpl node in collection) {
-      _parent.$dom_appendChild(node);
+      _parent.$dom_appendChild(node);      
     }
   }
 
@@ -23161,7 +23194,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
   void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int rangeLength) =>
+  NodeList getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
@@ -27148,7 +27181,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
     return _cssClassSet;
   }
 
-  List<Element> get elements => new _FilteredElementList(this);
+  ElementList get elements => new FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;
@@ -27175,7 +27208,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
     // Wrap the SVG string in <svg> so that SVGElements are created, rather than
     // HTMLElements.
     container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements[0].elements;
+    this.elements = container.elements.first.elements;
   }
 
 
@@ -34097,7 +34130,15 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
-  static bool get supported => _Utils.shadowRootSupported(window.document);
+  static bool get supported {
+    // TODO: move this to native code.
+    try {
+      new ShadowRoot(new DivElement());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -43969,7 +44010,6 @@ class _Utils {
   static print(String message) native "Utils_print";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
-  static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {

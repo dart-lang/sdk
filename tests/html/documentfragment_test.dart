@@ -62,18 +62,18 @@ main() {
 
     test('.html parses input as HTML', () {
       final fragment = new DocumentFragment.html('<a>foo</a>');
-      Expect.isTrue(fragment.elements[0] is AnchorElement);
+      Expect.isTrue(fragment.elements.first is AnchorElement);
     });
 
     // test('.svg parses input as SVG', () {
     //   final fragment = new DocumentFragment.svg('<a>foo</a>');
-    //   Expect.isTrue(fragment.elements[0] is SVGAElement);
+    //   Expect.isTrue(fragment.elements.first is SVGAElement);
     // });
 
     // TODO(nweiz): enable this once XML is ported.
     // test('.xml parses input as XML', () {
     //   final fragment = new DocumentFragment.xml('<a>foo</a>');
-    //   Expect.isTrue(fragment.elements[0] is XMLElement);
+    //   Expect.isTrue(fragment.elements.first is XMLElement);
     // });
   });
 
@@ -158,7 +158,7 @@ main() {
 
     test('accessors are wrapped', () {
       init();
-      Expect.equals("A", elements[0].tagName);
+      Expect.equals("A", elements.first.tagName);
       Expect.listEquals(
           ["I"], _nodeStrings(elements.filter((e) => e.tagName == "I")));
       Expect.isTrue(elements.every((e) => e is Element));

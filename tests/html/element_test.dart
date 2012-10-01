@@ -485,6 +485,11 @@ main() {
       Expect.equals(el.elements[2], el.nodes[3]);
     });
 
+    test('first', () {
+      var el = makeElementWithChildren();
+      Expect.isTrue(el.elements.first is BRElement);
+    });
+
     test('last', () {
       var el = makeElementWithChildren();
       Expect.isTrue(el.elements.last() is InputElement);
@@ -504,7 +509,7 @@ main() {
         filter((n) => n is ImageElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is ImageElement);
-      Expect.isTrue(filtered is List<Element>);
+      Expect.isTrue(filtered is ElementList);
     });
 
     test('every', () {
@@ -598,12 +603,12 @@ main() {
 
     test('getRange', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.getRange(1, 1) is List<Element>);
+      Expect.isTrue(el.elements.getRange(1, 1) is ElementList);
     });
   });
 
   group('queryAll', () {
-    List<Element> getQueryAll() {
+    ElementList getQueryAll() {
       return new Element.html("""
 <div>
   <hr/>
@@ -617,13 +622,17 @@ main() {
 """).queryAll('.q');
     }
 
-    List<Element> getEmptyQueryAll() => new Element.tag('div').queryAll('img');
+    ElementList getEmptyQueryAll() => new Element.tag('div').queryAll('img');
 
     void testUnsupported(String name, void f()) {
       test(name, () {
         Expect.throws(f, (e) => e is UnsupportedOperationException);
       });
     }
+
+    test('first', () {
+      Expect.isTrue(getQueryAll().first is AnchorElement);
+    });
 
     test('last', () {
       Expect.isTrue(getQueryAll().last() is HRElement);
@@ -646,7 +655,7 @@ main() {
       var filtered = getQueryAll().filter((n) => n is SpanElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is SpanElement);
-      Expect.isTrue(filtered is List<Element>);
+      Expect.isTrue(filtered is ElementList);
     });
 
     test('every', () {
@@ -689,7 +698,7 @@ main() {
     });
 
     test('getRange', () {
-      Expect.isTrue(getQueryAll().getRange(1, 1) is List<Element>);
+      Expect.isTrue(getQueryAll().getRange(1, 1) is ElementList);
     });
 
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
@@ -719,18 +728,23 @@ main() {
   });
 
   group('_ElementList', () {
-    List<Element> makeElList() => makeElementWithChildren().elements;
+    ElementList makeElList() => makeElementWithChildren().elements;
+
+    test('first', () {
+      var els = makeElList();
+      Expect.isTrue(els.first is BRElement);
+    });
 
     test('filter', () {
       var filtered = makeElList().filter((n) => n is ImageElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is ImageElement);
-      Expect.isTrue(filtered is List<Element>);
+      Expect.isTrue(filtered is ElementList);
     });
 
     test('getRange', () {
       var range = makeElList().getRange(1, 2);
-      Expect.isTrue(range is List<Element>);
+      Expect.isTrue(range is ElementList);
       Expect.isTrue(range[0] is ImageElement);
       Expect.isTrue(range[1] is InputElement);
     });

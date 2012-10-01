@@ -72,10 +72,10 @@ class _ListWrapper<E> implements List<E> {
 class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   _NodeListWrapper(List list) : super(list);
 
-  List<Node> filter(bool f(Node element)) =>
+  NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  List<Node> getRange(int start, int rangeLength) =>
+  NodeList getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
@@ -106,7 +106,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   void addAll(Collection<_NodeImpl> collection) {
     for (_NodeImpl node in collection) {
-      _parent.$dom_appendChild(node);
+      _parent.$dom_appendChild(node);      
     }
   }
 
@@ -164,7 +164,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int rangeLength) =>
+  NodeList getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.

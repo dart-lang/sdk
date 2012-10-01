@@ -20,7 +20,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return _cssClassSet;
   }
 
-  List<Element> get elements => new _FilteredElementList(this);
+  ElementList get elements => new FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;
@@ -47,7 +47,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     // Wrap the SVG string in <svg> so that SVGElements are created, rather than
     // HTMLElements.
     container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements[0].elements;
+    this.elements = container.elements.first.elements;
   }
 
 $!MEMBERS

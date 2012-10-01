@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FilteredElementList implements List {
+class FilteredElementList implements ElementList {
   final Node _node;
   final NodeList _childNodes;
 
-  _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
@@ -14,6 +14,16 @@ class _FilteredElementList implements List {
   // TODO(nweiz): Do we really need to copy the list to make the types work out?
   List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
+
+  // Don't use _filtered.first so we can short-circuit once we find an element.
+  Element get first {
+    for (final node in _childNodes) {
+      if (node is Element) {
+        return node;
+      }
+    }
+    return null;
+  }
 
   void forEach(void f(Element element)) {
     _filtered.forEach(f);
@@ -125,11 +135,11 @@ class _FrozenCSSClassSet extends _CssClassSet {
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  List<Element> _elements;
+  ElementList _elements;
 
-  List<Element> get elements {
+  ElementList get elements {
     if (_elements == null) {
-      _elements = new _FilteredElementList(this);
+      _elements = new FilteredElementList(this);
     }
     return _elements;
   }
@@ -174,8 +184,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       case "beforebegin": return null;
       case "afterend": return null;
       case "afterbegin":
-        var first = this.nodes.length > 0 ? this.nodes[0] : null;
-        this.insertBefore(node, first);
+        this.insertBefore(node, this.nodes.first);
         return node;
       case "beforeend":
         this.nodes.add(node);
@@ -224,12 +233,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   String get tagName => "";
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
-  Element get $m_firstElementChild {
-    if (elements.length > 0) {
-      return elements[0];
-    }
-    return null;
-  }
+  Element get $m_firstElementChild() => elements.first();
   Element get $m_lastElementChild() => elements.last();
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
