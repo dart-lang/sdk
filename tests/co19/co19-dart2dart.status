@@ -3,6 +3,43 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/10_Expressions/08_Throw_A05_t01: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t04: Fail # TRIAGE
+Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A03_t02: Fail # TRIAGE
+Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t03: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t01: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t01: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t02: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TRIAGE
+Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A05_t03: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t05: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A04_t01: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A05_t02: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t02: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A06_t06: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A01_t01: Fail # TRIAGE
+Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # TRIAGE
+Language/10_Expressions/08_Throw_A03_t03: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TRIAGE
+Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail # TRIAGE
+Language/03_Overview/1_Scoping_A02_t06: Fail # TRIAGE
+
+
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
@@ -225,7 +262,6 @@ Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail, Pass # co19 issue
 Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, Pass # co19 issue 218
 Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, Pass # co19 issue 218
 
-Language/03_Overview/1_Scoping_A02_t05: Fail # inherited from VM
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t04: Fail # inherited from VM
