@@ -143,10 +143,8 @@ class CCTestSuite implements TestSuite {
 
       if (expectations.contains(SKIP)) return;
 
-      // The cc test runner takes options after the name of the test
-      // to run.
-      var args = [testName];
-      args.addAll(TestUtils.standardOptions(configuration));
+      var args = TestUtils.standardOptions(configuration);
+      args.add(testName);
 
       doTest(new TestCase(constructedName,
                           [new Command(runnerPath, args)],
