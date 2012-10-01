@@ -518,8 +518,7 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
-  // Temporary fix until cvtss2sd implemented.
-  /*Label fall_through;
+  Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   // After TestByteArrayIndex:
   // * RAX has the base address of the byte array.
@@ -541,7 +540,7 @@ bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   // Store XMM7 into double instance.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM7);
   __ ret();
-  __ Bind(&fall_through); */
+  __ Bind(&fall_through);
   return false;
 }
 

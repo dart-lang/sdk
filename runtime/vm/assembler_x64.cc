@@ -671,6 +671,28 @@ void Assembler::cvttsd2siq(Register dst, XmmRegister src) {
 }
 
 
+void Assembler::cvtss2sd(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM7);
+  ASSERT(dst <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x5A);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::cvtsd2ss(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM7);
+  ASSERT(dst <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF2);
+  EmitUint8(0x0F);
+  EmitUint8(0x5A);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);
@@ -690,6 +712,7 @@ void Assembler::fildl(const Address& src) {
   EmitUint8(0xDF);
   EmitOperand(5, src);
 }
+
 
 void Assembler::fincstp() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
