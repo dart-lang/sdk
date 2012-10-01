@@ -125,6 +125,11 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Integer_negate(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   return false;
 }

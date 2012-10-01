@@ -20,6 +20,7 @@ namespace dart {
   V(_IntegerImplementation, *, Integer_mul)                                    \
   V(_IntegerImplementation, %, Integer_modulo)                                 \
   V(_IntegerImplementation, ~/, Integer_truncDivide)                           \
+  V(_IntegerImplementation, unary-, Integer_negate)                            \
   V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger)     \
   V(_IntegerImplementation, &, Integer_bitAnd)                                 \
   V(_IntegerImplementation, _bitOrFromInteger, Integer_bitOrFromInteger)       \

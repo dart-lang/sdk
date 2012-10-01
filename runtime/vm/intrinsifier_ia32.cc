@@ -723,6 +723,20 @@ bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Integer_negate(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
+  __ negl(EAX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in EAX.
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
