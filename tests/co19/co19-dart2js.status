@@ -45,8 +45,6 @@ Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage t
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A08_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(ahe): Please triage this failure.
@@ -173,7 +171,6 @@ LibTest/core/List/sort_A01_t06: Slow, Pass
 
 # Tests that fail because they use the legacy try-catch syntax.
 # See co19 issue 184.
-Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
 Language/11_Statements/09_Try_A04_t01: Fail, OK

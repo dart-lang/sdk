@@ -359,7 +359,6 @@ Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A
 Language/09_Generics/09_Generics_A05_t02: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A05_t01: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A06_t01: Fail # inherited from VM
-Language/10_Expressions/01_Constants_A13_t01: Fail # inherited from dart2js
 Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
 Language/10_Expressions/01_Constants_A14_t01: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A16_t01: Fail # inherited from VM

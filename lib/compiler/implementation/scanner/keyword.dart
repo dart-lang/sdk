@@ -23,6 +23,8 @@ class Keyword implements SourceString {
       const Keyword("for"),
       const Keyword("if"),
       const Keyword("in"),
+      // TODO(ahe): Don't think this is a reserved word.
+      // See: http://dartbug.com/5579
       const Keyword("is", info: IS_INFO),
       const Keyword("new"),
       const Keyword("null"),

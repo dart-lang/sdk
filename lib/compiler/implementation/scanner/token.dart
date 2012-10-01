@@ -71,9 +71,7 @@ const int TILDE_SLASH_TOKEN = TILDE_SLASH_EQ_TOKEN + 1;
 const int PERCENT_EQ_TOKEN = TILDE_SLASH_TOKEN + 1;
 const int GT_GT_TOKEN = PERCENT_EQ_TOKEN + 1;
 const int CARET_EQ_TOKEN = GT_GT_TOKEN + 1;
-const int IS_TOKEN = CARET_EQ_TOKEN + 1;
-const int AS_TOKEN = IS_TOKEN + 1;
-const int COMMENT_TOKEN = AS_TOKEN + 1;
+const int COMMENT_TOKEN = CARET_EQ_TOKEN + 1;
 const int STRING_INTERPOLATION_IDENTIFIER_TOKEN = COMMENT_TOKEN + 1;
 
 // TODO(ahe): Get rid of this.
@@ -408,9 +406,9 @@ const PrecedenceInfo GT_EQ_INFO =
 const PrecedenceInfo GT_INFO =
   const PrecedenceInfo(const SourceString('>'), 10, GT_TOKEN);
 const PrecedenceInfo IS_INFO =
-  const PrecedenceInfo(const SourceString('is'), 10, IS_TOKEN);
+  const PrecedenceInfo(const SourceString('is'), 10, KEYWORD_TOKEN);
 const PrecedenceInfo AS_INFO =
-  const PrecedenceInfo(const SourceString('as'), 10, AS_TOKEN);
+  const PrecedenceInfo(const SourceString('as'), 10, KEYWORD_TOKEN);
 const PrecedenceInfo LT_EQ_INFO =
   const PrecedenceInfo(const SourceString('<='), 10, LT_EQ_TOKEN);
 const PrecedenceInfo LT_INFO =
