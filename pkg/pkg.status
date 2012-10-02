@@ -53,7 +53,3 @@ unittest/test/instance_test: Skip
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
-# Fail the finding browser locale test on Safari while
-# debugging why it fails. (alanknight)
-[ $runtime == safari ]
-intl/test/find_default_locale_browser_test: Fail
