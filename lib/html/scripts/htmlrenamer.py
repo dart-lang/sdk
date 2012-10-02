@@ -28,7 +28,6 @@ html_interface_renames = {
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
 _private_html_members = set([
-  'CustomEvent.initCustomEvent',
   'Document.createElement',
   'Document.createElementNS',
   'Document.createEvent',
