@@ -41,7 +41,7 @@ intl/test/date_time_format_http_request_test: Skip
 [ $compiler == dart2js ]
 intl/test/intl_message_test: Skip
 intl/test/intl_message_basic_example_test: Skip
-intl/test/date_time_format_http_request_test: Slow
+intl/test/date_time_format_http_request_test: Slow, Pass
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
