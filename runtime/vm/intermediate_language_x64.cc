@@ -55,7 +55,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(temp, function);
     __ incq(FieldAddress(temp, Function::usage_counter_offset()));
-    if (FlowGraphCompiler::CanOptimize()) {
+    if (FlowGraphCompiler::CanOptimize() &&
+        compiler->parsed_function().function().is_optimizable()) {
       // Do not optimize if usage count must be reported.
       __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
