@@ -133,7 +133,11 @@ Function getFunctionForTypeNameOf() {
     return typeNameInIE;
   } else if (contains(userAgent, 'Opera')) {
     return typeNameInOpera;
-  } else if (contains(userAgent, 'Safari')) {
+  } else if (contains(userAgent, 'AppleWebKit')) {
+    // Chrome matches 'AppleWebKit' too, but we test for Chrome first, so this
+    // is not a problem.
+    // Note: Just testing for "Safari" doesn't work when the page is embedded
+    // in a UIWebView on iOS 6.
     return typeNameInSafari;
   } else {
     return constructorNameFallback;
