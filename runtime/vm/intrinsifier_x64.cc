@@ -415,18 +415,32 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
 
 
 // Places the address of the ByteArray in RAX.
-// Places the Smi index in RBX.
-// Tests if RBX contains an Smi, jumps to label fall_through if false.
-// Tests if index in RBX is within bounds, jumps to label fall_through if not.
-// Leaves the index as an Smi in RBX.
+// Places the Smi index in R12.
+// Tests if R12 contains an Smi, jumps to label fall_through if false.
+// Tests if index in R12 is within bounds, jumps to label fall_through if not.
+// Leaves the index as an Smi in R12.
 // Leaves the ByteArray address in RAX.
 void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
-  __ movq(RBX, Address(RSP, + 1 * kWordSize));  // Index.
-  __ testq(RBX, Immediate(kSmiTagMask));
+  __ movq(R12, Address(RSP, + 1 * kWordSize));  // Index.
+  __ testq(R12, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check.
-  __ cmpq(RBX, FieldAddress(RAX, ByteArray::length_offset()));
+  __ cmpq(R12, FieldAddress(RAX, ByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
+}
+
+
+// Operates in the same manner as TestByteArrayIndex.
+// This should be used only for setIndexed intrinsics.
+static void TestByteArraySetIndex(Assembler* assembler, Label* fall_through) {
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
+  __ movq(R12, Address(RSP, + 2 * kWordSize));  // Index.
+  __ testq(R12, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(R12, FieldAddress(RAX, ByteArray::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
 }
@@ -435,9 +449,9 @@ void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
 bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
-  __ SmiUntag(RBX);
+  __ SmiUntag(R12);
   __ movsxb(RAX, FieldAddress(RAX,
-                              RBX,
+                              R12,
                               TIMES_1,
                               Int8Array::data_offset()));
   __ SmiTag(RAX);
@@ -450,9 +464,9 @@ bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
-  __ SmiUntag(RBX);
+  __ SmiUntag(R12);
   __ movzxb(RAX, FieldAddress(RAX,
-                              RBX,
+                              R12,
                               TIMES_1,
                               Uint8Array::data_offset()));
   __ SmiTag(RAX);
@@ -466,7 +480,7 @@ bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   __ movsxw(RAX, FieldAddress(RAX,
-                              RBX,
+                              R12,
                               TIMES_1,
                               Int16Array::data_offset()));
   __ SmiTag(RAX);
@@ -480,7 +494,7 @@ bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   __ movzxw(RAX, FieldAddress(RAX,
-                              RBX,
+                              R12,
                               TIMES_1,
                               Uint16Array::data_offset()));
   __ SmiTag(RAX);
@@ -494,7 +508,7 @@ bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   __ movsxl(RAX, FieldAddress(RAX,
-                              RBX,
+                              R12,
                               TIMES_2,
                               Int32Array::data_offset()));
   __ SmiTag(RAX);
@@ -508,7 +522,7 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   __ movl(RAX, FieldAddress(RAX,
-                            RBX,
+                            R12,
                             TIMES_2,
                             Uint32Array::data_offset()));
   __ SmiTag(RAX);
@@ -517,16 +531,17 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
+
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
   // After TestByteArrayIndex:
   // * RAX has the base address of the byte array.
-  // * RBX has the index into the array.
-  // RBX contains the SMI index which is shifted left by 1.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted left by 1.
   // This shift means we only multiply the index by 2 not 4 (sizeof float).
   // Load single precision float into XMM7.
-  __ movss(XMM7, FieldAddress(RAX, RBX, TIMES_2,
+  __ movss(XMM7, FieldAddress(RAX, R12, TIMES_2,
                               Float32Array::data_offset()));
   // Convert into a double precision float.
   __ cvtss2sd(XMM7, XMM7);
@@ -544,8 +559,29 @@ bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
+
 bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
-    return false;
+  Label fall_through;
+  TestByteArraySetIndex(assembler, &fall_through);
+  // After TestByteArraySetIndex:
+  // * RAX has the base address of the byte array.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted by 1.
+  // This shift means we only multiply the index by 2 not 4 (sizeof float).
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
+  // If RDX is not an instance of double, jump to fall through.
+  __ CompareClassId(RDX, kDoubleCid);
+  __ j(NOT_EQUAL, &fall_through);
+  // Load double value into XMM7.
+  __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
+  // Convert from double precision float to single precision float.
+  __ cvtsd2ss(XMM7, XMM7);
+  // Store into array.
+  __ movss(FieldAddress(RAX, R12, TIMES_2, Float32Array::data_offset()), XMM7);
+  // End fast path.
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
 
 
