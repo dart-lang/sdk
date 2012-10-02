@@ -14,8 +14,3 @@
 [ $system == windows ]
 pub_install_git_test: Skip
 pub_update_git_test: Skip
-
-# Getting non-determinstic network errors with these on Windows (#5272).
-[ $system == windows ]
-pub_install_hosted_test: Skip
-pub_update_hosted_test: Skip
