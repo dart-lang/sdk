@@ -17,37 +17,38 @@ fixnum/test/int_64_vm_test: Skip
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt ]
-intl/test/date_time_format_file_even_test: skip
-intl/test/date_time_format_file_odd_test: skip
-intl/test/find_default_locale_standalone_test: skip
+intl/test/date_time_format_file_even_test: Skip
+intl/test/date_time_format_file_odd_test: Skip
+intl/test/find_default_locale_standalone_test: Skip
 
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
-intl/test/find_default_locale_browser_test: skip
-intl/test/date_time_format_http_request_test: skip
+intl/test/find_default_locale_browser_test: Skip
+intl/test/date_time_format_http_request_test: Skip
 
 # Skip http request tests on Windows until we are able to spawn
 # the http server there.
 [ $system == windows]
-intl/test/date_time_format_http_request_test: skip
+intl/test/date_time_format_http_request_test: Skip
 
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
-intl/test/date_time_format_http_request_test: skip
+intl/test/date_time_format_http_request_test: Skip
 
 # Skip intl_message tests that use mirrors on dart2js until it's been 
 # implemented there.
 [ $compiler == dart2js ]
-intl/test/intl_message_test: skip
-intl/test/intl_message_basic_example_test: skip
+intl/test/intl_message_test: Skip
+intl/test/intl_message_basic_example_test: Skip
+intl/test/date_time_format_http_request_test: Slow
 
 [ $compiler == dartc ]
-unittest/test/mock_regexp_negative_test: fail
-unittest/test/mock_stepwise_negative_test: fail
+unittest/test/mock_regexp_negative_test: Fail
+unittest/test/mock_stepwise_negative_test: Fail
 
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
-dartdoc/test/dartdoc_test: skip # See dartbug.com/4541.
+dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
