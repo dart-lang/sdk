@@ -49,179 +49,6 @@ _merged_html_interfaces = {
    'HTMLElement': 'Element'
 }
 
-# Events without onEventName attributes in the  IDL we want to support.
-# We can automatically extract most event event names by checking for
-# onEventName methods in the IDL but some events aren't listed so we need
-# to manually add them here so that they are easy for users to find.
-_html_manual_events = {
-  'Element': ['touchleave', 'touchenter', 'webkitTransitionEnd'],
-  'Window': ['DOMContentLoaded']
-}
-
-# These event names must be camel case when attaching event listeners
-# using addEventListener even though the onEventName properties in the DOM for
-# them are not camel case.
-_on_attribute_to_event_name_mapping = {
-  'webkitanimationend': 'webkitAnimationEnd',
-  'webkitanimationiteration': 'webkitAnimationIteration',
-  'webkitanimationstart': 'webkitAnimationStart',
-  'webkitspeechchange': 'webkitSpeechChange',
-  'webkittransitionend': 'webkitTransitionEnd',
-}
-
-# Mapping from raw event names to the pretty camelCase event names exposed as
-# properties in dart:html.  If the DOM exposes a new event name, you will need
-# to add the lower case to camel case conversion for that event name here.
-_html_event_names = {
-  'DOMContentLoaded': 'contentLoaded',
-  'abort': 'abort',
-  'addstream': 'addStream',
-  'addtrack': 'addTrack',
-  'audioend': 'audioEnd',
-  'audioprocess': 'audioProcess',
-  'audiostart': 'audioStart',
-  'beforecopy': 'beforeCopy',
-  'beforecut': 'beforeCut',
-  'beforepaste': 'beforePaste',
-  'beforeunload': 'beforeUnload',
-  'blocked': 'blocked',
-  'blur': 'blur',
-  'cached': 'cached',
-  'canplay': 'canPlay',
-  'canplaythrough': 'canPlayThrough',
-  'change': 'change',
-  'chargingchange': 'chargingChange',
-  'chargingtimechange': 'chargingTimeChange',
-  'checking': 'checking',
-  'click': 'click',
-  'close': 'close',
-  'complete': 'complete',
-  'connect': 'connect',
-  'connecting': 'connecting',
-  'contextmenu': 'contextMenu',
-  'copy': 'copy',
-  'cuechange': 'cueChange',
-  'cut': 'cut',
-  'dblclick': 'doubleClick',
-  'devicemotion': 'deviceMotion',
-  'deviceorientation': 'deviceOrientation',
-  'dischargingtimechange': 'dischargingTimeChange',
-  'display': 'display',
-  'downloading': 'downloading',
-  'drag': 'drag',
-  'dragend': 'dragEnd',
-  'dragenter': 'dragEnter',
-  'dragleave': 'dragLeave',
-  'dragover': 'dragOver',
-  'dragstart': 'dragStart',
-  'drop': 'drop',
-  'durationchange': 'durationChange',
-  'emptied': 'emptied',
-  'end': 'end',
-  'ended': 'ended',
-  'enter': 'enter',
-  'error': 'error',
-  'exit': 'exit',
-  'focus': 'focus',
-  'hashchange': 'hashChange',
-  'icecandidate': 'iceCandidate',
-  'icechange': 'iceChange',
-  'input': 'input',
-  'invalid': 'invalid',
-  'keydown': 'keyDown',
-  'keypress': 'keyPress',
-  'keyup': 'keyUp',
-  'levelchange': 'levelChange',
-  'load': 'load',
-  'loadeddata': 'loadedData',
-  'loadedmetadata': 'loadedMetadata',
-  'loadend': 'loadEnd',
-  'loadstart': 'loadStart',
-  'message': 'message',
-  'mousedown': 'mouseDown',
-  'mousemove': 'mouseMove',
-  'mouseout': 'mouseOut',
-  'mouseover': 'mouseOver',
-  'mouseup': 'mouseUp',
-  'mousewheel': 'mouseWheel',
-  'mute': 'mute',
-  'negotiationneeded': 'negotiationNeeded',
-  'nomatch': 'noMatch',
-  'noupdate': 'noUpdate',
-  'obsolete': 'obsolete',
-  'offline': 'offline',
-  'online': 'online',
-  'open': 'open',
-  'pagehide': 'pageHide',
-  'pageshow': 'pageShow',
-  'paste': 'paste',
-  'pause': 'pause',
-  'play': 'play',
-  'playing': 'playing',
-  'popstate': 'popState',
-  'progress': 'progress',
-  'ratechange': 'rateChange',
-  'readystatechange': 'readyStateChange',
-  'removestream': 'removeStream',
-  'removetrack': 'removeTrack',
-  'reset': 'reset',
-  'resize': 'resize',
-  'result': 'result',
-  'resultdeleted': 'resultDeleted',
-  'scroll': 'scroll',
-  'search': 'search',
-  'seeked': 'seeked',
-  'seeking': 'seeking',
-  'select': 'select',
-  'selectionchange': 'selectionChange',
-  'selectstart': 'selectStart',
-  'show': 'show',
-  'soundend': 'soundEnd',
-  'soundstart': 'soundStart',
-  'speechend': 'speechEnd',
-  'speechstart': 'speechStart',
-  'stalled': 'stalled',
-  'start': 'start',
-  'statechange': 'stateChange',
-  'storage': 'storage',
-  'submit': 'submit',
-  'success': 'success',
-  'suspend': 'suspend',
-  'timeupdate': 'timeUpdate',
-  'touchcancel': 'touchCancel',
-  'touchend': 'touchEnd',
-  'touchenter': 'touchEnter',
-  'touchleave': 'touchLeave',
-  'touchmove': 'touchMove',
-  'touchstart': 'touchStart',
-  'unload': 'unload',
-  'upgradeneeded': 'upgradeNeeded',
-  'unmute': 'unmute',
-  'updateready': 'updateReady',
-  'versionchange': 'versionChange',
-  'volumechange': 'volumeChange',
-  'waiting': 'waiting',
-  'webkitAnimationEnd': 'animationEnd',
-  'webkitAnimationIteration': 'animationIteration',
-  'webkitAnimationStart': 'animationStart',
-  'webkitfullscreenchange': 'fullscreenChange',
-  'webkitfullscreenerror': 'fullscreenError',
-  'webkitkeyadded': 'keyAdded',
-  'webkitkeyerror': 'keyError',
-  'webkitkeymessage': 'keyMessage',
-  'webkitneedkey': 'needKey',
-  'webkitpointerlockchange': 'pointerLockChange',
-  'webkitpointerlockerror': 'pointerLockError',
-  'webkitSpeechChange': 'speechChange',
-  'webkitsourceclose': 'sourceClose',
-  'webkitsourceended': 'sourceEnded',
-  'webkitsourceopen': 'sourceOpen',
-  'webkitTransitionEnd': 'transitionEnd',
-  'write': 'write',
-  'writeend': 'writeEnd',
-  'writestart': 'writeStart'
-}
-
 # Information for generating element constructors.
 #
 # TODO(sra): maybe remove all the argument complexity and use cascades.
@@ -353,94 +180,21 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name):
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
-
-# These classes require an explicit declaration for the "on" method even though
-# they don't declare any unique events, because the concrete class hierarchy
-# doesn't match the interface hierarchy.
-_html_explicit_event_classes = set(['DocumentFragment'])
-
-def _OnAttributeToEventName(on_method):
-  event_name = on_method.id[2:]
-  if event_name in _on_attribute_to_event_name_mapping:
-    return _on_attribute_to_event_name_mapping[event_name]
-  else:
-    return event_name
-
-def DomToHtmlEvents(interface_id, events):
-  event_names = set(map(_OnAttributeToEventName, events))
-  if interface_id in _html_manual_events:
-    for manual_event_name in _html_manual_events[interface_id]:
-      event_names.add(manual_event_name)
-
-  return sorted(event_names, key=lambda name: _html_event_names[name])
-
-def DomToHtmlEvent(event_name):
-  assert event_name in _html_event_names, \
-         'No known html event name for event: ' + event_name
-  return _html_event_names[event_name]
-
-# ------------------------------------------------------------------------------
-class HtmlSystemShared(object):
-
-  def __init__(self, database):
-    self._event_classes = set()
-    self._database = database
-
-  # TODO(jacobr): this isn't quite right....
-  def GetParentsEventsClasses(self, interface):
-    # Ugly hack as we don't specify that Document and DocumentFragment inherit
-    # from Element in our IDL.
-    if interface.id == 'Document' or interface.id == 'DocumentFragment':
-      return ['ElementEvents']
-
-    interfaces_with_events = set()
-    for parent in self._database.Hierarchy(interface):
-      if parent != interface and parent.id in self._event_classes:
-        interfaces_with_events.add(parent)
-
-    if len(interfaces_with_events) == 0:
-      return ['Events']
-    else:
-      names = []
-      for interface in interfaces_with_events:
-        names.append(interface.id + 'Events')
-      return names
-
-  def GetParentEventsClass(self, interface):
-    parent_event_classes = self.GetParentsEventsClasses(interface)
-    if len(parent_event_classes) != 1:
-      raise Exception('Only one parent event class allowed ' + interface.id)
-    return parent_event_classes[0]
-
-  # This returns two values: the first is whether or not an "on" property should
-  # be generated for the interface, and the second is the event attributes to
-  # generate if it should.
-  def GetEventAttributes(self, interface):
-    events =  set([attr for attr in interface.attributes
-                   if attr.type.id == 'EventListener'])
-
-    if events or interface.id in _html_explicit_event_classes:
-      return True, events
-    else:
-      return False, None
-
-  def IsPrivate(self, name):
-    return name.startswith('_')
-
 # ------------------------------------------------------------------------------
 
 class HtmlDartInterfaceGenerator(BaseGenerator):
   """Generates dart interface and implementation for the DOM IDL interface."""
 
-  def __init__(self, shared, options, library_emitter, interface, backend):
+  def __init__(self, options, library_emitter, event_generator, interface,
+               backend):
     super(HtmlDartInterfaceGenerator, self).__init__(None, None, interface)
     self._renamer = options.renamer
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._library_emitter = library_emitter
+    self._event_generator = event_generator
     self._backend = backend
-    self._shared = shared
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def GenerateCallback(self, info):
@@ -570,7 +324,12 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         TYPE=self._DartType(element_type),
         FACTORY=factory_provider)
 
-    self._GenerateEvents()
+    events_interface = self._event_generator.ProcessInterface(
+        self._interface, self._html_interface_name,
+        self._backend.CustomJSMembers(),
+        self._interface_emitter, self._implementation_emitter)
+    if events_interface:
+      self._EmitEventGetter(events_interface, '_%sImpl' % events_interface)
 
     old_backend = self._backend
     if not self._backend.ImplementsMergedMembers():
@@ -591,7 +350,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     dom_name = DartDomNameOfAttribute(attribute)
     html_name = self._renamer.RenameMember(
       self._interface.id, dom_name, 'get:')
-    if not html_name or self._shared.IsPrivate(html_name):
+    if not html_name or self._IsPrivate(html_name):
       return
 
 
@@ -634,7 +393,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         self._backend.AddOperation(info, '_item')
       return
 
-    if not self._shared.IsPrivate(html_name) and not skip_declaration:
+    if not self._IsPrivate(html_name) and not skip_declaration:
       self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
           DOMNAME=info.name)
@@ -668,58 +427,6 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
                                VALUE=constant.value)
     self._backend.AddConstant(constant)
 
-  def _GenerateEvents(self):
-    emit_events, event_attrs = self._shared.GetEventAttributes(self._interface)
-    if not emit_events:
-      return
-
-    self._shared._event_classes.add(self._interface.id)
-    events_interface = self._html_interface_name + 'Events'
-    events_class = '_%sImpl' % events_interface
-    parent_events_interface = self._shared.GetParentEventsClass(self._interface)
-    parent_events_class = '_%sImpl' % parent_events_interface
-
-    if not event_attrs:
-      self._EmitEventGetter(parent_events_interface, parent_events_class)
-      return
-
-    self._EmitEventGetter(events_interface, events_class)
-
-    events_members = self._interface_emitter.Emit(
-        '\nabstract class $INTERFACE implements $PARENTS {\n$!MEMBERS}\n',
-        INTERFACE=events_interface,
-        PARENTS=', '.join(
-            self._shared.GetParentsEventsClasses(self._interface)))
-
-    template_file = 'impl_%s.darttemplate' % events_interface
-    template = (self._template_loader.TryLoad(template_file) or
-        '\n'
-        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n')
-
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    implementation_events_members = self._implementation_emitter.Emit(
-        template,
-        CLASSNAME=events_class,
-        INTERFACE=events_interface,
-        SUPER=parent_events_class)
-
-    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
-    for event_name in event_attrs:
-      if event_name in _html_event_names:
-        dart_event_name = _html_event_names[event_name]
-        events_members.Emit('\n  EventListenerList get $NAME;\n',
-          NAME=dart_event_name)
-        if not self._backend.HasCustomEventImplementation(dart_event_name):
-          implementation_events_members.Emit(
-              "\n"
-              "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
-              NAME=dart_event_name,
-              DOM_NAME=event_name)
-      else:
-        raise Exception('No known html even name for event: ' + event_name)
-
   def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
         '\n  /**'
@@ -732,6 +439,9 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._implementation_members_emitter.Emit(
         '\n  $TYPE get on =>\n    new $TYPE(this);\n',
         TYPE=events_class)
+
+  def _IsPrivate(self, name):
+    return name.startswith('_')
 
 
 class HtmlGeneratorDummyBackend(object):
@@ -1217,9 +927,8 @@ class Dart2JSBackend(BaseGenerator):
     member_name = '%s.%s' % (self._html_interface_name, member_name)
     return member_name in _js_custom_members
 
-  def HasCustomEventImplementation(self, member_name):
-    member_name = '%sEvents.%s' % (self._html_interface_name, member_name)
-    return member_name in _js_custom_members
+  def CustomJSMembers(self):
+    return _js_custom_members
 
   def _HasJavaScriptIndexingBehaviour(self):
     """Returns True if the native object has an indexer and length property."""

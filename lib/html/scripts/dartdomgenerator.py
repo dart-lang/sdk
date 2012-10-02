@@ -16,10 +16,11 @@ import shutil
 import subprocess
 import sys
 from generator import TypeRegistry
+from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
-                       HtmlDartInterfaceGenerator, HtmlSystemShared
+                       HtmlDartInterfaceGenerator
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
@@ -82,12 +83,12 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         template_loader, webkit_database, type_registry, renamer)
     dart_library_emitter = DartLibraryEmitter(
         emitters, dart_library_template, dart_output_dir)
-    shared_system = HtmlSystemShared(webkit_database)
+    event_generator = HtmlEventGenerator(webkit_database, template_loader)
 
     def generate_interface(interface):
       backend = backend_factory(interface)
       interface_generator = HtmlDartInterfaceGenerator(
-          shared_system, options, dart_library_emitter, interface, backend)
+          options, dart_library_emitter, event_generator, interface, backend)
       interface_generator.Generate()
 
     generator.Generate(
