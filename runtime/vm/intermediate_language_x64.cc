@@ -573,12 +573,6 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
-Immediate SmiConstantToImmediate(const Object& constant) {
-  ASSERT(constant.IsSmi());
-  return Immediate(reinterpret_cast<int64_t>(constant.raw()));
-}
-
-
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -606,10 +600,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   }
 
   if (left.IsConstant()) {
-    __ cmpq(right.reg(), SmiConstantToImmediate(left.constant()));
+    __ CompareObject(right.reg(), left.constant());
     true_condition = FlowGraphCompiler::FlipCondition(true_condition);
   } else if (right.IsConstant()) {
-    __ cmpq(left.reg(), SmiConstantToImmediate(right.constant()));
+    __ CompareObject(left.reg(), right.constant());
   } else {
     __ cmpq(left.reg(), right.reg());
   }
