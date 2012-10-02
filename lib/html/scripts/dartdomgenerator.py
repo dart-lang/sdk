@@ -18,8 +18,8 @@ import sys
 from generator import TypeRegistry
 from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
-from systemhtml import DartLibraryEmitter, HtmlInterfacesSystem,\
-                       Dart2JSBackend
+from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
+                       HtmlDartInterfaceGenerator, HtmlSystemShared
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
@@ -82,10 +82,16 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         template_loader, webkit_database, type_registry, renamer)
     dart_library_emitter = DartLibraryEmitter(
         emitters, dart_library_template, dart_output_dir)
-    html_system = HtmlInterfacesSystem(
-        options, dart_library_emitter, backend_factory)
+    shared_system = HtmlSystemShared(webkit_database)
+
+    def generate_interface(interface):
+      backend = backend_factory(interface)
+      interface_generator = HtmlDartInterfaceGenerator(
+          shared_system, options, dart_library_emitter, interface, backend)
+      interface_generator.Generate()
+
     generator.Generate(
-        webkit_database, html_system, common_database, _webkit_renames)
+        webkit_database, common_database, _webkit_renames, generate_interface)
     dart_library_emitter.EmitLibrary(dart_library_path, auxiliary_dir)
 
   if dart2js_output_dir:

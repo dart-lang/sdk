@@ -189,7 +189,8 @@ class DartGenerator(object):
 
     self.FilterMembersWithUnidentifiedTypes(database)
 
-  def Generate(self, database, system, super_database=None, webkit_renames={}):
+  def Generate(self, database, super_database, webkit_renames,
+               generate_interface):
     self._database = database
 
     # Collect interfaces
@@ -227,7 +228,7 @@ class DartGenerator(object):
         continue
 
       _logger.info('Generating %s' % interface.id)
-      system.ProcessInterface(interface)
+      generate_interface(interface)
 
   def _PreOrderInterfaces(self, interfaces):
     """Returns the interfaces in pre-order, i.e. parents first."""

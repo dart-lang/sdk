@@ -382,19 +382,9 @@ def DomToHtmlEvent(event_name):
 # ------------------------------------------------------------------------------
 class HtmlSystemShared(object):
 
-  def __init__(self, context):
+  def __init__(self, database):
     self._event_classes = set()
-    self._seen_event_names = {}
-    self._database = context.database
-
-  # TODO(jacobr): this already exists
-  def _TraverseParents(self, interface, callback):
-    for parent in interface.parents:
-      parent_id = parent.type.id
-      if self._database.HasInterface(parent_id):
-        parent_interface = self._database.GetInterface(parent_id)
-        callback(parent_interface)
-        self._TraverseParents(parent_interface, callback)
+    self._database = database
 
   # TODO(jacobr): this isn't quite right....
   def GetParentsEventsClasses(self, interface):
@@ -404,11 +394,10 @@ class HtmlSystemShared(object):
       return ['ElementEvents']
 
     interfaces_with_events = set()
-    def visit(parent):
-      if parent.id in self._event_classes:
+    for parent in self._database.Hierarchy(interface):
+      if parent != interface and parent.id in self._event_classes:
         interfaces_with_events.add(parent)
 
-    self._TraverseParents(interface, visit)
     if len(interfaces_with_events) == 0:
       return ['Events']
     else:
@@ -438,39 +427,26 @@ class HtmlSystemShared(object):
   def IsPrivate(self, name):
     return name.startswith('_')
 
-
-class HtmlInterfacesSystem(System):
-  def __init__(self, options, dart_library_generator, backend_factory):
-    super(HtmlInterfacesSystem, self).__init__(options)
-    self._dart_library_generator = dart_library_generator
-    self._backend_factory = backend_factory
-    self._shared = HtmlSystemShared(options)
-    self._elements_factory_emitter = None
-
-  def ProcessInterface(self, interface):
-    backend = self._backend_factory(interface)
-    HtmlDartInterfaceGenerator(self, interface, backend).Generate()
-
-  def _CreateEmitter(self, filename):
-    return self._dart_library_generator.CreateFileEmitter(filename)
-
 # ------------------------------------------------------------------------------
 
 class HtmlDartInterfaceGenerator(BaseGenerator):
   """Generates dart interface and implementation for the DOM IDL interface."""
 
-  def __init__(self, system, interface, backend):
-    super(HtmlDartInterfaceGenerator, self).__init__(
-        system._database, system._type_registry, interface)
-    self._system = system
+  def __init__(self, shared, options, library_emitter, interface, backend):
+    super(HtmlDartInterfaceGenerator, self).__init__(None, None, interface)
+    self._renamer = options.renamer
+    self._database = options.database
+    self._template_loader = options.templates
+    self._type_registry = options.type_registry
+    self._library_emitter = library_emitter
     self._backend = backend
-    self._shared = system._shared
-    self._html_interface_name = system._renamer.RenameInterface(self._interface)
+    self._shared = shared
+    self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def GenerateCallback(self, info):
     """Generates a typedef for the callback interface."""
-    code = self._system._CreateEmitter('%s.dart' % self._interface.id)
-    code.Emit(self._system._templates.Load('callback.darttemplate'))
+    code = self._library_emitter.FileEmitter(self._interface.id)
+    code.Emit(self._template_loader.Load('callback.darttemplate'))
     code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=self._interface.id,
               TYPE=DartType(info.type_name),
@@ -481,14 +457,14 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     if (not self._interface.id in _merged_html_interfaces and
         # Don't re-generate types that have been converted to native dart types.
         self._html_interface_name not in nativified_classes):
-      path = '%s.dart' % self._html_interface_name
-      self._interface_emitter = self._system._CreateEmitter(path)
+      self._interface_emitter = self._library_emitter.FileEmitter(
+          self._html_interface_name)
     else:
       self._interface_emitter = emitter.Emitter()
 
     template_file = 'interface_%s.darttemplate' % self._html_interface_name
-    interface_template = (self._system._templates.TryLoad(template_file) or
-                          self._system._templates.Load('interface.darttemplate'))
+    interface_template = (self._template_loader.TryLoad(template_file) or
+                          self._template_loader.Load('interface.darttemplate'))
 
     typename = self._html_interface_name
 
@@ -526,20 +502,17 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     if constructor_info:
       constructors.append(constructor_info)
       factory_provider = '_' + typename + 'FactoryProvider'
-      factory_provider_emitter = self._system._CreateEmitter(
-          '_%sFactoryProvider.dart' % self._html_interface_name)
+      factory_provider_emitter = self._library_emitter.FileEmitter(
+          '_%sFactoryProvider' % self._html_interface_name)
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
     infos = HtmlElementConstructorInfos(typename)
     if infos:
-      if not self._system._elements_factory_emitter:
-        file_emitter = self._system._CreateEmitter('_Elements.dart')
-        template = self._system._templates.Load(
-            'factoryprovider_Elements.darttemplate')
-        self._system._elements_factory_emitter = file_emitter.Emit(template)
+      template = self._template_loader.Load(
+          'factoryprovider_Elements.darttemplate')
       EmitHtmlElementFactoryConstructors(
-          self._system._elements_factory_emitter,
+          self._library_emitter.FileEmitter('_Elements', template),
           infos,
           self._html_interface_name,
           self._backend.ImplementationClassName())
@@ -567,10 +540,10 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         name = self._html_interface_name
         if self._html_interface_name in nativified_classes:
           name = nativified_classes[self._html_interface_name]
-        filename = '%sImpl.dart' % name
+        basename = '%sImpl' % name
       else:
-        filename = '%sImpl_Merged.dart' % self._html_interface_name
-      self._implementation_emitter = self._system._CreateEmitter(filename)
+        basename = '%sImpl_Merged' % self._html_interface_name
+      self._implementation_emitter = self._library_emitter.FileEmitter(basename)
     else:
       self._implementation_emitter = emitter.Emitter()
     self._backend.SetImplementationEmitter(self._implementation_emitter)
@@ -581,7 +554,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           self._DartType, self._members_emitter, factory_provider)
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
-        self._interface, self._system._database)
+        self._interface, self._database)
     if element_type:
       self._members_emitter.Emit(
           '\n'
@@ -616,13 +589,13 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
   def AddAttribute(self, attribute, is_secondary=False):
     dom_name = DartDomNameOfAttribute(attribute)
-    html_name = self._system._renamer.RenameMember(
+    html_name = self._renamer.RenameMember(
       self._interface.id, dom_name, 'get:')
     if not html_name or self._shared.IsPrivate(html_name):
       return
 
 
-    html_setter_name = self._system._renamer.RenameMember(
+    html_setter_name = self._renamer.RenameMember(
         self._interface.id, dom_name, 'set:')
     read_only = IsReadOnly(attribute) or not html_setter_name
 
@@ -654,7 +627,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
       operations - contains the overloads, one or more operations with the same
         name.
     """
-    html_name = self._system._renamer.RenameMember(self._interface.id, info.name)
+    html_name = self._renamer.RenameMember(self._interface.id, info.name)
     if not html_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -719,7 +692,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
             self._shared.GetParentsEventsClasses(self._interface)))
 
     template_file = 'impl_%s.darttemplate' % events_interface
-    template = (self._system._templates.TryLoad(template_file) or
+    template = (self._template_loader.TryLoad(template_file) or
         '\n'
         'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
         '  $CLASSNAME(_ptr) : super(_ptr);\n'
@@ -1319,28 +1292,32 @@ class Dart2JSBackend(BaseGenerator):
 # ------------------------------------------------------------------------------
 
 class DartLibraryEmitter():
-  def __init__(self, emitters, template, dart_sources_dir):
-    self._emitters = emitters
+  def __init__(self, multiemitter, template, dart_sources_dir):
+    self._multiemitter = multiemitter
     self._template = template
     self._dart_sources_dir = dart_sources_dir
-    self._dart_sources_list = []
+    self._path_to_emitter = {}
 
-  def CreateFileEmitter(self, filename):
-    path = os.path.join(self._dart_sources_dir, filename)
-    self._dart_sources_list.append(path)
-    return self._emitters.FileEmitter(path)
+  def FileEmitter(self, basename, template=None):
+    path = os.path.join(self._dart_sources_dir, '%s.dart' % basename)
+    if not path in self._path_to_emitter:
+      emitter = self._multiemitter.FileEmitter(path)
+      if not template is None:
+        emitter = emitter.Emit(template)
+      self._path_to_emitter[path] = emitter
+    return self._path_to_emitter[path]
 
   def EmitLibrary(self, library_file_path, auxiliary_dir):
     def massage_path(path):
       # The most robust way to emit path separators is to use / always.
       return path.replace('\\', '/')
 
-    library_emitter = self._emitters.FileEmitter(library_file_path)
+    library_emitter = self._multiemitter.FileEmitter(library_file_path)
     library_file_dir = os.path.dirname(library_file_path)
     auxiliary_dir = os.path.relpath(auxiliary_dir, library_file_dir)
     imports_emitter = library_emitter.Emit(
         self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
-    for path in sorted(self._dart_sources_list):
+    for path in sorted(self._path_to_emitter.keys()):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
           "#source('$PATH');\n", PATH=massage_path(relpath))

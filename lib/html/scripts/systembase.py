@@ -9,49 +9,6 @@ Dart APIs from the IDL database."""
 import os
 from generator import *
 
-class System(object):
-  """A System generates all the files for one implementation.
-
-  This is a base class for all the specific systems.
-  The life-cycle of a System is:
-  - construction (__init__)
-  - (ProcessInterface)*  # for each IDL interface
-  """
-
-  def __init__(self, options):
-    self._templates = options.templates
-    self._database = options.database
-    self._type_registry = options.type_registry
-    self._renamer = options.renamer
-
-  def ProcessInterface(self, interface):
-    """Processes an interface that is not a callback function."""
-    pass
-
-  # Helper methods used by several systems.
-
-  def _BaseDefines(self, interface):
-    """Returns a set of names (strings) for members defined in a base class.
-    """
-    def WalkParentChain(interface):
-      if interface.parents:
-        # Only consider primary parent, secondary parents are not on the
-        # implementation class inheritance chain.
-        parent = interface.parents[0]
-        if IsDartCollectionType(parent.type.id):
-          return
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
-          for attr in parent_interface.attributes:
-            result.add(attr.id)
-          for op in parent_interface.operations:
-            result.add(op.id)
-          WalkParentChain(parent_interface)
-
-    result = set()
-    WalkParentChain(interface)
-    return result
-
 class BaseGenerator(object):
   def __init__(self, database, type_registry, interface):
     self._database = database
