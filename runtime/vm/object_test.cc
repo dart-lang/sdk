@@ -2979,6 +2979,29 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
 }
 
 
+TEST_CASE(WeakProperty_PreserveRecurse) {
+  // This used to end in an infinite recursion. Caused by scavenging the weak
+  // property before scavenging the key.
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  Array& arr = Array::Handle(Array::New(1));
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key");
+    arr.SetAt(0, key);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value");
+    weak ^= WeakProperty::New();
+    weak.set_key(key);
+    weak.set_value(value);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+}
+
+
 TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
