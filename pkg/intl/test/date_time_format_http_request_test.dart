@@ -37,7 +37,7 @@ void runEverything(_) {
   var futures = DateFormat.allLocalesWithSymbols().map(
       (locale) => initializeDateFormatting(locale, url));
   Futures.wait(futures).then(expectAsync1((_) {
-      runDateTests();
+      runDateTests(smallSetOfLocales());
       shutDown();}));
 }
 
