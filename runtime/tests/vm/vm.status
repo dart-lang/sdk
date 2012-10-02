@@ -5,7 +5,7 @@
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 cc/RunLoop_ExceptionChild: Fail
 
-cc/WeakProperty_PreserveOne_NewSpaceRecurse: Crash
+cc/WeakProperty_PreserveRecurse: Crash
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
