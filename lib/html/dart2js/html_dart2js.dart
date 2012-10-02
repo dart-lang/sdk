@@ -40478,8 +40478,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('CustomEvent');
-  event.$dom_initCustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 
@@ -41412,8 +41411,10 @@ bool _isImmutableJavaScriptArray(value) =>
 
 // TODO(vsm): Unify with Dartium version.
 class _DOMWindowCrossFrameImpl implements Window {
-  // Private window.
-  _WindowImpl _window;
+  // Private window.  Note, this is a window in another frame, so it
+  // cannot be typed as "Window" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _window;
 
   // Fields.
   // TODO(vsm): Implement history and location getters.

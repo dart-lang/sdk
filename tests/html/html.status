@@ -225,5 +225,3 @@ js_interop_3_test: Fail # Issue 4658.
 
 [ $compiler == dart2js && $checked && $browser]
 fileapi_test: Fail # TypeError: Object #<DirectoryEntry> has no method 'get$name'
-cross_frame_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
-window_open_test: Fail # Caught NoSuchMethodError : method not found: 'is$_WindowImpl'
