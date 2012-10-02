@@ -279,13 +279,18 @@ class Unparser implements Visitor {
 
   visitSend(Send node) {
     Operator op = node.selector.asOperator();
-    bool spacesNeeded = op !== null &&
-        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
+    String opString = op !== null ? op.source.stringValue : null;
+    bool spacesNeeded = opString === 'is' || opString === 'as';
 
     if (node.isPrefix) visit(node.selector);
     unparseSendReceiver(node, spacesNeeded: spacesNeeded);
     if (!node.isPrefix && !node.isIndex) visit(node.selector);
     if (spacesNeeded) sb.add(' ');
+    // Also add a space for sequences like x + +1 and y - -y.
+    if (opString === '-' || opString === '+') {
+      Token beginToken = node.argumentsNode.getBeginToken();
+      if (beginToken !== null && beginToken.stringValue === opString) sb.add(' ');
+    }
     visit(node.argumentsNode);
   }
 

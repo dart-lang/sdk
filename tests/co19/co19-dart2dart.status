@@ -558,7 +558,6 @@ LibTest/core/Expect/throws_A02_t01: Fail, OK # Issue co19 - 42
 LibTest/core/Future/handleException_A01_t07: Fail # inherited from VM
 LibTest/core/Future/then_A01_t05: Fail # inherited from VM
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
-LibTest/core/int/operator_subtraction_A01_t01: Fail # BUG: 1 - -1 => 1--1
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 194
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
