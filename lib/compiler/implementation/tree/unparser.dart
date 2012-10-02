@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Returns null if no need to rename a node.
-typedef String Renamer(Node node);
-
 String unparse(Node node) {
   Unparser unparser = new Unparser();
   unparser.unparse(node);
@@ -12,17 +9,11 @@ String unparse(Node node) {
 }
 
 class Unparser implements Visitor {
-  Renamer rename;
   final StringBuffer sb;
 
   String get result => sb.toString();
 
-  Unparser() : sb = new StringBuffer() {
-    // TODO(smok): Move this to initializer once dart2js stops complaining
-    // about closures in initializers.
-    rename = (Node node) => null;
-  }
-  Unparser.withRenamer(this.rename) : sb = new StringBuffer();
+  Unparser() : sb = new StringBuffer();
 
   void add(SourceString string) {
     string.printOn(sb);
@@ -39,14 +30,7 @@ class Unparser implements Visitor {
   unparse(Node node) { visit(node); }
 
   visit(Node node) {
-    if (node === null) return;
-    String renamed = rename(node);
-    if (renamed !== null) {
-      sb.add(renamed);
-    } else {
-      // Fallback.
-      node.accept(this);
-    }
+    if (node !== null) node.accept(this);
   }
 
   visitBlock(Block node) {
@@ -261,19 +245,15 @@ class Unparser implements Visitor {
   }
 
   unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
-    // TODO(smok): Remove ugly hack for library preferences.
-    // Check that renamer does not want to omit receiver at all,
-    // in that case we don't need spaces or dot.
-    if (node.receiver !== null && rename(node.receiver) != '') {
-      visit(node.receiver);
-      CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
-      if (asCascadeReceiver !== null) {
-        add(asCascadeReceiver.cascadeOperator.value);
-      } else if (node.selector.asOperator() === null) {
-        sb.add('.');
-      } else if (spacesNeeded) {
-        sb.add(' ');
-      }
+    if (node.receiver === null) return;
+    visit(node.receiver);
+    CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+    if (asCascadeReceiver !== null) {
+      add(asCascadeReceiver.cascadeOperator.value);
+    } else if (node.selector.asOperator() === null) {
+      sb.add('.');
+    } else if (spacesNeeded) {
+      sb.add(' ');
     }
   }
 

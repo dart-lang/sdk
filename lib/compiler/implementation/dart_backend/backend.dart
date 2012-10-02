@@ -423,7 +423,7 @@ class DartBackend extends Backend {
       }
     }
 
-    final unparser = new Unparser.withRenamer((Node node) => renames[node]);
+    final unparser = new EmitterUnparser(renames);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     compiler.assembledCode = unparser.result;
 
@@ -449,6 +449,27 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 }
+
+class EmitterUnparser extends Unparser {
+  final Map<Node, String> renames;
+
+  EmitterUnparser(this.renames);
+
+  visit(Node node) {
+    if (node !== null && renames.containsKey(node)) {
+      sb.add(renames[node]);
+    } else {
+      super.visit(node);
+    }
+  }
+
+  unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
+    // TODO(smok): Remove ugly hack for library prefices.
+    if (node.receiver !== null && renames[node.receiver] == '') return;
+    super.unparseSendReceiver(node, spacesNeeded);
+  }
+}
+
 
 /**
  * Some elements are not recorded by resolver now,
