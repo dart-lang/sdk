@@ -171,7 +171,8 @@ Isolate::Isolate()
       deopt_xmm_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
-      deferred_doubles_(NULL) {
+      deferred_doubles_(NULL),
+      deferred_mints_(NULL) {
 }
 
 

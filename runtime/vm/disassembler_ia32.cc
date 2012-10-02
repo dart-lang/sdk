@@ -305,6 +305,8 @@ class X86Decoder : public ValueObject {
   int D1D3C1Instruction(uint8_t* data);
   int F7Instruction(uint8_t* data);
   int FPUInstruction(uint8_t* data);
+  int BitwisePDInstruction(uint8_t* data);
+  int Packed660F38Instruction(uint8_t* data);
   int DecodeEnter(uint8_t* data);
   void CheckPrintStop(uint8_t* data);
 
@@ -976,6 +978,43 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
 }
 
 
+int X86Decoder::BitwisePDInstruction(uint8_t* data) {
+  const char* mnem = (*data == 0x57)
+      ? "xorpd"
+      : (*data == 0x56)
+        ? "orpd"
+        : "andpd";
+  int mod, regop, rm;
+  GetModRm(*(data+1), &mod, &regop, &rm);
+  Print(mnem);
+  Print(" ");
+  PrintXmmRegister(regop);
+  Print(",");
+  return 1 + PrintRightXmmOperand(data+1);
+}
+
+
+int X86Decoder::Packed660F38Instruction(uint8_t* data) {
+  if (*(data+1) == 0x25) {
+    Print("pmovsxdq ");
+    int mod, regop, rm;
+    GetModRm(*(data+2), &mod, &regop, &rm);
+    PrintXmmRegister(regop);
+    Print(",");
+    return 2 + PrintRightXmmOperand(data+2);
+  } else if (*(data+1) == 0x29) {
+    Print("pcmpeqq ");
+    int mod, regop, rm;
+    GetModRm(*(data+2), &mod, &regop, &rm);
+    PrintXmmRegister(regop);
+    Print(",");
+    return 2 + PrintRightXmmOperand(data+2);
+  }
+  UNREACHABLE();
+  return 1;
+}
+
+
 // Called when disassembling test eax, 0xXXXXX.
 void X86Decoder::CheckPrintStop(uint8_t* data) {
   // Recognize stop pattern.
@@ -1333,16 +1372,8 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(regop);
             data++;
-          } else if (*data == 0x57 || *data == 0x54) {
-            const char* mnem = (*data == 0x57) ? "xorpd" : "andpd";
-            data++;
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print(mnem);
-            Print(" ");
-            PrintXmmRegister(regop);
-            Print(",");
-            data += PrintRightXmmOperand(data);
+          } else if (*data == 0x57 || *data == 0x56 || *data == 0x54) {
+            data += BitwisePDInstruction(data);
           } else if (*data == 0x1F &&
                      *(data+1) == 0x44 &&
                      *(data+2) == 0x00 &&
@@ -1357,6 +1388,20 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintCPURegister(regop);
             Print(",");
             data += PrintRightXmmOperand(data);
+          } else if (*data == 0x3A &&
+                     *(data+1) == 0x16) {
+            Print("pextrd ");
+            data += 2;
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            PrintCPURegister(rm);
+            Print(",");
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintHex(*(data+1));
+            data += 2;
+          } else if (*data == 0x38) {
+            data += Packed660F38Instruction(data);
           } else {
             UNIMPLEMENTED();
           }

@@ -7,6 +7,7 @@
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/hash_map.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
@@ -83,7 +84,14 @@ static Definition* CreateConversion(Representation from,
                                     Representation to,
                                     Definition* def,
                                     Instruction* deopt_target) {
-  if ((from == kUnboxedDouble) && (to == kTagged)) {
+  if ((from == kTagged) && (to == kUnboxedMint)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
+    return new UnboxIntegerInstr(new Value(def), deopt_id);
+  } else if ((from == kUnboxedMint) && (to == kTagged)) {
+    return new BoxIntegerInstr(new Value(def));
+  } else if ((from == kUnboxedDouble) && (to == kTagged)) {
     return new BoxDoubleInstr(new Value(def), NULL);
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
@@ -475,16 +483,17 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
       if (HasOnlyTwoSmi(ic_data)) {
         operands_type = kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data)) {
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
         operands_type = kMintCid;
       } else {
         return false;
       }
       break;
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
     case Token::kTRUNCDIV:
     case Token::kSHR:
     case Token::kSHL:
@@ -522,10 +531,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
-    BinaryMintOpInstr* bin_op = new BinaryMintOpInstr(op_kind,
-                                                      call,
-                                                      left,
-                                                      right);
+    UnboxedMintBinaryOpInstr* bin_op =
+        new UnboxedMintBinaryOpInstr(op_kind, left, right, call);
     call->ReplaceWith(bin_op, current_iterator());
     RemovePushArguments(call);
   } else if (op_kind == Token::kMOD) {
@@ -1057,7 +1064,8 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
     comp->ic_data()->GetCheckAt(0, &class_ids, &target);
-    // TODO(srdjan): allow for mixed mode comparison.
+    // TODO(srdjan): allow for mixed mode int/double comparison.
+
     if ((class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
       optimizer->InsertBefore(
           instr,
@@ -1072,9 +1080,14 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
       comp->set_receiver_class_id(kSmiCid);
     } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
       comp->set_receiver_class_id(kDoubleCid);
+    } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+               FlowGraphCompiler::SupportsUnboxedMints()) {
+      comp->set_receiver_class_id(kMintCid);
     } else {
       ASSERT(comp->receiver_class_id() == kIllegalCid);
     }
+  } else if (HasTwoMintOrSmi(*comp->ic_data())) {
+    comp->set_receiver_class_id(kMintCid);
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);
   }
@@ -2866,6 +2879,25 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
       SetValue(instr, non_constant_);
     }
   }
+}
+
+
+void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
+  // TODO(kmillikin): Handle box operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
+  // TODO(kmillikin): Handle unbox operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxedMintBinaryOp(
+    UnboxedMintBinaryOpInstr* instr) {
+  // TODO(kmillikin): Handle binary operations.
+  SetValue(instr, non_constant_);
 }
 
 

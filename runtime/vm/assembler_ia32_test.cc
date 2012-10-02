@@ -1655,6 +1655,123 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Orpd, assembler) {
+  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ xorpd(XMM1, XMM1);
+  __ DoubleNegate(XMM1);
+  __ orpd(XMM0, XMM1);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Orpd, entry) {
+  typedef double (*OrpdCode)(double d);
+  double res = reinterpret_cast<OrpdCode>(entry)(12.56e3);
+  EXPECT_FLOAT_EQ(-12.56e3, res, 0.0);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Pextrd0, assembler) {
+  if (CPUFeatures::sse4_1_supported()) {
+    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ pextrd(EAX, XMM0, Immediate(0));
+    __ ret();
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Pextrd0, entry) {
+  if (CPUFeatures::sse4_1_supported()) {
+    typedef int32_t (*PextrdCode0)(double d);
+    int32_t res = reinterpret_cast<PextrdCode0>(entry)(123456789);
+    EXPECT_EQ(0x54000000, res);
+  }
+}
+
+
+ASSEMBLER_TEST_GENERATE(Pextrd1, assembler) {
+  if (CPUFeatures::sse4_1_supported()) {
+    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ pextrd(EAX, XMM0, Immediate(1));
+    __ ret();
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Pextrd1, entry) {
+  if (CPUFeatures::sse4_1_supported()) {
+    typedef int32_t (*PextrdCode1)(double d);
+    int32_t res = reinterpret_cast<PextrdCode1>(entry)(123456789);
+    EXPECT_EQ(0x419d6f34, res);
+  }
+}
+
+
+ASSEMBLER_TEST_GENERATE(Pmovsxdq, assembler) {
+  if (CPUFeatures::sse4_1_supported()) {
+    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ pmovsxdq(XMM0, XMM0);
+    __ pextrd(EAX, XMM0, Immediate(1));
+    __ ret();
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Pmovsxdq, entry) {
+  if (CPUFeatures::sse4_1_supported()) {
+    typedef int32_t (*PmovsxdqCode)(double d);
+    int32_t res = reinterpret_cast<PmovsxdqCode>(entry)(123456789);
+    EXPECT_EQ(0, res);
+  }
+}
+
+
+ASSEMBLER_TEST_GENERATE(Pcmpeqq, assembler) {
+  if (CPUFeatures::sse4_1_supported()) {
+    __ movsd(XMM0, Address(ESP, kWordSize));
+    __ xorpd(XMM1, XMM1);
+    __ pcmpeqq(XMM0, XMM1);
+    __ movd(EAX, XMM0);
+    __ ret();
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Pcmpeqq, entry) {
+  if (CPUFeatures::sse4_1_supported()) {
+    typedef int32_t (*PcmpeqqCode)(double d);
+    int32_t res = reinterpret_cast<PcmpeqqCode>(entry)(0);
+    EXPECT_EQ(-1, res);
+  }
+}
+
+
+ASSEMBLER_TEST_GENERATE(AndPd, assembler) {
+  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ andpd(XMM0, XMM0);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AndPd, entry) {
+  typedef double (*AndpdCode)(double d);
+  double res = reinterpret_cast<AndpdCode>(entry)(12.56e3);
+  EXPECT_FLOAT_EQ(12.56e3, res, 0.0);
+}
+
+
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
   __ movsd(XMM0, Address(ESP, kWordSize));
   __ DoubleAbs(XMM0);

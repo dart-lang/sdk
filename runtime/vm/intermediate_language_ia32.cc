@@ -262,6 +262,16 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const bool is_checked_strict_equal =
       HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (receiver_class_id() == kMintCid) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresXmmRegister());
+    locs->set_in(1, Location::RequiresXmmRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
   if (receiver_class_id() == kDoubleCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs =
@@ -619,6 +629,47 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 }
 
 
+static Condition TokenKindToMintCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kNE: return NOT_EQUAL;
+    default:
+      UNIMPLEMENTED();
+      return OVERFLOW;
+  }
+}
+
+
+static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
+                                      const LocationSummary& locs,
+                                      Token::Kind kind,
+                                      BranchInstr* branch) {
+  ASSERT(Token::IsEqualityOperator(kind));
+  XmmRegister left = locs.in(0).xmm_reg();
+  XmmRegister right = locs.in(1).xmm_reg();
+  Register temp = locs.temp(0).reg();
+  __ movaps(XMM0, left);
+  __ pcmpeqq(XMM0, right);
+  __ movd(temp, XMM0);
+
+  Condition true_condition = TokenKindToMintCondition(kind);
+  __ cmpl(temp, Immediate(-1));
+
+  if (branch != NULL) {
+    branch->EmitBranchOnCondition(compiler, true_condition);
+  } else {
+    Register result = locs.out().reg();
+    Label done, is_true;
+    __ j(true_condition, &is_true);
+    __ LoadObject(result, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&is_true);
+    __ LoadObject(result, compiler->bool_true());
+    __ Bind(&done);
+  }
+}
+
+
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ: return EQUAL;
@@ -660,6 +711,10 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
+  if (receiver_class_id() == kMintCid) {
+    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), kNoBranch);
+    return;
+  }
   if (receiver_class_id() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
@@ -691,6 +746,10 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   if (receiver_class_id() == kSmiCid) {
     // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  if (receiver_class_id() == kMintCid) {
+    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
@@ -2223,6 +2282,166 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(ABOVE_EQUAL, deopt);
   }
 }
+
+
+LocationSummary* UnboxIntegerInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (CanDeoptimize()) summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresXmmRegister());
+  return summary;
+}
+
+
+void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->ResultCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().xmm_reg();
+
+  if (value_cid == kMintCid) {
+    __ movsd(result, FieldAddress(value, Mint::value_offset()));
+  } else if (value_cid == kSmiCid) {
+    __ SmiUntag(value);  // Untag input before conversion.
+    __ movd(result, value);
+    __ pmovsxdq(result, result);
+    __ SmiTag(value);  // Restore input register.
+  } else {
+    Register temp = locs()->temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
+    Label is_smi, done;
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, &is_smi);
+    __ CompareClassId(value, kMintCid, temp);
+    __ j(NOT_EQUAL, deopt);
+    __ movsd(result, FieldAddress(value, Mint::value_offset()));
+    __ jmp(&done);
+    __ Bind(&is_smi);
+    __ movl(temp, value);
+    __ SmiUntag(temp);
+    __ movd(result, temp);
+    __ pmovsxdq(result, result);
+    __ Bind(&done);
+  }
+}
+
+
+LocationSummary* BoxIntegerInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_temp(0, Location::RegisterLocation(EAX));
+  summary->set_temp(1, Location::RegisterLocation(EDX));
+  // TODO(fschneider): Save one temp by using result register as a temp.
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+class BoxIntegerSlowPath : public SlowPathCode {
+ public:
+  explicit BoxIntegerSlowPath(BoxIntegerInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Bind(entry_label());
+    const Class& mint_class =
+        Class::ZoneHandle(Isolate::Current()->object_store()->mint_class());
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(mint_class));
+    const ExternalLabel label(mint_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(0,  // No token pos.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    if (EAX != locs->out().reg()) __ movl(locs->out().reg(), EAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  BoxIntegerInstr* instruction_;
+};
+
+
+void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).xmm_reg();
+
+  // Unboxed operations produce smis or mint-sized values.
+  // Check if value fits into a smi.
+  Label not_smi, done;
+  __ pextrd(EDX, value, Immediate(1));  // Upper half.
+  __ pextrd(EAX, value, Immediate(0));  // Lower half.
+  // 1. Compute (x + -kMinSmi) which has to be in the range
+  //    0 .. -kMinSmi+kMaxSmi for x to fit into a smi.
+  __ addl(EAX, Immediate(0x40000000));
+  __ adcl(EDX, Immediate(0));
+  // 2. Unsigned compare to -kMinSmi+kMaxSmi.
+  __ cmpl(EAX, Immediate(0x80000000));
+  __ sbbl(EDX, Immediate(0));
+  __ j(ABOVE_EQUAL, &not_smi);
+  // 3. Restore lower half if result is a smi.
+  __ subl(EAX, Immediate(0x40000000));
+
+  __ SmiTag(EAX);
+  __ movl(out_reg, EAX);
+  __ jmp(&done);
+
+  __ Bind(&not_smi);
+  AssemblerMacros::TryAllocate(
+      compiler->assembler(),
+      Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
+      slow_path->entry_label(),
+      Assembler::kFarJump,
+      out_reg);
+  __ Bind(slow_path->exit_label());
+  __ movsd(FieldAddress(out_reg, Mint::value_offset()), value);
+  __ Bind(&done);
+}
+
+
+LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_in(1, Location::RequiresXmmRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).xmm_reg();
+  XmmRegister right = locs()->in(1).xmm_reg();
+
+  ASSERT(locs()->out().xmm_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kBIT_AND: __ andpd(left, right); break;
+    case Token::kBIT_OR:  __ orpd(left, right); break;
+    case Token::kBIT_XOR: __ xorpd(left, right); break;
+    default: UNREACHABLE();
+  }
+}
+
 
 
 }  // namespace dart

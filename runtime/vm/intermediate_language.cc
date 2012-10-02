@@ -1215,6 +1215,16 @@ intptr_t BinaryMintOpInstr::ResultCid() const {
 }
 
 
+RawAbstractType* UnboxedMintBinaryOpInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t UnboxedMintBinaryOpInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
 RawAbstractType* UnboxedDoubleBinaryOpInstr::CompileType() const {
   return Type::Double();
 }
@@ -1237,6 +1247,26 @@ intptr_t BoxDoubleInstr::ResultCid() const {
 
 RawAbstractType* BoxDoubleInstr::CompileType() const {
   return Type::Double();
+}
+
+
+intptr_t BoxIntegerInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
+RawAbstractType* BoxIntegerInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t UnboxIntegerInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
+RawAbstractType* UnboxIntegerInstr::CompileType() const {
+  return Type::null();
 }
 
 

@@ -1698,8 +1698,27 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     *slot = Double::New(current->value());
 
     if (FLAG_trace_deopt) {
-      OS::Print("materialing double at %p: %g\n",
-                current->slot(),
+      OS::Print("materializing double at %"Px": %g\n",
+                reinterpret_cast<uword>(current->slot()),
+                current->value());
+    }
+
+    delete current;
+  }
+
+  DeferredMint* deferred_mint = Isolate::Current()->DetachDeferredMints();
+
+  while (deferred_mint != NULL) {
+    DeferredMint* current = deferred_mint;
+    deferred_mint = deferred_mint->next();
+
+    RawMint** slot = current->slot();
+    ASSERT(!Smi::IsValid64(current->value()));
+    *slot = Mint::New(current->value());
+
+    if (FLAG_trace_deopt) {
+      OS::Print("materializing mint at %"Px": %"Pd64"\n",
+                reinterpret_cast<uword>(current->slot()),
                 current->value());
     }
 

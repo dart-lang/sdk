@@ -133,7 +133,9 @@ class Value : public ZoneAllocated {
 
 
 enum Representation {
-  kTagged, kUnboxedDouble
+  kTagged,
+  kUnboxedDouble,
+  kUnboxedMint
 };
 
 
@@ -255,6 +257,9 @@ class EmbeddedArray<T, 0> {
   M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
+  M(UnboxInteger)                                                              \
+  M(BoxInteger)                                                                \
+  M(UnboxedMintBinaryOp)                                                       \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
 
@@ -500,8 +505,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
 
   // Classes that set deopt_id_.
+  friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxedDoubleBinaryOpInstr;
+  friend class UnboxedMintBinaryOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
@@ -2308,7 +2315,9 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return (receiver_class_id() == kDoubleCid) ? kUnboxedDouble : kTagged;
+    if (receiver_class_id() == kDoubleCid) return kUnboxedDouble;
+    if (receiver_class_id() == kMintCid) return kUnboxedMint;
+    return kTagged;
   }
 
  private:
@@ -3304,6 +3313,37 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
 };
 
 
+class BoxIntegerInstr : public TemplateDefinition<1> {
+ public:
+  explicit BoxIntegerInstr(Value* value) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedMint;
+  }
+
+  DECLARE_INSTRUCTION(BoxInteger)
+  virtual RawAbstractType* CompileType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
+};
+
+
 class UnboxDoubleInstr : public TemplateDefinition<1> {
  public:
   UnboxDoubleInstr(Value* value, intptr_t deopt_id) {
@@ -3336,6 +3376,41 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
+};
+
+
+class UnboxIntegerInstr : public TemplateDefinition<1> {
+ public:
+  UnboxIntegerInstr(Value* value, intptr_t deopt_id) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->ResultCid() != kMintCid)
+        && (value()->ResultCid() != kSmiCid);
+  }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
+
+  virtual RawAbstractType* CompileType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  DECLARE_INSTRUCTION(UnboxInteger)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
 };
 
 
@@ -3442,6 +3517,64 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
 };
 
 
+class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
+ public:
+  UnboxedMintBinaryOpInstr(Token::Kind op_kind,
+                           Value* left,
+                           Value* right,
+                           InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsUnboxedMintBinaryOp()->op_kind();
+  }
+
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedMint;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(UnboxedMintBinaryOp)
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedMintBinaryOpInstr);
+};
+
+
 class BinarySmiOpInstr : public TemplateDefinition<2> {
  public:
   BinarySmiOpInstr(Token::Kind op_kind,
@@ -3469,6 +3602,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_INSTRUCTION(BinarySmiOp)
+
   virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const;

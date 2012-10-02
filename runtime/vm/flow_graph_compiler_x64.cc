@@ -22,6 +22,13 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, reject_named_argument_as_positional);
 DECLARE_FLAG(bool, trace_functions);
+DECLARE_FLAG(bool, use_sse41);
+DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
+
+
+bool FlowGraphCompiler::SupportsUnboxedMints() {
+  return false;
+}
 
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
@@ -32,6 +39,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assem->
   __ Comment("Deopt stub for id %"Pd"", deopt_id());
   __ Bind(entry_label());
+  if (FLAG_trap_on_deoptimization) __ int3();
 
   ASSERT(deoptimization_env() != NULL);
 

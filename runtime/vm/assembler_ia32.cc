@@ -701,6 +701,15 @@ void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::orpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x56);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::xorps(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
@@ -723,6 +732,50 @@ void Assembler::andpd(XmmRegister dst, const Address& src) {
   EmitUint8(0x0F);
   EmitUint8(0x54);
   EmitOperand(dst, src);
+}
+
+
+void Assembler::andpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x54);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::pextrd(Register dst, XmmRegister src, const Immediate& imm) {
+  ASSERT(CPUFeatures::sse4_1_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x3A);
+  EmitUint8(0x16);
+  EmitOperand(src, Operand(dst));
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
+
+void Assembler::pmovsxdq(XmmRegister dst, XmmRegister src) {
+  ASSERT(CPUFeatures::sse4_1_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x25);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::pcmpeqq(XmmRegister dst, XmmRegister src) {
+  ASSERT(CPUFeatures::sse4_1_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x29);
+  EmitXmmRegisterOperand(dst, src);
 }
 
 

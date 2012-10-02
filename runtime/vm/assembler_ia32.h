@@ -387,6 +387,13 @@ class Assembler : public ValueObject {
   void xorps(XmmRegister dst, XmmRegister src);
 
   void andpd(XmmRegister dst, const Address& src);
+  void andpd(XmmRegister dst, XmmRegister src);
+
+  void orpd(XmmRegister dst, XmmRegister src);
+
+  void pextrd(Register dst, XmmRegister src, const Immediate& imm);
+  void pmovsxdq(XmmRegister dst, XmmRegister src);
+  void pcmpeqq(XmmRegister dst, XmmRegister src);
 
   void flds(const Address& src);
   void fstps(const Address& dst);

@@ -510,6 +510,14 @@ void UnboxedDoubleBinaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void UnboxedMintBinaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
