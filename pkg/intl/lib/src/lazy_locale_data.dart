@@ -42,7 +42,7 @@ class LazyLocaleData {
   /**
    * The set of available locales.
    */
-  Set _availableLocaleSet;
+  Set availableLocaleSet;
 
   /**
    * The constructor. The [uriString] specifies where the data comes
@@ -54,14 +54,7 @@ class LazyLocaleData {
   LazyLocaleData(this._reader, this._creationFunction, List keys) {
     map = new Map();
     availableLocales = keys;
-  }
-
-  /** The set of available locales. */
-  get availableLocaleSet {
-    if (_availableLocaleSet == null) {
-      _availableLocaleSet = new Set.from(availableLocales);
-    }
-    return _availableLocaleSet;
+    availableLocaleSet = new Set.from(availableLocales);
   }
 
   /**
