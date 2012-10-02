@@ -107,9 +107,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
    }
    if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
    this.requestAnimationFrame = function(callback) {
-      return window.setTimeout(function() {
-        callback(Date.now());
-      }, 16 /* 16ms ~= 60fps */);
+       return window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
    };
    this.cancelAnimationFrame = function(id) { clearTimeout(id); }
 ''';
