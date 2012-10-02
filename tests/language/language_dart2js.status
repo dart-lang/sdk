@@ -56,6 +56,7 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+value_range2_test: Fail # http://dartbug.com/5585
 
 [ $compiler == dart2js ]
 bad_constructor_test/04: Fail # http://dartbug.com/5519
@@ -78,7 +79,6 @@ optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 setter_no_getter_call_test/01: Fail # http://dartbug.com/5519
 setter_no_getter_test/01: Fail # http://dartbug.com/5519
 value_range_test: Fail # http://dartbug.com/5585
-value_range2_test: Fail # http://dartbug.com/5585
 
 import_combinators_test: Fail
 throw_expr_test: Fail
