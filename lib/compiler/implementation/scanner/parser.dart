@@ -31,10 +31,15 @@ class Parser {
 
   Parser(this.listener);
 
-  void parseUnit(Token token) {
+  Token parseUnit(Token token) {
+    listener.beginCompilationUnit(token);
+    int count = 0;
     while (token.kind !== EOF_TOKEN) {
       token = parseTopLevelDeclaration(token);
+      count++;
     }
+    listener.endCompilationUnit(count, token);
+    return token;
   }
 
   Token parseTopLevelDeclaration(Token token) {
@@ -54,6 +59,8 @@ class Parser {
       return parseImport(token);
     } else if (value === 'export') {
       return parseExport(token);
+    } else if (value === 'part') {
+      return parsePartOrPartOf(token);
     } else {
       return parseTopLevelMember(token);
     }
@@ -64,10 +71,7 @@ class Parser {
     Token libraryKeyword = token;
     listener.beginLibraryName(libraryKeyword);
     assert(optional('library', token));
-    token = parseIdentifier(token.next);
-    while (optional('.', token)) {
-      token = parseQualifiedRest(token);
-    }
+    token = parseQualified(token.next);
     Token semicolon = token;
     token = expect(';', token);
     listener.endLibraryName(libraryKeyword, semicolon);
@@ -152,6 +156,38 @@ class Parser {
       count++;
     }
     listener.endIdentifierList(count);
+    return token;
+  }
+
+  Token parsePartOrPartOf(Token token) {
+    assert(optional('part', token));
+    if (optional('of', token.next)) {
+      return parsePartOf(token);
+    } else {
+      return parsePart(token);
+    }
+  }
+
+  Token parsePart(Token token) {
+    Token partKeyword = token;
+    listener.beginPart(token);
+    assert(optional('part', token));
+    token = parseLiteralStringOrRecoverExpression(token.next);
+    Token semicolon = token;
+    token = expect(';', token);
+    listener.endPart(partKeyword, semicolon);
+    return token;
+  }
+
+  Token parsePartOf(Token token) {
+    listener.beginPartOf(token);
+    assert(optional('part', token));
+    assert(optional('of', token.next));
+    Token partKeyword = token;
+    token = parseQualified(token.next.next);
+    Token semicolon = token;
+    token = expect(';', token);
+    listener.endPartOf(partKeyword, semicolon);
     return token;
   }
 
@@ -338,6 +374,14 @@ class Parser {
       listener.endDefaultClause(defaultKeyword);
     } else {
       listener.handleNoDefaultClause(token);
+    }
+    return token;
+  }
+
+  Token parseQualified(Token token) {
+    token = parseIdentifier(token);
+    while (optional('.', token)) {
+      token = parseQualifiedRest(token);
     }
     return token;
   }

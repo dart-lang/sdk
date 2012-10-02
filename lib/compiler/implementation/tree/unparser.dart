@@ -515,4 +515,46 @@ class Unparser implements Visitor {
     visit(node.formals);
     add(node.endToken.value);
   }
+
+  visitLibraryName(LibraryName node) {
+    addToken(node.libraryKeyword);
+    node.visitChildren(this);
+    add(node.getEndToken().value);
+  }
+
+  visitImport(Import node) {
+    addToken(node.importKeyword);
+    visit(node.uri);
+    if (node.prefix != null) {
+      sb.add(' ');
+      addToken(node.asKeyword);
+      visit(node.prefix);
+    }
+    if (node.combinators != null) {
+      visit(node.combinators);
+    }
+    add(node.getEndToken().value);
+  }
+
+  visitExport(Export node) {
+    addToken(node.exportKeyword);
+    visit(node.uri);
+    if (node.combinators != null) {
+      visit(node.combinators);
+    }
+    add(node.getEndToken().value);
+  }
+
+  visitPart(Part node) {
+    addToken(node.partKeyword);
+    visit(node.uri);
+    add(node.getEndToken().value);
+  }
+
+  visitPartOf(PartOf node) {
+    addToken(node.partKeyword);
+    addToken(node.ofKeyword);
+    visit(node.name);
+    add(node.getEndToken().value);
+  }
 }

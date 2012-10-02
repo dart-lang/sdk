@@ -53,6 +53,12 @@ class Listener {
   void endCombinators(int count) {
   }
 
+  void beginCompilationUnit(Token token) {
+  }
+
+  void endCompilationUnit(int count, Token token) {
+  }
+
   void beginDoWhileStatement(Token token) {
   }
 
@@ -248,6 +254,18 @@ class Listener {
 
   void endOptionalFormalParameters(int count,
                                    Token beginToken, Token endToken) {
+  }
+
+  void beginPart(Token token) {
+  }
+
+  void endPart(Token partKeyword, Token semicolon) {
+  }
+
+  void beginPartOf(Token token) {
+  }
+
+  void endPartOf(Token partKeyword, Token semicolon) {
   }
 
   void beginReturnStatement(Token token) {
@@ -662,6 +680,16 @@ class ElementListener extends Listener {
     pushNode(makeNodeList(count, null, null, " "));
   }
 
+  void endPart(Token partKeyword, Token semicolon) {
+    LiteralString uri = popLiteralString();
+    addLibraryTag(new Part(partKeyword, uri));
+  }
+
+  void endPartOf(Token partKeyword, Token semicolon) {
+    Expression name = popNode();
+    addLibraryTag(new PartOf(partKeyword, name));
+  }
+
   void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
     LiteralString prefix = null;
     Identifier argumentName = null;
@@ -1062,6 +1090,10 @@ class NodeListener extends ElementListener {
   NodeListener(DiagnosticListener listener, CompilationUnitElement element)
     : super(listener, element, null);
 
+  void addLibraryTag(LibraryTag tag) {
+    pushNode(tag);
+  }
+
   void endArgumentDefinitionTest(Token beginToken, Token endToken) {
     pushNode(new Send.prefix(popNode(), new Operator(beginToken)));
   }
@@ -1077,6 +1109,10 @@ class NodeListener extends ElementListener {
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, supertype, interfaces, null,
                            beginToken, extendsKeyword, body, endToken));
+  }
+
+  void endCompilationUnit(int count, Token token) {
+    pushNode(makeNodeList(count, null, null, '\n'));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {

@@ -18,6 +18,7 @@ abstract class Visitor<R> {
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+  R visitExport(Export node) => visitNode(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
@@ -27,8 +28,10 @@ abstract class Visitor<R> {
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
   R visitIf(If node) => visitStatement(node);
+  R visitImport(Import node) => visitNode(node);
   R visitLabel(Label node) => visitNode(node);
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+  R visitLibraryName(LibraryName node) => visitNode(node);
   R visitLiteral(Literal node) => visitExpression(node);
   R visitLiteralBool(LiteralBool node) => visitLiteral(node);
   R visitLiteralDouble(LiteralDouble node) => visitLiteral(node);
@@ -48,6 +51,8 @@ abstract class Visitor<R> {
   R visitParenthesizedExpression(ParenthesizedExpression node) {
     return visitExpression(node);
   }
+  R visitPart(Part node) => visitNode(node);
+  R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitReturn(Return node) => visitStatement(node);
@@ -141,6 +146,7 @@ class Node implements Spannable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
+  Export AsExport() => Null;
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
@@ -149,8 +155,10 @@ class Node implements Spannable {
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
+  Import AsImport() => Null;
   Label asLabel() => null;
   LabeledStatement asLabeledStatement() => null;
+  LibraryName AsLibraryName() => Null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
@@ -164,22 +172,24 @@ class Node implements Spannable {
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
+  Part AsPart() => Null;
+  PartOf AsPartOf() => Null;
   Return asReturn() => null;
   ScriptTag asScriptTag() => null;
   Send asSend() => null;
   SendSet asSendSet() => null;
   Statement asStatement() => null;
-  StringNode asStringNode() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
   StringJuxtaposition asStringJuxtaposition() => null;
+  StringNode asStringNode() => null;
   SwitchCase asSwitchCase() => null;
   SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
   TryStatement asTryStatement() => null;
   TypeAnnotation asTypeAnnotation() => null;
-  Typedef asTypedef() => null;
   TypeVariable asTypeVariable() => null;
+  Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
   While asWhile() => null;
 
@@ -1643,6 +1653,7 @@ class LibraryTag extends Node {
   bool get isImport => false;
   bool get isExport => false;
   bool get isPart => false;
+  bool get isPartOf => false;
 }
 
 class LibraryName extends LibraryTag {
@@ -1677,6 +1688,8 @@ class Import extends LibraryTag {
   bool get isImport => true;
 
   Import asImport() => this;
+
+  Token get asKeyword => prefix == null ? null : uri.getEndToken().next;
 
   accept(Visitor visitor) => visitor.visitImport(this);
 
@@ -1740,6 +1753,28 @@ class Part extends LibraryTag {
   Token getBeginToken() => partKeyword;
 
   Token getEndToken() => uri.getEndToken().next;
+}
+
+class PartOf extends LibraryTag {
+  final Expression name;
+
+  final Token partKeyword;
+
+  PartOf(this.partKeyword, this.name);
+
+  Token get ofKeyword => partKeyword.next;
+
+  bool get isPartOf => true;
+
+  Part asPartOf() => this;
+
+  accept(Visitor visitor) => visitor.visitPartOf(this);
+
+  visitChildren(Visitor visitor) => name.accept(visitor);
+
+  Token getBeginToken() => partKeyword;
+
+  Token getEndToken() => name.getEndToken().next;
 }
 
 class Typedef extends Node {
