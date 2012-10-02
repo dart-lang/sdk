@@ -1799,6 +1799,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, entry) {
 ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
   __ movsd(XMM0, Address(ESP, kWordSize));
   __ movmskpd(EAX, XMM0);
+  __ andl(EAX, Immediate(0x1));
   __ ret();
 }
 

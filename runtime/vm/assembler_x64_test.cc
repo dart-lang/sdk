@@ -1715,6 +1715,7 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion2, entry) {
 
 ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
   __ movmskpd(RAX, XMM0);
+  __ andq(RAX, Immediate(0x1));
   __ ret();
 }
 
