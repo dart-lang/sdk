@@ -22,25 +22,27 @@
 #import('../lib/date_symbol_data_http_request.dart');
 #import('date_time_format_test_core.dart');
 #import('dart:html');
+#import('../../../pkg/unittest/unittest.dart');
 
 var url = "http://localhost:8000/dates/";
 
 main() {
   // Initialize one locale just so we know what the list is.
-  initializeDateFormatting("en_US", url).then(runEverything);
+  test('Run everything', () {
+    initializeDateFormatting("en_US", url).then(expectAsync1(runEverything));});
 }
 
 void runEverything(_) {
   // Initialize all locales and wait for them to finish before running tests.
   var futures = DateFormat.allLocalesWithSymbols().map(
       (locale) => initializeDateFormatting(locale, url));
-  Futures.wait(futures).then((results) {
-    runDateTests();
-    shutDown();});
+  Futures.wait(futures).then(expectAsync1((_) {
+      runDateTests();
+      shutDown();}));
 }
 
 void shutDown() {
   // The tiny web server knows to use this request as a cue to terminate.
-  var source = '$url/terminate';
+  var source = '${url}terminate';
   var request = new HttpRequest.get(source, (_) {});
 }

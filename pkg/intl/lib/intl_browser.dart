@@ -26,4 +26,5 @@
  */
 Future<String> findSystemLocale() {
   Intl.systemLocale = window.navigator.language.replaceFirst("-","_");
+  return new Future.immediate(Intl.systemLocale);
 }
