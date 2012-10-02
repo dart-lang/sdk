@@ -269,7 +269,9 @@ class Unparser implements Visitor {
     // Also add a space for sequences like x + +1 and y - -y.
     if (opString === '-' || opString === '+') {
       Token beginToken = node.argumentsNode.getBeginToken();
-      if (beginToken !== null && beginToken.stringValue === opString) sb.add(' ');
+      if (beginToken !== null && beginToken.stringValue === opString) {
+        sb.add(' ');
+      }
     }
     visit(node.argumentsNode);
   }
