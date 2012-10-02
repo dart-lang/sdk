@@ -984,8 +984,8 @@ class Dartdoc {
 
     if (constructors.length > 0) {
       writeln('<h3>Constructors</h3>');
-      constructors.sort((x, y) => x.simpleName.toUpperCase().compareTo(
-                                  y.simpleName.toUpperCase()));
+      constructors.sort((x, y) => x.constructorName.toUpperCase().compareTo(
+                                  y.constructorName.toUpperCase()));
 
       for (final constructor in constructors) {
         docMethod(type, constructor);
