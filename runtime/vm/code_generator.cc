@@ -30,7 +30,9 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
 DEFINE_FLAG(bool, inline_cache, true, "Enable inline caches");
-DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
+DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
+DEFINE_FLAG(bool, trace_deoptimization_verbose, false,
+    "Trace deoptimization verbose");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
 DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
@@ -1551,7 +1553,7 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
 
 
 // Copies saved registers and caller's frame into temporary buffers.
-// Returns the stack size of unoptimzied frame.
+// Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           uword saved_registers_address) {
   Isolate* isolate = Isolate::Current();
@@ -1578,7 +1580,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(!deopt_info.IsNull());
 
   CopyFrame(optimized_code, *caller_frame);
-  if (FLAG_trace_deopt) {
+  if (FLAG_trace_deoptimization) {
     OS::Print("Deoptimizing (reason %d '%s') at pc %#"Px" '%s'\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
@@ -1627,7 +1629,7 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
     deopt_instructions[to_index]->Execute(&deopt_context, to_index);
   }
-  if (FLAG_trace_deopt) {
+  if (FLAG_trace_deoptimization_verbose) {
     for (intptr_t i = 0; i < len; i++) {
       OS::Print("*%"Pd". [%p] %#014"Px" [%s]\n",
           i,
@@ -1690,6 +1692,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 END_LEAF_RUNTIME_ENTRY
 
 
+// This is the last step in the deoptimization, GC can occur.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
   DeferredDouble* deferred_double = Isolate::Current()->DetachDeferredDoubles();
 
@@ -1700,7 +1703,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     RawDouble** slot = current->slot();
     *slot = Double::New(current->value());
 
-    if (FLAG_trace_deopt) {
+    if (FLAG_trace_deoptimization_verbose) {
       OS::Print("materializing double at %"Px": %g\n",
                 reinterpret_cast<uword>(current->slot()),
                 current->value());
@@ -1719,13 +1722,29 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
     ASSERT(!Smi::IsValid64(current->value()));
     *slot = Mint::New(current->value());
 
-    if (FLAG_trace_deopt) {
+    if (FLAG_trace_deoptimization_verbose) {
       OS::Print("materializing mint at %"Px": %"Pd64"\n",
                 reinterpret_cast<uword>(current->slot()),
                 current->value());
     }
 
     delete current;
+  }
+  // Since this is the only step where GC can occur during deoptimization,
+  // use it to report the source line where deoptimization occured.
+  if (FLAG_trace_deoptimization) {
+    DartFrameIterator iterator;
+    StackFrame* top_frame = iterator.NextFrame();
+    ASSERT(top_frame != NULL);
+    const Code& code = Code::Handle(top_frame->LookupDartCode());
+    const Function& top_function = Function::Handle(code.function());
+    const Script& script = Script::Handle(top_function.script());
+    const intptr_t token_pos = code.GetTokenIndexOfPC(top_frame->pc());
+    intptr_t line, column;
+    script.GetTokenLocation(token_pos, &line, &column);
+    String& line_string = String::Handle(script.GetLine(line));
+    OS::Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
+    OS::Print("  Line %"Pd": '%s'\n", line, line_string.ToCString());
   }
 }
 
