@@ -402,3 +402,11 @@ module websockets {
   };
 }
 
+module core {
+  [supplemental, Callback]
+  interface RequestAnimationFrameCallback {
+    // Webkit implements this as returning bool, but standard is void.
+    [Suppressed] boolean handleEvent(in DOMTimeStamp time);
+    void handleEvent(in DOMTimeStamp time);
+  };
+}

@@ -25554,7 +25554,7 @@ class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef void RequestAnimationFrameCallback(int time);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
