@@ -193,8 +193,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('CustomEvent');
-  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 

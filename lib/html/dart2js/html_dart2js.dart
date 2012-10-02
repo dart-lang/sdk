@@ -8495,18 +8495,23 @@ class _CryptoImpl implements Crypto native "*Crypto" {
 /// @domName CustomEvent
 abstract class CustomEvent implements Event {
 
+  factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
+      Object detail = null]) => _CustomEventFactoryProvider.createCustomEvent(type, canBubble,
+      cancelable, detail);
+
+
   /** @domName CustomEvent.detail */
   abstract Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 
 class _CustomEventImpl extends _EventImpl implements CustomEvent native "*CustomEvent" {
 
   final Object detail;
 
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40472,7 +40477,7 @@ get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
   var event = document.$dom_createEvent('CustomEvent');
-  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
+  event.$dom_initCustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 
@@ -40892,6 +40897,15 @@ class _Deserializer {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+class _CustomEventFactoryProvider {
+  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
+      bool cancelable = true, Object detail = null]) {
+    final _CustomEventImpl e = _document.$dom_createEvent("CustomEvent");
+    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    return e;
+  }
+}
 
 class _EventFactoryProvider {
   static Event createEvent(String type, [bool canBubble = true,
