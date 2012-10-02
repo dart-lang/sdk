@@ -544,6 +544,7 @@ Language/14_Types/5_Function_Types_A02_t01: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # inherited from dart2js
+Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # TRIAGE
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # inherited from VM
 LibTest/core/Date/Date.fromString_A03_t01: Fail, OK # Issue co19 - 121
@@ -579,6 +580,7 @@ LibTest/core/Math/sin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/core/Math/sqrt_A01_t01: Fail, OK # inherited from VM
 LibTest/core/Math/tan_A01_t01: Fail, OK  # Issue co19 - 44
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # inherited from VM
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # TRIAGE
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # inherited from VM
