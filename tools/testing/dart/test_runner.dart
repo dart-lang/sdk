@@ -94,8 +94,15 @@ class TestCase {
 
     // Special command handling. If a special command is specified
     // we have to completely rewrite the command that we are using.
-    // We generate a new command-line that is the special command
-    // where we replace '@' with the original command.
+    // We generate a new command-line that is the special command where we
+    // replace '@' with the original command executable, and generate
+    // a command formed like the following
+    // Let PREFIX be what is before the @.
+    // Let SUFFIX be what is after the @.
+    // Let EXECUTABLE be the existing executable of the command.
+    // Let ARGUMENTS be the existing arguments to the existing executable.
+    // The new command will be:
+    // PREFIX EXECUTABLE SUFFIX ARGUMENTS
     var specialCommand = configuration['special-command'];
     if (!specialCommand.isEmpty()) {
       Expect.isTrue(specialCommand.contains('@'),
@@ -105,7 +112,8 @@ class TestCase {
       var suffix = specialCommandSplit[1].trim();
       List<Command> newCommands = [];
       for (Command c in commands) {
-        var newExecutablePath;
+        // If we don't have a new prefix we will use the existing executable.
+        var newExecutablePath = c.executable;;
         var newArguments = [];
 
         if (prefix.length > 0) {
@@ -117,16 +125,20 @@ class TestCase {
           }
           newArguments.add(c.executable);
         }
-        newArguments.addAll(c.arguments);
+
+        // Add any suffixes to the arguments of the original executable.
         var suffixSplit = suffix.split(' ');
         suffixSplit.forEach((e) {
           if (!e.isEmpty()) newArguments.add(e);
         });
+
+        newArguments.addAll(c.arguments);
         final newCommand = new Command(newExecutablePath, newArguments);
         newCommands.add(newCommand);
         // If there are extra spaces inside the prefix or suffix, this fails.
-        Expect.stringEquals('$prefix ${c.commandLine} $suffix'.trim(),
-            newCommand.commandLine);
+        String expected =
+            '$prefix ${c.executable} $suffix ${Strings.join(c.arguments, ' ')}';
+        Expect.stringEquals(expected.trim(), newCommand.commandLine);
       }
       commands = newCommands;
     }
