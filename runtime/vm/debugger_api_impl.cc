@@ -133,11 +133,17 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
         reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
     (*exc_thrown_handler)(exception, trace);
   } else if (event->type == Debugger::kIsolateCreated) {
-    (*isolate_event_handler)(Api::CastIsolate(event->isolate), kCreated);
+    if (isolate_event_handler != NULL) {
+      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kCreated);
+    }
   } else if (event->type == Debugger::kIsolateInterrupted) {
-    (*isolate_event_handler)(Api::CastIsolate(event->isolate), kInterrupted);
+    if (isolate_event_handler != NULL) {
+      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kInterrupted);
+    }
   } else if (event->type == Debugger::kIsolateShutdown) {
-    (*isolate_event_handler)(Api::CastIsolate(event->isolate), kShutdown);
+    if (isolate_event_handler != NULL) {
+      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kShutdown);
+    }
   } else {
     UNIMPLEMENTED();
   }
