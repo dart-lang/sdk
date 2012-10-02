@@ -20,49 +20,49 @@
  *
  * Skeletons: These can be specified either as the ICU constant name or as the
  * skeleton to which it resolves. The supported set of skeletons is as follows
- *   ICU Name                   Skeleton
- *   --------                   --------
- *   DAY                          d
- *   ABBR_WEEKDAY                 E
- *   WEEKDAY                      EEEE
- *   ABBR_STANDALONE_MONTH        LLL
- *   STANDALONE_MONTH             LLLL
- *   NUM_MONTH                    M
- *   NUM_MONTH_DAY                Md
- *   NUM_MONTH_WEEKDAY_DAY        MEd
- *   ABBR_MONTH                   MMM
- *   ABBR_MONTH_DAY               MMMd
- *   ABBR_MONTH_WEEKDAY_DAY       MMMEd
- *   MONTH                        MMMM
- *   MONTH_DAY                    MMMMd
- *   MONTH_WEEKDAY_DAY            MMMMEEEEd
- *   ABBR_QUARTER                 QQQ
- *   QUARTER                      QQQQ
- *   YEAR                         y
- *   YEAR_NUM_MONTH               yM
- *   YEAR_NUM_MONTH_DAY           yMd
- *   YEAR_NUM_MONTH_WEEKDAY_DAY   yMEd
- *   YEAR_ABBR_MONTH              yMMM
- *   YEAR_ABBR_MONTH_DAY          yMMMd
- *   YEAR_ABBR_MONTH_WEEKDAY_DAY  yMMMEd
- *   YEAR_MONTH                   yMMMM
- *   YEAR_MONTH_DAY               yMMMMd
- *   YEAR_MONTH_WEEKDAY_DAY       yMMMMEEEEd
- *   YEAR_ABBR_QUARTER            yQQQ
- *   YEAR_QUARTER                 yQQQQ
- *   HOUR24                       H
- *   HOUR24_MINUTE                Hm
- *   HOUR24_MINUTE_SECOND         Hms
- *   HOUR                         j
- *   HOUR_MINUTE                  jm
- *   HOUR_MINUTE_SECOND           jms
- *   HOUR_MINUTE_GENERIC_TZ       jmv
- *   HOUR_MINUTE_TZ               jmz
- *   HOUR_GENERIC_TZ              jv
- *   HOUR_TZ                      jz
- *   MINUTE                       m
- *   MINUTE_SECOND                ms
- *   SECOND                       s
+ *      ICU Name                   Skeleton
+ *      --------                   --------
+ *      DAY                          d
+ *      ABBR_WEEKDAY                 E
+ *      WEEKDAY                      EEEE
+ *      ABBR_STANDALONE_MONTH        LLL
+ *      STANDALONE_MONTH             LLLL
+ *      NUM_MONTH                    M
+ *      NUM_MONTH_DAY                Md
+ *      NUM_MONTH_WEEKDAY_DAY        MEd
+ *      ABBR_MONTH                   MMM
+ *      ABBR_MONTH_DAY               MMMd
+ *      ABBR_MONTH_WEEKDAY_DAY       MMMEd
+ *      MONTH                        MMMM
+ *      MONTH_DAY                    MMMMd
+ *      MONTH_WEEKDAY_DAY            MMMMEEEEd
+ *      ABBR_QUARTER                 QQQ
+ *      QUARTER                      QQQQ
+ *      YEAR                         y
+ *      YEAR_NUM_MONTH               yM
+ *      YEAR_NUM_MONTH_DAY           yMd
+ *      YEAR_NUM_MONTH_WEEKDAY_DAY   yMEd
+ *      YEAR_ABBR_MONTH              yMMM
+ *      YEAR_ABBR_MONTH_DAY          yMMMd
+ *      YEAR_ABBR_MONTH_WEEKDAY_DAY  yMMMEd
+ *      YEAR_MONTH                   yMMMM
+ *      YEAR_MONTH_DAY               yMMMMd
+ *      YEAR_MONTH_WEEKDAY_DAY       yMMMMEEEEd
+ *      YEAR_ABBR_QUARTER            yQQQ
+ *      YEAR_QUARTER                 yQQQQ
+ *      HOUR24                       H
+ *      HOUR24_MINUTE                Hm
+ *      HOUR24_MINUTE_SECOND         Hms
+ *      HOUR                         j
+ *      HOUR_MINUTE                  jm
+ *      HOUR_MINUTE_SECOND           jms
+ *      HOUR_MINUTE_GENERIC_TZ       jmv
+ *      HOUR_MINUTE_TZ               jmz
+ *      HOUR_GENERIC_TZ              jv
+ *      HOUR_TZ                      jz
+ *      MINUTE                       m
+ *      MINUTE_SECOND                ms
+ *      SECOND                       s
  *
  * Examples Using the US Locale:
  *
@@ -105,6 +105,7 @@
  *     ''       single quote           (Literal)           'o''clock'
  *
  * The count of pattern letters determine the format.
+ *
  * **Text**:
  * * 5 pattern letters--use narrow form for standalone. Otherwise does not apply
  * * 4 or more pattern letters--use full form,
@@ -117,25 +118,25 @@
  * 2 digits. (e.g., if "yyyy" produces "1997", "yy" produces "97".) Unlike other
  * fields, fractional seconds are padded on the right with zero.
  *
- * (Text & Number): 3 or over, use text, otherwise use number.
+ * **(Text & Number)**: 3 or over, use text, otherwise use number.
  *
- * Any characters that not in the pattern will be treated as quoted text. For
+ * Any characters not in the pattern will be treated as quoted text. For
  * instance, characters like ':', '.', ' ', '#' and '@' will appear in the
- * resulting time text even they are not embraced within single quotes. In our
- * current pattern usage, we didn't use up all letters. But those unused
- * letters are strongly discouraged to be used as quoted text without quote.
- * That's because we may use other letter for pattern in future.
+ * resulting text even though they are not enclosed in single quotes. In our
+ * current pattern usage, not all letters have meanings. But those unused
+ * letters are strongly discouraged to be used as quoted text without quotes,
+ * because we may use other letters as pattern characters in the future.
  *
  * Examples Using the US Locale:
  *
- *     Format Pattern                         Result
- *     --------------                         -------
- *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"->1996.07.10 AD at 15:08:56 Pacific Time
- *     "EEE, MMM d, ''yy"               ->Wed, July 10, '96
- *     "h:mm a"                         ->12:08 PM
- *     "hh 'o''clock' a, zzzz"          ->12 o'clock PM, Pacific Daylight Time
- *     "K:mm a, vvv"                    ->0:00 PM, PT
- *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->01996.July.10 AD 12:08 PM
+ *     Format Pattern                     Result
+ *     --------------                     -------
+ *     "yyyy.MM.dd G 'at' HH:mm:ss vvvv"  1996.07.10 AD at 15:08:56 Pacific Time
+ *     "EEE, MMM d, ''yy"                 Wed, July 10, '96
+ *     "h:mm a"                           12:08 PM
+ *     "hh 'o''clock' a, zzzz"            12 o'clock PM, Pacific Daylight Time
+ *     "K:mm a, vvv"                      0:00 PM, PT
+ *     "yyyyy.MMMMM.dd GGG hh:mm aaa"     01996.July.10 AD 12:08 PM
  *
  * When parsing a date string using the abbreviated year pattern ("yy"),
  * DateFormat must interpret the abbreviated year relative to some
@@ -168,18 +169,22 @@
 class DateFormat {
 
   /**
-   * If [newPattern] matches one of the skeleton forms, it is looked up
-   * in [locale] or in the default if none is specified, and the corresponding
-   * full format string is used. If [newPattern] does not match one
-   * of the supported skeleton forms then it is used as a format directly.
+   * Creates a new DateFormat, using the format specified by [newPattern]. For
+   * forms that match one of our predefined skeletons, we look up the
+   * corresponding pattern in [locale] (or in the default locale if none is
+   * specified) and use the resulting full format string. This is the
+   * preferred usage, but if [newPattern] does not match one of the skeletons,
+   * then it is used as a format directly, but will not be adapted to suit
+   * the locale.
    *
    * For example, in an en_US locale, specifying the skeleton
-   *     `new DateFormat('yMEd');`
+   *     new DateFormat('yMEd');
    * or the explicit
-   *     `new DateFormat('EEE, M/d/y');`
+   *     new DateFormat('EEE, M/d/y');
    * would produce the same result, a date of the form
-   *     `Wed, 6/27/2012`
-   * However, the skeleton version would also adapt to other locales.
+   *     Wed, 6/27/2012
+   * The first version would produce a different format string if used in
+   * another locale, but the second format would always be the same.
    *
    * If [locale] does not exist in our set of supported locales then an
    * [ArgumentError] is thrown.
@@ -260,9 +265,18 @@ class DateFormat {
   static List<String> allLocalesWithSymbols() => dateTimeSymbols.getKeys();
 
   /**
-   * Constructors for a set of predefined "skeletons" for which the
-   * internationalized forms are known. These can also be chained
-   * together using the "add_" instance methods below.
+   * The named constructors for this class are all conveniences for creating
+   * instances using one of the known "skeleton" formats, and having code
+   * completion support for discovering those formats.
+   * So,
+   *     new DateFormat.yMd("en_US")
+   * is equivalent to
+   *     new DateFormat("yMd", "en_US")
+   * To create a compound format you can use these constructors in combination
+   * with the add_ methods below. e.g.
+   *     new DateFormat.yMd().add_Hms();
+   * If the optional [locale] is omitted, the format will be created using the
+   * default locale in [Intl.systemLocale].
    */
   DateFormat.d([locale]) : this("d", locale);
   DateFormat.E([locale]) : this("E", locale);
@@ -307,10 +321,10 @@ class DateFormat {
   DateFormat.s([locale]) : this("s", locale);
 
   /**
-   * Methods for appending a particular skeleton to the format, or setting
+   * The "add_*" methods append a particular skeleton to the format, or set
    * it as the only format if none was previously set. These are primarily
    * useful for creating compound formats. For example
-   *       new DateFormat.yMd().add_hms();
+   *       new DateFormat.yMd().add_Hms();
    * would create a date format that prints both the date and the time.
    */
   DateFormat add_d() => addPattern("d");
@@ -356,8 +370,10 @@ class DateFormat {
   DateFormat add_s() => addPattern("s");
 
   /**
-   * ICU constants for format names, resolving to the corresponding skeletons.
+   * For each of the skeleton formats we also allow the use of the corresponding
+   * ICU constant names.
    */
+  static const String ABBR_MONTH = 'MMM';
   static const String DAY = 'd';
   static const String ABBR_WEEKDAY = 'E';
   static const String WEEKDAY = 'EEEE';
@@ -366,7 +382,6 @@ class DateFormat {
   static const String NUM_MONTH = 'M';
   static const String NUM_MONTH_DAY = 'Md';
   static const String NUM_MONTH_WEEKDAY_DAY = 'MEd';
-  static const String ABBR_MONTH = 'MMM';
   static const String ABBR_MONTH_DAY = 'MMMd';
   static const String ABBR_MONTH_WEEKDAY_DAY = 'MMMEd';
   static const String MONTH = 'MMMM';

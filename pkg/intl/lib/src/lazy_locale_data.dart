@@ -45,7 +45,7 @@ class LazyLocaleData {
   Set availableLocaleSet;
 
   /**
-   * The constructor. The [uriString] specifies where the data comes
+   * The constructor. The [_reader] specifies where the data comes
    * from. The [_creationFunction] creates the appropriate data type
    * from the remote data (which typically comes in as a Map). The
    * [keys] lists the set of remotely available locale names so we know which

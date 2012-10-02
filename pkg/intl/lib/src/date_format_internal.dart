@@ -8,7 +8,7 @@
  * libraries in order to configure the source for the locale data. We don't want
  * them exposed as public API functions in the date formatting library, so they
  * are put in a separate library here. These are for internal use only. User
- * code should import one of the date_symbol_data... libraries and call the
+ * code should import one of the `date_symbol_data...` libraries and call the
  * initializeDateFormatting method exposed there.
  */
 
