@@ -841,8 +841,11 @@ class Compiler implements DiagnosticListener {
     // TODO(ager,johnniwinther): The patch support should be
     // reworked to allow us to get rid of this.
     if (element.isPatched) {
-      position = element.patch.position();
-      uri = element.patch.getCompilationUnit().script.uri;
+      // TODO(johnniwinther,karlklose): create a subtype of Element for
+      // patchable elements or move the patch field to Element.
+      var patched = element;
+      position = patched.patch.position();
+      uri = patched.patch.getCompilationUnit().script.uri;
     }
 
     return (position === null)

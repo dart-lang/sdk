@@ -1131,7 +1131,7 @@ class FunctionElement extends Element {
     Scope result =
         new MethodScope(enclosingElement.buildScope(), this);
     if (enclosingElement.isClass()) {
-      Scope clsScope = result.parent;
+      ClassScope clsScope = result.parent;
       clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
     }
     return result;
@@ -1819,7 +1819,7 @@ class TypeVariableElement extends Element {
  *
  * The mirror system does not have a concept matching this class.
  */
-class MetadataAnnotation {
+abstract class MetadataAnnotation {
   /**
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.

@@ -105,7 +105,7 @@ class NodeAssertionFailure implements Exception {
  * token stream. These references are stored in fields ending with
  * "Token".
  */
-class Node implements Spannable {
+abstract class Node implements Spannable {
   final int _hashCode;
   static int _HASH_COUNTER = 0;
 
@@ -146,7 +146,7 @@ class Node implements Spannable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
-  Export AsExport() => Null;
+  Export AsExport() => null;
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
@@ -155,10 +155,10 @@ class Node implements Spannable {
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
-  Import AsImport() => Null;
+  Import AsImport() => null;
   Label asLabel() => null;
   LabeledStatement asLabeledStatement() => null;
-  LibraryName AsLibraryName() => Null;
+  LibraryName AsLibraryName() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
@@ -172,8 +172,8 @@ class Node implements Spannable {
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
-  Part AsPart() => Null;
-  PartOf AsPartOf() => Null;
+  Part AsPart() => null;
+  PartOf AsPartOf() => null;
   Return asReturn() => null;
   ScriptTag asScriptTag() => null;
   Send asSend() => null;
@@ -236,7 +236,7 @@ class ClassNode extends Node {
   Token getEndToken() => endToken;
 }
 
-class Expression extends Node {
+abstract class Expression extends Node {
   Expression();
 
   Expression asExpression() => this;
@@ -245,7 +245,7 @@ class Expression extends Node {
   abstract accept(Visitor visitor);
 }
 
-class Statement extends Node {
+abstract class Statement extends Node {
   Statement();
 
   Statement asStatement() => this;
@@ -676,7 +676,7 @@ class FunctionExpression extends Expression {
 
 typedef void DecodeErrorHandler(Token token, var error);
 
-class Literal<T> extends Expression {
+abstract class Literal<T> extends Expression {
   final Token token;
   final DecodeErrorHandler handler;
 
@@ -815,7 +815,7 @@ class StringQuoting {
 /**
   * Superclass for classes representing string literals.
   */
-class StringNode extends Expression {
+abstract class StringNode extends Expression {
   abstract DartString get dartString;
   abstract bool get isInterpolation;
 
@@ -1046,7 +1046,7 @@ class VariableDefinitions extends Statement {
   Token getEndToken() => endToken;
 }
 
-class Loop extends Statement {
+abstract class Loop extends Statement {
   abstract Expression get condition;
   final Statement body;
 
@@ -1488,7 +1488,7 @@ class SwitchCase extends Node {
   }
 }
 
-class GotoStatement extends Statement {
+abstract class GotoStatement extends Statement {
   final Identifier target;
   final Token keywordToken;
   final Token semicolonToken;
@@ -1648,7 +1648,7 @@ class ScriptTag extends Node {
   }
 }
 
-class LibraryTag extends Node {
+abstract class LibraryTag extends Node {
   bool get isLibraryName => false;
   bool get isImport => false;
   bool get isExport => false;
@@ -1766,7 +1766,7 @@ class PartOf extends LibraryTag {
 
   bool get isPartOf => true;
 
-  Part asPartOf() => this;
+  PartOf asPartOf() => this;
 
   accept(Visitor visitor) => visitor.visitPartOf(this);
 

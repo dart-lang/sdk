@@ -2518,7 +2518,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
     }
-    compiler.cancel('JS code must be a string literal', node: literal);
+    compiler.cancel('JS code must be a string literal', node: code);
   }
 
   void handleForeignUnintercepted(Send node) {

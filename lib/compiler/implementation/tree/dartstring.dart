@@ -9,7 +9,7 @@
  * representing its content after removing quotes and resolving escapes in
  * its source.
  */
-class DartString implements Iterable<int> {
+abstract class DartString implements Iterable<int> {
   factory DartString.empty() => const LiteralDartString("");
   // This is a convenience constructor. If you need a const literal DartString,
   // use [const LiteralDartString(string)] directly.
@@ -60,7 +60,7 @@ class LiteralDartString extends DartString {
 /**
  * A [DartString] where the content comes from a slice of the program source.
  */
-class SourceBasedDartString extends DartString {
+abstract class SourceBasedDartString extends DartString {
   String toStringCache = null;
   final SourceString source;
   final int length;
