@@ -25,14 +25,14 @@ void compileAndFind(String code,
   return check(compiler.backend, member);
 }
 
-const String TEST_1 = @"""
+const String TEST_1 = r"""
   class A {
     int f;
   }
   main() { new A(); }
 """;
 
-const String TEST_2 = @"""
+const String TEST_2 = r"""
   class A {
     int f1;
     int f2 = 1;
@@ -40,7 +40,7 @@ const String TEST_2 = @"""
   main() { new A(); }
 """;
 
-const String TEST_3 = @"""
+const String TEST_3 = r"""
   class A {
     int f1;
     int f2;
@@ -49,7 +49,7 @@ const String TEST_3 = @"""
   main() { new A().f2 = 2; }
 """;
 
-const String TEST_4 = @"""
+const String TEST_4 = r"""
   class A {
     int f1;
     int f2;
@@ -62,7 +62,7 @@ const String TEST_4 = @"""
   }
 """;
 
-const String TEST_5 = @"""
+const String TEST_5 = r"""
   class A {
     int f1 = 1;
     int f2 = 1;
@@ -81,7 +81,7 @@ const String TEST_5 = @"""
   }
 """;
 
-const String TEST_6 = @"""
+const String TEST_6 = r"""
   class A {
     int f1 = 1;
     int f2 = 1;
@@ -105,7 +105,7 @@ const String TEST_6 = @"""
   }
 """;
 
-const String TEST_7 = @"""
+const String TEST_7 = r"""
   class A {
     int f1 = 1;
     int f2 = 1;
@@ -130,7 +130,7 @@ const String TEST_7 = @"""
   }
 """;
 
-const String TEST_8 = @"""
+const String TEST_8 = r"""
   class A {
     int f;
     A(x) {
@@ -146,7 +146,7 @@ const String TEST_8 = @"""
   }
 """;
 
-const String TEST_9 = @"""
+const String TEST_9 = r"""
   class A {
     int f;
     A(x) {
@@ -162,7 +162,7 @@ const String TEST_9 = @"""
   }
 """;
 
-const String TEST_10 = @"""
+const String TEST_10 = r"""
   class A {
     int f;
     A() {
@@ -180,7 +180,7 @@ const String TEST_10 = @"""
 """;
 
 
-const String TEST_11 = @"""
+const String TEST_11 = r"""
   class S {
     int fs = 1;
     ms() { fs = 1; }
@@ -196,7 +196,7 @@ const String TEST_11 = @"""
   }
 """;
 
-const String TEST_12 = @"""
+const String TEST_12 = r"""
   class S {
     int fs = 1;
     S() { fs = "2"; }
@@ -210,7 +210,7 @@ const String TEST_12 = @"""
   }
 """;
 
-const String TEST_13 = @"""
+const String TEST_13 = r"""
   class S {
     int fs;
     S() { fs = 1; }
@@ -225,7 +225,7 @@ const String TEST_13 = @"""
   }
 """;
 
-const String TEST_14 = @"""
+const String TEST_14 = r"""
   class A {
     var f;
     A() { f = 1; }
@@ -238,7 +238,7 @@ const String TEST_14 = @"""
   }
 """;
 
-const String TEST_15 = @"""
+const String TEST_15 = r"""
   class A {
     var f;
     A() { f = "1"; }
@@ -251,7 +251,7 @@ const String TEST_15 = @"""
   }
 """;
 
-const String TEST_16 = @"""
+const String TEST_16 = r"""
   class A {
     var f;
     A() { f = "1"; }
@@ -264,7 +264,7 @@ const String TEST_16 = @"""
   }
 """;
 
-const String TEST_17 = @"""
+const String TEST_17 = r"""
   g([p]) => p.f = 1;
   class A {
     var f;
@@ -286,7 +286,7 @@ const String TEST_17 = @"""
 
 // In this test this is only used in a field set (f3 = a) and therefore we infer
 // types for f1, f2 and f3.
-const String TEST_18 = @"""
+const String TEST_18 = r"""
   class A {
     var f1;
     var f2;
@@ -312,7 +312,7 @@ const String TEST_18 = @"""
 
 // In this test this is exposed through a(), and therefore we don't infer
 // any types.
-const String TEST_19 = @"""
+const String TEST_19 = r"""
   class A {
     var f1;
     var f2;
