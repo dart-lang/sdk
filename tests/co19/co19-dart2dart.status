@@ -269,8 +269,6 @@ Language/10_Expressions/06_Lists_A04_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/07_Maps_A02_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/07_Maps_A02_t02: Fail # http://dartbug.com/5519
-Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # http://dartbug.com/5519
-Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # inherited from VM
 Language/10_Expressions/08_Throw_A01_t01: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A03_t02: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A03_t03: Fail # inherited from dart2js
@@ -287,9 +285,6 @@ Language/10_Expressions/08_Throw_A06_t06: Fail # BUG: standalone throw
 Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # inherited from VM
 Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # BUG: new optional arguments
 Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # inherited from dart2js
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # inherited from dart2js
-Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # inherited from dart2js
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # co19 issue
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t02: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # inherited from dart2js
@@ -475,18 +470,6 @@ Language/11_Statements/11_Labels_A01_t03: Fail # inherited from VM
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
-Language/11_Statements/14_Throw_A02_t02: Fail, OK # inherited from VM
-Language/11_Statements/14_Throw_A02_t03: Fail, OK # inherited from VM
-Language/11_Statements/14_Throw_A03_t01: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A03_t02: Fail, OK # inherited from VM
-Language/11_Statements/14_Throw_A03_t03: Fail, OK # inherited from VM
-Language/11_Statements/14_Throw_A03_t04: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A03_t05: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A03_t06: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A04_t01: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A04_t02: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A04_t03: Fail # http://dartbug.com/5519
-Language/11_Statements/14_Throw_A04_t04: Fail # http://dartbug.com/5519
 Language/11_Statements/15_Assert_A01_t03: Fail # http://dartbug.com/5519
 Language/11_Statements/15_Assert_A01_t04: Fail # http://dartbug.com/5519
 Language/11_Statements/15_Assert_A01_t05: Fail # http://dartbug.com/5519

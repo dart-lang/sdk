@@ -46,7 +46,6 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
@@ -58,7 +57,6 @@ Language/11_Statements/03_Variable_Declaration_A02_t06: Fail # TODO(analyzer-tea
 Language/11_Statements/05_For_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/08_Switch_A07_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/11_Statements/14_Throw_A03_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TODO(analyzer-team): Please triage this failure.
@@ -80,6 +78,7 @@ LibTest/core/Math/random_A01_t01: Fail # TODO(analyzer-team): Please triage this
 LibTest/core/Math/sin_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/sqrt_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/tan_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -221,15 +220,6 @@ Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # language change 3368
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
-Language/10_Expressions/10_Instance_Creation_A02_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # language change 1031
-Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
@@ -323,7 +313,6 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail, 
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail, OK
 Language/10_Expressions/17_Conditional_A01_t10: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/10_Instance_Creation_A02_t01: Fail, OK
 Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail, OK
 Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail, OK
 Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail, OK
@@ -351,14 +340,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail, OK
 Language/10_Expressions/29_Type_Test_A01_t02: Fail, OK
 Language/10_Expressions/22_Shift_A01_t11: Fail, OK
 Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail, OK
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail, OK
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail, OK
 Language/10_Expressions/20_Equality_A01_t20: Fail, OK
 Language/10_Expressions/20_Equality_A01_t21: Fail, OK
@@ -400,12 +381,8 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail, OK
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail, OK
 Language/07_Classes/3_Setters_A01_t02: Fail, OK
-Language/11_Statements/14_Throw_A02_t03: Fail, OK
 Language/11_Statements/08_Switch_A06_t02: Fail, OK
 Language/11_Statements/09_Try_A01_t01: Fail, OK
-Language/11_Statements/14_Throw_A03_t03: Fail, OK
-Language/11_Statements/14_Throw_A02_t02: Fail, OK
-Language/11_Statements/14_Throw_A03_t02: Fail, OK
 Language/11_Statements/09_Try_A05_t03: Fail, OK
 Language/11_Statements/08_Switch_A06_t03: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
