@@ -4,7 +4,7 @@
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
-class _ChildrenElementList implements ElementList {
+class _ChildrenElementList implements List {
   // Raw Element.
   final _ElementImpl _element;
   final _HTMLCollectionImpl _childElements;
@@ -21,18 +21,14 @@ class _ChildrenElementList implements ElementList {
     return output;
   }
 
-  _ElementImpl get first {
-    return _element.$dom_firstElementChild;
-  }
-
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
     }
   }
 
-  ElementList filter(bool f(Element element)) {
-    final output = <Element>[];
+  List<Element> filter(bool f(Element element)) {
+    final output = [];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
@@ -121,7 +117,7 @@ class _ChildrenElementList implements ElementList {
 
   List getRange(int start, int rangeLength) =>
     new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
-        <Element>[]));
+        []));
 
   int indexOf(Element element, [int start = 0]) {
     return _Lists.indexOf(this, element, start, this.length);
@@ -154,7 +150,7 @@ class _ChildrenElementList implements ElementList {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList implements ElementList {
+class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -177,8 +173,8 @@ class _FrozenElementList implements ElementList {
     return out;
   }
 
-  ElementList filter(bool f(Element element)) {
-    final out = new _ElementList([]);
+  List<Element> filter(bool f(Element element)) {
+    final out = [];
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
@@ -247,7 +243,7 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int rangeLength) =>
+  List<Element> getRange(int start, int rangeLength) =>
     new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
@@ -289,16 +285,6 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
-}
-
-class _ElementList extends _ListWrapper<Element> implements ElementList {
-  _ElementList(List<Element> list) : super(list);
-
-  ElementList filter(bool f(Element element)) =>
-    new _ElementList(super.filter(f));
-
-  ElementList getRange(int start, int rangeLength) =>
-    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -688,7 +674,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     elements.addAll(value);
   }
 
-  ElementList get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get elements => new _ChildrenElementList._wrap(this);
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
@@ -798,7 +784,8 @@ $if DART2JS
         this.parent.insertBefore(node, this);
         break;
       case 'afterbegin':
-        this.insertBefore(node, this.nodes.first);
+        var first = this.nodes.length > 0 ? this.nodes[0] : null;
+        this.insertBefore(node, first);
         break;
       case 'beforeend':
         this.nodes.add(node);
@@ -857,7 +844,7 @@ class _ElementFactoryProvider {
 
     Element element;
     if (temp.elements.length == 1) {
-      element = temp.elements.first;
+      element = temp.elements[0];
     } else if (parentTag == 'html' && temp.elements.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
