@@ -48,6 +48,7 @@ class DebuggerConnectionHandler {
   static void BptResolvedHandler(intptr_t bp_id,
                                  Dart_Handle url,
                                  intptr_t line_number);
+  static void IsolateEventHandler(Dart_Isolate isolate, Dart_IsolateEvent kind);
   static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
   static void ExceptionThrownHandler(Dart_Handle exception,
                                      Dart_StackTrace stack_trace);

@@ -1297,6 +1297,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     isolate->message_handler()->HandleOOBMessages();
   }
   if (interrupt_bits & Isolate::kApiInterrupt) {
+    // Signal isolate interrupt  event.
+    Debugger::SignalIsolateEvent(Debugger::kIsolateInterrupted);
+
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
     if (callback) {
       if ((*callback)()) {

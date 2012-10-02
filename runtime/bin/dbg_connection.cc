@@ -998,6 +998,21 @@ void DebuggerConnectionHandler::BreakpointHandler(Dart_Breakpoint bpt,
 }
 
 
+void DebuggerConnectionHandler::IsolateEventHandler(Dart_Isolate isolate,
+                                                    Dart_IsolateEvent kind) {
+  WaitForConnection();
+#if 0
+  if (kind == kCreated) {
+    printf("Isolate created %p\n", isolate);
+  } else if (kind == kInterrupted) {
+    printf("Isolate interrupted %p\n", isolate);
+  } else if (kind == kShutdown) {
+    printf("Isolate shutdown %p\n", isolate);
+  }
+#endif
+}
+
+
 void DebuggerConnectionHandler::SendExceptionEvent(
                                     Dart_Handle exception,
                                     Dart_StackTrace stack_trace) {
@@ -1078,6 +1093,7 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
 
   handler_started_ = true;
   DebuggerConnectionImpl::StartHandler(port_number);
+  Dart_SetIsolateEventHandler(IsolateEventHandler);
   Dart_SetBreakpointHandler(BreakpointHandler);
   Dart_SetBreakpointResolvedHandler(BptResolvedHandler);
   Dart_SetExceptionThrownHandler(ExceptionThrownHandler);
