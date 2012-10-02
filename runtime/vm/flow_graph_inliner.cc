@@ -22,8 +22,6 @@ DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 DEFINE_FLAG(int, inlining_size_threshold, 250,
     "Inline only functions with up to threshold instructions");
-DEFINE_FLAG(int, inlining_growth_factor, 3,
-    "Stop inlining when a function grows by the factor");
 DEFINE_FLAG(bool, inline_control_flow, true,
     "Inline functions with control flow.");
 DECLARE_FLAG(bool, print_flow_graph);
@@ -190,20 +188,6 @@ class CallSiteInliner : public FlowGraphVisitor {
         isolate->set_deopt_id(prev_deopt_id);
         isolate->set_ic_data_array(prev_ic_data.raw());
         TRACE_INLINING(OS::Print("     Bailout: graph size %"Pd"\n", size));
-        return false;
-      }
-
-      // If the growth factor is more than threshold abort.
-      double growth =
-          static_cast<double>(inlined_size_ + size) /
-          static_cast<double>(initial_size_);
-      if (growth > static_cast<double>(FLAG_inlining_growth_factor)) {
-        function.set_is_inlinable(false);
-        isolate->set_long_jump_base(base);
-        isolate->set_deopt_id(prev_deopt_id);
-        isolate->set_ic_data_array(prev_ic_data.raw());
-        TRACE_INLINING(OS::Print("     Bailout: growth factor %f\n",
-                                 growth));
         return false;
       }
 
