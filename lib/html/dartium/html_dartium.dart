@@ -9386,11 +9386,16 @@ class _CryptoImpl extends NativeFieldWrapperClass1 implements Crypto {
 /// @domName CustomEvent
 abstract class CustomEvent implements Event {
 
+  factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
+      Object detail = null]) => _CustomEventFactoryProvider.createCustomEvent(type, canBubble,
+      cancelable, detail);
+
+
   /** @domName CustomEvent.detail */
   abstract Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9402,7 +9407,7 @@ class _CustomEventImpl extends _EventImpl implements CustomEvent {
 
   Object get detail native "CustomEvent_detail_Getter";
 
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42943,6 +42948,15 @@ class _HttpRequestUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _CustomEventFactoryProvider {
+  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
+      bool cancelable = true, Object detail = null]) {
+    final _CustomEventImpl e = _document.$dom_createEvent("CustomEvent");
+    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    return e;
+  }
+}
+
 class _EventFactoryProvider {
   static Event createEvent(String type, [bool canBubble = true,
       bool cancelable = true]) {
@@ -42951,7 +42965,7 @@ class _EventFactoryProvider {
     return e;
   }
 }
-
+ 
 class _MouseEventFactoryProvider {
   static MouseEvent createMouseEvent(String type, Window view, int detail,
       int screenX, int screenY, int clientX, int clientY, int button,
