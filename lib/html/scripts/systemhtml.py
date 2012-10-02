@@ -9,7 +9,6 @@ Dart:html APIs from the IDL database."""
 import emitter
 
 from systembase import *
-from systeminterface import *
 
 _js_custom_members = set([
     'CSSStyleDeclaration.setProperty',
