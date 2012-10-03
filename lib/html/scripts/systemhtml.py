@@ -222,10 +222,10 @@ class HtmlDartInterfaceGenerator(object):
     if (not self._interface.id in _merged_html_interfaces and
         # Don't re-generate types that have been converted to native dart types.
         self._html_interface_name not in nativified_classes):
-      self._interface_emitter = self._library_emitter.FileEmitter(
+      interface_emitter = self._library_emitter.FileEmitter(
           self._html_interface_name)
     else:
-      self._interface_emitter = emitter.Emitter()
+      interface_emitter = emitter.Emitter()
 
     template_file = 'interface_%s.darttemplate' % self._html_interface_name
     interface_template = (self._template_loader.TryLoad(template_file) or
@@ -292,7 +292,7 @@ class HtmlDartInterfaceGenerator(object):
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._type_comment_emitter,
      self._members_emitter,
-     self._top_level_emitter) = self._interface_emitter.Emit(
+     self._top_level_emitter) = interface_emitter.Emit(
          interface_template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=implements_str)
@@ -308,11 +308,20 @@ class HtmlDartInterfaceGenerator(object):
         basename = '%sImpl' % name
       else:
         basename = '%sImpl_Merged' % self._html_interface_name
-      self._implementation_emitter = self._library_emitter.FileEmitter(basename)
+      implementation_emitter = self._library_emitter.FileEmitter(basename)
     else:
-      self._implementation_emitter = emitter.Emitter()
-    self._backend.SetImplementationEmitter(self._implementation_emitter)
-    self._implementation_members_emitter = self._backend.StartInterface()
+      implementation_emitter = emitter.Emitter()
+
+    base_class = self._backend.BaseClassName()
+    implemented_interfaces = [self._html_interface_name] +\
+                             self._backend.AdditionalImplementedInterfaces()
+    self._implementation_members_emitter = implementation_emitter.Emit(
+        self._backend.ImplementationTemplate(),
+        CLASSNAME=self._backend.ImplementationClassName(),
+        EXTENDS=' extends %s' % base_class if base_class else '',
+        IMPLEMENTS=' implements ' + ', '.join(implemented_interfaces),
+        NATIVESPEC=self._backend.NativeSpec())
+    self._backend.StartInterface(self._implementation_members_emitter)
 
     for constructor_info in constructors:
       constructor_info.GenerateFactoryInvocation(
@@ -338,7 +347,7 @@ class HtmlDartInterfaceGenerator(object):
     events_interface = self._event_generator.ProcessInterface(
         self._interface, self._html_interface_name,
         self._backend.CustomJSMembers(),
-        self._interface_emitter, self._implementation_emitter)
+        interface_emitter, implementation_emitter)
     if events_interface:
       self._EmitEventGetter(events_interface, '_%sImpl' % events_interface)
 
@@ -571,9 +580,6 @@ class Dart2JSBackend(object):
   def ImplementationClassName(self):
     return self._ImplClassName(self._html_interface_name)
 
-  def SetImplementationEmitter(self, implementation_emitter):
-    self._dart_code = implementation_emitter
-
   def ImplementsMergedMembers(self):
     return True
 
@@ -586,53 +592,38 @@ class Dart2JSBackend(object):
   def GenerateCallback(self, info):
     pass
 
-  def StartInterface(self):
-    interface = self._interface
-    interface_name = interface.id
+  def BaseClassName(self):
+    if not self._interface.parents:
+      return None
+    supertype = self._interface.parents[0].type.id
+    if IsDartCollectionType(supertype):
+      # List methods are injected in AddIndexer.
+      return None
+    if IsPureInterface(supertype):
+      return None
+    return self._ImplClassName(self._DartType(supertype))
 
-    self._class_name = self._ImplClassName(self._html_interface_name)
-
-    base = None
-    if interface.parents:
-      supertype = interface.parents[0].type.id
-      if IsDartCollectionType(supertype):
-        # List methods are injected in AddIndexer.
-        pass
-      elif IsPureInterface(supertype):
-        pass
-      else:
-        base = self._ImplClassName(self._DartType(supertype))
-
-    native_spec = MakeNativeSpec(interface.javascript_binding_name)
-
-    extends = ' extends ' + base if base else ''
-
+  def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
-    implements = [self._html_interface_name]
+    implements = []
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
       implements.append('List<%s>' % self._DartType(element_type))
-
     if self._HasJavaScriptIndexingBehaviour():
       implements.append('JavaScriptIndexingBehavior')
+    return implements
 
+  def NativeSpec(self):
+    native_spec = MakeNativeSpec(self._interface.javascript_binding_name)
+    return ' native "%s"' % native_spec
+
+  def ImplementationTemplate(self):
     template_file = 'impl_%s.darttemplate' % self._html_interface_name
-    template = (self._template_loader.TryLoad(template_file) or
-                self._template_loader.Load('dart2js_impl.darttemplate'))
-    self._members_emitter = self._dart_code.Emit(
-        template,
-        #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-        #$!MEMBERS
-        #}
-        CLASSNAME=self._class_name,
-        EXTENDS=extends,
-        IMPLEMENTS=' implements ' + ', '.join(implements),
-        NATIVESPEC=' native "' + native_spec + '"')
-    if self._members_emitter == None:
-      raise Exception("Class %s doesn't use the $!MEMBERS variable" %
-                      self._class_name)
+    return (self._template_loader.TryLoad(template_file) or
+            self._template_loader.Load('dart2js_impl.darttemplate'))
 
-    return self._members_emitter
+  def StartInterface(self, emitter):
+    self._members_emitter = emitter
 
   def FinishInterface(self):
     pass

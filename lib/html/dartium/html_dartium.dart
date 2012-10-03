@@ -89,12 +89,6 @@ abstract class AbstractWorkerEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
-  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -112,6 +106,12 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
+}
+
+class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
+  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1011,12 +1011,6 @@ abstract class AudioContextEvents implements Events {
 
   EventListenerList get complete;
 }
-
-class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
-  _AudioContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get complete => this['complete'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1129,6 +1123,12 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   void startRendering() native "AudioContext_startRendering_Callback";
 
+}
+
+class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
+  _AudioContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get complete => this['complete'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1729,18 +1729,6 @@ abstract class BatteryManagerEvents implements Events {
 
   EventListenerList get levelChange;
 }
-
-class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
-  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get chargingChange => this['chargingchange'];
-
-  EventListenerList get chargingTimeChange => this['chargingtimechange'];
-
-  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
-
-  EventListenerList get levelChange => this['levelchange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1766,6 +1754,18 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
+}
+
+class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
+  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get chargingChange => this['chargingchange'];
+
+  EventListenerList get chargingTimeChange => this['chargingtimechange'];
+
+  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
+
+  EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1973,36 +1973,6 @@ abstract class BodyElementEvents implements ElementEvents {
 
   EventListenerList get unload;
 }
-
-class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
-  _BodyElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get hashChange => this['hashchange'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get offline => this['offline'];
-
-  EventListenerList get online => this['online'];
-
-  EventListenerList get popState => this['popstate'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get storage => this['storage'];
-
-  EventListenerList get unload => this['unload'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2034,6 +2004,36 @@ class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 
   void set vLink(String value) native "HTMLBodyElement_vLink_Setter";
 
+}
+
+class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
+  _BodyElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get hashChange => this['hashchange'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get offline => this['offline'];
+
+  EventListenerList get online => this['online'];
+
+  EventListenerList get popState => this['popstate'];
+
+  EventListenerList get resize => this['resize'];
+
+  EventListenerList get storage => this['storage'];
+
+  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9503,26 +9503,6 @@ abstract class DOMApplicationCacheEvents implements Events {
 
   EventListenerList get updateReady;
 }
-
-class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
-  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cached => this['cached'];
-
-  EventListenerList get checking => this['checking'];
-
-  EventListenerList get downloading => this['downloading'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noUpdate => this['noupdate'];
-
-  EventListenerList get obsolete => this['obsolete'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get updateReady => this['updateready'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9548,6 +9528,26 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void update() native "DOMApplicationCache_update_Callback";
 
+}
+
+class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
+  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get cached => this['cached'];
+
+  EventListenerList get checking => this['checking'];
+
+  EventListenerList get downloading => this['downloading'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noUpdate => this['noupdate'];
+
+  EventListenerList get obsolete => this['obsolete'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10951,12 +10951,6 @@ abstract class DedicatedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get message;
 }
-
-class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
-  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message => this['message'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10970,6 +10964,12 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
+}
+
+class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
+  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11947,108 +11947,6 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   NodeList $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
 }
-
-class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
-  _DocumentEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
-  EventListenerList get readyStateChange => this['readystatechange'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get selectionChange => this['selectionchange'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-
-  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
-
-  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12203,6 +12101,108 @@ class _DocumentImpl extends _NodeImpl implements Document
       return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
     }
   }
+}
+
+class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
+  _DocumentEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeCopy => this['beforecopy'];
+
+  EventListenerList get beforeCut => this['beforecut'];
+
+  EventListenerList get beforePaste => this['beforepaste'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get copy => this['copy'];
+
+  EventListenerList get cut => this['cut'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get paste => this['paste'];
+
+  EventListenerList get readyStateChange => this['readystatechange'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get selectionChange => this['selectionchange'];
+
+  EventListenerList get selectStart => this['selectstart'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
+
+  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
+
+  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12742,106 +12742,6 @@ abstract class ElementEvents implements Events {
   EventListenerList get fullscreenChange;
 
   EventListenerList get fullscreenError;
-}
-
-class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
-  _ElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchEnter => this['touchenter'];
-
-  EventListenerList get touchLeave => this['touchleave'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13747,6 +13647,106 @@ class _ElementFactoryProvider {
   static Element createElement_tag(String tag) =>
       _document.$dom_createElement(tag);
 }
+
+class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
+  _ElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeCopy => this['beforecopy'];
+
+  EventListenerList get beforeCut => this['beforecut'];
+
+  EventListenerList get beforePaste => this['beforepaste'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get copy => this['copy'];
+
+  EventListenerList get cut => this['cut'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get paste => this['paste'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get selectStart => this['selectstart'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchEnter => this['touchenter'];
+
+  EventListenerList get touchLeave => this['touchleave'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14629,16 +14629,6 @@ abstract class EventSourceEvents implements Events {
 
   EventListenerList get open;
 }
-
-class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
-  _EventSourceEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14664,6 +14654,16 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
+}
+
+class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
+  _EventSourceEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15209,22 +15209,6 @@ abstract class FileReaderEvents implements Events {
 
   EventListenerList get progress;
 }
-
-class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
-  _FileReaderEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15268,6 +15252,22 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
+}
+
+class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
+  _FileReaderEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15400,22 +15400,6 @@ abstract class FileWriterEvents implements Events {
 // WARNING: Do not edit - generated code.
 
 typedef bool FileWriterCallback(FileWriter fileWriter);
-
-class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
-  _FileWriterEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get write => this['write'];
-
-  EventListenerList get writeEnd => this['writeend'];
-
-  EventListenerList get writeStart => this['writestart'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15449,6 +15433,22 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
   void write(Blob data) native "FileWriter_write_Callback";
 
+}
+
+class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
+  _FileWriterEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get write => this['write'];
+
+  EventListenerList get writeEnd => this['writeend'];
+
+  EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16080,6 +16080,26 @@ abstract class FrameSetElementEvents implements ElementEvents {
 
   EventListenerList get unload;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
+
+  _FrameSetElementEventsImpl get on =>
+    new _FrameSetElementEventsImpl(this);
+
+  String get cols native "HTMLFrameSetElement_cols_Getter";
+
+  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
+
+  String get rows native "HTMLFrameSetElement_rows_Getter";
+
+  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
+
+}
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
   _FrameSetElementEventsImpl(_ptr) : super(_ptr);
@@ -16109,26 +16129,6 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
   EventListenerList get storage => this['storage'];
 
   EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
-
-  _FrameSetElementEventsImpl get on =>
-    new _FrameSetElementEventsImpl(this);
-
-  String get cols native "HTMLFrameSetElement_cols_Getter";
-
-  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
-
-  String get rows native "HTMLFrameSetElement_rows_Getter";
-
-  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16965,24 +16965,6 @@ class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements H
   String toString() native "XMLHttpRequestException_toString_Callback";
 
 }
-
-class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
-  _HttpRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get readyStateChange => this['readystatechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17036,6 +17018,24 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+}
+
+class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
+  _HttpRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17103,22 +17103,6 @@ abstract class HttpRequestUploadEvents implements Events {
 
   EventListenerList get progress;
 }
-
-class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
-  _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17136,6 +17120,22 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestU
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
+}
+
+class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
+  _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17374,16 +17374,6 @@ class _IDBDatabaseExceptionImpl extends NativeFieldWrapperClass1 implements IDBD
   String toString() native "IDBDatabaseException_toString_Callback";
 
 }
-
-class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
-  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get versionChange => this['versionchange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17443,6 +17433,16 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
 
+}
+
+class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
+  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18071,14 +18071,6 @@ abstract class IDBOpenDBRequestEvents implements IDBRequestEvents {
 
   EventListenerList get upgradeNeeded;
 }
-
-class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
-  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18096,6 +18088,14 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBOpenDBRequest_removeEventListener_Callback";
 
+}
+
+class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
+  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked => this['blocked'];
+
+  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18148,14 +18148,6 @@ abstract class IDBRequestEvents implements Events {
 
   EventListenerList get success;
 }
-
-class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
-  _IDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get success => this['success'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18187,6 +18179,14 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
+}
+
+class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
+  _IDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get success => this['success'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18241,16 +18241,6 @@ abstract class IDBTransactionEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
-  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get complete => this['complete'];
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18278,6 +18268,16 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
+}
+
+class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
+  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get complete => this['complete'];
+
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18349,12 +18349,6 @@ abstract class IDBVersionChangeRequestEvents implements IDBRequestEvents {
 
   EventListenerList get blocked;
 }
-
-class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
-  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18372,6 +18366,12 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBVersionChangeRequest_removeEventListener_Callback";
 
+}
+
+class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
+  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18900,12 +18900,6 @@ abstract class InputElementEvents implements ElementEvents {
 
   EventListenerList get speechChange;
 }
-
-class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
-  _InputElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get speechChange => this['webkitSpeechChange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19131,6 +19125,12 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
+}
+
+class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
+  _InputElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19550,12 +19550,6 @@ abstract class JavaScriptAudioNodeEvents implements Events {
 
   EventListenerList get audioProcess;
 }
-
-class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
-  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioProcess => this['audioprocess'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19575,6 +19569,12 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "JavaScriptAudioNode_removeEventListener_Callback";
 
+}
+
+class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
+  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20613,60 +20613,6 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
   MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
-
-class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
-  _MediaElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get canPlay => this['canplay'];
-
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  EventListenerList get durationChange => this['durationchange'];
-
-  EventListenerList get emptied => this['emptied'];
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get loadedData => this['loadeddata'];
-
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get pause => this['pause'];
-
-  EventListenerList get play => this['play'];
-
-  EventListenerList get playing => this['playing'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get rateChange => this['ratechange'];
-
-  EventListenerList get seeked => this['seeked'];
-
-  EventListenerList get seeking => this['seeking'];
-
-  EventListenerList get show => this['show'];
-
-  EventListenerList get stalled => this['stalled'];
-
-  EventListenerList get suspend => this['suspend'];
-
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  EventListenerList get volumeChange => this['volumechange'];
-
-  EventListenerList get waiting => this['waiting'];
-
-  EventListenerList get keyAdded => this['webkitkeyadded'];
-
-  EventListenerList get keyError => this['webkitkeyerror'];
-
-  EventListenerList get keyMessage => this['webkitkeymessage'];
-
-  EventListenerList get needKey => this['webkitneedkey'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20822,6 +20768,60 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
+}
+
+class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
+  _MediaElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get canPlay => this['canplay'];
+
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  EventListenerList get durationChange => this['durationchange'];
+
+  EventListenerList get emptied => this['emptied'];
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get loadedData => this['loadeddata'];
+
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get pause => this['pause'];
+
+  EventListenerList get play => this['play'];
+
+  EventListenerList get playing => this['playing'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get rateChange => this['ratechange'];
+
+  EventListenerList get seeked => this['seeked'];
+
+  EventListenerList get seeking => this['seeking'];
+
+  EventListenerList get show => this['show'];
+
+  EventListenerList get stalled => this['stalled'];
+
+  EventListenerList get suspend => this['suspend'];
+
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  EventListenerList get volumeChange => this['volumechange'];
+
+  EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get keyAdded => this['webkitkeyadded'];
+
+  EventListenerList get keyError => this['webkitkeyerror'];
+
+  EventListenerList get keyMessage => this['webkitkeymessage'];
+
+  EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21203,12 +21203,6 @@ class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
   MediaStream get stream native "MediaStreamEvent_stream_Getter";
 
 }
-
-class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
-  _MediaStreamEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get ended => this['ended'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21234,6 +21228,12 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
+}
+
+class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
+  _MediaStreamEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21402,16 +21402,6 @@ class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackE
   MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
 }
-
-class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
-  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get mute => this['mute'];
-
-  EventListenerList get unmute => this['unmute'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21439,6 +21429,16 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
+}
+
+class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
+  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get mute => this['mute'];
+
+  EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21482,14 +21482,6 @@ abstract class MediaStreamTrackListEvents implements Events {
 
   EventListenerList get removeTrack;
 }
-
-class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
-  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addTrack => this['addtrack'];
-
-  EventListenerList get removeTrack => this['removetrack'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21515,6 +21507,14 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
 
+}
+
+class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
+  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack => this['addtrack'];
+
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21696,12 +21696,6 @@ abstract class MessagePortEvents implements Events {
 
   EventListenerList get message;
 }
-
-class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
-  _MessagePortEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message => this['message'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21725,6 +21719,12 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
   void start() native "MessagePort_start_Callback";
 
+}
+
+class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
+  _MessagePortEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23312,20 +23312,6 @@ class _NotificationCenterImpl extends NativeFieldWrapperClass1 implements Notifi
   void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
 
 }
-
-class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
-  _NotificationEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get display => this['display'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get show => this['show'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23365,6 +23351,20 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void show() native "Notification_show_Callback";
 
+}
+
+class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
+  _NotificationEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get display => this['display'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24237,20 +24237,6 @@ abstract class PeerConnection00Events implements Events {
 
   EventListenerList get stateChange;
 }
-
-class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
-  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get connecting => this['connecting'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24336,6 +24322,20 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void _startIce_2() native "PeerConnection00_startIce_2_Callback";
 
+}
+
+class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
+  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream => this['addstream'];
+
+  EventListenerList get connecting => this['connecting'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25000,24 +25000,6 @@ abstract class RTCPeerConnectionEvents implements Events {
 
   EventListenerList get stateChange;
 }
-
-class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
-  _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get iceCandidate => this['icecandidate'];
-
-  EventListenerList get iceChange => this['icechange'];
-
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25065,6 +25047,24 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void updateIce(Map configuration, Map mediaConstraints) native "RTCPeerConnection_updateIce_Callback";
 
+}
+
+class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
+  _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream => this['addstream'];
+
+  EventListenerList get iceCandidate => this['icecandidate'];
+
+  EventListenerList get iceChange => this['icechange'];
+
+  EventListenerList get negotiationNeeded => this['negotiationneeded'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27318,6 +27318,34 @@ abstract class SVGElementInstanceEvents implements Events {
 
   EventListenerList get unload;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
+
+  _SVGElementInstanceEventsImpl get on =>
+    new _SVGElementInstanceEventsImpl(this);
+
+  List<SVGElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
+
+  SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
+
+  SVGUseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
+
+  SVGElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
+
+  SVGElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
+
+  SVGElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
+
+  SVGElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
+
+  SVGElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
+
+}
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
   _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
@@ -27401,34 +27429,6 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
   EventListenerList get submit => this['submit'];
 
   EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
-
-  _SVGElementInstanceEventsImpl get on =>
-    new _SVGElementInstanceEventsImpl(this);
-
-  List<SVGElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
-
-  SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
-
-  SVGUseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
-
-  SVGElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
-
-  SVGElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
-
-  SVGElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
-
-  SVGElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
-
-  SVGElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34145,12 +34145,6 @@ abstract class SharedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get connect;
 }
-
-class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
-  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get connect => this['connect'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34164,6 +34158,12 @@ class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorke
 
   String get name native "SharedWorkerContext_name_Getter";
 
+}
+
+class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
+  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34901,34 +34901,6 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
 }
-
-class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
-  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioEnd => this['audioend'];
-
-  EventListenerList get audioStart => this['audiostart'];
-
-  EventListenerList get end => this['end'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noMatch => this['nomatch'];
-
-  EventListenerList get result => this['result'];
-
-  EventListenerList get resultDeleted => this['resultdeleted'];
-
-  EventListenerList get soundEnd => this['soundend'];
-
-  EventListenerList get soundStart => this['soundstart'];
-
-  EventListenerList get speechEnd => this['speechend'];
-
-  EventListenerList get speechStart => this['speechstart'];
-
-  EventListenerList get start => this['start'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34968,6 +34940,34 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void stop() native "SpeechRecognition_stop_Callback";
 
+}
+
+class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
+  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioEnd => this['audioend'];
+
+  EventListenerList get audioStart => this['audiostart'];
+
+  EventListenerList get end => this['end'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noMatch => this['nomatch'];
+
+  EventListenerList get result => this['result'];
+
+  EventListenerList get resultDeleted => this['resultdeleted'];
+
+  EventListenerList get soundEnd => this['soundend'];
+
+  EventListenerList get soundStart => this['soundstart'];
+
+  EventListenerList get speechEnd => this['speechend'];
+
+  EventListenerList get speechStart => this['speechstart'];
+
+  EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36442,14 +36442,6 @@ abstract class TextTrackCueEvents implements Events {
 
   EventListenerList get exit;
 }
-
-class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
-  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get enter => this['enter'];
-
-  EventListenerList get exit => this['exit'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36515,6 +36507,14 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
+}
+
+class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
+  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get enter => this['enter'];
+
+  EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36630,12 +36630,6 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   TextTrackCue item(int index) native "TextTrackCueList_item_Callback";
 
 }
-
-class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
-  _TextTrackEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cueChange => this['cuechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36672,6 +36666,12 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
 }
+
+class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
+  _TextTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get cueChange => this['cuechange'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36705,12 +36705,6 @@ abstract class TextTrackList implements List<TextTrack>, EventTarget {
 abstract class TextTrackListEvents implements Events {
 
   EventListenerList get addTrack;
-}
-
-class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
-  _TextTrackListEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36814,6 +36808,12 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
+}
+
+class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
+  _TextTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40093,18 +40093,6 @@ abstract class WebSocketEvents implements Events {
 
   EventListenerList get open;
 }
-
-class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
-  _WebSocketEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40158,6 +40146,18 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   void send(data) native "WebSocket_send_Callback";
 
+}
+
+class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
+  _WebSocketEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40675,158 +40675,6 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get transitionEnd;
 }
-
-class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
-  _WindowEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get canPlay => this['canplay'];
-
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get durationChange => this['durationchange'];
-
-  EventListenerList get emptied => this['emptied'];
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get hashChange => this['hashchange'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadedData => this['loadeddata'];
-
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get offline => this['offline'];
-
-  EventListenerList get online => this['online'];
-
-  EventListenerList get pageHide => this['pagehide'];
-
-  EventListenerList get pageShow => this['pageshow'];
-
-  EventListenerList get pause => this['pause'];
-
-  EventListenerList get play => this['play'];
-
-  EventListenerList get playing => this['playing'];
-
-  EventListenerList get popState => this['popstate'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get rateChange => this['ratechange'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get seeked => this['seeked'];
-
-  EventListenerList get seeking => this['seeking'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get stalled => this['stalled'];
-
-  EventListenerList get storage => this['storage'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get suspend => this['suspend'];
-
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get unload => this['unload'];
-
-  EventListenerList get volumeChange => this['volumechange'];
-
-  EventListenerList get waiting => this['waiting'];
-
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41052,6 +40900,158 @@ class _DOMWindowImpl extends _EventTargetImpl implements Window {
   void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
+
+class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
+  _WindowEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get canPlay => this['canplay'];
+
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get durationChange => this['durationchange'];
+
+  EventListenerList get emptied => this['emptied'];
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get hashChange => this['hashchange'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadedData => this['loadeddata'];
+
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get offline => this['offline'];
+
+  EventListenerList get online => this['online'];
+
+  EventListenerList get pageHide => this['pagehide'];
+
+  EventListenerList get pageShow => this['pageshow'];
+
+  EventListenerList get pause => this['pause'];
+
+  EventListenerList get play => this['play'];
+
+  EventListenerList get playing => this['playing'];
+
+  EventListenerList get popState => this['popstate'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get rateChange => this['ratechange'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get resize => this['resize'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get seeked => this['seeked'];
+
+  EventListenerList get seeking => this['seeking'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get stalled => this['stalled'];
+
+  EventListenerList get storage => this['storage'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get suspend => this['suspend'];
+
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get unload => this['unload'];
+
+  EventListenerList get volumeChange => this['volumechange'];
+
+  EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41165,12 +41165,6 @@ abstract class WorkerContextEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
-  _WorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41226,10 +41220,10 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
 }
 
-class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
-  _WorkerEventsImpl(_ptr) : super(_ptr);
+class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
+  _WorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message => this['message'];
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41246,6 +41240,12 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 
   void terminate() native "Worker_terminate_Callback";
 
+}
+
+class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
+  _WorkerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

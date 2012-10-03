@@ -28,9 +28,6 @@ class DartiumBackend(object):
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
 
-  def SetImplementationEmitter(self, implementation_emitter):
-    self._dart_impl_emitter = implementation_emitter
-
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
     # underlying c++ object doesn't implement them. Merged functions are
@@ -100,7 +97,22 @@ class DartiumBackend(object):
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
-  def StartInterface(self):
+  def ImplementationTemplate(self):
+    template = None
+    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
+      template_file = 'impl_%s.darttemplate' % self._html_interface_name
+      template = self._template_loader.TryLoad(template_file)
+    if not template:
+      template = self._template_loader.Load('dart_implementation.darttemplate')
+    return template
+
+  def AdditionalImplementedInterfaces(self):
+    return []
+
+  def NativeSpec(self):
+    return ''
+
+  def StartInterface(self, memebers_emitter):
     # Create emitters for c++ implementation.
     if self.HasImplementation():
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
@@ -110,14 +122,13 @@ class DartiumBackend(object):
       self._cpp_impl_emitter = emitter.Emitter()
 
     self._interface_type_info = self._TypeInfo(self._interface.id)
-    self._members_emitter = emitter.Emitter()
+    self._members_emitter = memebers_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
     self._GenerateConstructors()
-    return self._members_emitter
 
   def _GenerateConstructors(self):
     if not self._IsConstructable():
@@ -169,7 +180,7 @@ class DartiumBackend(object):
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
 
-  def _BaseClassName(self):
+  def BaseClassName(self):
     root_class = 'NativeFieldWrapperClass1'
 
     if not self._interface.parents:
@@ -224,22 +235,6 @@ class DartiumBackend(object):
         NATIVE_NAME=native_binding)
 
   def FinishInterface(self):
-    template = None
-    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
-      template_file = 'impl_%s.darttemplate' % self._html_interface_name
-      template = self._template_loader.TryLoad(template_file)
-    if not template:
-      template = self._template_loader.Load('dart_implementation.darttemplate')
-
-    class_name = self._ImplClassName(self._interface.id)
-    members_emitter = self._dart_impl_emitter.Emit(
-        template,
-        CLASSNAME=class_name,
-        EXTENDS=' extends ' + self._BaseClassName(),
-        IMPLEMENTS=' implements ' + self._html_interface_name,
-        NATIVESPEC='')
-    members_emitter.Emit(''.join(self._members_emitter.Fragments()))
-
     self._GenerateCPPHeader()
 
     self._cpp_impl_emitter.Emit(
@@ -248,7 +243,7 @@ class DartiumBackend(object):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=class_name)
+        DART_IMPLEMENTATION_CLASS=self.ImplementationClassName())
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
