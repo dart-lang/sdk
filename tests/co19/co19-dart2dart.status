@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/10_Expressions/05_Strings_A12_t01: Fail # TRIAGE
+
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
@@ -16,7 +18,6 @@ Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
 Language/03_Overview/2_Privacy_A01_t09: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t10: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t11: Fail # inherited from dart2js
-Language/03_Overview/2_Privacy_A01_t12: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t19: Fail # inherited from VM
 Language/03_Overview/2_Privacy_A01_t20: Fail # inherited from VM
@@ -405,8 +406,6 @@ Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, Pass # co19 issue
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # http://dartbug.com/5519
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # inherited from dart2js
 Language/10_Expressions/30_Type_Cast_A01_t04: Fail # http://dartbug.com/5519
-Language/10_Expressions/30_Type_Cast_A02_t02: Fail # inherited from VM
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
 Language/10_Expressions/30_Type_Cast_A03_t02: Fail # http://dartbug.com/5029
 Language/10_Expressions/30_Type_Cast_A05_t01: Fail # http://dartbug.com/5029
@@ -586,13 +585,11 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited 
 LibTest/core/Set/addAll_A01_t04: Fail, OK # co19 issue 194
 LibTest/core/Set/contains_A01_t03: Fail, OK # co19 issue 194
 LibTest/core/Set/containsAll_A01_t03: Fail, OK # co19 issue 194
-LibTest/core/Set/intersection_A01_t02: Fail, OK # co19 issue 194
 LibTest/core/Set/remove_A01_t04: Fail, OK # co19 issue 194
 LibTest/core/Set/removeAll_A01_t03: Fail, OK # co19 issue 194
 LibTest/core/String/contains_A01_t02: Fail # inherited from VM
 LibTest/core/String/replaceAll_A02_t01: Fail, OK # co19 issue 103
 LibTest/core/String/replaceFirst_A02_t01: Fail, OK # co19 issue 103
-LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # inherited from VM
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name

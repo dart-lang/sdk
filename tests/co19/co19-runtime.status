@@ -3,13 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == none && $runtime == vm ]
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
-
+Language/03_Overview/2_Privacy_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t19: Fail # TODO(vm-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t20: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
@@ -80,6 +78,7 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage 
 Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/05_Strings_A12_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/08_Throw_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/08_Throw_A03_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/08_Throw_A04_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -134,7 +133,6 @@ Language/10_Expressions/29_Type_Test_A05_t01: Fail # TODO(vm-team): Please triag
 Language/10_Expressions/29_Type_Test_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/29_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/30_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(vm-team): Please triage this failure.
@@ -214,14 +212,11 @@ LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(vm-team): Please triage this f
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 
-
 Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue 234 - Wrongly expects a compile-time error instead of a dynamic error.
-
 
 # Failures related to assert being a reserved word now. co19 issue 218.
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 
-LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -387,7 +382,6 @@ LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 194
 LibTest/core/Set/addAll_A01_t04: Fail, OK # co19 issue 194
 LibTest/core/Set/containsAll_A01_t03: Fail, OK # co19 issue 194
 LibTest/core/Set/contains_A01_t03: Fail, OK # co19 issue 194
-LibTest/core/Set/intersection_A01_t02: Fail, OK # co19 issue 194
 LibTest/core/Set/removeAll_A01_t03: Fail, OK # co19 issue 194
 LibTest/core/Set/remove_A01_t04: Fail, OK # co19 issue 194
 
