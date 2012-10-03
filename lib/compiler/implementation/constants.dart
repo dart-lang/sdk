@@ -16,7 +16,7 @@ abstract class ConstantVisitor<R> {
   R visitConstructed(ConstructedConstant constant);
 }
 
-class Constant {
+abstract class Constant {
   const Constant();
 
   bool isNull() => false;
@@ -88,7 +88,7 @@ class FunctionConstant extends Constant {
   accept(ConstantVisitor visitor) => visitor.visitFunction(this);
 }
 
-class PrimitiveConstant extends Constant {
+abstract class PrimitiveConstant extends Constant {
   abstract get value;
   const PrimitiveConstant();
   bool isPrimitive() => true;
@@ -130,7 +130,7 @@ class NullConstant extends PrimitiveConstant {
   accept(ConstantVisitor visitor) => visitor.visitNull(this);
 }
 
-class NumConstant extends PrimitiveConstant {
+abstract class NumConstant extends PrimitiveConstant {
   abstract num get value;
   const NumConstant();
   bool isNum() => true;
@@ -225,7 +225,7 @@ class DoubleConstant extends NumConstant {
   accept(ConstantVisitor visitor) => visitor.visitDouble(this);
 }
 
-class BoolConstant extends PrimitiveConstant {
+abstract class BoolConstant extends PrimitiveConstant {
   factory BoolConstant(value) {
     return value ? new TrueConstant() : new FalseConstant();
   }
@@ -305,7 +305,7 @@ class StringConstant extends PrimitiveConstant {
   accept(ConstantVisitor visitor) => visitor.visitString(this);
 }
 
-class ObjectConstant extends Constant {
+abstract class ObjectConstant extends Constant {
   final DartType type;
 
   ObjectConstant(this.type);

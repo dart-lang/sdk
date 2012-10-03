@@ -563,7 +563,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   if (preserve_eax) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
@@ -574,6 +574,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ LeaveFrame();
   __ ret();
 }
+
 
 // TOS: return address + call-instruction-size (5 bytes).
 // EAX: result, must be preserved

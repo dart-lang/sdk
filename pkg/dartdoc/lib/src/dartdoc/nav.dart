@@ -23,6 +23,7 @@
  *        String KIND, // One of FIELD, CONSTRUCTOR, METHOD, GETTER, or SETTER.
  *        String LINK_NAME, // Anchor name for the member if different from
  *                          // NAME.
+ *        bool NO_PARAMS, // Is true if member takes no arguments?
  *     };
  *
  *
@@ -41,6 +42,7 @@ const String KIND = 'kind';
 const String FIELD = 'field';
 const String CONSTRUCTOR = 'constructor';
 const String METHOD = 'method';
+const String NO_PARAMS = 'noparams';
 const String GETTER = 'getter';
 const String SETTER = 'setter';
 const String LINK_NAME = 'link_name';

@@ -48,6 +48,7 @@ class IsolateMessageHandler : public MessageHandler {
   void CheckAccess();
 #endif
   bool IsCurrentIsolate() const;
+  Isolate* GetIsolate() const { return isolate_; }
 
  private:
   Isolate* isolate_;
@@ -171,7 +172,8 @@ Isolate::Isolate()
       deopt_xmm_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
-      deferred_doubles_(NULL) {
+      deferred_doubles_(NULL),
+      deferred_mints_(NULL) {
 }
 
 
@@ -233,6 +235,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
+
+  // Signal isolate creation event.
+  Debugger::SignalIsolateEvent(Debugger::kIsolateCreated);
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
@@ -410,6 +415,9 @@ void Isolate::Shutdown() {
     HandleScope handle_scope(this);
     debugger_->Shutdown();
   }
+
+  // Signal isolate shutdown event.
+  Debugger::SignalIsolateEvent(Debugger::kIsolateShutdown);
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());

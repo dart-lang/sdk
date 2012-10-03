@@ -92,7 +92,8 @@ void matchAllMembers(List<Result> results, String memberText) {
             if (memberMatch != null) {
               results.add(new Result(memberMatch, member[KIND],
                   getTypeMemberUrl(libraryName, typeName, member),
-                  library: libraryName, type: typeName, args: type[ARGS]));
+                  library: libraryName, type: typeName, args: type[ARGS],
+                  noargs: member[NO_PARAMS]));
             }
           }
         }
@@ -118,7 +119,8 @@ void matchAllMembersInType(List<Result> results,
                   member[NAME]);
               results.add(new Result(memberMatch, member[KIND],
                   getTypeMemberUrl(libraryName, typeName, member),
-                  library: libraryName, prefix: typeMatch));
+                  library: libraryName, prefix: typeMatch,
+                  noargs: member[NO_PARAMS]));
             }
           }
         }
@@ -147,7 +149,7 @@ void matchMembersInType(List<Result> results,
               if (constructorMatch != null) {
                 results.add(new Result(constructorMatch, member[KIND],
                     getTypeMemberUrl(libraryName, typeName, member),
-                    library: libraryName));
+                    library: libraryName, noargs: member[NO_PARAMS]));
               } else {
                 // Try member match.
                 StringMatch memberMatch = obtainMatch(memberSearchText,
@@ -156,7 +158,7 @@ void matchMembersInType(List<Result> results,
                   results.add(new Result(memberMatch, member[KIND],
                       getTypeMemberUrl(libraryName, typeName, member),
                       library: libraryName, prefix: typeMatch,
-                      args: type[ARGS]));
+                      args: type[ARGS], noargs: member[NO_PARAMS]));
                 }
               }
             }
@@ -185,7 +187,7 @@ void matchLibraryMembers(List<Result> results, SearchText searchText,
       if (memberMatch != null) {
         results.add(new Result(memberMatch, member[KIND],
                                getLibraryMemberUrl(libraryName, member),
-                               library: libraryName));
+                               library: libraryName, noargs: member[NO_PARAMS]));
       }
     }
   }
@@ -223,7 +225,8 @@ void matchTypeMembers(List<Result> results, SearchText searchText,
       if (memberMatch != null) {
         results.add(new Result(memberMatch, member[KIND],
             getTypeMemberUrl(libraryName, typeName, member),
-            library: libraryName, type: typeName, args: type[ARGS]));
+            library: libraryName, type: typeName, args: type[ARGS],
+            noargs: member[NO_PARAMS]));
       }
     }
   }

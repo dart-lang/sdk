@@ -141,7 +141,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
 }
 
-class Node {
+abstract class Node {
   var sourcePosition;
   var endSourcePosition;
 

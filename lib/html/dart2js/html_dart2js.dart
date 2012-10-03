@@ -23,7 +23,7 @@ Document get document() native "return document;";
 _DocumentImpl get _document() native "return document;";
 
 Element query(String selector) => _document.query(selector);
-ElementList queryAll(String selector) => _document.queryAll(selector);
+List<Element> queryAll(String selector) => _document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
@@ -293,18 +293,6 @@ class _AnimationEventImpl extends _EventImpl implements AnimationEvent native "*
 }
 
 class _AnimationImpl implements Animation native "*WebKitAnimation" {
-
-  static const int DIRECTION_ALTERNATE = 1;
-
-  static const int DIRECTION_NORMAL = 0;
-
-  static const int FILL_BACKWARDS = 1;
-
-  static const int FILL_BOTH = 3;
-
-  static const int FILL_FORWARDS = 2;
-
-  static const int FILL_NONE = 0;
 
   final num delay;
 
@@ -679,16 +667,29 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.stop */
   void stop(num when);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
 
-  static const int FINISHED_STATE = 3;
+  // TODO(efortuna): Remove these methods when Chrome stable also uses start
+  // instead of noteOn.
+  void start(num when, [num grainOffset, num grainDuration]) {
+    if (JS('bool', '!!#.start', this)) {
+      JS('void', '#.start(#, #, #)', this, when, grainOffset, grainDuration);
+    } else {
+      JS('void', '#.noteOn(#, #, #)', this, when, grainOffset, grainDuration);
+    }
+  }
 
-  static const int PLAYING_STATE = 2;
-
-  static const int SCHEDULED_STATE = 1;
-
-  static const int UNSCHEDULED_STATE = 0;
+  void stop(num when) {
+    if (JS('bool', '!!#.stop', this)) {
+      JS('void', '#.stop(#)', this, when);
+    } else {
+      JS('void', '#.noteOff(#)', this, when);
+    }
+  }
 
   _AudioBufferImpl buffer;
 
@@ -702,9 +703,6 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   final int playbackState;
 
-  void start(num when, [num grainOffset, num grainDuration]) native;
-
-  void stop(num when) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1084,18 +1082,6 @@ abstract class AudioPannerNode implements AudioNode {
 
 class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode native "*AudioPannerNode" {
 
-  static const int EQUALPOWER = 0;
-
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  static const int HRTF = 1;
-
-  static const int INVERSE_DISTANCE = 1;
-
-  static const int LINEAR_DISTANCE = 0;
-
-  static const int SOUNDFIELD = 2;
-
   final _AudioGainImpl coneGain;
 
   num coneInnerAngle;
@@ -1452,22 +1438,6 @@ abstract class BiquadFilterNode implements AudioNode {
 }
 
 class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode native "*BiquadFilterNode" {
-
-  static const int ALLPASS = 7;
-
-  static const int BANDPASS = 2;
-
-  static const int HIGHPASS = 1;
-
-  static const int HIGHSHELF = 4;
-
-  static const int LOWPASS = 0;
-
-  static const int LOWSHELF = 3;
-
-  static const int NOTCH = 6;
-
-  static const int PEAKING = 5;
 
   final _AudioParamImpl Q;
 
@@ -2180,64 +2150,6 @@ abstract class CSSPrimitiveValue implements CSSValue {
 
 class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
 
-  static const int CSS_ATTR = 22;
-
-  static const int CSS_CM = 6;
-
-  static const int CSS_COUNTER = 23;
-
-  static const int CSS_DEG = 11;
-
-  static const int CSS_DIMENSION = 18;
-
-  static const int CSS_EMS = 3;
-
-  static const int CSS_EXS = 4;
-
-  static const int CSS_GRAD = 13;
-
-  static const int CSS_HZ = 16;
-
-  static const int CSS_IDENT = 21;
-
-  static const int CSS_IN = 8;
-
-  static const int CSS_KHZ = 17;
-
-  static const int CSS_MM = 7;
-
-  static const int CSS_MS = 14;
-
-  static const int CSS_NUMBER = 1;
-
-  static const int CSS_PC = 10;
-
-  static const int CSS_PERCENTAGE = 2;
-
-  static const int CSS_PT = 9;
-
-  static const int CSS_PX = 5;
-
-  static const int CSS_RAD = 12;
-
-  static const int CSS_RECT = 24;
-
-  static const int CSS_RGBCOLOR = 25;
-
-  static const int CSS_S = 15;
-
-  static const int CSS_STRING = 19;
-
-  static const int CSS_UNKNOWN = 0;
-
-  static const int CSS_URI = 20;
-
-  static const int CSS_VH = 27;
-
-  static const int CSS_VMIN = 28;
-
-  static const int CSS_VW = 26;
-
   final int primitiveType;
 
   _CounterImpl getCounterValue() native;
@@ -2295,24 +2207,6 @@ abstract class CSSRule {
 }
 
 class _CSSRuleImpl implements CSSRule native "*CSSRule" {
-
-  static const int CHARSET_RULE = 2;
-
-  static const int FONT_FACE_RULE = 5;
-
-  static const int IMPORT_RULE = 3;
-
-  static const int MEDIA_RULE = 4;
-
-  static const int PAGE_RULE = 6;
-
-  static const int STYLE_RULE = 1;
-
-  static const int UNKNOWN_RULE = 0;
-
-  static const int WEBKIT_KEYFRAMES_RULE = 7;
-
-  static const int WEBKIT_KEYFRAME_RULE = 8;
 
   String cssText;
 
@@ -7241,48 +7135,6 @@ abstract class CSSTransformValue implements List<CSSValue> {
 
 class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue native "*WebKitCSSTransformValue" {
 
-  static const int CSS_MATRIX = 11;
-
-  static const int CSS_MATRIX3D = 21;
-
-  static const int CSS_PERSPECTIVE = 20;
-
-  static const int CSS_ROTATE = 4;
-
-  static const int CSS_ROTATE3D = 17;
-
-  static const int CSS_ROTATEX = 14;
-
-  static const int CSS_ROTATEY = 15;
-
-  static const int CSS_ROTATEZ = 16;
-
-  static const int CSS_SCALE = 5;
-
-  static const int CSS_SCALE3D = 19;
-
-  static const int CSS_SCALEX = 6;
-
-  static const int CSS_SCALEY = 7;
-
-  static const int CSS_SCALEZ = 18;
-
-  static const int CSS_SKEW = 8;
-
-  static const int CSS_SKEWX = 9;
-
-  static const int CSS_SKEWY = 10;
-
-  static const int CSS_TRANSLATE = 1;
-
-  static const int CSS_TRANSLATE3D = 13;
-
-  static const int CSS_TRANSLATEX = 2;
-
-  static const int CSS_TRANSLATEY = 3;
-
-  static const int CSS_TRANSLATEZ = 12;
-
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7322,14 +7174,6 @@ abstract class CSSValue {
 }
 
 class _CSSValueImpl implements CSSValue native "*CSSValue" {
-
-  static const int CSS_CUSTOM = 3;
-
-  static const int CSS_INHERIT = 0;
-
-  static const int CSS_PRIMITIVE_VALUE = 1;
-
-  static const int CSS_VALUE_LIST = 2;
 
   String cssText;
 
@@ -8495,18 +8339,23 @@ class _CryptoImpl implements Crypto native "*Crypto" {
 /// @domName CustomEvent
 abstract class CustomEvent implements Event {
 
+  factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
+      Object detail = null]) => _CustomEventFactoryProvider.createCustomEvent(type, canBubble,
+      cancelable, detail);
+
+
   /** @domName CustomEvent.detail */
   abstract Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 
 class _CustomEventImpl extends _EventImpl implements CustomEvent native "*CustomEvent" {
 
   final Object detail;
 
-  void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
+  void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "initCustomEvent";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8598,18 +8447,6 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   _DOMApplicationCacheEventsImpl get on =>
     new _DOMApplicationCacheEventsImpl(this);
-
-  static const int CHECKING = 2;
-
-  static const int DOWNLOADING = 3;
-
-  static const int IDLE = 1;
-
-  static const int OBSOLETE = 5;
-
-  static const int UNCACHED = 0;
-
-  static const int UPDATEREADY = 4;
 
   final int status;
 
@@ -8735,56 +8572,6 @@ abstract class DOMException {
 }
 
 class _DOMExceptionImpl implements DOMException native "*DOMException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
 
   final int code;
 
@@ -10324,10 +10111,6 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get focus;
 
-  EventListenerList get fullscreenChange;
-
-  EventListenerList get fullscreenError;
-
   EventListenerList get input;
 
   EventListenerList get invalid;
@@ -10354,10 +10137,6 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get paste;
 
-  EventListenerList get pointerLockChange;
-
-  EventListenerList get pointerLockError;
-
   EventListenerList get readyStateChange;
 
   EventListenerList get reset;
@@ -10368,9 +10147,9 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get select;
 
-  EventListenerList get selectStart;
-
   EventListenerList get selectionChange;
+
+  EventListenerList get selectStart;
 
   EventListenerList get submit;
 
@@ -10381,6 +10160,14 @@ abstract class DocumentEvents implements ElementEvents {
   EventListenerList get touchMove;
 
   EventListenerList get touchStart;
+
+  EventListenerList get fullscreenChange;
+
+  EventListenerList get fullscreenError;
+
+  EventListenerList get pointerLockChange;
+
+  EventListenerList get pointerLockError;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10420,11 +10207,11 @@ abstract class DocumentFragment extends Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class FilteredElementList implements ElementList {
+class _FilteredElementList implements List {
   final Node _node;
   final NodeList _childNodes;
 
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+  _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
@@ -10432,16 +10219,6 @@ class FilteredElementList implements ElementList {
   // TODO(nweiz): Do we really need to copy the list to make the types work out?
   List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
-
-  // Don't use _filtered.first so we can short-circuit once we find an element.
-  Element get first {
-    for (final node in _childNodes) {
-      if (node is Element) {
-        return node;
-      }
-    }
-    return null;
-  }
 
   void forEach(void f(Element element)) {
     _filtered.forEach(f);
@@ -10553,11 +10330,11 @@ class _FrozenCSSClassSet extends _CssClassSet {
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
-  ElementList _elements;
+  List<Element> _elements;
 
-  ElementList get elements {
+  List<Element> get elements {
     if (_elements == null) {
-      _elements = new FilteredElementList(this);
+      _elements = new _FilteredElementList(this);
     }
     return _elements;
   }
@@ -10602,7 +10379,8 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
       case "beforebegin": return null;
       case "afterend": return null;
       case "afterbegin":
-        this.insertBefore(node, this.nodes.first);
+        var first = this.nodes.length > 0 ? this.nodes[0] : null;
+        this.insertBefore(node, first);
         return node;
       case "beforeend":
         this.nodes.add(node);
@@ -10651,7 +10429,12 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   String get tagName => "";
   String get webkitdropzone => "";
   String get webkitRegionOverflow => "";
-  Element get $m_firstElementChild() => elements.first();
+  Element get $m_firstElementChild {
+    if (elements.length > 0) {
+      return elements[0];
+    }
+    return null;
+  }
   Element get $m_lastElementChild() => elements.last();
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
@@ -10976,10 +10759,6 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-
   EventListenerList get input => this['input'];
 
   EventListenerList get invalid => this['invalid'];
@@ -11006,10 +10785,6 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get paste => this['paste'];
 
-  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
-
-  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
-
   EventListenerList get readyStateChange => this['readystatechange'];
 
   EventListenerList get reset => this['reset'];
@@ -11020,9 +10795,9 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart => this['selectstart'];
-
   EventListenerList get selectionChange => this['selectionchange'];
+
+  EventListenerList get selectStart => this['selectstart'];
 
   EventListenerList get submit => this['submit'];
 
@@ -11033,6 +10808,14 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   EventListenerList get touchMove => this['touchmove'];
 
   EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
+
+  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
+
+  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11138,31 +10921,12 @@ abstract class EXTTextureFilterAnisotropic {
 }
 
 class _EXTTextureFilterAnisotropicImpl implements EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
-
-  static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
-
-  static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
-
-// TODO(vsm): Eliminate this type.
-
-// Note, ElementList implements List (instead of List<Element>) so
-// that its implementing classes may be cast to Lists of more specific
-// type such as List<CanvasElement>.
-abstract class ElementList implements List {
-  // TODO(jacobr): add element batch manipulation methods.
-  ElementList filter(bool f(Element element));
-
-  ElementList getRange(int start, int length);
-
-  Element get first;
-  // TODO(jacobr): add insertAt
-}
 
 /**
  * All your attribute manipulation needs in one place.
@@ -11220,7 +10984,7 @@ abstract class Element implements Node, NodeSelector {
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  ElementList get elements;
+  List<Element> get elements;
 
   void set elements(Collection<Element> value);
 
@@ -11507,10 +11271,6 @@ abstract class ElementEvents implements Events {
 
   EventListenerList get focus;
 
-  EventListenerList get fullscreenChange;
-
-  EventListenerList get fullscreenError;
-
   EventListenerList get input;
 
   EventListenerList get invalid;
@@ -11562,6 +11322,10 @@ abstract class ElementEvents implements Events {
   EventListenerList get touchStart;
 
   EventListenerList get transitionEnd;
+
+  EventListenerList get fullscreenChange;
+
+  EventListenerList get fullscreenError;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11569,7 +11333,7 @@ abstract class ElementEvents implements Events {
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
-class _ChildrenElementList implements ElementList {
+class _ChildrenElementList implements List {
   // Raw Element.
   final _ElementImpl _element;
   final _HTMLCollectionImpl _childElements;
@@ -11586,18 +11350,14 @@ class _ChildrenElementList implements ElementList {
     return output;
   }
 
-  _ElementImpl get first {
-    return _element.$dom_firstElementChild;
-  }
-
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
     }
   }
 
-  ElementList filter(bool f(Element element)) {
-    final output = <Element>[];
+  List<Element> filter(bool f(Element element)) {
+    final output = [];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
@@ -11686,7 +11446,7 @@ class _ChildrenElementList implements ElementList {
 
   List getRange(int start, int rangeLength) =>
     new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
-        <Element>[]));
+        []));
 
   int indexOf(Element element, [int start = 0]) {
     return _Lists.indexOf(this, element, start, this.length);
@@ -11719,7 +11479,7 @@ class _ChildrenElementList implements ElementList {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList implements ElementList {
+class _FrozenElementList implements List {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -11742,8 +11502,8 @@ class _FrozenElementList implements ElementList {
     return out;
   }
 
-  ElementList filter(bool f(Element element)) {
-    final out = new _ElementList([]);
+  List<Element> filter(bool f(Element element)) {
+    final out = [];
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
@@ -11812,7 +11572,7 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int rangeLength) =>
+  List<Element> getRange(int start, int rangeLength) =>
     new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
@@ -11854,16 +11614,6 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
-}
-
-class _ElementList extends _ListWrapper<Element> implements ElementList {
-  _ElementList(List<Element> list) : super(list);
-
-  ElementList filter(bool f(Element element)) =>
-    new _ElementList(super.filter(f));
-
-  ElementList getRange(int start, int rangeLength) =>
-    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -12253,7 +12003,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
     elements.addAll(value);
   }
 
-  ElementList get elements => new _ChildrenElementList._wrap(this);
+  List<Element> get elements => new _ChildrenElementList._wrap(this);
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
@@ -12352,7 +12102,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         this.parent.insertBefore(node, this);
         break;
       case 'afterbegin':
-        this.insertBefore(node, this.nodes.first);
+        var first = this.nodes.length > 0 ? this.nodes[0] : null;
+        this.insertBefore(node, first);
         break;
       case 'beforeend':
         this.nodes.add(node);
@@ -12400,8 +12151,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   String webkitdropzone;
 
   void click() native;
-
-  static const int ALLOW_KEYBOARD_INPUT = 1;
 
   int get $dom_childElementCount() native "return this.childElementCount;";
 
@@ -12534,7 +12283,7 @@ class _ElementFactoryProvider {
 
     Element element;
     if (temp.elements.length == 1) {
-      element = temp.elements.first;
+      element = temp.elements[0];
     } else if (parentTag == 'html' && temp.elements.length == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
@@ -12601,10 +12350,6 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
   EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-
   EventListenerList get input => this['input'];
 
   EventListenerList get invalid => this['invalid'];
@@ -12654,6 +12399,10 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get touchStart => this['touchstart'];
 
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get mouseWheel {
     if (JS('bool', '#.onwheel !== undefined', _ptr)) {
@@ -13288,10 +13037,6 @@ abstract class EventException {
 
 class _EventExceptionImpl implements EventException native "*EventException" {
 
-  static const int DISPATCH_REQUEST_ERR = 1;
-
-  static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
-
   final int code;
 
   final String message;
@@ -13302,46 +13047,6 @@ class _EventExceptionImpl implements EventException native "*EventException" {
 }
 
 class _EventImpl implements Event native "*Event" {
-
-  static const int AT_TARGET = 2;
-
-  static const int BLUR = 8192;
-
-  static const int BUBBLING_PHASE = 3;
-
-  static const int CAPTURING_PHASE = 1;
-
-  static const int CHANGE = 32768;
-
-  static const int CLICK = 64;
-
-  static const int DBLCLICK = 128;
-
-  static const int DRAGDROP = 2048;
-
-  static const int FOCUS = 4096;
-
-  static const int KEYDOWN = 256;
-
-  static const int KEYPRESS = 1024;
-
-  static const int KEYUP = 512;
-
-  static const int MOUSEDOWN = 1;
-
-  static const int MOUSEDRAG = 32;
-
-  static const int MOUSEMOVE = 16;
-
-  static const int MOUSEOUT = 8;
-
-  static const int MOUSEOVER = 4;
-
-  static const int MOUSEUP = 2;
-
-  static const int NONE = 0;
-
-  static const int SELECT = 16384;
 
   final bool bubbles;
 
@@ -13432,12 +13137,6 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 
   _EventSourceEventsImpl get on =>
     new _EventSourceEventsImpl(this);
-
-  static const int CLOSED = 2;
-
-  static const int CONNECTING = 0;
-
-  static const int OPEN = 1;
 
   final String URL;
 
@@ -13736,30 +13435,6 @@ abstract class FileError {
 
 class _FileErrorImpl implements FileError native "*FileError" {
 
-  static const int ABORT_ERR = 3;
-
-  static const int ENCODING_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 9;
-
-  static const int INVALID_STATE_ERR = 7;
-
-  static const int NOT_FOUND_ERR = 1;
-
-  static const int NOT_READABLE_ERR = 4;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
-
-  static const int PATH_EXISTS_ERR = 12;
-
-  static const int QUOTA_EXCEEDED_ERR = 10;
-
-  static const int SECURITY_ERR = 2;
-
-  static const int SYNTAX_ERR = 8;
-
-  static const int TYPE_MISMATCH_ERR = 11;
-
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13809,30 +13484,6 @@ abstract class FileException {
 }
 
 class _FileExceptionImpl implements FileException native "*FileException" {
-
-  static const int ABORT_ERR = 3;
-
-  static const int ENCODING_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 9;
-
-  static const int INVALID_STATE_ERR = 7;
-
-  static const int NOT_FOUND_ERR = 1;
-
-  static const int NOT_READABLE_ERR = 4;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 6;
-
-  static const int PATH_EXISTS_ERR = 12;
-
-  static const int QUOTA_EXCEEDED_ERR = 10;
-
-  static const int SECURITY_ERR = 2;
-
-  static const int SYNTAX_ERR = 8;
-
-  static const int TYPE_MISMATCH_ERR = 11;
 
   final int code;
 
@@ -14015,12 +13666,6 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*Fi
   _FileReaderEventsImpl get on =>
     new _FileReaderEventsImpl(this);
 
-  static const int DONE = 2;
-
-  static const int EMPTY = 0;
-
-  static const int LOADING = 1;
-
   final _FileErrorImpl error;
 
   final int readyState;
@@ -14181,12 +13826,6 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*Fi
   _FileWriterEventsImpl get on =>
     new _FileWriterEventsImpl(this);
 
-  static const int DONE = 2;
-
-  static const int INIT = 0;
-
-  static const int WRITING = 1;
-
   final _FileErrorImpl error;
 
   final int length;
@@ -14293,8 +13932,6 @@ abstract class Float32Array implements ArrayBufferView, List<num> {
 }
 
 class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num>, JavaScriptIndexingBehavior native "*Float32Array" {
-
-  static const int BYTES_PER_ELEMENT = 4;
 
   final int length;
 
@@ -14412,8 +14049,6 @@ abstract class Float64Array implements ArrayBufferView, List<num> {
 }
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num>, JavaScriptIndexingBehavior native "*Float64Array" {
-
-  static const int BYTES_PER_ELEMENT = 8;
 
   final int length;
 
@@ -15529,10 +15164,6 @@ abstract class HttpRequestException {
 
 class _HttpRequestExceptionImpl implements HttpRequestException native "*XMLHttpRequestException" {
 
-  static const int ABORT_ERR = 102;
-
-  static const int NETWORK_ERR = 101;
-
   final int code;
 
   final String message;
@@ -15546,16 +15177,6 @@ class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest native "*
 
   _HttpRequestEventsImpl get on =>
     new _HttpRequestEventsImpl(this);
-
-  static const int DONE = 4;
-
-  static const int HEADERS_RECEIVED = 2;
-
-  static const int LOADING = 3;
-
-  static const int OPENED = 1;
-
-  static const int UNSENT = 0;
 
   final int readyState;
 
@@ -15757,14 +15378,6 @@ abstract class IDBCursor {
 
 class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
-  static const int NEXT = 0;
-
-  static const int NEXT_NO_DUPLICATE = 1;
-
-  static const int PREV = 2;
-
-  static const int PREV_NO_DUPLICATE = 3;
-
   final String direction;
 
   Dynamic get key => _convertNativeToDart_IDBKey(this._key);
@@ -15920,32 +15533,6 @@ abstract class IDBDatabaseException {
 }
 
 class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
-
-  static const int ABORT_ERR = 20;
-
-  static const int CONSTRAINT_ERR = 4;
-
-  static const int DATA_ERR = 5;
-
-  static const int NON_TRANSIENT_ERR = 2;
-
-  static const int NOT_ALLOWED_ERR = 6;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NO_ERR = 0;
-
-  static const int QUOTA_ERR = 22;
-
-  static const int READ_ONLY_ERR = 9;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TRANSACTION_INACTIVE_ERR = 7;
-
-  static const int UNKNOWN_ERR = 1;
-
-  static const int VER_ERR = 12;
 
   final int code;
 
@@ -16823,12 +16410,6 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction nat
   _IDBTransactionEventsImpl get on =>
     new _IDBTransactionEventsImpl(this);
 
-  static const int READ_ONLY = 0;
-
-  static const int READ_WRITE = 1;
-
-  static const int VERSION_CHANGE = 2;
-
   final _IDBDatabaseImpl db;
 
   final _DOMErrorImpl error;
@@ -17549,8 +17130,6 @@ abstract class Int16Array implements ArrayBufferView, List<int> {
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int>, JavaScriptIndexingBehavior native "*Int16Array" {
 
-  static const int BYTES_PER_ELEMENT = 2;
-
   final int length;
 
   int operator[](int index) native "return this[index];";
@@ -17668,8 +17247,6 @@ abstract class Int32Array implements ArrayBufferView, List<int> {
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int>, JavaScriptIndexingBehavior native "*Int32Array" {
 
-  static const int BYTES_PER_ELEMENT = 4;
-
   final int length;
 
   int operator[](int index) native "return this[index];";
@@ -17786,8 +17363,6 @@ abstract class Int8Array implements ArrayBufferView, List<int> {
 }
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int>, JavaScriptIndexingBehavior native "*Int8Array" {
-
-  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -17972,16 +17547,6 @@ abstract class JavaScriptCallFrame {
 }
 
 class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
-
-  static const int CATCH_SCOPE = 4;
-
-  static const int CLOSURE_SCOPE = 3;
-
-  static const int GLOBAL_SCOPE = 0;
-
-  static const int LOCAL_SCOPE = 1;
-
-  static const int WITH_SCOPE = 2;
 
   final _JavaScriptCallFrameImpl caller;
 
@@ -18744,19 +18309,11 @@ abstract class MediaElementEvents implements ElementEvents {
 
   EventListenerList get ended;
 
-  EventListenerList get keyAdded;
-
-  EventListenerList get keyError;
-
-  EventListenerList get keyMessage;
-
-  EventListenerList get loadStart;
-
   EventListenerList get loadedData;
 
   EventListenerList get loadedMetadata;
 
-  EventListenerList get needKey;
+  EventListenerList get loadStart;
 
   EventListenerList get pause;
 
@@ -18783,6 +18340,14 @@ abstract class MediaElementEvents implements ElementEvents {
   EventListenerList get volumeChange;
 
   EventListenerList get waiting;
+
+  EventListenerList get keyAdded;
+
+  EventListenerList get keyError;
+
+  EventListenerList get keyMessage;
+
+  EventListenerList get needKey;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18806,24 +18371,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   _MediaElementEventsImpl get on =>
     new _MediaElementEventsImpl(this);
-
-  static const int HAVE_CURRENT_DATA = 2;
-
-  static const int HAVE_ENOUGH_DATA = 4;
-
-  static const int HAVE_FUTURE_DATA = 3;
-
-  static const int HAVE_METADATA = 1;
-
-  static const int HAVE_NOTHING = 0;
-
-  static const int NETWORK_EMPTY = 0;
-
-  static const int NETWORK_IDLE = 1;
-
-  static const int NETWORK_LOADING = 2;
-
-  static const int NETWORK_NO_SOURCE = 3;
 
   bool autoplay;
 
@@ -18919,19 +18466,11 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
 
   EventListenerList get ended => this['ended'];
 
-  EventListenerList get keyAdded => this['webkitkeyadded'];
-
-  EventListenerList get keyError => this['webkitkeyerror'];
-
-  EventListenerList get keyMessage => this['webkitkeymessage'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
   EventListenerList get loadedData => this['loadeddata'];
 
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get needKey => this['webkitneedkey'];
+  EventListenerList get loadStart => this['loadstart'];
 
   EventListenerList get pause => this['pause'];
 
@@ -18958,6 +18497,14 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
   EventListenerList get volumeChange => this['volumechange'];
 
   EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get keyAdded => this['webkitkeyadded'];
+
+  EventListenerList get keyError => this['webkitkeyerror'];
+
+  EventListenerList get keyMessage => this['webkitkeymessage'];
+
+  EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18983,16 +18530,6 @@ abstract class MediaError {
 }
 
 class _MediaErrorImpl implements MediaError native "*MediaError" {
-
-  static const int MEDIA_ERR_ABORTED = 1;
-
-  static const int MEDIA_ERR_DECODE = 3;
-
-  static const int MEDIA_ERR_ENCRYPTED = 5;
-
-  static const int MEDIA_ERR_NETWORK = 2;
-
-  static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   final int code;
 }
@@ -19022,18 +18559,6 @@ abstract class MediaKeyError {
 }
 
 class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
-
-  static const int MEDIA_KEYERR_CLIENT = 2;
-
-  static const int MEDIA_KEYERR_DOMAIN = 6;
-
-  static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
-
-  static const int MEDIA_KEYERR_OUTPUT = 4;
-
-  static const int MEDIA_KEYERR_SERVICE = 3;
-
-  static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   final int code;
 }
@@ -19315,10 +18840,6 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*
   _MediaStreamEventsImpl get on =>
     new _MediaStreamEventsImpl(this);
 
-  static const int ENDED = 2;
-
-  static const int LIVE = 1;
-
   final _MediaStreamTrackListImpl audioTracks;
 
   final String label;
@@ -19499,12 +19020,6 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 
   _MediaStreamTrackEventsImpl get on =>
     new _MediaStreamTrackEventsImpl(this);
-
-  static const int ENDED = 2;
-
-  static const int LIVE = 0;
-
-  static const int MUTED = 1;
 
   bool enabled;
 
@@ -20108,12 +19623,6 @@ abstract class MutationEvent implements Event {
 
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
-  static const int ADDITION = 2;
-
-  static const int MODIFICATION = 1;
-
-  static const int REMOVAL = 3;
-
   final int attrChange;
 
   final String attrName;
@@ -20568,8 +20077,6 @@ typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
-  static const int PERMISSION_DENIED = 1;
-
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20748,38 +20255,6 @@ abstract class NodeFilter {
 
 class _NodeFilterImpl implements NodeFilter native "*NodeFilter" {
 
-  static const int FILTER_ACCEPT = 1;
-
-  static const int FILTER_REJECT = 2;
-
-  static const int FILTER_SKIP = 3;
-
-  static const int SHOW_ALL = 0xFFFFFFFF;
-
-  static const int SHOW_ATTRIBUTE = 0x00000002;
-
-  static const int SHOW_CDATA_SECTION = 0x00000008;
-
-  static const int SHOW_COMMENT = 0x00000080;
-
-  static const int SHOW_DOCUMENT = 0x00000100;
-
-  static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
-
-  static const int SHOW_DOCUMENT_TYPE = 0x00000200;
-
-  static const int SHOW_ELEMENT = 0x00000001;
-
-  static const int SHOW_ENTITY = 0x00000020;
-
-  static const int SHOW_ENTITY_REFERENCE = 0x00000010;
-
-  static const int SHOW_NOTATION = 0x00000800;
-
-  static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
-
-  static const int SHOW_TEXT = 0x00000004;
-
   int acceptNode(_NodeImpl n) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20921,42 +20396,6 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
     return this;
   }
 
-
-  static const int ATTRIBUTE_NODE = 2;
-
-  static const int CDATA_SECTION_NODE = 4;
-
-  static const int COMMENT_NODE = 8;
-
-  static const int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static const int DOCUMENT_NODE = 9;
-
-  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static const int DOCUMENT_TYPE_NODE = 10;
-
-  static const int ELEMENT_NODE = 1;
-
-  static const int ENTITY_NODE = 6;
-
-  static const int ENTITY_REFERENCE_NODE = 5;
-
-  static const int NOTATION_NODE = 12;
-
-  static const int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static const int TEXT_NODE = 3;
 
   _NamedNodeMapImpl get $dom_attributes() native "return this.attributes;";
 
@@ -21152,10 +20591,10 @@ class _ListWrapper<E> implements List<E> {
 class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   _NodeListWrapper(List list) : super(list);
 
-  NodeList filter(bool f(Node element)) =>
+  List<Node> filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  NodeList getRange(int start, int rangeLength) =>
+  List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
@@ -21186,7 +20625,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   void addAll(Collection<_NodeImpl> collection) {
     for (_NodeImpl node in collection) {
-      _parent.$dom_appendChild(node);      
+      _parent.$dom_appendChild(node);
     }
   }
 
@@ -21244,7 +20683,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int rangeLength) =>
+  List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
@@ -21440,8 +20879,6 @@ abstract class OESStandardDerivatives {
 }
 
 class _OESStandardDerivativesImpl implements OESStandardDerivatives native "*OESStandardDerivatives" {
-
-  static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21480,8 +20917,6 @@ abstract class OESVertexArrayObject {
 }
 
 class _OESVertexArrayObjectImpl implements OESVertexArrayObject native "*OESVertexArrayObject" {
-
-  static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   void bindVertexArrayOES(_WebGLVertexArrayObjectOESImpl arrayObject) native;
 
@@ -21809,24 +21244,6 @@ abstract class Oscillator implements AudioSourceNode {
 
 class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
 
-  static const int CUSTOM = 4;
-
-  static const int FINISHED_STATE = 3;
-
-  static const int PLAYING_STATE = 2;
-
-  static const int SAWTOOTH = 2;
-
-  static const int SCHEDULED_STATE = 1;
-
-  static const int SINE = 0;
-
-  static const int SQUARE = 1;
-
-  static const int TRIANGLE = 3;
-
-  static const int UNSCHEDULED_STATE = 0;
-
   final _AudioParamImpl detune;
 
   final _AudioParamImpl frequency;
@@ -21941,12 +21358,6 @@ abstract class OverflowEvent implements Event {
 }
 
 class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*OverflowEvent" {
-
-  static const int BOTH = 2;
-
-  static const int HORIZONTAL = 0;
-
-  static const int VERTICAL = 1;
 
   final bool horizontalOverflow;
 
@@ -22163,34 +21574,6 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
   _PeerConnection00EventsImpl get on =>
     new _PeerConnection00EventsImpl(this);
 
-  static const int ACTIVE = 2;
-
-  static const int CLOSED = 3;
-
-  static const int ICE_CHECKING = 0x300;
-
-  static const int ICE_CLOSED = 0x700;
-
-  static const int ICE_COMPLETED = 0x500;
-
-  static const int ICE_CONNECTED = 0x400;
-
-  static const int ICE_FAILED = 0x600;
-
-  static const int ICE_GATHERING = 0x100;
-
-  static const int ICE_WAITING = 0x200;
-
-  static const int NEW = 0;
-
-  static const int OPENING = 1;
-
-  static const int SDP_ANSWER = 0x300;
-
-  static const int SDP_OFFER = 0x100;
-
-  static const int SDP_PRANSWER = 0x200;
-
   final int iceState;
 
   final _SessionDescriptionImpl localDescription;
@@ -22334,14 +21717,6 @@ abstract class PerformanceNavigation {
 }
 
 class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
-
-  static const int TYPE_BACK_FORWARD = 2;
-
-  static const int TYPE_NAVIGATE = 0;
-
-  static const int TYPE_RELOAD = 1;
-
-  static const int TYPE_RESERVED = 255;
 
   final int redirectCount;
 
@@ -22542,12 +21917,6 @@ abstract class PositionError {
 typedef bool PositionErrorCallback(PositionError error);
 
 class _PositionErrorImpl implements PositionError native "*PositionError" {
-
-  static const int PERMISSION_DENIED = 1;
-
-  static const int POSITION_UNAVAILABLE = 2;
-
-  static const int TIMEOUT = 3;
 
   final int code;
 
@@ -23210,10 +22579,6 @@ abstract class RangeException {
 
 class _RangeExceptionImpl implements RangeException native "*RangeException" {
 
-  static const int BAD_BOUNDARYPOINTS_ERR = 1;
-
-  static const int INVALID_NODE_TYPE_ERR = 2;
-
   final int code;
 
   final String message;
@@ -23224,22 +22589,6 @@ class _RangeExceptionImpl implements RangeException native "*RangeException" {
 }
 
 class _RangeImpl implements Range native "*Range" {
-
-  static const int END_TO_END = 2;
-
-  static const int END_TO_START = 3;
-
-  static const int NODE_AFTER = 1;
-
-  static const int NODE_BEFORE = 0;
-
-  static const int NODE_BEFORE_AND_AFTER = 2;
-
-  static const int NODE_INSIDE = 3;
-
-  static const int START_TO_END = 1;
-
-  static const int START_TO_START = 0;
 
   final bool collapsed;
 
@@ -23428,22 +22777,6 @@ abstract class SQLError {
 
 class _SQLErrorImpl implements SQLError native "*SQLError" {
 
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
-
   final int code;
 
   final String message;
@@ -23481,22 +22814,6 @@ abstract class SQLException {
 }
 
 class _SQLExceptionImpl implements SQLException native "*SQLException" {
-
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
 
   final int code;
 
@@ -23780,16 +23097,6 @@ abstract class SVGAngle {
 }
 
 class _SVGAngleImpl implements SVGAngle native "*SVGAngle" {
-
-  static const int SVG_ANGLETYPE_DEG = 2;
-
-  static const int SVG_ANGLETYPE_GRAD = 4;
-
-  static const int SVG_ANGLETYPE_RAD = 3;
-
-  static const int SVG_ANGLETYPE_UNKNOWN = 0;
-
-  static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   final int unitType;
 
@@ -24587,14 +23894,6 @@ abstract class SVGColor implements CSSValue {
 
 class _SVGColorImpl extends _CSSValueImpl implements SVGColor native "*SVGColor" {
 
-  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
-
-  static const int SVG_COLORTYPE_RGBCOLOR = 1;
-
-  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_COLORTYPE_UNKNOWN = 0;
-
   final int colorType;
 
   final _RGBColorImpl rgbColor;
@@ -24649,18 +23948,6 @@ abstract class SVGComponentTransferFunctionElement implements SVGElement {
 }
 
 class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedNumberImpl amplitude;
 
@@ -24874,7 +24161,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
     return _cssClassSet;
   }
 
-  ElementList get elements => new FilteredElementList(this);
+  List<Element> get elements => new _FilteredElementList(this);
 
   void set elements(Collection<Element> value) {
     final elements = this.elements;
@@ -24901,7 +24188,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
     // Wrap the SVG string in <svg> so that SVGElements are created, rather than
     // HTMLElements.
     container.innerHTML = '<svg version="1.1">$svg</svg>';
-    this.elements = container.elements.first.elements;
+    this.elements = container.elements[0].elements;
   }
 
 
@@ -25341,12 +24628,6 @@ abstract class SVGException {
 
 class _SVGExceptionImpl implements SVGException native "*SVGException" {
 
-  static const int SVG_INVALID_VALUE_ERR = 1;
-
-  static const int SVG_MATRIX_NOT_INVERTABLE = 2;
-
-  static const int SVG_WRONG_TYPE_ERR = 0;
-
   final int code;
 
   final String message;
@@ -25399,18 +24680,6 @@ abstract class SVGFEBlendElement implements SVGElement, SVGFilterPrimitiveStanda
 }
 
 class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement native "*SVGFEBlendElement" {
-
-  static const int SVG_FEBLEND_MODE_DARKEN = 4;
-
-  static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
-
-  static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
-
-  static const int SVG_FEBLEND_MODE_NORMAL = 1;
-
-  static const int SVG_FEBLEND_MODE_SCREEN = 3;
-
-  static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   final _SVGAnimatedStringImpl in1;
 
@@ -25469,16 +24738,6 @@ abstract class SVGFEColorMatrixElement implements SVGElement, SVGFilterPrimitive
 }
 
 class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
-
-  static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
-
-  static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
-
-  static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
-
-  static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
-
-  static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedStringImpl in1;
 
@@ -25592,20 +24851,6 @@ abstract class SVGFECompositeElement implements SVGElement, SVGFilterPrimitiveSt
 
 class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement native "*SVGFECompositeElement" {
 
-  static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
-
-  static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
-
   final _SVGAnimatedStringImpl in1;
 
   final _SVGAnimatedStringImpl in2;
@@ -25696,14 +24941,6 @@ abstract class SVGFEConvolveMatrixElement implements SVGElement, SVGFilterPrimit
 }
 
 class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
-
-  static const int SVG_EDGEMODE_DUPLICATE = 1;
-
-  static const int SVG_EDGEMODE_NONE = 3;
-
-  static const int SVG_EDGEMODE_UNKNOWN = 0;
-
-  static const int SVG_EDGEMODE_WRAP = 2;
 
   final _SVGAnimatedNumberImpl bias;
 
@@ -25844,16 +25081,6 @@ abstract class SVGFEDisplacementMapElement implements SVGElement, SVGFilterPrimi
 }
 
 class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
-
-  static const int SVG_CHANNEL_A = 4;
-
-  static const int SVG_CHANNEL_B = 3;
-
-  static const int SVG_CHANNEL_G = 2;
-
-  static const int SVG_CHANNEL_R = 1;
-
-  static const int SVG_CHANNEL_UNKNOWN = 0;
 
   final _SVGAnimatedStringImpl in1;
 
@@ -26240,12 +25467,6 @@ abstract class SVGFEMorphologyElement implements SVGElement, SVGFilterPrimitiveS
 
 class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorphologyElement native "*SVGFEMorphologyElement" {
 
-  static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
-
-  static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
-
-  static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
-
   final _SVGAnimatedStringImpl in1;
 
   final _SVGAnimatedEnumerationImpl operator;
@@ -26536,18 +25757,6 @@ abstract class SVGFETurbulenceElement implements SVGElement, SVGFilterPrimitiveS
 }
 
 class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
-
-  static const int SVG_STITCHTYPE_NOSTITCH = 2;
-
-  static const int SVG_STITCHTYPE_STITCH = 1;
-
-  static const int SVG_STITCHTYPE_UNKNOWN = 0;
-
-  static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
-
-  static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
-
-  static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   final _SVGAnimatedNumberImpl baseFrequencyX;
 
@@ -27007,14 +26216,6 @@ abstract class SVGGradientElement implements SVGElement, SVGURIReference, SVGExt
 
 class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement native "*SVGGradientElement" {
 
-  static const int SVG_SPREADMETHOD_PAD = 1;
-
-  static const int SVG_SPREADMETHOD_REFLECT = 2;
-
-  static const int SVG_SPREADMETHOD_REPEAT = 3;
-
-  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
-
   final _SVGAnimatedTransformListImpl gradientTransform;
 
   final _SVGAnimatedEnumerationImpl gradientUnits;
@@ -27204,28 +26405,6 @@ abstract class SVGLength {
 }
 
 class _SVGLengthImpl implements SVGLength native "*SVGLength" {
-
-  static const int SVG_LENGTHTYPE_CM = 6;
-
-  static const int SVG_LENGTHTYPE_EMS = 3;
-
-  static const int SVG_LENGTHTYPE_EXS = 4;
-
-  static const int SVG_LENGTHTYPE_IN = 8;
-
-  static const int SVG_LENGTHTYPE_MM = 7;
-
-  static const int SVG_LENGTHTYPE_NUMBER = 1;
-
-  static const int SVG_LENGTHTYPE_PC = 10;
-
-  static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
-
-  static const int SVG_LENGTHTYPE_PT = 9;
-
-  static const int SVG_LENGTHTYPE_PX = 5;
-
-  static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   final int unitType;
 
@@ -27580,18 +26759,6 @@ abstract class SVGMarkerElement implements SVGElement, SVGLangSpace, SVGExternal
 }
 
 class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement native "*SVGMarkerElement" {
-
-  static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
-
-  static const int SVG_MARKERUNITS_UNKNOWN = 0;
-
-  static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
-
-  static const int SVG_MARKER_ORIENT_ANGLE = 2;
-
-  static const int SVG_MARKER_ORIENT_AUTO = 1;
-
-  static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   final _SVGAnimatedLengthImpl markerHeight;
 
@@ -28021,26 +27188,6 @@ abstract class SVGPaint implements SVGColor {
 }
 
 class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint native "*SVGPaint" {
-
-  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
-
-  static const int SVG_PAINTTYPE_NONE = 101;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_PAINTTYPE_UNKNOWN = 0;
-
-  static const int SVG_PAINTTYPE_URI = 107;
-
-  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
-
-  static const int SVG_PAINTTYPE_URI_NONE = 103;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   final int paintType;
 
@@ -28663,46 +27810,6 @@ class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implement
 }
 
 class _SVGPathSegImpl implements SVGPathSeg native "*SVGPathSeg" {
-
-  static const int PATHSEG_ARC_ABS = 10;
-
-  static const int PATHSEG_ARC_REL = 11;
-
-  static const int PATHSEG_CLOSEPATH = 1;
-
-  static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
-
-  static const int PATHSEG_CURVETO_CUBIC_REL = 7;
-
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
-
-  static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
-
-  static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
-
-  static const int PATHSEG_LINETO_ABS = 4;
-
-  static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
-
-  static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
-
-  static const int PATHSEG_LINETO_REL = 5;
-
-  static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
-
-  static const int PATHSEG_LINETO_VERTICAL_REL = 15;
-
-  static const int PATHSEG_MOVETO_ABS = 2;
-
-  static const int PATHSEG_MOVETO_REL = 3;
-
-  static const int PATHSEG_UNKNOWN = 0;
 
   final int pathSegType;
 
@@ -29346,34 +28453,6 @@ abstract class SVGPreserveAspectRatio {
 
 class _SVGPreserveAspectRatioImpl implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
-  static const int SVG_MEETORSLICE_MEET = 1;
-
-  static const int SVG_MEETORSLICE_SLICE = 2;
-
-  static const int SVG_MEETORSLICE_UNKNOWN = 0;
-
-  static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
-
-  static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
-
-  static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
-
   int align;
 
   int meetOrSlice;
@@ -29559,18 +28638,6 @@ abstract class SVGRenderingIntent {
 }
 
 class _SVGRenderingIntentImpl implements SVGRenderingIntent native "*SVGRenderingIntent" {
-
-  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
-
-  static const int RENDERING_INTENT_AUTO = 1;
-
-  static const int RENDERING_INTENT_PERCEPTUAL = 2;
-
-  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
-
-  static const int RENDERING_INTENT_SATURATION = 4;
-
-  static const int RENDERING_INTENT_UNKNOWN = 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30279,12 +29346,6 @@ abstract class SVGTextContentElement implements SVGElement, SVGTests, SVGLangSpa
 
 class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextContentElement native "*SVGTextContentElement" {
 
-  static const int LENGTHADJUST_SPACING = 1;
-
-  static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
-
-  static const int LENGTHADJUST_UNKNOWN = 0;
-
   final _SVGAnimatedEnumerationImpl lengthAdjust;
 
   final _SVGAnimatedLengthImpl textLength;
@@ -30398,18 +29459,6 @@ abstract class SVGTextPathElement implements SVGTextContentElement, SVGURIRefere
 }
 
 class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement native "*SVGTextPathElement" {
-
-  static const int TEXTPATH_METHODTYPE_ALIGN = 1;
-
-  static const int TEXTPATH_METHODTYPE_STRETCH = 2;
-
-  static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
-
-  static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
-
-  static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
-
-  static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   final _SVGAnimatedEnumerationImpl method;
 
@@ -30537,20 +29586,6 @@ abstract class SVGTransform {
 }
 
 class _SVGTransformImpl implements SVGTransform native "*SVGTransform" {
-
-  static const int SVG_TRANSFORM_MATRIX = 1;
-
-  static const int SVG_TRANSFORM_ROTATE = 4;
-
-  static const int SVG_TRANSFORM_SCALE = 3;
-
-  static const int SVG_TRANSFORM_SKEWX = 5;
-
-  static const int SVG_TRANSFORM_SKEWY = 6;
-
-  static const int SVG_TRANSFORM_TRANSLATE = 2;
-
-  static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   final num angle;
 
@@ -30754,12 +29789,6 @@ abstract class SVGUnitTypes {
 }
 
 class _SVGUnitTypesImpl implements SVGUnitTypes native "*SVGUnitTypes" {
-
-  static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
-
-  static const int SVG_UNIT_TYPE_UNKNOWN = 0;
-
-  static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32073,24 +31102,6 @@ abstract class SpeechRecognitionError implements Event {
 
 class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
 
-  static const int ABORTED = 2;
-
-  static const int AUDIO_CAPTURE = 3;
-
-  static const int BAD_GRAMMAR = 7;
-
-  static const int LANGUAGE_NOT_SUPPORTED = 8;
-
-  static const int NETWORK = 4;
-
-  static const int NOT_ALLOWED = 5;
-
-  static const int NO_SPEECH = 1;
-
-  static const int OTHER = 0;
-
-  static const int SERVICE_NOT_ALLOWED = 6;
-
   final int code;
 
   final String message;
@@ -32458,10 +31469,6 @@ abstract class StorageInfo {
 typedef bool StorageInfoErrorCallback(DOMException error);
 
 class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
 
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
@@ -34067,14 +33074,6 @@ abstract class TrackElement implements Element {
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
 
-  static const int ERROR = 3;
-
-  static const int LOADED = 2;
-
-  static const int LOADING = 1;
-
-  static const int NONE = 0;
-
   bool get defaultValue() native "return this.default;";
 
   void set defaultValue(bool value) native "this.default = value;";
@@ -34320,8 +33319,6 @@ abstract class Uint16Array implements ArrayBufferView, List<int> {
 
 class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int>, JavaScriptIndexingBehavior native "*Uint16Array" {
 
-  static const int BYTES_PER_ELEMENT = 2;
-
   final int length;
 
   int operator[](int index) native "return this[index];";
@@ -34439,8 +33436,6 @@ abstract class Uint32Array implements ArrayBufferView, List<int> {
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int>, JavaScriptIndexingBehavior native "*Uint32Array" {
 
-  static const int BYTES_PER_ELEMENT = 4;
-
   final int length;
 
   int operator[](int index) native "return this[index];";
@@ -34557,8 +33552,6 @@ abstract class Uint8Array implements ArrayBufferView, List<int> {
 }
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int>, JavaScriptIndexingBehavior native "*Uint8Array" {
-
-  static const int BYTES_PER_ELEMENT = 1;
 
   final int length;
 
@@ -34924,14 +33917,6 @@ abstract class WebGLCompressedTextureS3TC {
 }
 
 class _WebGLCompressedTextureS3TCImpl implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
-
-  static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
-
-  static const int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
-
-  static const int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
-
-  static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35007,10 +33992,6 @@ abstract class WebGLDebugRendererInfo {
 }
 
 class _WebGLDebugRendererInfoImpl implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
-
-  static const int UNMASKED_RENDERER_WEBGL = 0x9246;
-
-  static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35042,8 +34023,6 @@ abstract class WebGLDepthTexture {
 }
 
 class _WebGLDepthTextureImpl implements WebGLDepthTexture native "*WebGLDepthTexture" {
-
-  static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36122,596 +35101,6 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
 
 class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements WebGLRenderingContext native "*WebGLRenderingContext" {
 
-  static const int ACTIVE_ATTRIBUTES = 0x8B89;
-
-  static const int ACTIVE_TEXTURE = 0x84E0;
-
-  static const int ACTIVE_UNIFORMS = 0x8B86;
-
-  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
-
-  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
-
-  static const int ALPHA = 0x1906;
-
-  static const int ALPHA_BITS = 0x0D55;
-
-  static const int ALWAYS = 0x0207;
-
-  static const int ARRAY_BUFFER = 0x8892;
-
-  static const int ARRAY_BUFFER_BINDING = 0x8894;
-
-  static const int ATTACHED_SHADERS = 0x8B85;
-
-  static const int BACK = 0x0405;
-
-  static const int BLEND = 0x0BE2;
-
-  static const int BLEND_COLOR = 0x8005;
-
-  static const int BLEND_DST_ALPHA = 0x80CA;
-
-  static const int BLEND_DST_RGB = 0x80C8;
-
-  static const int BLEND_EQUATION = 0x8009;
-
-  static const int BLEND_EQUATION_ALPHA = 0x883D;
-
-  static const int BLEND_EQUATION_RGB = 0x8009;
-
-  static const int BLEND_SRC_ALPHA = 0x80CB;
-
-  static const int BLEND_SRC_RGB = 0x80C9;
-
-  static const int BLUE_BITS = 0x0D54;
-
-  static const int BOOL = 0x8B56;
-
-  static const int BOOL_VEC2 = 0x8B57;
-
-  static const int BOOL_VEC3 = 0x8B58;
-
-  static const int BOOL_VEC4 = 0x8B59;
-
-  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
-
-  static const int BUFFER_SIZE = 0x8764;
-
-  static const int BUFFER_USAGE = 0x8765;
-
-  static const int BYTE = 0x1400;
-
-  static const int CCW = 0x0901;
-
-  static const int CLAMP_TO_EDGE = 0x812F;
-
-  static const int COLOR_ATTACHMENT0 = 0x8CE0;
-
-  static const int COLOR_BUFFER_BIT = 0x00004000;
-
-  static const int COLOR_CLEAR_VALUE = 0x0C22;
-
-  static const int COLOR_WRITEMASK = 0x0C23;
-
-  static const int COMPILE_STATUS = 0x8B81;
-
-  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
-
-  static const int CONSTANT_ALPHA = 0x8003;
-
-  static const int CONSTANT_COLOR = 0x8001;
-
-  static const int CONTEXT_LOST_WEBGL = 0x9242;
-
-  static const int CULL_FACE = 0x0B44;
-
-  static const int CULL_FACE_MODE = 0x0B45;
-
-  static const int CURRENT_PROGRAM = 0x8B8D;
-
-  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
-
-  static const int CW = 0x0900;
-
-  static const int DECR = 0x1E03;
-
-  static const int DECR_WRAP = 0x8508;
-
-  static const int DELETE_STATUS = 0x8B80;
-
-  static const int DEPTH_ATTACHMENT = 0x8D00;
-
-  static const int DEPTH_BITS = 0x0D56;
-
-  static const int DEPTH_BUFFER_BIT = 0x00000100;
-
-  static const int DEPTH_CLEAR_VALUE = 0x0B73;
-
-  static const int DEPTH_COMPONENT = 0x1902;
-
-  static const int DEPTH_COMPONENT16 = 0x81A5;
-
-  static const int DEPTH_FUNC = 0x0B74;
-
-  static const int DEPTH_RANGE = 0x0B70;
-
-  static const int DEPTH_STENCIL = 0x84F9;
-
-  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
-
-  static const int DEPTH_TEST = 0x0B71;
-
-  static const int DEPTH_WRITEMASK = 0x0B72;
-
-  static const int DITHER = 0x0BD0;
-
-  static const int DONT_CARE = 0x1100;
-
-  static const int DST_ALPHA = 0x0304;
-
-  static const int DST_COLOR = 0x0306;
-
-  static const int DYNAMIC_DRAW = 0x88E8;
-
-  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
-
-  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
-
-  static const int EQUAL = 0x0202;
-
-  static const int FASTEST = 0x1101;
-
-  static const int FLOAT = 0x1406;
-
-  static const int FLOAT_MAT2 = 0x8B5A;
-
-  static const int FLOAT_MAT3 = 0x8B5B;
-
-  static const int FLOAT_MAT4 = 0x8B5C;
-
-  static const int FLOAT_VEC2 = 0x8B50;
-
-  static const int FLOAT_VEC3 = 0x8B51;
-
-  static const int FLOAT_VEC4 = 0x8B52;
-
-  static const int FRAGMENT_SHADER = 0x8B30;
-
-  static const int FRAMEBUFFER = 0x8D40;
-
-  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
-
-  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
-
-  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
-
-  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
-
-  static const int FRAMEBUFFER_BINDING = 0x8CA6;
-
-  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
-
-  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
-
-  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
-
-  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
-
-  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
-
-  static const int FRONT = 0x0404;
-
-  static const int FRONT_AND_BACK = 0x0408;
-
-  static const int FRONT_FACE = 0x0B46;
-
-  static const int FUNC_ADD = 0x8006;
-
-  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
-
-  static const int FUNC_SUBTRACT = 0x800A;
-
-  static const int GENERATE_MIPMAP_HINT = 0x8192;
-
-  static const int GEQUAL = 0x0206;
-
-  static const int GREATER = 0x0204;
-
-  static const int GREEN_BITS = 0x0D53;
-
-  static const int HIGH_FLOAT = 0x8DF2;
-
-  static const int HIGH_INT = 0x8DF5;
-
-  static const int INCR = 0x1E02;
-
-  static const int INCR_WRAP = 0x8507;
-
-  static const int INT = 0x1404;
-
-  static const int INT_VEC2 = 0x8B53;
-
-  static const int INT_VEC3 = 0x8B54;
-
-  static const int INT_VEC4 = 0x8B55;
-
-  static const int INVALID_ENUM = 0x0500;
-
-  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
-
-  static const int INVALID_OPERATION = 0x0502;
-
-  static const int INVALID_VALUE = 0x0501;
-
-  static const int INVERT = 0x150A;
-
-  static const int KEEP = 0x1E00;
-
-  static const int LEQUAL = 0x0203;
-
-  static const int LESS = 0x0201;
-
-  static const int LINEAR = 0x2601;
-
-  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
-
-  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
-
-  static const int LINES = 0x0001;
-
-  static const int LINE_LOOP = 0x0002;
-
-  static const int LINE_STRIP = 0x0003;
-
-  static const int LINE_WIDTH = 0x0B21;
-
-  static const int LINK_STATUS = 0x8B82;
-
-  static const int LOW_FLOAT = 0x8DF0;
-
-  static const int LOW_INT = 0x8DF3;
-
-  static const int LUMINANCE = 0x1909;
-
-  static const int LUMINANCE_ALPHA = 0x190A;
-
-  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
-
-  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
-
-  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
-
-  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
-
-  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
-
-  static const int MAX_TEXTURE_SIZE = 0x0D33;
-
-  static const int MAX_VARYING_VECTORS = 0x8DFC;
-
-  static const int MAX_VERTEX_ATTRIBS = 0x8869;
-
-  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
-
-  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
-
-  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
-
-  static const int MEDIUM_FLOAT = 0x8DF1;
-
-  static const int MEDIUM_INT = 0x8DF4;
-
-  static const int MIRRORED_REPEAT = 0x8370;
-
-  static const int NEAREST = 0x2600;
-
-  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
-
-  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
-
-  static const int NEVER = 0x0200;
-
-  static const int NICEST = 0x1102;
-
-  static const int NONE = 0;
-
-  static const int NOTEQUAL = 0x0205;
-
-  static const int NO_ERROR = 0;
-
-  static const int ONE = 1;
-
-  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
-
-  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
-
-  static const int ONE_MINUS_DST_ALPHA = 0x0305;
-
-  static const int ONE_MINUS_DST_COLOR = 0x0307;
-
-  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
-
-  static const int ONE_MINUS_SRC_COLOR = 0x0301;
-
-  static const int OUT_OF_MEMORY = 0x0505;
-
-  static const int PACK_ALIGNMENT = 0x0D05;
-
-  static const int POINTS = 0x0000;
-
-  static const int POLYGON_OFFSET_FACTOR = 0x8038;
-
-  static const int POLYGON_OFFSET_FILL = 0x8037;
-
-  static const int POLYGON_OFFSET_UNITS = 0x2A00;
-
-  static const int RED_BITS = 0x0D52;
-
-  static const int RENDERBUFFER = 0x8D41;
-
-  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
-
-  static const int RENDERBUFFER_BINDING = 0x8CA7;
-
-  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
-
-  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
-
-  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
-
-  static const int RENDERBUFFER_HEIGHT = 0x8D43;
-
-  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
-
-  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
-
-  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
-
-  static const int RENDERBUFFER_WIDTH = 0x8D42;
-
-  static const int RENDERER = 0x1F01;
-
-  static const int REPEAT = 0x2901;
-
-  static const int REPLACE = 0x1E01;
-
-  static const int RGB = 0x1907;
-
-  static const int RGB565 = 0x8D62;
-
-  static const int RGB5_A1 = 0x8057;
-
-  static const int RGBA = 0x1908;
-
-  static const int RGBA4 = 0x8056;
-
-  static const int SAMPLER_2D = 0x8B5E;
-
-  static const int SAMPLER_CUBE = 0x8B60;
-
-  static const int SAMPLES = 0x80A9;
-
-  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
-
-  static const int SAMPLE_BUFFERS = 0x80A8;
-
-  static const int SAMPLE_COVERAGE = 0x80A0;
-
-  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
-
-  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
-
-  static const int SCISSOR_BOX = 0x0C10;
-
-  static const int SCISSOR_TEST = 0x0C11;
-
-  static const int SHADER_TYPE = 0x8B4F;
-
-  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
-
-  static const int SHORT = 0x1402;
-
-  static const int SRC_ALPHA = 0x0302;
-
-  static const int SRC_ALPHA_SATURATE = 0x0308;
-
-  static const int SRC_COLOR = 0x0300;
-
-  static const int STATIC_DRAW = 0x88E4;
-
-  static const int STENCIL_ATTACHMENT = 0x8D20;
-
-  static const int STENCIL_BACK_FAIL = 0x8801;
-
-  static const int STENCIL_BACK_FUNC = 0x8800;
-
-  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
-
-  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
-
-  static const int STENCIL_BACK_REF = 0x8CA3;
-
-  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
-
-  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
-
-  static const int STENCIL_BITS = 0x0D57;
-
-  static const int STENCIL_BUFFER_BIT = 0x00000400;
-
-  static const int STENCIL_CLEAR_VALUE = 0x0B91;
-
-  static const int STENCIL_FAIL = 0x0B94;
-
-  static const int STENCIL_FUNC = 0x0B92;
-
-  static const int STENCIL_INDEX = 0x1901;
-
-  static const int STENCIL_INDEX8 = 0x8D48;
-
-  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
-
-  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
-
-  static const int STENCIL_REF = 0x0B97;
-
-  static const int STENCIL_TEST = 0x0B90;
-
-  static const int STENCIL_VALUE_MASK = 0x0B93;
-
-  static const int STENCIL_WRITEMASK = 0x0B98;
-
-  static const int STREAM_DRAW = 0x88E0;
-
-  static const int SUBPIXEL_BITS = 0x0D50;
-
-  static const int TEXTURE = 0x1702;
-
-  static const int TEXTURE0 = 0x84C0;
-
-  static const int TEXTURE1 = 0x84C1;
-
-  static const int TEXTURE10 = 0x84CA;
-
-  static const int TEXTURE11 = 0x84CB;
-
-  static const int TEXTURE12 = 0x84CC;
-
-  static const int TEXTURE13 = 0x84CD;
-
-  static const int TEXTURE14 = 0x84CE;
-
-  static const int TEXTURE15 = 0x84CF;
-
-  static const int TEXTURE16 = 0x84D0;
-
-  static const int TEXTURE17 = 0x84D1;
-
-  static const int TEXTURE18 = 0x84D2;
-
-  static const int TEXTURE19 = 0x84D3;
-
-  static const int TEXTURE2 = 0x84C2;
-
-  static const int TEXTURE20 = 0x84D4;
-
-  static const int TEXTURE21 = 0x84D5;
-
-  static const int TEXTURE22 = 0x84D6;
-
-  static const int TEXTURE23 = 0x84D7;
-
-  static const int TEXTURE24 = 0x84D8;
-
-  static const int TEXTURE25 = 0x84D9;
-
-  static const int TEXTURE26 = 0x84DA;
-
-  static const int TEXTURE27 = 0x84DB;
-
-  static const int TEXTURE28 = 0x84DC;
-
-  static const int TEXTURE29 = 0x84DD;
-
-  static const int TEXTURE3 = 0x84C3;
-
-  static const int TEXTURE30 = 0x84DE;
-
-  static const int TEXTURE31 = 0x84DF;
-
-  static const int TEXTURE4 = 0x84C4;
-
-  static const int TEXTURE5 = 0x84C5;
-
-  static const int TEXTURE6 = 0x84C6;
-
-  static const int TEXTURE7 = 0x84C7;
-
-  static const int TEXTURE8 = 0x84C8;
-
-  static const int TEXTURE9 = 0x84C9;
-
-  static const int TEXTURE_2D = 0x0DE1;
-
-  static const int TEXTURE_BINDING_2D = 0x8069;
-
-  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
-
-  static const int TEXTURE_CUBE_MAP = 0x8513;
-
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
-
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
-
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
-
-  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
-
-  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
-
-  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
-
-  static const int TEXTURE_MAG_FILTER = 0x2800;
-
-  static const int TEXTURE_MIN_FILTER = 0x2801;
-
-  static const int TEXTURE_WRAP_S = 0x2802;
-
-  static const int TEXTURE_WRAP_T = 0x2803;
-
-  static const int TRIANGLES = 0x0004;
-
-  static const int TRIANGLE_FAN = 0x0006;
-
-  static const int TRIANGLE_STRIP = 0x0005;
-
-  static const int UNPACK_ALIGNMENT = 0x0CF5;
-
-  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
-
-  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
-
-  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
-
-  static const int UNSIGNED_BYTE = 0x1401;
-
-  static const int UNSIGNED_INT = 0x1405;
-
-  static const int UNSIGNED_SHORT = 0x1403;
-
-  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
-
-  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
-
-  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
-
-  static const int VALIDATE_STATUS = 0x8B83;
-
-  static const int VENDOR = 0x1F00;
-
-  static const int VERSION = 0x1F02;
-
-  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
-
-  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
-
-  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
-
-  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
-
-  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
-
-  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
-
-  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
-
-  static const int VERTEX_SHADER = 0x8B31;
-
-  static const int VIEWPORT = 0x0BA2;
-
-  static const int ZERO = 0;
-
   final int drawingBufferHeight;
 
   final int drawingBufferWidth;
@@ -37185,30 +35574,6 @@ abstract class WebKitCSSFilterValue implements List<CSSValue> {
 
 class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
 
-  static const int CSS_FILTER_BLUR = 10;
-
-  static const int CSS_FILTER_BRIGHTNESS = 8;
-
-  static const int CSS_FILTER_CONTRAST = 9;
-
-  static const int CSS_FILTER_CUSTOM = 12;
-
-  static const int CSS_FILTER_DROP_SHADOW = 11;
-
-  static const int CSS_FILTER_GRAYSCALE = 2;
-
-  static const int CSS_FILTER_HUE_ROTATE = 5;
-
-  static const int CSS_FILTER_INVERT = 6;
-
-  static const int CSS_FILTER_OPACITY = 7;
-
-  static const int CSS_FILTER_REFERENCE = 1;
-
-  static const int CSS_FILTER_SATURATE = 4;
-
-  static const int CSS_FILTER_SEPIA = 3;
-
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37344,14 +35709,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   _WebSocketEventsImpl get on =>
     new _WebSocketEventsImpl(this);
-
-  static const int CLOSED = 3;
-
-  static const int CLOSING = 2;
-
-  static const int CONNECTING = 0;
-
-  static const int OPEN = 1;
 
   final String URL;
 
@@ -37823,13 +36180,9 @@ abstract class Window implements EventTarget {
 
 abstract class WindowEvents implements Events {
 
+  EventListenerList get contentLoaded;
+
   EventListenerList get abort;
-
-  EventListenerList get animationEnd;
-
-  EventListenerList get animationIteration;
-
-  EventListenerList get animationStart;
 
   EventListenerList get beforeUnload;
 
@@ -37843,15 +36196,13 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get click;
 
-  EventListenerList get contentLoaded;
-
   EventListenerList get contextMenu;
+
+  EventListenerList get doubleClick;
 
   EventListenerList get deviceMotion;
 
   EventListenerList get deviceOrientation;
-
-  EventListenerList get doubleClick;
 
   EventListenerList get drag;
 
@@ -37891,11 +36242,11 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get load;
 
-  EventListenerList get loadStart;
-
   EventListenerList get loadedData;
 
   EventListenerList get loadedMetadata;
+
+  EventListenerList get loadStart;
 
   EventListenerList get message;
 
@@ -37963,13 +36314,19 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd;
-
   EventListenerList get unload;
 
   EventListenerList get volumeChange;
 
   EventListenerList get waiting;
+
+  EventListenerList get animationEnd;
+
+  EventListenerList get animationIteration;
+
+  EventListenerList get animationStart;
+
+  EventListenerList get transitionEnd;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38112,10 +36469,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _WindowEventsImpl get on =>
     new _WindowEventsImpl(this);
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
 
   final _DOMApplicationCacheImpl applicationCache;
 
@@ -38292,13 +36645,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   _WindowEventsImpl(_ptr) : super(_ptr);
 
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
   EventListenerList get abort => this['abort'];
-
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  EventListenerList get animationStart => this['webkitAnimationStart'];
 
   EventListenerList get beforeUnload => this['beforeunload'];
 
@@ -38312,15 +36661,13 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get click => this['click'];
 
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
   EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get doubleClick => this['dblclick'];
 
   EventListenerList get deviceMotion => this['devicemotion'];
 
   EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  EventListenerList get doubleClick => this['dblclick'];
 
   EventListenerList get drag => this['drag'];
 
@@ -38360,11 +36707,11 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get load => this['load'];
 
-  EventListenerList get loadStart => this['loadstart'];
-
   EventListenerList get loadedData => this['loadeddata'];
 
   EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
 
   EventListenerList get message => this['message'];
 
@@ -38432,13 +36779,19 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-
   EventListenerList get unload => this['unload'];
 
   EventListenerList get volumeChange => this['volumechange'];
 
   EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38558,10 +36911,6 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext nativ
 
   _WorkerContextEventsImpl get on =>
     new _WorkerContextEventsImpl(this);
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
 
   final _IDBFactoryImpl indexedDB;
 
@@ -38797,10 +37146,6 @@ abstract class XPathException {
 
 class _XPathExceptionImpl implements XPathException native "*XPathException" {
 
-  static const int INVALID_EXPRESSION_ERR = 51;
-
-  static const int TYPE_ERR = 52;
-
   final int code;
 
   final String message;
@@ -38901,26 +37246,6 @@ abstract class XPathResult {
 }
 
 class _XPathResultImpl implements XPathResult native "*XPathResult" {
-
-  static const int ANY_TYPE = 0;
-
-  static const int ANY_UNORDERED_NODE_TYPE = 8;
-
-  static const int BOOLEAN_TYPE = 3;
-
-  static const int FIRST_ORDERED_NODE_TYPE = 9;
-
-  static const int NUMBER_TYPE = 1;
-
-  static const int ORDERED_NODE_ITERATOR_TYPE = 5;
-
-  static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
-
-  static const int STRING_TYPE = 2;
-
-  static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
-
-  static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   final bool booleanValue;
 
@@ -40503,8 +38828,7 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = document.$dom_createEvent('CustomEvent');
-  event.initCustomEvent(receiver, false, false, JSON.stringify(message));
+  var event = new CustomEvent(receiver, false, false, JSON.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 
@@ -40924,6 +39248,15 @@ class _Deserializer {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+class _CustomEventFactoryProvider {
+  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
+      bool cancelable = true, Object detail = null]) {
+    final _CustomEventImpl e = _document.$dom_createEvent("CustomEvent");
+    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    return e;
+  }
+}
 
 class _EventFactoryProvider {
   static Event createEvent(String type, [bool canBubble = true,
@@ -41428,8 +39761,10 @@ bool _isImmutableJavaScriptArray(value) =>
 
 // TODO(vsm): Unify with Dartium version.
 class _DOMWindowCrossFrameImpl implements Window {
-  // Private window.
-  _WindowImpl _window;
+  // Private window.  Note, this is a window in another frame, so it
+  // cannot be typed as "Window" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _window;
 
   // Fields.
   // TODO(vsm): Implement history and location getters.

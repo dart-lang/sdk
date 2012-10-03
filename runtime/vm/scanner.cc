@@ -822,9 +822,6 @@ void Scanner::Scan() {
 
       case '@':
         Recognize(Token::kAT);
-        if ((c0_ == '"') || (c0_ == '\'')) {
-          ScanLiteralString(true);
-        }
         break;
 
       case 'r':

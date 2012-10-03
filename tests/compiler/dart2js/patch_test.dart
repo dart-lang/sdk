@@ -19,29 +19,87 @@ Compiler applyPatch(String script, String patch) {
   return compiler;
 }
 
+void expectHasBody(compiler, Element element) {
+    var node = element.parseNode(compiler);
+    Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
+    Expect.isNotNull(node.body);
+    // If the element has a body it is either a Block or a Return statement,
+    // both with different begin and end tokens.
+    Expect.isTrue(node.body is Block || node.body is Return);
+    Expect.notEquals(node.body.getBeginToken(), node.body.getEndToken());
+}
+
+void expectHasNoBody(compiler, Element element) {
+    var node = element.parseNode(compiler);
+    Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
+    Expect.isNotNull(node.body);
+    // If the element has no body it is a Block with identical begin and end
+    // tokens (the semicolon).
+    Expect.isTrue(node.body is Block);
+    Expect.identical(node.body.getBeginToken(), node.body.getEndToken());
+}
+
 Element ensure(compiler,
                String name,
                Element lookup(name),
-               [bool isPatched = true,
-                bool hasBody = false,
-                bool isGetter = false]) {
+               [bool isPatched = false,
+                bool isPatch = false,
+                bool isMethod = true,
+                bool isGetter = false,
+                bool isFound = true]) {
   var element = lookup(buildSourceString(name));
+  if (!isFound) {
+    Expect.isNull(element);
+    return element;
+  }
   Expect.isNotNull(element);
   if (isGetter) {
     Expect.isTrue(element is AbstractFieldElement);
     Expect.isNotNull(element.getter);
     element = element.getter;
   }
-  if (element is! ContainerElement &&
-      element is! AbstractFieldElement) {
-    // Classes aren't patched like functions and variables are.
-    Expect.equals(isPatched, element.isPatched);
+  Expect.equals(isPatched, element.isPatched);
+  if (isPatched) {
+    Expect.isNull(element.origin);
+    Expect.isNotNull(element.patch);
+
+    Expect.equals(element, element.declaration);
+    Expect.equals(element.patch, element.implementation);
+
+    if (isMethod) {
+      expectHasNoBody(compiler, element);
+      expectHasBody(compiler, element.patch);
+    }
+  } else {
+    Expect.isTrue(element.isImplementation);
   }
-  if (hasBody) {
-    var node = element.parseNode(compiler);
-    Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
-    Expect.isNotNull(node.body, "expected body, bot none found");
+  Expect.equals(isPatch, element.isPatch);
+  if (isPatch) {
+    Expect.isNotNull(element.origin);
+    Expect.isNull(element.patch);
+
+    Expect.equals(element.origin, element.declaration);
+    Expect.equals(element, element.implementation);
+
+    if (isMethod) {
+      expectHasBody(compiler, element);
+      expectHasNoBody(compiler, element.origin);
+    }
+  } else {
+    Expect.isTrue(element.isDeclaration);
   }
+  if (!(element.isPatched || element.isPatch)) {
+    Expect.isNull(element.origin);
+    Expect.isNull(element.patch);
+
+    Expect.equals(element, element.declaration);
+    Expect.equals(element, element.implementation);
+
+    if (isMethod) {
+      expectHasBody(compiler, element);
+    }
+  }
+  Expect.isFalse(element.isPatched && element.isPatch);
   return element;
 }
 
@@ -49,7 +107,8 @@ testPatchFunction() {
   var compiler = applyPatch(
       "external test();",
       "patch test() { return 'string'; } ");
-  ensure(compiler, "test", compiler.coreLibrary.find, hasBody: true);
+  ensure(compiler, "test", compiler.coreLibrary.find, isPatched: true);
+  ensure(compiler, "test", compiler.coreLibrary.patch.find, isPatch: true);
 }
 
 testPatchMember() {
@@ -64,9 +123,16 @@ testPatchMember() {
         patch String toString() => 'string';
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         isMethod: false, isPatched: true);
   container.parseNode(compiler);
-  ensure(compiler, "toString", container.lookupLocalMember, hasBody:true);
+  ensure(compiler, "Class", compiler.coreLibrary.patch.find, 
+         isMethod: false, isPatch: true);
+
+  ensure(compiler, "toString", container.lookupLocalMember, 
+         isPatched: true);
+  ensure(compiler, "toString", container.patch.lookupLocalMember, 
+         isPatch: true);
 }
 
 testPatchGetter() {
@@ -81,13 +147,61 @@ testPatchGetter() {
         patch int get field => 5;
       }
       """);
-  var container = ensure(compiler, "Class", compiler.coreLibrary.find);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         isPatched: true, isMethod: false);
   container.parseNode(compiler);
   ensure(compiler,
          "field",
          container.lookupLocalMember,
          isGetter: true,
-         hasBody: true);
+         isPatched: true);
+  ensure(compiler,
+         "field",
+         container.patch.lookupLocalMember,
+         isGetter: true,
+         isPatch: true);
+}
+
+testRegularMember() {
+  var compiler = applyPatch(
+      """
+      class Class {
+        void regular() {}
+      }
+      """,
+      """
+      patch class Class {
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         isMethod: false, isPatched: true);
+  container.parseNode(compiler);
+  ensure(compiler, "Class", compiler.coreLibrary.patch.find, 
+         isMethod: false, isPatch: true);
+
+  ensure(compiler, "regular", container.lookupLocalMember);
+  ensure(compiler, "regular", container.patch.lookupLocalMember);
+}
+
+testGhostMember() {
+  var compiler = applyPatch(
+      """
+      class Class {
+      }
+      """,
+      """
+      patch class Class {
+        void ghost() {}
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find, 
+                         isMethod: false, isPatched: true);
+  container.parseNode(compiler);
+  ensure(compiler, "Class", compiler.coreLibrary.patch.find, 
+         isMethod: false, isPatch: true);
+
+  ensure(compiler, "ghost", container.lookupLocalMember, isFound: false);
+  ensure(compiler, "ghost", container.patch.lookupLocalMember);
 }
 
 testInjectFunction() {
@@ -97,13 +211,17 @@ testInjectFunction() {
   ensure(compiler,
          "_function",
          compiler.coreLibrary.find,
-         hasBody: true,
-         isPatched: false);
+         isFound: false);
+  ensure(compiler,
+         "_function",
+         compiler.coreLibrary.patch.find);
 }
 
 main() {
   testPatchFunction();
   testPatchMember();
   testPatchGetter();
+  testRegularMember();
+  testGhostMember();
   testInjectFunction();
 }

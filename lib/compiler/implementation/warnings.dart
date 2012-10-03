@@ -116,6 +116,9 @@ class MessageKind {
       'cannot use modifiers in catch');
   static const OPTIONAL_PARAMETER_IN_CATCH = const MessageKind(
       'cannot use optional parameters in catch');
+  static const THROW_WITHOUT_EXPRESSION = const MessageKind(
+      'cannot use re-throw outside of catch block (expression expected after '
+      '"throw")');
   static const UNBOUND_LABEL = const MessageKind(
       'cannot resolve label #{1}');
   static const NO_BREAK_TARGET = const MessageKind(

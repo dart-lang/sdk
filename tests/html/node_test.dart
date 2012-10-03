@@ -172,7 +172,7 @@ main() {
   });
 
   group('_NodeList', () {
-    NodeList makeNodeList() =>
+    List<Node> makeNodeList() =>
       makeNodeWithChildren().nodes.filter((_) => true);
 
     test('first', () {

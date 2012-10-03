@@ -212,6 +212,9 @@ class Debugger {
     kBreakpointReached = 1,
     kBreakpointResolved = 2,
     kExceptionThrown = 3,
+    kIsolateCreated = 4,
+    kIsolateShutdown = 5,
+    kIsolateInterrupted = 6,
   };
   struct DebuggerEvent {
     EventType type;
@@ -219,6 +222,7 @@ class Debugger {
       DebuggerStackTrace* stack_trace;
       SourceBreakpoint* breakpoint;
       const Object* exception;
+      Isolate* isolate;
     };
   };
   typedef void EventHandler(DebuggerEvent *event);
@@ -231,9 +235,6 @@ class Debugger {
   bool IsActive();
 
   void NotifyCompilation(const Function& func);
-
-  void SetEventHandler(EventHandler* handler);
-  void SetBreakpointHandler(BreakpointHandler* handler);
 
   RawFunction* ResolveFunction(const Library& library,
                                const String& class_name,
@@ -270,6 +271,9 @@ class Debugger {
   RawObject* GetCachedObject(intptr_t obj_id);
   bool IsValidObjectId(intptr_t obj_id);
 
+  static void SetEventHandler(EventHandler* handler);
+  static void SetBreakpointHandler(BreakpointHandler* handler);
+
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);
 
@@ -281,6 +285,7 @@ class Debugger {
 
   void SignalBpReached();
   void SignalExceptionThrown(const Object& exc);
+  static void SignalIsolateEvent(EventType type);
 
  private:
   enum ResumeAction {
@@ -327,8 +332,6 @@ class Debugger {
 
   Isolate* isolate_;
   bool initialized_;
-  BreakpointHandler* bp_handler_;
-  EventHandler* event_handler_;
 
   // ID number generator.
   intptr_t next_id_;
@@ -354,6 +357,9 @@ class Debugger {
   bool ignore_breakpoints_;
 
   intptr_t exc_pause_info_;
+
+  static BreakpointHandler* bp_handler_;
+  static EventHandler* event_handler_;
 
   friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);

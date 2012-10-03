@@ -124,5 +124,5 @@ class NoSuchMethodError implements Error {
     return _objectToString(object);
   }
 
-  external static _objectToString(Object object);
+  external static String _objectToString(Object object);
 }

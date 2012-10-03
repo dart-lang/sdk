@@ -58,7 +58,7 @@ class ScannerTask extends CompilerTask {
         tagState = checkTag(TagState.SOURCE, tag);
         loadPart(tag, resolved, library);
       } else {
-        compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
+        compiler.internalError("Unhandled library tag.", node: tag);
       }
     }
 

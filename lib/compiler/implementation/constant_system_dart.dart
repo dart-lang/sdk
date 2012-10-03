@@ -53,7 +53,7 @@ class NotOperation implements UnaryOperation {
 /**
  * Operations that only work if both arguments are integers.
  */
-class BinaryBitOperation implements BinaryOperation {
+abstract class BinaryBitOperation implements BinaryOperation {
   bool isUserDefinable() => true;
   const BinaryBitOperation();
   Constant fold(Constant left, Constant right) {
@@ -113,7 +113,7 @@ class ShiftRightOperation extends BinaryBitOperation {
   apply(left, right) => left >> right;
 }
 
-class BinaryBoolOperation implements BinaryOperation {
+abstract class BinaryBoolOperation implements BinaryOperation {
   bool isUserDefinable() => false;
   const BinaryBoolOperation();
   Constant fold(Constant left, Constant right) {
@@ -143,7 +143,7 @@ class BooleanOrOperation extends BinaryBoolOperation {
   apply(left, right) => left || right;
 }
 
-class ArithmeticNumOperation implements BinaryOperation {
+abstract class ArithmeticNumOperation implements BinaryOperation {
   bool isUserDefinable() => true;
   const ArithmeticNumOperation();
   Constant fold(Constant left, Constant right) {
@@ -239,7 +239,7 @@ class AddOperation implements BinaryOperation {
   apply(left, right) => left + right;
 }
 
-class RelationalNumOperation implements BinaryOperation {
+abstract class RelationalNumOperation implements BinaryOperation {
   bool isUserDefinable() => true;
   const RelationalNumOperation();
   Constant fold(Constant left, Constant right) {

@@ -30,7 +30,7 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
           }
         }
       }
-      final superInterfaces = otherType.interfaces.getValues();
+      final superInterfaces = otherType.interfaces;
       for (InterfaceMirror superInterface in superInterfaces) {
         superInterface = superInterface.declaration;
         if (type.library === superInterface.library) {
@@ -42,34 +42,6 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
     }
   });
   return subtypes;
-}
-
-/**
- * Finds the mirror in [map] by the simple name [name]. If [constructorName] or
- * [operatorName] is provided, a constructor/operator method by that name is
- * returned.
- */
-Mirror findMirror(Map<Object,Mirror> map, String name,
-                  [String constructorName, String operatorName]) {
-  var foundMirror = null;
-  map.forEach((_, Mirror mirror) {
-    if (mirror.simpleName == name) {
-      if (constructorName !== null) {
-        if (mirror is MethodMirror &&
-            constructorName == mirror.constructorName) {
-          foundMirror = mirror;
-        }
-      } else if (operatorName !== null) {
-        if (mirror is MethodMirror &&
-            operatorName == mirror.operatorName) {
-          foundMirror = mirror;
-        }
-      } else {
-        foundMirror = mirror;
-      }
-    }
-  });
-  return foundMirror;
 }
 
 LibraryMirror findLibrary(MemberMirror member) {

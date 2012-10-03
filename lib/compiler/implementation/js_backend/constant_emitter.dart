@@ -206,7 +206,7 @@ class ConstantEmitter implements ConstantVisitor {
       // The arguments of the JavaScript constructor for any given Dart class
       // are in the same order as the members of the class element.
       int emittedArgumentCount = 0;
-      classElement.forEachInstanceField(
+      classElement.implementation.forEachInstanceField(
           includeBackendMembers: true,
           includeSuperMembers: true,
           f: (ClassElement enclosing, Element field) {

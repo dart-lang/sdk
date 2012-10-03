@@ -24,6 +24,30 @@ namespace dart {
 
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
+
+static void DefaultBreakpointHandler(SourceBreakpoint* bpt,
+                                     DebuggerStackTrace* stack) {
+  String& var_name = String::Handle();
+  Instance& value = Instance::Handle();
+  for (intptr_t i = 0; i < stack->Length(); i++) {
+    ActivationFrame* frame = stack->ActivationFrameAt(i);
+    OS::Print("   %"Pd". %s\n",
+              i + 1, frame->ToCString());
+    intptr_t num_locals = frame->NumLocalVariables();
+    for (intptr_t i = 0; i < num_locals; i++) {
+      intptr_t token_pos, end_pos;
+      frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
+      OS::Print("      var %s (pos %"Pd") = %s\n",
+                var_name.ToCString(), token_pos, value.ToCString());
+    }
+  }
+}
+
+
+BreakpointHandler* Debugger::bp_handler_ = DefaultBreakpointHandler;
+Debugger::EventHandler* Debugger::event_handler_ = NULL;
+
+
 class RemoteObjectCache : public ZoneAllocated {
  public:
   explicit RemoteObjectCache(intptr_t initial_size);
@@ -130,6 +154,16 @@ const Function& ActivationFrame::DartFunction() {
     function_ = code.function();
   }
   return function_;
+}
+
+
+void Debugger::SignalIsolateEvent(EventType type) {
+  if (event_handler_ != NULL) {
+    DebuggerEvent event;
+    event.type = type;
+    event.isolate = Isolate::Current();
+    (*event_handler_)(&event);
+  }
 }
 
 
@@ -598,8 +632,6 @@ RawObject* RemoteObjectCache::GetObj(intptr_t obj_id) const {
 Debugger::Debugger()
     : isolate_(NULL),
       initialized_(false),
-      bp_handler_(NULL),
-      event_handler_(NULL),
       next_id_(1),
       stack_trace_(NULL),
       obj_cache_(NULL),
@@ -1239,29 +1271,9 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-static void DefaultBreakpointHandler(SourceBreakpoint* bpt,
-                                     DebuggerStackTrace* stack) {
-  String& var_name = String::Handle();
-  Instance& value = Instance::Handle();
-  for (intptr_t i = 0; i < stack->Length(); i++) {
-    ActivationFrame* frame = stack->ActivationFrameAt(i);
-    OS::Print("   %"Pd". %s\n",
-              i + 1, frame->ToCString());
-    intptr_t num_locals = frame->NumLocalVariables();
-    for (intptr_t i = 0; i < num_locals; i++) {
-      intptr_t token_pos, end_pos;
-      frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
-      OS::Print("      var %s (pos %"Pd") = %s\n",
-                var_name.ToCString(), token_pos, value.ToCString());
-    }
-  }
-}
-
-
 void Debugger::SetBreakpointHandler(BreakpointHandler* handler) {
-  bp_handler_ = handler;
-  if (bp_handler_ == NULL) {
-    bp_handler_ = &DefaultBreakpointHandler;
+  if (bp_handler_ != NULL) {
+    bp_handler_ = handler;
   }
 }
 
@@ -1405,7 +1417,6 @@ void Debugger::Initialize(Isolate* isolate) {
   }
   isolate_ = isolate;
   initialized_ = true;
-  SetBreakpointHandler(DefaultBreakpointHandler);
 }
 
 

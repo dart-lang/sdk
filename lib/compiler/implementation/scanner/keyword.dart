@@ -52,10 +52,12 @@ class Keyword implements SourceString {
       const Keyword("static", isBuiltIn: true),
       const Keyword("typedef", isBuiltIn: true),
 
+      const Keyword("export", isPseudo: true),
       const Keyword("hide", isPseudo: true),
       const Keyword("import", isPseudo: true),
       const Keyword("library", isPseudo: true),
       const Keyword("native", isPseudo: true),
+      const Keyword("of", isPseudo: true),
       const Keyword("on", isPseudo: true),
       const Keyword("part", isPseudo: true),
       const Keyword("show", isPseudo: true),

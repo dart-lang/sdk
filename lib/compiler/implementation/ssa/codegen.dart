@@ -810,7 +810,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // Treate all three "test-first" loops the same way.
       case HLoopBlockInformation.FOR_LOOP:
       case HLoopBlockInformation.WHILE_LOOP:
-      case HLoopBlockInformation.FOR_IN_LOOP: {
+      case HLoopBlockInformation.FOR_IN_LOOP:
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization !== null) {
@@ -912,8 +912,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           loop = new js.While(jsCondition, body);
         }
         break;
-      }
-      case HLoopBlockInformation.DO_WHILE_LOOP: {
+      case HLoopBlockInformation.DO_WHILE_LOOP:
         // Generate do-while loop in all cases.
         if (info.initializer !== null) {
           generateStatements(info.initializer);
@@ -940,7 +939,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         body = unwrapStatement(body);
         loop = new js.Do(body, jsCondition);
         break;
-      }
       default:
         compiler.internalError(
           'Unexpected loop kind: ${info.kind}',

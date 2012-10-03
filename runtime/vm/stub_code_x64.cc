@@ -556,7 +556,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
-  __ EnterFrame(0);
+  AssemblerMacros::EnterStubFrame(assembler);
   if (preserve_rax) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }

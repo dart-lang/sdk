@@ -15,40 +15,24 @@ package com.google.dart.compiler;
 
 import com.google.dart.compiler.SystemLibrariesReader.DartLibrary;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
 /**
  * A provider for System libraries.
  */
-public interface SystemLibraryProvider {
+public abstract class SystemLibraryProvider {
+
+  private final URI sdkLibPathUri;
+  private SystemLibrariesReader reader;
 
   /**
-   * Get a URI describing the root of the SDK. 
+   * Create a {@link SystemLibraryProvider} with the given path to the dart SDK.
    */
-  URI getSdkLibPathUri();
-
-  /**
-   * Get a mapping of symbolic names (e.g., "dart:html") to {@link DartLibrary}s.
-   */
-  Map<String, DartLibrary> getLibraryMap();
-
-  /**
-   * Constructs a new URI by parsing the given host string and then resolving it against this URI.
-   * 
-   * @param host the host string 
-   * @param uri the uri to resolve against
-   * @return the resulting URI
-   */
-  URI resolveHost(String host, URI uri);
-
-  /**
-   * Tests whether the resource denoted by this abstract URI exists.
-   * 
-   * @param uri the URI to test
-   * @return <code>true</code> if and only if the resource denoted by this URI exists; <code>false</code> otherwise
-   */
-  boolean exists(URI uri);
+  public SystemLibraryProvider(URI sdkLibPathUri) {
+    this.sdkLibPathUri = sdkLibPathUri;
+  }
 
   /**
    * Define a new system library.
@@ -58,14 +42,68 @@ public interface SystemLibraryProvider {
    * @param pathToLib the path to the library
    * @param category the library category
    * @param documented <code>true</code> if documented, <code>false</code> otherwise
-   * @param implementation <code>true</code> if an implementation library, <code>false</code> otherwise
+   * @param implementation <code>true</code> if an implementation library, <code>false</code>
+   *          otherwise
    * @return the resulting {@link SystemLibrary}
    */
-  SystemLibrary createSystemLibrary(String name, String host, String pathToLib, String category, boolean documented, boolean implementation);
+  public abstract SystemLibrary createSystemLibrary(String name, String host, String pathToLib,
+      String category, boolean documented, boolean implementation);
+
+  /**
+   * Tests whether the resource denoted by this abstract URI exists.
+   * 
+   * @param uri the URI to test
+   * @return <code>true</code> if and only if the resource denoted by this URI exists;
+   *         <code>false</code> otherwise
+   */
+  public abstract boolean exists(URI uri);
+
+  /**
+   * Get a URI describing the root of the SDK.
+   */
+  public URI getSdkLibPathUri() {
+    return sdkLibPathUri;
+  }
+
+  /**
+   * Get a mapping of symbolic names (e.g., "dart:html") to {@link DartLibrary}s.
+   */
+  public Map<String, DartLibrary> getLibraryMap() {
+    return getReader().getLibrariesMap();
+  }
 
   /**
    * Check if this URI denotes a patch file.
    */
-  boolean isPatchFile(URI uri);
+  public boolean isPatchFile(URI uri) {
+    return getReader().getPatchPaths().contains(uri);
+  }
+
+  /**
+   * Constructs a new URI by parsing the given host string and then resolving it against this URI.
+   * 
+   * @param host the host string
+   * @param uri the uri to resolve against
+   * @return the resulting URI
+   */
+  public abstract URI resolveHost(String host, URI uri);
+
+  /**
+   * Create the system libraries reader.
+   * 
+   * @return a reader for parsing system libraries
+   */
+  protected abstract SystemLibrariesReader createReader() throws IOException;
+
+  private SystemLibrariesReader getReader() {
+    if (reader == null) {
+      try {
+        reader = createReader();
+      } catch (IOException e) {
+        throw new InternalCompilerException("Unable to create system library reader", e);
+      }
+    }
+    return reader;
+  }
 
 }

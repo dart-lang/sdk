@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Returns null if no need to rename a node.
-typedef String Renamer(Node node);
-
 String unparse(Node node) {
   Unparser unparser = new Unparser();
   unparser.unparse(node);
@@ -12,17 +9,11 @@ String unparse(Node node) {
 }
 
 class Unparser implements Visitor {
-  Renamer rename;
   final StringBuffer sb;
 
   String get result => sb.toString();
 
-  Unparser() : sb = new StringBuffer() {
-    // TODO(smok): Move this to initializer once dart2js stops complaining
-    // about closures in initializers.
-    rename = (Node node) => null;
-  }
-  Unparser.withRenamer(this.rename) : sb = new StringBuffer();
+  Unparser() : sb = new StringBuffer();
 
   void add(SourceString string) {
     string.printOn(sb);
@@ -39,14 +30,7 @@ class Unparser implements Visitor {
   unparse(Node node) { visit(node); }
 
   visit(Node node) {
-    if (node === null) return;
-    String renamed = rename(node);
-    if (renamed !== null) {
-      sb.add(renamed);
-    } else {
-      // Fallback.
-      node.accept(this);
-    }
+    if (node !== null) node.accept(this);
   }
 
   visitBlock(Block node) {
@@ -261,31 +245,34 @@ class Unparser implements Visitor {
   }
 
   unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
-    // TODO(smok): Remove ugly hack for library preferences.
-    // Check that renamer does not want to omit receiver at all,
-    // in that case we don't need spaces or dot.
-    if (node.receiver !== null && rename(node.receiver) != '') {
-      visit(node.receiver);
-      CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
-      if (asCascadeReceiver !== null) {
-        add(asCascadeReceiver.cascadeOperator.value);
-      } else if (node.selector.asOperator() === null) {
-        sb.add('.');
-      } else if (spacesNeeded) {
-        sb.add(' ');
-      }
+    if (node.receiver === null) return;
+    visit(node.receiver);
+    CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+    if (asCascadeReceiver !== null) {
+      add(asCascadeReceiver.cascadeOperator.value);
+    } else if (node.selector.asOperator() === null) {
+      sb.add('.');
+    } else if (spacesNeeded) {
+      sb.add(' ');
     }
   }
 
   visitSend(Send node) {
     Operator op = node.selector.asOperator();
-    bool spacesNeeded = op !== null &&
-        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
+    String opString = op !== null ? op.source.stringValue : null;
+    bool spacesNeeded = opString === 'is' || opString === 'as';
 
     if (node.isPrefix) visit(node.selector);
     unparseSendReceiver(node, spacesNeeded: spacesNeeded);
     if (!node.isPrefix && !node.isIndex) visit(node.selector);
     if (spacesNeeded) sb.add(' ');
+    // Also add a space for sequences like x + +1 and y - -y.
+    if (opString === '-' || opString === '+') {
+      Token beginToken = node.argumentsNode.getBeginToken();
+      if (beginToken !== null && beginToken.stringValue === opString) {
+        sb.add(' ');
+      }
+    }
     visit(node.argumentsNode);
   }
 
@@ -456,8 +443,8 @@ class Unparser implements Visitor {
   }
 
   unparseImportTag(String uri, [String prefix]) {
-    final suffix = prefix === null ? '' : ',prefix:"$prefix"';
-    sb.add('#import("$uri"$suffix);');
+    final suffix = prefix === null ? '' : ' as $prefix';
+    sb.add('import "$uri"$suffix;');
   }
 
   visitScriptTag(ScriptTag node) {
@@ -514,5 +501,47 @@ class Unparser implements Visitor {
     }
     visit(node.formals);
     add(node.endToken.value);
+  }
+
+  visitLibraryName(LibraryName node) {
+    addToken(node.libraryKeyword);
+    node.visitChildren(this);
+    add(node.getEndToken().value);
+  }
+
+  visitImport(Import node) {
+    addToken(node.importKeyword);
+    visit(node.uri);
+    if (node.prefix != null) {
+      sb.add(' ');
+      addToken(node.asKeyword);
+      visit(node.prefix);
+    }
+    if (node.combinators != null) {
+      visit(node.combinators);
+    }
+    add(node.getEndToken().value);
+  }
+
+  visitExport(Export node) {
+    addToken(node.exportKeyword);
+    visit(node.uri);
+    if (node.combinators != null) {
+      visit(node.combinators);
+    }
+    add(node.getEndToken().value);
+  }
+
+  visitPart(Part node) {
+    addToken(node.partKeyword);
+    visit(node.uri);
+    add(node.getEndToken().value);
+  }
+
+  visitPartOf(PartOf node) {
+    addToken(node.partKeyword);
+    addToken(node.ofKeyword);
+    visit(node.name);
+    add(node.getEndToken().value);
   }
 }

@@ -19,7 +19,7 @@ Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -44,7 +44,6 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage t
 Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t23: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(ahe): Please triage this failure.
@@ -61,6 +60,8 @@ Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -72,10 +73,6 @@ Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please
 
 
 [ $compiler == dart2js && $checked ]
-# Tests rely on a VM exception being thrown in checked mode.
-Language/10_Expressions/10_Instance_Creation/2_Const_A09_t02: Fail, OK
-Language/10_Expressions/10_Instance_Creation/2_Const_A09_t03: Fail, OK
-
 Language/03_Overview/1_Scoping_A02_t30: Fail # http://dartbug.com/5348
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
@@ -94,10 +91,6 @@ Language/10_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this f
 Language/10_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/07_Maps_A10_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/07_Maps_A10_t05: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/08_Function_Expressions_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/08_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/08_Function_Expressions_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/08_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(ahe): Please triage this failure.
@@ -106,10 +99,6 @@ Language/10_Expressions/09_Function_Expressions_A05_t02: Fail # TODO(ahe): Pleas
 Language/10_Expressions/09_Function_Expressions_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A06_t04: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.
@@ -174,8 +163,6 @@ LibTest/core/List/sort_A01_t06: Slow, Pass
 Language/11_Statements/09_Try_A01_t01: Fail, OK
 Language/11_Statements/09_Try_A02_t03: Fail, OK
 Language/11_Statements/09_Try_A04_t01: Fail, OK
-Language/11_Statements/14_Throw_A02_t02: Fail, OK
-Language/11_Statements/14_Throw_A02_t03: Fail, OK
 LibTest/core/Expect/equals_A02_t01: Fail, OK
 LibTest/core/List/getRange_A03_t01: Fail, OK
 LibTest/core/List/removeRange_A06_t01: Fail, OK
@@ -187,11 +174,6 @@ LibTest/core/Set/intersection_A01_t02: Fail, OK
 LibTest/core/Set/remove_A01_t04: Fail, OK
 LibTest/core/Set/removeAll_A01_t03: Fail, OK
 
-# Tests that used to fail before deprecating the old try-catch syntax.
-# The original issue that used to cause the test to fail is put in an
-# end-of-line comment. See co19 issue 184.
-Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Pass, OK # Missing check for const initializer
-
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
@@ -201,7 +183,6 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
-Language/11_Statements/14_Throw_A03_t01: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5519
 
@@ -320,7 +301,6 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Slow, Pass
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -456,8 +436,6 @@ Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 
 [ $compiler == dart2js && $runtime == d8 ]
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
-Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
-Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -599,14 +577,6 @@ Language/10_Expressions/05_Strings_A02_t47: Fail # Checks that multi-line string
 Language/10_Expressions/05_Strings_A02_t48: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/10_Expressions/05_Strings_A02_t49: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/10_Expressions/06_Lists_A04_t01: Fail # Checks that it is a compile-time error if the type argument of a constant list literal includes a type variable.
-Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # Checks that the function body is required.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # Checks that it is a compile-time error if T is not a class or interface accessible in the current scope. Named constructor case.
-Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # Checks that it is a compile-time error if T is a reference to a static method.
-Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # Checks that it is a compile-time error if the type being instantiated  does not declare a named constructor T.id.
-Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # Checks that it is a compile-time error if a class does not declare a constructor with the same name.
-Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Fail # Checks that it is a compile-time error if a constant object expression does not have arguments.
-Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Checks that it is a compile-time error if T includes any type variables as a type argument.
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail # Checks that it is a static warning if interface C does not declare a static method or getter m.
 Language/10_Expressions/20_Equality_A01_t15: Fail # Checks that equality expressions cannot be operands of another equality expression.
 Language/10_Expressions/20_Equality_A01_t16: Fail # Checks that equality expressions cannot be operands of another equality expression.

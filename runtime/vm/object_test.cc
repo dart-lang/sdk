@@ -2865,6 +2865,143 @@ TEST_CASE(StackTraceFormat) {
 }
 
 
+TEST_CASE(WeakProperty_PreserveCrossGen) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  {
+    // Weak property and value in new. Key in old.
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key", Heap::kOld);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kNew);
+    weak ^= WeakProperty::New(Heap::kNew);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due to cross-generation
+  // pointers.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+  {
+    // Weak property and value in old. Key in new.
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key", Heap::kNew);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kOld);
+    weak ^= WeakProperty::New(Heap::kOld);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due to cross-generation
+  // pointers.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+  {
+    // Weak property and value in new. Key is a Smi.
+    HANDLESCOPE(isolate);
+    Integer& key = Integer::Handle();
+    key ^= Integer::New(31);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kNew);
+    weak ^= WeakProperty::New(Heap::kNew);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= Integer::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due implicit liveness of
+  // non-heap objects.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+  {
+    // Weak property and value in old. Key is a Smi.
+    HANDLESCOPE(isolate);
+    Integer& key = Integer::Handle();
+    key ^= Integer::New(32);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kOld);
+    weak ^= WeakProperty::New(Heap::kOld);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due implicit liveness of
+  // non-heap objects.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+  {
+    // Weak property and value in new. Key in VM isolate.
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= Symbols::Dot();
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kNew);
+    weak ^= WeakProperty::New(Heap::kNew);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due to cross-generation
+  // pointers.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+  {
+    // Weak property and value in old. Key in VM isolate.
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= Symbols::Dot();
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kOld);
+    weak ^= WeakProperty::New(Heap::kOld);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  // Weak property key and value should survive due to cross-generation
+  // pointers.
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveRecurse) {
+  // This used to end in an infinite recursion. Caused by scavenging the weak
+  // property before scavenging the key.
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  Array& arr = Array::Handle(Array::New(1));
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key");
+    arr.SetAt(0, key);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value");
+    weak ^= WeakProperty::New();
+    weak.set_key(key);
+    weak.set_value(value);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+}
+
+
 TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();

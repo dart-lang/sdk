@@ -119,11 +119,11 @@ function(cls, fields, methods) {
       nativeBuffer.add("$className.$name = $value;\n");
     }
 
-    for (Element member in classElement.localMembers) {
+    classElement.implementation.forEachMember((_, Element member) {
       if (member.isInstanceMember()) {
         emitter.addInstanceMember(member, defineInstanceMember);
       }
-    }
+    });
   }
 
   bool isNativeLiteral(String quotedName) {

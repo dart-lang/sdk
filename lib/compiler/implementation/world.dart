@@ -112,7 +112,7 @@ class World {
     SourceString name = selector.name;
     LibraryElement library = selector.library;
     MemberSet result = new MemberSet(name);
-    Element element = cls.lookupSelector(selector);
+    Element element = cls.implementation.lookupSelector(selector);
     if (element !== null) result.add(element);
 
     bool isPrivate = name.isPrivate();
@@ -121,7 +121,7 @@ class World {
       for (ClassElement sub in subtypesOfCls) {
         // Private members from a different library are not visible.
         if (isPrivate && sub.getLibrary() != library) continue;
-        element = sub.lookupLocalMember(name);
+        element = sub.implementation.lookupLocalMember(name);
         if (element !== null) result.add(element);
       }
     }
@@ -136,7 +136,7 @@ class World {
   VariableElement locateSingleField(DartType type, Selector selector) {
     MemberSet memberSet = _memberSetFor(type, selector);
     ClassElement cls = type.element;
-    Element result = cls.lookupSelector(selector);
+    Element result = cls.implementation.lookupSelector(selector);
     if (result == null) return null;
     if (!result.isField()) return null;
 

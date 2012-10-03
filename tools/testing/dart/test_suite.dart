@@ -46,7 +46,7 @@ typedef void VoidFunction();
  * Most TestSuites represent a directory or directory tree containing tests,
  * and a status file containing the expected results when these tests are run.
  */
-interface TestSuite {
+abstract class TestSuite {
   /**
    * Call the callback function onTest with a [TestCase] argument for each
    * test in the suite.  When all tests have been processed, call [onDone].
@@ -832,8 +832,6 @@ class StandardTestSuite implements TestSuite {
 
   bool get hasRuntime {
     switch(configuration['runtime']) {
-      case null:
-        Expect.fail("configuration['runtime'] is not set");
       case 'none':
         return false;
       default:
@@ -1335,6 +1333,7 @@ class TestUtils {
         } else {
           return '${prefix}dart2js$suffix';
         }
+        break;
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }

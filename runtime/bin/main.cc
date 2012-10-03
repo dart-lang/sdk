@@ -663,6 +663,12 @@ int main(int argc, char** argv) {
 
   DartUtils::SetOriginalWorkingDirectory();
 
+  // Start the debugger wire protocol handler if necessary.
+  if (start_debugger) {
+    ASSERT(debug_port != 0);
+    DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
+  }
+
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
@@ -712,12 +718,6 @@ int main(int argc, char** argv) {
           breakpoint_at,
           Dart_GetError(result));
     }
-  }
-
-  // Start the debugger wire protocol handler if necessary.
-  if (start_debugger) {
-    ASSERT(debug_port != 0);
-    DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
   }
 
   // Lookup and invoke the top level main function.

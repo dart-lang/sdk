@@ -491,6 +491,20 @@ static void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
 }
 
 
+// Operates in the same manner as TestByteArrayIndex.
+// This should be used only for setIndexed intrinsics.
+static void TestByteArraySetIndex(Assembler* assembler, Label* fall_through) {
+  __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, ByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
+}
+
+
 bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -558,6 +572,7 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
+
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -586,9 +601,31 @@ bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
+
 bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
-    return false;
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
+  // If EAX is not an instance of double, jump to fall through.
+  __ CompareClassId(EAX, kDoubleCid, EDI);
+  __ j(NOT_EQUAL, &fall_through);
+  // Load double value into XMM7.
+  __ movsd(XMM7, FieldAddress(EAX, Double::value_offset()));
+  TestByteArraySetIndex(assembler, &fall_through);
+  // After TestByteArraySetIndex:
+  // * EAX has the base address of the byte array.
+  // * EBX has the index into the array.
+  // EBX contains the SMI index which is shifted by 1.
+  // This shift means we only multiply the index by 2 not 4 (sizeof float).
+  // Convert from double precision float to single precision float.
+  __ cvtsd2ss(XMM7, XMM7);
+  // Store into array.
+  __ movss(FieldAddress(EAX, EBX, TIMES_2, Float32Array::data_offset()), XMM7);
+  // End fast path.
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
 }
+
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.

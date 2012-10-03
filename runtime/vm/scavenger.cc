@@ -122,17 +122,26 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     if (IsForwarding(header)) {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
-    } else {
-      if (raw_obj->IsWatched()) {
-        std::pair<DelaySet::iterator, DelaySet::iterator> ret;
-        // Visit all elements with a key equal to raw_obj.
-        ret = delay_set_.equal_range(raw_obj);
-        for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
-          it->second->VisitPointers(this);
-        }
-        delay_set_.erase(ret.first, ret.second);
-        raw_obj->ClearWatchedBit();
+    } else if (raw_obj->IsWatched()) {
+      // Forward the object by scavenging its watchers.
+      raw_obj->ClearWatchedBit();
+      std::pair<DelaySet::iterator, DelaySet::iterator> ret;
+      // Visit all elements with a key equal to raw_obj.
+      ret = delay_set_.equal_range(raw_obj);
+      for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+        // Scavenge the delayed WeakProperty.  These objects have been
+        // forwarded but have not been scavenged because their key
+        // object was not known to be reachable.  Now that the key
+        // object is known to be reachable we can scavenge the key and
+        // value pointers.
+        it->second->VisitPointers(this);
       }
+      delay_set_.erase(ret.first, ret.second);
+      // Reread the header word to get the new location of the object.
+      header = *reinterpret_cast<uword*>(raw_addr);
+      ASSERT(IsForwarding(header));
+      new_addr = ForwardedAddr(header);
+    } else {
       intptr_t size = raw_obj->Size();
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
@@ -499,16 +508,17 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                      ScavengerVisitor* visitor) {
   // The fate of the weak property is determined by its key.
   RawObject* raw_key = raw_weak->ptr()->key_;
-  uword raw_addr = RawObject::ToAddr(raw_key);
-  uword header = *reinterpret_cast<uword*>(raw_addr);
-  if (!IsForwarding(header)) {
-    // Key is white.  Delay the weak property.
-    visitor->DelayWeakProperty(raw_weak);
-    return raw_weak->Size();
-  } else {
-    // Key is gray or black.  Make the weak property black.
-    return raw_weak->VisitPointers(visitor);
+  if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
+    uword raw_addr = RawObject::ToAddr(raw_key);
+    uword header = *reinterpret_cast<uword*>(raw_addr);
+    if (!IsForwarding(header)) {
+      // Key is white.  Delay the weak property.
+      visitor->DelayWeakProperty(raw_weak);
+      return raw_weak->Size();
+    }
   }
+  // Key is gray or black.  Make the weak property black.
+  return raw_weak->VisitPointers(visitor);
 }
 
 

@@ -205,7 +205,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HInvokeStatic call = node.inputs[1];
       Element element = call.inputs[0].element;
       if (element.isConstructor() &&
-          element.enclosingElement == compiler.listClass.defaultClass.element) {
+          element.enclosingElement.declaration ==
+              compiler.listClass.defaultClass.element) {
         if (call.inputs.length == 2 && call.inputs[1].isInteger(types)) {
           return call.inputs[1];
         }

@@ -42,25 +42,19 @@ ArgParser getOptionParser() {
 
   parser.addOption('list-format',
       defaultsTo:
-        '${Macros.testfile}${Macros.testGroup}${Macros.testDescription}',
+        '<FILENAME><GROUPNAME><TESTNAME>',
       help: 'Format for test list result output.');
 
   parser.addOption('pass-format',
-      defaultsTo: 'PASS ${Macros.testTime}'
-                  '${Macros.testfile}${Macros.testGroup}'
-                  '${Macros.testDescription}${Macros.testMessage}',
+      defaultsTo: 'PASS <TIME><FILENAME><GROUPNAME><TESTNAME><MESSAGE>',
       help: 'Format for passing test result output.');
 
   parser.addOption('fail-format',
-      defaultsTo: 'FAIL ${Macros.testTime}'
-                  '${Macros.testfile}${Macros.testGroup}'
-                  '${Macros.testDescription}${Macros.testMessage}',
+      defaultsTo: 'FAIL <TIME><FILENAME><GROUPNAME><TESTNAME><MESSAGE>',
       help: 'Format for failed test result output.');
 
   parser.addOption('error-format',
-      defaultsTo: 'ERROR ${Macros.testTime}'
-                  '${Macros.testfile}${Macros.testGroup}'
-                  '${Macros.testDescription}${Macros.testMessage}',
+      defaultsTo: 'ERROR <TIME><FILENAME><GROUPNAME><TESTNAME><MESSAGE>',
       help: 'Format for tests with errors result output.');
 
   parser.addFlag('summary', defaultsTo: false,
@@ -153,6 +147,10 @@ ArgParser getOptionParser() {
       help: 'Root directory for HTTP server for static files');
 
   parser.addOption('unittest',  help: '#import path for unit test library.');
+
+  parser.addOption('pipeline',
+      help: 'Pipeline script to use to run each test file.',
+      defaultsTo: 'run_pipeline.dart');
 
   return parser;
 }

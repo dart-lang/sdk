@@ -19,25 +19,6 @@ List<String> getFileContents(String filename, bool errorIfNoFile) {
   return f.readAsLinesSync();
 }
 
-/** Copy a file with path [sourceName] to destination [destName]. */
-void copyFile(String sourceName, String destName) {
-  var sourceFile = new File(sourceName);
-  var destFile = new File(destName);
-  var istream = sourceFile.openInputStream();
-  var ostream = destFile.openOutputStream(FileMode.WRITE);
-  istream.pipe(ostream);
-  // TODO(gram) - make sure both streams are closed.
-  // I think they are but the docs are not clear on this point.
-}
-
-/** Create a file [fileName] and populate it with [contents]. */
-void createFile(String fileName, String contents) {
-  var file = new File(fileName);
-  var ostream = file.openOutputStream(FileMode.WRITE);
-  ostream.writeString(contents);
-  ostream.close();
-}
-
 /**
  * Given a file path [path], make it absolute if it is relative,
  * and return the result.
@@ -93,17 +74,6 @@ void buildFileList(List dirs, RegExp filePat, bool recurse,
   if (--dirCount == 0) {
     onComplete(files);
   }
-}
-
-/** Delete a file. */
-bool deleteFile(String fname) {
-  var f = new File(fname);
-  try {
-    f.deleteSync();
-  } catch (e) {
-    return false;
-  }
-  return true;
 }
 
 /**

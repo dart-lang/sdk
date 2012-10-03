@@ -16,6 +16,9 @@ bool regenerate;
 /** Whether to output test summary. */
 bool summarize;
 
+/** Whether  to print results immediately as they come in. */
+bool immediate;
+
 /** Format strings to use for test result messages. */
 String passFormat, failFormat, errorFormat, listFormat;
 
@@ -28,13 +31,15 @@ String testfile;
 /** URL of the child test file. */
 String baseUrl;
 
+/** The print function to use. */
+Function tprint;
+
+/** A callback function to notify the caller we are done. */
+Function notifyDone;
+
 // Variable below here are local to this file.
 var passCount = 0, failCount = 0, errorCount = 0;
 Date start;
-
-void tprint(msg) {
-  print('###$msg');
-}
 
 class Macros {
   static const String testTime = '<TIME>';
@@ -113,7 +118,7 @@ complete() {
   if (summarize) {
     printSummary(testfile, passCount, failCount, errorCount);
   }
-  exit(failCount > 0 ? -1 : 0);
+  notifyDone(failCount > 0 ? -1 : 0);
 }
 
 runTextLayoutTest(testNum) {
@@ -282,3 +287,27 @@ runPixelLayoutTest(int testNum) {
     }
   };
 }
+
+void init() {
+  // Get the name of the directory that has the expectation files
+  // (by stripping .dart suffix from test file path).
+  // Create it if it does not exist.
+  sourceDir = testfile.substring(0, testfile.length - 5);
+  if (regenerate) {
+    var d = new Directory(sourceDir);
+    if (!d.existsSync()) {
+      d.createSync();
+    }
+  }
+}
+
+void runPixelLayoutTests() {
+  init();
+  runPixelLayoutTest(0);
+}
+
+void runTextLayoutTests() {
+  init();
+  runTextLayoutTest(0);
+}
+

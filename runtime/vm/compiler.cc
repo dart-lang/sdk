@@ -212,6 +212,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         }
         if (FLAG_constant_propagation) {
           ConstantPropagator::Optimize(flow_graph);
+          // A canonicalization pass to remove e.g. smi checks on smi constants.
+          optimizer.OptimizeComputations();
         }
         if (FLAG_common_subexpression_elimination) {
           DominatorBasedCSE::Optimize(flow_graph);

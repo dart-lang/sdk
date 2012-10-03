@@ -58,9 +58,7 @@ namespace dart {
   V(_ObjectArray, get:length, Array_getLength)                                 \
   V(_ObjectArray, [], Array_getIndexed)                                        \
   V(_ObjectArray, []=, Array_setIndexed)                                       \
-  V(_GrowableObjectArray,                                                      \
-    .fromObjectArray,                                                          \
-    GArray_Allocate)                                                           \
+  V(_GrowableObjectArray, .fromObjectArray, GArray_Allocate)                   \
   V(_GrowableObjectArray, get:length, GrowableArray_getLength)                 \
   V(_GrowableObjectArray, get:capacity, GrowableArray_getCapacity)             \
   V(_GrowableObjectArray, [], GrowableArray_getIndexed)                        \

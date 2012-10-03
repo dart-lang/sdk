@@ -68,7 +68,7 @@ abstract class HVisitor<R> {
   R visitTypeConversion(HTypeConversion node);
 }
 
-class HGraphVisitor {
+abstract class HGraphVisitor {
   visitDominatorTree(HGraph graph) {
     void visitBasicBlockAndSuccessors(HBasicBlock block) {
       visitBasicBlock(block);
@@ -96,7 +96,7 @@ class HGraphVisitor {
   abstract visitBasicBlock(HBasicBlock block);
 }
 
-class HInstructionVisitor extends HGraphVisitor {
+abstract class HInstructionVisitor extends HGraphVisitor {
   HBasicBlock currentBlock;
 
   abstract visitInstruction(HInstruction node);

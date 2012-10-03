@@ -28,6 +28,9 @@ spawn_uri_negative_test: Fail, OK # Fails at runtime.
 spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
 unresolved_ports_negative_test: Fail, OK # Fails at runtime.
 
+[ $compiler == dart2js ]
+serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
+
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120

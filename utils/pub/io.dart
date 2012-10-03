@@ -140,6 +140,31 @@ Future<File> deleteFile(file) {
   return new File(_getPath(file)).delete();
 }
 
+/// Writes [stream] to a new file at [path], which may be a [String] or a
+/// [File]. Will replace any file already at that path. Completes when the file
+/// is done being written.
+Future<File> createFileFromStream(InputStream stream, path) {
+  path = _getPath(path);
+
+  var completer = new Completer<File>();
+  var file = new File(path);
+  var outputStream = file.openOutputStream();
+  stream.pipe(outputStream);
+
+  outputStream.onClosed = () {
+    completer.complete(file);
+  };
+
+  completeError(error) {
+    if (!completer.isComplete) completer.completeException(error);
+  }
+
+  stream.onError = completeError;
+  outputStream.onError = completeError;
+
+  return completer.future;
+}
+
 /**
  * Creates a directory [dir]. Returns a [Future] that completes when the
  * directory is created.
@@ -627,6 +652,13 @@ Future<bool> extractTarGz(InputStream stream, destination) {
 }
 
 Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
+  // TODO(rnystrom): In the repo's history, there is an older implementation of
+  // this that does everything in memory by piping streams directly together
+  // instead of writing out temp files. The code is simpler, but unfortunately,
+  // 7zip seems to periodically fail when we invoke it from Dart and tell it to
+  // read from stdin instead of a file. Consider resurrecting that version if
+  // we can figure out why it fails.
+
   // Find 7zip.
   var scriptPath = new File(new Options().script).fullPathSync();
   var scriptDir = new Path.fromNative(scriptPath).directoryPath;
@@ -634,53 +666,52 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   // Note: This line of code gets munged by create_sdk.py to be the correct
   // relative path to 7zip in the SDK.
   var pathTo7zip = '../../third_party/7zip/7za.exe';
-
   var command = scriptDir.append(pathTo7zip).canonicalize().toNativePath();
 
-  // 7zip can't unarchive from gzip -> tar -> destination all in one step so
-  // we spawn it twice and pipe them together.
-  var completer = new Completer<bool>();
-  var gzipProcess = Process.start(command, ['e', '-si', '-tgzip', '-so']);
+  var tempDir;
 
-  // TODO(rnystrom): Even though we are quoting the destination directory here,
-  // 7zip still seems to barf if there is a space in the path. For now we'll
-  // just avoid spaces.
-  var tarProcess = Process.start(command,
-      ['x', '-si', '-ttar', '-o"$destination"']);
-
-  // 7zip writes to stderr even when things are going OK, so we'll capture it
-  // here and only print it if the exit code is bad.
-  var errorStream = new ListOutputStream();
-
-  // Wait for the process to be fully started before writing to its
-  // stdin stream.
-  gzipProcess.onStart = () {
-    stream.pipe(gzipProcess.stdin);
-    gzipProcess.stderr.pipe(errorStream, close: false);
-  };
-
-  tarProcess.onStart = () {
-    gzipProcess.stdout.pipe(tarProcess.stdin);
-    tarProcess.stderr.pipe(errorStream, close: false);
-
-    // TODO(rnystrom): For some mysterious reason, the extract hangs if you
-    // don't do this. Look into why.
-    tarProcess.stdout.pipe(new ListOutputStream());
-  };
-
-  tarProcess.onExit = (exitCode) {
-    if (exitCode != 0) {
-      printError(new String.fromCharCodes(errorStream.read()));
-      completer.completeException('Could not extract archive to $destination.');
-    } else {
-      completer.complete(true);
+  return createTempDir().chain((temp) {
+    // Write the archive to a temp file.
+    tempDir = temp;
+    return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
+  }).chain((tarGz) {
+    // 7zip can't unarchive from gzip -> tar -> destination all in one step
+    // first we un-gzip it to a tar file.
+    // Note: Setting the working directory instead of passing in a full file
+    // path because 7zip says "A full path is not allowed here."
+    return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
+  }).chain((result) {
+    if (result.exitCode != 0) {
+      throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
+          '${Strings.join(result.stderr, "\n")}';
     }
-  };
 
-  tarProcess.onError = completer.completeException;
-  gzipProcess.onError = completer.completeException;
+    // Find the tar file we just created since we don't know its name.
+    return listDir(tempDir);
+  }).chain((files) {
+    var tarFile;
+    for (var file in files) {
+      if (new Path(file).extension == 'tar') {
+        tarFile = file;
+        break;
+      }
+    }
 
-  return completer.future;
+    if (tarFile == null) throw 'The gzip file did not contain a tar file.';
+
+    // Untar the archive into the destination directory.
+    return runProcess(command, ['x', '-o"$destination"', tarFile],
+        workingDir: tempDir);
+  }).chain((result) {
+    if (result.exitCode != 0) {
+      throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
+          '${Strings.join(result.stderr, "\n")}';
+    }
+
+    // Clean up the temp directory.
+    // TODO(rnystrom): Should also delete this if anything fails.
+    return deleteDir(tempDir);
+  }).transform((_) => true);
 }
 
 /**

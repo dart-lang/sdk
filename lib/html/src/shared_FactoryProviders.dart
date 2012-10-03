@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _CustomEventFactoryProvider {
+  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
+      bool cancelable = true, Object detail = null]) {
+    final _CustomEventImpl e = _document.$dom_createEvent("CustomEvent");
+    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+    return e;
+  }
+}
+
 class _EventFactoryProvider {
   static Event createEvent(String type, [bool canBubble = true,
       bool cancelable = true]) {

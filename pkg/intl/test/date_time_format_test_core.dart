@@ -182,6 +182,13 @@ List oddLocales() {
 }
 
 /**
+ * Return a set of a few locales to run just the tests on a small sample.
+ */
+List smallSetOfLocales() {
+  return allLocales().getRange(0,10);
+}
+
+/**
  * Return only the even-numbered locales. A simple way to divide the list into
  * two roughly equal parts.
  */

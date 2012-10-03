@@ -330,8 +330,6 @@ not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 override_field_test/04: Fail # http://dartbug.com/5519
 setter_no_getter_call_test/01: Fail # http://dartbug.com/5519
 setter_no_getter_test/01: Fail # http://dartbug.com/5519
-try_catch_syntax_test/16: Fail # http://dartbug.com/5519
-try_catch_syntax_test/17: Fail # http://dartbug.com/5519
 
 import_combinators_test: Fail
 throw_expr_test: Fail

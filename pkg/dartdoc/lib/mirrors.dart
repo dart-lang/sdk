@@ -55,7 +55,7 @@ abstract class MirrorSystem {
   /**
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
-  Map<Object, LibraryMirror> get libraries;
+  Map<String, LibraryMirror> get libraries;
 }
 
 
@@ -63,12 +63,31 @@ abstract class MirrorSystem {
  * An entity in the mirror system.
  */
 abstract class Mirror {
+  static const String UNARY_MINUS = 'unary-';
+
   /**
-   * The simple name of the entity. The simple name is in most cases the
-   * the declared single identifier name of the entity, such as 'method' for
-   * a method [:void method() {...}:].
+   * The simple name of the entity. The simple name is unique within the
+   * scope of the entity declaration.
+   *
+   * The simple name is in most cases the declared single identifier name of
+   * the entity, such as 'method' for a method [:void method() {...}:]. For an
+   * unnamed constructor for [:class Foo:] the simple name is 'Foo'. For a
+   * constructor for [:class Foo:] named 'named' the simple name is 'Foo.named'.
+   * For a property [:foo:] the simple name of the getter method is 'foo' and
+   * the simple name of the setter is 'foo='. For operators the simple name is
+   * the operator itself, for example '+' for [:operator +:].
+   *
+   * The simple name for the unary minus operator is [UNARY_MINUS].
    */
   String get simpleName;
+
+  /**
+   * The display name is the normal representation of the entity name. In most
+   * cases the display name is the simple name, but for a setter 'foo=' the
+   * display name is simply 'foo' and for the unary minus operator the display
+   * name is 'operator -'. The display name is not unique.
+   */
+  String get displayName;
 
   /**
    * Returns the name of this entity qualified by is enclosing context. For
@@ -92,7 +111,7 @@ abstract class ObjectMirror implements Mirror {
    * Returns an unmodifiable map of the members of declared in this type or
    * library.
    */
-  Map<Object, MemberMirror> get declaredMembers;
+  Map<String, MemberMirror> get declaredMembers;
 }
 
 /**
@@ -107,7 +126,7 @@ abstract class LibraryMirror extends ObjectMirror {
   /**
    * Returns an iterable over all types in the library.
    */
-  Map<Object, InterfaceMirror> get types;
+  Map<String, InterfaceMirror> get types;
 
   /**
    * Returns the source location for this library.
@@ -176,9 +195,9 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   InterfaceMirror get superclass;
 
   /**
-   * Returns an iterable over the interfaces directly implemented by this type.
+   * Returns a list of the interfaces directly implemented by this type.
    */
-  Map<Object, InterfaceMirror> get interfaces;
+  List<InterfaceMirror> get interfaces;
 
   /**
    * Is [:true:] iff this type is a class.
@@ -218,7 +237,7 @@ abstract class InterfaceMirror implements TypeMirror, ObjectMirror {
   /**
    * Returns an immutable map of the constructors in this interface.
    */
-  Map<Object, MethodMirror> get constructors;
+  Map<String, MethodMirror> get constructors;
 
   /**
    * Returns the default type for this interface.

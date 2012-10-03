@@ -33,8 +33,6 @@ class Location : public ValueObject {
 
   static const uword kInvalidLocation = 0;
   static const uword kConstantMask = 0x3;
-  static const intptr_t kStackIndexBias =
-      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
 
   static const intptr_t kMachineRegisterMask = 0x6;
   static const intptr_t kMachineRegister = 0x6;
@@ -156,7 +154,10 @@ class Location : public ValueObject {
 
   // Register locations.
   static Location RegisterLocation(Register reg) {
-    return Location(kRegister, static_cast<uword>(reg));
+    uword payload =
+        RegisterField::encode(reg) |
+        RepresentationField::encode(kDouble);  // Unused for Register.
+    return Location(kRegister, payload);
   }
 
   bool IsRegister() const {
@@ -165,12 +166,26 @@ class Location : public ValueObject {
 
   Register reg() const {
     ASSERT(IsRegister());
-    return static_cast<Register>(payload());
+    return RegisterField::decode(payload());
+  }
+
+  // XMM registers and double spill slots can contain either doubles
+  // or 64-bit integers.
+  enum Representation {
+    kDouble,
+    kMint
+  };
+
+  Representation representation() const {
+    ASSERT(IsXmmRegister() || IsDoubleStackSlot());
+    return RepresentationField::decode(payload());
   }
 
   // XmmRegister locations.
-  static Location XmmRegisterLocation(XmmRegister reg) {
-    return Location(kXmmRegister, static_cast<uword>(reg));
+  static Location XmmRegisterLocation(XmmRegister reg, Representation rep) {
+    uword payload =
+        XmmRegisterField::encode(reg) | RepresentationField::encode(rep);
+    return Location(kXmmRegister, payload);
   }
 
   bool IsXmmRegister() const {
@@ -179,15 +194,22 @@ class Location : public ValueObject {
 
   XmmRegister xmm_reg() const {
     ASSERT(IsXmmRegister());
-    return static_cast<XmmRegister>(payload());
+    return XmmRegisterField::decode(payload());
   }
 
   static bool IsMachineRegisterKind(Kind kind) {
     return (kind & kMachineRegisterMask) == kMachineRegister;
   }
 
-  static Location MachineRegisterLocation(Kind kind, intptr_t reg) {
-    return Location(kind, reg);
+  static Location MachineRegisterLocation(Kind kind,
+                                          intptr_t reg,
+                                          Representation rep) {
+    if (kind == kRegister) {
+      return RegisterLocation(static_cast<Register>(reg));
+    } else {
+      ASSERT(kind == kXmmRegister);
+      return XmmRegisterLocation(static_cast<XmmRegister>(reg), rep);
+    }
   }
 
   bool IsMachineRegister() const {
@@ -196,14 +218,18 @@ class Location : public ValueObject {
 
   intptr_t register_code() const {
     ASSERT(IsMachineRegister());
-    return static_cast<intptr_t>(payload());
+    return static_cast<intptr_t>(RegisterField::decode(payload()));
   }
 
   // Spill slots.
-  static Location StackSlot(intptr_t stack_index) {
+  static Location StackSlot(intptr_t stack_index,
+                            Representation rep = kDouble) {
     ASSERT((-kStackIndexBias <= stack_index) &&
            (stack_index < kStackIndexBias));
-    Location loc(kStackSlot, static_cast<uword>(kStackIndexBias + stack_index));
+    uword payload =
+        IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index))
+      | RepresentationField::encode(rep);
+    Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -213,11 +239,13 @@ class Location : public ValueObject {
     return kind() == kStackSlot;
   }
 
-  static Location DoubleStackSlot(intptr_t stack_index) {
+  static Location DoubleStackSlot(intptr_t stack_index, Representation rep) {
     ASSERT((-kStackIndexBias <= stack_index) &&
            (stack_index < kStackIndexBias));
-    Location loc(kDoubleStackSlot,
-                 static_cast<uword>(kStackIndexBias + stack_index));
+    uword payload =
+        IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index))
+      | RepresentationField::encode(rep);
+    Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -231,7 +259,7 @@ class Location : public ValueObject {
   intptr_t stack_index() const {
     ASSERT(IsStackSlot() || IsDoubleStackSlot());
     // Decode stack index manually to preserve sign.
-    return payload() - kStackIndexBias;
+    return IndexField::decode(payload()) - kStackIndexBias;
   }
 
   // Constants.
@@ -268,6 +296,31 @@ class Location : public ValueObject {
 
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 3> PolicyField;
+
+  // Layout for register locations payload. The representation bit is only used
+  // for XmmRegister and unused for Register.
+  static const intptr_t kBitsForRepresentation = 1;
+  static const intptr_t kBitsForRegister =
+      kBitsForPayload - kBitsForRepresentation;
+  typedef BitField<Representation,
+                   0,
+                   kBitsForRepresentation> RepresentationField;
+  typedef BitField<Register,
+                   kBitsForRepresentation,
+                   kBitsForRegister> RegisterField;
+  typedef BitField<XmmRegister,
+                   kBitsForRepresentation,
+                   kBitsForRegister> XmmRegisterField;
+
+  // Layout for stack slots. The representation bit is only used for
+  // DoubleStackSlot and unused for StackSlot.
+  static const intptr_t kBitsForIndex =
+      kBitsForPayload - kBitsForRepresentation;
+  typedef BitField<uword,
+                   kBitsForRepresentation,
+                   kBitsForIndex> IndexField;
+  static const intptr_t kStackIndexBias =
+      static_cast<intptr_t>(1) << (kBitsForIndex - 1);
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a

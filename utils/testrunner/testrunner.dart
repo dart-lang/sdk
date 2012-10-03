@@ -62,6 +62,11 @@
  *
  * Layout file (re)generation can be done using `--regenerate`. This will
  * create or update the layout files (and implicitly pass the tests).
+ *
+ * The wrapping and execution of test files is handled by test_pipeline.dart,
+ * which is run in an isolate. The `--pipeline` argument can be used to
+ * specify a different script for running a test file pipeline, allowing
+ * customization of the pipeline.
  */
 
 // TODO - layout tests that use PNGs rather than DRT text render dumps.
@@ -71,17 +76,7 @@
 #import('dart:math');
 #import('../../pkg/args/lib/args.dart');
 
-#source('client_server_task.dart');
-#source('configuration.dart');
-#source('dart_wrap_task.dart');
-#source('dart2js_task.dart');
-#source('delete_task.dart');
-#source('html_wrap_task.dart');
-#source('macros.dart');
 #source('options.dart');
-#source('pipeline_runner.dart');
-#source('pipeline_task.dart');
-#source('run_process_task.dart');
 #source('utils.dart');
 
 /** The set of [PipelineRunner]s to execute. */
@@ -102,16 +97,13 @@ OutputStream _outStream;
 /** The stream to use for low-value messages, like verbose output. */
 OutputStream _logStream;
 
-/** The full set of options. */
-Configuration config;
-
 /**
  * The user can specify output streams on the command line, using 'none',
  * 'stdout', 'stderr', or a file path; [getStream] will take such a name
  * and return an appropriate [OutputStream].
  */
 OutputStream getStream(String name) {
-  if (name == 'none') {
+  if (name == null || name == 'none') {
     return null;
   }
   if (name == 'stdout') {
@@ -124,86 +116,13 @@ OutputStream getStream(String name) {
 }
 
 /**
- * Generate a templated list of commands that should be executed for each test
- * file. Each command is an instance of a [PipelineTask].
- * The commands can make use of a number of metatokens that will be
- * expanded before execution (see the [Meta] class for details).
- */
-List getPipelineTemplate(String runtime, bool checkedMode, bool keepTests) {
-  var pipeline = new List();
-  var pathSep = Platform.pathSeparator;
-  Directory tempDir = new Directory(config.tempDir);
-
-  if (!tempDir.existsSync()) {
-    tempDir.createSync();
-  }
-
-  // Templates for the generated files that are used to run the wrapped test.
-  var basePath =
-      '${config.tempDir}$pathSep${Macros.flattenedDirectory}_'
-      '${Macros.filenameNoExtension}';
-  var tempDartFile = '${basePath}.dart';
-  var tempJsFile = '${basePath}.js';
-  var tempHTMLFile = '${basePath}.html';
-  var tempCSSFile = '${basePath}.css';
-
-  // Add step for wrapping in Dart scaffold.
-  pipeline.add(new DartWrapTask(Macros.fullFilePath, tempDartFile));
-
-  // Add the compiler step, unless we are running native Dart.
-  if (runtime == 'drt-js') {
-    if (checkedMode) {
-      pipeline.add(new Dart2jsTask.checked(tempDartFile, tempJsFile));
-    } else {
-      pipeline.add(new Dart2jsTask(tempDartFile, tempJsFile));
-    }
-  }
-
-  // Add step for wrapping in HTML, if we are running in DRT.
-  if (runtime != 'vm') {
-    // The user can have pre-existing HTML and CSS files for the test in the
-    // same directory and using the same name. The paths to these are matched
-    // by these two templates.
-    var HTMLFile =
-        '${Macros.directory}$pathSep${Macros.filenameNoExtension}.html';
-    var CSSFile =
-        '${Macros.directory}$pathSep${Macros.filenameNoExtension}.css';
-    pipeline.add(new HtmlWrapTask(Macros.fullFilePath,
-        HTMLFile, tempHTMLFile, CSSFile, tempCSSFile));
-  }
-
-  // Add the execution step.
-  var command;
-  var flags;
-  var task;
-  if (runtime == 'vm' || config.layoutPixel || config.layoutText) {
-    command = config.dartPath;
-    if (checkedMode) {
-      flags = ['--enable_asserts', '--enable_type_checks', tempDartFile];
-    } else {
-      flags = [tempDartFile];
-    }
-  } else {
-    command = config.drtPath;
-    flags = ['--no-timeout', tempHTMLFile];
-  }
-  if (config.runServer) {
-    task = new RunClientServerTask(command, flags, config.timeout);
-  } else {
-    task = new RunProcessTask(command, flags, config.timeout);
-  }
-  pipeline.add(task);
-  return pipeline;
-}
-
-/**
  * Given a [List] of [testFiles], either print the list or create
  * and execute pipelines for the files.
  */
-void processTests(List pipelineTemplate, List testFiles) {
-  _outStream = getStream(config.outputStream);
-  _logStream = getStream(config.logStream);
-  if (config.listFiles) {
+void processTests(Map config, List testFiles) {
+  _outStream = getStream(config['out']);
+  _logStream = getStream(config['log']);
+  if (config['list-files']) {
     if (_outStream != null) {
       for (var i = 0; i < testFiles.length; i++) {
         _outStream.writeString(testFiles[i]);
@@ -211,47 +130,45 @@ void processTests(List pipelineTemplate, List testFiles) {
       }
     }
   } else {
-    // Create execution pipelines for each test file from the pipeline
-    // template and the concrete test file path, and then kick
-    // off execution of the first batch.
-    _tasks = new List();
-    for (var i = 0; i < testFiles.length; i++) {
-      _tasks.add(new PipelineRunner(pipelineTemplate, testFiles[i],
-          config.verbose, completeHandler));
-    }
-
-    _maxTasks = min(config.maxTasks, testFiles.length);
+    _maxTasks = min(config['tasks'], testFiles.length);
     _numTasks = 0;
     _nextTask = 0;
-    spawnTasks();
+    spawnTasks(config, testFiles);
   }
 }
 
 /** Execute as many tasks as possible up to the maxTasks limit. */
-void spawnTasks() {
-  while (_numTasks < _maxTasks && _nextTask < _tasks.length) {
+void spawnTasks(Map config, List testFiles) {
+  var verbose = config['verbose'];
+  // If we were running in the VM and the immediate flag was set, we have
+  // already printed the important messages (i.e. prefixed with ###),
+  // so we should skip them now.
+  var skipNonVerbose = config['immediate'] && config['runtime'] == 'vm';
+  while (_numTasks < _maxTasks && _nextTask < testFiles.length) {
     ++_numTasks;
-    _tasks[_nextTask++].execute();
-  }
-}
-
-/**
- * Handle the completion of a task. Kick off more tasks if we
- * have them.
- */
-void completeHandler(String testFile,
-                     int exitCode,
-                     List _stdout,
-                     List _stderr) {
-  writelog(_stdout, _outStream, _logStream);
-  writelog(_stderr, _outStream, _logStream);
-  --_numTasks;
-  if (exitCode == 0 || !config.stopOnFailure) {
-    spawnTasks();
-  }
-  if (_numTasks == 0) {
-    // No outstanding tasks; we're all done.
-    // We could later print a summary report here.
+    var testfile = testFiles[_nextTask++];
+    config['testfile'] = testfile;
+    ReceivePort port = new ReceivePort();
+    port.receive((msg, _) {
+      List stdout = msg[0];
+      List stderr = msg[1];
+      List log = msg[2];
+      int exitCode = msg[3];
+      writelog(stdout, _outStream, _logStream, verbose, skipNonVerbose);
+      writelog(stderr, _outStream, _logStream, true, skipNonVerbose);
+      writelog(log, _outStream, _logStream, verbose, skipNonVerbose);
+      port.close();
+      --_numTasks;
+      if (exitCode == 0 || !config['stopOnFailure']) {
+        spawnTasks(config, testFiles);
+      }
+      if (_numTasks == 0) {
+        // No outstanding tasks; we're all done.
+        // We could later print a summary report here.
+      }
+    });
+    SendPort s = spawnUri(config['pipeline']);
+    s.send(config, port.toSendPort());
   }
 }
 
@@ -262,21 +179,58 @@ void completeHandler(String testFile,
  * messages; other messages will only be written if verbose output was
  * specified.
  */
-void writelog(List messages, OutputStream out, OutputStream log) {
+void writelog(List messages, OutputStream out, OutputStream log,
+              bool includeVerbose, bool skipNonVerbose) {
   for (var i = 0; i < messages.length; i++) {
     var msg = messages[i];
     if (msg.startsWith('###')) {
-      if (out != null) {
+      if (!skipNonVerbose && out != null) {
         out.writeString(msg.substring(3));
         out.writeString('\n');
       }
-    } else if (config.verbose) {
-      if (log != null) {
-        log.writeString(msg);
-        log.writeString('\n');
-      }
+    } else if (includeVerbose && log != null) {
+      log.writeString(msg);
+      log.writeString('\n');
     }
   }
+}
+
+sanitizeConfig(Map config, ArgParser parser) {
+  config['layout'] = config['layout-text'] || config['layout-pixel'];
+
+  // TODO - check if next three are actually used.
+  config['runInBrowser'] = (config['runtime'] != 'vm');
+  config['verbose'] = (config['log'] != 'none' && !config['list-groups']);
+  config['filtering'] = (config['include'].length > 0 ||
+      config['exclude'].length > 0);
+
+  config['timeout'] = int.parse(config['timeout']);
+  config['tasks'] = int.parse(config['tasks']);
+
+  config['keep-files'] = (config['keep-files'] &&
+      !(config['list-groups'] || config['list-tests']));
+
+  var dartsdk = config['dartsdk'];
+  var pathSep = Platform.pathSeparator;
+
+  if (dartsdk != null) {
+    if (parser.getDefault('dart2js') == config['dart2js']) {
+      config['dart2js'] =
+          '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
+    }
+    if (parser.getDefault('dart') == config['dart']) {
+      config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
+    }
+    if (parser.getDefault('drt') == config['drt']) {
+      config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree';
+    }
+  }
+
+  config['unittest'] = makePathAbsolute(config['unittest']);
+  config['drt'] = makePathAbsolute(config['drt']);
+  config['dart'] = makePathAbsolute(config['dart']);
+  config['dart2js'] = makePathAbsolute(config['dart2js']);
+  config['runnerDir'] = runnerDirectory;
 }
 
 main() {
@@ -288,21 +242,35 @@ main() {
     } else if (options['list-all-options']) {
         printOptions(optionsParser, options, true, stdout);
     } else {
-      config = new Configuration(optionsParser, options);
-      // Build the command templates needed for test compile and execute.
-      var pipelineTemplate = getPipelineTemplate(config.runtime,
-                                                 config.checkedMode,
-                                                 config.keepTests);
-      if (pipelineTemplate != null) {
-        // Build the list of tests and then execute them.
-        List dirs = options.rest;
-        if (dirs.length == 0) {
-          dirs.add('.'); // Use current working directory as default.
-        }
-        buildFileList(dirs,
-            new RegExp(options['test-file-pattern']), options['recurse'],
-            (f) => processTests(pipelineTemplate, f));
+      var config = new Map();
+      for (var option in options.options) {
+        config[option] = options[option];
       }
+      var rest = [];
+      // Process the remmaining command line args. If they look like
+      // options then split them up and add them to the map; they may be for
+      // custom pipelines.
+      for (var other in options.rest) {
+        var idx;
+        if (other.startsWith('--') && (idx = other.indexOf('=')) > 0) {
+          var optName = other.substring(2, idx);
+          var optValue = other.substring(idx+1);
+          config[optName] = optValue;
+        } else {
+          rest.add(other);
+        }
+      }
+
+      sanitizeConfig(config, optionsParser);
+
+      // Build the list of tests and then execute them.
+      List dirs = rest;
+      if (dirs.length == 0) {
+        dirs.add('.'); // Use current working directory as default.
+      }
+      buildFileList(dirs,
+          new RegExp(options['test-file-pattern']), options['recurse'],
+          (f) => processTests(config, f));
     }
   }
 }

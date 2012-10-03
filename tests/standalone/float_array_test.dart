@@ -50,6 +50,9 @@ void testIndexOutOfRange() {
   List<num> list = const [0.0, 1.0, 2.0, 3.0];
 
   Expect.throws(() {
+    floatArray[5] = 2.0;
+  });
+  Expect.throws(() {
     floatArray.setRange(0, 4, list);
   });
 

@@ -204,9 +204,9 @@ bool FlowGraphCompiler::CanOptimize() {
 
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order().length(); ++i) {
-    assembler()->Comment("B%"Pd"", i);
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
+    assembler()->Comment("B%"Pd"", entry->block_id());
     set_current_block(entry);
     entry->PrepareEntry(this);
     // Compile all successors until an exit, branch, or a block entry.

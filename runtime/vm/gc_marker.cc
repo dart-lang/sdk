@@ -368,7 +368,9 @@ void GCMarker::ProcessWeakProperty(RawWeakProperty* raw_weak,
                                    MarkingVisitor* visitor) {
   // The fate of the weak property is determined by its key.
   RawObject* raw_key = raw_weak->ptr()->key_;
-  if (!raw_key->IsMarked()) {
+  if (raw_key->IsHeapObject() &&
+      raw_key->IsOldObject() &&
+      !raw_key->IsMarked()) {
     // Key is white.  Delay the weak property.
     visitor->DelayWeakProperty(raw_weak);
   } else {

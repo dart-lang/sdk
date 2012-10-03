@@ -37,8 +37,8 @@ class DartiumBackend(BaseGenerator):
     # generated on merged interface implementation instead.
     return False
 
-  def HasCustomEventImplementation(self, member_name):
-    return False
+  def CustomJSMembers(self):
+    return {}
 
   def GenerateCallback(self, info):
     if IsPureInterface(self._interface.id):

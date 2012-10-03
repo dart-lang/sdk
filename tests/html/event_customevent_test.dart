@@ -27,10 +27,7 @@ main() {
   useHtmlConfiguration();
 
   eventTest('CustomEvent.initCustomEvent', () {
-    // TODO: switch to constructors later.
-    final ev = document.$dom_createEvent('CustomEvent');
-    ev.initCustomEvent('foo', false, false, 'detail');
-    return ev;
+    return new CustomEvent('foo', false, false, 'detail');
   },
   (ev) { expect(ev.detail, equals('detail')); });
 }

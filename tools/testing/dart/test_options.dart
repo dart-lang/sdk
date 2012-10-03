@@ -44,12 +44,12 @@ class TestOptionsParser {
 Special command support. Wraps the command line in
 a special command. The special command should contain
 an '@' character which will be replaced by the normal
-command.
+command executable.
 
-For example if the normal command that will be executed
+For example if the normal command line that will be executed
 is 'dart file.dart' and you specify special command
 'python -u valgrind.py @ suffix' the final command will be
-'python -u valgrind.py dart file.dart suffix'""";
+'python -u valgrind.py dart suffix file.dart'""";
 
   /**
    * Creates a test options parser initialized with the known options.

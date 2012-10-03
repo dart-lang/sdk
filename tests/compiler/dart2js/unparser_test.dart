@@ -17,6 +17,17 @@ testUnparseMember(String member) {
   Expect.equals(member, unparse(node));
 }
 
+testUnparseUnit(String code) {
+  Node node = fullParseUnit(code);
+  Expect.equals(code, unparse(node));
+}
+
+testUnparseTopLevelWithMetadata(String code) {
+  testUnparseUnit(code);
+  // TODO(ahe): Enable when supported.
+  // testUnparseUnit('@foo $code');
+}
+
 testSignedConstants() {
   testUnparse('var x=+42;');
   testUnparse('var x=+.42;');
@@ -78,6 +89,145 @@ testSimpleObjectInstantiation() {
   testUnparse('main(){new Object();}');
 }
 
+testLibraryName() {
+  testUnparseTopLevelWithMetadata('library com;');
+  testUnparseTopLevelWithMetadata('library com.example;');
+  testUnparseTopLevelWithMetadata('library com.example.dart;');
+}
+
+testImport() {
+  testUnparseTopLevelWithMetadata('import "søhest";');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest;');
+}
+
+testExport() {
+  testUnparseTopLevelWithMetadata('export "søhest";');
+}
+
+testPart() {
+  testUnparseTopLevelWithMetadata('part "søhest";');
+}
+
+testPartOf() {
+  testUnparseTopLevelWithMetadata('part of com;');
+  testUnparseTopLevelWithMetadata('part of com.example;');
+  testUnparseTopLevelWithMetadata('part of com.example.dart;');
+}
+
+testCombinators() {
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest show a;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest show hide;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest show show;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest show a, hide;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest show a, show;');
+
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest hide a;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest hide hide;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest hide show;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest hide a, hide;');
+  testUnparseTopLevelWithMetadata('import "søhest" as fiskehest hide a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a hide a;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show hide hide hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show show hide show;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a, hide hide a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a, show hide a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a show a;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide hide show hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide show show show;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a, hide show a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a, show show a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a show a;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show hide show hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show show show show;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a, hide show a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest show a, show show a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a hide a;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide hide hide hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide show hide show;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a, hide hide a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'import "søhest" as fiskehest hide a, show hide a, show;');
+
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest show a;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest show hide;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest show show;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest show a, hide;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest show a, show;');
+
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest hide a;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest hide hide;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest hide show;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest hide a, hide;');
+  testUnparseTopLevelWithMetadata('export "søhest" as fiskehest hide a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a hide a;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show hide hide hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show show hide show;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a, hide hide a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a, show hide a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a show a;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide hide show hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide show show show;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a, hide show a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a, show show a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a show a;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show hide show hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show show show show;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a, hide show a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest show a, show show a, show;');
+
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a hide a;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide hide hide hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide show hide show;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a, hide hide a, hide;');
+  testUnparseTopLevelWithMetadata(
+      'export "søhest" as fiskehest hide a, show hide a, show;');
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -89,4 +239,11 @@ main() {
   testPrefixIncrements();
   testConstModifier();
   testSimpleObjectInstantiation();
+  testLibraryName();
+  testImport();
+  testExport();
+  testPart();
+  testPartOf();
+  // TODO(ahe): Enable when it works.
+  // testCombinators();
 }

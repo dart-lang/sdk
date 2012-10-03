@@ -32,6 +32,8 @@ class FlowGraphCompiler : public ValueObject {
 
   ~FlowGraphCompiler();
 
+  static bool SupportsUnboxedMints();
+
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }

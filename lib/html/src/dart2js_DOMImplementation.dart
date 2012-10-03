@@ -4,8 +4,10 @@
 
 // TODO(vsm): Unify with Dartium version.
 class _DOMWindowCrossFrameImpl implements Window {
-  // Private window.
-  _WindowImpl _window;
+  // Private window.  Note, this is a window in another frame, so it
+  // cannot be typed as "Window" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _window;
 
   // Fields.
   // TODO(vsm): Implement history and location getters.

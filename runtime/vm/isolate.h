@@ -32,6 +32,8 @@ class ObjectStore;
 class RawArray;
 class RawContext;
 class RawDouble;
+class RawMint;
+class RawInteger;
 class RawError;
 class StackResource;
 class StubCode;
@@ -56,6 +58,24 @@ class DeferredDouble {
   DeferredDouble* const next_;
 
   DISALLOW_COPY_AND_ASSIGN(DeferredDouble);
+};
+
+
+class DeferredMint {
+ public:
+  DeferredMint(int64_t value, RawMint** slot, DeferredMint* next)
+      : value_(value), slot_(slot), next_(next) { }
+
+  int64_t value() const { return value_; }
+  RawMint** slot() const { return slot_; }
+  DeferredMint* next() const { return next_; }
+
+ private:
+  const int64_t value_;
+  RawMint** const slot_;
+  DeferredMint* const next_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredMint);
 };
 
 
@@ -267,13 +287,22 @@ class Isolate : public BaseIsolate {
   intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
 
   void DeferDoubleMaterialization(double value, RawDouble** slot) {
-    deferred_doubles_ = new DeferredDouble(
-        value, slot, deferred_doubles_);
+    deferred_doubles_ = new DeferredDouble(value, slot, deferred_doubles_);
+  }
+
+  void DeferMintMaterialization(int64_t value, RawMint** slot) {
+    deferred_mints_ = new DeferredMint(value, slot, deferred_mints_);
   }
 
   DeferredDouble* DetachDeferredDoubles() {
     DeferredDouble* list = deferred_doubles_;
     deferred_doubles_ = NULL;
+    return list;
+  }
+
+  DeferredMint* DetachDeferredMints() {
+    DeferredMint* list = deferred_mints_;
+    deferred_mints_ = NULL;
     return list;
   }
 
@@ -321,6 +350,7 @@ class Isolate : public BaseIsolate {
   intptr_t* deopt_frame_copy_;
   intptr_t deopt_frame_copy_size_;
   DeferredDouble* deferred_doubles_;
+  DeferredMint* deferred_mints_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

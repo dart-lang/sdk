@@ -75,6 +75,10 @@ Link<Element> parseUnit(String text, Compiler compiler,
   return unit.localMembers;
 }
 
+NodeList fullParseUnit(String source) {
+  return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens));
+}
+
 // TODO(ahe): We define this method to avoid having to import
 // the scanner in the tests. We should move SourceString to another
 // location instead.

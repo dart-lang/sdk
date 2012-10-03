@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const bool REMOVE_ASSERTS = false;
-
 class ElementAst {
   final Node ast;
   final TreeElements treeElements;
 
   ElementAst(this.ast, this.treeElements);
 
-  factory ElementAst.rewrite(compiler, ast, treeElements) {
-    final rewriter = new FunctionBodyRewriter(compiler, treeElements);
+  factory ElementAst.rewrite(compiler, ast, treeElements, stripAsserts) {
+    final rewriter =
+        new FunctionBodyRewriter(compiler, treeElements, stripAsserts);
     return new ElementAst(rewriter.visit(ast), rewriter.cloneTreeElements);
   }
 
@@ -63,8 +62,9 @@ class VariableListAst extends ElementAst {
 
 class FunctionBodyRewriter extends CloningVisitor {
   final Compiler compiler;
+  final bool stripAsserts;
 
-  FunctionBodyRewriter(this.compiler, originalTreeElements)
+  FunctionBodyRewriter(this.compiler, originalTreeElements, this.stripAsserts)
       : super(originalTreeElements);
 
   visitBlock(Block block) {
@@ -74,7 +74,7 @@ class FunctionBodyRewriter extends CloningVisitor {
         Send send = statement.expression.asSend();
         if (send !== null) {
           Element element = originalTreeElements[send];
-          if (REMOVE_ASSERTS && element === compiler.assertMethod) {
+          if (stripAsserts && element === compiler.assertMethod) {
             return true;
           }
         }
@@ -108,7 +108,8 @@ class FunctionBodyRewriter extends CloningVisitor {
 
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
-  final bool forceCutDeclarationTypes;
+  final bool forceStripTypes;
+  final bool stripAsserts;
   // TODO(antonm): make available from command-line options.
   final bool outputAst = false;
 
@@ -181,8 +182,10 @@ class DartBackend extends Backend {
     return true;
   }
 
-  DartBackend(Compiler compiler, this.forceCutDeclarationTypes)
+  DartBackend(Compiler compiler, List<String> strips)
       : tasks = <CompilerTask>[],
+        forceStripTypes = strips.indexOf('types') != -1,
+        stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
 
   void enqueueHelpers(Enqueuer world) {
@@ -217,7 +220,7 @@ class DartBackend extends Backend {
     final fixedMemberNames = new Set<String>();
     for (final library in compiler.libraries.getValues()) {
       if (!library.isPlatformLibrary) continue;
-      for (final element in library.localMembers) {
+      library.implementation.forEachLocalMember((Element element) {
         if (element is ClassElement) {
           ClassElement classElement = element;
           // Make sure we parsed the class to initialize its local members.
@@ -239,7 +242,7 @@ class DartBackend extends Backend {
         // from dynamic invocation (alas!).  So we'd better err on preserving
         // those names.
         fixedMemberNames.add(element.name.slowToString());
-      }
+      });
     }
     // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
     // runtime/lib/error.dart. Overall, all DartVM specific libs should be
@@ -300,8 +303,8 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
-      var elementAst =
-          new ElementAst.rewrite(compiler, parse(element), treeElements);
+      var elementAst = new ElementAst.rewrite(
+          compiler, parse(element), treeElements, stripAsserts);
       if (element.isField()) {
         final list = (element as VariableElement).variables;
         elementAst = elementAsts.putIfAbsent(
@@ -377,7 +380,7 @@ class DartBackend extends Backend {
     // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
-    bool shouldCutDeclarationTypes = forceCutDeclarationTypes
+    bool shouldCutDeclarationTypes = forceStripTypes
         || (compiler.enableMinification
             && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(
@@ -423,7 +426,7 @@ class DartBackend extends Backend {
       }
     }
 
-    final unparser = new Unparser.withRenamer((Node node) => renames[node]);
+    final unparser = new EmitterUnparser(renames);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     compiler.assembledCode = unparser.result;
 
@@ -449,6 +452,27 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 }
+
+class EmitterUnparser extends Unparser {
+  final Map<Node, String> renames;
+
+  EmitterUnparser(this.renames);
+
+  visit(Node node) {
+    if (node !== null && renames.containsKey(node)) {
+      sb.add(renames[node]);
+    } else {
+      super.visit(node);
+    }
+  }
+
+  unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
+    // TODO(smok): Remove ugly hack for library prefices.
+    if (node.receiver !== null && renames[node.receiver] == '') return;
+    super.unparseSendReceiver(node, spacesNeeded);
+  }
+}
+
 
 /**
  * Some elements are not recorded by resolver now,

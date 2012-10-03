@@ -673,7 +673,9 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(DartPropertyAccess x) {
-    accept(x.getQualifier());
+    if (x.getQualifier() != null) {
+      accept(x.getQualifier());
+    }
     if (x.isCascade()) {
       p("..");
     } else {

@@ -16,7 +16,9 @@ class Person {
 }
 
 main() {
-  initializeMessages('en_US').then(runTests);
+  test('Run all tests', () {
+    initializeMessages('en_US').then(expectAsync1(runTests));
+  });
 }
 
 runTests(_) {

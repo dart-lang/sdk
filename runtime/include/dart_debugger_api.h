@@ -26,6 +26,14 @@ typedef void Dart_ExceptionThrownHandler(
                  Dart_Handle exception_object,
                  Dart_StackTrace stack_trace);
 
+typedef enum {
+  kCreated = 0,
+  kInterrupted,
+  kShutdown,
+} Dart_IsolateEvent;
+
+typedef void Dart_IsolateEventHandler(Dart_Isolate isolate,
+                                      Dart_IsolateEvent kind);
 
 /**
  * Caches a given \object and returns an object id. The object id is only
@@ -287,6 +295,14 @@ DART_EXPORT void Dart_SetBreakpointResolvedHandler(
 DART_EXPORT void Dart_SetExceptionThrownHandler(
                             Dart_ExceptionThrownHandler handler);
 
+/**
+ * Installs a callback function that gets called by the VM when
+ * an isolate event happens, e.g:
+ *   - creation of a new isolate
+ *   - shutdown of an isolate
+ *   - interruption of an isolate
+ */
+DART_EXPORT void Dart_SetIsolateEventHandler(Dart_IsolateEventHandler handler);
 
 // On which exceptions to pause.
 typedef enum {

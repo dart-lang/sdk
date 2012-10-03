@@ -5,11 +5,11 @@
 // Patch file for dart:core classes.
 
 // Patch for 'print' function.
-patch void print(var obj) {
-  if (obj is String) {
-    Primitives.printString(obj);
+patch void print(var object) {
+  if (object is String) {
+    Primitives.printString(object);
   } else {
-    Primitives.printString(obj.toString());
+    Primitives.printString(object.toString());
   }
 }
 
@@ -32,7 +32,7 @@ patch class Object {
 
 // Patch for Expando implementation.
 patch class Expando<T> {
-  patch Expando([this.name]);
+  patch Expando([String name]) : this.name = name;
 
   patch T operator[](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
@@ -63,11 +63,11 @@ patch class Expando<T> {
 }
 
 patch class int {
-  patch static int parse(String string) => Primitives.parseInt(string);
+  patch static int parse(String source) => Primitives.parseInt(source);
 }
 
 patch class double {
-  patch static double parse(String string) => Primitives.parseDouble(string);
+  patch static double parse(String source) => Primitives.parseDouble(source);
 }
 
 patch class NoSuchMethodError {

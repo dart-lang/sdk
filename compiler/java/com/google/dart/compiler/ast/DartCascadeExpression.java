@@ -74,7 +74,7 @@ public class DartCascadeExpression extends DartExpression {
    * @param target the target of the cascade sections
    */
   public void setTarget(DartExpression target) {
-    this.target = target;
+    this.target = becomeParentOf(target);
   }
 
   @Override
