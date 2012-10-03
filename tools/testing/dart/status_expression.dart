@@ -9,8 +9,8 @@
  * There are set expressions and Boolean expressions in a .status file.
  * The grammar is:
  *   BooleanExpression := $variableName == value | $variableName |
- *                        (BooleanExpression) | 
- *                        BooleanExpression && BooleanExpression | 
+ *                        (BooleanExpression) |
+ *                        BooleanExpression && BooleanExpression |
  *                        BooleanExpression || BooleanExpression
  *
  *   SetExpression := value | (SetExpression) |
@@ -31,8 +31,7 @@
  */
 
 
-class Token
-{
+class Token {
   static const String LEFT_PAREN = "(";
   static const String RIGHT_PAREN = ")";
   static const String DOLLAR_SYMBOL = r"$";
@@ -65,12 +64,12 @@ class Tokenizer {
 }
 
 
-interface BooleanExpression {
+abstract class BooleanExpression {
   bool evaluate(Map<String, String> environment);
 }
 
 
-interface SetExpression {
+abstract class SetExpression {
   Set<String> evaluate(Map<String, String> environment);
 }
 
@@ -103,7 +102,7 @@ class TermConstant {
 
   String termValue(environment) => value;
 }
-     
+
 
 class BooleanVariable implements BooleanExpression {
   TermVariable variable;

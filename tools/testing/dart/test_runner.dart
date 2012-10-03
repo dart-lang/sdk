@@ -206,10 +206,19 @@ class BrowserTestCase extends TestCase {
  * the time the process took to run.  It also contains a pointer to the
  * [TestCase] this is the output of.
  */
-interface TestOutput default TestOutputImpl {
-  TestOutput.fromCase(TestCase testCase, int exitCode, bool incomplete,
-                      bool timedOut,
-                      List<String> stdout, List<String> stderr, Duration time);
+abstract class TestOutput {
+  factory TestOutput.fromCase(TestCase testCase,
+                              int exitCode,
+                              bool incomplete,
+                              bool timedOut,
+                              List<String> stdout,
+                              List<String> stderr,
+                              Duration time) {
+    return new TestOutputImpl.fromCase(
+        testCase, exitCode, incomplete, timedOut, stdout, stderr, time);
+  }
+
+  bool get incomplete;
 
   String get result;
 
@@ -272,14 +281,13 @@ class TestOutputImpl implements TestOutput {
     testCase.output = this;
     diagnostics = [];
   }
-
-  factory TestOutputImpl.fromCase (TestCase testCase,
-                                   int exitCode,
-                                   bool incomplete,
-                                   bool timedOut,
-                                   List<String> stdout,
-                                   List<String> stderr,
-                                   Duration time) {
+  factory TestOutputImpl.fromCase(TestCase testCase,
+                                  int exitCode,
+                                  bool incomplete,
+                                  bool timedOut,
+                                  List<String> stdout,
+                                  List<String> stderr,
+                                  Duration time) {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, incomplete,
           timedOut, stdout, stderr, time);
@@ -364,6 +372,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
           if (has_content_type) {
             return (exitCode != 0 && !hasCrashed);
           }
+          break;
       }
     }
     return true;
