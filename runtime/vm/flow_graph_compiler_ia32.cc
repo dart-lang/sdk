@@ -22,16 +22,13 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, reject_named_argument_as_positional);
 DECLARE_FLAG(bool, trace_functions);
-DECLARE_FLAG(bool, use_sse41);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints
-      && CPUFeatures::sse4_1_supported()
-      && FLAG_use_sse41;
+  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
 }
 
 

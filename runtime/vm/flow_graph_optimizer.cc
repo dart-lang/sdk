@@ -1086,7 +1086,8 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     } else {
       ASSERT(comp->receiver_class_id() == kIllegalCid);
     }
-  } else if (HasTwoMintOrSmi(*comp->ic_data())) {
+  } else if (HasTwoMintOrSmi(*comp->ic_data()) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
     comp->set_receiver_class_id(kMintCid);
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);

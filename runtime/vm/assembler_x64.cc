@@ -33,7 +33,7 @@ bool CPUFeatures::sse3_supported() {
 
 bool CPUFeatures::sse4_1_supported() {
   DEBUG_ASSERT(initialized_);
-  return sse4_1_supported_;
+  return sse4_1_supported_ && FLAG_use_sse41;
 }
 
 
