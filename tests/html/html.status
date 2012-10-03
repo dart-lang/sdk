@@ -19,6 +19,7 @@ xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
 [ $compiler == none && $runtime == drt && $system == windows]
+audiobuffersourcenode_test: Skip
 audiocontext_test: Skip
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
@@ -39,6 +40,9 @@ websql_test: Pass, Fail # Possibly Issue 4517
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
+
+[ $compiler == dart2js && $runtime == drt && $system == macos]
+audiobuffersourcenode_test: Pass, Fail
 
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
@@ -74,6 +78,7 @@ websql_test: Fail # IE does not support web SQL
 #
 # Investigate and triage the following into bug reports.
 #
+audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test: Fail
@@ -121,6 +126,7 @@ contentelement_test: Fail # Safari 6 does not support content element.
 # away after we upgrade the buildbots to Mountain Lion after M1.
 # TODO(efortuna): Make our test framework able to separate tests out by browser
 # version.
+audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_pixel_array_type_alias_test: Fail
@@ -143,6 +149,7 @@ svgelement_test: Fail
 url_test: Fail
 
 [ $runtime == ff ]
+audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
 canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.

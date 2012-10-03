@@ -679,8 +679,29 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   /** @domName AudioBufferSourceNode.stop */
   void stop(num when);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
+
+  // TODO(efortuna): Remove these methods when Chrome stable also uses start
+  // instead of noteOn.
+  void start(num when, [num grainOffset, num grainDuration]) {
+    if (JS('bool', '!!#.start', this)) {
+      JS('void', '#.start(#, #, #)', this, when, grainOffset, grainDuration);
+    } else {
+      JS('void', '#.noteOn(#, #, #)', this, when, grainOffset, grainDuration);
+    }
+  }
+
+  void stop(num when) {
+    if (JS('bool', '!!#.stop', this)) {
+      JS('void', '#.stop(#)', this, when);
+    } else {
+      JS('void', '#.noteOff(#)', this, when);
+    }
+  }
 
   static const int FINISHED_STATE = 3;
 
@@ -702,9 +723,6 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   final int playbackState;
 
-  void start(num when, [num grainOffset, num grainDuration]) native;
-
-  void stop(num when) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

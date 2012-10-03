@@ -11,6 +11,8 @@ import emitter
 from systembase import *
 
 _js_custom_members = set([
+    'AudioBufferSourceNode.start',
+    'AudioBufferSourceNode.stop',
     'CSSStyleDeclaration.setProperty',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',
