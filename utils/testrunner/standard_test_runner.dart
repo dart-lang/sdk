@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/** Path to DRT executable. */
+String drt;
+
 /** Whether to include elapsed time. */
 bool includeTime;
 
@@ -191,13 +194,12 @@ class TestRunnerChildConfiguration extends unittest.Configuration {
 }
 
 var parentPort;
-var childTestMain;
 runChildTest() {
   port.receive((testName, sendport) {
     parentPort = sendport;
     unittest.configure(new TestRunnerChildConfiguration());
     unittest.groupSep = '###';
-    unittest.group('', childTestMain);
+    unittest.group('', test.main);
     unittest.filterTests(testName);
     unittest.runTests();
   });
@@ -263,16 +265,11 @@ filterTest(t) {
   }
 }
 
-runTests(testMain) {
-  childTestMain = testMain;
+process(testMain, action) {
   unittest.groupSep = '###';
   unittest.configure(new TestRunnerConfiguration());
   unittest.group('', testMain);
   // Do any user-specified test filtering.
   unittest.filterTests(filterTest);
-  if (action == null) {
-    unittest.runTests();
-  } else {
-    action();
-  }
+  action();
 }

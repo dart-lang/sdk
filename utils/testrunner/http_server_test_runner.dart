@@ -60,20 +60,17 @@ class HttpTestServer {
                     new ContentType(ct.substring(0, idx),
                         ct.substring(idx + 1));
               }
-              response.statusCode = HttpStatus.OK;
-              response.reasonPhrase = "OK";
-              var content = f.readAsBytesSync();
-              response.outputStream.write(content);
-              response.outputStream.close();
+              f.openInputStream().pipe(response.outputStream);
             } else {
               response.statusCode = HttpStatus.NOT_FOUND;
-              response.reasonPhrase = "Not Found";
+              response.reasonPhrase = '$path does not exist';
               response.outputStream.close();
             }
           }
         } catch(e,s) {
           response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
           response.reasonPhrase = "$e";
+          response.outputStream.writeString(s.toString());
           response.outputStream.close();
         }
       };
