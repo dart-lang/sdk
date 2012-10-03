@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note that optimizing compiler depends on the algorithm which
+// Note that the optimizing compiler depends on the algorithm which
 // returns a _GrowableObjectArray if length is null, otherwise returns
 // fixed size array.
 patch class ListImplementation<E> {
