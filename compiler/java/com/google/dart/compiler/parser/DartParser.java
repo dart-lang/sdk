@@ -4857,6 +4857,9 @@ public class DartParser extends CompletionHooksParserBase {
     expectCloseParen();
 
     List<DartSwitchMember> members = new ArrayList<DartSwitchMember>();
+    if (peek(0) != Token.LBRACE) {
+      return done(new DartSwitchStatement(expr, members));
+    }
     boolean foundOpenBrace = expect(Token.LBRACE);
 
     boolean done = optional(Token.RBRACE);
