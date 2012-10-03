@@ -251,7 +251,7 @@ class LibraryCompiler extends api.Compiler {
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
     backend.processNativeClasses(world, libraries.getValues());
     for (var library in elements) {
-      library.localMembers.forEach((element) {
+      library.forEachLocalMember((element) {
         world.addToWorkList(element);
       });
     }
@@ -704,7 +704,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   void _ensureMembers() {
     if (_members == null) {
       _members = <String, Dart2JsMemberMirror>{};
-      _class.localMembers.forEach((e) {
+      _class.forEachMember((_, e) {
         for (var member in _convertElementMemberToMemberMirrors(this, e)) {
           _members[member.canonicalName] = member;
         }
@@ -1339,11 +1339,6 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
     var node = _function.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _function.getCompilationUnit().script;
-      if (_function.isPatched) {
-        // TODO(ager): This should not be necessary when patch
-        // support has been reworked.
-        script = _function.patch.getCompilationUnit().script;
-      }
       var span = system.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     }

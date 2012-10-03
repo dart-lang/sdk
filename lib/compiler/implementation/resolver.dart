@@ -29,6 +29,8 @@ class TreeElementMapping implements TreeElements {
       }
       return true;
     }));
+    // TODO(johnniwinther): Simplify this invariant to use only declarations in
+    // [TreeElements].
     assert(invariant(node, () {
       if (!element.isErroneous() && currentElement != null && element.isPatch) {
         return currentElement.getImplementationLibrary().isPatch;
@@ -94,7 +96,12 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
+    if (constructor.isPatched) {
+      checkMatchingPatchSignatures(constructor, constructor.patch);
+      constructor = constructor.patch;
+    }
     FunctionExpression node = constructor.parseNode(compiler);
+
     // A synthetic constructor does not have a node.
     if (node === null) return null;
     if (node.initializers === null) return null;
@@ -126,6 +133,11 @@ class ResolverTask extends CompilerTask {
     }
   }
 
+  void checkMatchingPatchSignatures(FunctionElement origin,
+                                    FunctionElement patch) {
+    // TODO(johnniwinther): Stub. Implementation in a later CL.
+  }
+
   TreeElements resolveMethodElement(FunctionElement element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
@@ -136,32 +148,38 @@ class ResolverTask extends CompilerTask {
         assert(isConstructor);
         return elements;
       }
-      FunctionExpression tree = element.parseNode(compiler);
-      if (isConstructor) {
-        if (tree.returnType !== null) {
-          error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
-        }
-        resolveConstructorImplementation(element, tree);
+      if (element.isPatched) {
+        checkMatchingPatchSignatures(element, element.patch);
+        element = element.patch;
       }
-      ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-      visitor.useElement(tree, element);
-      visitor.setupFunction(tree, element);
-
-      if (isConstructor) {
-        // Even if there is no initializer list we still have to do the
-        // resolution in case there is an implicit super constructor call.
-        InitializerResolver resolver = new InitializerResolver(visitor);
-        FunctionElement redirection =
-            resolver.resolveInitializers(element, tree);
-        if (redirection !== null) {
-          resolveRedirectingConstructor(resolver, tree, element, redirection);
+      return compiler.withCurrentElement(element, () {
+        FunctionExpression tree = element.parseNode(compiler);
+        if (isConstructor) {
+          if (tree.returnType !== null) {
+            error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
+          }
+          resolveConstructorImplementation(element, tree);
         }
-      } else if (tree.initializers != null) {
-        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
-      }
-      visitBody(visitor, tree.body);
+        ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+        visitor.useElement(tree, element);
+        visitor.setupFunction(tree, element);
 
-      return visitor.mapping;
+        if (isConstructor) {
+          // Even if there is no initializer list we still have to do the
+          // resolution in case there is an implicit super constructor call.
+          InitializerResolver resolver = new InitializerResolver(visitor);
+          FunctionElement redirection =
+              resolver.resolveInitializers(element, tree);
+          if (redirection !== null) {
+            resolveRedirectingConstructor(resolver, tree, element, redirection);
+          }
+        } else if (tree.initializers != null) {
+          error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
+        }
+        visitBody(visitor, tree.body);
+
+        return visitor.mapping;
+      });
     });
   }
 
@@ -292,21 +310,47 @@ class ResolverTask extends CompilerTask {
    * [:element.ensureResolved(compiler):].
    */
   void resolveClass(ClassElement element) {
-    compiler.withCurrentElement(element, () => measure(() {
-      assert(element.resolutionState == STATE_NOT_STARTED);
-      element.resolutionState = STATE_STARTED;
-      ClassNode tree = element.parseNode(compiler);
-      loadSupertypes(element, tree);
+    if (!element.isPatch) {
+      compiler.withCurrentElement(element, () => measure(() {
+        assert(element.resolutionState == STATE_NOT_STARTED);
+        element.resolutionState = STATE_STARTED;
+        ClassNode tree = element.parseNode(compiler);
+        loadSupertypes(element, tree);
 
-      ClassResolverVisitor visitor =
-        new ClassResolverVisitor(compiler, element);
-      visitor.visit(tree);
+        ClassResolverVisitor visitor =
+            new ClassResolverVisitor(compiler, element);
+        visitor.visit(tree);
+        element.resolutionState = STATE_DONE;
+      }));
+      if (element.isPatched) {
+        // Ensure handling patch after origin.
+        element.patch.ensureResolved(compiler);
+      }
+    } else { // Handle patch classes:
+      element.resolutionState = STATE_STARTED;
+      // Ensure handling origin before patch.
+      element.origin.ensureResolved(compiler);
+      // Ensure that the type is computed.
+      element.computeType(compiler);
+      // Copy class hiearchy from origin.
+      element.supertype = element.origin.supertype;
+      element.defaultClass = element.origin.defaultClass;
+      element.interfaces = element.origin.interfaces;
+      element.allSupertypes = element.origin.allSupertypes;
+      // Stepwise assignment to ensure invariant.
+      element.supertypeLoadState = STATE_STARTED;
+      element.supertypeLoadState = STATE_DONE;
       element.resolutionState = STATE_DONE;
-    }));
+      // TODO(johnniwinther): Check matching type variables and
+      // empty extends/implements clauses.
+    }
   }
 
   void checkMembers(ClassElement cls) {
-    if (cls === compiler.objectClass) return;
+    assert(invariant(cls, cls.isDeclaration));
+    if (cls.isObject(compiler)) return;
+    // TODO(johnniwinther): Should this be done on the implementation element as
+    // well?
     cls.forEachMember((holder, member) {
       // Perform various checks as side effect of "computing" the type.
       member.computeType(compiler);
@@ -534,8 +578,8 @@ class InitializerResolver {
     // Lookup target field.
     Element target;
     if (isFieldInitializer(init)) {
-      final ClassElement classElement = constructor.getEnclosingClass();
-      target = classElement.lookupLocalMember(name);
+      Scope localScope = constructor.getEnclosingClass().buildLocalScope();
+      target = localScope.lookup(name);
       if (target === null) {
         error(selector, MessageKind.CANNOT_RESOLVE, [name]);
       } else if (target.kind != ElementKind.FIELD) {
@@ -1326,6 +1370,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // for a real error message.
         error(node.receiver, MessageKind.GENERIC, ["Object has no superclass"]);
       }
+      // TODO(johnniwinther): Ensure correct behavior if currentClass is a
+      // patch.
       target = currentClass.lookupSuperMember(name);
       // [target] may be null which means invoking noSuchMethod on
       // super.
@@ -1333,8 +1379,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       return null;
     } else if (resolvedReceiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = resolvedReceiver;
-      target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
+      receiverClass.ensureResolved(compiler);
+      target = receiverClass.buildLocalScope().lookup(name);
       if (target === null) {
+        // TODO(johnniwinther): With the simplified [TreeElements] invariant,
+        // try to resolve ghost elements if [currentClass] is in the patch
+        // library of [receiverClass].
+
         // TODO(karlklose): this should be reported by the caller of
         // [resolveSend] to select better warning messages for getters and
         // setters.
@@ -1678,7 +1729,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // [cls] might be the implementation element and only declaration elements
     // may be registered.
     world.registerInstantiatedClass(cls.declaration);
-    cls.forEachInstanceField(
+    // [cls] might be the declaration element and we want to include injected
+    // members.
+    cls.implementation.forEachInstanceField(
         includeBackendMembers: false,
         includeSuperMembers: true,
         f: (ClassElement enclosingClass, Element member) {
@@ -2330,7 +2383,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   ClassElement classElement;
 
   ClassSupertypeResolver(Compiler compiler, ClassElement cls)
-    : context = new TopScope(cls.getLibrary()),
+    : context = cls.buildEnclosingScope(),
       this.classElement = cls,
       super(compiler);
 
@@ -2803,7 +2856,7 @@ class TypeDeclarationScope extends Scope {
   }
 
   String toString() =>
-      '$element${element.typeVariables} > $parent';
+      'TypeDeclarationScope($element)';
 }
 
 class MethodScope extends Scope {
@@ -2825,13 +2878,13 @@ class MethodScope extends Scope {
     return newElement;
   }
 
-  String toString() => '$element${elements.getKeys()} > $parent';
+  String toString() => '$element${elements.getKeys()}';
 }
 
 class BlockScope extends MethodScope {
   BlockScope(Scope parent) : super(parent, parent.element);
 
-  String toString() => 'block${elements.getKeys()} > $parent';
+  String toString() => 'block${elements.getKeys()}';
 }
 
 /**
@@ -2843,7 +2896,9 @@ class ClassScope extends TypeDeclarationScope {
   bool inStaticContext = false;
 
   ClassScope(Scope parentScope, ClassElement element)
-      : super(parentScope, element);
+      : super(parentScope, element)  {
+    assert(parent !== null);
+  }
 
   Element localLookup(SourceString name) {
     ClassElement cls = element;
@@ -2853,13 +2908,15 @@ class ClassScope extends TypeDeclarationScope {
       // If not in a static context, we can lookup in the
       // TypeDeclaration scope, which contains the type variables of
       // the class.
-      return super.localLookup(name);
+      result = super.localLookup(name);
     }
-    return null;
+    return result;
   }
 
   Element lookup(SourceString name) {
-    Element result = super.lookup(name);
+    Element result = localLookup(name);
+    if (result !== null) return result;
+    result = parent.lookup(name);
     if (result !== null) return result;
     ClassElement cls = element;
     return cls.lookupSuperMember(name);
@@ -2869,7 +2926,91 @@ class ClassScope extends TypeDeclarationScope {
     throw "Cannot add an element in a class scope";
   }
 
-  String toString() => '$element > $parent';
+  String toString() => 'ClassScope($element)';
+}
+
+// TODO(johnniwinther): Refactor scopes to avoid class explosion.
+class PatchClassScope extends TypeDeclarationScope {
+  bool inStaticContext = false;
+  ClassElement get origin => element;
+  final ClassElement patch;
+
+  PatchClassScope(Scope parentScope,
+                  ClassElement origin, ClassElement this.patch)
+      : super(parentScope, origin) {
+    assert(parent !== null);
+  }
+
+  Element localLookup(SourceString name) {
+    Element result = patch.lookupLocalMember(name);
+    if (result !== null) return result;
+    result = origin.lookupLocalMember(name);
+    if (result !== null) return result;
+    if (!inStaticContext) {
+      // If not in a static context, we can lookup in the
+      // TypeDeclaration scope, which contains the type variables of
+      // the class.
+      result = super.localLookup(name);
+      if (result !== null) return result;
+    }
+    result = parent.lookup(name);
+    if (result !== null) return result;
+    return result;
+  }
+
+  Element lookup(SourceString name) {
+    Element result = localLookup(name);
+    if (result !== null) return result;
+    // TODO(johnniwinther): Should we support patch lookup on supertypes?
+    return origin.lookupSuperMember(name);
+  }
+
+  Element add(Element newElement) {
+    throw "Cannot add an element in a class scope";
+  }
+
+  String toString() => 'PatchClassScope($origin,$patch)';
+}
+
+class LocalClassScope extends Scope {
+  LocalClassScope(ClassElement element)
+      : super(null, element);
+
+  Element lookup(SourceString name) => localLookup(name);
+
+  Element localLookup(SourceString name) {
+    ClassElement cls = element;
+    return cls.lookupLocalMember(name);
+  }
+
+  Element add(Element newElement) {
+    throw "Cannot add an element in a class scope";
+  }
+
+  String toString() => 'LocalClassScope($element)';
+}
+
+class LocalPatchClassScope extends Scope {
+  ClassElement get origin => element;
+  final ClassElement patch;
+
+  LocalPatchClassScope(ClassElement origin, ClassElement this.patch)
+      : super(null, origin);
+
+  Element lookup(SourceString name) => localLookup(name);
+
+  Element localLookup(SourceString name) {
+    Element result = patch.lookupLocalMember(name);
+    if (result !== null) return result;
+    return origin.lookupLocalMember(name);
+  }
+
+
+  Element add(Element newElement) {
+    throw "Cannot add an element in a class scope";
+  }
+
+  String toString() => 'LocalPatchClassScope($origin,$patch)';
 }
 
 class TopScope extends Scope {
@@ -2884,5 +3025,32 @@ class TopScope extends Scope {
   Element add(Element newElement) {
     throw "Cannot add an element in the top scope";
   }
-  String toString() => '$element';
+  String toString() => 'LibraryScope($element)';
+}
+
+class PatchLibraryScope extends Scope {
+  LibraryElement get origin => element;
+  final LibraryElement patch;
+
+  PatchLibraryScope(LibraryElement origin, LibraryElement this.patch)
+      : super(null, origin);
+
+  Element localLookup(SourceString name) {
+    Element result = patch.find(name);
+    if (result !== null) {
+      return result;
+    }
+    result = origin.find(name);
+    if (result !== null) {
+      return result;
+    }
+    return result;
+  }
+  Element lookup(SourceString name) => localLookup(name);
+  Element lexicalLookup(SourceString name) => localLookup(name);
+
+  Element add(Element newElement) {
+    throw "Cannot add an element in a patch library scope";
+  }
+  String toString() => 'PatchLibraryScope($origin,$patch)';
 }

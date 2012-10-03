@@ -799,7 +799,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
   List<Constant> buildJsNewArguments(ClassElement classElement) {
     List<Constant> jsNewArguments = <Constant>[];
-    classElement.forEachInstanceField(
+    classElement.implementation.forEachInstanceField(
         includeBackendMembers: true,
         includeSuperMembers: true,
         f: (ClassElement enclosing, Element field) {

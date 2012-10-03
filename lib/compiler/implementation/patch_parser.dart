@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * TODO(johnniwinther): The terminology and invariants described below will not
- * hold until CL 10905305 has been committed.
- *
  * This library contains the infrastructure to parse and integrate patch files.
  *
  * Three types of elements can be patched: [LibraryElement], [ClassElement],
@@ -61,11 +58,11 @@
  *     }
  *
  *     // In the patch library:
- *     class _GhostClass { // A ghost class.
- *       void _ghostMethod() {} // A ghost method.
+ *     class _InjectedClass { // An injected class.
+ *       void _injectedMethod() {} // An injected method.
  *     }
  *     patch class PatchedClass { // A patch class.
- *       int _ghostField; { // A ghost field.
+ *       int _injectedField; { // An injected field.
  *       patch void patchedMethod() {} // A patch method.
  *     }
  *
@@ -77,7 +74,7 @@
  * which defines the actual implementation of the entity.
  *
  * Every element has a 'declaration' and an 'implementation' element. For
- * regular and ghost elements these are the same. For origin elements the
+ * regular and injected elements these are the same. For origin elements the
  * declaration is the element itself and the implementation is the patch element
  * found through its [:patch:] field. For patch elements the implementation is
  * the element itself and the declaration is the origin element found through
@@ -97,7 +94,7 @@
  * [Element.getLibrary] method will only return library declarations. Patch
  * library implementations are only accessed through calls to
  * [Element.getImplementationLibrary] which is used to setup the correct
- * [Element.enclosingElement] relation between patch/ghost elements and the
+ * [Element.enclosingElement] relation between patch/injected elements and the
  * patch library.
  *
  * For [ClassElement] and [FunctionElement] we use declarations for determining
@@ -107,6 +104,8 @@
  * - Most maps and sets use declarations exclusively, and their individual
  *   invariants are stated in the field comments.
  * - [TreeElements] only map to patch elements from inside a patch library.
+ *   TODO(johnniwinther): Simplify this invariant to use only declarations in
+ *   [TreeElements].
  * - Builders shift between declaration and implementation depending on usages.
  * - Compile-time constants use constructor implementation exclusively.
  * - Work on function parameters is performed on the declaration of the function
@@ -131,22 +130,22 @@ class PatchParserTask extends leg.CompilerTask {
    * injections to the library, and returns a list of class
    * patches.
    */
-  void patchLibrary(Uri patchUri, LibraryElement library) {
+  void patchLibrary(Uri patchUri, LibraryElement originLibrary) {
     leg.Script script = compiler.readScript(patchUri, null);
-    CompilationUnitElement compilationUnit =
-        new CompilationUnitElement(script, library);
+    var patchLibrary = new LibraryElement(script, patchUri, originLibrary);
     LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
-    compiler.withCurrentElement(compilationUnit, () {
+    compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
       // This patches the elements of the patch library into [library].
       // Injected elements are added directly under the compilation unit.
       // Patch elements are stored on the patched functions or classes.
-      scanLibraryElements(compilationUnit, imports);
+      scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
     });
     // After scanning declarations, we handle the import tags in the patch.
     // TODO(lrn): These imports end up in the original library and are in
     // scope for the original methods too. This should be fixed.
     for (tree.LibraryTag tag in imports.toLink()) {
-      compiler.scanner.importLibraryFromTag(tag, compilationUnit);
+      compiler.scanner.importLibraryFromTag(tag,
+                                            patchLibrary.entryCompilationUnit);
     }
   }
 
@@ -168,12 +167,12 @@ class PatchParserTask extends leg.CompilerTask {
   }
 
   tree.ClassNode parsePatchClassNode(PartialClassElement element) {
+    // Parse [PartialClassElement] using a "patch"-aware parser instead
+    // of calling its [parseNode] method.
+    if (element.cachedNode != null) return element.cachedNode;
+
     return measure(() => compiler.withCurrentElement(element, () {
-      // Parse [PartialClassElement] using a "patch"-aware parser instead
-      // of calling its [parseNode] method.
-      if (element.cachedNode != null) return element.cachedNode;
-      PatchMemberListener listener =
-          new PatchMemberListener(compiler, element);
+      PatchMemberListener listener = new PatchMemberListener(compiler, element);
       Parser parser = new PatchClassElementParser(listener);
       Token token = parser.parseTopLevelDeclaration(element.beginToken);
       assert(token === element.endToken.next);
@@ -314,8 +313,9 @@ class PatchElementListener extends ElementListener implements PatchListener {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
       // Apply patch.
       element.addMetadata(popMetadata());
-      LibraryElement library = compilationUnitElement.getLibrary();
-      Element existing = library.localLookup(element.name);
+      LibraryElement originLibrary = compilationUnitElement.getLibrary();
+      assert(originLibrary.isPatched);
+      Element existing = originLibrary.localLookup(element.name);
       if (isMemberPatch) {
         if (element is! FunctionElement) {
           listener.internalErrorOnElement(element,
@@ -343,6 +343,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
               element, "Patching the same function more than once.");
         }
         function.patch = element;
+        element.origin = function;
       } else {
         if (existing is! ClassElement) {
           listener.internalErrorOnElement(
@@ -354,8 +355,8 @@ class PatchElementListener extends ElementListener implements PatchListener {
               element, "Patching the same class more than once.");
         }
         classElement.patch = element;
+        element.origin = classElement;
       }
-      return;
     }
     super.pushElement(element);
   }

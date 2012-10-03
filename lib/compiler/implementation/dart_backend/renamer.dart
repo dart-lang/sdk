@@ -7,8 +7,8 @@ Function get _compareNodes =>
 
 typedef String _Renamer(Renamable renamable);
 abstract class Renamable {
-  const int RENAMABLE_TYPE_ELEMENT = 1; 
-  const int RENAMABLE_TYPE_MEMBER = 2; 
+  const int RENAMABLE_TYPE_ELEMENT = 1;
+  const int RENAMABLE_TYPE_MEMBER = 2;
   const int RENAMABLE_TYPE_LOCAL = 3;
 
   final Set<Node> nodes;

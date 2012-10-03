@@ -18,6 +18,12 @@ class Namer {
     return _jsReserved;
   }
 
+  /**
+   * Map from top-level or static elements to their unique identifiers provided
+   * by [getName].
+   *
+   * Invariant: Keys must be declaration elements.
+   */
   final Map<Element, String> globals;
   final Map<String, int> usedGlobals;
   final Map<String, LibraryElement> shortPrivateNameOwners;
@@ -243,6 +249,9 @@ class Namer {
                                node: element.parseNode(compiler));
       }
     } else {
+      // Use declaration element to ensure invariant on [globals].
+      element = element.declaration;
+
       // Dealing with a top-level or static element.
       String cached = globals[element];
       if (cached !== null) return cached;

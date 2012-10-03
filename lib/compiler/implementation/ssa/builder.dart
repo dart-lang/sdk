@@ -219,7 +219,7 @@ class SsaBuilderTask extends CompilerTask {
           });
         }
         backend.registerParameterTypesOptimization(
-            element, parameterTypes, defaultValueTypes);
+            element.declaration, parameterTypes, defaultValueTypes);
       }
 
       if (compiler.tracer.enabled) {
@@ -244,7 +244,8 @@ class SsaBuilderTask extends CompilerTask {
   HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
     // The body of the constructor will be generated in a separate function.
     final ClassElement classElement = work.element.getEnclosingClass();
-    return builder.buildFactory(classElement, work.element.implementation);
+    return builder.buildFactory(classElement.implementation,
+                                work.element.implementation);
   }
 }
 
@@ -976,6 +977,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           compiler.resolver.resolveMethodElement(constructor.declaration);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
+
+      if (constructor.isPatch) {
+        // Create origin body element for patched constructors.
+        bodyElement.origin = new ConstructorBodyElement(constructor.origin);
+        bodyElement.origin.patch = bodyElement;
+        classElement.origin.backendMembers =
+            classElement.origin.backendMembers.prepend(bodyElement.origin);
+      }
       compiler.enqueuer.codegen.addToWorkList(bodyElement.declaration,
                                               treeElements);
     }
@@ -1116,7 +1125,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       sourceElementStack.add(constructor.enclosingElement);
-      buildFieldInitializers(constructor.enclosingElement, fieldValues);
+      buildFieldInitializers(constructor.enclosingElement.implementation,
+                             fieldValues);
       sourceElementStack.removeLast();
 
       int index = 0;
@@ -1196,6 +1206,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
             new Selector.call(superClass.name, enclosingClass.getLibrary(), 0);
+        // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupConstructor(superClass.name);
         if (target === null) {
           compiler.internalError("no default constructor available");
@@ -1213,11 +1224,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * Run through the fields of [cls] and add their potential
    * initializers.
    *
-   * Invariant: [classElement] must be a declaration element.
+   * Invariant: [classElement] must be an implementation element.
    */
   void buildFieldInitializers(ClassElement classElement,
                               Map<Element, HInstruction> fieldValues) {
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
         includeBackendMembers: true,
         includeSuperMembers: false,
@@ -1250,12 +1261,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *  - Call the the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    *
-   * Invariants: [classElement] must be a declaration element, and
-   * [functionElement] must be an implementation element.
+   * Invariant: Both [classElement] and [functionElement] must be
+   * implementation elements.
    */
   HGraph buildFactory(ClassElement classElement,
                       FunctionElement functionElement) {
-    assert(invariant(classElement, classElement.isDeclaration));
+    assert(invariant(classElement, classElement.isImplementation));
     assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need

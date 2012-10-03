@@ -40,9 +40,8 @@ void processNativeClassesInLibrary(Enqueuer world,
                                    LibraryElement library) {
   bool hasNativeClass = false;
   final compiler = emitter.compiler;
-  for (Link<Element> link = library.localMembers;
-       !link.isEmpty(); link = link.tail) {
-    Element element = link.head;
+  // Use implementation to ensure the inclusion of injected members.
+  library.implementation.forEachLocalMember((Element element) {
     if (element.kind == ElementKind.CLASS) {
       ClassElement classElement = element;
       if (classElement.isNative()) {
@@ -60,7 +59,7 @@ void processNativeClassesInLibrary(Enqueuer world,
         addSubtypes(classElement, emitter.nativeEmitter);
       }
     }
-  }
+  });
   if (hasNativeClass) {
     world.registerStaticUse(compiler.findHelper(
         const SourceString('dynamicFunction')));

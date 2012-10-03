@@ -637,7 +637,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     // generate the field getter/setter dynamically. Since this is only
     // allowed on fields that are in [classElement] we don't need to visit
     // superclasses for non-instantiated classes.
-    classElement.forEachInstanceField(
+    classElement.implementation.forEachInstanceField(
         addField,
         includeBackendMembers: true,
         includeSuperMembers: isInstantiated && !classElement.isNative());
@@ -662,8 +662,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       buffer.add(memberBuffer);
     }
 
-    classElement.forEachMember(includeBackendMembers: true,
-                               f: (ClassElement enclosing, Element member) {
+    classElement.implementation.forEachMember(includeBackendMembers: true,
+        f: (ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));
       if (member.isInstanceMember()) {
         addInstanceMember(member, defineInstanceMember);

@@ -981,7 +981,7 @@ class ElementListener extends Listener {
     if (!allowLibraryTags()) {
       recoverableError('library tags not allowed here', node: tag);
     }
-    compilationUnitElement.getLibrary().addTag(tag, listener);
+    compilationUnitElement.getImplementationLibrary().addTag(tag, listener);
   }
 
   void pushNode(Node node) {
@@ -1702,13 +1702,11 @@ class PartialFunctionElement extends FunctionElement {
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    if (patch !== null) {
-      cachedNode = patch.parseNode(listener);
-      return cachedNode;
-    }
-    if (modifiers.isExternal()) {
-      listener.cancel("External method without an implementation",
-                      element: this);
+    if (patch === null) {
+      if (modifiers.isExternal()) {
+        listener.cancel("External method without an implementation",
+                        element: this);
+      }
     }
     parseFunction(Parser p) {
       if (isMember() && modifiers.isFactory()) {
@@ -1722,7 +1720,6 @@ class PartialFunctionElement extends FunctionElement {
   }
 
   Token position() {
-    if (patch !== null) return patch.position();
     return findMyName(beginToken);
   }
 

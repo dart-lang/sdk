@@ -114,13 +114,13 @@ class Element implements Spannable {
   Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
-    assert(getLibrary() !== null);
+    assert(isErroneous() || getImplementationLibrary() !== null);
   }
 
   Modifiers get modifiers => Modifiers.EMPTY;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.cancel("Internal Error: $this.parseNode", token: position());
+    listener.internalErrorOnElement(this, 'not implemented');
   }
 
   DartType computeType(Compiler compiler) {
@@ -189,21 +189,20 @@ class Element implements Spannable {
    */
   bool get isPatch => false;
 
-
   /**
    * Is [:true:] if this element defines the implementation for the entity of
    * this element.
    *
    * See [:patch_parser.dart:] for a description of the terminology.
    */
-  bool get isImplementation => implementation === this;
+  bool get isImplementation => !isPatched;
 
   /**
    * Is [:true:] if this element introduces the entity of this element.
    *
    * See [:patch_parser.dart:] for a description of the terminology.
    */
-  bool get isDeclaration => declaration === this;
+  bool get isDeclaration => !isPatch;
 
   /**
    * Returns the element which defines the implementation for the entity of this
@@ -211,14 +210,14 @@ class Element implements Spannable {
    *
    * See [:patch_parser.dart:] for a description of the terminology.
    */
-  Element get implementation => this;
+  Element get implementation => isPatched ? patch : this;
 
   /**
    * Returns the element which introduces the entity of this element.
    *
    * See [:patch_parser.dart:] for a description of the terminology.
    */
-  Element get declaration => this;
+  Element get declaration => isPatch ? origin : this;
 
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
@@ -260,25 +259,19 @@ class Element implements Spannable {
         return library.entryCompilationUnit;
       }
       element = element.enclosingElement;
-      if (element is FunctionElement) {
-        FunctionElement function = element;
-        if (function.isPatched) {
-          element = function.patch;
-        }
-      }
     }
     return element;
   }
 
-  LibraryElement getLibrary() {
+  LibraryElement getLibrary() => enclosingElement.getLibrary();
+
+  LibraryElement getImplementationLibrary() {
     Element element = this;
     while (element.kind !== ElementKind.LIBRARY) {
       element = element.enclosingElement;
     }
     return element;
   }
-
-  LibraryElement getImplementationLibrary() => getLibrary();
 
   ClassElement getEnclosingClass() {
     for (Element e = this; e !== null; e = e.enclosingElement) {
@@ -315,12 +308,17 @@ class Element implements Spannable {
    * Creates the scope for this element. The scope of the
    * enclosing element will be the parent scope.
    */
-  Scope buildScope() => buildEnclosingScope();
+  // TODO(johnniwinther): Clean up scope generation. Possibly generation scopes
+  // externally.
+  Scope buildScope({bool patchScope: false}) =>
+      buildEnclosingScope(patchScope: patchScope);
 
   /**
    * Creates the scope for the enclosing element.
    */
-  Scope buildEnclosingScope() => enclosingElement.buildScope();
+  // TODO(johnniwinther): Remove buildEnclosingScope as part of scope clean-up.
+  Scope buildEnclosingScope({bool patchScope: false}) =>
+      enclosingElement.buildScope(patchScope: patchScope);
 
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
@@ -342,6 +340,7 @@ class Element implements Spannable {
 
   FunctionElement asFunctionElement() => null;
 
+  static bool isInvalid(Element e) => e == null || e.isErroneous();
   Element cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
@@ -444,7 +443,11 @@ class ScopeContainerElement extends ContainerElement {
   }
 
   Element localLookup(SourceString elementName) {
-    return localScope[elementName];
+    Element result = localScope[elementName];
+    if (result == null && isPatch) {
+      result = origin.localScope[elementName];
+    }
+    return result;
   }
 
   /**
@@ -517,7 +520,11 @@ class CompilationUnitElement extends ContainerElement {
     // Keep a list of top level members.
     super.addMember(element, listener);
     // Provide the member to the library to build scope.
-    getLibrary().addMember(element, listener);
+    if (enclosingElement.isPatch) {
+      getImplementationLibrary().addMember(element, listener);
+    } else {
+      getLibrary().addMember(element, listener);
+    }
   }
 }
 
@@ -540,7 +547,20 @@ class LibraryElement extends ScopeContainerElement {
   Link<LibraryTag> tags = const EmptyLink<LibraryTag>();
   LibraryTag libraryTag;
   bool canUseNative = false;
+
+  /**
+   * If this library is patched, [patch] points to the patch library.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
   LibraryElement patch = null;
+
+  /**
+   * If this is a patch library, [origin] points to the origin library.
+   *
+   * See [:patch_parser.dart:] for a description of the terminology.
+   */
+  final LibraryElement origin;
 
   /**
    * Map for elements imported through import declarations.
@@ -550,15 +570,21 @@ class LibraryElement extends ScopeContainerElement {
    */
   final Map<SourceString, Element> importScope;
 
-  LibraryElement(Script script, [Uri uri])
+  LibraryElement(Script script, [Uri uri, LibraryElement this.origin])
     : this.uri = ((uri === null) ? script.uri : uri),
       importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
+    if (isPatch) {
+      origin.patch = this;
+    }
   }
 
-
   bool get isPatched => patch !== null;
+  bool get isPatch => origin !== null;
+
+  LibraryElement get declaration => super.declaration;
+  LibraryElement get implementation => super.implementation;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -588,6 +614,7 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
+  LibraryElement getLibrary() => isPatch ? origin : this;
 
   /**
    * Look up a top-level element in this library. The element could
@@ -606,6 +633,8 @@ class LibraryElement extends ScopeContainerElement {
   /** Look up a top-level element in this library, but only look for
     * non-imported elements. Returns null if no such element exist. */
   Element findLocal(SourceString elementName) {
+    // TODO(johnniwinther): How to handle injected elements in the patch
+    // library?
     Element result = localScope[elementName];
     if (result === null || result.getLibrary() != this) return null;
     return result;
@@ -620,6 +649,23 @@ class LibraryElement extends ScopeContainerElement {
         f(e);
       }
     });
+  }
+
+  void forEachLocalMember(f(Element element)) {
+    if (isPatch) {
+      // Patch libraries traverse both origin and injected members.
+      origin.localMembers.forEach(f);
+
+      void filterPatch(Element element) {
+        if (!element.isPatch) {
+          // Do not traverse the patch members.
+          f(element);
+        }
+      }
+      localMembers.forEach(filterPatch);
+    } else {
+      localMembers.forEach(f);
+    }
   }
 
   bool hasLibraryName() => libraryTag !== null;
@@ -639,9 +685,28 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
-  Scope buildEnclosingScope() => new TopScope(this);
+  // TODO(johnniwinther): Rewrite to avoid the optional argument.
+  Scope buildEnclosingScope({bool patchScope: false}) {
+    if (origin !== null) {
+      return new PatchLibraryScope(origin, this);
+    } if (patchScope && patch !== null) {
+      return new PatchLibraryScope(this, patch);
+    } else {
+      return new TopScope(this);
+    }
+  }
 
   bool get isPlatformLibrary => uri.scheme == "dart";
+
+  String toString() {
+    if (origin !== null) {
+      return 'patch library(${getLibraryOrScriptName()})';
+    } else if (patch !== null) {
+      return 'origin library(${getLibraryOrScriptName()})';
+    } else {
+      return 'library(${getLibraryOrScriptName()})';
+    }
+  }
 }
 
 class PrefixElement extends Element {
@@ -696,8 +761,11 @@ class TypedefElement extends Element implements TypeDeclarationElement {
 
   Link<DartType> get typeVariables => cachedType.typeArguments;
 
-  Scope buildScope() =>
-      new TypeDeclarationScope(enclosingElement.buildScope(), this);
+  // TODO(johnniwinther): Rewrite to avoid the optional argument.
+  Scope buildScope({bool patchScope: false}) {
+    return new TypeDeclarationScope(
+      enclosingElement.buildScope(patchScope: patchScope), this);
+  }
 
   TypedefElement cloneTo(Element enclosing, DiagnosticListener listener) {
     TypedefElement result = new TypedefElement(name, enclosing);
@@ -858,10 +926,12 @@ class VariableListElement extends Element {
     return isMember() && !modifiers.isStatic();
   }
 
-  Scope buildScope() {
-    Scope result = new VariableScope(enclosingElement.buildScope(), this);
+  // TODO(johnniwinther): Rewrite to avoid the optional argument.
+  Scope buildScope({bool patchScope: false}) {
+    Scope result = new VariableScope(
+        enclosingElement.buildScope(patchScope: patchScope), this);
     if (enclosingElement.isClass()) {
-      ClassScope clsScope = result.parent;
+      Scope clsScope = result.parent;
       clsScope.inStaticContext = !isInstanceMember();
     }
     return result;
@@ -1012,6 +1082,7 @@ class FunctionElement extends Element {
    */
   // TODO(lrn): Consider using [defaultImplementation] to store the patch.
   FunctionElement patch = null;
+  FunctionElement origin = null;
 
   /**
    * If this is an interface constructor, [defaultImplementation] will
@@ -1052,6 +1123,7 @@ class FunctionElement extends Element {
   }
 
   bool get isPatched => patch !== null;
+  bool get isPatch => origin !== null;
 
   /**
    * Applies a patch function to this function. The patch function's body
@@ -1062,9 +1134,7 @@ class FunctionElement extends Element {
   void setPatch(FunctionElement patchElement) {
     // Sanity checks. The caller must check these things before calling.
     assert(patch === null);
-    assert(cachedNode === null);
     this.patch = patchElement;
-    cachedNode = patchElement.cachedNode;
   }
 
   bool isInstanceMember() {
@@ -1101,15 +1171,12 @@ class FunctionElement extends Element {
   }
 
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode !== null) return cachedNode;
     if (patch === null) {
       if (modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
                         element: this);
       }
-      return null;
     }
-    cachedNode = patch.parseNode(listener);
     return cachedNode;
   }
 
@@ -1127,11 +1194,12 @@ class FunctionElement extends Element {
     }
   }
 
-  Scope buildScope() {
-    Scope result =
-        new MethodScope(enclosingElement.buildScope(), this);
+  // TODO(johnniwinther): Rewrite to avoid the optional argument.
+  Scope buildScope({bool patchScope: false}) {
+    Scope result = new MethodScope(
+        enclosingElement.buildScope(patchScope: patchScope), this);
     if (enclosingElement.isClass()) {
-      ClassScope clsScope = result.parent;
+      Scope clsScope = result.parent;
       clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
     }
     return result;
@@ -1255,6 +1323,7 @@ class ClassElement extends ScopeContainerElement
 
   // Lazily applied patch of class members.
   ClassElement patch = null;
+  ClassElement origin = null;
 
   ClassElement(SourceString name, Element enclosing, this.id, int initialState)
     : supertypeLoadState = initialState,
@@ -1263,15 +1332,24 @@ class ClassElement extends ScopeContainerElement
 
   InterfaceType computeType(compiler) {
     if (type == null) {
-      ClassNode node = parseNode(compiler);
-      Link<DartType> parameters =
-          TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
-      type = new InterfaceType(this, parameters);
+      if (origin === null) {
+        ClassNode node = parseNode(compiler);
+        Link<DartType> parameters =
+            TypeDeclarationElement.createTypeVariables(this,
+                                                       node.typeParameters);
+        type = new InterfaceType(this, parameters);
+      } else {
+        type = origin.computeType(compiler);
+      }
     }
     return type;
   }
 
   bool get isPatched => patch != null;
+  bool get isPatch => origin != null;
+
+  ClassElement get declaration => super.declaration;
+  ClassElement get implementation => super.implementation;
 
   /**
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
@@ -1310,10 +1388,12 @@ class ClassElement extends ScopeContainerElement
    */
   Element lookupSuperMemberInLibrary(SourceString memberName,
                                      LibraryElement library) {
+    bool includeInjectedMembers = isPatch;
     bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
       if (isPrivate && library !== s.getLibrary()) continue;
+      s = includeInjectedMembers ? s.implementation : s;
       Element e = s.lookupLocalMember(memberName);
       if (e === null) continue;
       // Static members are not inherited.
@@ -1328,9 +1408,11 @@ class ClassElement extends ScopeContainerElement
 
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary) {
+    bool includeInjectedMembers = isPatch;
     bool isPrivate = memberName.isPrivate();
     for (InterfaceType t in interfaces) {
       ClassElement cls = t.element;
+      cls = includeInjectedMembers ? cls.implementation : cls;
       Element e = cls.lookupLocalMember(memberName);
       if (e === null) continue;
       // Private members from a different library are not visible.
@@ -1348,6 +1430,9 @@ class ClassElement extends ScopeContainerElement
    * This method is NOT to be used for resolving
    * unqualified sends because it does not implement the scoping
    * rules, where library scope comes before superclass scope.
+   *
+   * When called on the implementation element both members declared in the
+   * origin and the patch class are returned.
    */
   Element lookupSelector(Selector selector) {
     SourceString memberName = selector.name;
@@ -1430,9 +1515,10 @@ class ClassElement extends ScopeContainerElement
   Link<Element> get constructors {
     // TODO(ajohnsen): See if we can avoid this method at some point.
     Link<Element> result = const EmptyLink<Element>();
-    for (Element member in localMembers) {
+    // TODO(johnniwinther): Should we include injected constructors?
+    forEachMember((_, Element member) {
       if (member.isConstructor()) result = result.prepend(member);
-    }
+    });
     return result;
   }
 
@@ -1451,12 +1537,17 @@ class ClassElement extends ScopeContainerElement
    *
    * The enclosing class is passed to the callback. This is useful when
    * [includeSuperMembers] is [:true:].
+   *
+   * When called on an implementation element both the members in the origin
+   * and patch class are included.
    */
+  // TODO(johnniwinther): Clean up lookup to get rid of the include predicates.
   void forEachMember([void f(ClassElement enclosingClass, Element member),
                       includeBackendMembers = false,
                       includeSuperMembers = false]) {
+    bool includeInjectedMembers = isPatch;
     Set<ClassElement> seen = new Set<ClassElement>();
-    ClassElement classElement = this;
+    ClassElement classElement = declaration;
     do {
       if (seen.contains(classElement)) return;
       seen.add(classElement);
@@ -1473,6 +1564,15 @@ class ClassElement extends ScopeContainerElement
           f(classElement, element);
         }
       }
+      if (includeInjectedMembers) {
+        if (classElement.patch != null) {
+          for (Element element in classElement.patch.localMembers.reverse()) {
+            if (!element.isPatch) {
+              f(classElement, element);
+            }
+          }
+        }
+      }
       classElement = includeSuperMembers ? classElement.superclass : null;
     } while(classElement !== null);
   }
@@ -1486,6 +1586,9 @@ class ClassElement extends ScopeContainerElement
    * When [includeBackendMembers] and [includeSuperMembers] are both [:true:]
    * then the fields are visited in the same order as they need to be given
    * to the JavaScript constructor.
+   *
+   * When called on the implementation element both the fields declared in the
+   * origin and in the patch are included.
    */
   void forEachInstanceField([void f(ClassElement enclosingClass, Element field),
                              includeBackendMembers = false,
@@ -1528,8 +1631,27 @@ class ClassElement extends ScopeContainerElement
   bool isNative() => nativeName != null;
   int hashCode() => id;
 
-  Scope buildScope() =>
-      new ClassScope(enclosingElement.buildScope(), this);
+  // TODO(johnniwinther): Rewrite to avoid the optional argument.
+  Scope buildScope({bool patchScope: false}) {
+    if (origin !== null) {
+      return new PatchClassScope(
+          enclosingElement.buildScope(patchScope: patchScope), origin, this);
+    } else if (patchScope && patch !== null) {
+      return new PatchClassScope(
+          enclosingElement.buildScope(patchScope: patchScope), this, patch);
+    } else {
+      return new ClassScope(
+          enclosingElement.buildScope(patchScope: patchScope), this);
+    }
+  }
+
+  Scope buildLocalScope() {
+    if (origin !== null) {
+      return new LocalPatchClassScope(origin, this);
+    } else {
+      return new LocalClassScope(this);
+    }
+  }
 
   ClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.internalErrorOnElement(this, 'unsupported operation');
@@ -1537,6 +1659,16 @@ class ClassElement extends ScopeContainerElement
 
   Link<DartType> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));
+  }
+
+  String toString() {
+    if (origin !== null) {
+      return 'patch ${super.toString()}';
+    } else if (patch !== null) {
+      return 'origin ${super.toString()}';
+    } else {
+      return super.toString();
+    }
   }
 }
 

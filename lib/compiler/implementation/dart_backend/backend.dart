@@ -217,7 +217,7 @@ class DartBackend extends Backend {
     final fixedMemberNames = new Set<String>();
     for (final library in compiler.libraries.getValues()) {
       if (!library.isPlatformLibrary) continue;
-      for (final element in library.localMembers) {
+      library.implementation.forEachLocalMember((Element element) {
         if (element is ClassElement) {
           ClassElement classElement = element;
           // Make sure we parsed the class to initialize its local members.
@@ -239,7 +239,7 @@ class DartBackend extends Backend {
         // from dynamic invocation (alas!).  So we'd better err on preserving
         // those names.
         fixedMemberNames.add(element.name.slowToString());
-      }
+      });
     }
     // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
     // runtime/lib/error.dart. Overall, all DartVM specific libs should be

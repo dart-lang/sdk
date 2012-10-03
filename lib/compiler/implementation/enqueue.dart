@@ -150,13 +150,13 @@ class Enqueuer {
   }
 
   void processInstantiatedClass(ClassElement cls) {
-    cls.localMembers.forEach(processInstantiatedClassMember);
+    cls.implementation.forEachMember(processInstantiatedClassMember);
   }
 
   /**
    * Documentation wanted -- johnniwinther
    */
-  void processInstantiatedClassMember(Element member) {
+  void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
@@ -213,7 +213,7 @@ class Enqueuer {
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
         if (!cls.isInterface()) {
-          cls.localMembers.forEach(processInstantiatedClassMember);
+          cls.implementation.forEachMember(processInstantiatedClassMember);
         }
         if (isResolutionQueue) {
           compiler.resolver.checkMembers(cls);

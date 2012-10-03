@@ -8,7 +8,7 @@
 // TODO(ager): Split out into date_patch.dart and allow #source
 // in patch files?
 patch class StringImplementation {
-  patch static _fromCharCodes(List<int> charCodes) {
+  patch static String _fromCharCodes(List<int> charCodes) {
     checkNull(charCodes);
     if (!isJsArray(charCodes)) {
       if (charCodes is !List) throw new ArgumentError(charCodes);

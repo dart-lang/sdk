@@ -309,13 +309,13 @@ class Compiler implements DiagnosticListener {
 
   void enableIsolateSupport(LibraryElement element) {
     // TODO(ahe): Move this method to Enqueuer.
-    isolateLibrary = element;
-    enqueuer.resolution.addToWorkList(element.find(START_ROOT_ISOLATE));
+    isolateLibrary = element.patch;
+    enqueuer.resolution.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
     enqueuer.resolution.addToWorkList(
-        element.find(const SourceString('_currentIsolate')));
+        isolateLibrary.find(const SourceString('_currentIsolate')));
     enqueuer.resolution.addToWorkList(
-        element.find(const SourceString('_callInIsolate')));
-    enqueuer.codegen.addToWorkList(element.find(START_ROOT_ISOLATE));
+        isolateLibrary.find(const SourceString('_callInIsolate')));
+    enqueuer.codegen.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
   }
 
   bool hasIsolateSupport() => isolateLibrary !== null;
@@ -418,7 +418,6 @@ class Compiler implements DiagnosticListener {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
         }
-        original.addMember(clonePatch(patchElement, original), this);
       } else {
         patchMember(originalElement, patchElement);
       }
@@ -493,6 +492,7 @@ class Compiler implements DiagnosticListener {
     }
     // Don't just assign the patch field. This also updates the cachedNode.
     element.setPatch(patchElement);
+    patchElement.origin = element;
   }
 
   /**
@@ -837,17 +837,6 @@ class Compiler implements DiagnosticListener {
     }
     Token position = element.position();
     Uri uri = element.getCompilationUnit().script.uri;
-
-    // TODO(ager,johnniwinther): The patch support should be
-    // reworked to allow us to get rid of this.
-    if (element.isPatched) {
-      // TODO(johnniwinther,karlklose): create a subtype of Element for
-      // patchable elements or move the patch field to Element.
-      var patched = element;
-      position = patched.patch.position();
-      uri = patched.patch.getCompilationUnit().script.uri;
-    }
-
     return (position === null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
