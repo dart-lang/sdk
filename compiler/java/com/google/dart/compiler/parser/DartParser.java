@@ -2649,7 +2649,7 @@ public class DartParser extends CompletionHooksParserBase {
     consume(Token.CONDITIONAL);
     DartExpression yes = parseExpression();
     expect(Token.COLON);
-    DartExpression no = parseExpression();
+    DartExpression no = parseExpressionWithoutCascade();
     return done(new DartConditional(result, yes, no));
   }
 

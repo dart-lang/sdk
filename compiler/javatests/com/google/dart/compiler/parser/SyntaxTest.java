@@ -12,6 +12,7 @@ import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartAssertStatement;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -37,6 +38,7 @@ import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.ast.NodeList;
 
 import java.util.List;
 
@@ -146,6 +148,35 @@ public class SyntaxTest extends AbstractParserTest {
     assertTrue(statement instanceof DartAssertStatement);
     DartExpression expression = ((DartAssertStatement) statement).getCondition();
     assertTrue(expression instanceof DartBooleanLiteral);
+  }
+  
+  public void test_cascade_withConditionalInside() {
+    DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
+        "class A {",
+        "  var name;",
+        "  foo() {}",
+        "}",
+        "",
+        "",
+        "",
+        "main() {",
+        "  A a = new A();",
+        "  a",
+        "    ..name = true ? 'true' : 'false'",
+        "    ..foo();",
+        "}"
+        ));
+    assertNotNull(unit);
+    assertEquals(2, unit.getTopLevelNodes().size());
+    DartMethodDefinition function = (DartMethodDefinition) unit.getTopLevelNodes().get(1);
+    assertNotNull(function);
+    DartStatement statement = function.getFunction().getBody().getStatements().get(1);
+    assertTrue(statement instanceof DartExprStmt);
+    DartCascadeExpression cascade = (DartCascadeExpression) ((DartExprStmt) statement).getExpression();
+    NodeList<DartExpression> cascadeSections = cascade.getCascadeSections();
+    assertEquals(2, cascadeSections.size());
+    assertEquals("..name = true ? \"true\" : \"false\"", cascadeSections.get(0).toString());
+    assertEquals("..foo()", cascadeSections.get(1).toString());
   }
   
   public void test_functionExpression_asStatement() {
