@@ -38,6 +38,7 @@ String typeNameInFirefox(obj) {
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'FormData') return 'DOMFormData';
   if (name == 'MouseScrollEvent') return 'WheelEvent';
+  if (name == 'OfflineResourceList') return 'DOMApplicationCache';
   return name;
 }
 
@@ -50,6 +51,7 @@ String typeNameInIE(obj) {
     if (JS('bool', '!!#.xmlVersion', obj)) return 'Document';
     return 'HTMLDocument';
   }
+  if (name == 'ApplicationCache') return 'DOMApplicationCache';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'DragEvent') return 'MouseEvent';

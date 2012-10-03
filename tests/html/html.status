@@ -84,7 +84,7 @@ websql_test: Fail # IE does not support web SQL
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
-cache_test: Fail
+cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
 canvas_test: Fail
 canvas_using_html_test: Fail
 css_test: Fail
@@ -220,7 +220,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == ff ]
-cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodError : method not found: 'get$status'
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
