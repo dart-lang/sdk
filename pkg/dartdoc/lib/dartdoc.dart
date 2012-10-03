@@ -637,6 +637,9 @@ class Dartdoc {
           memberInfo[NAME] = member.simpleName;
           memberInfo[KIND] = METHOD;
         }
+        if (method.parameters.isEmpty()) {
+          memberInfo[NO_PARAMS] = true;
+        }
       }
       var anchor = memberAnchor(member);
       if (anchor != memberInfo[NAME]) {

@@ -81,11 +81,13 @@ class Result {
   final String args;
   final String kind;
   final String url;
+  final bool noargs;
 
   TableRowElement row;
 
   Result(this.match, this.kind, this.url,
-         [this.library, this.type, String args, this.prefix])
+         {this.library: null, this.type: null, String args: null,
+          this.prefix: null, this.noargs: false})
       : this.args = args != null ? '&lt;$args&gt;' : '';
 
   bool get isTopLevel => prefix == null && type == null;
@@ -115,7 +117,11 @@ class Result {
     if (kind == CLASS || kind == INTERFACE || kind == TYPEDEF) {
       sb.add(args);
     } else if (kind == CONSTRUCTOR || kind == METHOD) {
-      sb.add('(...)');
+      if (noargs) {
+        sb.add("()");
+      } else {
+        sb.add('(...)');
+      }
     }
     sb.add('</td></tr><tr><td class="drop-down-link-kind">');
     sb.add(kindToString(kind));
