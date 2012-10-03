@@ -22349,96 +22349,15 @@ class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSe
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements List<Node>, List<Node> {
+abstract class RadioNodeList implements List<Node> {
 
   /** @domName RadioNodeList.value */
   String value;
 }
 
-class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList, JavaScriptIndexingBehavior native "*RadioNodeList" {
+class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList native "*RadioNodeList" {
 
   String value;
-
-  _NodeImpl operator[](int index) native "return this[index];";
-
-  void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<Node>:
-
-  void sort(int compare(Node a, Node b)) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node last() => this[length - 1];
-
-  Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
