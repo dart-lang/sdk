@@ -427,7 +427,6 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
                                NAME=constant.id,
                                TYPE=type,
                                VALUE=constant.value)
-    self._backend.AddConstant(constant)
 
   def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
@@ -538,15 +537,6 @@ class Dart2JSBackend(BaseGenerator):
 
   def FinishInterface(self):
     pass
-
-  def AddConstant(self, constant):
-    # Since we are currently generating native classes without interfaces,
-    # generate the constants as part of the class.  This will need to go away
-    # if we revert back to generating interfaces.
-    self._members_emitter.Emit('\n  static const $TYPE $NAME = $VALUE;\n',
-                               NAME=constant.id,
-                               TYPE=self._DartType(constant.type.id),
-                               VALUE=constant.value)
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
