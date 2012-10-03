@@ -276,12 +276,6 @@ Language/10_Expressions/08_Throw_A04_t01: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A05_t01: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A05_t02: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A05_t03: Fail # inherited from dart2js
-Language/10_Expressions/08_Throw_A06_t01: Fail # BUG: throw outside catch block;
-Language/10_Expressions/08_Throw_A06_t02: Fail # BUG: standalone throw;
-Language/10_Expressions/08_Throw_A06_t03: Fail # BUG: throw outside catch block
-Language/10_Expressions/08_Throw_A06_t04: Fail # BUG: {throw;} doesn't lead to compilation error.
-Language/10_Expressions/08_Throw_A06_t05: Fail # BUG: standalone throw
-Language/10_Expressions/08_Throw_A06_t06: Fail # BUG: standalone throw
 Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # inherited from VM
 Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # BUG: new optional arguments
 Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # inherited from dart2js

@@ -1029,6 +1029,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TypeResolver typeResolver;
   bool inInstanceContext;
   bool inCheckContext;
+  bool inCatchBlock;
   Scope scope;
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
@@ -1050,6 +1051,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       typeResolver = new TypeResolver(compiler),
       scope = element.buildScope(),
       inCheckContext = compiler.enableTypeAssertions,
+      inCatchBlock = false,
       super(compiler);
 
   Enqueuer get world => compiler.enqueuer.resolution;
@@ -1682,6 +1684,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitThrow(Throw node) {
+    if (!inCatchBlock && node.expression === null) {
+      error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
+    }
     visit(node.expression);
   }
 
@@ -2111,7 +2116,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     doInCheckContext(() => visitIn(node.type, blockScope));
     typeRequired = wasTypeRequired;
     visitIn(node.formals, blockScope);
+    var oldInCatchBlock = inCatchBlock;
+    inCatchBlock = true;
     visitIn(node.block, blockScope);
+    inCatchBlock = oldInCatchBlock;
   }
 
   visitTypedef(Typedef node) {

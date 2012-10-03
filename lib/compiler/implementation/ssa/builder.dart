@@ -3197,8 +3197,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction exception = rethrowableException;
       if (exception === null) {
         exception = graph.addConstantNull(constantSystem);
-        compiler.reportError(node,
-                             'throw without expression outside catch block');
+        compiler.internalError(
+            'rethrowableException should not be null', node: node);
       }
       close(new HThrow(exception, isRethrow: true));
     } else {
