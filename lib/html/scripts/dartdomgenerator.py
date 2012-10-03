@@ -18,7 +18,6 @@ import sys
 from generator import TypeRegistry
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
-from systembase import GeneratorOptions
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator
 from systemnative import CPPLibraryEmitter, DartiumBackend
@@ -37,6 +36,13 @@ _webkit_renames = {
     'SharedWorkerGlobalScope': 'SharedWorkerContext',
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
+
+class GeneratorOptions(object):
+  def __init__(self, templates, database, type_registry, renamer):
+    self.templates = templates
+    self.database = database
+    self.type_registry = type_registry
+    self.renamer = renamer
 
 # TODO(vsm): Remove once we fix Dartium to pass in the database directly.
 def Generate(database_dir, use_database_cache, dart2js_output_dir=None,

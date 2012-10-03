@@ -11,7 +11,6 @@ import logging
 import os
 import re
 import shutil
-import systembase
 from generator import *
 
 _logger = logging.getLogger('dartgenerator')

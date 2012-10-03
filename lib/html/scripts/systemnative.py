@@ -9,17 +9,17 @@ native binding from the IDL database."""
 import emitter
 import os
 from generator import *
-from systembase import BaseGenerator
 
 
-class DartiumBackend(BaseGenerator):
+class DartiumBackend(object):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, interface, cpp_library_emitter, options):
-    super(DartiumBackend, self).__init__(
-        options.database, options.type_registry, interface)
+    self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
+    self._database = options.database
     self._template_loader = options.templates
+    self._type_registry = options.type_registry
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
@@ -852,6 +852,12 @@ class DartiumBackend(BaseGenerator):
     return re.sub(r'^(create|exclusive)',
                   lambda s: 'is' + s.group(1).capitalize(),
                   name)
+
+  def _TypeInfo(self, type_name):
+    return self._type_registry.TypeInfo(type_name)
+
+  def _DartType(self, type_name):
+    return self._type_registry.DartType(type_name)
 
 
 class CPPLibraryEmitter():
