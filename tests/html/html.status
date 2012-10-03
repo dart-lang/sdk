@@ -16,6 +16,9 @@ contentelement_test: Fail   # Issue 5445: not currently supported on chrome stab
 xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+cssstyledeclaration_test: Fail # Issue 5617: Need to make corresponding dartium change.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
 [ $compiler == none && $runtime == drt && $system == windows]
