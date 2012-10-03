@@ -9,7 +9,7 @@
  * them exposed as public API functions in the date formatting library, so they
  * are put in a separate library here. These are for internal use only. User
  * code should import one of the `date_symbol_data...` libraries and call the
- * initializeDateFormatting method exposed there.
+ * `initializeDateFormatting` method exposed there.
  */
 
 #library('date_format_internal');

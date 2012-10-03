@@ -10,7 +10,6 @@
 
 #library('date_time_format_tests');
 
-#import('../lib/date_format.dart');
 #import('../../../pkg/unittest/unittest.dart');
 #import('date_time_format_test_data.dart');
 #import('../lib/intl.dart');

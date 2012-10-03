@@ -8,9 +8,14 @@
  */
 #library('intl');
 
-#import('date_format.dart');
 #import('src/intl_helpers.dart');
+#import('dart:math');
+#import('date_symbols.dart');
+#import('src/date_format_internal.dart');
 
+#source('date_format.dart');
+#source('src/date_format_field.dart');
+#source('src/date_format_helpers.dart');
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
 

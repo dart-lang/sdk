@@ -18,7 +18,7 @@
 // ExtraCommandArgs=$dartDir/pkg/intl/test/start_web_server.dart
 #library('date_time_format_http_request_test');
 
-#import('../lib/date_format.dart');
+#import('../lib/intl.dart');
 #import('../lib/date_symbol_data_http_request.dart');
 #import('date_time_format_test_core.dart');
 #import('dart:html');

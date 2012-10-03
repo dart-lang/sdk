@@ -19,7 +19,6 @@
 // These can be replaced with package:intl/... references if using this in
 // a separate package.
 // TODO(alanknight): Replace these with package: once pub works in buildbots.
-#import('../../lib/date_format.dart');
 #import('../../lib/date_symbol_data_local.dart');
 #import('../../lib/intl.dart');
 #import('../../lib/message_lookup_local.dart');

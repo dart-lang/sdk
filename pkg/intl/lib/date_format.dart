@@ -155,17 +155,6 @@
  * pattern "MM/dd/yyyy", "01/11/12" parses to Jan 11, 12 A.D.
  */
 
-#library('date_format');
-
-#import('dart:math');
-#import('intl.dart');
-#import('date_symbols.dart');
-#import('src/intl_helpers.dart');
-#import('src/date_format_internal.dart');
-
-#source('src/date_format_field.dart');
-#source('src/date_format_helpers.dart');
-
 class DateFormat {
 
   /**
