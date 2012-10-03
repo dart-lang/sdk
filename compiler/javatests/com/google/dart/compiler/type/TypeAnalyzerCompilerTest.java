@@ -33,6 +33,7 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
@@ -4392,6 +4393,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+    {
+      DartPropertyAccess access = findNode(DartPropertyAccess.class, "f = 1");
+      assertNotNull(access.getElement());
+    }
   }
   
   /**
@@ -4402,16 +4407,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int m() {}",
+        "  int m(p) {}",
         "}",
         "main() {",
         "  A a = new A();",
         "  a",
-        "    ..m()",
-        "    ..m();",
+        "    ..m(1)",
+        "    ..m(2);",
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+    {
+      DartMethodInvocation invocation = findNode(DartMethodInvocation.class, "m(1)");
+      assertNotNull(invocation.getElement());
+    }
   }
 
   /**
