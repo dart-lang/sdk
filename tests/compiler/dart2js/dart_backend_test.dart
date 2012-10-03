@@ -637,7 +637,7 @@ main() {
   Platform.operatingSystem;
 }
 ''';
-  var expectedResult = '#import("dart:io",prefix:"p");'
+  var expectedResult = 'import "dart:io" as p;'
       'main(){p.Platform.operatingSystem;}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); });
@@ -767,7 +767,7 @@ main() {
   A.userAgent;
 }
 ''';
-  var expectedResult = '#import("dart:html",prefix:"p");'
+  var expectedResult = 'import "dart:html" as p;'
       'class A{static String get userAgent=>p.window.navigator.userAgent;}'
       'main(){A.userAgent;}';
   testDart2Dart(src,

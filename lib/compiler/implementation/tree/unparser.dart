@@ -443,8 +443,8 @@ class Unparser implements Visitor {
   }
 
   unparseImportTag(String uri, [String prefix]) {
-    final suffix = prefix === null ? '' : ',prefix:"$prefix"';
-    sb.add('#import("$uri"$suffix);');
+    final suffix = prefix === null ? '' : ' as $prefix';
+    sb.add('import "$uri"$suffix;');
   }
 
   visitScriptTag(ScriptTag node) {
