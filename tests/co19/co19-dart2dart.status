@@ -278,7 +278,7 @@ Language/10_Expressions/08_Throw_A05_t01: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A05_t02: Fail # inherited from dart2js
 Language/10_Expressions/08_Throw_A05_t03: Fail # inherited from dart2js
 Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # inherited from VM
-Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # BUG: new optional arguments
+Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # inherited from VM (most probably a bug in the test)
 Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # inherited from dart2js
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t02: Fail # http://dartbug.com/5519
