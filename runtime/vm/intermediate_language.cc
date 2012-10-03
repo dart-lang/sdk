@@ -1205,16 +1205,6 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
 }
 
 
-RawAbstractType* BinaryMintOpInstr::CompileType() const {
-  return Type::MintType();
-}
-
-
-intptr_t BinaryMintOpInstr::ResultCid() const {
-  return kMintCid;
-}
-
-
 RawAbstractType* UnboxedMintBinaryOpInstr::CompileType() const {
   return Type::IntType();
 }

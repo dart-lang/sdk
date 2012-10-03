@@ -244,7 +244,6 @@ class EmbeddedArray<T, 0> {
   M(CloneContext)                                                              \
   M(CatchEntry)                                                                \
   M(BinarySmiOp)                                                               \
-  M(BinaryMintOp)                                                              \
   M(UnarySmiOp)                                                                \
   M(CheckStackOverflow)                                                        \
   M(DoubleToDouble)                                                            \
@@ -3628,48 +3627,6 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   bool overflow_;
 
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
-};
-
-
-class BinaryMintOpInstr : public TemplateDefinition<2> {
- public:
-  BinaryMintOpInstr(Token::Kind op_kind,
-                    InstanceCallInstr* instance_call,
-                    Value* left,
-                    Value* right)
-      : op_kind_(op_kind),
-        instance_call_(instance_call) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DECLARE_INSTRUCTION(BinaryMintOp)
-  virtual RawAbstractType* CompileType() const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const;
-
- private:
-  const Token::Kind op_kind_;
-  InstanceCallInstr* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
 
 

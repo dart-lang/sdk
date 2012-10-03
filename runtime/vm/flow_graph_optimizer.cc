@@ -2902,18 +2902,6 @@ void ConstantPropagator::VisitUnboxedMintBinaryOp(
 }
 
 
-void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle binary operations.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
 void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
