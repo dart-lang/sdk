@@ -5,6 +5,10 @@
 
 """This module provides functionality to generate dart:html event classes."""
 
+import logging
+
+_logger = logging.getLogger('dartgenerator')
+
 # Events without onEventName attributes in the  IDL we want to support.
 # We can automatically extract most event names by checking for
 # onEventName methods in the IDL but some events aren't listed so we need
@@ -230,11 +234,11 @@ class HtmlEventGenerator(object):
       dom_event_names.add(dom_name)
     if html_interface_name in _html_manual_events:
       dom_event_names.update(_html_manual_events[html_interface_name])
-    dom_event_names = sorted(dom_event_names,
-                             key=lambda name: _html_event_names[name])
-    for dom_name in dom_event_names:
+    for dom_name in sorted(dom_event_names):
       if dom_name not in _html_event_names:
-        raise Exception('No known html even name for event: ' + dom_name)
+        _logger.warn('omitting %s event as there is no HTML name for it' % dom_name)
+        continue
+
       html_name = _html_event_names[dom_name]
       interface_events_members.Emit('\n  EventListenerList get $NAME;\n',
           NAME=html_name)

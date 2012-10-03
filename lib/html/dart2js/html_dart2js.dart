@@ -10347,10 +10347,6 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get focus;
 
-  EventListenerList get fullscreenChange;
-
-  EventListenerList get fullscreenError;
-
   EventListenerList get input;
 
   EventListenerList get invalid;
@@ -10377,10 +10373,6 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get paste;
 
-  EventListenerList get pointerLockChange;
-
-  EventListenerList get pointerLockError;
-
   EventListenerList get readyStateChange;
 
   EventListenerList get reset;
@@ -10391,9 +10383,9 @@ abstract class DocumentEvents implements ElementEvents {
 
   EventListenerList get select;
 
-  EventListenerList get selectStart;
-
   EventListenerList get selectionChange;
+
+  EventListenerList get selectStart;
 
   EventListenerList get submit;
 
@@ -10404,6 +10396,14 @@ abstract class DocumentEvents implements ElementEvents {
   EventListenerList get touchMove;
 
   EventListenerList get touchStart;
+
+  EventListenerList get fullscreenChange;
+
+  EventListenerList get fullscreenError;
+
+  EventListenerList get pointerLockChange;
+
+  EventListenerList get pointerLockError;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10995,10 +10995,6 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-
   EventListenerList get input => this['input'];
 
   EventListenerList get invalid => this['invalid'];
@@ -11025,10 +11021,6 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get paste => this['paste'];
 
-  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
-
-  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
-
   EventListenerList get readyStateChange => this['readystatechange'];
 
   EventListenerList get reset => this['reset'];
@@ -11039,9 +11031,9 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get select => this['select'];
 
-  EventListenerList get selectStart => this['selectstart'];
-
   EventListenerList get selectionChange => this['selectionchange'];
+
+  EventListenerList get selectStart => this['selectstart'];
 
   EventListenerList get submit => this['submit'];
 
@@ -11052,6 +11044,14 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   EventListenerList get touchMove => this['touchmove'];
 
   EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
+
+  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
+
+  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11511,10 +11511,6 @@ abstract class ElementEvents implements Events {
 
   EventListenerList get focus;
 
-  EventListenerList get fullscreenChange;
-
-  EventListenerList get fullscreenError;
-
   EventListenerList get input;
 
   EventListenerList get invalid;
@@ -11566,6 +11562,10 @@ abstract class ElementEvents implements Events {
   EventListenerList get touchStart;
 
   EventListenerList get transitionEnd;
+
+  EventListenerList get fullscreenChange;
+
+  EventListenerList get fullscreenError;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12592,10 +12592,6 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
   EventListenerList get focus => this['focus'];
 
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-
   EventListenerList get input => this['input'];
 
   EventListenerList get invalid => this['invalid'];
@@ -12645,6 +12641,10 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get touchStart => this['touchstart'];
 
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get mouseWheel {
     if (JS('bool', '#.onwheel !== undefined', _ptr)) {
@@ -18735,19 +18735,11 @@ abstract class MediaElementEvents implements ElementEvents {
 
   EventListenerList get ended;
 
-  EventListenerList get keyAdded;
-
-  EventListenerList get keyError;
-
-  EventListenerList get keyMessage;
-
-  EventListenerList get loadStart;
-
   EventListenerList get loadedData;
 
   EventListenerList get loadedMetadata;
 
-  EventListenerList get needKey;
+  EventListenerList get loadStart;
 
   EventListenerList get pause;
 
@@ -18774,6 +18766,14 @@ abstract class MediaElementEvents implements ElementEvents {
   EventListenerList get volumeChange;
 
   EventListenerList get waiting;
+
+  EventListenerList get keyAdded;
+
+  EventListenerList get keyError;
+
+  EventListenerList get keyMessage;
+
+  EventListenerList get needKey;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18910,19 +18910,11 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
 
   EventListenerList get ended => this['ended'];
 
-  EventListenerList get keyAdded => this['webkitkeyadded'];
-
-  EventListenerList get keyError => this['webkitkeyerror'];
-
-  EventListenerList get keyMessage => this['webkitkeymessage'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
   EventListenerList get loadedData => this['loadeddata'];
 
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  EventListenerList get needKey => this['webkitneedkey'];
+  EventListenerList get loadStart => this['loadstart'];
 
   EventListenerList get pause => this['pause'];
 
@@ -18949,6 +18941,14 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
   EventListenerList get volumeChange => this['volumechange'];
 
   EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get keyAdded => this['webkitkeyadded'];
+
+  EventListenerList get keyError => this['webkitkeyerror'];
+
+  EventListenerList get keyMessage => this['webkitkeymessage'];
+
+  EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37814,13 +37814,9 @@ abstract class Window implements EventTarget {
 
 abstract class WindowEvents implements Events {
 
+  EventListenerList get contentLoaded;
+
   EventListenerList get abort;
-
-  EventListenerList get animationEnd;
-
-  EventListenerList get animationIteration;
-
-  EventListenerList get animationStart;
 
   EventListenerList get beforeUnload;
 
@@ -37834,15 +37830,13 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get click;
 
-  EventListenerList get contentLoaded;
-
   EventListenerList get contextMenu;
+
+  EventListenerList get doubleClick;
 
   EventListenerList get deviceMotion;
 
   EventListenerList get deviceOrientation;
-
-  EventListenerList get doubleClick;
 
   EventListenerList get drag;
 
@@ -37882,11 +37876,11 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get load;
 
-  EventListenerList get loadStart;
-
   EventListenerList get loadedData;
 
   EventListenerList get loadedMetadata;
+
+  EventListenerList get loadStart;
 
   EventListenerList get message;
 
@@ -37954,13 +37948,19 @@ abstract class WindowEvents implements Events {
 
   EventListenerList get touchStart;
 
-  EventListenerList get transitionEnd;
-
   EventListenerList get unload;
 
   EventListenerList get volumeChange;
 
   EventListenerList get waiting;
+
+  EventListenerList get animationEnd;
+
+  EventListenerList get animationIteration;
+
+  EventListenerList get animationStart;
+
+  EventListenerList get transitionEnd;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38283,13 +38283,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   _WindowEventsImpl(_ptr) : super(_ptr);
 
+  EventListenerList get contentLoaded => this['DOMContentLoaded'];
+
   EventListenerList get abort => this['abort'];
-
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  EventListenerList get animationStart => this['webkitAnimationStart'];
 
   EventListenerList get beforeUnload => this['beforeunload'];
 
@@ -38303,15 +38299,13 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get click => this['click'];
 
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
   EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get doubleClick => this['dblclick'];
 
   EventListenerList get deviceMotion => this['devicemotion'];
 
   EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  EventListenerList get doubleClick => this['dblclick'];
 
   EventListenerList get drag => this['drag'];
 
@@ -38351,11 +38345,11 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get load => this['load'];
 
-  EventListenerList get loadStart => this['loadstart'];
-
   EventListenerList get loadedData => this['loadeddata'];
 
   EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
 
   EventListenerList get message => this['message'];
 
@@ -38423,13 +38417,19 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
 
   EventListenerList get touchStart => this['touchstart'];
 
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-
   EventListenerList get unload => this['unload'];
 
   EventListenerList get volumeChange => this['volumechange'];
 
   EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
