@@ -51,12 +51,12 @@ abstract class Navigator {
 ''';
 
 testDart2Dart(String src, [void continuation(String s), bool minify = false,
-    bool cutDeclarationTypes = false]) {
+    bool stripTypes = false]) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
     continuation = (s) { Expect.equals(src, s); };
   }
-  testDart2DartWithLibrary(src, '', continuation, minify, cutDeclarationTypes);
+  testDart2DartWithLibrary(src, '', continuation, minify, stripTypes);
 }
 
 /**
@@ -65,7 +65,7 @@ testDart2Dart(String src, [void continuation(String s), bool minify = false,
 testDart2DartWithLibrary(
     String srcMain, String srcLibrary,
     [void continuation(String s), bool minify = false,
-    bool cutDeclarationTypes = false]) {
+    bool stripTypes = false]) {
   fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -91,7 +91,7 @@ testDart2DartWithLibrary(
 
   final options = <String>['--output-type=dart'];
   if (minify) options.add('--minify');
-  if (cutDeclarationTypes) options.add('--force-cut-declaration-types');
+  if (stripTypes) options.add('--force-strip=types');
 
   compile(
       scriptUri,
@@ -752,7 +752,7 @@ main() {
       ' foo( arg){}main(){var localvar;foo("5");}';
   testDart2Dart(src,
       (String result) { Expect.equals(expectedResult, result); },
-      cutDeclarationTypes: true);
+      stripTypes: true);
 }
 
 testPlatformLibraryMemberNamesAreFixed() {

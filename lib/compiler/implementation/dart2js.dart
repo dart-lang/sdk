@@ -15,6 +15,7 @@
 #import('util/uri_extras.dart');
 
 const String LIBRARY_ROOT = '../../../..';
+const String OUTPUT_LANGUAGE_DART = 'Dart';
 
 typedef void HandleOption(String option);
 
@@ -79,6 +80,7 @@ void compile(List<String> argv) {
   bool wantHelp = false;
   bool enableColors = false;
   String outputLanguage = 'JavaScript';
+  bool stripArgumentSet = false;
 
   passThrough(String argument) => options.add(argument);
 
@@ -98,12 +100,17 @@ void compile(List<String> argv) {
 
   setOutputType(String argument) {
     if (argument == '--output-type=dart') {
-      outputLanguage = 'Dart';
+      outputLanguage = OUTPUT_LANGUAGE_DART;
       if (!explicitOut) {
         out = cwd.resolve('out.dart');
         sourceMapOut = cwd.resolve('out.dart.map');
       }
     }
+    passThrough(argument);
+  }
+
+  setStrip(String argument) {
+    stripArgumentSet = true;
     passThrough(argument);
   }
 
@@ -138,7 +145,7 @@ void compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
-    new OptionHandler('--force-cut-declaration-types', passThrough),
+    new OptionHandler('--force-strip=.*', setStrip),
     // TODO(ahe): Remove the --no-colors option.
     new OptionHandler('--disable-diagnostic-colors', (_) => enableColors = false),
     new OptionHandler('--enable-diagnostic-colors', (_) => enableColors = true),
@@ -156,9 +163,12 @@ void compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
-
   if (wantHelp) helpAndExit(verbose);
 
+  if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
+    helpAndFail('Error: --force-strip may only be used with '
+        '--output-type=dart');
+  }
   if (arguments.isEmpty()) {
     helpAndFail('Error: No Dart file specified.');
   }

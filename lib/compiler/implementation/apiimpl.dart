@@ -31,8 +31,16 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
-            forceCutDeclarationTypes:
-                hasOption(options, '--force-cut-declaration-types'));
+            strips: getStrips(options));
+
+  static List<String> getStrips(List<String> options) {
+    for (String option in options) {
+      if (option.startsWith('--force-strip=')) {
+        return option.substring('--force-strip='.length).split(',');
+      }
+    }
+    return [];
+  }
 
   static bool hasOption(List<String> options, String option) {
     return options.indexOf(option) >= 0;
