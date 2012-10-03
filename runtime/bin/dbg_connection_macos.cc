@@ -84,14 +84,14 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
       FATAL1("Failed adding debugger socket to kqueue: %s\n", strerror(errno));
     }
     */
-  } else if (ident == DebuggerConnectionHandler::debugger_fd_) {
-    printf("unexpected: receiving debugger connection event.\n");
-    UNIMPLEMENTED();
-  } else {
+  } else if (ident == wakeup_fds_[0]) {
     Message msg;
     if (ReceiveMessage(&msg)) {
       printf("Received sync message id %d.\n", msg.msg_id);
     }
+  } else {
+    printf("unexpected: receiving debugger connection event.\n");
+    UNIMPLEMENTED();
   }
 }
 

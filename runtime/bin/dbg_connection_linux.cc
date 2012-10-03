@@ -28,11 +28,11 @@ void DebuggerConnectionImpl::HandleEvent(struct epoll_event* event) {
     DebuggerConnectionHandler::AcceptDbgConnection(fd);
     // TODO(hausner): add the debugger wire socket fd to the event poll queue
     // once we poll the debugger connection.
-  } else if (event->data.fd == DebuggerConnectionHandler::debugger_fd_) {
-    printf("unexpected: receiving debugger connection event.\n");
+  } else if (event->data.fd == wakeup_fds_[0]) {
+    // Sync message. Not yet implemented.
     UNIMPLEMENTED();
   } else {
-    // Sync message. Not yet implemented.
+    printf("unexpected: receiving debugger connection event.\n");
     UNIMPLEMENTED();
   }
 }

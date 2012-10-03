@@ -18,6 +18,8 @@
     'dbg_connection_macos.h',
     'dbg_connection_win.cc',
     'dbg_connection_win.h',
+    'dbg_message.h',
+    'dbg_message.cc',
     'directory.cc',
     'directory.h',
     'directory_android.cc',

@@ -31,79 +31,75 @@ class MessageBuffer;
 
 class DebuggerConnectionHandler {
  public:
+  explicit DebuggerConnectionHandler(int debug_fd);
   ~DebuggerConnectionHandler();
+
+  // Accessors.
+  int debug_fd() const { return debug_fd_; }
+
+  // Return message id of current debug command message.
+  int MessageId();
+
+  // Starts the native thread which listens for connections from
+  // debugger clients, reads and dispatches debug command messages
+  // from the client.
   static void StartHandler(const char* address, int port_number);
 
-  static bool IsConnected() {
-    return debugger_fd_ >= 0;
-  }
+  // Called by Isolates when they need to wait for a connection
+  // from debugger clients.
+  static void WaitForConnection();
+
+  // Sends a reply or an error message to a specific debugger client.
+  static void SendMsg(int debug_fd, dart::TextBuffer* msg);
+  static void SendError(int debug_fd, int msg_id, const char* err_msg);
+
+  // Sends an event message to all debugger clients that are connected.
+  static void BroadcastMsg(dart::TextBuffer* msg);
 
  private:
-  static void SendMsg(dart::TextBuffer* msg);
-  static void QueueMsg(dart::TextBuffer* msg);
-  static void SendQueuedMsgs();
+  void HandleUnknownMsg();
+  void HandleMessages();
 
-  static void SendBreakpointEvent(Dart_StackTrace trace);
-  static void SendExceptionEvent(Dart_Handle exception, Dart_StackTrace trace);
-  static void BptResolvedHandler(intptr_t bp_id,
-                                 Dart_Handle url,
-                                 intptr_t line_number);
-  static void IsolateEventHandler(Dart_Isolate isolate, Dart_IsolateEvent kind);
-  static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
-  static void ExceptionThrownHandler(Dart_Handle exception,
-                                     Dart_StackTrace stack_trace);
-
-  static void AcceptDbgConnection(int debug_fd);
-  static void WaitForConnection();
-  static void CloseDbgConnection();
-
-  static void HandleMessages();
-  static void HandleResumeCmd(const char* msg);
-  static void HandleStepIntoCmd(const char* msg);
-  static void HandleStepOverCmd(const char* msg);
-  static void HandleStepOutCmd(const char* msg);
-  static void HandleGetLibrariesCmd(const char* json_msg);
-  static void HandleGetClassPropsCmd(const char* json_msg);
-  static void HandleGetLibPropsCmd(const char* json_msg);
-  static void HandleSetLibPropsCmd(const char* json_msg);
-  static void HandleGetGlobalsCmd(const char* json_msg);
-  static void HandleGetObjPropsCmd(const char* json_msg);
-  static void HandleGetListCmd(const char* json_msg);
-  static void HandleGetScriptURLsCmd(const char* json_msg);
-  static void HandleGetSourceCmd(const char* json_msg);
-  static void HandleGetStackTraceCmd(const char* json_msg);
-  static void HandlePauseOnExcCmd(const char* json_msg);
-  static void HandleSetBpCmd(const char* json_msg);
-  static void HandleRemBpCmd(const char* json_msg);
-  static void HandleUnknownMsg(const char* json_msg);
-
-  static void SendError(int msg_id, const char* err_msg);
-
-  // Text buffer that accumulates messages to be sent to front end.
-  static dart::TextBuffer queued_messages_;
-
-  static bool handler_started_;
-
-  static bool request_resume_;
-
-  // The socket that is listening for incoming debugger connections.
-  // This descriptor is created and closed by a VM thread.
-  static int listener_fd_;
+  void CloseDbgConnection();
 
   // The socket that connects with the debugger client.
-  // The descriptor is created by the debugger connection thread and
-  // closed by a VM thread.
-  static int debugger_fd_;
+  // The descriptor is created and closed by the debugger connection thread.
+  int debug_fd_;
 
-  // The VM thread waits on this condition variable when it reaches a
-  // breakpoint and the debugger client has not connected yet.
-  static dart::Monitor is_connected_;
+  // Buffer holding the messages received over the wire from the debugger
+  // front end..
+  MessageBuffer* msgbuf_;
 
-  static MessageBuffer* msgbuf_;
+  // Accepts connection requests from debugger client and sets up a
+  // connection handler object to read and handle messages from the client.
+  static void AcceptDbgConnection(int debug_fd);
+
+  // Handlers for generic debug command messages which are not specific to
+  // an isolate.
+  static void HandleInterruptCmd(DebuggerConnectionHandler* handler);
+  static void HandleIsolatesListCmd(DebuggerConnectionHandler* handler);
+  static void HandleQuitCmd(DebuggerConnectionHandler* handler);
+
+  // Helper methods to manage debugger client connections.
+  static void AddNewDebuggerConnection(int debug_fd);
+  static void RemoveDebuggerConnection(int debug_fd);
+  static DebuggerConnectionHandler* GetDebuggerConnectionHandler(int debug_fd);
+  static bool IsConnected();
+
+  // Helper method for sending messages back to a debugger client.
+  static void SendMsgHelper(int debug_fd, dart::TextBuffer* msg);
+
+  // mutex/condition variable used by isolates when writing back to the
+  // debugger. This is also used to ensure that the isolate waits for
+  // a debugger to be attached when that is requested on the command line.
+  static dart::Monitor handler_lock_;
+
+  // The socket that is listening for incoming debugger connections.
+  // This descriptor is created and closed by a native thread.
+  static int listener_fd_;
 
   friend class DebuggerConnectionImpl;
 
-  DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DebuggerConnectionHandler);
 };
 
