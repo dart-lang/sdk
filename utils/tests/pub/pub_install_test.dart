@@ -95,6 +95,18 @@ main() {
     run();
   });
 
+  test('does not warn if the root package lacks a "lib" directory', () {
+    dir(appPath, [
+      appPubspec([])
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        error: '',
+        output: const RegExp(r"Dependencies installed!$"));
+
+    run();
+  });
+
   test('overwrites the existing packages directory', () {
     dir(appPath, [
       appPubspec([]),

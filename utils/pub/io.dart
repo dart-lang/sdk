@@ -353,7 +353,14 @@ Future<File> createPackageSymlink(String name, from, to,
       if (exists) {
         return createSymlink(from, to);
       } else {
-        printError('Warning: Package "$name" does not have a "lib" directory.');
+        // It's OK for the self link (i.e. the root package) to not have a lib
+        // directory since it may just be a leaf application that only has
+        // code in bin or web.
+        if (!isSelfLink) {
+          printError(
+              'Warning: Package "$name" does not have a "lib" directory.');
+        }
+
         return new Future.immediate(to);
       }
     });
