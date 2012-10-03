@@ -601,6 +601,9 @@ class Dart2JSBackend(object):
       return None
     if IsPureInterface(supertype):
       return None
+    elif supertype == 'NodeList':
+      # Special case as NodeList gets converted to List<Node>.
+      return '_NodeListImpl'
     return self._ImplClassName(self._DartType(supertype))
 
   def AdditionalImplementedInterfaces(self):
@@ -1024,7 +1027,8 @@ class Dart2JSBackend(object):
   def _ShouldNarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
     do_not_narrow = ['DOMStringList', 'DOMStringMap', 'EventListener',
-                     'IDBAny', 'IDBKey', 'MediaQueryListListener']
+                     'IDBAny', 'IDBKey', 'MediaQueryListListener', 'List<Node>',
+                     'NodeList']
     if type_name in do_not_narrow:
       return False
     if self._database.HasInterface(type_name):

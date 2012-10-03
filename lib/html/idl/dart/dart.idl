@@ -19,7 +19,6 @@ module default {
   MediaStreamList implements sequence<MediaStream>;
   NamedNodeMap implements sequence<Node>;
   NodeList implements sequence<Node>;
-  RadioNodeList implements sequence<Node>;
   // Additional methods: animVal and baseVal
   SVGAnimatedLengthList implements sequence<SVGAnimatedLength>;
   // Additional methods: animVal and baseVal
@@ -53,7 +52,7 @@ module default {
 
   // Is List<int> because inherits from Uint8Array:
   // Uint8ClampedArray implements sequence<int>;
-  
+
   // TODO(efortuna): Determine what the correct type of the list items are part
   //of the commented out Lists so we can properly inherit from List.
   //MediaQueryList implements sequence<Object>;

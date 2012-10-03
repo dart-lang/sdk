@@ -69,7 +69,7 @@ class _ListWrapper<E> implements List<E> {
  * This class is used to insure the results of list operations are NodeLists
  * instead of lists.
  */
-class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
+class _NodeListWrapper extends _ListWrapper<Node> implements List {
   _NodeListWrapper(List list) : super(list);
 
   List<Node> filter(bool f(Node element)) =>

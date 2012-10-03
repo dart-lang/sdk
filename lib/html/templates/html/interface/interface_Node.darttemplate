@@ -6,7 +6,7 @@
 
 $!COMMENT
 abstract class $ID$EXTENDS {
-  NodeList get nodes;
+  List<Node> get nodes;
 
   void set nodes(Collection<Node> value);
 

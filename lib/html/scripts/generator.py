@@ -810,7 +810,7 @@ class TypeData(object):
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
                requires_v8_scope=False, suppress_public_interface=False):
-    """Constructor. 
+    """Constructor.
     Arguments:
     - suppress_public_interface is True if we are converting a DOM type to a
         built-in Dart type in which case we do not want to generate the new
@@ -908,6 +908,8 @@ _idl_type_registry = {
         dart_type='List<MediaStream>', suppress_public_interface=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
+    'NodeList': TypeData(clazz='Interface', dart_type='List<Node>',
+        suppress_public_interface=False),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
     'SVGElementInstanceList': TypeData(clazz='Interface',

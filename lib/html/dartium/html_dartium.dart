@@ -2071,7 +2071,7 @@ abstract class ButtonElement implements Element {
   String formTarget;
 
   /** @domName HTMLButtonElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLButtonElement.name */
   String name;
@@ -2135,7 +2135,7 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
   void set formTarget(String value) native "HTMLButtonElement_formTarget_Setter";
 
-  NodeList get labels native "HTMLButtonElement_labels_Getter";
+  List<Node> get labels native "HTMLButtonElement_labels_Getter";
 
   String get name native "HTMLButtonElement_name_Getter";
 
@@ -11409,13 +11409,13 @@ abstract class Document extends HtmlElement {
   Element $dom_getElementById(String elementId);
 
   /** @domName Document.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String tagname);
+  List<Node> $dom_getElementsByClassName(String tagname);
 
   /** @domName Document.getElementsByName */
-  NodeList $dom_getElementsByName(String elementName);
+  List<Node> $dom_getElementsByName(String elementName);
 
   /** @domName Document.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String tagname);
+  List<Node> $dom_getElementsByTagName(String tagname);
 
   /** @domName Document.queryCommandEnabled */
   bool queryCommandEnabled(String command);
@@ -11436,7 +11436,7 @@ abstract class Document extends HtmlElement {
   Element $dom_querySelector(String selectors);
 
   /** @domName Document.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
   /** @domName Document.webkitCancelFullScreen */
   void webkitCancelFullScreen();
@@ -11580,7 +11580,7 @@ abstract class DocumentFragment extends Element {
   Element $dom_querySelector(String selectors);
 
   /** @domName DocumentFragment.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -11589,7 +11589,7 @@ abstract class DocumentFragment extends Element {
 
 class _FilteredElementList implements List {
   final Node _node;
-  final NodeList _childNodes;
+  final List<Node> _childNodes;
 
   _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
@@ -11944,7 +11944,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
-  NodeList $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
+  List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12042,11 +12042,11 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
 
-  NodeList $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
+  List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
 
-  NodeList $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
+  List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
 
-  NodeList $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+  List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
 
   bool queryCommandEnabled(String command) native "Document_queryCommandEnabled_Callback";
 
@@ -12060,7 +12060,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
 
-  NodeList $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
+  List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
   void webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
@@ -12599,10 +12599,10 @@ abstract class Element implements Node, NodeSelector {
   List<ClientRect> $dom_getClientRects();
 
   /** @domName Element.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String name);
+  List<Node> $dom_getElementsByClassName(String name);
 
   /** @domName Element.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String name);
+  List<Node> $dom_getElementsByTagName(String name);
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
@@ -12611,7 +12611,7 @@ abstract class Element implements Node, NodeSelector {
   Element $dom_querySelector(String selectors);
 
   /** @domName Element.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
   /** @domName Element.remove */
   void remove();
@@ -13546,15 +13546,15 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   List<ClientRect> $dom_getClientRects() native "Element_getClientRects_Callback";
 
-  NodeList $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
+  List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
-  NodeList $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
+  List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
   bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
 
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
-  NodeList $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
+  List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
   void remove() native "Element_remove_Callback";
 
@@ -16395,7 +16395,7 @@ abstract class HTMLAllCollection implements List<Node> {
   Node namedItem(String name);
 
   /** @domName HTMLAllCollection.tags */
-  NodeList tags(String name);
+  List<Node> tags(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16492,7 +16492,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 
   Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
 
-  NodeList tags(String name) native "HTMLAllCollection_tags_Callback";
+  List<Node> tags(String name) native "HTMLAllCollection_tags_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18788,7 +18788,7 @@ abstract class InputElement implements Element {
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLInputElement.list */
   abstract Element get list;
@@ -18985,7 +18985,7 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
-  NodeList get labels native "HTMLInputElement_labels_Getter";
+  List<Node> get labels native "HTMLInputElement_labels_Getter";
 
   Element get list native "HTMLInputElement_list_Getter";
 
@@ -19744,7 +19744,7 @@ abstract class KeygenElement implements Element {
   String keytype;
 
   /** @domName HTMLKeygenElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLKeygenElement.name */
   String name;
@@ -19793,7 +19793,7 @@ class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 
   void set keytype(String value) native "HTMLKeygenElement_keytype_Setter";
 
-  NodeList get labels native "HTMLKeygenElement_labels_Getter";
+  List<Node> get labels native "HTMLKeygenElement_labels_Getter";
 
   String get name native "HTMLKeygenElement_name_Getter";
 
@@ -21822,7 +21822,7 @@ abstract class MeterElement implements Element {
   num high;
 
   /** @domName HTMLMeterElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLMeterElement.low */
   num low;
@@ -21851,7 +21851,7 @@ class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 
   void set high(num value) native "HTMLMeterElement_high_Setter";
 
-  NodeList get labels native "HTMLMeterElement_labels_Getter";
+  List<Node> get labels native "HTMLMeterElement_labels_Getter";
 
   num get low native "HTMLMeterElement_low_Getter";
 
@@ -22208,7 +22208,7 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
 abstract class MutationRecord {
 
   /** @domName MutationRecord.addedNodes */
-  abstract NodeList get addedNodes;
+  abstract List<Node> get addedNodes;
 
   /** @domName MutationRecord.attributeName */
   abstract String get attributeName;
@@ -22226,7 +22226,7 @@ abstract class MutationRecord {
   abstract Node get previousSibling;
 
   /** @domName MutationRecord.removedNodes */
-  abstract NodeList get removedNodes;
+  abstract List<Node> get removedNodes;
 
   /** @domName MutationRecord.target */
   abstract Node get target;
@@ -22242,7 +22242,7 @@ abstract class MutationRecord {
 
 class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRecord {
 
-  NodeList get addedNodes native "MutationRecord_addedNodes_Getter";
+  List<Node> get addedNodes native "MutationRecord_addedNodes_Getter";
 
   String get attributeName native "MutationRecord_attributeName_Getter";
 
@@ -22254,7 +22254,7 @@ class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRe
 
   Node get previousSibling native "MutationRecord_previousSibling_Getter";
 
-  NodeList get removedNodes native "MutationRecord_removedNodes_Getter";
+  List<Node> get removedNodes native "MutationRecord_removedNodes_Getter";
 
   Node get target native "MutationRecord_target_Getter";
 
@@ -22565,7 +22565,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 
 /// @domName Node
 abstract class Node implements EventTarget {
-  NodeList get nodes;
+  List<Node> get nodes;
 
   void set nodes(Collection<Node> value);
 
@@ -22622,7 +22622,7 @@ abstract class Node implements EventTarget {
   abstract NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  abstract NodeList get $dom_childNodes;
+  abstract List<Node> get $dom_childNodes;
 
   /** @domName Node.firstChild */
   abstract Node get $dom_firstChild;
@@ -22743,7 +22743,7 @@ class _NodeFilterImpl extends NativeFieldWrapperClass1 implements NodeFilter {
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy implements NodeList {
+class _ChildNodeListLazy implements List {
   final _NodeImpl _this;
 
   _ChildNodeListLazy(this._this);
@@ -22827,7 +22827,7 @@ class _ChildNodeListLazy implements NodeList {
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int rangeLength) =>
+  List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
@@ -22876,7 +22876,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
-  NodeList get $dom_childNodes native "Node_childNodes_Getter";
+  List<Node> get $dom_childNodes native "Node_childNodes_Getter";
 
   Node get $dom_firstChild native "Node_firstChild_Getter";
 
@@ -22989,9 +22989,9 @@ class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator
 /// @domName NodeList
 abstract class NodeList implements List<Node> {
 
-  NodeList filter(bool f(Node element));
+  List<Node> filter(bool f(Node element));
 
-  NodeList getRange(int start, int length);
+  List<Node> getRange(int start, int length);
 
   Node get first;
 
@@ -23071,7 +23071,7 @@ class _ListWrapper<E> implements List<E> {
  * This class is used to insure the results of list operations are NodeLists
  * instead of lists.
  */
-class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
+class _NodeListWrapper extends _ListWrapper<Node> implements List {
   _NodeListWrapper(List list) : super(list);
 
   List<Node> filter(bool f(Node element)) =>
@@ -23894,7 +23894,7 @@ abstract class OutputElement implements Element {
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLOutputElement.name */
   String name;
@@ -23938,7 +23938,7 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
   void set htmlFor(DOMSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
-  NodeList get labels native "HTMLOutputElement_labels_Getter";
+  List<Node> get labels native "HTMLOutputElement_labels_Getter";
 
   String get name native "HTMLOutputElement_name_Getter";
 
@@ -24720,7 +24720,7 @@ abstract class ProgressElement implements Element {
   factory ProgressElement() => _Elements.createProgressElement();
 
   /** @domName HTMLProgressElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLProgressElement.max */
   num max;
@@ -24739,7 +24739,7 @@ abstract class ProgressElement implements Element {
 
 class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressElement {
 
-  NodeList get labels native "HTMLProgressElement_labels_Getter";
+  List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
   num get max native "HTMLProgressElement_max_Getter";
 
@@ -25114,7 +25114,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements NodeList, List<Node> {
+abstract class RadioNodeList implements List<Node> {
 
   /** @domName RadioNodeList.value */
   String value;
@@ -25130,87 +25130,6 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
   String get value native "RadioNodeList_value_Getter";
 
   void set value(String value) native "RadioNodeList_value_Setter";
-
-  Node operator[](int index) native "RadioNodeList_item_Callback";
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<Node>:
-
-  void sort(int compare(Node a, Node b)) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node last() => this[length - 1];
-
-  Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32214,10 +32133,10 @@ abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpac
   Element getElementById(String elementId);
 
   /** @domName SVGSVGElement.getEnclosureList */
-  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement);
+  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement);
 
   /** @domName SVGSVGElement.getIntersectionList */
-  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement);
+  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement);
 
   /** @domName SVGSVGElement.pauseAnimations */
   void pauseAnimations();
@@ -32312,9 +32231,9 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   Element getElementById(String elementId) native "SVGSVGElement_getElementById_Callback";
 
-  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
+  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
 
-  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
+  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
 
   void pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
 
@@ -33860,7 +33779,7 @@ abstract class SelectElement implements Element {
   abstract FormElement get form;
 
   /** @domName HTMLSelectElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLSelectElement.length */
   int length;
@@ -33931,7 +33850,7 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   FormElement get form native "HTMLSelectElement_form_Getter";
 
-  NodeList get labels native "HTMLSelectElement_labels_Getter";
+  List<Node> get labels native "HTMLSelectElement_labels_Getter";
 
   int get length native "HTMLSelectElement_length_Getter";
 
@@ -34060,10 +33979,10 @@ abstract class ShadowRoot implements DocumentFragment {
   Element $dom_getElementById(String elementId);
 
   /** @domName ShadowRoot.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String className);
+  List<Node> $dom_getElementsByClassName(String className);
 
   /** @domName ShadowRoot.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String tagName);
+  List<Node> $dom_getElementsByTagName(String tagName);
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
@@ -34096,9 +34015,9 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
-  NodeList $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
+  List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
-  NodeList $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
+  List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
@@ -36090,7 +36009,7 @@ abstract class TextAreaElement implements Element {
   abstract FormElement get form;
 
   /** @domName HTMLTextAreaElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
@@ -36178,7 +36097,7 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
-  NodeList get labels native "HTMLTextAreaElement_labels_Getter";
+  List<Node> get labels native "HTMLTextAreaElement_labels_Getter";
 
   int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
@@ -39984,13 +39903,13 @@ abstract class WebKitNamedFlow implements EventTarget {
   bool $dom_dispatchEvent(Event event);
 
   /** @domName WebKitNamedFlow.getContent */
-  NodeList getContent();
+  List<Node> getContent();
 
   /** @domName WebKitNamedFlow.getRegions */
-  NodeList getRegions();
+  List<Node> getRegions();
 
   /** @domName WebKitNamedFlow.getRegionsByContent */
-  NodeList getRegionsByContent(Node contentNode);
+  List<Node> getRegionsByContent(Node contentNode);
 
   /** @domName WebKitNamedFlow.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
@@ -40013,11 +39932,11 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
   bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
-  NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
+  List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
 
-  NodeList getRegions() native "WebKitNamedFlow_getRegions_Callback";
+  List<Node> getRegions() native "WebKitNamedFlow_getRegions_Callback";
 
-  NodeList getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+  List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 

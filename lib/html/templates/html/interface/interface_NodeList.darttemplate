@@ -7,9 +7,9 @@
 $!COMMENT
 abstract class $ID$EXTENDS {
 
-  NodeList filter(bool f(Node element));
+  List<Node> filter(bool f(Node element));
 
-  NodeList getRange(int start, int length);
+  List<Node> getRange(int start, int length);
 
   Node get first;
 
