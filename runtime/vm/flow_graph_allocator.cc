@@ -1059,10 +1059,8 @@ static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
   ParallelMoveInstr* move = prev->AsParallelMove();
   if ((move == NULL) || (move->lifetime_position() != pos)) {
     move = new ParallelMoveInstr();
-    move->set_next(prev->next());
-    prev->set_next(move);
-    move->next()->set_previous(move);
-    move->set_previous(prev);
+    prev->LinkTo(move);
+    move->LinkTo(instr);
     move->set_lifetime_position(pos);
   }
   return move;

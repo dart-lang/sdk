@@ -3123,10 +3123,10 @@ void ConstantPropagator::Transform() {
         GotoInstr* jump = new GotoInstr(join);
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);
-        previous->set_next(jump);
+        previous->LinkTo(jump);
         // Replace the false target entry with the new join entry. We will
         // recompute the dominators after this pass.
-        join->set_next(next);
+        join->LinkTo(next);
       }
     }
   }

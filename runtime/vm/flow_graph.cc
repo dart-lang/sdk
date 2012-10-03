@@ -51,21 +51,10 @@ void FlowGraph::DiscoverBlocks() {
                                &assigned_vars_,
                                variable_count(),
                                num_non_copied_params());
-  // Number blocks in reverse postorder.
+  // Create an array of blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
     reverse_postorder_.Add(postorder_[block_count - i - 1]);
-  }
-  // Link instructions backwards for optimized compilation.
-  // TODO(zerny): The builder should do this at construction time.
-  for (intptr_t i = 0; i < block_count; ++i) {
-    BlockEntryInstr* entry = postorder_[i];
-    Instruction* previous = entry;
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      current->set_previous(previous);
-      previous = current;
-    }
   }
 }
 
@@ -767,14 +756,6 @@ static void ReorderPhis(BlockEntryInstr* block) {
 }
 
 
-// Helper to link two instructions in the graph.
-static void Link(Instruction* prev, Instruction* next) {
-  ASSERT(prev != next);
-  prev->set_next(next);
-  next->set_previous(prev);
-}
-
-
 // Helper to sort a list of blocks.
 static int LowestBlockIdFirst(BlockEntryInstr* const* a,
                               BlockEntryInstr* const* b) {
@@ -833,8 +814,8 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     ASSERT(exit->previous() != NULL);
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(exit->value()->definition());
-    Link(call->previous(), callee_entry->next());
-    Link(exit->previous(), call->next());
+    call->previous()->LinkTo(callee_entry->next());
+    exit->previous()->LinkTo(call->next());
     // In case of control flow, locally update the dominator tree.
     if (callee_graph->preorder().length() > 2) {
       // The caller block is split and the new block id is that of the exit
@@ -900,8 +881,8 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
       call->ReplaceUsesWith(phi);
     }
     //  Remove the call from the graph.
-    Link(call->previous(), callee_entry->next());
-    Link(join, call->next());
+    call->previous()->LinkTo(callee_entry->next());
+    join->LinkTo(call->next());
     // The caller block is split and the new block id is that of the join
     // block. If the caller block had outgoing edges, reorder the phis so they
     // are still ordered by block id.

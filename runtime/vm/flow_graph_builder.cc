@@ -58,7 +58,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
     entry_ = other_fragment.entry();
     exit_ = other_fragment.exit();
   } else {
-    exit()->set_next(other_fragment.entry());
+    exit()->LinkTo(other_fragment.entry());
     exit_ = other_fragment.exit();
   }
   temp_index_ = other_fragment.temp_index();
@@ -73,7 +73,7 @@ Value* EffectGraphVisitor::Bind(Definition* definition) {
   if (is_empty()) {
     entry_ = definition;
   } else {
-    exit()->set_next(definition);
+    exit()->LinkTo(definition);
   }
   exit_ = definition;
   return new Value(definition);
@@ -87,7 +87,7 @@ void EffectGraphVisitor::Do(Definition* definition) {
   if (is_empty()) {
     entry_ = definition;
   } else {
-    exit()->set_next(definition);
+    exit()->LinkTo(definition);
   }
   exit_ = definition;
 }
@@ -101,7 +101,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
-    exit()->set_next(instruction);
+    exit()->LinkTo(instruction);
     exit_ = instruction;
   }
 }
@@ -128,7 +128,7 @@ void EffectGraphVisitor::Goto(JoinEntryInstr* join) {
 static Instruction* AppendFragment(BlockEntryInstr* entry,
                                    const EffectGraphVisitor& fragment) {
   if (fragment.is_empty()) return entry;
-  entry->set_next(fragment.entry());
+  entry->LinkTo(fragment.entry());
   return fragment.exit();
 }
 
@@ -192,7 +192,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   } else {
     JoinEntryInstr* join =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-    join->set_next(test_fragment.entry());
+    join->LinkTo(test_fragment.entry());
     Goto(join);
     body_exit->Goto(join);
   }
@@ -1249,7 +1249,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
       join =
           new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     }
-    join->set_next(for_test.entry());
+    join->LinkTo(for_test.entry());
     if (body_exit != NULL) {
       body_exit->Goto(join);
     }

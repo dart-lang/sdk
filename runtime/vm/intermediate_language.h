@@ -351,6 +351,13 @@ class Instruction : public ZoneAllocated {
     next_ = instr;
   }
 
+  // Link together two instruction.
+  void LinkTo(Instruction* next) {
+    ASSERT(this != next);
+    this->set_next(next);
+    next->set_previous(this);
+  }
+
   // Removed this instruction from the graph.
   Instruction* RemoveFromGraph(bool return_previous = true);
 

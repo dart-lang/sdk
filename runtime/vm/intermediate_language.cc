@@ -239,8 +239,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   Instruction* next_instr = next();
   ASSERT(next_instr != NULL);
   ASSERT(!next_instr->IsBlockEntry());
-  prev_instr->set_next(next_instr);
-  next_instr->set_previous(prev_instr);
+  prev_instr->LinkTo(next_instr);
   // Reset successor and previous instruction to indicate
   // that the instruction is removed from the graph.
   set_previous(NULL);
@@ -589,12 +588,10 @@ void Definition::ReplaceWith(Definition* other,
     ASSERT(!other->HasSSATemp());
     if (HasSSATemp()) other->set_ssa_temp_index(ssa_temp_index());
 
-    other->set_previous(previous());
-    previous()->set_next(other);
-    set_previous(NULL);
+    previous()->LinkTo(other);
+    other->LinkTo(next());
 
-    other->set_next(next());
-    next()->set_previous(other);
+    set_previous(NULL);
     set_next(NULL);
   }
 }
@@ -880,7 +877,7 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 
 
 void Instruction::Goto(JoinEntryInstr* entry) {
-  set_next(new GotoInstr(entry));
+  LinkTo(new GotoInstr(entry));
 }
 
 
