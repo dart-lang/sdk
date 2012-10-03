@@ -384,10 +384,6 @@ class Dart2JsCompilation implements Compilation {
 //------------------------------------------------------------------------------
 
 abstract class Dart2JsMirror implements Mirror {
-  /**
-   * A unique name used as the key in maps.
-   */
-  String get canonicalName;
   Dart2JsMirrorSystem get system;
 }
 
@@ -410,6 +406,8 @@ abstract class Dart2JsElementMirror implements Dart2JsMirror {
 
   String get simpleName => _element.name.slowToString();
 
+  String get displayName => simpleName;
+
   Location get location => new Dart2JsLocation(
       _element.getCompilationUnit().script,
       system.compiler.spanFromElement(_element));
@@ -423,6 +421,8 @@ abstract class Dart2JsProxyMirror implements Dart2JsMirror {
   final Dart2JsMirrorSystem system;
 
   Dart2JsProxyMirror(this.system);
+
+  String get displayName => simpleName;
 
   int hashCode() => qualifiedName.hashCode();
 }
@@ -444,15 +444,15 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
       _libraries = <String, Dart2JsLibraryMirror>{};
       compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(system, v);
-        _libraries[mirror.canonicalName] = mirror;
+        _libraries[mirror.simpleName] = mirror;
         _libraryMap[v] = mirror;
       });
     }
   }
 
-  Map<Object, LibraryMirror> get libraries {
+  Map<String, LibraryMirror> get libraries {
     _ensureLibraries();
-    return new ImmutableMapWrapper<Object, LibraryMirror>(_libraries);
+    return new ImmutableMapWrapper<String, LibraryMirror>(_libraries);
   }
 
   Dart2JsLibraryMirror getLibrary(LibraryElement element) {
@@ -462,9 +462,8 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
   Dart2JsMirrorSystem get system => this;
 
   String get simpleName => "mirror";
+  String get displayName => simpleName;
   String get qualifiedName => simpleName;
-
-  String get canonicalName => simpleName;
 
   // TODO(johnniwinther): Hack! Dart2JsMirrorSystem need not be a Mirror.
   int hashCode() => qualifiedName.hashCode();
@@ -487,8 +486,6 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   LibraryElement get _library => _element;
 
   LibraryMirror library() => this;
-
-  String get canonicalName => simpleName;
 
   /**
    * Returns the library name (for libraries with a #library tag) or the script
@@ -521,11 +518,13 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
           if (e.isClass()) {
             e.ensureResolved(system.compiler);
             var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
-            _types[type.canonicalName] = type;
+            assert(!_types.containsKey(type.simpleName));
+            _types[type.simpleName] = type;
           } else if (e.isTypedef()) {
             var type = new Dart2JsTypedefMirror.fromLibrary(this,
                 e.computeType(system.compiler));
-            _types[type.canonicalName] = type;
+            assert(!_types.containsKey(type.simpleName));
+            _types[type.simpleName] = type;
           }
         }
       });
@@ -538,21 +537,22 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
       _library.forEachExport((Element e) {
         if (!e.isClass() && !e.isTypedef()) {
           for (var member in _convertElementMemberToMemberMirrors(this, e)) {
-            _members[member.canonicalName] = member;
+            assert(!_members.containsKey(member.simpleName));
+            _members[member.simpleName] = member;
           }
         }
       });
     }
   }
 
-  Map<Object, MemberMirror> get declaredMembers {
+  Map<String, MemberMirror> get declaredMembers {
     _ensureMembers();
-    return new ImmutableMapWrapper<Object, MemberMirror>(_members);
+    return new ImmutableMapWrapper<String, MemberMirror>(_members);
   }
 
-  Map<Object, InterfaceMirror> get types {
+  Map<String, InterfaceMirror> get types {
     _ensureTypes();
-    return new ImmutableMapWrapper<Object, InterfaceMirror>(_types);
+    return new ImmutableMapWrapper<String, InterfaceMirror>(_types);
   }
 
   Location get location {
@@ -612,8 +612,6 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
     : super(system, element);
 
   VariableElement get _variableElement => _element;
-
-  String get canonicalName => simpleName;
 
   String get qualifiedName => '${_method.qualifiedName}#${simpleName}';
 
@@ -685,13 +683,11 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
       : this.library = library,
         super(library.system, _class);
 
-  String get canonicalName => simpleName;
-
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
   Location get location {
     if (_class is PartialClassElement) {
-      var node = _class.parseNode(_diagnosticListener);
+      var node = _class.parseNode(system.compiler);
       if (node !== null) {
         var script = _class.getCompilationUnit().script;
         var span = system.compiler.spanFromNode(node, script.uri);
@@ -706,15 +702,16 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
       _members = <String, Dart2JsMemberMirror>{};
       _class.forEachMember((_, e) {
         for (var member in _convertElementMemberToMemberMirrors(this, e)) {
-          _members[member.canonicalName] = member;
+          assert(!_members.containsKey(member.simpleName));
+          _members[member.simpleName] = member;
         }
       });
     }
   }
 
-  Map<Object, MemberMirror> get declaredMembers {
+  Map<String, MemberMirror> get declaredMembers {
     _ensureMembers();
-    return new ImmutableMapWrapper<Object, MemberMirror>(_members);
+    return new ImmutableMapWrapper<String, MemberMirror>(_members);
   }
 
   bool get isObject => _class == system.compiler.objectClass;
@@ -738,16 +735,16 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     return null;
   }
 
-  Map<Object, InterfaceMirror> get interfaces {
-    var map = new Map<String, InterfaceMirror>();
+  List<InterfaceMirror> get interfaces {
+    var list = <InterfaceMirror>[];
     Link<DartType> link = _class.interfaces;
     while (!link.isEmpty()) {
       var type = _convertTypeToTypeMirror(system, link.head,
                                           system.compiler.types.dynamicType);
-      map[type.canonicalName] = type;
+      list.add(type);
       link = link.tail;
     }
-    return new ImmutableMapWrapper<Object, InterfaceMirror>(map);
+    return list;
   }
 
   bool get isClass => !_class.isInterface();
@@ -777,9 +774,9 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
     return _typeVariables;
   }
 
-  Map<Object, MethodMirror> get constructors {
+  Map<String, MethodMirror> get constructors {
     _ensureMembers();
-    return new AsFilteredImmutableMap<Object, MemberMirror, MethodMirror>(
+    return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members, (m) => m.isConstructor ? m : null);
   }
 
@@ -827,8 +824,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   TypedefType get _typedef => _type;
 
-  String get canonicalName => simpleName;
-
   String get qualifiedName => '${library.qualifiedName}.${simpleName}';
 
   Location get location {
@@ -874,7 +869,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     return _definition;
   }
 
-  Map<Object, MemberMirror> get declaredMembers =>
+  Map<String, MemberMirror> get declaredMembers =>
       const <String, MemberMirror>{};
 
   InterfaceMirror get declaration => this;
@@ -882,8 +877,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   // TODO(johnniwinther): How should a typedef respond to these?
   InterfaceMirror get superclass => null;
 
-  Map<Object, InterfaceMirror> get interfaces =>
-      const <String, InterfaceMirror>{};
+  List<InterfaceMirror> get interfaces => const <InterfaceMirror>[];
 
   bool get isClass => false;
 
@@ -893,7 +887,9 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
 
   bool get isDeclaration => true;
 
-  Map<Object, MethodMirror> get constructors =>
+  bool get isAbstract => false;
+
+  Map<String, MethodMirror> get constructors =>
       const <String, MethodMirror>{};
 
   InterfaceMirror get defaultType => null;
@@ -965,8 +961,6 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsProxyMirror
 
   String get simpleName => _type.name.slowToString();
 
-  String get canonicalName => simpleName;
-
   Location get location {
     var script = _type.element.getCompilationUnit().script;
     return new Dart2JsLocation(script,
@@ -1005,7 +999,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   String get qualifiedName => declaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MemberMirror> get declaredMembers => declaration.declaredMembers;
+  Map<String, MemberMirror> get declaredMembers => declaration.declaredMembers;
 
   bool get isObject => system.compiler.objectClass == _type.element;
 
@@ -1018,7 +1012,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   InterfaceMirror get superclass => declaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, InterfaceMirror> get interfaces => declaration.interfaces;
+  List<InterfaceMirror> get interfaces => declaration.interfaces;
 
   bool get isClass => declaration.isClass;
 
@@ -1046,7 +1040,7 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MethodMirror> get constructors => declaration.constructors;
+  Map<String, MethodMirror> get constructors => declaration.constructors;
 
   // TODO(johnniwinther): Substitute type arguments for type variables?
   InterfaceMirror get defaultType => declaration.defaultType;
@@ -1093,15 +1087,15 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   String get qualifiedName => declaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, MemberMirror> get declaredMembers {
+  Map<String, MemberMirror> get declaredMembers {
     var method = callMethod;
     if (method !== null) {
       var map = new Map<String, MemberMirror>.from(
           declaration.declaredMembers);
       var name = method.qualifiedName;
+      assert(!map.containsKey(name));
       map[name] = method;
-      Function func = null;
-      return new ImmutableMapWrapper<Object, MemberMirror>(map);
+      return new ImmutableMapWrapper<String, MemberMirror>(map);
     }
     return declaration.declaredMembers;
   }
@@ -1119,7 +1113,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   InterfaceMirror get superclass => declaration.superclass;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
-  Map<Object, InterfaceMirror> get interfaces => declaration.interfaces;
+  List<InterfaceMirror> get interfaces => declaration.interfaces;
 
   bool get isClass => declaration.isClass;
 
@@ -1129,12 +1123,13 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   bool get isDeclaration => false;
 
+  bool get isAbstract => false;
+
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
   List<TypeVariableMirror> get typeVariables => declaration.typeVariables;
 
-  Map<Object, MethodMirror> get constructors =>
-      <String, MethodMirror>{};
+  Map<String, MethodMirror> get constructors => <String, MethodMirror>{};
 
   InterfaceMirror get defaultType => null;
 
@@ -1223,77 +1218,82 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
 class Dart2JsMethodMirror extends Dart2JsElementMirror
     implements Dart2JsMemberMirror, MethodMirror {
   final Dart2JsObjectMirror _objectMirror;
-  String _name;
+  String _simpleName;
+  String _displayName;
   String _constructorName;
   String _operatorName;
   Dart2JsMethodKind _kind;
-  String _canonicalName;
 
   Dart2JsMethodMirror(Dart2JsObjectMirror objectMirror,
                       FunctionElement function)
       : this._objectMirror = objectMirror,
         super(objectMirror.system, function) {
-    _name = _element.name.slowToString();
+    _simpleName = _element.name.slowToString();
     if (_function.kind == ElementKind.GETTER) {
       _kind = Dart2JsMethodKind.GETTER;
-      _canonicalName = _name;
+      _displayName = _simpleName;
     } else if (_function.kind == ElementKind.SETTER) {
       _kind = Dart2JsMethodKind.SETTER;
-      _canonicalName = '$_name=';
+      _displayName = _simpleName;
+      _simpleName = '$_simpleName=';
     } else if (_function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       _constructorName = '';
-      int dollarPos = _name.indexOf('\$');
+      int dollarPos = _simpleName.indexOf('\$');
       if (dollarPos != -1) {
-        _constructorName = _name.substring(dollarPos + 1);
-        _name = _name.substring(0, dollarPos);
-        // canonical name is TypeName.constructorName
-        _canonicalName = '$_name.$_constructorName';
+        _constructorName = _simpleName.substring(dollarPos + 1);
+        _simpleName = _simpleName.substring(0, dollarPos);
+        // Simple name is TypeName.constructorName.
+        _simpleName = '$_simpleName.$_constructorName';
       } else {
-        // canonical name is TypeName
-        _canonicalName = _name;
+        // Simple name is TypeName.
       }
       if (_function.modifiers.isConst()) {
         _kind = Dart2JsMethodKind.CONST;
       } else {
         _kind = Dart2JsMethodKind.CONSTRUCTOR;
       }
+      _displayName = _simpleName;
     } else if (_function.modifiers.isFactory()) {
       _kind = Dart2JsMethodKind.FACTORY;
       _constructorName = '';
-      int dollarPos = _name.indexOf('\$');
+      int dollarPos = _simpleName.indexOf('\$');
       if (dollarPos != -1) {
-        _constructorName = _name.substring(dollarPos+1);
-        _name = _name.substring(0, dollarPos);
+        _constructorName = _simpleName.substring(dollarPos+1);
+        _simpleName = _simpleName.substring(0, dollarPos);
+        _simpleName = '$_simpleName.$_constructorName';
       }
-      // canonical name is TypeName.constructorName
-      _canonicalName = '$_name.$_constructorName';
-    } else if (_name == 'negate') {
-      _operatorName = _name;
-      _name = 'operator';
+      // Simple name is TypeName.constructorName.
+      _displayName = _simpleName;
+    } else if (_simpleName == 'negate') {
       _kind = Dart2JsMethodKind.OPERATOR;
-      // canonical name is 'operator operatorName'
-      _canonicalName = 'operator $_operatorName';
-    } else if (_name.startsWith('operator\$')) {
-      String str = _name.substring(9);
-      _name = 'operator';
+      _operatorName = '-';
+      // Simple name is 'operator operatorName'.
+      _simpleName = Mirror.UNARY_MINUS;
+      // Display name is 'operator operatorName'.
+      _displayName = 'operator -';
+    } else if (_simpleName.startsWith('operator\$')) {
+      String str = _simpleName.substring(9);
+      _simpleName = 'operator';
       _kind = Dart2JsMethodKind.OPERATOR;
       _operatorName = _getOperatorFromOperatorName(str);
-      // canonical name is 'operator operatorName'
-      _canonicalName = 'operator $_operatorName';
+      // Simple name is 'operator operatorName'.
+      _simpleName = _operatorName;
+      // Display name is 'operator operatorName'.
+      _displayName = 'operator $_operatorName';
     } else {
       _kind = Dart2JsMethodKind.NORMAL;
-      _canonicalName = _name;
+      _displayName = _simpleName;
     }
   }
 
   FunctionElement get _function => _element;
 
-  String get simpleName => _name;
+  String get simpleName => _simpleName;
+
+  String get displayName => _displayName;
 
   String get qualifiedName
-      => '${surroundingDeclaration.qualifiedName}.$canonicalName';
-
-  String get canonicalName => _canonicalName;
+      => '${surroundingDeclaration.qualifiedName}.$simpleName';
 
   ObjectMirror get surroundingDeclaration => _objectMirror;
 
@@ -1359,9 +1359,7 @@ class Dart2JsFieldMirror extends Dart2JsElementMirror
         super(objectMirror.system, variable);
 
   String get qualifiedName
-      => '${surroundingDeclaration.qualifiedName}.$canonicalName';
-
-  String get canonicalName => simpleName;
+      => '${surroundingDeclaration.qualifiedName}.$simpleName';
 
   ObjectMirror get surroundingDeclaration => _objectMirror;
 

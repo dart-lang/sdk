@@ -575,7 +575,7 @@ class Dartdoc {
       if (type.isPrivate) continue;
 
       var typeInfo = {};
-      typeInfo[NAME] = type.simpleName;
+      typeInfo[NAME] = type.displayName;
       if (type.isClass) {
         typeInfo[KIND] = CLASS;
       } else if (type.isInterface) {
@@ -592,7 +592,7 @@ class Dartdoc {
       if (!type.declaration.typeVariables.isEmpty()) {
         final typeVariables = [];
         for (final typeVariable in type.declaration.typeVariables) {
-          typeVariables.add(typeVariable.simpleName);
+          typeVariables.add(typeVariable.displayName);
         }
         typeInfo[ARGS] = Strings.join(typeVariables, ', ');
       }
@@ -612,35 +612,23 @@ class Dartdoc {
 
       var memberInfo = {};
       if (member.isField) {
-        memberInfo[NAME] = member.simpleName;
         memberInfo[KIND] = FIELD;
       } else {
         MethodMirror method = member;
         if (method.isConstructor) {
-          if (method.constructorName != '') {
-            memberInfo[NAME] = '${method.simpleName}.${method.constructorName}';
-            memberInfo[KIND] = CONSTRUCTOR;
-          } else {
-            memberInfo[NAME] = member.simpleName;
-            memberInfo[KIND] = CONSTRUCTOR;
-          }
-        } else if (method.isOperator) {
-          memberInfo[NAME] = '${method.simpleName} ${method.operatorName}';
-          memberInfo[KIND] = METHOD;
+          memberInfo[KIND] = CONSTRUCTOR;
         } else if (method.isSetter) {
-          memberInfo[NAME] = member.simpleName;
           memberInfo[KIND] = SETTER;
         } else if (method.isGetter) {
-          memberInfo[NAME] = member.simpleName;
           memberInfo[KIND] = GETTER;
         } else {
-          memberInfo[NAME] = member.simpleName;
           memberInfo[KIND] = METHOD;
         }
         if (method.parameters.isEmpty()) {
           memberInfo[NO_PARAMS] = true;
         }
       }
+      memberInfo[NAME] = member.displayName;
       var anchor = memberAnchor(member);
       if (anchor != memberInfo[NAME]) {
         memberInfo[LINK_NAME] = anchor;
@@ -924,7 +912,7 @@ class Dartdoc {
       }
 
       listTypes(subtypes, 'Subclasses');
-      listTypes(type.interfaces.getValues(), 'Implements');
+      listTypes(type.interfaces, 'Implements');
     } else {
       // Show the default class.
       if (type.defaultType != null) {
@@ -932,7 +920,7 @@ class Dartdoc {
       }
 
       // List extended interfaces.
-      listTypes(type.interfaces.getValues(), 'Extends');
+      listTypes(type.interfaces, 'Extends');
 
       // List subinterfaces and implementing classes.
       final subinterfaces = [];
@@ -1073,11 +1061,11 @@ class Dartdoc {
       write('abstract ');
     }
 
-    if (method.constructorName == null) {
+    if (!method.isConstructor) {
       annotateType(host, method.returnType);
     }
 
-    var name = method.simpleName;
+    var name = method.displayName;
     // Translate specially-named methods: getters, setters, operators.
     if (method.isGetter) {
       // Getter.
@@ -1085,17 +1073,9 @@ class Dartdoc {
     } else if (method.isSetter) {
       // Setter.
       name = 'set $name';
-    } else if (method.isOperator) {
-      name = 'operator ${method.operatorName}';
     }
 
     write('<strong>$name</strong>');
-
-    // Named constructors.
-    if (method.constructorName != null && method.constructorName != '') {
-      write('.');
-      write(method.constructorName);
-    }
 
     docParamList(host, method.parameters);
 
@@ -1269,23 +1249,7 @@ class Dartdoc {
 
   /** Gets the anchor id for the document for [member]. */
   String memberAnchor(MemberMirror member) {
-    if (member.isField) {
-      return member.simpleName;
-    }
-    MethodMirror method = member;
-    if (method.isConstructor) {
-      if (method.constructorName == '') {
-        return method.simpleName;
-      } else {
-        return '${method.simpleName}.${method.constructorName}';
-      }
-    } else if (method.isOperator) {
-      return '${method.simpleName} ${method.operatorName}';
-    } else if (method.isSetter) {
-      return '${method.simpleName}=';
-    } else {
-      return method.simpleName;
-    }
+    return member.simpleName;
   }
 
   /**
@@ -1479,7 +1443,7 @@ class Dartdoc {
 
     // See if it's another member of the current type.
     if (currentType != null) {
-      final foundMember = findMirror(currentType.declaredMembers, name);
+      final foundMember = currentType.declaredMembers[name];
       if (foundMember != null) {
         return makeLink(memberUrl(foundMember));
       }
@@ -1493,11 +1457,13 @@ class Dartdoc {
         final match =
             new RegExp(r'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
         if (match == null) return;
-        InterfaceMirror foundtype = findMirror(currentLibrary.types, match[1]);
+        String typeName = match[1];
+        InterfaceMirror foundtype = currentLibrary.types[typeName];
         if (foundtype == null) return;
+        String constructorName =
+            match[2] == null ? typeName : '$typeName.${match[2]}';
         final constructor =
-            findMirror(foundtype.constructors,
-                            match[2] == null ? '' : match[2]);
+            foundtype.constructors[constructorName];
         if (constructor == null) return;
         return makeLink(memberUrl(constructor));
       })();
@@ -1507,21 +1473,21 @@ class Dartdoc {
       final foreignMemberLink = (() {
         final match = new RegExp(r'([\w$]+)\.([\w$]+)').firstMatch(name);
         if (match == null) return;
-        InterfaceMirror foundtype = findMirror(currentLibrary.types, match[1]);
+        InterfaceMirror foundtype = currentLibrary.types[match[1]];
         if (foundtype == null) return;
-        MemberMirror foundMember = findMirror(foundtype.declaredMembers, match[2]);
+        MemberMirror foundMember = foundtype.declaredMembers[match[2]];
         if (foundMember == null) return;
         return makeLink(memberUrl(foundMember));
       })();
       if (foreignMemberLink != null) return foreignMemberLink;
 
-      InterfaceMirror foundType = findMirror(currentLibrary.types, name);
+      InterfaceMirror foundType = currentLibrary.types[name];
       if (foundType != null) {
         return makeLink(typeUrl(foundType));
       }
 
       // See if it's a top-level member in the current library.
-      MemberMirror foundMember = findMirror(currentLibrary.declaredMembers, name);
+      MemberMirror foundMember = currentLibrary.declaredMembers[name];
       if (foundMember != null) {
         return makeLink(memberUrl(foundMember));
       }

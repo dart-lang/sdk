@@ -92,7 +92,7 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    LibraryMirror htmlLib = findMirror(_mirrors.libraries, HTML_LIBRARY_NAME);
+    LibraryMirror htmlLib = _mirrors.libraries[HTML_LIBRARY_NAME];
     if (htmlLib === null) {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;

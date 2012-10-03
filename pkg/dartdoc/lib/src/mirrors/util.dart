@@ -145,7 +145,10 @@ class AsFilteredImmutableMap<K, Vin, Vout> extends AbstractMap<K, Vout> {
 
   Vout operator [](K key) {
     if (key is K) {
-      return _filter(_map[key]);
+      Vin value = _map[key];
+      if (value !== null) {
+        return _filter(value);
+      }
     }
     return null;
   }

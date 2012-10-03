@@ -24,6 +24,15 @@ bool containsType(TypeMirror expected, Iterable<TypeMirror> iterable) {
   return false;
 }
 
+Mirror findMirror(List<Mirror> list, String name) {
+  for (Mirror mirror in list) {
+    if (mirror.simpleName == name) {
+      return mirror;
+    }
+  }
+  return null;
+}
+
 main() {
   var scriptPath = new Path.fromNative(new Options().script);
   var dirPath = scriptPath.directoryPath;
@@ -39,7 +48,7 @@ main() {
   Expect.isNotNull(libraries, "No libraries map returned");
   Expect.isFalse(libraries.isEmpty(), "Empty libraries map returned");
 
-  var helperLibrary = findMirror(libraries, "mirrors_helper");
+  var helperLibrary = libraries["mirrors_helper"];
   Expect.isNotNull(helperLibrary, "Library 'mirrors_helper' not found");
   Expect.stringEquals("mirrors_helper", helperLibrary.simpleName,
     "Unexpected library simple name");
@@ -66,7 +75,7 @@ main() {
 // }
 void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Object,TypeMirror> types) {
-  var fooClass = findMirror(types, "Foo");
+  var fooClass = types["Foo"];
   Expect.isNotNull(fooClass, "Type 'Foo' not found");
   Expect.isTrue(fooClass is InterfaceMirror,
                 "Unexpected mirror type returned");
@@ -139,7 +148,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 // }
 void testBar(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Object,TypeMirror> types) {
-  var barInterface = findMirror(types, "Bar");
+  var barInterface = types["Bar"];
   Expect.isNotNull(barInterface, "Type 'Bar' not found");
   Expect.isTrue(barInterface is InterfaceMirror,
                "Unexpected mirror type returned");
@@ -182,7 +191,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
   for (var barSubdeclaration in barSubdeclarations) {
     Expect.isTrue(containsType(barInterface,
-                               barSubdeclaration.interfaces.getValues()),
+                               barSubdeclaration.interfaces),
                   "Interface is not superinterface of subclass");
   }
 
@@ -229,7 +238,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Object,TypeMirror> types) {
-  var bazClass = findMirror(types, "Baz");
+  var bazClass = types["Baz"];
   Expect.isNotNull(bazClass, "Type 'Baz' not found");
   Expect.isTrue(bazClass is InterfaceMirror,
                 "Unexpected mirror type returned");
@@ -267,7 +276,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   var bazInterfaces = bazClass.interfaces;
   Expect.isNotNull(bazInterfaces, "Interfaces map is null");
   Expect.isTrue(!bazInterfaces.isEmpty(), "Interfaces map is empty");
-  for (var bazInterface in bazInterfaces.getValues()) {
+  for (var bazInterface in bazInterfaces) {
     Expect.isTrue(containsType(bazClass,
                                computeSubdeclarations(objectType)),
                   "Class is not subclass of superinterface");
@@ -326,7 +335,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   // static method1(e) {}
   ////////////////////////////////////////////////////////////////////////////
-  var method1 = findMirror(bazClassMembers, "method1");
+  var method1 = bazClassMembers["method1"];
   Expect.isNotNull(method1, "method1 not found");
   Expect.stringEquals('method1', method1.simpleName,
                       "Unexpected method simpleName");
@@ -380,7 +389,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   // static void method2(E e, [F f = null]) {}
   ////////////////////////////////////////////////////////////////////////////
-  var method2 = findMirror(bazClassMembers, "method2");
+  var method2 = bazClassMembers["method2"];
   Expect.isNotNull(method2, "method2 not found");
   Expect.stringEquals('method2', method2.simpleName,
                       "Unexpected method simpleName");
@@ -447,7 +456,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   // Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
   ////////////////////////////////////////////////////////////////////////////
-  var method3 = findMirror(bazClassMembers, "method3");
+  var method3 = bazClassMembers["method3"];
   Expect.isNotNull(method3, "method3 not found");
   Expect.stringEquals('method3', method3.simpleName,
                       "Unexpected method simpleName");
@@ -576,11 +585,12 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   // bool operator==(Object other) => false;
   ////////////////////////////////////////////////////////////////////////////
-  var operator_eq = findMirror(bazClassMembers, "operator", operatorName: '==');
+  var operator_eq = bazClassMembers['=='];
   Expect.isNotNull(operator_eq, "operator == not found");
-  Expect.stringEquals('operator', operator_eq.simpleName,
+  Expect.stringEquals('==', operator_eq.simpleName,
                       "Unexpected method simpleName");
-  Expect.stringEquals('mirrors_helper.Baz.operator ==',
+  Expect.stringEquals('operator ==', operator_eq.displayName);
+  Expect.stringEquals('mirrors_helper.Baz.==',
                       operator_eq.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(operator_eq.surroundingDeclaration, bazClass,
@@ -605,12 +615,12 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   ////////////////////////////////////////////////////////////////////////////
   // int operator -() => 0;
   ////////////////////////////////////////////////////////////////////////////
-  var operator_negate = findMirror(bazClassMembers, "operator",
-                           operatorName: 'negate');
+  var operator_negate = bazClassMembers[Mirror.UNARY_MINUS];
   Expect.isNotNull(operator_negate, "operator < not found");
-  Expect.stringEquals('operator', operator_negate.simpleName,
+  Expect.stringEquals(Mirror.UNARY_MINUS, operator_negate.simpleName,
                       "Unexpected method simpleName");
-  Expect.stringEquals('mirrors_helper.Baz.operator negate',
+  Expect.stringEquals('operator -', operator_negate.displayName);
+  Expect.stringEquals('mirrors_helper.Baz.${Mirror.UNARY_MINUS}',
                       operator_negate.qualifiedName,
                       "Unexpected method qualifiedName");
   Expect.equals(operator_negate.surroundingDeclaration, bazClass,
@@ -630,7 +640,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(operator_negate.isGetter, "Method is getter");
   Expect.isFalse(operator_negate.isSetter, "Method is setter");
   Expect.isTrue(operator_negate.isOperator, "Method is not operator");
-  Expect.stringEquals('negate', operator_negate.operatorName,
+  Expect.stringEquals('-', operator_negate.operatorName,
                       "Unexpected operatorName");
 
 
@@ -638,5 +648,40 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(bazClassConstructors, "Constructors map is null");
   Expect.equals(3, bazClassConstructors.length,
                 "Unexpected number of constructors");
-  // TODO(johnniwinther): Add tests of constructors.
+
+  var bazClassNonameConstructor = bazClassConstructors['Baz'];
+  Expect.isNotNull(bazClassNonameConstructor);
+  Expect.isTrue(bazClassNonameConstructor is MethodMirror);
+  Expect.isTrue(bazClassNonameConstructor.isConstructor);
+  Expect.isFalse(bazClassNonameConstructor.isFactory);
+  Expect.stringEquals('Baz', bazClassNonameConstructor.simpleName);
+  Expect.stringEquals('Baz', bazClassNonameConstructor.displayName);
+  Expect.stringEquals('mirrors_helper.Baz.Baz',
+      bazClassNonameConstructor.qualifiedName);
+  Expect.stringEquals('', bazClassNonameConstructor.constructorName);
+
+  var bazClassNamedConstructor = bazClassConstructors['Baz.named'];
+  Expect.isNotNull(bazClassNamedConstructor);
+  Expect.isTrue(bazClassNamedConstructor is MethodMirror);
+  Expect.isTrue(bazClassNamedConstructor.isConstructor);
+  Expect.isFalse(bazClassNamedConstructor.isFactory);
+  Expect.stringEquals('Baz.named', bazClassNamedConstructor.simpleName);
+  Expect.stringEquals('Baz.named', bazClassNamedConstructor.displayName);
+  Expect.stringEquals('mirrors_helper.Baz.Baz.named',
+      bazClassNamedConstructor.qualifiedName);
+  Expect.stringEquals('named', bazClassNamedConstructor.constructorName);
+
+  var bazClassFactoryConstructor = bazClassConstructors['Baz.factory'];
+  Expect.isNotNull(bazClassFactoryConstructor);
+  Expect.isTrue(bazClassFactoryConstructor is MethodMirror);
+  Expect.isTrue(bazClassFactoryConstructor.isConstructor);
+  Expect.isTrue(bazClassFactoryConstructor.isFactory);
+  Expect.stringEquals('Baz.factory', bazClassFactoryConstructor.simpleName);
+  Expect.stringEquals('Baz.factory', bazClassFactoryConstructor.displayName);
+  Expect.stringEquals('mirrors_helper.Baz.Baz.factory',
+      bazClassFactoryConstructor.qualifiedName);
+  Expect.stringEquals('factory', bazClassFactoryConstructor.constructorName);
+
+  // TODO(johnniwinther): Add more tests of constructors.
+  // TODO(johnniwinther): Add a test for unnamed factory methods.
 }
