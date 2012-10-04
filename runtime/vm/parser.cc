@@ -5268,7 +5268,12 @@ bool Parser::IsFunctionLiteral() {
 bool Parser::IsForInStatement() {
   const intptr_t saved_pos = TokenPos();
   bool result = false;
-  if (CurrentToken() == Token::kVAR || CurrentToken() == Token::kFINAL) {
+  // Allow const modifier as well when recognizing a for-in statement
+  // pattern. We will get an error later if the loop variable is
+  // declared with const.
+  if (CurrentToken() == Token::kVAR ||
+      CurrentToken() == Token::kFINAL ||
+      CurrentToken() == Token::kCONST) {
     ConsumeToken();
   }
   if (IsIdentifier()) {
