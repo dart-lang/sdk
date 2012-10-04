@@ -1267,7 +1267,7 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
     } else if (_simpleName == 'negate') {
       _kind = Dart2JsMethodKind.OPERATOR;
       _operatorName = '-';
-      // Simple name is 'operator operatorName'.
+      // Simple name is 'unary-'.
       _simpleName = Mirror.UNARY_MINUS;
       // Display name is 'operator operatorName'.
       _displayName = 'operator -';

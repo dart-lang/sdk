@@ -15,6 +15,7 @@ void setup() {
   setupLocation();
   setupShortcuts();
   enableCodeBlocks();
+  enableShowHideInherited();
 }
 
 void setupLocation() {
@@ -54,6 +55,29 @@ enableCodeBlocks() {
   }
 }
 
+/**
+ * Enables show/hide functionality for inherited members and comments.
+ */
+void enableShowHideInherited() {
+  var showInherited = document.query('#show-inherited');
+  if (showInherited == null) return;
+  showInherited.dataAttributes.putIfAbsent('show-inherited', () => 'block');
+  showInherited.on.click.add((e) {
+    String display = showInherited.dataAttributes['show-inherited'];
+    if (display == 'block') {
+      display = 'none';
+      showInherited.innerHTML = 'Show inherited';
+    } else {
+      display = 'block';
+      showInherited.innerHTML = 'Hide inherited';
+    }
+    showInherited.dataAttributes['show-inherited'] = display;
+    for (var elem in document.queryAll('.inherited')) {
+      elem.style.display = display;
+    }
+  });
+
+}
 
 /** Turns [name] into something that's safe to use as a file name. */
 String sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');

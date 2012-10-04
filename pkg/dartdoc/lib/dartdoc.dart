@@ -723,7 +723,7 @@ class Dartdoc {
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
     if (comment != null) {
-      writeln('<div class="doc">$comment</div>');
+      writeln('<div class="doc">${comment.html}</div>');
     }
 
     // Document the top-level members.
@@ -769,6 +769,7 @@ class Dartdoc {
   void docTypes(List types, String header) {
     if (types.length == 0) return;
 
+    writeln('<div>');
     writeln('<h3>$header</h3>');
 
     for (final type in types) {
@@ -781,6 +782,7 @@ class Dartdoc {
           </div>
           ''');
     }
+    writeln('</div>');
   }
 
   void docType(InterfaceMirror type) {
@@ -814,10 +816,13 @@ class Dartdoc {
           $kind
         </h2>
         ''');
+    writeln('<button id="show-inherited" class="show-inherited">'
+            'Hide inherited</button>');
 
-    docCode(type.location, getTypeComment(type));
+    docCode(type, type.location, getTypeComment(type));
     docInheritance(type);
     docTypedef(type);
+
     docConstructors(type);
     docMembers(type);
 
@@ -949,7 +954,7 @@ class Dartdoc {
     writeln('<div class="method"><h4 id="${type.simpleName}">');
 
     if (includeSource) {
-      writeln('<span class="show-code">Code</span>');
+      writeln('<button class="show-code">Code</button>');
     }
 
     write('typedef ');
@@ -959,7 +964,7 @@ class Dartdoc {
               title="Permalink to ${type.simpleName}">#</a>''');
     writeln('</h4>');
 
-    docCode(type.location, null, showCode: true);
+    docCode(type, type.location, null, showCode: true);
 
     writeln('</div>');
   }
@@ -974,6 +979,7 @@ class Dartdoc {
     }
 
     if (constructors.length > 0) {
+      writeln('<div>');
       writeln('<h3>Constructors</h3>');
       constructors.sort((x, y) => x.constructorName.toUpperCase().compareTo(
                                   y.constructorName.toUpperCase()));
@@ -981,6 +987,7 @@ class Dartdoc {
       for (final constructor in constructors) {
         docMethod(type, constructor);
       }
+      writeln('</div>');
     }
   }
 
@@ -988,50 +995,77 @@ class Dartdoc {
     // Collect the different kinds of members.
     final staticMethods = [];
     final staticFields = [];
+    final memberMap = new Map<String,MemberMirror>();
     final instanceMethods = [];
     final instanceFields = [];
 
-    for (MemberMirror member in orderByName(host.declaredMembers.getValues())) {
-      if (member.isPrivate) continue;
+    host.declaredMembers.forEach((_, MemberMirror member) {
+      if (member.isPrivate) return;
+      if (member.isStatic) {
+        if (member.isMethod) {
+          staticMethods.add(member);
+        } else  if (member.isField) {
+          staticFields.add(member);
+        }
+      }
+    });
 
-      final methods = member.isStatic ? staticMethods : instanceMethods;
-      final fields = member.isStatic ? staticFields : instanceFields;
+    if (host is InterfaceMirror) {
+      var iterable = new HierarchyIterable(host, includeType: true);
+      for (InterfaceMirror type in iterable) {
+        type.declaredMembers.forEach((_, MemberMirror member) {
+          if (member.isPrivate) return;
+          if (!member.isStatic) {
+            memberMap.putIfAbsent(member.simpleName, () => member);
+          }
+        });
+      }
+    }
 
+    memberMap.forEach((_, MemberMirror member) {
       if (member.isMethod) {
-        methods.add(member);
-      } else if (member.isField) {
-        fields.add(member);
+        instanceMethods.add(member);
+      } else  if (member.isField) {
+        instanceFields.add(member);
       }
-    }
-
-    if (staticMethods.length > 0) {
-      final title = host is LibraryMirror ? 'Functions' : 'Static Methods';
-      writeln('<h3>$title</h3>');
-      for (final method in orderByName(staticMethods)) {
-        docMethod(host, method);
-      }
-    }
+    });
 
     if (staticFields.length > 0) {
       final title = host is LibraryMirror ? 'Variables' : 'Static Fields';
+      writeln('<div>');
       writeln('<h3>$title</h3>');
       for (final field in orderByName(staticFields)) {
         docField(host, field);
       }
+      writeln('</div>');
     }
 
-    if (instanceMethods.length > 0) {
-      writeln('<h3>Methods</h3>');
-      for (final method in orderByName(instanceMethods)) {
+    if (staticMethods.length > 0) {
+      final title = host is LibraryMirror ? 'Functions' : 'Static Methods';
+      writeln('<div>');
+      writeln('<h3>$title</h3>');
+      for (final method in orderByName(staticMethods)) {
         docMethod(host, method);
       }
+      writeln('</div>');
     }
 
     if (instanceFields.length > 0) {
+      writeln('<div>');
       writeln('<h3>Fields</h3>');
       for (final field in orderByName(instanceFields)) {
         docField(host, field);
       }
+      writeln('</div>');
+    }
+
+    if (instanceMethods.length > 0) {
+      writeln('<div>');
+      writeln('<h3>Methods</h3>');
+      for (final method in orderByName(instanceMethods)) {
+        docMethod(host, method);
+      }
+      writeln('</div>');
     }
   }
 
@@ -1044,11 +1078,13 @@ class Dartdoc {
     _currentMember = method;
 
     bool showCode = includeSource && !method.isAbstract;
+    bool inherited = host != method.surroundingDeclaration;
 
-    writeln('<div class="method"><h4 id="${memberAnchor(method)}">');
+    writeln('<div class="method${inherited ? ' inherited': ''}">'
+            '<h4 id="${memberAnchor(method)}">');
 
     if (showCode) {
-      writeln('<span class="show-code">Code</span>');
+      writeln('<button class="show-code">Code</button>');
     }
 
     if (method.isConstructor) {
@@ -1084,7 +1120,13 @@ class Dartdoc {
               title="Permalink to $prefix$name">#</a>''');
     writeln('</h4>');
 
-    docCode(method.location, getMethodComment(method), showCode: showCode);
+    if (inherited) {
+      write('<div class="inherited-from">inherited from ');
+      annotateType(host, method.surroundingDeclaration);
+      write('</div>');
+    }
+
+    docCode(host, method.location, getMemberComment(method), showCode: showCode);
 
     writeln('</div>');
   }
@@ -1094,10 +1136,13 @@ class Dartdoc {
     _totalMembers++;
     _currentMember = field;
 
-    writeln('<div class="field"><h4 id="${memberAnchor(field)}">');
+    bool inherited = host != field.surroundingDeclaration;
+
+    writeln('<div class="field${inherited ? ' inherited' : ''}">'
+            '<h4 id="${memberAnchor(field)}">');
 
     if (includeSource) {
-      writeln('<span class="show-code">Code</span>');
+      writeln('<button class="show-code">Code</button>');
     }
 
     if (field.isFinal) {
@@ -1116,7 +1161,14 @@ class Dartdoc {
         </h4>
         ''');
 
-    docCode(field.location, getFieldComment(field), showCode: true);
+    if (inherited) {
+      write('<div class="inherited-from">inherited from ');
+      annotateType(host, field.surroundingDeclaration);
+      write('</div>');
+    }
+
+    docCode(host, field.location, getMemberComment(field), showCode: true);
+
     writeln('</div>');
   }
 
@@ -1152,10 +1204,20 @@ class Dartdoc {
    * Documents the code contained within [span] with [comment]. If [showCode]
    * is `true` (and [includeSource] is set), also includes the source code.
    */
-  void docCode(Location location, String comment, [bool showCode = false]) {
+  void docCode(ObjectMirror host, Location location, DocComment comment,
+               [bool showCode = false]) {
     writeln('<div class="doc">');
     if (comment != null) {
-      writeln(comment);
+      if (comment.inheritedFrom !== null) {
+        writeln('<div class="inherited">');
+        writeln(comment.html);
+        write('<div class="docs-inherited-from">docs inherited from ');
+        annotateType(host, comment.inheritedFrom);
+        write('</div>');
+        writeln('</div>');
+      } else {
+        writeln(comment.html);
+      }
     }
 
     if (includeSource && showCode) {
@@ -1167,39 +1229,55 @@ class Dartdoc {
     writeln('</div>');
   }
 
+  DocComment createDocComment(String text, [InterfaceMirror inheritedFrom]) =>
+      new DocComment(text, inheritedFrom);
+
 
   /** Get the doc comment associated with the given library. */
-  String getLibraryComment(LibraryMirror library) {
+  DocComment getLibraryComment(LibraryMirror library) {
     // Look for a comment for the entire library.
     final comment = _comments.findLibrary(library.location.source);
-    if (comment != null) {
-      return md.markdownToHtml(comment);
-    }
-    return null;
+    if (comment == null) return null;
+    return createDocComment(comment);
   }
 
   /** Get the doc comment associated with the given type. */
-  String getTypeComment(TypeMirror type) {
+  DocComment getTypeComment(TypeMirror type) {
     String comment = _comments.find(type.location);
     if (comment == null) return null;
-    return commentToHtml(comment);
+    return createDocComment(comment);
   }
 
-  /** Get the doc comment associated with the given method. */
-  String getMethodComment(MethodMirror method) {
-    String comment = _comments.find(method.location);
+  /**
+   * Get the doc comment associated with the given member.
+   *
+   * If no comment was found on the member, the hierarchy is traversed to find
+   * an inherited comment, favouring comments inherited from classes over
+   * comments inherited from interfaces.
+   */
+  DocComment getMemberComment(MemberMirror member) {
+    String comment = _comments.find(member.location);
+    InterfaceMirror inheritedFrom = null;
+    if (comment == null) {
+      if (member.surroundingDeclaration is InterfaceMirror) {
+        var iterable =
+            new HierarchyIterable(member.surroundingDeclaration,
+                                  includeType: false);
+        for (InterfaceMirror type in iterable) {
+          var inheritedMember = type.declaredMembers[member.simpleName];
+          if (inheritedMember is MemberMirror) {
+            comment = _comments.find(inheritedMember.location);
+            if (comment != null) {
+              inheritedFrom = type;
+              break;
+            }
+          }
+        }
+      }
+    }
     if (comment == null) return null;
-    return commentToHtml(comment);
+    return createDocComment(comment, inheritedFrom);
   }
-
-  /** Get the doc comment associated with the given field. */
-  String getFieldComment(FieldMirror field) {
-    String comment = _comments.find(field.location);
-    if (comment == null) return null;
-    return commentToHtml(comment);
-  }
-
-  String commentToHtml(String comment) => md.markdownToHtml(comment);
 
   /**
    * Converts [fullPath] which is understood to be a full path from the root of
@@ -1461,7 +1539,7 @@ class Dartdoc {
         InterfaceMirror foundtype = currentLibrary.types[typeName];
         if (foundtype == null) return;
         String constructorName =
-            match[2] == null ? typeName : '$typeName.${match[2]}';
+            (match[2] == null) ? typeName : '$typeName.${match[2]}';
         final constructor =
             foundtype.constructors[constructorName];
         if (constructor == null) return;
@@ -1550,4 +1628,21 @@ class InternalError {
   final String message;
   const InternalError(this.message);
   String toString() => "InternalError: '$message'";
+}
+
+class DocComment {
+  final String text;
+
+  /**
+   * Non-null if the comment is inherited from another declaration.
+   */
+  final InterfaceMirror inheritedFrom;
+
+  DocComment(this.text, [this.inheritedFrom = null]) {
+    assert(text != null && !text.trim().isEmpty());
+  }
+
+  String get html => md.markdownToHtml(text);
+
+  String toString() => text;
 }

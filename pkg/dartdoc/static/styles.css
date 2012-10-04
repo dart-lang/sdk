@@ -15,7 +15,6 @@ body {
 h2 {
   font: 400 28px/44px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
-  margin: 0 0 22px 0;
 }
 
 h3 {
@@ -33,7 +32,7 @@ h4 {
 p {
   font-size: 16px;
   line-height: 22px;
-  margin: 22px 0;
+  margin: 0 0 22px 0;
 }
 
 h3 + p {
@@ -293,11 +292,32 @@ ul.icon ul {
       sans-serif;
 }
 
+.inherited {
+}
+
+.inherited-from {
+  font: 400 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.inherited-from, .docs-inherited-from {
+  font: 400 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.docs-inherited-from {
+  margin-top: -22px;
+}
+
 .method .doc,
 .field .doc {
   padding-left: 44px;
   /* Ensure there is some space between members with no documentation. */
-  min-height: 22px;
+  margin-bottom: 22px;
 }
 
 .param {
@@ -339,11 +359,14 @@ ul.icon ul {
 }
 
 /* Only show the "code" link for the highlighted member. */
-.show-code {
+.show-code, .show-inherited {
   float: right;
   font: 600 11px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
-  padding-left: 6px; /* In case it gets too close to the member. */
+  padding: 0 0 6px 0; /* In case it gets too close to the member. */
+  border: none;
+  background: transparent;
+  margin: 0;
 }
 
 .method:hover .show-code,
@@ -372,14 +395,20 @@ pre.source.expanded {
 
 /* Links that don't cause a page refresh. */
 .anchor-link, .anchor-link:visited,
-.show-code, .show-code:visited {
+.show-code, .show-code:visited, 
+.show-inherited, .show-inherited:visited {
   color: hsl(40, 100%, 40%);
-  display: none;
   cursor: pointer;
 }
 
+.anchor-link, .anchor-link:visited,
+.show-code, .show-code:visited {
+  display: none;
+}
+
 .anchor-link:hover,
-.show-code:hover {
+.show-code:hover, 
+.show-inherited:hover {
   color: hsl(40, 100%, 60%);
 }
 

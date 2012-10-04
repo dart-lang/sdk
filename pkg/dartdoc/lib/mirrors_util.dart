@@ -72,3 +72,64 @@ int getLocationColumn(Location location) {
   }
   return column;
 }
+
+class HierarchyIterable implements Iterable<InterfaceMirror> {
+  final bool includeType;
+  final InterfaceMirror type;
+
+  HierarchyIterable(this.type, {bool includeType})
+      : this.includeType = includeType;
+
+  Iterator<InterfaceMirror> iterator() =>
+      new HierarchyIterator(type, includeType: includeType);
+}
+
+/**
+ * [HierarchyIterator] iterates through the class hierarchy of the provided
+ * type.
+ *
+ * First is the superclass relation is traversed, skipping [Object], next the
+ * superinterface relation and finally is [Object] visited. The supertypes are
+ * visited in breadth first order and a superinterface is visited more than once
+ * if implemented through multiple supertypes.
+ */
+class HierarchyIterator implements Iterator<InterfaceMirror> {
+  final Queue<InterfaceMirror> queue = new Queue<InterfaceMirror>();
+  InterfaceMirror object;
+
+  HierarchyIterator(InterfaceMirror type, {bool includeType}) {
+    if (includeType) {
+      queue.add(type);
+    } else {
+      push(type);
+    }
+  }
+
+  InterfaceMirror push(InterfaceMirror type) {
+    if (type.superclass !== null) {
+      if (type.superclass.isObject) {
+        object = type.superclass;
+      } else {
+        queue.addFirst(type.superclass);
+      }
+    }
+    queue.addAll(type.interfaces);
+    return type;
+  }
+
+  InterfaceMirror next() {
+    InterfaceMirror type;
+    if (queue.isEmpty()) {
+      if (object === null) {
+        throw new NoMoreElementsException();
+      }
+      type = object;
+      object = null;
+      return type;
+    } else {
+      return push(queue.removeFirst());
+    }
+  }
+
+  bool hasNext() => !queue.isEmpty() || object !== null;
+}

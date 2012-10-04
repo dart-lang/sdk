@@ -23,24 +23,30 @@ class CommentMap {
     : _comments = <String, Map<int, String>>{},
       _libraryComments = <String, String>{};
 
-  /** Finds the doc comment preceding the given source span, if there is one. */
+  /**
+   * Finds the doc comment preceding the given source span, if there is one.
+   *
+   * If a comment is returned, it is guaranteed to be non-empty.
+   */
   String find(Location span) {
     if (span == null) return null;
 
     _ensureFileParsed(span.source);
-    final comment = _comments[span.source.uri.toString()][span.start];
-    if (comment == null) return '';
+    String comment = _comments[span.source.uri.toString()][span.start];
+    assert(comment == null || !comment.trim().isEmpty());
     return comment;
   }
 
   /**
    * Finds the doc comment associated with the `#library` directive for the
    * given file.
+   *
+   * If a comment is returned, it is guaranteed to be non-empty.
    */
   String findLibrary(Source source) {
     _ensureFileParsed(source);
-    final comment = _libraryComments[source.uri.toString()];
-    if (comment == null) return '';
+    String comment = _libraryComments[source.uri.toString()];
+    assert(comment == null || !comment.trim().isEmpty());
     return comment;
   }
 
@@ -80,9 +86,11 @@ class CommentMap {
           lastComment = null;
         }
       } else if (lastComment != null) {
-        // We haven't attached the last doc comment to something yet, so stick
-        // it to this token.
-        comments[token.charOffset] = lastComment;
+        if (!lastComment.trim().isEmpty()) {
+          // We haven't attached the last doc comment to something yet, so stick
+          // it to this token.
+          comments[token.charOffset] = lastComment;
+        }
         lastComment = null;
       }
       token = token.next;

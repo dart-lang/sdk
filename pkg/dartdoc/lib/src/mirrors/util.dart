@@ -12,15 +12,19 @@
  */
 abstract class AbstractMap<K,V> implements Map<K,V> {
   AbstractMap();
+
   AbstractMap.from(Map<K,V> other) {
     other.forEach((k,v) => this[k] = v);
   }
+
   void operator []=(K key, value) {
     throw new UnsupportedOperationException('[]= is not supported');
   }
+
   void clear() {
     throw new UnsupportedOperationException('clear() is not supported');
   }
+
   bool containsKey(K key) {
     var found = false;
     forEach((k,_) {
@@ -30,6 +34,7 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
     });
     return found;
   }
+
   bool containsValue(V value) {
     var found = false;
     forEach((_,v) {
@@ -39,16 +44,19 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
     });
     return found;
   }
+
   Collection<K> getKeys() {
     var keys = <K>[];
     forEach((k,_) => keys.add(k));
     return keys;
   }
+
   Collection<V> getValues() {
     var values = <V>[];
     forEach((_,v) => values.add(v));
     return values;
   }
+
   bool isEmpty() => length == 0;
   V putIfAbsent(K key, V ifAbsent()) {
     if (!containsKey(key)) {
@@ -58,6 +66,7 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
     }
     return null;
   }
+
   V remove(K key) {
     throw new UnsupportedOperationException('V remove(K key) is not supported');
   }
@@ -146,7 +155,7 @@ class AsFilteredImmutableMap<K, Vin, Vout> extends AbstractMap<K, Vout> {
   Vout operator [](K key) {
     if (key is K) {
       Vin value = _map[key];
-      if (value !== null) {
+      if (value != null) {
         return _filter(value);
       }
     }
@@ -156,7 +165,7 @@ class AsFilteredImmutableMap<K, Vin, Vout> extends AbstractMap<K, Vout> {
   void forEach(void f(K key, Vout value)) {
     _map.forEach((K k, Vin v) {
       var value = _filter(v);
-      if (value !== null) {
+      if (value != null) {
         f(k, value);
       }
     });
