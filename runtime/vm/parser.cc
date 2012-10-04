@@ -5847,52 +5847,31 @@ AstNode* Parser::ParseAssertStatement() {
 // syntax is removed. All catch parameters in the new syntax are final.
 struct CatchParamDesc {
   CatchParamDesc()
-      : token_pos(0), type(NULL), var(NULL), is_final(false) { }
+      : token_pos(0), type(NULL), var(NULL) { }
   intptr_t token_pos;
   const AbstractType* type;
   const String* var;
-  bool is_final;
 };
-
-
-// Parse the parameter specified in the catch clause.
-void Parser::ParseCatchParameter(CatchParamDesc* catch_param) {
-  TRACE_PARSER("ParseCatchParameter");
-  ASSERT(catch_param != NULL);
-  catch_param->is_final = (CurrentToken() == Token::kFINAL);
-  // The type of the catch parameter must always be resolved, even in unchecked
-  // mode.
-  if (CurrentToken() == Token::kCONST) {
-    ErrorMsg("Catch parameter cannot be 'const'");
-  }
-  catch_param->type = &AbstractType::ZoneHandle(
-      ParseConstFinalVarOrType(ClassFinalizer::kCanonicalizeWellFormed));
-  catch_param->token_pos = TokenPos();
-  catch_param->var = ExpectIdentifier("identifier expected");
-}
 
 
 // Populate local scope of the catch block with the catch parameters.
 void Parser::AddCatchParamsToScope(const CatchParamDesc& exception_param,
                                    const CatchParamDesc& stack_trace_param,
                                    LocalScope* scope) {
-  ASSERT(exception_param.var != NULL);
-  LocalVariable* var = new LocalVariable(exception_param.token_pos,
-                                         *exception_param.var,
-                                         *exception_param.type);
-  if (exception_param.is_final) {
+  if (exception_param.var != NULL) {
+    LocalVariable* var = new LocalVariable(exception_param.token_pos,
+                                           *exception_param.var,
+                                           *exception_param.type);
     var->set_is_final();
+    bool added_to_scope = scope->AddVariable(var);
+    ASSERT(added_to_scope);
   }
-  bool added_to_scope = scope->AddVariable(var);
-  ASSERT(added_to_scope);
   if (stack_trace_param.var != NULL) {
-    var = new LocalVariable(TokenPos(),
-                            *stack_trace_param.var,
-                            *stack_trace_param.type);
-    if (stack_trace_param.is_final) {
-      var->set_is_final();
-    }
-    added_to_scope = scope->AddVariable(var);
+    LocalVariable* var = new LocalVariable(TokenPos(),
+                                           *stack_trace_param.var,
+                                           *stack_trace_param.type);
+    var->set_is_final();
+    bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
       ErrorMsg(stack_trace_param.token_pos,
                "name '%s' already exists in scope",
@@ -6049,56 +6028,29 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
     catch_seen = true;
-    if (CurrentToken() == Token::kCATCH) {
-      ConsumeToken();  // Consume the 'catch'.
-      ExpectToken(Token::kLPAREN);
-      if (IsIdentifier() &&
-          ((LookaheadToken(1) == Token::kCOMMA) ||
-          (LookaheadToken(1) == Token::kRPAREN))) {
-        // New catch syntax for untyped exception variable:
-        // catch(e) or catch (e,s).
-        exception_param.is_final = true;
-        exception_param.type =
-            &AbstractType::ZoneHandle(Type::DynamicType());
-        exception_param.token_pos = TokenPos();
-        exception_param.var = ExpectIdentifier("identifier expected");
-        if (CurrentToken() == Token::kCOMMA) {
-          ConsumeToken();
-          stack_trace_param.is_final = true;
-          // TODO(hausner): Make implicit type be StackTrace, not Dynamic.
-          stack_trace_param.type =
-              &AbstractType::ZoneHandle(Type::DynamicType());
-          stack_trace_param.token_pos = TokenPos();
-          stack_trace_param.var = ExpectIdentifier("identifier expected");
-        }
-      } else {
-        // TODO(hausner): Improve error message and maybe also the
-        // structure of the code. Maybe you can get away with simply
-        // expecting an identifier followed by a comma or a right
-        // parenthesis?
-        ErrorMsg("identifier expected here, not type, final, or var");
-      }
-    } else {
-      // on T catch(e) { ...
-      ConsumeToken();  // on
-      exception_param.is_final = true;
+    if (IsLiteral("on")) {
+      ConsumeToken();
       exception_param.type = &AbstractType::ZoneHandle(
           ParseType(ClassFinalizer::kCanonicalizeWellFormed));
-      ExpectToken(Token::kCATCH);
+    } else {
+      exception_param.type =
+          &AbstractType::ZoneHandle(Type::DynamicType());
+    }
+    if (CurrentToken() == Token::kCATCH) {
+      ConsumeToken();  // Consume the 'catch'.
       ExpectToken(Token::kLPAREN);
       exception_param.token_pos = TokenPos();
       exception_param.var = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
-        stack_trace_param.is_final = true;
-        // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+        // TODO(hausner): Make implicit type be StackTrace, not Dynamic.
         stack_trace_param.type =
-        &AbstractType::ZoneHandle(Type::DynamicType());
+            &AbstractType::ZoneHandle(Type::DynamicType());
         stack_trace_param.token_pos = TokenPos();
         stack_trace_param.var = ExpectIdentifier("identifier expected");
       }
+      ExpectToken(Token::kRPAREN);
     }
-    ExpectToken(Token::kRPAREN);
 
     // If a generic "catch all" statement has already been seen then all
     // subsequent catch statements are dead. We issue an error for now,
@@ -6112,23 +6064,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                           stack_trace_param,
                           current_block_->scope);
 
-    SequenceNode* catch_clause;
-
     // Parse the individual catch handler code and add an unconditional
     // JUMP to the end of the try block.
     ExpectToken(Token::kLBRACE);
     OpenBlock();
 
-    // Generate code to load the exception object (:exception_var) into
-    // the exception variable specified in this block.
-    ASSERT(exception_param.var != NULL);
-    LocalVariable* var = LookupLocalScope(*exception_param.var);
-    ASSERT(var != NULL);
-    ASSERT(catch_excp_var != NULL);
-    current_block_->statements->Add(
-        new StoreLocalNode(catch_pos,
-                           var,
-                           new LoadLocalNode(catch_pos, catch_excp_var)));
+    if (exception_param.var != NULL) {
+      // Generate code to load the exception object (:exception_var) into
+      // the exception variable specified in this block.
+      LocalVariable* var = LookupLocalScope(*exception_param.var);
+      ASSERT(var != NULL);
+      ASSERT(catch_excp_var != NULL);
+      current_block_->statements->Add(
+          new StoreLocalNode(catch_pos, var,
+                             new LoadLocalNode(catch_pos, catch_excp_var)));
+    }
     if (stack_trace_param.var != NULL) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
@@ -6136,8 +6086,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
       ASSERT(catch_trace_var != NULL);
       current_block_->statements->Add(
-          new StoreLocalNode(catch_pos,
-                             trace,
+          new StoreLocalNode(catch_pos, trace,
                              new LoadLocalNode(catch_pos, catch_trace_var)));
     }
 
@@ -6170,7 +6119,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       current_block_->statements->Add(catch_handler);
       generic_catch_seen = true;
     }
-    catch_clause = CloseBlock();
+    SequenceNode* catch_clause = CloseBlock();
 
     // Add this individual catch handler to the catch handlers list.
     current_block_->statements->Add(catch_clause);
@@ -6209,7 +6158,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     finally_block = ParseFinallyBlock();
   } else {
     if (!catch_seen) {
-      ErrorMsg("'catch' or 'finally' expected");
+      ErrorMsg("catch or finally clause expected");
     }
   }
 

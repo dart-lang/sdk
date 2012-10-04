@@ -409,7 +409,6 @@ class Parser : public ValueObject {
   AstNode* ParseSwitchStatement(String* label_name);
 
   // try/catch/finally parsing.
-  void ParseCatchParameter(CatchParamDesc* catch_param);
   void AddCatchParamsToScope(const CatchParamDesc& exception_param,
                              const CatchParamDesc& stack_trace_param,
                              LocalScope* scope);

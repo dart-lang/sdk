@@ -123,6 +123,18 @@ class TryCatchTest {
     Expect.equals(3, e);
   }
 
+  static void test9() {
+    var e = 6;
+    try {
+      throw "up";
+    } on String {
+      e = "s";
+    } on int {
+      e = "i";
+    }
+    Expect.equals("s", e);
+  }
+
   static void testMain() {
     test1();
     test2();
@@ -132,6 +144,7 @@ class TryCatchTest {
     test6();
     test7();
     test8();
+    test9();
   }
 }
 
