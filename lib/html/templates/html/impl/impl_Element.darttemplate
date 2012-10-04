@@ -625,20 +625,20 @@ class _ElementRectImpl implements ElementRect {
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
-    client = new _SimpleClientRect(element.$dom_clientLeft,
-                                  element.$dom_clientTop,
-                                  element.$dom_clientWidth,
-                                  element.$dom_clientHeight),
-    offset = new _SimpleClientRect(element.$dom_offsetLeft,
-                                  element.$dom_offsetTop,
-                                  element.$dom_offsetWidth,
-                                  element.$dom_offsetHeight),
-    scroll = new _SimpleClientRect(element.$dom_scrollLeft,
-                                  element.$dom_scrollTop,
-                                  element.$dom_scrollWidth,
-                                  element.$dom_scrollHeight),
-    _boundingClientRect = element.$dom_getBoundingClientRect(),
-    _clientRects = element.$dom_getClientRects();
+    client = new _SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth,
+                                  element.clientHeight),
+    offset = new _SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new _SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
 
   _ClientRectImpl get bounding => _boundingClientRect;
 
