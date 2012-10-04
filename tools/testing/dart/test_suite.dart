@@ -469,10 +469,6 @@ class StandardTestSuite implements TestSuite {
       } else if (configuration['runtime'] == 'd8') {
         var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['$tempDir/out.js']));
-      } else if (configuration['runtime'] == 'jsshell') {
-        var jsshell = TestUtils.jsshellFileName(configuration);
-        var environment = TestUtils.jsshellEnvironment(configuration);
-        commands.add(new Command(jsshell, ['$tempDir/out.js'], environment));
       }
       return commands;
 
@@ -1271,10 +1267,7 @@ class TestUtils {
 
   static String executableSuffix(String executable) {
     if (Platform.operatingSystem == 'windows') {
-      if (executable == 'd8' ||
-          executable == 'vm' ||
-          executable == 'none'  ||
-          executable == 'jsshell') {
+      if (executable == 'd8' || executable == 'vm' || executable == 'none') {
         return '.exe';
       } else {
         return '.bat';
@@ -1405,26 +1398,6 @@ class TestUtils {
     return args;
   }
 
-  static String jsshellDir(Map configuration) {
-    var base = dartDir();
-    return '$base/third_party/firefox_jsshell/${configuration['system']}';
-  }
-
-  static String jsshellFileName(Map configuration) {
-    var executableSuffix = executableSuffix('jsshell');
-    var executable = 'js$executableSuffix';
-    var jsshellDir = jsshellDir(configuration);
-    return '$jsshellDir/$executable';
-  }
-
-  static Map<String, String> jsshellEnvironment(Map configuration) {
-    if (configuration['system'] == 'linux') {
-      var jsshellDir = jsshellDir(configuration);
-      return {'LD_LIBRARY_PATH': jsshellDir};
-    }
-    return {};
-  }
-
   static bool isBrowserRuntime(String runtime) => Contains(
       runtime,
       const <String>['drt',
@@ -1434,10 +1407,6 @@ class TestUtils {
                      'opera',
                      'chrome',
                      'ff']);
-
-  static bool isJsCommandLineRuntime(String runtime) =>
-      Contains(runtime, const <String>['d8', 'jsshell']);
-
 }
 
 class SummaryReport {

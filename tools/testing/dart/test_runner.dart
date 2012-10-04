@@ -32,13 +32,10 @@ class Command {
   /** Command line arguments to the executable. */
   List<String> arguments;
 
-  /** Environment variables set when running the command */
-  Map<String, String> environment;
-
   /** The actual command line that will be executed. */
   String commandLine;
 
-  Command(this.executable, this.arguments, [this.environment = const {}]) {
+  Command(this.executable, this.arguments) {
     if (Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -636,8 +633,7 @@ class RunningProcess {
     }
   }
 
-  VoidFunction makeReadHandler(StringInputStream source,
-                               List<String> destination) {
+  VoidFunction makeReadHandler(StringInputStream source, List<String> destination) {
     void handler () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
@@ -660,11 +656,7 @@ class RunningProcess {
 
   void runCommand(Command command,
                   void exitHandler(int exitCode)) {
-    ProcessOptions options = new ProcessOptions();
-    options.environment = command.environment;
-    process = Process.start(command.executable,
-                            command.arguments,
-                            options);
+    process = Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
     process.onError = (e) {
       print("Error starting process:");

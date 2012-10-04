@@ -88,8 +88,6 @@ is 'dart file.dart' and you specify special command
 
     d8: Run JavaScript from the command line using v8.
 
-    jsshell: Run JavaScript from the command line using firefox js-shell.
-
     drt: Run Dart or JavaScript in the headless version of Chrome,
          DumpRenderTree.
 
@@ -101,8 +99,8 @@ is 'dart file.dart' and you specify special command
     none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
               ['-r', '--runtime'],
-              ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
-               'chrome', 'safari', 'ie', 'opera', 'none'],
+              ['vm', 'd8', 'drt', 'dartium', 'ff', 'firefox', 'chrome',
+              'safari', 'ie', 'opera', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -397,7 +395,7 @@ Note: currently only implemented for dart2js.''',
         // runs test.py -c dart2js -r drt,none the dart2js_none and
         // dart2js_drt will be duplicating work. If later we don't need 'none'
         // with dart2js, we should remove it from here.
-        validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
+        validRuntimes = const ['d8', 'drt', 'none', 'dartium',
                                'ff', 'chrome', 'safari', 'ie', 'opera'];
         break;
       case 'dartc':
@@ -475,10 +473,9 @@ Note: currently only implemented for dart2js.''',
       configuration['runtime'] == 'ff';
     }
 
-    configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
-
-    // Set the javascript command line flag for less verbose status files.
-    configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
+    if (TestUtils.isBrowserRuntime(runtime)) {
+      configuration['browser'] = true;
+    }
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
