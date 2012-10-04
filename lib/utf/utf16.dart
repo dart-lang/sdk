@@ -208,17 +208,18 @@ List<int> _stringToUtf16CodeUnits(String str) {
   }
 }
 
+typedef _ListRangeIterator _CodeUnitsProvider();
+
 /**
  * Return type of [decodeUtf16AsIterable] and variants. The Iterable type
  * provides an iterator on demand and the iterator will only translate bytes
  * as requested by the user of the iterator. (Note: results are not cached.)
  */
 class IterableUtf16Decoder implements Iterable<int> {
-  final Function codeunitsProvider;
+  final _CodeUnitsProvider codeunitsProvider;
   final int replacementCodepoint;
 
-  IterableUtf16Decoder._(_ListRangeIterator this.codeunitsProvider(),
-      int this.replacementCodepoint);
+  IterableUtf16Decoder._(this.codeunitsProvider, this.replacementCodepoint);
 
   Utf16CodeUnitDecoder iterator() =>
       new Utf16CodeUnitDecoder.fromListRangeIterator(codeunitsProvider(),
@@ -235,8 +236,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   final int replacementCodepoint;
 
   Utf16BytesToCodeUnitsDecoder._fromListRangeIterator(
-      _ListRangeIterator this.utf16EncodedBytesIterator,
-      int this.replacementCodepoint);
+      this.utf16EncodedBytesIterator, this.replacementCodepoint);
 
   factory Utf16BytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length,
