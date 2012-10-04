@@ -26,7 +26,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
-  Location get location => _get_location();
+  LocalLocation get location => _get_location();
 
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
@@ -38,7 +38,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   // Firefox work-around for Location.  The Firefox location object cannot be
   // made to behave like a Dart object so must be wrapped.
 
-  Location _get_location() {
+  LocalLocation _get_location() {
     var result = _location;
     if (_isDartLocation(result)) return result;  // e.g. on Chrome.
     if (null == _location_wrapper) {

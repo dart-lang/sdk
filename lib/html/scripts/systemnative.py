@@ -9,7 +9,7 @@ native binding from the IDL database."""
 import emitter
 import os
 from generator import *
-
+from systemhtml import SecureOutputType
 
 class DartiumBackend(object):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -309,7 +309,7 @@ class DartiumBackend(object):
 
   def _AddGetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = '%s get %s' % (self._DartType(attr.type.id), html_name)
+    dart_declaration = '%s get %s' % (SecureOutputType(self, attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -400,7 +400,7 @@ class DartiumBackend(object):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
-          TYPE=dart_element_type, INTERFACE=self._interface.id)
+          TYPE=SecureOutputType(self, element_type), INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -447,7 +447,7 @@ class DartiumBackend(object):
         'NumericIndexedGetter' in ext_attrs)
 
   def _EmitNativeIndexGetter(self, element_type):
-    dart_declaration = '%s operator[](int index)' % element_type
+    dart_declaration = '%s operator[](int index)' % SecureOutputType(self, element_type, True)
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
 
@@ -477,7 +477,7 @@ class DartiumBackend(object):
 
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
-        self._DartType(info.type_name),
+        SecureOutputType(self, info.type_name),
         html_name,
         info.ParametersImplementationDeclaration(
             (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
@@ -522,7 +522,7 @@ class DartiumBackend(object):
 
       dart_declaration = '%s%s _%s(%s)' % (
           'static ' if operation.is_static else '',
-          self._DartType(operation.type.id), overload_name, argument_list)
+          SecureOutputType(self, operation.type.id), overload_name, argument_list)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
           dart_declaration, 'Callback', False)

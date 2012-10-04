@@ -15,8 +15,8 @@
 
 
 
-Window get window() native "return window;";
-_WindowImpl get _window() native "return window;";
+LocalWindow get window() native "return window;";
+_LocalWindowImpl get _window() native "return window;";
 
 Document get document() native "return document;";
 
@@ -336,7 +336,7 @@ class _AnimationListImpl implements AnimationList native "*WebKitAnimationList" 
 
   final int length;
 
-  _AnimationImpl item(int index) native;
+  Animation item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1661,7 +1661,7 @@ class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*
 
   bool disabled;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String formAction;
 
@@ -1813,13 +1813,13 @@ abstract class CSSKeyframesRule implements CSSRule {
 
 class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule native "*WebKitCSSKeyframesRule" {
 
-  final _CSSRuleListImpl cssRules;
+  final List<CSSRule> cssRules;
 
   String name;
 
   void deleteRule(String key) native;
 
-  _CSSKeyframeRuleImpl findRule(String key) native;
+  CSSKeyframeRule findRule(String key) native;
 
   void insertRule(String rule) native;
 }
@@ -1982,25 +1982,25 @@ class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 
   num m44;
 
-  _CSSMatrixImpl inverse() native;
+  CSSMatrix inverse() native;
 
-  _CSSMatrixImpl multiply(_CSSMatrixImpl secondMatrix) native;
+  CSSMatrix multiply(_CSSMatrixImpl secondMatrix) native;
 
-  _CSSMatrixImpl rotate(num rotX, num rotY, num rotZ) native;
+  CSSMatrix rotate(num rotX, num rotY, num rotZ) native;
 
-  _CSSMatrixImpl rotateAxisAngle(num x, num y, num z, num angle) native;
+  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  _CSSMatrixImpl scale(num scaleX, num scaleY, num scaleZ) native;
+  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
   void setMatrixValue(String string) native;
 
-  _CSSMatrixImpl skewX(num angle) native;
+  CSSMatrix skewX(num angle) native;
 
-  _CSSMatrixImpl skewY(num angle) native;
+  CSSMatrix skewY(num angle) native;
 
   String toString() native;
 
-  _CSSMatrixImpl translate(num x, num y, num z) native;
+  CSSMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2026,7 +2026,7 @@ abstract class CSSMediaRule implements CSSRule {
 
 class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule native "*CSSMediaRule" {
 
-  final _CSSRuleListImpl cssRules;
+  final List<CSSRule> cssRules;
 
   final _MediaListImpl media;
 
@@ -7071,11 +7071,11 @@ abstract class CSSStyleSheet implements StyleSheet {
 
 class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet native "*CSSStyleSheet" {
 
-  final _CSSRuleListImpl cssRules;
+  final List<CSSRule> cssRules;
 
   final _CSSRuleImpl ownerRule;
 
-  final _CSSRuleListImpl rules;
+  final List<CSSRule> rules;
 
   int addRule(String selector, String style, [int index]) native;
 
@@ -7779,7 +7779,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
 class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  final _CanvasElementImpl canvas;
+  final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8006,7 +8006,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   String effectAllowed;
 
-  final _FileListImpl files;
+  final List<File> files;
 
   final _DataTransferItemListImpl items;
 
@@ -8072,14 +8072,14 @@ abstract class CompositionEvent implements UIEvent {
   abstract String get data;
 
   /** @domName CompositionEvent.initCompositionEvent */
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
 }
 
 class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent native "*CompositionEvent" {
 
   final String data;
 
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowImpl viewArg, String dataArg) native;
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _LocalWindowImpl viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8665,7 +8665,7 @@ class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementa
 
   _DocumentTypeImpl createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  _DocumentImpl createHTMLDocument(String title) native;
+  Document createHTMLDocument(String title) native;
 
   bool hasFeature(String feature, String version) native;
 }
@@ -9887,7 +9887,7 @@ abstract class DirectoryReaderSync {
 
 class _DirectoryReaderSyncImpl implements DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  _EntryArraySyncImpl readEntries() native;
+  List<EntrySync> readEntries() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10018,7 +10018,7 @@ abstract class Document extends HtmlElement {
   Text $dom_createTextNode(String data);
 
   /** @domName Document.createTouch */
-  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
+  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
 
   /** @domName Document.createTouchList */
   TouchList $dom_createTouchList();
@@ -10588,19 +10588,19 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   final _ElementImpl activeElement;
 
-  _ElementImpl body;
+  Element body;
 
   String charset;
 
   String cookie;
 
-  _WindowImpl get window() native "return this.defaultView;";
+  Window get window() native "return this.defaultView;";
 
   final _ElementImpl documentElement;
 
   final String domain;
 
-  final _HeadElementImpl head;
+  final HeadElement head;
 
   final _DOMImplementationImpl implementation;
 
@@ -10614,7 +10614,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   String selectedStylesheetSet;
 
-  final _StyleSheetListImpl styleSheets;
+  final List<StyleSheet> styleSheets;
 
   String title;
 
@@ -10650,7 +10650,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   _TextImpl $dom_createTextNode(String data) native "createTextNode";
 
-  _TouchImpl createTouch(_WindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+  _TouchImpl createTouch(_LocalWindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
 
   _TouchListImpl $dom_createTouchList() native "createTouchList";
 
@@ -12217,7 +12217,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   _ClientRectImpl $dom_getBoundingClientRect() native "getBoundingClientRect";
 
-  _ClientRectListImpl $dom_getClientRects() native "getClientRects";
+  List<ClientRect> $dom_getClientRects() native "getClientRects";
 
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
@@ -13318,7 +13318,7 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 
   final _HTMLCollectionImpl elements;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String name;
 
@@ -14328,7 +14328,7 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
 
   final _DocumentImpl contentDocument;
 
-  final _WindowImpl contentWindow;
+  final Window contentWindow;
 
   String frameBorder;
 
@@ -14983,53 +14983,6 @@ class _HeadingElementImpl extends _ElementImpl implements HeadingElement native 
 
 // WARNING: Do not edit - generated code.
 
-/// @domName History
-abstract class History {
-
-  /** @domName History.length */
-  abstract int get length;
-
-  /** @domName History.state */
-  abstract Dynamic get state;
-
-  /** @domName History.back */
-  void back();
-
-  /** @domName History.forward */
-  void forward();
-
-  /** @domName History.go */
-  void go(int distance);
-
-  /** @domName History.pushState */
-  void pushState(Object data, String title, [String url]);
-
-  /** @domName History.replaceState */
-  void replaceState(Object data, String title, [String url]);
-}
-
-class _HistoryImpl implements History native "*History" {
-
-  final int length;
-
-  final Dynamic state;
-
-  void back() native;
-
-  void forward() native;
-
-  void go(int distance) native;
-
-  void pushState(Object data, String title, [String url]) native;
-
-  void replaceState(Object data, String title, [String url]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLHtmlElement
 abstract class HtmlElement implements Element {
 
@@ -15199,7 +15152,7 @@ class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest native "*
 
   final String statusText;
 
-  final _HttpRequestUploadImpl upload;
+  final HttpRequestUpload upload;
 
   bool withCredentials;
 
@@ -17007,9 +16960,9 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   bool disabled;
 
-  _FileListImpl files;
+  List<File> files;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String formAction;
 
@@ -17029,7 +16982,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   final List<Node> labels;
 
-  final _ElementImpl list;
+  final Element list;
 
   String max;
 
@@ -17075,7 +17028,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   num valueAsNumber;
 
-  final _EntryArrayImpl webkitEntries;
+  final List<Entry> webkitEntries;
 
   bool webkitGrammar;
 
@@ -17608,7 +17561,7 @@ abstract class KeyboardEvent implements UIEvent {
   abstract bool get shiftKey;
 
   /** @domName KeyboardEvent.initKeyboardEvent */
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
 
 class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent native "*KeyboardEvent" {
@@ -17627,7 +17580,7 @@ class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent native "*
 
   final bool shiftKey;
 
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, _LocalWindowImpl view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17688,7 +17641,7 @@ class _KeygenElementImpl extends _ElementImpl implements KeygenElement native "*
 
   bool disabled;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String keytype;
 
@@ -17755,9 +17708,9 @@ abstract class LabelElement implements Element {
 
 class _LabelElementImpl extends _ElementImpl implements LabelElement native "*HTMLLabelElement" {
 
-  final _ElementImpl control;
+  final Element control;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String htmlFor;
 }
@@ -17783,7 +17736,7 @@ class _LegendElementImpl extends _ElementImpl implements LegendElement native "*
 
   String align;
 
-  final _FormElementImpl form;
+  final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17860,24 +17813,46 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTML
 
 // WARNING: Do not edit - generated code.
 
-/// @domName LocalMediaStream
-abstract class LocalMediaStream implements MediaStream, EventTarget {
+/// @domName History
+abstract class LocalHistory implements History {
 
-  /** @domName LocalMediaStream.stop */
-  void stop();
+  /** @domName History.length */
+  abstract int get length;
+
+  /** @domName History.state */
+  abstract Dynamic get state;
+
+  /** @domName History.back */
+  void back();
+
+  /** @domName History.forward */
+  void forward();
+
+  /** @domName History.go */
+  void go(int distance);
+
+  /** @domName History.pushState */
+  void pushState(Object data, String title, [String url]);
+
+  /** @domName History.replaceState */
+  void replaceState(Object data, String title, [String url]);
 }
 
-class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
+class _LocalHistoryImpl implements LocalHistory native "*History" {
 
-  void stop() native;
+  final int length;
 
-  // From EventTarget
+  final Dynamic state;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+  void back() native;
 
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+  void forward() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+  void go(int distance) native;
+
+  void pushState(Object data, String title, [String url]) native;
+
+  void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17886,7 +17861,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 // WARNING: Do not edit - generated code.
 
 /// @domName Location
-abstract class Location {
+abstract class LocalLocation implements Location {
 
   /** @domName Location.ancestorOrigins */
   abstract List<String> get ancestorOrigins;
@@ -17931,7 +17906,7 @@ abstract class Location {
   String toString();
 }
 
-class _LocationImpl implements Location native "*Location" {
+class _LocalLocationImpl implements LocalLocation native "*Location" {
 
   final List<String> ancestorOrigins;
 
@@ -17960,6 +17935,971 @@ class _LocationImpl implements Location native "*Location" {
   void replace(String url) native;
 
   String toString() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName LocalMediaStream
+abstract class LocalMediaStream implements MediaStream, EventTarget {
+
+  /** @domName LocalMediaStream.stop */
+  void stop();
+}
+
+class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
+
+  void stop() native;
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName DOMWindow
+abstract class LocalWindow implements EventTarget, Window {
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, SendPortSync port);
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name);
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback);
+
+  /**
+   * Creates a new object URL for the specified object. The URL will be
+   * available until revokeObjectUrl is called.
+   * [object] can be a Blob, MediaStream or MediaSource.
+   */
+  String createObjectUrl(object);
+
+  /** @domName DOMURL.revokeObjectURL */
+  void revokeObjectUrl(String objectUrl);
+
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  LocalWindowEvents get on;
+
+  static const int PERSISTENT = 1;
+
+  static const int TEMPORARY = 0;
+
+  /** @domName DOMWindow.applicationCache */
+  abstract DOMApplicationCache get applicationCache;
+
+  /** @domName DOMWindow.clientInformation */
+  abstract Navigator get clientInformation;
+
+  /** @domName DOMWindow.closed */
+  abstract bool get closed;
+
+  /** @domName DOMWindow.console */
+  abstract Console get console;
+
+  /** @domName DOMWindow.crypto */
+  abstract Crypto get crypto;
+
+  /** @domName DOMWindow.defaultStatus */
+  String defaultStatus;
+
+  /** @domName DOMWindow.defaultstatus */
+  String defaultstatus;
+
+  /** @domName DOMWindow.devicePixelRatio */
+  abstract num get devicePixelRatio;
+
+  /** @domName DOMWindow.document */
+  abstract Document get document;
+
+  /** @domName DOMWindow.event */
+  abstract Event get event;
+
+  /** @domName DOMWindow.frames */
+  abstract Window get frames;
+
+  /** @domName DOMWindow.history */
+  abstract History get history;
+
+  /** @domName DOMWindow.indexedDB */
+  abstract IDBFactory get indexedDB;
+
+  /** @domName DOMWindow.innerHeight */
+  abstract int get innerHeight;
+
+  /** @domName DOMWindow.innerWidth */
+  abstract int get innerWidth;
+
+  /** @domName DOMWindow.length */
+  abstract int get length;
+
+  /** @domName DOMWindow.localStorage */
+  abstract Storage get localStorage;
+
+  /** @domName DOMWindow.location */
+  Location location;
+
+  /** @domName DOMWindow.locationbar */
+  abstract BarInfo get locationbar;
+
+  /** @domName DOMWindow.menubar */
+  abstract BarInfo get menubar;
+
+  /** @domName DOMWindow.name */
+  String name;
+
+  /** @domName DOMWindow.navigator */
+  abstract Navigator get navigator;
+
+  /** @domName DOMWindow.offscreenBuffering */
+  abstract bool get offscreenBuffering;
+
+  /** @domName DOMWindow.opener */
+  abstract Window get opener;
+
+  /** @domName DOMWindow.outerHeight */
+  abstract int get outerHeight;
+
+  /** @domName DOMWindow.outerWidth */
+  abstract int get outerWidth;
+
+  /** @domName DOMWindow.pagePopupController */
+  abstract PagePopupController get pagePopupController;
+
+  /** @domName DOMWindow.pageXOffset */
+  abstract int get pageXOffset;
+
+  /** @domName DOMWindow.pageYOffset */
+  abstract int get pageYOffset;
+
+  /** @domName DOMWindow.parent */
+  abstract Window get parent;
+
+  /** @domName DOMWindow.performance */
+  abstract Performance get performance;
+
+  /** @domName DOMWindow.personalbar */
+  abstract BarInfo get personalbar;
+
+  /** @domName DOMWindow.screen */
+  abstract Screen get screen;
+
+  /** @domName DOMWindow.screenLeft */
+  abstract int get screenLeft;
+
+  /** @domName DOMWindow.screenTop */
+  abstract int get screenTop;
+
+  /** @domName DOMWindow.screenX */
+  abstract int get screenX;
+
+  /** @domName DOMWindow.screenY */
+  abstract int get screenY;
+
+  /** @domName DOMWindow.scrollX */
+  abstract int get scrollX;
+
+  /** @domName DOMWindow.scrollY */
+  abstract int get scrollY;
+
+  /** @domName DOMWindow.scrollbars */
+  abstract BarInfo get scrollbars;
+
+  /** @domName DOMWindow.self */
+  abstract Window get self;
+
+  /** @domName DOMWindow.sessionStorage */
+  abstract Storage get sessionStorage;
+
+  /** @domName DOMWindow.status */
+  String status;
+
+  /** @domName DOMWindow.statusbar */
+  abstract BarInfo get statusbar;
+
+  /** @domName DOMWindow.styleMedia */
+  abstract StyleMedia get styleMedia;
+
+  /** @domName DOMWindow.toolbar */
+  abstract BarInfo get toolbar;
+
+  /** @domName DOMWindow.top */
+  abstract Window get top;
+
+  /** @domName DOMWindow.webkitIndexedDB */
+  abstract IDBFactory get webkitIndexedDB;
+
+  /** @domName DOMWindow.webkitNotifications */
+  abstract NotificationCenter get webkitNotifications;
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  abstract StorageInfo get webkitStorageInfo;
+
+  /** @domName DOMWindow.window */
+  abstract Window get window;
+
+  /** @domName DOMWindow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DOMWindow.alert */
+  void alert(String message);
+
+  /** @domName DOMWindow.atob */
+  String atob(String string);
+
+  /** @domName DOMWindow.blur */
+  void blur();
+
+  /** @domName DOMWindow.btoa */
+  String btoa(String string);
+
+  /** @domName DOMWindow.captureEvents */
+  void captureEvents();
+
+  /** @domName DOMWindow.clearInterval */
+  void clearInterval(int handle);
+
+  /** @domName DOMWindow.clearTimeout */
+  void clearTimeout(int handle);
+
+  /** @domName DOMWindow.close */
+  void close();
+
+  /** @domName DOMWindow.confirm */
+  bool confirm(String message);
+
+  /** @domName DOMWindow.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName DOMWindow.find */
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
+
+  /** @domName DOMWindow.focus */
+  void focus();
+
+  /** @domName DOMWindow.getComputedStyle */
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
+
+  /** @domName DOMWindow.getMatchedCSSRules */
+  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
+
+  /** @domName DOMWindow.getSelection */
+  DOMSelection getSelection();
+
+  /** @domName DOMWindow.matchMedia */
+  MediaQueryList matchMedia(String query);
+
+  /** @domName DOMWindow.moveBy */
+  void moveBy(num x, num y);
+
+  /** @domName DOMWindow.moveTo */
+  void moveTo(num x, num y);
+
+  /** @domName DOMWindow.open */
+  Window open(String url, String name, [String options]);
+
+  /** @domName DOMWindow.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  /** @domName DOMWindow.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
+
+  /** @domName DOMWindow.print */
+  void print();
+
+  /** @domName DOMWindow.prompt */
+  String prompt(String message, String defaultValue);
+
+  /** @domName DOMWindow.releaseEvents */
+  void releaseEvents();
+
+  /** @domName DOMWindow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName DOMWindow.resizeBy */
+  void resizeBy(num x, num y);
+
+  /** @domName DOMWindow.resizeTo */
+  void resizeTo(num width, num height);
+
+  /** @domName DOMWindow.scroll */
+  void scroll(int x, int y);
+
+  /** @domName DOMWindow.scrollBy */
+  void scrollBy(int x, int y);
+
+  /** @domName DOMWindow.scrollTo */
+  void scrollTo(int x, int y);
+
+  /** @domName DOMWindow.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout);
+
+  /** @domName DOMWindow.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout);
+
+  /** @domName DOMWindow.showModalDialog */
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
+
+  /** @domName DOMWindow.stop */
+  void stop();
+
+  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  void cancelAnimationFrame(int id);
+
+  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  Point webkitConvertPointFromNodeToPage(Node node, Point p);
+
+  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  Point webkitConvertPointFromPageToNode(Node node, Point p);
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  /** @domName DOMWindow.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
+
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
+
+}
+
+abstract class LocalWindowEvents implements Events {
+
+  EventListenerList get abort;
+
+  EventListenerList get beforeUnload;
+
+  EventListenerList get blur;
+
+  EventListenerList get canPlay;
+
+  EventListenerList get canPlayThrough;
+
+  EventListenerList get change;
+
+  EventListenerList get click;
+
+  EventListenerList get contextMenu;
+
+  EventListenerList get doubleClick;
+
+  EventListenerList get deviceMotion;
+
+  EventListenerList get deviceOrientation;
+
+  EventListenerList get drag;
+
+  EventListenerList get dragEnd;
+
+  EventListenerList get dragEnter;
+
+  EventListenerList get dragLeave;
+
+  EventListenerList get dragOver;
+
+  EventListenerList get dragStart;
+
+  EventListenerList get drop;
+
+  EventListenerList get durationChange;
+
+  EventListenerList get emptied;
+
+  EventListenerList get ended;
+
+  EventListenerList get error;
+
+  EventListenerList get focus;
+
+  EventListenerList get hashChange;
+
+  EventListenerList get input;
+
+  EventListenerList get invalid;
+
+  EventListenerList get keyDown;
+
+  EventListenerList get keyPress;
+
+  EventListenerList get keyUp;
+
+  EventListenerList get load;
+
+  EventListenerList get loadedData;
+
+  EventListenerList get loadedMetadata;
+
+  EventListenerList get loadStart;
+
+  EventListenerList get message;
+
+  EventListenerList get mouseDown;
+
+  EventListenerList get mouseMove;
+
+  EventListenerList get mouseOut;
+
+  EventListenerList get mouseOver;
+
+  EventListenerList get mouseUp;
+
+  EventListenerList get mouseWheel;
+
+  EventListenerList get offline;
+
+  EventListenerList get online;
+
+  EventListenerList get pageHide;
+
+  EventListenerList get pageShow;
+
+  EventListenerList get pause;
+
+  EventListenerList get play;
+
+  EventListenerList get playing;
+
+  EventListenerList get popState;
+
+  EventListenerList get progress;
+
+  EventListenerList get rateChange;
+
+  EventListenerList get reset;
+
+  EventListenerList get resize;
+
+  EventListenerList get scroll;
+
+  EventListenerList get search;
+
+  EventListenerList get seeked;
+
+  EventListenerList get seeking;
+
+  EventListenerList get select;
+
+  EventListenerList get stalled;
+
+  EventListenerList get storage;
+
+  EventListenerList get submit;
+
+  EventListenerList get suspend;
+
+  EventListenerList get timeUpdate;
+
+  EventListenerList get touchCancel;
+
+  EventListenerList get touchEnd;
+
+  EventListenerList get touchMove;
+
+  EventListenerList get touchStart;
+
+  EventListenerList get unload;
+
+  EventListenerList get volumeChange;
+
+  EventListenerList get waiting;
+
+  EventListenerList get animationEnd;
+
+  EventListenerList get animationIteration;
+
+  EventListenerList get animationStart;
+
+  EventListenerList get transitionEnd;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@*DOMWindow" {
+
+  _DocumentImpl get document() native "return this.document;";
+
+  Window get _top() native "return this.top;";
+
+  // Override top to return secure wrapper.
+  Window get top => _DOMWindowCrossFrameImpl._createSafe(_top);
+
+  Window _open2(url, name) native "return this.open(url, name);";
+
+  Window _open3(url, name, options) native "return this.open(url, name, options);";
+
+  Window open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+    }
+  }
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here or folded into
+  // _LocationWrapper.
+  LocalLocation get location => _get_location();
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) => _set_location(value);
+
+  // Firefox work-around for Location.  The Firefox location object cannot be
+  // made to behave like a Dart object so must be wrapped.
+
+  LocalLocation _get_location() {
+    var result = _location;
+    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
+    if (null == _location_wrapper) {
+      _location_wrapper = new _LocationWrapper(result);
+    }
+    return _location_wrapper;
+  }
+
+  void _set_location(value) {
+    if (value is _LocationWrapper) {
+      _location = value._ptr;
+    } else {
+      _location = value;
+    }
+  }
+
+  var _location_wrapper;  // Cached wrapped Location object.
+
+  // Native getter and setter to access raw Location object.
+  Location get _location() native 'return this.location';
+  void set _location(Location value) native 'this.location = value';
+  // Prevent compiled from thinking 'location' property is available for a Dart
+  // member.
+  _protect_location() native 'location';
+
+  static _isDartLocation(thing) {
+    // On Firefox the code that implements 'is Location' fails to find the patch
+    // stub on Object.prototype and throws an exception.
+    try {
+      return thing is Location;
+    } catch (e) {
+      return false;
+    }
+  }
+
+
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    _ensureRequestAnimationFrame();
+    return _requestAnimationFrame(callback);
+  }
+
+  void cancelAnimationFrame(id) {
+    _ensureRequestAnimationFrame();
+    _cancelAnimationFrame(id);
+  }
+
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
+      native 'requestAnimationFrame';
+
+  void _cancelAnimationFrame(int id)
+      native 'cancelAnimationFrame';
+
+  _ensureRequestAnimationFrame() native '''
+   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+   var vendors = ['ms', 'moz', 'webkit', 'o'];
+   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
+     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
+     this.cancelAnimationFrame =
+         this[vendors[i]+'CancelAnimationFrame'] ||
+         this[vendors[i]+'CancelRequestAnimationFrame'];
+   }
+   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+   this.requestAnimationFrame = function(callback) {
+      return window.setTimeout(function() {
+        callback(Date.now());
+      }, 16 /* 16ms ~= 60fps */);
+   };
+   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+''';
+
+
+  _IDBFactoryImpl get indexedDB => _get_indexedDB();
+
+  _IDBFactoryImpl _get_indexedDB() native
+      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+
+  // TODO(kasperl): Document these.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  String createObjectUrl(object) native '''
+    return (window.URL || window.webkitURL).createObjectURL(object)
+  ''';
+
+  void revokeObjectUrl(String objectUrl) native '''
+    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
+  ''';
+
+  _LocalWindowEventsImpl get on =>
+    new _LocalWindowEventsImpl(this);
+
+  final _DOMApplicationCacheImpl applicationCache;
+
+  final _NavigatorImpl clientInformation;
+
+  final bool closed;
+
+  final _ConsoleImpl console;
+
+  final _CryptoImpl crypto;
+
+  String defaultStatus;
+
+  String defaultstatus;
+
+  final num devicePixelRatio;
+
+  final _EventImpl event;
+
+  final Window frames;
+
+  final _LocalHistoryImpl history;
+
+  final int innerHeight;
+
+  final int innerWidth;
+
+  final int length;
+
+  final _StorageImpl localStorage;
+
+  final _BarInfoImpl locationbar;
+
+  final _BarInfoImpl menubar;
+
+  String name;
+
+  final _NavigatorImpl navigator;
+
+  final bool offscreenBuffering;
+
+  final Window opener;
+
+  final int outerHeight;
+
+  final int outerWidth;
+
+  final _PagePopupControllerImpl pagePopupController;
+
+  final int pageXOffset;
+
+  final int pageYOffset;
+
+  final Window parent;
+
+  final _PerformanceImpl performance;
+
+  final _BarInfoImpl personalbar;
+
+  final _ScreenImpl screen;
+
+  final int screenLeft;
+
+  final int screenTop;
+
+  final int screenX;
+
+  final int screenY;
+
+  final int scrollX;
+
+  final int scrollY;
+
+  final _BarInfoImpl scrollbars;
+
+  final Window self;
+
+  final _StorageImpl sessionStorage;
+
+  String status;
+
+  final _BarInfoImpl statusbar;
+
+  final _StyleMediaImpl styleMedia;
+
+  final _BarInfoImpl toolbar;
+
+  final _IDBFactoryImpl webkitIndexedDB;
+
+  final _NotificationCenterImpl webkitNotifications;
+
+  final _StorageInfoImpl webkitStorageInfo;
+
+  final Window window;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  void alert(String message) native;
+
+  String atob(String string) native;
+
+  void blur() native;
+
+  String btoa(String string) native;
+
+  void captureEvents() native;
+
+  void clearInterval(int handle) native;
+
+  void clearTimeout(int handle) native;
+
+  void close() native;
+
+  bool confirm(String message) native;
+
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
+
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
+
+  void focus() native;
+
+  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "getComputedStyle";
+
+  List<CSSRule> getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
+
+  _DOMSelectionImpl getSelection() native;
+
+  _MediaQueryListImpl matchMedia(String query) native;
+
+  void moveBy(num x, num y) native;
+
+  void moveTo(num x, num y) native;
+
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
+
+  void postMessage(message, String targetOrigin, [List messagePorts]) native;
+
+  void print() native;
+
+  String prompt(String message, String defaultValue) native;
+
+  void releaseEvents() native;
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+
+  void resizeBy(num x, num y) native;
+
+  void resizeTo(num width, num height) native;
+
+  void scroll(int x, int y) native;
+
+  void scrollBy(int x, int y) native;
+
+  void scrollTo(int x, int y) native;
+
+  int setInterval(TimeoutHandler handler, int timeout) native;
+
+  int setTimeout(TimeoutHandler handler, int timeout) native;
+
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
+
+  void stop() native;
+
+  Point webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
+
+  Point webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
+
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
+
+  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
+
+}
+
+class _LocalWindowEventsImpl extends _EventsImpl implements LocalWindowEvents {
+  _LocalWindowEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get canPlay => this['canplay'];
+
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get durationChange => this['durationchange'];
+
+  EventListenerList get emptied => this['emptied'];
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get hashChange => this['hashchange'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadedData => this['loadeddata'];
+
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get offline => this['offline'];
+
+  EventListenerList get online => this['online'];
+
+  EventListenerList get pageHide => this['pagehide'];
+
+  EventListenerList get pageShow => this['pageshow'];
+
+  EventListenerList get pause => this['pause'];
+
+  EventListenerList get play => this['play'];
+
+  EventListenerList get playing => this['playing'];
+
+  EventListenerList get popState => this['popstate'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get rateChange => this['ratechange'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get resize => this['resize'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get seeked => this['seeked'];
+
+  EventListenerList get seeking => this['seeking'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get stalled => this['stalled'];
+
+  EventListenerList get storage => this['storage'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get suspend => this['suspend'];
+
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get unload => this['unload'];
+
+  EventListenerList get volumeChange => this['volumechange'];
+
+  EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18371,7 +19311,7 @@ abstract class MediaElementAudioSourceNode implements AudioSourceNode {
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  final _MediaElementImpl mediaElement;
+  final MediaElement mediaElement;
 }
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
@@ -19217,10 +20157,10 @@ abstract class MessageEvent implements Event {
   abstract Window get source;
 
   /** @domName MessageEvent.initMessageEvent */
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts);
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts);
 
   /** @domName MessageEvent.webkitInitMessageEvent */
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables);
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables);
 }
 
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
@@ -19233,11 +20173,11 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
 
   final List ports;
 
-  final _WindowImpl source;
+  final Window source;
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowImpl sourceArg, List messagePorts) native;
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List messagePorts) native;
 
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowImpl sourceArg, List transferables) native;
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19511,7 +20451,7 @@ abstract class MouseEvent implements UIEvent {
   abstract int get y;
 
   /** @domName MouseEvent.initMouseEvent */
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19553,7 +20493,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final int y;
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _LocalWindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 
 
   int get offsetX {
@@ -20045,7 +20985,7 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   bool javaEnabled() native;
 
-  _GamepadListImpl webkitGetGamepads() native;
+  List<Gamepad> webkitGetGamepads() native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [errorCallback]) {
     if (?errorCallback) {
@@ -21068,7 +22008,7 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
 
   bool declare;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   String height;
 
@@ -21190,7 +22130,7 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
 
   bool disabled;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   final int index;
 
@@ -21317,7 +22257,7 @@ class _OutputElementImpl extends _ElementImpl implements OutputElement native "*
 
   String defaultValue;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   _DOMSettableTokenListImpl htmlFor;
 
@@ -21585,13 +22525,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   final _SessionDescriptionImpl localDescription;
 
-  final _MediaStreamListImpl localStreams;
+  final List<MediaStream> localStreams;
 
   final int readyState;
 
   final _SessionDescriptionImpl remoteDescription;
 
-  final _MediaStreamListImpl remoteStreams;
+  final List<MediaStream> remoteStreams;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -22240,13 +23180,13 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   final _RTCSessionDescriptionImpl localDescription;
 
-  final _MediaStreamListImpl localStreams;
+  final List<MediaStream> localStreams;
 
   final String readyState;
 
   final _RTCSessionDescriptionImpl remoteDescription;
 
-  final _MediaStreamListImpl remoteStreams;
+  final List<MediaStream> remoteStreams;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -22550,7 +23490,7 @@ class _RangeImpl implements Range native "*Range" {
 
   _ClientRectImpl getBoundingClientRect() native;
 
-  _ClientRectListImpl getClientRects() native;
+  List<ClientRect> getClientRects() native;
 
   void insertNode(_NodeImpl newNode) native;
 
@@ -24257,7 +25197,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   _SVGElementInstanceEventsImpl get on =>
     new _SVGElementInstanceEventsImpl(this);
 
-  final _SVGElementInstanceListImpl childNodes;
+  final List<SVGElementInstance> childNodes;
 
   final _SVGElementImpl correspondingElement;
 
@@ -30235,7 +31175,7 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   bool disabled;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   final List<Node> labels;
 
@@ -30785,7 +31725,7 @@ abstract class SpeechInputEvent implements Event {
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
 
-  final _SpeechInputResultListImpl results;
+  final List<SpeechInputResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31055,7 +31995,7 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
 
   final _SpeechRecognitionResultImpl result;
 
-  final _SpeechRecognitionResultListImpl resultHistory;
+  final List<SpeechRecognitionResult> resultHistory;
 
   final int resultIndex;
 }
@@ -31861,7 +32801,7 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   String border;
 
-  _TableCaptionElementImpl caption;
+  TableCaptionElement caption;
 
   String cellPadding;
 
@@ -31877,17 +32817,17 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   final _HTMLCollectionImpl tBodies;
 
-  _TableSectionElementImpl tFoot;
+  TableSectionElement tFoot;
 
-  _TableSectionElementImpl tHead;
+  TableSectionElement tHead;
 
   String width;
 
-  _ElementImpl createCaption() native;
+  Element createCaption() native;
 
-  _ElementImpl createTFoot() native;
+  Element createTFoot() native;
 
-  _ElementImpl createTHead() native;
+  Element createTHead() native;
 
   void deleteCaption() native;
 
@@ -31897,7 +32837,7 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   void deleteTHead() native;
 
-  _ElementImpl insertRow(int index) native;
+  Element insertRow(int index) native;
 
 
   _ElementImpl createTBody() {
@@ -31973,7 +32913,7 @@ class _TableRowElementImpl extends _ElementImpl implements TableRowElement nativ
 
   void deleteCell(int index) native;
 
-  _ElementImpl insertCell(int index) native;
+  Element insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32020,7 +32960,7 @@ class _TableSectionElementImpl extends _ElementImpl implements TableSectionEleme
 
   void deleteRow(int index) native;
 
-  _ElementImpl insertRow(int index) native;
+  Element insertRow(int index) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32142,7 +33082,7 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
 
   bool disabled;
 
-  final _FormElementImpl form;
+  final FormElement form;
 
   final List<Node> labels;
 
@@ -32199,14 +33139,14 @@ abstract class TextEvent implements UIEvent {
   abstract String get data;
 
   /** @domName TextEvent.initTextEvent */
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
 }
 
 class _TextEventImpl extends _UIEventImpl implements TextEvent native "*TextEvent" {
 
   final String data;
 
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowImpl viewArg, String dataArg) native;
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _LocalWindowImpl viewArg, String dataArg) native;
 }
 
 class _TextImpl extends _CharacterDataImpl implements Text native "*Text" {
@@ -32806,7 +33746,7 @@ abstract class TouchEvent implements UIEvent {
   abstract TouchList get touches;
 
   /** @domName TouchEvent.initTouchEvent */
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
 
 class _TouchEventImpl extends _UIEventImpl implements TouchEvent native "*TouchEvent" {
@@ -32825,7 +33765,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent native "*TouchE
 
   final _TouchListImpl touches;
 
-  void initTouchEvent(_TouchListImpl touches, _TouchListImpl targetTouches, _TouchListImpl changedTouches, String type, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initTouchEvent(_TouchListImpl touches, _TouchListImpl targetTouches, _TouchListImpl changedTouches, String type, _LocalWindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
 class _TouchImpl implements Touch native "*Touch" {
@@ -33164,7 +34104,7 @@ abstract class UIEvent implements Event {
   abstract int get which;
 
   /** @domName UIEvent.initUIEvent */
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
+  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail);
 }
 
 class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
@@ -33183,11 +34123,11 @@ class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
 
   final int pageY;
 
-  final _WindowImpl view;
+  final Window view;
 
   final int which;
 
-  void initUIEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail) native;
+  void initUIEvent(String type, bool canBubble, bool cancelable, _LocalWindowImpl view, int detail) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35683,7 +36623,7 @@ abstract class WheelEvent implements MouseEvent {
   abstract bool get webkitDirectionInvertedFromDevice;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 
 
   /** @domName WheelEvent.deltaX */
@@ -35703,7 +36643,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
 
   final bool webkitDirectionInvertedFromDevice;
 
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _LocalWindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
   num get deltaY {
@@ -35776,950 +36716,6 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
   num get _detail() native 'return this.detail';
   int get _deltaMode() native 'return this.deltaMode';
 
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName DOMWindow
-abstract class Window implements EventTarget {
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, SendPortSync port);
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name);
-
-  /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
-   */
-  void requestLayoutFrame(TimeoutHandler callback);
-
-  /**
-   * Creates a new object URL for the specified object. The URL will be
-   * available until revokeObjectUrl is called.
-   * [object] can be a Blob, MediaStream or MediaSource.
-   */
-  String createObjectUrl(object);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectUrl(String objectUrl);
-
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  WindowEvents get on;
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-  /** @domName DOMWindow.applicationCache */
-  abstract DOMApplicationCache get applicationCache;
-
-  /** @domName DOMWindow.clientInformation */
-  abstract Navigator get clientInformation;
-
-  /** @domName DOMWindow.closed */
-  abstract bool get closed;
-
-  /** @domName DOMWindow.console */
-  abstract Console get console;
-
-  /** @domName DOMWindow.crypto */
-  abstract Crypto get crypto;
-
-  /** @domName DOMWindow.defaultStatus */
-  String defaultStatus;
-
-  /** @domName DOMWindow.defaultstatus */
-  String defaultstatus;
-
-  /** @domName DOMWindow.devicePixelRatio */
-  abstract num get devicePixelRatio;
-
-  /** @domName DOMWindow.document */
-  abstract Document get document;
-
-  /** @domName DOMWindow.event */
-  abstract Event get event;
-
-  /** @domName DOMWindow.frames */
-  abstract Window get frames;
-
-  /** @domName DOMWindow.history */
-  abstract History get history;
-
-  /** @domName DOMWindow.indexedDB */
-  abstract IDBFactory get indexedDB;
-
-  /** @domName DOMWindow.innerHeight */
-  abstract int get innerHeight;
-
-  /** @domName DOMWindow.innerWidth */
-  abstract int get innerWidth;
-
-  /** @domName DOMWindow.length */
-  abstract int get length;
-
-  /** @domName DOMWindow.localStorage */
-  abstract Storage get localStorage;
-
-  /** @domName DOMWindow.location */
-  Location location;
-
-  /** @domName DOMWindow.locationbar */
-  abstract BarInfo get locationbar;
-
-  /** @domName DOMWindow.menubar */
-  abstract BarInfo get menubar;
-
-  /** @domName DOMWindow.name */
-  String name;
-
-  /** @domName DOMWindow.navigator */
-  abstract Navigator get navigator;
-
-  /** @domName DOMWindow.offscreenBuffering */
-  abstract bool get offscreenBuffering;
-
-  /** @domName DOMWindow.opener */
-  abstract Window get opener;
-
-  /** @domName DOMWindow.outerHeight */
-  abstract int get outerHeight;
-
-  /** @domName DOMWindow.outerWidth */
-  abstract int get outerWidth;
-
-  /** @domName DOMWindow.pagePopupController */
-  abstract PagePopupController get pagePopupController;
-
-  /** @domName DOMWindow.pageXOffset */
-  abstract int get pageXOffset;
-
-  /** @domName DOMWindow.pageYOffset */
-  abstract int get pageYOffset;
-
-  /** @domName DOMWindow.parent */
-  abstract Window get parent;
-
-  /** @domName DOMWindow.performance */
-  abstract Performance get performance;
-
-  /** @domName DOMWindow.personalbar */
-  abstract BarInfo get personalbar;
-
-  /** @domName DOMWindow.screen */
-  abstract Screen get screen;
-
-  /** @domName DOMWindow.screenLeft */
-  abstract int get screenLeft;
-
-  /** @domName DOMWindow.screenTop */
-  abstract int get screenTop;
-
-  /** @domName DOMWindow.screenX */
-  abstract int get screenX;
-
-  /** @domName DOMWindow.screenY */
-  abstract int get screenY;
-
-  /** @domName DOMWindow.scrollX */
-  abstract int get scrollX;
-
-  /** @domName DOMWindow.scrollY */
-  abstract int get scrollY;
-
-  /** @domName DOMWindow.scrollbars */
-  abstract BarInfo get scrollbars;
-
-  /** @domName DOMWindow.self */
-  abstract Window get self;
-
-  /** @domName DOMWindow.sessionStorage */
-  abstract Storage get sessionStorage;
-
-  /** @domName DOMWindow.status */
-  String status;
-
-  /** @domName DOMWindow.statusbar */
-  abstract BarInfo get statusbar;
-
-  /** @domName DOMWindow.styleMedia */
-  abstract StyleMedia get styleMedia;
-
-  /** @domName DOMWindow.toolbar */
-  abstract BarInfo get toolbar;
-
-  /** @domName DOMWindow.top */
-  abstract Window get top;
-
-  /** @domName DOMWindow.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
-
-  /** @domName DOMWindow.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
-
-  /** @domName DOMWindow.webkitStorageInfo */
-  abstract StorageInfo get webkitStorageInfo;
-
-  /** @domName DOMWindow.window */
-  abstract Window get window;
-
-  /** @domName DOMWindow.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DOMWindow.alert */
-  void alert(String message);
-
-  /** @domName DOMWindow.atob */
-  String atob(String string);
-
-  /** @domName DOMWindow.blur */
-  void blur();
-
-  /** @domName DOMWindow.btoa */
-  String btoa(String string);
-
-  /** @domName DOMWindow.captureEvents */
-  void captureEvents();
-
-  /** @domName DOMWindow.clearInterval */
-  void clearInterval(int handle);
-
-  /** @domName DOMWindow.clearTimeout */
-  void clearTimeout(int handle);
-
-  /** @domName DOMWindow.close */
-  void close();
-
-  /** @domName DOMWindow.confirm */
-  bool confirm(String message);
-
-  /** @domName DOMWindow.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt);
-
-  /** @domName DOMWindow.find */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
-
-  /** @domName DOMWindow.focus */
-  void focus();
-
-  /** @domName DOMWindow.getComputedStyle */
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
-
-  /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
-
-  /** @domName DOMWindow.getSelection */
-  DOMSelection getSelection();
-
-  /** @domName DOMWindow.matchMedia */
-  MediaQueryList matchMedia(String query);
-
-  /** @domName DOMWindow.moveBy */
-  void moveBy(num x, num y);
-
-  /** @domName DOMWindow.moveTo */
-  void moveTo(num x, num y);
-
-  /** @domName DOMWindow.open */
-  Window open(String url, String name, [String options]);
-
-  /** @domName DOMWindow.openDatabase */
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
-
-  /** @domName DOMWindow.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
-
-  /** @domName DOMWindow.print */
-  void print();
-
-  /** @domName DOMWindow.prompt */
-  String prompt(String message, String defaultValue);
-
-  /** @domName DOMWindow.releaseEvents */
-  void releaseEvents();
-
-  /** @domName DOMWindow.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DOMWindow.resizeBy */
-  void resizeBy(num x, num y);
-
-  /** @domName DOMWindow.resizeTo */
-  void resizeTo(num width, num height);
-
-  /** @domName DOMWindow.scroll */
-  void scroll(int x, int y);
-
-  /** @domName DOMWindow.scrollBy */
-  void scrollBy(int x, int y);
-
-  /** @domName DOMWindow.scrollTo */
-  void scrollTo(int x, int y);
-
-  /** @domName DOMWindow.setInterval */
-  int setInterval(TimeoutHandler handler, int timeout);
-
-  /** @domName DOMWindow.setTimeout */
-  int setTimeout(TimeoutHandler handler, int timeout);
-
-  /** @domName DOMWindow.showModalDialog */
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
-
-  /** @domName DOMWindow.stop */
-  void stop();
-
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
-  Point webkitConvertPointFromNodeToPage(Node node, Point p);
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
-  Point webkitConvertPointFromPageToNode(Node node, Point p);
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
-
-  /** @domName DOMWindow.webkitRequestFileSystem */
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
-
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
-
-}
-
-abstract class WindowEvents implements Events {
-
-  EventListenerList get contentLoaded;
-
-  EventListenerList get abort;
-
-  EventListenerList get beforeUnload;
-
-  EventListenerList get blur;
-
-  EventListenerList get canPlay;
-
-  EventListenerList get canPlayThrough;
-
-  EventListenerList get change;
-
-  EventListenerList get click;
-
-  EventListenerList get contextMenu;
-
-  EventListenerList get doubleClick;
-
-  EventListenerList get deviceMotion;
-
-  EventListenerList get deviceOrientation;
-
-  EventListenerList get drag;
-
-  EventListenerList get dragEnd;
-
-  EventListenerList get dragEnter;
-
-  EventListenerList get dragLeave;
-
-  EventListenerList get dragOver;
-
-  EventListenerList get dragStart;
-
-  EventListenerList get drop;
-
-  EventListenerList get durationChange;
-
-  EventListenerList get emptied;
-
-  EventListenerList get ended;
-
-  EventListenerList get error;
-
-  EventListenerList get focus;
-
-  EventListenerList get hashChange;
-
-  EventListenerList get input;
-
-  EventListenerList get invalid;
-
-  EventListenerList get keyDown;
-
-  EventListenerList get keyPress;
-
-  EventListenerList get keyUp;
-
-  EventListenerList get load;
-
-  EventListenerList get loadedData;
-
-  EventListenerList get loadedMetadata;
-
-  EventListenerList get loadStart;
-
-  EventListenerList get message;
-
-  EventListenerList get mouseDown;
-
-  EventListenerList get mouseMove;
-
-  EventListenerList get mouseOut;
-
-  EventListenerList get mouseOver;
-
-  EventListenerList get mouseUp;
-
-  EventListenerList get mouseWheel;
-
-  EventListenerList get offline;
-
-  EventListenerList get online;
-
-  EventListenerList get pageHide;
-
-  EventListenerList get pageShow;
-
-  EventListenerList get pause;
-
-  EventListenerList get play;
-
-  EventListenerList get playing;
-
-  EventListenerList get popState;
-
-  EventListenerList get progress;
-
-  EventListenerList get rateChange;
-
-  EventListenerList get reset;
-
-  EventListenerList get resize;
-
-  EventListenerList get scroll;
-
-  EventListenerList get search;
-
-  EventListenerList get seeked;
-
-  EventListenerList get seeking;
-
-  EventListenerList get select;
-
-  EventListenerList get stalled;
-
-  EventListenerList get storage;
-
-  EventListenerList get submit;
-
-  EventListenerList get suspend;
-
-  EventListenerList get timeUpdate;
-
-  EventListenerList get touchCancel;
-
-  EventListenerList get touchEnd;
-
-  EventListenerList get touchMove;
-
-  EventListenerList get touchStart;
-
-  EventListenerList get unload;
-
-  EventListenerList get volumeChange;
-
-  EventListenerList get waiting;
-
-  EventListenerList get animationEnd;
-
-  EventListenerList get animationIteration;
-
-  EventListenerList get animationStart;
-
-  EventListenerList get transitionEnd;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow" {
-
-  _DocumentImpl get document() native "return this.document;";
-
-  Window get _top() native "return this.top;";
-
-  // Override top to return secure wrapper.
-  Window get top => _DOMWindowCrossFrameImpl._createSafe(_top);
-
-  Window _open2(url, name) native "return this.open(url, name);";
-
-  Window _open3(url, name, options) native "return this.open(url, name, options);";
-
-  Window open(String url, String name, [String options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
-    }
-  }
-
-  // API level getter and setter for Location.
-  // TODO: The cross domain safe wrapper can be inserted here or folded into
-  // _LocationWrapper.
-  Location get location => _get_location();
-
-  // TODO: consider forcing users to do: window.location.assign('string').
-  /**
-   * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a string.
-   */
-  void set location(value) => _set_location(value);
-
-  // Firefox work-around for Location.  The Firefox location object cannot be
-  // made to behave like a Dart object so must be wrapped.
-
-  Location _get_location() {
-    var result = _location;
-    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
-    if (null == _location_wrapper) {
-      _location_wrapper = new _LocationWrapper(result);
-    }
-    return _location_wrapper;
-  }
-
-  void _set_location(value) {
-    if (value is _LocationWrapper) {
-      _location = value._ptr;
-    } else {
-      _location = value;
-    }
-  }
-
-  var _location_wrapper;  // Cached wrapped Location object.
-
-  // Native getter and setter to access raw Location object.
-  Location get _location() native 'return this.location';
-  void set _location(Location value) native 'this.location = value';
-  // Prevent compiled from thinking 'location' property is available for a Dart
-  // member.
-  _protect_location() native 'location';
-
-  static _isDartLocation(thing) {
-    // On Firefox the code that implements 'is Location' fails to find the patch
-    // stub on Object.prototype and throws an exception.
-    try {
-      return thing is Location;
-    } catch (e) {
-      return false;
-    }
-  }
-
-
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
-  }
-
-  /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
-    _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(callback);
-  }
-
-  void cancelAnimationFrame(id) {
-    _ensureRequestAnimationFrame();
-    _cancelAnimationFrame(id);
-  }
-
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
-      native 'requestAnimationFrame';
-
-  void _cancelAnimationFrame(int id)
-      native 'cancelAnimationFrame';
-
-  _ensureRequestAnimationFrame() native '''
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   var vendors = ['ms', 'moz', 'webkit', 'o'];
-   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
-     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
-     this.cancelAnimationFrame =
-         this[vendors[i]+'CancelAnimationFrame'] ||
-         this[vendors[i]+'CancelRequestAnimationFrame'];
-   }
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   this.requestAnimationFrame = function(callback) {
-      return window.setTimeout(function() {
-        callback(Date.now());
-      }, 16 /* 16ms ~= 60fps */);
-   };
-   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
-''';
-
-
-  _IDBFactoryImpl get indexedDB => _get_indexedDB();
-
-  _IDBFactoryImpl _get_indexedDB() native
-      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
-
-  // TODO(kasperl): Document these.
-  lookupPort(String name) {
-    var port = JSON.parse(localStorage['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    localStorage['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  String createObjectUrl(object) native '''
-    return (window.URL || window.webkitURL).createObjectURL(object)
-  ''';
-
-  void revokeObjectUrl(String objectUrl) native '''
-    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
-  ''';
-
-  _WindowEventsImpl get on =>
-    new _WindowEventsImpl(this);
-
-  final _DOMApplicationCacheImpl applicationCache;
-
-  final _NavigatorImpl clientInformation;
-
-  final bool closed;
-
-  final _ConsoleImpl console;
-
-  final _CryptoImpl crypto;
-
-  String defaultStatus;
-
-  String defaultstatus;
-
-  final num devicePixelRatio;
-
-  final _EventImpl event;
-
-  final _WindowImpl frames;
-
-  final _HistoryImpl history;
-
-  final int innerHeight;
-
-  final int innerWidth;
-
-  final int length;
-
-  final _StorageImpl localStorage;
-
-  final _BarInfoImpl locationbar;
-
-  final _BarInfoImpl menubar;
-
-  String name;
-
-  final _NavigatorImpl navigator;
-
-  final bool offscreenBuffering;
-
-  final _WindowImpl opener;
-
-  final int outerHeight;
-
-  final int outerWidth;
-
-  final _PagePopupControllerImpl pagePopupController;
-
-  final int pageXOffset;
-
-  final int pageYOffset;
-
-  final _WindowImpl parent;
-
-  final _PerformanceImpl performance;
-
-  final _BarInfoImpl personalbar;
-
-  final _ScreenImpl screen;
-
-  final int screenLeft;
-
-  final int screenTop;
-
-  final int screenX;
-
-  final int screenY;
-
-  final int scrollX;
-
-  final int scrollY;
-
-  final _BarInfoImpl scrollbars;
-
-  final _WindowImpl self;
-
-  final _StorageImpl sessionStorage;
-
-  String status;
-
-  final _BarInfoImpl statusbar;
-
-  final _StyleMediaImpl styleMedia;
-
-  final _BarInfoImpl toolbar;
-
-  final _IDBFactoryImpl webkitIndexedDB;
-
-  final _NotificationCenterImpl webkitNotifications;
-
-  final _StorageInfoImpl webkitStorageInfo;
-
-  final _WindowImpl window;
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  void alert(String message) native;
-
-  String atob(String string) native;
-
-  void blur() native;
-
-  String btoa(String string) native;
-
-  void captureEvents() native;
-
-  void clearInterval(int handle) native;
-
-  void clearTimeout(int handle) native;
-
-  void close() native;
-
-  bool confirm(String message) native;
-
-  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
-
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
-
-  void focus() native;
-
-  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "getComputedStyle";
-
-  _CSSRuleListImpl getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
-
-  _DOMSelectionImpl getSelection() native;
-
-  _MediaQueryListImpl matchMedia(String query) native;
-
-  void moveBy(num x, num y) native;
-
-  void moveTo(num x, num y) native;
-
-  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
-
-  void postMessage(message, String targetOrigin, [List messagePorts]) native;
-
-  void print() native;
-
-  String prompt(String message, String defaultValue) native;
-
-  void releaseEvents() native;
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-
-  void resizeBy(num x, num y) native;
-
-  void resizeTo(num width, num height) native;
-
-  void scroll(int x, int y) native;
-
-  void scrollBy(int x, int y) native;
-
-  void scrollTo(int x, int y) native;
-
-  int setInterval(TimeoutHandler handler, int timeout) native;
-
-  int setTimeout(TimeoutHandler handler, int timeout) native;
-
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
-
-  void stop() native;
-
-  _PointImpl webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
-
-  _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
-
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
-
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
-
-}
-
-class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
-  _WindowEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get canPlay => this['canplay'];
-
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get durationChange => this['durationchange'];
-
-  EventListenerList get emptied => this['emptied'];
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get hashChange => this['hashchange'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadedData => this['loadeddata'];
-
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get offline => this['offline'];
-
-  EventListenerList get online => this['online'];
-
-  EventListenerList get pageHide => this['pagehide'];
-
-  EventListenerList get pageShow => this['pageshow'];
-
-  EventListenerList get pause => this['pause'];
-
-  EventListenerList get play => this['play'];
-
-  EventListenerList get playing => this['playing'];
-
-  EventListenerList get popState => this['popstate'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get rateChange => this['ratechange'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get seeked => this['seeked'];
-
-  EventListenerList get seeking => this['seeking'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get stalled => this['stalled'];
-
-  EventListenerList get storage => this['storage'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get suspend => this['suspend'];
-
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get unload => this['unload'];
-
-  EventListenerList get volumeChange => this['volumechange'];
-
-  EventListenerList get waiting => this['waiting'];
-
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37886,7 +37882,40 @@ class _XSLTProcessorFactoryProvider {
   static XSLTProcessor createXSLTProcessor() native
       '''return new XSLTProcessor();''';
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+abstract class Window {
+  // Fields.
+  Location get location;
+  History get history;
+
+  bool get closed;
+  Window get opener;
+  Window get parent;
+  Window get top;
+
+  // TODO(vsm): Add frames to navigate subframes.  See 2312.
+
+  // Methods.
+  void focus();
+  void blur();
+  void close();
+  void postMessage(Dynamic message,
+                   String targetOrigin,
+		   [List messagePorts = null]);
+}
+
+abstract class Location {
+  void set href(String val);
+}
+
+abstract class History {
+  void back();
+  void forward();
+  void go(int distance);
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39695,52 +39724,37 @@ class _DOMWindowCrossFrameImpl implements Window {
   var _window;
 
   // Fields.
-  // TODO(vsm): Implement history and location getters.
+  History get history =>
+    _HistoryCrossFrameImpl._createSafe(JS('History', '#.history', _window));
+  Location get location =>
+    _LocationCrossFrameImpl._createSafe(JS('Location', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
-  bool get closed => _closed(_window);
-  static bool _closed(win) native "return win.closed;";
+  bool get closed => JS('bool', '#.closed', _window);
 
-  Window get opener => _createSafe(_opener(_window));
-  static Window _opener(win) native "return win.opener;";
+  Window get opener => _createSafe(JS('Window', '#.opener', _window));
 
-  Window get parent => _createSafe(_parent(_window));
-  static Window _parent(win) native "return win.parent;";
+  Window get parent => _createSafe(JS('Window', '#.parent', _window));
 
-  Window get top => _createSafe(_top(_window));
-  static Window _top(win) native "return win.top;";
+  Window get top => _createSafe(JS('Window', '#.top', _window));
 
   // Methods.
-  void focus() => _focus(_window);
-  static void _focus(win) native "win.focus()";
+  void focus() => JS('void', '#.focus()', _window);
 
-  void blur() => _blur(_window);
-  static void _blur(win) native "win.blur()";
+  void blur() => JS('void', '#.blur()', _window);
 
-  void close() => _close(_window);
-  static void _close(win) native "win.close()";
+  void close() => JS('void', '#.close()', _window);
 
   void postMessage(Dynamic message,
                    String targetOrigin,
                    [List messagePorts = null]) {
     if (messagePorts == null) {
-      _postMessage2(_window, message, targetOrigin);
+      JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {
-      _postMessage3(_window, message, targetOrigin, messagePorts);
+      JS('void', '#.postMessage(#,#,#)', _window, message, targetOrigin, messagePorts);
     }
   }
-
-  // TODO(vsm): This is a hack to workaround dartbug.com/3175.  We
-  // need a more robust convention to invoke JS methods on the
-  // underlying window.
-  static void _postMessage2(win, message, targetOrigin) native """
-    win.postMessage(message, targetOrigin);
-""";
-
-  static void _postMessage3(win, message, targetOrigin, messagePorts) native """
-    win.postMessage(message, targetOrigin, messagePorts);
-""";
 
   // Implementation support.
   _DOMWindowCrossFrameImpl(this._window);
@@ -39751,6 +39765,55 @@ class _DOMWindowCrossFrameImpl implements Window {
     } else {
       // TODO(vsm): Cache or implement equality.
       return new _DOMWindowCrossFrameImpl(w);
+    }
+  }
+}
+
+class _LocationCrossFrameImpl implements Location {
+  // Private location.  Note, this is a location object in another frame, so it
+  // cannot be typed as "Location" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _location;
+
+  void set href(String val) => _setHref(_location, val);
+  static void _setHref(location, val) {
+    JS('void', '#.href = #', _location, val);
+  }
+
+  // Implementation support.
+  _LocationCrossFrameImpl(this._location);
+
+  static Location _createSafe(location) {
+    if (location === window.location) {
+      return location;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _LocationCrossFrameImpl(location);
+    }
+  }
+}
+
+class _HistoryCrossFrameImpl implements History {
+  // Private history.  Note, this is a history object in another frame, so it
+  // cannot be typed as "History" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _history;
+
+  void back() => JS('void', '#.back()', _history);
+
+  void forward() => JS('void', '#.forward()', _history);
+
+  void go(int distance) => JS('void', '#.go(#)', _history, distance);
+
+  // Implementation support.
+  _HistoryCrossFrameImpl(this._history);
+
+  static History _createSafe(h) {
+    if (h === window.history) {
+      return h;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _HistoryCrossFrameImpl(h);
     }
   }
 }
@@ -39838,7 +39901,7 @@ class _IDBKeyRangeFactoryProvider {
 // It can't be monkey-patched and seems immune to putting methods on
 // Object.prototype.  We are forced to wrap the object.
 
-class _LocationWrapper implements Location {
+class _LocationWrapper implements LocalLocation {
 
   final _ptr;  // Opaque reference to real location.
 

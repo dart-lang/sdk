@@ -10,52 +10,37 @@ class _DOMWindowCrossFrameImpl implements Window {
   var _window;
 
   // Fields.
-  // TODO(vsm): Implement history and location getters.
+  History get history =>
+    _HistoryCrossFrameImpl._createSafe(JS('History', '#.history', _window));
+  Location get location =>
+    _LocationCrossFrameImpl._createSafe(JS('Location', '#.location', _window));
 
   // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
-  bool get closed => _closed(_window);
-  static bool _closed(win) native "return win.closed;";
+  bool get closed => JS('bool', '#.closed', _window);
 
-  Window get opener => _createSafe(_opener(_window));
-  static Window _opener(win) native "return win.opener;";
+  Window get opener => _createSafe(JS('Window', '#.opener', _window));
 
-  Window get parent => _createSafe(_parent(_window));
-  static Window _parent(win) native "return win.parent;";
+  Window get parent => _createSafe(JS('Window', '#.parent', _window));
 
-  Window get top => _createSafe(_top(_window));
-  static Window _top(win) native "return win.top;";
+  Window get top => _createSafe(JS('Window', '#.top', _window));
 
   // Methods.
-  void focus() => _focus(_window);
-  static void _focus(win) native "win.focus()";
+  void focus() => JS('void', '#.focus()', _window);
 
-  void blur() => _blur(_window);
-  static void _blur(win) native "win.blur()";
+  void blur() => JS('void', '#.blur()', _window);
 
-  void close() => _close(_window);
-  static void _close(win) native "win.close()";
+  void close() => JS('void', '#.close()', _window);
 
   void postMessage(Dynamic message,
                    String targetOrigin,
                    [List messagePorts = null]) {
     if (messagePorts == null) {
-      _postMessage2(_window, message, targetOrigin);
+      JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {
-      _postMessage3(_window, message, targetOrigin, messagePorts);
+      JS('void', '#.postMessage(#,#,#)', _window, message, targetOrigin, messagePorts);
     }
   }
-
-  // TODO(vsm): This is a hack to workaround dartbug.com/3175.  We
-  // need a more robust convention to invoke JS methods on the
-  // underlying window.
-  static void _postMessage2(win, message, targetOrigin) native """
-    win.postMessage(message, targetOrigin);
-""";
-
-  static void _postMessage3(win, message, targetOrigin, messagePorts) native """
-    win.postMessage(message, targetOrigin, messagePorts);
-""";
 
   // Implementation support.
   _DOMWindowCrossFrameImpl(this._window);
@@ -66,6 +51,55 @@ class _DOMWindowCrossFrameImpl implements Window {
     } else {
       // TODO(vsm): Cache or implement equality.
       return new _DOMWindowCrossFrameImpl(w);
+    }
+  }
+}
+
+class _LocationCrossFrameImpl implements Location {
+  // Private location.  Note, this is a location object in another frame, so it
+  // cannot be typed as "Location" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _location;
+
+  void set href(String val) => _setHref(_location, val);
+  static void _setHref(location, val) {
+    JS('void', '#.href = #', _location, val);
+  }
+
+  // Implementation support.
+  _LocationCrossFrameImpl(this._location);
+
+  static Location _createSafe(location) {
+    if (location === window.location) {
+      return location;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _LocationCrossFrameImpl(location);
+    }
+  }
+}
+
+class _HistoryCrossFrameImpl implements History {
+  // Private history.  Note, this is a history object in another frame, so it
+  // cannot be typed as "History" as its prototype is not patched
+  // properly.  Its fields and methods can only be accessed via JavaScript.
+  var _history;
+
+  void back() => JS('void', '#.back()', _history);
+
+  void forward() => JS('void', '#.forward()', _history);
+
+  void go(int distance) => JS('void', '#.go(#)', _history, distance);
+
+  // Implementation support.
+  _HistoryCrossFrameImpl(this._history);
+
+  static History _createSafe(h) {
+    if (h === window.history) {
+      return h;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _HistoryCrossFrameImpl(h);
     }
   }
 }

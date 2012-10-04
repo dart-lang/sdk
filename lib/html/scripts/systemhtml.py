@@ -25,13 +25,13 @@ _js_custom_members = set([
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'TableElement.createTBody',
-    'Window.document',
-    'Window.indexedDB',
-    'Window.location',
-    'Window.open',
-    'Window.top',
-    'Window.webkitCancelAnimationFrame',
-    'Window.webkitRequestAnimationFrame',
+    'LocalWindow.document',
+    'LocalWindow.indexedDB',
+    'LocalWindow.location',
+    'LocalWindow.open',
+    'LocalWindow.top',
+    'LocalWindow.webkitCancelAnimationFrame',
+    'LocalWindow.webkitRequestAnimationFrame',
     ])
 
 # This map controls merging of interfaces in dart:html library.
@@ -51,6 +51,25 @@ _merged_html_interfaces = {
    'HTMLDocument': 'Document',
    'HTMLElement': 'Element'
 }
+
+# Types that are accessible cross-frame in a limited fashion.
+# In these cases, the base type (e.g., Window) provides restricted access
+# while the subtype (e.g., LocalWindow) provides full access to the
+# corresponding objects if there are from the same frame.
+_secure_base_types = {
+  'LocalWindow': 'Window',
+  'LocalLocation': 'Location',
+  'LocalHistory': 'History',
+}
+
+def SecureOutputType(generator, type_name, is_dart_type=False):
+  if is_dart_type:
+    dart_name = type_name
+  else:
+    dart_name = generator._DartType(type_name)
+  if dart_name in _secure_base_types:
+    return _secure_base_types[dart_name]
+  return dart_name
 
 # Information for generating element constructors.
 #
@@ -250,6 +269,9 @@ class HtmlDartInterfaceGenerator(object):
       else:
         suppressed_implements.append('%s.%s' %
             (self._common_prefix, self._DartType(parent.type.id)))
+
+    if typename in _secure_base_types:
+      implements.append(_secure_base_types[typename])
 
     comment = ' extends'
     implements_str = ''
@@ -457,7 +479,7 @@ class HtmlDartInterfaceGenerator(object):
 
       self._members_emitter.Emit(template,
                                  NAME=html_name,
-                                 TYPE=self._DartType(attribute.type.id))
+                                 TYPE=SecureOutputType(self, attribute.type.id))
 
     self._backend.AddAttribute(attribute, html_name, read_only)
 
@@ -492,7 +514,7 @@ class HtmlDartInterfaceGenerator(object):
       else:
         self._members_emitter.Emit('\n'
                                   '  $TYPE $NAME($PARAMS);\n',
-                                  TYPE=self._DartType(info.type_name),
+                                  TYPE=SecureOutputType(self, info.type_name),
                                   NAME=html_name,
                                   PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
@@ -1036,7 +1058,11 @@ class Dart2JSBackend(object):
     return self._NarrowToImplementationType(type_name)
 
   def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
+    secure_name = SecureOutputType(self, type_name)
+    if (type_name == secure_name):
+      return self._NarrowToImplementationType(type_name)
+    else:
+      return secure_name
 
   def _FindShadowedAttribute(self, attr, merged_interfaces={}):
     """Returns (attribute, superinterface) or (None, None)."""

@@ -12,6 +12,7 @@
 
 $!GENERATED_DART_FILES
 
+#source('$AUXILIARY_DIR/CrossFrameTypes.dart');
 #source('$AUXILIARY_DIR/EventListener.dart');
 #source('$AUXILIARY_DIR/KeyLocation.dart');
 #source('$AUXILIARY_DIR/KeyName.dart');
@@ -36,8 +37,8 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/_Lists.dart');
 
 
-Window get window() native "return window;";
-_WindowImpl get _window() native "return window;";
+LocalWindow get window() native "return window;";
+_LocalWindowImpl get _window() native "return window;";
 
 Document get document() native "return document;";
 

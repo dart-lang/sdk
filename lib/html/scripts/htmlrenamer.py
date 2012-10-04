@@ -6,7 +6,9 @@
 html_interface_renames = {
     'DOMCoreException': 'DOMException',
     'DOMFormData': 'FormData',
-    'DOMWindow': 'Window',
+    'DOMWindow': 'LocalWindow',
+    'History': 'LocalHistory',
+    'Location': 'LocalLocation',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitAnimationList': 'AnimationList',
@@ -92,7 +94,7 @@ _private_html_members = set([
   'Storage.key',
   'Storage.removeItem',
   'Storage.setItem',
-  'Window.getComputedStyle',
+  'LocalWindow.getComputedStyle',
 ])
 
 # Members from the standard dom that exist in the dart:html library with
@@ -110,9 +112,9 @@ _renamed_html_members = {
     'SVGElement.className': '$dom_svgClassName',
     'SVGAnimatedString.className': '$dom_svgClassName',
     'SVGStylable.className': '$dom_svgClassName',
-    'Window.webkitCancelAnimationFrame': 'cancelAnimationFrame',
-    'Window.webkitCancelRequestAnimationFrame': 'cancelRequestAnimationFrame',
-    'Window.webkitRequestAnimationFrame': 'requestAnimationFrame',
+    'LocalWindow.webkitCancelAnimationFrame': 'cancelAnimationFrame',
+    'LocalWindow.webkitCancelRequestAnimationFrame': 'cancelRequestAnimationFrame',
+    'LocalWindow.webkitRequestAnimationFrame': 'requestAnimationFrame',
 }
 
 # Members and classes from the dom that should be removed completely from
@@ -278,8 +280,8 @@ _removed_html_members = set([
     "WheelEvent.wheelDelta",
     "WheelEvent.wheelDeltaX",
     "WheelEvent.wheelDeltaY",
-    "Window.get:frameElement",
-    "Window.webkitCancelRequestAnimationFrame",
+    "LocalWindow.get:frameElement",
+    "LocalWindow.webkitCancelRequestAnimationFrame",
     ])
 
 class HtmlRenamer(object):
