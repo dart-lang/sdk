@@ -203,13 +203,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // Try to recognize the length interceptor with input [:new List(int):].
     if (node.isLengthGetter() && node.inputs[1] is HInvokeStatic) {
       HInvokeStatic call = node.inputs[1];
-      Element element = call.target.element;
-      if (element.isConstructor() &&
-          element.enclosingElement.declaration ==
-              compiler.listClass.defaultClass.element) {
-        if (call.inputs.length == 2 && call.inputs[1].isInteger(types)) {
-          return call.inputs[1];
-        }
+      if (isFixedSizeListConstructor(call)) {
+        return call.inputs[1];
       }
     }
     HInstruction input = node.inputs[1];
@@ -248,6 +243,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
+    return node;
+  }
+
+  bool isFixedSizeListConstructor(HInvokeStatic node) {
+    Element element = node.inputs[0].element;
+    return element.isConstructor()
+        && element.enclosingElement == compiler.listClass.defaultClass.element
+        && node.inputs.length == 2
+        && node.inputs[1].isInteger(types);
+  }
+
+  HInstruction visitInvokeStatic(HInvokeStatic node) {
+    if (isFixedSizeListConstructor(node)) {
+      node.guaranteedType = HType.FIXED_ARRAY;
+    }
     return node;
   }
 

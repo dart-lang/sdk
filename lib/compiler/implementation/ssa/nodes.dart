@@ -869,6 +869,7 @@ abstract class HInstruction implements Spannable {
   bool isReadableArray(HTypeMap types) => types[this].isReadableArray();
   bool isMutableArray(HTypeMap types) => types[this].isMutableArray();
   bool isExtendableArray(HTypeMap types) => types[this].isExtendableArray();
+  bool isFixedArray(HTypeMap types) => types[this].isFixedArray();
   bool isBoolean(HTypeMap types) => types[this].isBoolean();
   bool isInteger(HTypeMap types) => types[this].isInteger();
   bool isDouble(HTypeMap types) => types[this].isDouble();
@@ -1479,11 +1480,11 @@ class HInvokeInterceptor extends HInvokeStatic {
     clearAllSideEffects();
     if (isLengthGetterOnStringOrArray(types)) {
       setUseGvn();
-      // If the input is a string, we know the length cannot change.
-      // We cannot do the same thing for non-extendable array because
-      // we don't express that type yet: a mutable array might be
-      // extendable.
-      if (!inputs[1].isString(types)) setDependsOnInstancePropertyStore();
+      // If the input is a string or a fixed length array, we know
+      // the length cannot change.
+      if (!inputs[1].isString(types) && !inputs[1].isFixedArray(types)) {
+        setDependsOnInstancePropertyStore();
+      }
     } else if (isSideEffectFree) {
       setUseGvn();
       setDependsOnSomething();

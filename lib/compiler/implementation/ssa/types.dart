@@ -52,6 +52,7 @@ abstract class HType {
   static const HType STRING = const HStringType();
   static const HType READABLE_ARRAY = const HReadableArrayType();
   static const HType MUTABLE_ARRAY = const HMutableArrayType();
+  static const HType FIXED_ARRAY = const HFixedArrayType();
   static const HType EXTENDABLE_ARRAY = const HExtendableArrayType();
   static const HType NULL = const HNullType();
 
@@ -75,6 +76,7 @@ abstract class HType {
   bool isDoubleOrNull() => false;
   bool isStringOrNull() => false;
   bool isIndexablePrimitive() => false;
+  bool isFixedArray() => false;
   bool isReadableArray() => false;
   bool isMutableArray() => false;
   bool isExtendableArray() => false;
@@ -609,6 +611,34 @@ class HMutableArrayType extends HReadableArrayType {
   }
 }
 
+class HFixedArrayType extends HMutableArrayType {
+  const HFixedArrayType();
+  bool isFixedArray() => true;
+  String toString() => "fixed array";
+
+  HType union(HType other) {
+    if (other.isConflicting()) return HType.FIXED_ARRAY;
+    if (other.isUnknown()) return HType.UNKNOWN;
+    if (other.isFixedArray()) return HType.FIXED_ARRAY;
+    if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
+    if (other.isReadableArray()) return HType.READABLE_ARRAY;
+    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
+    if (other is HBoundedPotentialPrimitiveArray) return other;
+    return HType.UNKNOWN;
+  }
+
+  HType intersection(HType other) {
+    if (other.isConflicting()) return HType.CONFLICTING;
+    if (other.isUnknown()) return HType.FIXED_ARRAY;
+    if (other.isFixedArray()) return HType.FIXED_ARRAY;
+    if (other.isExtendableArray()) return HType.CONFLICTING;
+    if (other.isString()) return HType.CONFLICTING;
+    if (other.isIndexablePrimitive()) return HType.FIXED_ARRAY;
+    if (other is HBoundedPotentialPrimitiveArray) return HType.FIXED_ARRAY;
+    return HType.CONFLICTING;
+  }
+}
+
 class HExtendableArrayType extends HMutableArrayType {
   const HExtendableArrayType();
   bool isExtendableArray() => true;
@@ -630,6 +660,7 @@ class HExtendableArrayType extends HMutableArrayType {
     if (other.isUnknown()) return HType.EXTENDABLE_ARRAY;
     if (other.isExtendableArray()) return HType.EXTENDABLE_ARRAY;
     if (other.isString()) return HType.CONFLICTING;
+    if (other.isFixedArray()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.EXTENDABLE_ARRAY;
     if (other is HBoundedPotentialPrimitiveArray) return HType.EXTENDABLE_ARRAY;
     return HType.CONFLICTING;
