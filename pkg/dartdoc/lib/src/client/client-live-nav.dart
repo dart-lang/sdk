@@ -19,9 +19,7 @@
 #source('client-shared.dart');
 
 main() {
-  setupLocation();
-
-  enableCodeBlocks();
+  setup();
 
   // Request the navigation data so we can build the HTML for it.
   new HttpRequest.get('${prefix}nav.json', (request) {

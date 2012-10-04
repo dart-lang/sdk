@@ -19,9 +19,6 @@
 #source('../../../tmp/nav.dart');
 
 main() {
-  setupLocation();
-
-  enableCodeBlocks();
-
+  setup();
   setupSearch(json);
 }

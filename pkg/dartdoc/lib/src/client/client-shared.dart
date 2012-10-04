@@ -11,6 +11,12 @@ String currentType = null;
 // What we need to prefix relative URLs with to get them to work.
 String prefix = '';
 
+void setup() {
+  setupLocation();
+  setupShortcuts();
+  enableCodeBlocks();
+}
+
 void setupLocation() {
   // Figure out where we are.
   final body = document.query('body');
