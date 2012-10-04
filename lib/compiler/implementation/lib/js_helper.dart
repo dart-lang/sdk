@@ -389,7 +389,10 @@ class Primitives {
       return;
     }
 
-    throw 'Unable to print message: ${NoSuchMethodError.safeToString(string)}';
+    // This is somewhat nasty, but we don't want to drag in a bunch of
+    // dependencies to handle a situation that cannot happen. So we
+    // avoid using Dart [:throw:] and Dart [toString].
+    JS('void', "throw 'Unable to print message: ' + String(#)", string);
   }
 
   static int parseInt(String string) {
