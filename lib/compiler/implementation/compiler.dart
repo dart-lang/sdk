@@ -57,7 +57,7 @@ class WorkItem {
   }
 }
 
-class Backend {
+abstract class Backend {
   final Compiler compiler;
   final ConstantSystem constantSystem;
 
@@ -78,6 +78,9 @@ class Backend {
   abstract void assembleProgram();
   abstract List<CompilerTask> get tasks;
 
+  // TODO(ahe,karlklose): rename this?
+  void dumpInferredTypes() {}
+
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
   }
@@ -85,7 +88,7 @@ class Backend {
   SourceString getCheckedModeHelper(DartType type) => null;
 }
 
-class Compiler implements DiagnosticListener {
+abstract class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
   World world;
@@ -493,18 +496,7 @@ class Compiler implements DiagnosticListener {
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
-      print("Inferred argument types:");
-      print("------------------------");
-      backend.argumentTypes.dump();
-      print("");
-      print("Inferred return types:");
-      print("----------------------");
-      backend.dumpReturnTypes();
-      print("");
-      print("Inferred field types:");
-      print("------------------------");
-      backend.fieldTypes.dump();
-      print("");
+      backend.dumpInferredTypes();
     }
   }
 
@@ -751,6 +743,8 @@ class Compiler implements DiagnosticListener {
     unimplemented('Compiler.legDirectory');
   }
 
+  // TODO(karlklose): split into findHelperFunction and findHelperClass and
+  // add a check that the element has the expected kind.
   Element findHelper(SourceString name)
       => jsHelperLibrary.findLocal(name);
   Element findInterceptor(SourceString name)

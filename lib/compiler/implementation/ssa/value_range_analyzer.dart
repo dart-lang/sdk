@@ -189,7 +189,7 @@ class LengthValue extends InstructionValue {
 class OperationValue extends Value {
   final Value left;
   final Value right;
-  final Operation operation;
+  final BinaryOperation operation;
   OperationValue(this.left, this.right, this.operation);
 
   bool operator ==(other) {
@@ -398,7 +398,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitConstant(HConstant constant) {
     if (!constant.isInteger(types)) return const Range.unbound();
-    Value value = new IntValue(constant.constant.value);
+    IntConstant constantInt = constant.constant;
+    Value value = new IntValue(constantInt.value);
     return new Range(value, value);
   }
 

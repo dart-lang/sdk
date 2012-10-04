@@ -741,7 +741,7 @@ class HBasicBlock extends HInstructionList {
 }
 
 
-class HInstruction implements Spannable {
+abstract class HInstruction implements Spannable {
   Element sourceElement;
   SourceFileLocation sourcePosition;
 
@@ -1060,6 +1060,7 @@ class HInstruction implements Spannable {
   bool isConstantMap() => false;
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
+  bool isConstantSentinel() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1240,7 +1241,7 @@ class HIntegerCheck extends HCheck {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HConditionalBranch extends HControlFlow {
+abstract class HConditionalBranch extends HControlFlow {
   HConditionalBranch(inputs) : super(inputs);
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block.successors[0];
@@ -1248,7 +1249,7 @@ class HConditionalBranch extends HControlFlow {
   abstract toString();
 }
 
-class HControlFlow extends HInstruction {
+abstract class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
   void prepareGvn(HTypeMap types) {
@@ -1258,7 +1259,7 @@ class HControlFlow extends HInstruction {
   bool isJsStatement(HTypeMap types) => true;
 }
 
-class HInvoke extends HInstruction {
+abstract class HInvoke extends HInstruction {
   /**
     * The first argument must be the target: either an [HStatic] node, or
     * the receiver of a method-call. The remaining inputs are the arguments
@@ -1271,7 +1272,7 @@ class HInvoke extends HInstruction {
   abstract accept(HVisitor visitor);
 }
 
-class HInvokeDynamic extends HInvoke {
+abstract class HInvokeDynamic extends HInvoke {
   final Selector selector;
   Element element;
 
@@ -1297,7 +1298,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
-class HInvokeDynamicField extends HInvokeDynamic {
+abstract class HInvokeDynamicField extends HInvokeDynamic {
   HInvokeDynamicField(Selector selector, Element element,
                       List<HInstruction> inputs)
       : super(selector, element, inputs);
@@ -1570,7 +1571,7 @@ class HForeignNew extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
-class HInvokeBinary extends HInvokeStatic {
+abstract class HInvokeBinary extends HInvokeStatic {
   HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
       : super(<HInstruction>[target, left, right]);
 
@@ -1581,7 +1582,7 @@ class HInvokeBinary extends HInvokeStatic {
   abstract isBuiltin(HTypeMap types);
 }
 
-class HBinaryArithmetic extends HInvokeBinary {
+abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
@@ -1637,7 +1638,6 @@ class HBinaryArithmetic extends HInvokeBinary {
     return HType.UNKNOWN;
   }
 
-  // TODO(1603): The class should be marked as abstract.
   abstract BinaryOperation operation(ConstantSystem constantSystem);
 }
 
@@ -1751,7 +1751,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
 
 // TODO(floitsch): Should HBinaryArithmetic really be the super class of
 // HBinaryBitOp?
-class HBinaryBitOp extends HBinaryArithmetic {
+abstract class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
@@ -1856,7 +1856,7 @@ class HBitXor extends HBinaryBitOp {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HInvokeUnary extends HInvokeStatic {
+abstract class HInvokeUnary extends HInvokeStatic {
   HInvokeUnary(HStatic target, HInstruction input)
       : super(<HInstruction>[target, input]);
 
@@ -2186,7 +2186,7 @@ class HPhi extends HInstruction {
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
-class HRelational extends HInvokeBinary {
+abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
   HRelational(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);

@@ -76,7 +76,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       Map<Element, String> parameterNames = getParameterNames(work);
       // Use [work.element] to ensure that the parameter element come from
       // the declaration.
-      work.element.computeSignature(compiler).forEachParameter((element) {
+      FunctionElement function = work.element;
+      function.computeSignature(compiler).forEachParameter((element) {
         compiler.enqueuer.codegen.addToWorkList(element);
       });
       List<js.Parameter> parameters = <js.Parameter>[];
@@ -178,7 +179,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 typedef void ElementAction(Element element);
 
-class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
+abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
    * Returned by [expressionType] to tell how code can be generated for
    * a subgraph.
@@ -1816,6 +1817,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ">=" : "<"
       };
       HRelational relational = input;
+      
       visitInvokeBinary(input,
                         inverseOperator[relational.operation.name.stringValue]);
     } else {
@@ -2448,7 +2450,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           helper = castNames[helper.stringValue];
         }
       }
-      Element helperElement = compiler.findHelper(helper);
+      FunctionElement helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);

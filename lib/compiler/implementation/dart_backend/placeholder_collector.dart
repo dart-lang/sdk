@@ -464,7 +464,7 @@ class PlaceholderCollector extends Visitor {
       if (hasPrefix &&
           (typeElement.getLibrary() === coreLibrary ||
           typeElement === dynamicTypeElement)) {
-        makeNullPlaceholder(node.typeName.receiver);
+        makeNullPlaceholder(node.typeName.asSend().receiver);
       } else {
         if (typeElement !== dynamicTypeElement) {
           makeTypePlaceholder(target, type);

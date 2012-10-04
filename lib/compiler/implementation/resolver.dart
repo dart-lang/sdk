@@ -2798,7 +2798,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 }
 
-class Scope {
+abstract class Scope {
   final Element element;
   final Scope parent;
 

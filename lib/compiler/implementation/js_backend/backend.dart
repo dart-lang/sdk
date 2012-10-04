@@ -925,4 +925,19 @@ class JavaScriptBackend extends Backend {
       }
     }
   }
+
+  void dumpInferredTypes() {
+    print("Inferred argument types:");
+    print("------------------------");
+    argumentTypes.dump();
+    print("");
+    print("Inferred return types:");
+    print("----------------------");
+    dumpReturnTypes();
+    print("");
+    print("Inferred field types:");
+    print("------------------------");
+    fieldTypes.dump();
+    print("");
+  }
 }

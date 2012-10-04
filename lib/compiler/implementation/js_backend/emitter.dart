@@ -552,7 +552,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       return null;
     } else {
       SourceString helper = compiler.backend.getCheckedModeHelper(type);
-      Element helperElement = compiler.findHelper(helper);
+      FunctionElement helperElement = compiler.findHelper(helper);
       String helperName = namer.isolateAccess(helperElement);
       String additionalArgument = '';
       if (helperElement.computeSignature(compiler).parameterCount != 1) {
@@ -670,7 +670,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       }
     });
 
-    generateIsTestsOn(classElement, (Element other) {
+    generateIsTestsOn(classElement, (ClassElement other) {
       String code;
       if (other.isObject(compiler)) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {

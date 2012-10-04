@@ -1221,7 +1221,7 @@ abstract class TypeDeclarationElement implements Element {
   }
 }
 
-class ClassElement extends ScopeContainerElement
+abstract class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
   final int id;
   InterfaceType type;
@@ -1246,6 +1246,8 @@ class ClassElement extends ScopeContainerElement
     : supertypeLoadState = initialState,
       resolutionState = initialState,
       super(name, ElementKind.CLASS, enclosing);
+
+  abstract ClassNode parseNode(Compiler compiler);
 
   InterfaceType computeType(compiler) {
     if (type == null) {

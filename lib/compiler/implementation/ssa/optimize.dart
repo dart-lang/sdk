@@ -203,7 +203,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // Try to recognize the length interceptor with input [:new List(int):].
     if (node.isLengthGetter() && node.inputs[1] is HInvokeStatic) {
       HInvokeStatic call = node.inputs[1];
-      Element element = call.inputs[0].element;
+      Element element = call.target.element;
       if (element.isConstructor() &&
           element.enclosingElement.declaration ==
               compiler.listClass.defaultClass.element) {
