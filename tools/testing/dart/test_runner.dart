@@ -22,7 +22,7 @@ const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
-typedef bool EnqueMoreWork(ProcessQueue queue);
+typedef bool EnqueueMoreWork(ProcessQueue queue);
 
 /** A command executed as a step in a test case. */
 class Command {
@@ -953,7 +953,8 @@ class ProcessQueue {
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
-  EnqueMoreWork _enqueueMoreWork;
+  Function _allDone;
+  EnqueueMoreWork _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
 
@@ -988,6 +989,7 @@ class ProcessQueue {
                Date startTime,
                bool printTiming,
                this._enqueueMoreWork,
+               this._allDone,
                [bool verbose = false,
                 bool listTests = false])
       : _verbose = verbose,
@@ -998,7 +1000,7 @@ class ProcessQueue {
                                                    printTiming),
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
-    if (!_enqueueMoreWork(this)) _progress.allDone();
+    _checkDone();
   }
 
   /**
@@ -1019,8 +1021,11 @@ class ProcessQueue {
    * and notify our progress indicator that we are done.
    */
   void _cleanupAndMarkDone() {
+    // _progress.allDone() exits the process, so we have to call the
+    // _allDone callback before.
+    _allDone();
     if (browserUsed != '' && _seleniumServer != null) {
-        _seleniumServer.kill();
+      _seleniumServer.kill();
     } else {
       _progress.allDone();
     }
@@ -1029,7 +1034,11 @@ class ProcessQueue {
   void _checkDone() {
     // When there are no more active test listers ask for more work
     // from process queue users.
-    if (_activeTestListers == 0 && !_enqueueMoreWork(this)) {
+    if (_activeTestListers == 0) {
+     _enqueueMoreWork(this);
+    }
+    // If there is still no work, we are done.
+    if (_activeTestListers == 0) {
       _progress.allTestsKnown();
       if (_tests.isEmpty() && _numProcesses == 0) {
         _terminateBatchRunners();

@@ -29,6 +29,7 @@
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
 #import("testing/dart/test_progress.dart");
+#import("testing/dart/http_server.dart");
 
 #import("../compiler/tests/dartc/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
@@ -97,10 +98,8 @@ main() {
   }
 
   var configurationIterator = configurations.iterator();
-  bool enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) {
-      return false;
-    }
+  void enqueueConfiguration(ProcessQueue queue) {
+    if (!configurationIterator.hasNext()) return;
 
     var conf = configurationIterator.next();
     for (String key in selectors.getKeys()) {
@@ -123,16 +122,21 @@ main() {
             new StandardTestSuite.forDirectory(conf, testSuiteDir));
       }
     }
-
-    return true;
   }
 
+  // Start global http server that serves the entire dart repo.
+  // The http server is available on localhost:9876 for any
+  // test that needs to load resources from the repo over http.
+  startHttpServer('127.0.0.1', 9876);
+
   // Start process queue.
-  var queue = new ProcessQueue(maxProcesses,
-                               progressIndicator,
-                               startTime,
-                               printTiming,
-                               enqueueConfiguration,
-                               verbose,
-                               listTests);
+  new ProcessQueue(
+      maxProcesses,
+      progressIndicator,
+      startTime,
+      printTiming,
+      enqueueConfiguration,
+      () => terminateHttpServer(),
+      verbose,
+      listTests);
 }

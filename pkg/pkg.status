@@ -26,17 +26,12 @@ intl/test/find_default_locale_standalone_test: Skip
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
-# Skip http request tests on Windows until we are able to spawn
-# the http server there.
-[ $system == windows]
-intl/test/date_time_format_http_request_test: Skip
-
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
 intl/test/date_time_format_http_request_test: Skip
 
-# Skip intl_message tests that use mirrors on dart2js until it's been 
+# Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
 [ $compiler == dart2js ]
 intl/test/intl_message_test: Skip

@@ -220,7 +220,7 @@ class SilentProgressIndicator extends ProgressIndicator {
   }
 }
 
-class CompactIndicator extends ProgressIndicator {
+abstract class CompactIndicator extends ProgressIndicator {
   CompactIndicator(Date startTime, bool printTiming)
       : super(startTime, printTiming);
 
@@ -250,7 +250,7 @@ class CompactIndicator extends ProgressIndicator {
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
 
-  abstract void _printProgress();
+  void _printProgress();
 }
 
 
