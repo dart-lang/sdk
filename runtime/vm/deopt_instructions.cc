@@ -421,6 +421,13 @@ class DeoptPcMarkerInstr : public DeoptInstr {
                          AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = pc_marker;
+    // Increment the deoptimization counter. This effectively increments each
+    // function occurring in the optimized frame.
+    function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+    // Clear invocation counter so that hopefully the function gets reoptimized
+    // only after more feedback has been collected.
+    function.set_usage_counter(0);
+    if (function.HasOptimizedCode()) function.SwitchToUnoptimizedCode();
   }
 
  private:

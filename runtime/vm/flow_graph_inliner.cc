@@ -107,6 +107,14 @@ class CallSiteInliner : public FlowGraphVisitor {
     // Assuming no optional parameters the actual/formal count should match.
     ASSERT(arguments->length() == function.num_fixed_parameters());
 
+    // Abort if this function has deoptimized too much.
+    if (function.deoptimization_counter() >=
+        FLAG_deoptimization_counter_threshold) {
+      function.set_is_inlinable(false);
+      TRACE_INLINING(OS::Print("     Bailout: deoptimization threshold\n"));
+      return false;
+    }
+
     // Abort if this is a recursive occurrence.
     if (IsCallRecursive(function, call)) {
       function.set_is_inlinable(false);
@@ -139,9 +147,7 @@ class CallSiteInliner : public FlowGraphVisitor {
       parsed_function.AllocateVariables();
 
       // Load IC data for the callee.
-      if ((function.deoptimization_counter() <
-           FLAG_deoptimization_counter_threshold) &&
-          function.HasCode()) {
+      if (function.HasCode()) {
         const Code& unoptimized_code =
             Code::Handle(function.unoptimized_code());
         isolate->set_ic_data_array(unoptimized_code.ExtractTypeFeedbackArray());

@@ -1581,11 +1581,13 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   CopyFrame(optimized_code, *caller_frame);
   if (FLAG_trace_deoptimization) {
-    OS::Print("Deoptimizing (reason %d '%s') at pc %#"Px" '%s'\n",
+    Function& function = Function::Handle(optimized_code.function());
+    OS::Print("Deoptimizing (reason %d '%s') at pc %#"Px" '%s' (count %d)\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
-        Function::Handle(optimized_code.function()).ToFullyQualifiedCString());
+        function.ToFullyQualifiedCString(),
+        function.deoptimization_counter());
   }
 
   // Compute the stack size of the unoptimized frame.  For functions with
@@ -1679,14 +1681,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   delete[] cpu_registers_copy;
   delete[] xmm_registers_copy;
 
-  // Clear invocation counter so that the function gets optimized after
-  // classes have been collected.
-  function.set_usage_counter(0);
-  function.set_deoptimization_counter(function.deoptimization_counter() + 1);
-
-  if (function.HasOptimizedCode()) {
-    function.SwitchToUnoptimizedCode();
-  }
   return caller_fp;
 }
 END_LEAF_RUNTIME_ENTRY
