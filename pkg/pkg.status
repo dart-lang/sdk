@@ -32,7 +32,7 @@ intl/test/date_time_format_http_request_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
 [ $compiler == dart2js && $runtime == ff ]
-intl/test/date_time_format_http_request_test: Slow, Pass # Issue 5649
+intl/test/date_time_format_http_request_test: Skip # Issue 5649
 
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
