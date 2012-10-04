@@ -141,12 +141,6 @@ def MatchSourceFilter(thing):
   return 'WebKit' in thing.annotations or 'Dart' in thing.annotations
 
 
-def DartType(idl_type_name):
-  if idl_type_name in _idl_type_registry:
-    return _idl_type_registry[idl_type_name].dart_type or idl_type_name
-  return idl_type_name
-
-
 class ParamInfo(object):
   """Holder for various information about a parameter of a Dart operation.
 
@@ -187,11 +181,15 @@ def _BuildArguments(args, interface, constructor=False):
   def OverloadedName(args):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
 
+  def DartType(idl_type_name):
+   if idl_type_name in _idl_type_registry:
+     return _idl_type_registry[idl_type_name].dart_type or idl_type_name
+   return idl_type_name
+
   # Given a list of overloaded arguments, choose a suitable type.
   def OverloadedType(args):
     type_ids = sorted(set(arg.type.id for arg in args))
-    dart_types = sorted(set(DartType(arg.type.id) for arg in args))
-    if len(dart_types) == 1:
+    if len(set(DartType(arg.type.id) for arg in args)) == 1:
       if len(type_ids) == 1:
         return (type_ids[0], type_ids[0])
       else:

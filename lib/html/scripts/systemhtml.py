@@ -165,7 +165,8 @@ def HtmlElementConstructorInfos(typename):
     infos = [infos]
   return infos
 
-def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name):
+def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
+                                       dart_type):
   for info in infos:
     constructor_info = info.ConstructorInfo(typename)
 
@@ -177,10 +178,10 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name):
         '    return _e;\n'
         '  }\n',
         RETURN_TYPE=constructor_info.type_name,
-        CONSTRUCTOR=constructor_info.ConstructorFactoryName(DartType),
+        CONSTRUCTOR=constructor_info.ConstructorFactoryName(dart_type),
         CLASS=class_name,
         TAG=info.tag,
-        PARAMS=constructor_info.ParametersInterfaceDeclaration(DartType))
+        PARAMS=constructor_info.ParametersInterfaceDeclaration(dart_type))
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
@@ -216,8 +217,8 @@ class HtmlDartInterfaceGenerator(object):
     code.Emit(self._template_loader.Load('callback.darttemplate'))
     code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=self._interface.id,
-              TYPE=DartType(info.type_name),
-              PARAMS=info.ParametersImplementationDeclaration(DartType))
+              TYPE=self._DartType(info.type_name),
+              PARAMS=info.ParametersImplementationDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
@@ -282,7 +283,8 @@ class HtmlDartInterfaceGenerator(object):
           self._library_emitter.FileEmitter('_Elements', template),
           infos,
           self._html_interface_name,
-          self._backend.ImplementationClassName())
+          self._backend.ImplementationClassName(),
+          self._DartType)
 
     for info in infos:
       constructors.append(info.ConstructorInfo(typename))
@@ -919,7 +921,7 @@ class Dart2JSBackend(object):
           verified_type = temp_type  # verified by assignment in checked mode.
         else:
           arguments.append(parameter_names[position])
-          param_type = self._NarrowInputType(DartType(arg.type.id))
+          param_type = self._NarrowInputType(arg.type.id)
           # Verified by argument checking on entry to the dispatcher.
           verified_type = InputType(info.param_infos[position].dart_type)
 
