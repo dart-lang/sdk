@@ -202,8 +202,10 @@ module html {
 }
 
 module css {
+  [Supplemental]
   interface CSSStyleDeclaration {
     void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
+    [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
   };
 };
 

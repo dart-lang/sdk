@@ -797,6 +797,9 @@ $!MEMBERS
   /** Sets the value of "font-weight" */
   void set fontWeight(var value);
 
+  /** @domName CSSStyleDeclaration.getPropertyValue. */
+  String getPropertyValue(String propertyName);
+
   /** Gets the value of "height" */
   String get height;
 

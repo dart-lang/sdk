@@ -23,16 +23,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
 $!MEMBERS
 
-$if DART2JS
   String getPropertyValue(String propertyName) {
-    var propValue = JS('Object', '#.getPropertyValue(#)', this, propertyName);
-    if (propValue == null) {
-      return '';
-    } else {
-      return propValue;
-    }
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
   }
 
+$if DART2JS
   void setProperty(String propertyName, String value, [String priority]) native '''
     this.setProperty(propertyName, value, priority);
     // Bug #2772, IE9 requires a poke to actually apply the value.

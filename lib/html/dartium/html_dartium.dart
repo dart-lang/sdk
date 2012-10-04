@@ -2929,9 +2929,6 @@ abstract class CSSStyleDeclaration  {
   /** @domName CSSStyleDeclaration.getPropertyShorthand */
   String getPropertyShorthand(String propertyName);
 
-  /** @domName CSSStyleDeclaration.getPropertyValue */
-  String getPropertyValue(String propertyName);
-
   /** @domName CSSStyleDeclaration.isPropertyImplicit */
   bool isPropertyImplicit(String propertyName);
 
@@ -3730,6 +3727,9 @@ abstract class CSSStyleDeclaration  {
 
   /** Sets the value of "font-weight" */
   void set fontWeight(var value);
+
+  /** @domName CSSStyleDeclaration.getPropertyValue. */
+  String getPropertyValue(String propertyName);
 
   /** Gets the value of "height" */
   String get height;
@@ -4825,7 +4825,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
 
-  String getPropertyValue(String propertyName) native "CSSStyleDeclaration_getPropertyValue_Callback";
+  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
 
   bool isPropertyImplicit(String propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
 
@@ -4835,6 +4835,11 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
+
+  String getPropertyValue(String propertyName) {
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
+  }
 
 
   // TODO(jacobr): generate this list of properties using the existing script.

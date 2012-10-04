@@ -2334,9 +2334,6 @@ abstract class CSSStyleDeclaration  {
   /** @domName CSSStyleDeclaration.getPropertyShorthand */
   String getPropertyShorthand(String propertyName);
 
-  /** @domName CSSStyleDeclaration.getPropertyValue */
-  String getPropertyValue(String propertyName);
-
   /** @domName CSSStyleDeclaration.isPropertyImplicit */
   bool isPropertyImplicit(String propertyName);
 
@@ -3135,6 +3132,9 @@ abstract class CSSStyleDeclaration  {
 
   /** Sets the value of "font-weight" */
   void set fontWeight(var value);
+
+  /** @domName CSSStyleDeclaration.getPropertyValue. */
+  String getPropertyValue(String propertyName);
 
   /** Gets the value of "height" */
   String get height;
@@ -4228,6 +4228,8 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
 
   String getPropertyShorthand(String propertyName) native;
 
+  String _getPropertyValue(String propertyName) native "getPropertyValue";
+
   bool isPropertyImplicit(String propertyName) native;
 
   String item(int index) native;
@@ -4236,12 +4238,8 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
 
 
   String getPropertyValue(String propertyName) {
-    var propValue = JS('Object', '#.getPropertyValue(#)', this, propertyName);
-    if (propValue == null) {
-      return '';
-    } else {
-      return propValue;
-    }
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
   }
 
   void setProperty(String propertyName, String value, [String priority]) native '''
