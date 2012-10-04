@@ -1958,19 +1958,20 @@ class _HttpClient implements HttpClient {
 
   HttpClientConnection open(
       String method, String host, int port, String path) {
-    return _open(method, host, port, path);
+    // TODO(sgjesse): The path set here can contain both query and
+    // fragment. They should be cracked and set correctly.
+    return _open(method, new Uri.fromComponents(
+        scheme: "http", domain: host, port: port, path: path));
   }
 
   HttpClientConnection _open(String method,
-                             String host,
-                             int port,
-                             String path,
+                             Uri uri,
                              [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
-    if (method == null || host == null || port == null || path == null) {
+    if (method == null || uri.domain.isEmpty() == null) {
       throw new ArgumentError(null);
     }
-    return _prepareHttpClientConnection(host, port, method, path, connection);
+    return _prepareHttpClientConnection(method, uri, connection);
   }
 
   HttpClientConnection openUrl(String method, Uri url) {
@@ -1986,28 +1987,17 @@ class _HttpClient implements HttpClient {
     if (url.userInfo != "") {
       throw new HttpException("Unsupported user info ${url.userInfo}");
     }
-    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
-    String path;
-    if (url.query != "") {
-      if (url.fragment != "") {
-        path = "${url.path}?${url.query}#${url.fragment}";
-      } else {
-        path = "${url.path}?${url.query}";
-      }
-    } else {
-      path = url.path;
-    }
-    return _open(method, url.domain, port, path, connection);
+    return _open(method, url, connection);
   }
 
   HttpClientConnection get(String host, int port, String path) {
-    return _open("GET", host, port, path);
+    return open("GET", host, port, path);
   }
 
   HttpClientConnection getUrl(Uri url) => _openUrl("GET", url);
 
   HttpClientConnection post(String host, int port, String path) {
-    return _open("POST", host, port, path);
+    return open("POST", host, port, path);
   }
 
   HttpClientConnection postUrl(Uri url) => _openUrl("POST", url);
@@ -2036,15 +2026,26 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection _prepareHttpClientConnection(
-    String host,
-    int port,
     String method,
-    String path,
+    Uri url,
     [_HttpClientConnection connection]) {
+
+    String host = url.domain;
+    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
 
     void _connectionOpened(_SocketConnection socketConn,
                            _HttpClientConnection connection) {
       connection._connectionEstablished(socketConn);
+      String path;
+      if (url.query != "") {
+        if (url.fragment != "") {
+          path = "${url.path}?${url.query}#${url.fragment}";
+        } else {
+          path = "${url.path}?${url.query}";
+        }
+      } else {
+        path = url.path;
+      }
       HttpClientRequest request = connection.open(method, path);
       request.headers.host = host;
       request.headers.port = port;
@@ -2158,6 +2159,7 @@ class _HttpClient implements HttpClient {
   Map<String, Queue<_SocketConnection>> _openSockets;
   Set<_SocketConnection> _activeSockets;
   Timer _evictionTimer;
+  Function _findProxy;
   bool _shutdown;  // Has this HTTP client been shutdown?
 }
 
