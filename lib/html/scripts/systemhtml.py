@@ -83,7 +83,7 @@ class ElementConstructorInfo(object):
 
 _html_element_constructors = {
   'AnchorElement' :
-    ElementConstructorInfo(tag='a', opt_params=[('String', 'href')]),
+    ElementConstructorInfo(tag='a', opt_params=[('DOMString', 'href')]),
   'AreaElement': 'area',
   'ButtonElement': 'button',
   'BRElement': 'br',
@@ -113,10 +113,10 @@ _html_element_constructors = {
   'IFrameElement': 'iframe',
   'ImageElement':
     ElementConstructorInfo(tag='img',
-                           opt_params=[('String', 'src'),
+                           opt_params=[('DOMString', 'src'),
                                        ('int', 'width'), ('int', 'height')]),
   'InputElement':
-    ElementConstructorInfo(tag='input', opt_params=[('String', 'type')]),
+    ElementConstructorInfo(tag='input', opt_params=[('DOMString', 'type')]),
   'KeygenElement': 'keygen',
   'LIElement': 'li',
   'LabelElement': 'label',
@@ -165,7 +165,7 @@ def HtmlElementConstructorInfos(typename):
   return infos
 
 def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
-                                       dart_type):
+                                       rename_type):
   for info in infos:
     constructor_info = info.ConstructorInfo(typename)
 
@@ -176,11 +176,11 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
         '$!INITS'
         '    return _e;\n'
         '  }\n',
-        RETURN_TYPE=constructor_info.type_name,
-        CONSTRUCTOR=constructor_info.ConstructorFactoryName(dart_type),
+        RETURN_TYPE=rename_type(constructor_info.type_name),
+        CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
         CLASS=class_name,
         TAG=info.tag,
-        PARAMS=constructor_info.ParametersInterfaceDeclaration(dart_type))
+        PARAMS=constructor_info.ParametersInterfaceDeclaration(rename_type))
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
@@ -281,12 +281,12 @@ class HtmlDartInterfaceGenerator(object):
       EmitHtmlElementFactoryConstructors(
           self._library_emitter.FileEmitter('_Elements', template),
           infos,
-          self._html_interface_name,
+          self._interface.id,
           self._backend.ImplementationClassName(),
           self._DartType)
 
     for info in infos:
-      constructors.append(info.ConstructorInfo(typename))
+      constructors.append(info.ConstructorInfo(self._interface.id))
       if factory_provider:
         assert factory_provider == info.factory_provider_name
       else:
@@ -899,7 +899,7 @@ class Dart2JSBackend(object):
         (stmts_emitter, call_emitter) = body.Emit('$!A$!B', INDENT='    ');
 
       method_version[0] += 1
-      target = '_%s_%d' % (html_name, method_version[0])
+      target = '_%s_%d' % (html_name, method_version[0]);
       arguments = []
       target_parameters = []
       for position, arg in enumerate(operation.arguments[:argument_count]):
@@ -1041,6 +1041,8 @@ class Dart2JSBackend(object):
     return False
 
   def _NarrowToImplementationType(self, type_name):
+    if type_name == 'Dynamic':
+      return type_name
     if self._ShouldNarrowToImplementationType(type_name):
       return self._ImplClassName(self._DartType(type_name))
     return self._DartType(type_name)

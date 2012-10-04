@@ -373,7 +373,7 @@ module html {
     [Supplemental,
      CustomConstructor,
      // Provide missing constructor signature.
-     Constructor([Optional] in FormElement form)]
+     Constructor([Optional] in HTMLFormElement form)]
     interface DOMFormData {
     };
 }

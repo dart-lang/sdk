@@ -345,9 +345,13 @@ class OperationInfo(object):
 
   def ParametersInterfaceDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the interface."""
-    return self._FormatParams(
-        self.param_infos, None,
-        lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
+    def type_function(param):
+      # TODO(podivilov): replace param.dart_type field with param.is_optional
+      dart_type = param.dart_type
+      if dart_type != 'Dynamic':
+        dart_type = rename_type(dart_type)
+      return TypeOrNothing(dart_type, param.type_id)
+    return self._FormatParams(self.param_infos, None, type_function)
 
   def ParametersImplementationDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the
@@ -357,9 +361,13 @@ class OperationInfo(object):
       rename_type: A function that allows the types to be renamed.
         The function is applied to the parameter's dart_type.
     """
-    return self._FormatParams(
-        self.param_infos, 'null',
-        lambda param: TypeOrNothing(rename_type(param.dart_type)))
+    def type_function(param):
+      # TODO(podivilov): replace param.dart_type field with param.is_optional
+      dart_type = param.dart_type
+      if dart_type != 'Dynamic':
+        dart_type = rename_type(dart_type)
+      return TypeOrNothing(dart_type)
+    return self._FormatParams(self.param_infos, 'null', type_function)
 
   def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
@@ -399,14 +407,14 @@ class OperationInfo(object):
     assert any([is_static == o.is_static for o in self.overloads])
     return is_static
 
-  def _ConstructorFullName(self):
+  def _ConstructorFullName(self, rename_type):
     if self.constructor_name:
-      return self.type_name + '.' + self.constructor_name
+      return rename_type(self.type_name) + '.' + self.constructor_name
     else:
-      return self.type_name
+      return rename_type(self.type_name)
 
   def ConstructorFactoryName(self, rename_type):
-    return 'create' + rename_type(self._ConstructorFullName()).replace('.', '_')
+    return 'create' + self._ConstructorFullName(rename_type).replace('.', '_')
 
   def GenerateFactoryInvocation(self, rename_type, emitter, factory_provider):
     has_optional = any(param_info.is_optional
@@ -418,7 +426,7 @@ class OperationInfo(object):
           '\n'
           '  factory $CTOR($PARAMS) => '
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
-          CTOR=rename_type(self._ConstructorFullName()),
+          CTOR=self._ConstructorFullName(rename_type),
           PARAMS=self.ParametersInterfaceDeclaration(rename_type),
           FACTORY=factory_provider,
           CTOR_FACTORY_NAME=factory_name,
@@ -431,7 +439,7 @@ class OperationInfo(object):
         '$!DISPATCHER'
         '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '  }\n',
-        CTOR=rename_type(self._ConstructorFullName()),
+        CTOR=self._ConstructorFullName(rename_type),
         PARAMS=self.ParametersInterfaceDeclaration(rename_type),
         FACTORY=factory_provider,
         CTOR_FACTORY_NAME=factory_name,
@@ -681,8 +689,12 @@ class IDLTypeInfo(object):
 
 
 class InterfaceIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data):
+  def __init__(self, idl_type, data, dart_interface_name):
     super(InterfaceIDLTypeInfo, self).__init__(idl_type, data)
+    self._dart_interface_name = dart_interface_name
+
+  def dart_type(self):
+    return self._data.dart_type or self._dart_interface_name
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
@@ -968,14 +980,7 @@ class TypeRegistry(object):
     return self._cache[type_name]
 
   def DartType(self, type_name):
-    dart_type = self.TypeInfo(type_name).dart_type()
-    if self._database.HasInterface(dart_type):
-      interface = self._database.GetInterface(dart_type)
-      if self._renamer:
-        return self._renamer.RenameInterface(interface)
-      else:
-        return interface.ext_attrs.get('InterfaceName', interface.id)
-    return dart_type
+    return self.TypeInfo(type_name).dart_type()
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
@@ -984,8 +989,22 @@ class TypeRegistry(object):
         return DOMStringArrayTypeInfo(TypeData('Sequence'), self.TypeInfo('DOMString'))
       item_info = self.TypeInfo(match.group(1) or match.group(2))
       return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
+
     if not type_name in _idl_type_registry:
-      return InterfaceIDLTypeInfo(type_name, TypeData('Interface'))
+      interface = self._database.GetInterface(type_name)
+      return InterfaceIDLTypeInfo(
+          type_name,
+          TypeData('Interface'),
+          self._renamer.RenameInterface(interface))
+
     type_data = _idl_type_registry.get(type_name)
+    if type_data.clazz == 'Interface':
+      if self._database.HasInterface(type_name):
+        dart_interface_name = self._renamer.RenameInterface(
+            self._database.GetInterface(type_name))
+      else:
+        dart_interface_name = type_name
+      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name)
+
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

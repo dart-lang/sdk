@@ -274,7 +274,7 @@ class DartGenerator(object):
         interface.parents.append(idlnode.IDLParentInterface(ast))
 
   def AddMissingArguments(self, database):
-    ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'Object')), ('Id', 'arg')])
+    ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
     for interface in database.GetInterfaces():
       for operation in interface.operations:
         if operation.ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
