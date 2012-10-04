@@ -434,9 +434,9 @@ class PlaceholderCollector extends Visitor {
     }
     // We call [resolveReturnType] to allow having 'void'.
     final type = compiler.resolveReturnType(currentElement, node);
+    bool hasPrefix = false;
     if (type is InterfaceType || type is TypedefType) {
       Node target = node.typeName;
-      bool hasPrefix = false;
       if (node.typeName is Send) {
         final send = node.typeName.asSend();
         Identifier receiver = send.receiver;
@@ -473,7 +473,16 @@ class PlaceholderCollector extends Visitor {
         }
       }
     }
-    node.visitChildren(this);
+    // Trying to differentiate new A.foo() and lib.A cases. In the latter case
+    // we don't want to go deeper into typeName.
+    if (hasPrefix) {
+      // Visit only type arguments, otherwise in case of lib.Class type
+      // annotation typeName is Send and we go to visitGetterSend, as a result
+      // "Class" is added to member placeholders.
+      visit(node.typeArguments);
+    } else {
+      node.visitChildren(this);
+    }
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
