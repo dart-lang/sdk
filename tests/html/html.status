@@ -17,6 +17,9 @@ contentelement_test: Fail   # Issue 5445: not currently supported on chrome stab
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome) ]
+audiocontext_test: Fail # Issue 5657
+
 [ $compiler == none && $runtime == drt && $system == windows]
 audiobuffersourcenode_test: Skip
 audiocontext_test: Skip
