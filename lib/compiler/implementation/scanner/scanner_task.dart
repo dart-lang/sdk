@@ -40,6 +40,9 @@ class ScannerTask extends CompilerTask {
     for (LibraryTag tag in library.tags.reverse()) {
       if (tag.isImport) {
         tagState = checkTag(TagState.IMPORT, tag);
+        if (tag.combinators != null) {
+          compiler.unimplemented('combinators', node: tag.combinators);
+        }
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
         // before it fully declares all the members that are sourced

@@ -666,18 +666,17 @@ class ElementListener extends Listener {
     }
   }
 
-  void endHide(Token hideKeyword) {
-    recoverableError('hide is not implemented', token: hideKeyword);
-    // TODO(ahe): Do not ignore.
-  }
+  void endHide(Token hideKeyword) => pushCombinator(hideKeyword);
 
-  void endShow(Token showKeyword) {
-    recoverableError('show is not implemented', token: showKeyword);
-    // TODO(ahe): Do not ignore.
+  void endShow(Token showKeyword) => pushCombinator(showKeyword);
+
+  void pushCombinator(Token keywordToken) {
+    NodeList identifiers = popNode();
+    pushNode(new Combinator(identifiers, keywordToken));
   }
 
   void endIdentifierList(int count) {
-    pushNode(makeNodeList(count, null, null, " "));
+    pushNode(makeNodeList(count, null, null, ","));
   }
 
   void endPart(Token partKeyword, Token semicolon) {

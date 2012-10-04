@@ -14,11 +14,12 @@ abstract class Visitor<R> {
   R visitCaseMatch(CaseMatch node) => visitNode(node);
   R visitCatchBlock(CatchBlock node) => visitNode(node);
   R visitClassNode(ClassNode node) => visitNode(node);
+  R visitCombinator(Combinator node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
-  R visitExport(Export node) => visitNode(node);
+  R visitExport(Export node) => visitLibraryTag(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
@@ -28,10 +29,11 @@ abstract class Visitor<R> {
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
   R visitIf(If node) => visitStatement(node);
-  R visitImport(Import node) => visitNode(node);
+  R visitImport(Import node) => visitLibraryTag(node);
   R visitLabel(Label node) => visitNode(node);
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
-  R visitLibraryName(LibraryName node) => visitNode(node);
+  R visitLibraryName(LibraryName node) => visitLibraryTag(node);
+  R visitLibraryTag(LibraryTag node) => visitNode(node);
   R visitLiteral(Literal node) => visitExpression(node);
   R visitLiteralBool(LiteralBool node) => visitLiteral(node);
   R visitLiteralDouble(LiteralDouble node) => visitLiteral(node);
@@ -51,8 +53,8 @@ abstract class Visitor<R> {
   R visitParenthesizedExpression(ParenthesizedExpression node) {
     return visitExpression(node);
   }
-  R visitPart(Part node) => visitNode(node);
-  R visitPartOf(PartOf node) => visitNode(node);
+  R visitPart(Part node) => visitLibraryTag(node);
+  R visitPartOf(PartOf node) => visitLibraryTag(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitReturn(Return node) => visitStatement(node);
@@ -142,6 +144,7 @@ abstract class Node implements Spannable {
   CaseMatch asCaseMatch() => null;
   CatchBlock asCatchBlock() => null;
   ClassNode asClassNode() => null;
+  Combinator asCombinator() => null;
   Conditional asConditional() => null;
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
@@ -1775,6 +1778,28 @@ class PartOf extends LibraryTag {
   Token getBeginToken() => partKeyword;
 
   Token getEndToken() => name.getEndToken().next;
+}
+
+class Combinator extends Node {
+  final NodeList identifiers;
+
+  final Token keywordToken;
+
+  Combinator(this.identifiers, this.keywordToken);
+
+  bool get isShow => keywordToken.stringValue === 'show';
+
+  bool get isHide => keywordToken.stringValue === 'hide';
+
+  Combinator asCombinator() => this;
+
+  accept(Visitor visitor) => visitor.visitCombinator(this);
+
+  visitChildren(Visitor visitor) => identifiers.accept(visitor);
+
+  Token getBeginToken() => keywordToken;
+
+  Token getEndToken() => identifiers.getEndToken();
 }
 
 class Typedef extends Node {

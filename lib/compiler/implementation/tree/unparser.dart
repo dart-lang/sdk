@@ -518,6 +518,7 @@ class Unparser implements Visitor {
       visit(node.prefix);
     }
     if (node.combinators != null) {
+      sb.add(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);
@@ -527,6 +528,7 @@ class Unparser implements Visitor {
     addToken(node.exportKeyword);
     visit(node.uri);
     if (node.combinators != null) {
+      sb.add(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);
@@ -543,5 +545,10 @@ class Unparser implements Visitor {
     addToken(node.ofKeyword);
     visit(node.name);
     add(node.getEndToken().value);
+  }
+
+  visitCombinator(Combinator node) {
+    addToken(node.keywordToken);
+    visit(node.identifiers);
   }
 }
