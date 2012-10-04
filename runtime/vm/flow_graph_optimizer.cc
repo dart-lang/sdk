@@ -545,18 +545,15 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  call->env(),
                  Definition::kEffect);
 
-    UnboxedDoubleBinaryOpInstr* double_bin_op =
-        new UnboxedDoubleBinaryOpInstr(op_kind,
-                                       left->Copy(),
-                                       right->Copy(),
-                                       call);
+    BinaryDoubleOpInstr* double_bin_op =
+        new BinaryDoubleOpInstr(op_kind, left->Copy(), right->Copy(), call);
     call->ReplaceWith(double_bin_op, current_iterator());
     RemovePushArguments(call);
   } else if (operands_type == kMintCid) {
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
-    UnboxedMintBinaryOpInstr* bin_op =
-        new UnboxedMintBinaryOpInstr(op_kind, left, right, call);
+    BinaryMintOpInstr* bin_op =
+        new BinaryMintOpInstr(op_kind, left, right, call);
     call->ReplaceWith(bin_op, current_iterator());
     RemovePushArguments(call);
   } else if (op_kind == Token::kMOD) {
@@ -620,7 +617,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     Value* value = call->ArgumentAt(0)->value();
-    unary_op = new UnboxedMintUnaryOpInstr(op_kind, value, call);
+    unary_op = new UnaryMintOpInstr(op_kind, value, call);
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
              (op_kind == Token::kNEGATE)) {
     Value* value = call->ArgumentAt(0)->value();
@@ -628,10 +625,10 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     ConstantInstr* minus_one =
         new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
     InsertBefore(call, minus_one, NULL, Definition::kValue);
-    unary_op = new UnboxedDoubleBinaryOpInstr(Token::kMUL,
-                                              value,
-                                              new Value(minus_one),
-                                              call);
+    unary_op = new BinaryDoubleOpInstr(Token::kMUL,
+                                       value,
+                                       new Value(minus_one),
+                                       call);
   }
   if (unary_op == NULL) return false;
 
@@ -2921,15 +2918,15 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxedMintBinaryOp(
-    UnboxedMintBinaryOpInstr* instr) {
+void ConstantPropagator::VisitBinaryMintOp(
+    BinaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle binary operations.
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUnboxedMintUnaryOp(
-    UnboxedMintUnaryOpInstr* instr) {
+void ConstantPropagator::VisitUnaryMintOp(
+    UnaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }
@@ -2974,8 +2971,8 @@ void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxedDoubleBinaryOp(
-    UnboxedDoubleBinaryOpInstr* instr) {
+void ConstantPropagator::VisitBinaryDoubleOp(
+    BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {

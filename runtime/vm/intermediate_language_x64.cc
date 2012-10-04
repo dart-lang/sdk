@@ -1833,7 +1833,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -1845,7 +1845,7 @@ LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
 }
 
 
-void UnboxedDoubleBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
   XmmRegister right = locs()->in(1).xmm_reg();
 
@@ -2165,24 +2165,24 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* UnboxedMintUnaryOpInstr::MakeLocationSummary() const {
+LocationSummary* UnaryMintOpInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void UnboxedMintUnaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

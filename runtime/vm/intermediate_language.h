@@ -252,14 +252,14 @@ class EmbeddedArray<T, 0> {
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
   M(CheckEitherNonSmi)                                                         \
-  M(UnboxedDoubleBinaryOp)                                                     \
+  M(BinaryDoubleOp)                                                            \
   M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
-  M(UnboxedMintBinaryOp)                                                       \
-  M(UnboxedMintUnaryOp)                                                        \
+  M(BinaryMintOp)                                                              \
+  M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
 
@@ -514,9 +514,9 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Classes that set deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
-  friend class UnboxedDoubleBinaryOpInstr;
-  friend class UnboxedMintBinaryOpInstr;
-  friend class UnboxedMintUnaryOpInstr;
+  friend class BinaryDoubleOpInstr;
+  friend class BinaryMintOpInstr;
+  friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
@@ -3466,9 +3466,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 };
 
 
-class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
+class BinaryDoubleOpInstr : public TemplateDefinition<2> {
  public:
-  UnboxedDoubleBinaryOpInstr(Token::Kind op_kind,
+  BinaryDoubleOpInstr(Token::Kind op_kind,
                              Value* left,
                              Value* right,
                              InstanceCallInstr* instance_call)
@@ -3494,11 +3494,10 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
+    return op_kind() == other->AsBinaryDoubleOp()->op_kind();
   }
 
-  // The output is not an instance but when it is boxed it becomes double.
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
+  virtual intptr_t ResultCid() const;
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -3515,19 +3514,19 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(UnboxedDoubleBinaryOp)
+  DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual RawAbstractType* CompileType() const;
 
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedDoubleBinaryOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
 
-class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
+class BinaryMintOpInstr : public TemplateDefinition<2> {
  public:
-  UnboxedMintBinaryOpInstr(Token::Kind op_kind,
+  BinaryMintOpInstr(Token::Kind op_kind,
                            Value* left,
                            Value* right,
                            InstanceCallInstr* instance_call)
@@ -3555,7 +3554,7 @@ class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnboxedMintBinaryOp()->op_kind();
+    return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
   virtual intptr_t ResultCid() const;
@@ -3576,18 +3575,18 @@ class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(UnboxedMintBinaryOp)
+  DECLARE_INSTRUCTION(BinaryMintOp)
 
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedMintBinaryOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
 
 
-class UnboxedMintUnaryOpInstr : public TemplateDefinition<1> {
+class UnaryMintOpInstr : public TemplateDefinition<1> {
  public:
-  UnboxedMintUnaryOpInstr(Token::Kind op_kind,
+  UnaryMintOpInstr(Token::Kind op_kind,
                           Value* value,
                           InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
@@ -3610,7 +3609,7 @@ class UnboxedMintUnaryOpInstr : public TemplateDefinition<1> {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnboxedMintUnaryOp()->op_kind();
+    return op_kind() == other->AsUnaryMintOp()->op_kind();
   }
 
   virtual intptr_t ResultCid() const;
@@ -3631,12 +3630,12 @@ class UnboxedMintUnaryOpInstr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(UnboxedMintUnaryOp)
+  DECLARE_INSTRUCTION(UnaryMintOp)
 
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedMintUnaryOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
 };
 
 

@@ -1864,7 +1864,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -1876,7 +1876,7 @@ LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
 }
 
 
-void UnboxedDoubleBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
   XmmRegister right = locs()->in(1).xmm_reg();
 
@@ -2307,7 +2307,7 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   switch (op_kind()) {
     case Token::kBIT_AND:
@@ -2340,7 +2340,7 @@ LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
 }
 
 
-void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
   XmmRegister right = locs()->in(1).xmm_reg();
 
@@ -2381,7 +2381,7 @@ void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedMintUnaryOpInstr::MakeLocationSummary() const {
+LocationSummary* UnaryMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -2392,7 +2392,7 @@ LocationSummary* UnboxedMintUnaryOpInstr::MakeLocationSummary() const {
 }
 
 
-void UnboxedMintUnaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(op_kind() == Token::kBIT_NOT);
   XmmRegister value = locs()->in(0).xmm_reg();
   ASSERT(value == locs()->out().xmm_reg());
