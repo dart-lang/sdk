@@ -91,17 +91,20 @@ class InternalError {
 }
 
 
-class StaticResolutionException implements Exception {
-  factory StaticResolutionException._uninstantiable() {
+// TODO(regis): This class will change once mirrors are available.
+class NoSuchMethodErrorImplementation implements NoSuchMethodError {
+  factory NoSuchMethodErrorImplementation._uninstantiable() {
     throw const UnsupportedOperationException(
-        "StaticResolutionException can only be allocated by the VM");
+        "NoSuchMethodError can only be allocated by the VM");
   }
 
-  String toString() => "Unresolved static method: url '$url' line $line "
+  String toString() => "No such method: url '$url' line $line "
       "pos $column\n$failedResolutionLine\n";
 
-  static _throwNew(int token_pos) native "StaticResolutionException_throwNew";
+  static _throwNew(int call_pos, String functionName)
+      native "NoSuchMethodError_throwNew";
 
+  final String functionName;
   final String failedResolutionLine;
   final String url;
   final int line;

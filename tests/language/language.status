@@ -16,11 +16,6 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
-call_constructor_on_unresolvable_class_test/01: Fail # Issue 3801
-call_constructor_on_unresolvable_class_test/02: Fail # Issue 3801
-call_constructor_on_unresolvable_class_test/03: Fail # Issue 3801
-call_constructor_on_unresolvable_class_test/07: Fail # Issue 3801
-call_nonexistent_constructor_test: Fail # Issue 3801
 gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
@@ -29,7 +24,6 @@ pseudo_kw_illegal_test/03: Fail  # Issue 356
 pseudo_kw_illegal_test/08: Fail  # Issue 356
 pseudo_kw_illegal_test/10: Fail  # Issue 356
 pseudo_kw_illegal_test/14: Fail  # Issue 356
-
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail          # (Discussion ongoing)
@@ -53,11 +47,6 @@ fauxverride_test/none: Fail # Issue 3778.
 
 bad_override_test/01: Fail # Issue 3859.
 bad_override_test/02: Fail # Issue 3859.
-
-setter_no_getter_call_test/01: Crash # Issue 4360
-setter_no_getter_test/01: Crash # Issue 4360
-
-getter_no_setter2_test/01: Fail # Issue 4898
 
 named_parameters_aggregated_test/05: Fail # Compile-time error reported instead of static type warning.
 
@@ -123,17 +112,14 @@ cascade_test/none: Fail # Issue 3729
 char_escape_test: Pass # Issue 1654
 class_literal_test/01 : Fail # language change 3368
 class_literal_test/03 : Fail # language change 1031
-class_literal_test/04 : Fail # language change 1031
 class_literal_test/05 : Fail # language change 3368
 class_literal_test/06 : Fail # language change 3368
 class_literal_test/08 : Fail # language change 1031
-class_literal_test/09 : Fail # language change 1031
 class_literal_test/10 : Fail # language change 3368
 class_literal_test/11 : Fail # language change 3368
 class_literal_test/12 : Fail # language change 3368
 class_literal_test/13 : Fail # language change 3368
 class_literal_test/15 : Fail # language change 1031
-class_literal_test/16 : Fail # language change 1031
 class_literal_test/17 : Fail # language change 3368
 class_literal_test/18 : Fail # language change 3368
 class_literal_test/19 : Fail # language change 3368
@@ -160,7 +146,6 @@ field7_negative_test: Fail, OK # language changed, test issue 5249
 field7a_negative_test: Fail, OK # language changed, test issue 5249
 getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
-setter_no_getter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
@@ -189,6 +174,10 @@ pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
 resource_test: Fail # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+static_field3_test/01: Fail # http://dartbug.com/5519
+static_field3_test/02: Fail # http://dartbug.com/5519
+static_field3_test/03: Fail # http://dartbug.com/5519
+static_field3_test/04: Fail # http://dartbug.com/5519
 syntax_test/none: Fail # Bug 2107  Static type warnings in none case (INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS)
 throw7_negative_test: Fail # Issue 3654
 type_variable_bounds_test/00: Fail # issue 3079
@@ -234,18 +223,6 @@ import_combinators_test: Fail
 
 
 [ $runtime == vm ]
-call_nonexistent_static_test/01: Fail # Issues 3094
-call_nonexistent_static_test/02: Fail # Issues 3088
-call_nonexistent_static_test/03: Fail # Issues 3085
-call_nonexistent_static_test/04: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/05: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/06: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/07: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/08: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/09: Fail # Unresolved static calls are no longer errors.
-call_nonexistent_static_test/10: Fail, Crash # Unresolved static calls are no longer errors.
-getter_no_setter2_test/01: Fail # Unresolved static calls are no longer errors.
-setter_no_getter_test/01: Crash # Unresolved static calls are no longer errors.
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
@@ -270,16 +247,10 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
-class_literal_test/03: Fail # http://dartbug.com/5519
-class_literal_test/04: Fail # http://dartbug.com/5519
 class_literal_test/05: Fail # http://dartbug.com/5519
-class_literal_test/08: Fail # http://dartbug.com/5519
-class_literal_test/09: Fail # http://dartbug.com/5519
 class_literal_test/10: Fail # http://dartbug.com/5519
 class_literal_test/11: Fail # http://dartbug.com/5519
 class_literal_test/12: Fail # http://dartbug.com/5519
-class_literal_test/15: Fail # http://dartbug.com/5519
-class_literal_test/16: Fail # http://dartbug.com/5519
 class_literal_test/17: Fail # http://dartbug.com/5519
 class_literal_test/18: Fail # http://dartbug.com/5519
 class_literal_test/19: Fail # http://dartbug.com/5519
@@ -319,6 +290,7 @@ final_syntax_test/03: Fail # http://dartbug.com/5519
 final_syntax_test/04: Fail # http://dartbug.com/5519
 final_syntax_test/09: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
+getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 method_override2_test/01: Fail # http://dartbug.com/5519
@@ -328,8 +300,10 @@ named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
 new_expression_type_args_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 override_field_test/04: Fail # http://dartbug.com/5519
-setter_no_getter_call_test/01: Fail # http://dartbug.com/5519
-setter_no_getter_test/01: Fail # http://dartbug.com/5519
+static_field3_test/01: Fail # http://dartbug.com/5519
+static_field3_test/02: Fail # http://dartbug.com/5519
+static_field3_test/03: Fail # http://dartbug.com/5519
+static_field3_test/04: Fail # http://dartbug.com/5519
 
 import_combinators_test: Fail
 throw_expr_test: Fail
@@ -340,11 +314,6 @@ bad_constructor_test/05: Fail
 bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
 argument_definition2_test: Skip # Not implemented. Fails in minified tests.
-call_constructor_on_unresolvable_class_test/01: Fail # generates 'new Unresolved()' which fails on the VM
-call_constructor_on_unresolvable_class_test/02: Fail # generates 'new Unresolved()' which fails on the VM
-call_constructor_on_unresolvable_class_test/03: Fail # generates 'new Unresolved()' which fails on the VM
-call_constructor_on_unresolvable_class_test/07: Fail # generates 'new Unresolved()' which fails on the VM
-call_nonexistent_constructor_test: Fail # Issue 1031
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.

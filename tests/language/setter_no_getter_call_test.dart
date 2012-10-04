@@ -4,7 +4,7 @@
 
 var topLevelClosure;
 
-/*    /// 01: compile-time error
+/*    /// 01: runtime error
 get topLevel => topLevelClosure;
 */   /// 01: continued
 set topLevel(var value) { }

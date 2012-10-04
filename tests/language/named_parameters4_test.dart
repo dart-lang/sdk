@@ -17,7 +17,7 @@ main() {
   bool foundError = false;
   try {
     test(10, x:99);  // 1 positional arg, as expected. Param x does not exist.
-  } on Exception catch (e) {
+  } on NoSuchMethodError catch (e) {
     foundError = true;
   }
   Expect.equals(true, foundError);

@@ -1994,7 +1994,41 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
     arguments->Add(PushArgument(receiver_value.value()));
   } else {
     getter_function = node->cls().LookupStaticFunction(getter_name);
-    ASSERT(!getter_function.IsNull());
+    if (getter_function.IsNull()) {
+      // When the parser encounters a reference to a static field materialized
+      // only by a static setter, but no corresponding static getter, it creates
+      // a StaticGetterNode ast node referring to the non-existing static getter
+      // for the case this field reference appears in a left hand side
+      // expression (the parser has not distinguished between left and right
+      // hand side yet at this stage). If the parser establishes later that the
+      // field access is part of a left hand side expression, the
+      // StaticGetterNode is transformed into a StaticSetterNode referring to
+      // the existing static setter.
+      // However, if the field reference appears in a right hand side
+      // expression, no such transformation occurs and we land here with a
+      // StaticGetterNode missing a getter function, so we throw a
+      // NoSuchMethodError.
+
+      // Location argument.
+      Value* call_pos = Bind(
+          new ConstantInstr(Smi::ZoneHandle(Smi::New(node->token_pos()))));
+      arguments->Add(PushArgument(call_pos));
+      // Function name argument.
+      const String& method_name = String::ZoneHandle(Symbols::New(getter_name));
+      Value* method_name_value = Bind(new ConstantInstr(method_name));
+      arguments->Add(PushArgument(method_name_value));
+      const String& cls_name = String::Handle(Symbols::NoSuchMethodError());
+      const String& func_name = String::Handle(Symbols::ThrowNew());
+      const Class& cls = Class::Handle(
+          Library::Handle(Library::CoreImplLibrary()).LookupClass(cls_name));
+      ASSERT(!cls.IsNull());
+      getter_function = Resolver::ResolveStatic(cls,
+                                                func_name,
+                                                arguments->length(),
+                                                Array::ZoneHandle(),
+                                                Resolver::kIsQualified);
+      ASSERT(!getter_function.IsNull());
+    }
   }
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,

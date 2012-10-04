@@ -17,8 +17,8 @@ main() {
   int i = 0;
   new A.foo(42);
   try {
-    new A.bar(foo());
-  } on String catch (e) {
+    new A.bar(foo());  // Arguments are not evaluated with NoSuchMethodError.
+  } on NoSuchMethodError catch (e) {  // Not 'on String catch ...'
     i = 1;
   }
   Expect.equals(1, i);

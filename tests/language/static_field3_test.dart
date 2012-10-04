@@ -6,16 +6,14 @@
 class Foo {
   Foo() {}
   var x;
-}
-
-class StaticField3NegativeTest {
-  static testMain() {
-    if (false) {
-      var x = Foo.x;
-    }
-  }
+  void m() {}
 }
 
 main() {
-  StaticField3NegativeTest.testMain();
+  if (false) {
+    var x = Foo.x;  /// 01: static type warning
+    var m = Foo.m;  /// 02: static type warning
+    Foo.m = 1;  /// 03: static type warning
+    Foo.x = 1;  /// 04: static type warning
+  }
 }

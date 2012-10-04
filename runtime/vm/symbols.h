@@ -35,7 +35,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(AbstractClassInstantiationError,                                           \
     "AbstractClassInstantiationErrorImplementation")                           \
-  V(StaticResolutionException, "StaticResolutionException")                    \
+  V(NoSuchMethodError, "NoSuchMethodErrorImplementation")                      \
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
   V(ListLiteralFactory, "List.fromLiteral")                                    \

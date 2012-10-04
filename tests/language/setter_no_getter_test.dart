@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*    /// 01: compile-time error
+/*    /// 01: runtime error
 get topLevel => 42;
 */   /// 01: continued
 set topLevel(var value) { }
