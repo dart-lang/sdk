@@ -230,12 +230,13 @@ static bool ClassIdIsOneOf(intptr_t class_id,
 }
 
 
+// Returns true if ICData tests two arguments and all ICData cids are in the
+// required sets 'receiver_class_ids' or 'argument_class_ids', respectively.
 static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
     const GrowableArray<intptr_t>& receiver_class_ids,
     const GrowableArray<intptr_t>& argument_class_ids) {
   if (ic_data.num_args_tested() != 2) return false;
-
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
@@ -345,7 +346,8 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
-  CheckClassInstr* check = new CheckClassInstr(value, call, unary_checks);
+  CheckClassInstr* check =
+      new CheckClassInstr(value, call->deopt_id(), unary_checks);
   InsertBefore(call, check, call->env(), Definition::kEffect);
 }
 
@@ -1081,9 +1083,11 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     instr->ReplaceWith(strict_comp, iterator);
     return;
   }
-  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
+    return;
+  }
+  ASSERT(comp->ic_data()->num_args_tested() == 2);
   if (comp->ic_data()->NumberOfChecks() == 1) {
-    ASSERT(comp->ic_data()->num_args_tested() == 2);
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
     comp->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -1114,6 +1118,60 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     comp->set_receiver_class_id(kMintCid);
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);
+  }
+
+  if (comp->receiver_class_id() != kIllegalCid) {
+    // Done.
+    return;
+  }
+
+  // Check if ICDData contains checks with Smi/Null combinations. In that case
+  // we can still emit the optimized Smi equality operation but need to add
+  // checks for null or Smi.
+  // TODO(srdjan): Add it for Double and Mint.
+  GrowableArray<intptr_t> smi_or_null(2);
+  smi_or_null.Add(kSmiCid);
+  smi_or_null.Add(kNullCid);
+  if (ICDataHasOnlyReceiverArgumentClassIds(
+        *comp->ic_data(), smi_or_null, smi_or_null)) {
+    ICData& unary_checks =
+        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+    const intptr_t deopt_id = comp->deopt_id();
+    if ((unary_checks.NumberOfChecks() == 1) &&
+        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+      // Smi only.
+      optimizer->InsertBefore(
+        instr,
+        new CheckSmiInstr(comp->left()->Copy(), deopt_id),
+        instr->env(),
+        Definition::kEffect);
+    } else {
+      // Smi or NULL.
+      optimizer->InsertBefore(
+        instr,
+        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks),
+        instr->env(),
+        Definition::kEffect);
+    }
+
+    unary_checks = comp->ic_data()->AsUnaryClassChecksForArgNr(1);
+    if ((unary_checks.NumberOfChecks() == 1) &&
+        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+      // Smi only.
+      optimizer->InsertBefore(
+        instr,
+        new CheckSmiInstr(comp->right()->Copy(), deopt_id),
+        instr->env(),
+        Definition::kEffect);
+    } else {
+      // Smi or NULL.
+      optimizer->InsertBefore(
+        instr,
+        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks),
+        instr->env(),
+        Definition::kEffect);
+    }
+    comp->set_receiver_class_id(kSmiCid);
   }
 }
 

@@ -1965,6 +1965,97 @@ void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
   __ jmp(EBX);  // Jump to the exception handler code.
 }
 
+
+// Implements equality operator when one of the arguments is null
+// (identity check) and updates ICData if necessary.
+// TOS + 0: return address
+// TOS + 1: right argument
+// TOS + 2: left argument
+// ECX: ICData.
+// EAX: result.
+// TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
+void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+#if defined(DEBUG)
+  { Label ok;
+    __ movl(EAX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    __ cmpl(EAX, Immediate(2));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect ICData for equality");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+  // Check IC data, update if needed.
+  // EBX: IC data object (preserved).
+  __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
+  // EBX: ic_data_array with check entries: classes and target functions.
+  __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
+  // EBX: points directly to the first ic data array element.
+
+  Label get_class_id_as_smi, no_match, loop, compute_result;
+  __ Bind(&loop);
+  // Check left.
+  __ movl(EAX, Address(ESP, 2 * kWordSize));
+  __ call(&get_class_id_as_smi);
+  __ movl(EDI, Address(EBX, 0 * kWordSize));
+  __ cmpl(EAX, EDI);  // Class id match?
+  __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
+  // Check right.
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ call(&get_class_id_as_smi);
+  __ movl(EDI, Address(EBX, 1 * kWordSize));
+  __ cmpl(EAX, EDI);  // Class id match?
+  __ j(EQUAL, &compute_result, Assembler::kNearJump);
+  __ Bind(&no_match);
+  // Each test entry has (1 + 2) array elements (2 arguments, 1 target).
+  __ addl(EBX, Immediate(kWordSize * (1 + 2)));  // Next element.
+  __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  Label update_ic_data;
+  __ jmp(&update_ic_data);
+
+  __ Bind(&compute_result);
+  Label true_label;
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ cmpl(EAX, Address(ESP, 2 * kWordSize));
+  __ j(EQUAL, &true_label, Assembler::kNearJump);
+  __ LoadObject(EAX, Bool::ZoneHandle(Bool::False()));
+  __ ret();
+  __ Bind(&true_label);
+  __ LoadObject(EAX, Bool::ZoneHandle(Bool::True()));
+  __ ret();
+
+  __ Bind(&get_class_id_as_smi);
+  Label not_smi;
+  // Test if Smi -> load Smi class for comparison.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
+  __ ret();
+
+  __ Bind(&not_smi);
+  __ LoadClassId(EAX, EAX);
+  __ SmiTag(EAX);
+  __ ret();
+
+  __ Bind(&update_ic_data);
+
+  // ECX: ICData
+  const String& equal_name = String::ZoneHandle(Symbols::New("=="));
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ movl(EDI, Address(ESP, 2 * kWordSize));
+  AssemblerMacros::EnterStubFrame(assembler);
+  __ pushl(EDI);  // arg 0
+  __ pushl(EAX);  // arg 1
+  __ PushObject(equal_name);  // Target's name.
+  __ pushl(ECX);  // ICData
+  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
+  __ Drop(4);
+  __ LeaveFrame();
+
+  __ jmp(&compute_result, Assembler::kNearJump);
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

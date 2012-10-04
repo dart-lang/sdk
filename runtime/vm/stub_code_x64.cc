@@ -1929,6 +1929,96 @@ void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
   __ jmp(RDI);  // Jump to the exception handler code.
 }
 
+
+// Implements equality operator when one of the arguments is null
+// (identity check) and updates ICData if necessary.
+// TOS + 0: return address
+// TOS + 1: right argument
+// TOS + 2: left argument
+// RBX: ICData.
+// RAX: result.
+// TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
+void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+#if defined(DEBUG)
+  { Label ok;
+    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+    __ cmpq(RCX, Immediate(2));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect ICData for equality");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+  // Check IC data, update if needed.
+  // RBX: IC data object (preserved).
+  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R12: ic_data_array with check entries: classes and target functions.
+  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
+  // R12: points directly to the first ic data array element.
+
+  Label get_class_id_as_smi, no_match, loop, compute_result;
+  __ Bind(&loop);
+  // Check left.
+  __ movq(RAX, Address(RSP, 2 * kWordSize));
+  __ call(&get_class_id_as_smi);
+  __ movq(R13, Address(R12, 0 * kWordSize));
+  __ cmpq(RAX, R13);  // Class id match?
+  __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
+  // Check right.
+  __ movq(RAX, Address(RSP, 1 * kWordSize));
+  __ call(&get_class_id_as_smi);
+  __ movq(R13, Address(R12, 1 * kWordSize));
+  __ cmpq(RAX, R13);  // Class id match?
+  __ j(EQUAL, &compute_result, Assembler::kNearJump);
+  __ Bind(&no_match);
+  // Each test entry has (1 + 2) array elements (2 arguments, 1 target).
+  __ addq(R12, Immediate(kWordSize * (1 + 2)));  // Next element.
+  __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  Label update_ic_data;
+  __ jmp(&update_ic_data);
+
+  __ Bind(&compute_result);
+  Label true_label;
+  __ movq(RAX, Address(RSP, 1 * kWordSize));
+  __ cmpq(RAX, Address(RSP, 2 * kWordSize));
+  __ j(EQUAL, &true_label, Assembler::kNearJump);
+  __ LoadObject(RAX, Bool::ZoneHandle(Bool::False()));
+  __ ret();
+  __ Bind(&true_label);
+  __ LoadObject(RAX, Bool::ZoneHandle(Bool::True()));
+  __ ret();
+
+  __ Bind(&get_class_id_as_smi);
+  Label not_smi;
+  // Test if Smi -> load Smi class for comparison.
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
+  __ ret();
+
+  __ Bind(&not_smi);
+  __ LoadClassId(RAX, RAX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&update_ic_data);
+
+  // RCX: ICData
+  const String& equal_name = String::ZoneHandle(Symbols::New("=="));
+  __ movq(RAX, Address(RSP, 1 * kWordSize));
+  __ movq(R13, Address(RSP, 2 * kWordSize));
+  AssemblerMacros::EnterStubFrame(assembler);
+  __ pushq(R13);  // arg 0
+  __ pushq(RAX);  // arg 1
+  __ PushObject(equal_name);  // Target's name.
+  __ pushq(RBX);  // ICData
+  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);
+  __ Drop(4);
+  __ LeaveFrame();
+
+  __ jmp(&compute_result, Assembler::kNearJump);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

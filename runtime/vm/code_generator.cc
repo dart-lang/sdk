@@ -896,23 +896,6 @@ static RawFunction* InlineCacheMissHandler(
   ASSERT(caller_frame != NULL);
   ICData& ic_data = ICData::Handle(
       CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
-#if defined(DEBUG)
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    bool matches = true;
-    for (intptr_t k = 0; k < class_ids.length(); k++) {
-      if (class_ids[k] != Class::Handle(args[k]->clazz()).id()) {
-        matches = false;
-        break;
-      }
-    }
-    // Do not add an entry twice!
-    ASSERT(!matches);
-  }
-#endif  // DEBUG
-
   if (args.length() == 1) {
     ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
                              target_function);
@@ -1002,6 +985,38 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
   const Function& result =
       Function::Handle(InlineCacheMissHandler(isolate, args));
   arguments.SetReturn(result);
+}
+
+
+// Updates IC data for two arguments. Used by the equality operation when
+// teh control flow bypasses regular inline cache (null arguments).
+//   Arg0: Receiver object.
+//   Arg1: Argument after receiver.
+//   Arg2: Target's name.
+//   Arg3: ICData.
+DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
+  ASSERT(arguments.Count() ==
+      kUpdateICDataTwoArgsRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  const Instance& arg1 = Instance::CheckedHandle(arguments.At(1));
+  const String& target_name = String::CheckedHandle(arguments.At(2));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.At(3));
+  GrowableArray<const Instance*> args(2);
+  args.Add(&receiver);
+  args.Add(&arg1);
+  const intptr_t kNumArguments = 2;
+  const intptr_t kNumNamedArguments = 0;
+  Function& target_function = Function::Handle();
+  target_function = Resolver::ResolveDynamic(receiver,
+                                             target_name,
+                                             kNumArguments,
+                                             kNumNamedArguments);
+  ASSERT(!target_function.IsNull());
+  GrowableArray<intptr_t> class_ids(kNumArguments);
+  ASSERT(ic_data.num_args_tested() == kNumArguments);
+  class_ids.Add(Class::Handle(receiver.clazz()).id());
+  class_ids.Add(Class::Handle(arg1.clazz()).id());
+  ic_data.AddCheck(class_ids, target_function);
 }
 
 

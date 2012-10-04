@@ -7379,8 +7379,30 @@ void ICData::WriteSentinel() const {
 }
 
 
+// Used in asserts to verify that a check is not added twice.
+bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    Function& target = Function::Handle();
+    GetCheckAt(i, &class_ids, &target);
+    bool matches = true;
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (class_ids[k] != cids[k]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
+  ASSERT(!HasCheck(class_ids));
   ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
   const intptr_t old_num = NumberOfChecks();
@@ -7402,6 +7424,11 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target) const {
+#if defined(DEBUG)
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  ASSERT(!HasCheck(class_ids));
+#endif  // DEBUG
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
   ASSERT(!target.IsNull());
@@ -7432,6 +7459,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
 void ICData::GetCheckAt(intptr_t index,
                         GrowableArray<intptr_t>* class_ids,
                         Function* target) const {
+  ASSERT(index < NumberOfChecks());
   ASSERT(class_ids != NULL);
   ASSERT(target != NULL);
   class_ids->Clear();
@@ -7446,8 +7474,9 @@ void ICData::GetCheckAt(intptr_t index,
 }
 
 
-void ICData::GetOneClassCheckAt(
-    int index, intptr_t* class_id, Function* target) const {
+void ICData::GetOneClassCheckAt(intptr_t index,
+                                intptr_t* class_id,
+                                Function* target) const {
   ASSERT(class_id != NULL);
   ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
@@ -7457,6 +7486,14 @@ void ICData::GetOneClassCheckAt(
   smi ^= data.At(data_pos);
   *class_id = smi.Value();
   *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  GetCheckAt(index, &class_ids, &target);
+  return class_ids[arg_nr];
 }
 
 
@@ -7489,10 +7526,13 @@ RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
 }
 
 
-RawICData* ICData::AsUnaryClassChecks() const {
+RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   ASSERT(!IsNull());
-  ASSERT(num_args_tested() > 0);
-  if (num_args_tested() == 1) return raw();
+  ASSERT(num_args_tested() > arg_nr);
+  if ((arg_nr == 0) && (num_args_tested() == 1)) {
+    // Frequent case.
+    return raw();
+  }
   const intptr_t kNumArgsTested = 1;
   ICData& result = ICData::Handle(ICData::New(
       Function::Handle(function()),
@@ -7500,7 +7540,7 @@ RawICData* ICData::AsUnaryClassChecks() const {
       deopt_id(),
       kNumArgsTested));
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    const intptr_t class_id = GetReceiverClassIdAt(i);
+    const intptr_t class_id = GetClassIdAt(i, arg_nr);
     intptr_t duplicate_class_id = -1;
     for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
       if (class_id == result.GetReceiverClassIdAt(k)) {
@@ -7509,7 +7549,9 @@ RawICData* ICData::AsUnaryClassChecks() const {
       }
     }
     if (duplicate_class_id >= 0) {
-      ASSERT(result.GetTargetAt(duplicate_class_id) == GetTargetAt(i));
+      // This check is valid only when checking the receiver.
+      ASSERT((arg_nr != 0) ||
+             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
     } else {
       // This will make sure that Smi is first if it exists.
       result.AddReceiverCheck(class_id,

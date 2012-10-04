@@ -474,7 +474,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 
-void FlowGraphCompiler::GenerateInstanceCall(
+const ICData& FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     const String& function_name,
@@ -508,6 +508,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
                    deopt_id, token_pos, locs);
+  return ic_data;
 }
 
 

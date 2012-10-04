@@ -3810,12 +3810,12 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
-                  InstanceCallInstr* instance_call,
+                  intptr_t deopt_id,
                   const ICData& unary_checks)
       : unary_checks_(unary_checks) {
     ASSERT(value != NULL);
     inputs_[0] = value;
-    deopt_id_ = instance_call->deopt_id();
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(CheckClass)

@@ -309,11 +309,12 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RegisterLocation(RAX));
     return locs;
   }
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RCX));
   locs->set_in(1, Location::RegisterLocation(RDX));
+  locs->set_temp(0, Location::RegisterLocation(RBX));
   locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
@@ -334,44 +335,37 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
 
-  Label done, false_label, true_label;
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  __ popq(right);
-  __ popq(left);
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label check_identity, instance_call;
-  __ cmpq(right, raw_null);
+  Label check_identity;
+  __ cmpq(Address(RSP, 0 * kWordSize), raw_null);
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
-  __ cmpq(left, raw_null);
-  __ j(NOT_EQUAL, &instance_call, Assembler::kNearJump);
+  __ cmpq(Address(RSP, 1 * kWordSize), raw_null);
+  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  const ICData& ic_data = compiler->GenerateInstanceCall(deopt_id,
+                                                         token_pos,
+                                                         operator_name,
+                                                         kNumberOfArguments,
+                                                         kNoArgumentNames,
+                                                         kNumArgumentsChecked,
+                                                         locs);
+  Label check_ne;
+  __ jmp(&check_ne);
 
   __ Bind(&check_identity);
-  __ cmpq(left, right);
-  __ j(EQUAL, &true_label);
-  if (kind == Token::kEQ) {
-    __ LoadObject(RAX, compiler->bool_false());
-    __ jmp(&done);
-    __ Bind(&true_label);
-    __ LoadObject(RAX, compiler->bool_true());
-    __ jmp(&done);
-  } else {
-    ASSERT(kind == Token::kNE);
-    __ jmp(&false_label);
-  }
-
-  __ Bind(&instance_call);
-  __ pushq(left);
-  __ pushq(right);
-  compiler->GenerateInstanceCall(deopt_id,
-                                 token_pos,
-                                 operator_name,
-                                 kNumberOfArguments,
-                                 kNoArgumentNames,
-                                 kNumArgumentsChecked,
-                                 locs);
+  // Call stub, load IC data in register. The stub will update ICData if
+  // necessary.
+  Register ic_data_reg = locs->temp(0).reg();
+  ASSERT(ic_data_reg == RBX);  // Stub depends on it.
+  __ LoadObject(ic_data_reg, ic_data);
+  compiler->GenerateCall(token_pos,
+                         &StubCode::EqualityWithNullArgLabel(),
+                         PcDescriptors::kOther,
+                         locs);
+  __ Drop(2);
+  __ Bind(&check_ne);
   if (kind == Token::kNE) {
+    Label false_label, true_label, done;
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(RAX, compiler->bool_true());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
@@ -380,8 +374,8 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);
     __ LoadObject(RAX, compiler->bool_false());
+    __ Bind(&done);
   }
-  __ Bind(&done);
 }
 
 
@@ -583,11 +577,21 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Condition true_condition = TokenKindToSmiCondition(kind);
 
   if (left.IsConstant() && right.IsConstant()) {
+    bool result = false;
+    // One of them could be NULL (for equality only).
+    if (left.constant().IsNull() || right.constant().IsNull()) {
+      ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+      result = left.constant().IsNull() && right.constant().IsNull();
+      if (kind == Token::kNE) {
+        result = !result;
+      }
+    } else {
     // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = FlowGraphCompiler::EvaluateCondition(
-        true_condition,
-        Smi::Cast(left.constant()).Value(),
-        Smi::Cast(right.constant()).Value());
+      result = FlowGraphCompiler::EvaluateCondition(
+          true_condition,
+          Smi::Cast(left.constant()).Value(),
+          Smi::Cast(right.constant()).Value());
+    }
 
     if (branch != NULL) {
       branch->EmitBranchOnValue(compiler, result);
@@ -2047,14 +2051,20 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckClass);
-  ASSERT(unary_checks().GetReceiverClassIdAt(0) != kSmiCid);
-  __ testq(value, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  __ LoadClassId(temp, value);
   Label is_ok;
+  intptr_t cix = 0;
+  if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, &is_ok);
+    cix++;  // Skip first check.
+  } else {
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+  }
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
-  for (intptr_t i = 0; i < num_checks; i++) {
+  for (intptr_t i = cix; i < num_checks; i++) {
+    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
     __ cmpl(temp, Immediate(unary_checks().GetReceiverClassIdAt(i)));
     if (i == (num_checks - 1)) {
       __ j(NOT_EQUAL, deopt);
