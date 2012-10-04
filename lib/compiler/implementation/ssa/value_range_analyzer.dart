@@ -298,12 +298,25 @@ class Range {
     return other.lower == lower && other.upper == upper;
   }
 
-  bool isLessThan(Range other) {
+  bool operator <(Range other) {
     return upper != other.lower && upper.min(other.lower) == upper;
+  }
+
+  bool operator >(Range other) {
+    return lower != other.upper && lower.max(other.upper) == lower;
+  }
+
+  bool operator <=(Range other) {
+    return upper.min(other.lower) == upper;
+  }
+
+  bool operator >=(Range other) {
+    return lower.max(other.upper) == lower;
   }
 
   bool isNegative() => upper.isNegative();
   bool isPositive() => lower.isPositive();
+  bool isSingleValue() => lower == upper;
 
   String toString() => '[$lower, $upper]';
 }
@@ -436,7 +449,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (indexRange.isPositive() && belowLength) {
       check.block.rewrite(check, check.index);
       check.block.remove(check);
-    } else if (indexRange.isNegative() || lengthRange.isLessThan(indexRange)) {
+    } else if (indexRange.isNegative() || lengthRange < indexRange) {
       check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       // The check is always false, and whatever instruction it
       // dominates is dead code.
@@ -472,22 +485,37 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return indexRange;
   }
 
-  Range visitLess(HLess less) {
-    HInstruction right = less.right;
-    HInstruction left = less.left;
+  Range visitRelational(HRelational relational) {
+    HInstruction right = relational.right;
+    HInstruction left = relational.left;
     if (!left.isInteger(types)) return const Range.unbound();
     if (!right.isInteger(types)) return const Range.unbound();
-    if (ranges[left].isLessThan(ranges[right])) {
-      less.block.rewrite(less, graph.addConstantBool(true, constantSystem));
-      less.block.remove(less);
-      return const Range.unbound();
-    }
-    if (ranges[right].isLessThan(ranges[left])) {
-      less.block.rewrite(less, graph.addConstantBool(false, constantSystem));
-      less.block.remove(less);
-      return const Range.unbound();
+    Operation operation = relational.operation(constantSystem);
+    Range rightRange = ranges[relational.right];
+    Range leftRange = ranges[relational.left];
+
+    if (relational is HEquals || relational is HIdentity) {
+      handleEqualityCheck(relational);
+    } else if (operation.apply(leftRange, rightRange)) {
+      relational.block.rewrite(
+          relational, graph.addConstantBool(true, constantSystem));
+      relational.block.remove(relational);
+    } else if (reverseOperation(operation).apply(leftRange, rightRange)) {
+      relational.block.rewrite(
+          relational, graph.addConstantBool(false, constantSystem));
+      relational.block.remove(relational);
     }
     return const Range.unbound();
+  }
+
+  void handleEqualityCheck(HRelational node) {
+    Range right = ranges[node.right];
+    Range left = ranges[node.left];
+    if (left.isSingleValue() && right.isSingleValue() && left == right) {
+      node.block.rewrite(
+          node, graph.addConstantBool(true, constantSystem));
+      node.block.remove(node);
+    }
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
@@ -551,30 +579,96 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return newInstruction;
   }
 
+  static Operation reverseOperation(BinaryOperation operation) {
+    if (operation == const LessOperation()) {
+      return const GreaterEqualOperation();
+    } else if (operation == const LessEqualOperation()) {
+      return const GreaterOperation();
+    } else if (operation == const GreaterOperation()) {
+      return const LessEqualOperation();
+    } else if (operation == const GreaterEqualOperation()) {
+      return const LessOperation();
+    } else {
+      return null;
+    }
+  }
+
+  static Range computeConstrainedRange(BinaryOperation operation,
+                                       Range leftRange,
+                                       Range rightRange) {
+    Range range;
+    if (operation == const LessOperation()) {
+      range = new Range(
+          const MinIntValue(), rightRange.upper - const IntValue(1));
+    } else if (operation == const LessEqualOperation()) {
+      range = new Range(const MinIntValue(), rightRange.upper);
+    } else if (operation == const GreaterOperation()) {
+      range = new Range(
+          rightRange.lower + const IntValue(1), const MaxIntValue());
+    } else if (operation == const GreaterEqualOperation()) {
+      range = new Range(rightRange.lower, const MaxIntValue());
+    } else {
+      range = const Range.unbound();
+    }
+    return range.intersection(leftRange);
+  }
+
   Range visitConditionalBranch(HConditionalBranch branch) {
     var condition = branch.condition;
-    // TODO(ngeoffray): Handle more condition kinds.
-    if (condition is !HLess) return const Range.unbound();
+    // TODO(ngeoffray): Handle complex conditions.
+    if (condition is !HRelational) return const Range.unbound();
+    if (condition is HEquals) return const Range.unbound();
+    if (condition is HIdentity) return const Range.unbound();
     HInstruction right = condition.right;
     HInstruction left = condition.left;
     if (!left.isInteger(types)) return const Range.unbound();
     if (!right.isInteger(types)) return const Range.unbound();
 
-    // Update the true branch to use a narrower range for [left].
-    // TODO(ngeoffray): Also do it for [right].
-    HInstruction instruction =
-        createRangeConversion(branch.trueBranch.first, left);
-    Range range = new Range(
-        const MinIntValue(), ranges[right].upper - const IntValue(1));
-    range = range.intersection(ranges[left]);
-    ranges[instruction] = range;
+    Range rightRange = ranges[right];
+    Range leftRange = ranges[left];
+    Operation operation = condition.operation(constantSystem);
+    Operation reverse = reverseOperation(operation);
+    // Only update the true branch if this block is the only
+    // predecessor.
+    if (branch.trueBranch.predecessors.length == 1) {
+      assert(branch.trueBranch.predecessors[0] == branch.block);
+      // Update the true branch to use narrower ranges for [left] and
+      // [right].
+      Range range = computeConstrainedRange(operation, leftRange, rightRange);
+      if (leftRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.trueBranch.first, left);
+        ranges[instruction] = range;
+      }
 
-    // Update the false branch to use a narrower range for [left].
-    // TODO(ngeoffray): Also do it for [right].
-    instruction = createRangeConversion(branch.falseBranch.first, left);
-    range = new Range(ranges[right].lower, const MaxIntValue());
-    range = range.intersection(ranges[left]);
-    ranges[instruction] = range;
+      range = computeConstrainedRange(reverse, rightRange, leftRange);
+      if (rightRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.trueBranch.first, right);
+        ranges[instruction] = range;
+      }
+    }
+
+    // Only update the false branch if this block is the only
+    // predecessor.
+    if (branch.falseBranch.predecessors.length == 1) {
+      assert(branch.falseBranch.predecessors[0] == branch.block);
+      // Update the false branch to use narrower ranges for [left] and
+      // [right].
+      Range range = computeConstrainedRange(reverse, leftRange, rightRange);
+      if (leftRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.falseBranch.first, left);
+        ranges[instruction] = range;
+      }
+
+      range = computeConstrainedRange(operation, rightRange, leftRange);
+      if (rightRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.falseBranch.first, right);
+        ranges[instruction] = range;
+      }
+    }
 
     return const Range.unbound();
   }

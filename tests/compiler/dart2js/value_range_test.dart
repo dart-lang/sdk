@@ -128,7 +128,74 @@ main(value) {
   return a[1] + a[0];
 }
 """,
-ONE_CHECK
+ONE_CHECK,
+
+"""
+main() {
+  var a = new List();
+  var sum = 0;
+  for (int i = 0; i <= a.length - 1; i++) {
+    sum += a[i];
+  }
+  return sum;
+}
+""",
+REMOVED,
+
+"""
+main() {
+  var a = new List();
+  var sum = 0;
+  for (int i = a.length - 1; i >=0; i--) {
+    sum += a[i];
+  }
+  return sum;
+}
+""",
+REMOVED,
+
+"""
+main(value) {
+  // Force [value] to be an int by having the speculative optimizer
+  // want an int.
+  int sum = 0;
+  for (int i = 0; i < 42; i++) sum += (value & 4);
+  var a = new List();
+  if (value > a.length - 1) return;
+  if (value < 0) return;
+  return a[value];
+}
+""",
+REMOVED,
+
+"""
+main(value) {
+  // Force [value] to be an int by having the speculative optimizer
+  // want an int.
+  int sum = 0;
+  for (int i = 0; i < 42; i++) sum += (value & 4);
+  var a = new List();
+  if (value <= a.length - 1) {
+    if (value >= 0) {
+      return a[value];
+    }
+  }
+}
+""",
+REMOVED,
+"""
+main(value) {
+  // Force [value] to be an int by having the speculative optimizer
+  // want an int.
+  int sum = 0;
+  for (int i = 0; i < 42; i++) sum += (value & 4);
+  var a = new List();
+  if (value >= a.length) return;
+  if (value <= -1) return;
+  return a[value];
+}
+""",
+REMOVED,
 ];
 
 expect(String code, int kind) {

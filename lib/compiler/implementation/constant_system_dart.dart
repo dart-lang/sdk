@@ -280,7 +280,7 @@ class GreaterEqualOperation extends RelationalNumOperation {
   final SourceString name = const SourceString('>=');
   const GreaterEqualOperation();
   bool foldNums(num left, num right) => left >= right;
-  apply(left, right) => left <= right;
+  apply(left, right) => left >= right;
 }
 
 class EqualsOperation implements BinaryOperation {
