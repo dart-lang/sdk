@@ -797,6 +797,15 @@ void Assembler::pcmpeqq(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::pxor(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xEF);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);

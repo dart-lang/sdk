@@ -2176,6 +2176,17 @@ void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* UnboxedMintUnaryOpInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxedMintUnaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #undef __

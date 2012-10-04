@@ -1721,6 +1721,26 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
+  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ pxor(XMM0, XMM0);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Pxor, entry) {
+  typedef double (*PxorCode)(double d);
+  double res = reinterpret_cast<PxorCode>(entry)(12.3456e3);
+  EXPECT_FLOAT_EQ(0.0, res, 0.0);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Orpd, assembler) {
   __ movsd(XMM0, Address(ESP, kWordSize));
   __ xorpd(XMM1, XMM1);

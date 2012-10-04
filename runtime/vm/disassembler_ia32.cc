@@ -1496,8 +1496,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintCPURegister(regop);
             Print(",");
             data += PrintRightXmmOperand(data);
-          } else if (*data == 0x3A &&
-                     *(data+1) == 0x16) {
+          } else if (*data == 0x3A && *(data+1) == 0x16) {
             Print("pextrd ");
             data += 2;
             int mod, regop, rm;
@@ -1510,6 +1509,14 @@ int X86Decoder::InstructionDecode(uword pc) {
             data += 2;
           } else if (*data == 0x38) {
             data += Packed660F38Instruction(data);
+          } else if (*data == 0xEF) {
+            int mod, regop, rm;
+            GetModRm(*(data+1), &mod, &regop, &rm);
+            Print("pxor ");
+            PrintXmmRegister(regop);
+            Print(",");
+            PrintXmmRegister(rm);
+            data += 2;
           } else {
             UNIMPLEMENTED();
           }

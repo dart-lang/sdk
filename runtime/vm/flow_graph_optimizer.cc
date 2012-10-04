@@ -250,8 +250,20 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 }
 
 
-static bool HasOneSmi(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kSmiCid);
+static bool HasOnlyOneSmi(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1)
+      && ICDataHasReceiverClassId(ic_data, kSmiCid);
+}
+
+
+static bool HasOnlySmiOrMint(const ICData& ic_data) {
+  if (ic_data.NumberOfChecks() == 1) {
+    return ICDataHasReceiverClassId(ic_data, kSmiCid)
+        || ICDataHasReceiverClassId(ic_data, kMintCid);
+  }
+  return (ic_data.NumberOfChecks() == 2)
+      && ICDataHasReceiverClassId(ic_data, kSmiCid)
+      && ICDataHasReceiverClassId(ic_data, kMintCid);
 }
 
 
@@ -271,8 +283,9 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
 }
 
 
-static bool HasOneDouble(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kDoubleCid);
+static bool HasOnlyOneDouble(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1)
+      && ICDataHasReceiverClassId(ic_data, kDoubleCid);
 }
 
 
@@ -592,13 +605,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
-  if (call->ic_data()->NumberOfChecks() != 1) {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  }
   ASSERT(call->ArgumentCount() == 1);
   Definition* unary_op = NULL;
-  if (HasOneSmi(*call->ic_data())) {
+  if (HasOnlyOneSmi(*call->ic_data())) {
     Value* value = call->ArgumentAt(0)->value();
     InsertBefore(call,
                  new CheckSmiInstr(value->Copy(), call->deopt_id()),
@@ -607,7 +616,13 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new UnarySmiOpInstr(op_kind,
                                    (op_kind == Token::kNEGATE) ? call : NULL,
                                    value);
-  } else if (HasOneDouble(*call->ic_data()) && (op_kind == Token::kNEGATE)) {
+  } else if ((op_kind == Token::kBIT_NOT) &&
+             HasOnlySmiOrMint(*call->ic_data()) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    Value* value = call->ArgumentAt(0)->value();
+    unary_op = new UnboxedMintUnaryOpInstr(op_kind, value, call);
+  } else if (HasOnlyOneDouble(*call->ic_data()) &&
+             (op_kind == Token::kNEGATE)) {
     Value* value = call->ArgumentAt(0)->value();
     AddCheckClass(call, value->Copy());
     ConstantInstr* minus_one =
@@ -2909,6 +2924,13 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 void ConstantPropagator::VisitUnboxedMintBinaryOp(
     UnboxedMintBinaryOpInstr* instr) {
   // TODO(kmillikin): Handle binary operations.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxedMintUnaryOp(
+    UnboxedMintUnaryOpInstr* instr) {
+  // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }
 

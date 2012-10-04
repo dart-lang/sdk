@@ -2201,7 +2201,7 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(value);  // Restore input register.
   } else {
     Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptUnboxInteger);
     Label is_smi, done;
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
@@ -2379,6 +2379,27 @@ void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default: UNREACHABLE();
   }
 }
+
+
+LocationSummary* UnboxedMintUnaryOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnboxedMintUnaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  XmmRegister value = locs()->in(0).xmm_reg();
+  ASSERT(value == locs()->out().xmm_reg());
+  __ pcmpeqq(XMM0, XMM0);  // Generate all 1's.
+  __ pxor(value, XMM0);
+}
+
 
 }  // namespace dart
 

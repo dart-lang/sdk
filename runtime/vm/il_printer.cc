@@ -510,6 +510,12 @@ void UnboxedMintBinaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void UnboxedMintUnaryOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  value()->PrintTo(f);
+}
+
+
 void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);

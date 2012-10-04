@@ -78,8 +78,8 @@ DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
   V(LoadIndexedGrowableArray)                                                  \
   V(LoadIndexedPolymorphic)                                                    \
   V(NoTypeFeedback)                                                            \
-  V(SAR)                                                                       \
   V(UnaryOp)                                                                   \
+  V(UnboxInteger)                                                              \
   V(CheckClass)                                                                \
   V(CheckSmi)                                                                  \
   V(AtCall)                                                                    \

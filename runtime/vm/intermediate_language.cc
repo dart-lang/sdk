@@ -1212,6 +1212,16 @@ intptr_t UnboxedMintBinaryOpInstr::ResultCid() const {
 }
 
 
+RawAbstractType* UnboxedMintUnaryOpInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t UnboxedMintUnaryOpInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
 RawAbstractType* UnboxedDoubleBinaryOpInstr::CompileType() const {
   return Type::Double();
 }

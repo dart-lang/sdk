@@ -398,6 +398,8 @@ class Assembler : public ValueObject {
   void pmovsxdq(XmmRegister dst, XmmRegister src);
   void pcmpeqq(XmmRegister dst, XmmRegister src);
 
+  void pxor(XmmRegister dst, XmmRegister src);
+
   void flds(const Address& src);
   void fstps(const Address& dst);
 
