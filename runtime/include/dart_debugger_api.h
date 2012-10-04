@@ -13,6 +13,18 @@ typedef struct _Dart_StackTrace* Dart_StackTrace;
 
 typedef struct _Dart_ActivationFrame* Dart_ActivationFrame;
 
+/**
+ * An id used to uniquely represent an Isolate in the debugger wire protocol
+ * messages.
+ */
+typedef Dart_Port Dart_IsolateId;
+
+/**
+ * ILLEGAL_ISOLATE_ID is a number guaranteed never to be associated with a
+ * valid isolate.
+ */
+#define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
+
 typedef void Dart_BreakpointHandler(
                  Dart_Breakpoint breakpoint,
                  Dart_StackTrace stack_trace);
@@ -32,7 +44,7 @@ typedef enum {
   kShutdown,
 } Dart_IsolateEvent;
 
-typedef void Dart_IsolateEventHandler(Dart_Isolate isolate,
+typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
                                       Dart_IsolateEvent kind);
 
 /**
@@ -542,5 +554,13 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id);
 */
 DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
 
+
+/**
+* Returns the isolate object corresponding to the isolate id.
+*
+* \return The Dart_Isolate object corresponding to the isolate id.
+* If the specified id is invalid NULL is returned.
+*/
+DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id);
 
 #endif  // INCLUDE_DART_DEBUGGER_API_H_

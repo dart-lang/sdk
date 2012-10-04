@@ -100,8 +100,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
 }
 
 
-DART_EXPORT void Dart_SetBreakpointHandler(
-                     Dart_BreakpointHandler bp_handler) {
+DART_EXPORT void Dart_SetBreakpointHandler(Dart_BreakpointHandler bp_handler) {
   BreakpointHandler* handler =
       reinterpret_cast<BreakpointHandler*>(bp_handler);
   Debugger::SetBreakpointHandler(handler);
@@ -134,15 +133,15 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
     (*exc_thrown_handler)(exception, trace);
   } else if (event->type == Debugger::kIsolateCreated) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kCreated);
+      (*isolate_event_handler)(event->isolate_id, kCreated);
     }
   } else if (event->type == Debugger::kIsolateInterrupted) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kInterrupted);
+      (*isolate_event_handler)(event->isolate_id, kInterrupted);
     }
   } else if (event->type == Debugger::kIsolateShutdown) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(Api::CastIsolate(event->isolate), kShutdown);
+      (*isolate_event_handler)(event->isolate_id, kShutdown);
     }
   } else {
     UNIMPLEMENTED();
@@ -709,5 +708,10 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
   return Api::True(isolate);
 }
 
+
+DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
+  Isolate* isolate = PortMap::GetIsolate(isolate_id);
+  return Api::CastIsolate(isolate);
+}
 
 }  // namespace dart

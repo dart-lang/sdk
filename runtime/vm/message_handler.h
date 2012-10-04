@@ -72,6 +72,9 @@ class MessageHandler {
   // Does this message handler correspond to the current isolate?
   virtual bool IsCurrentIsolate() const { return false; }
 
+  // Return Isolate to which this message handler corresponds to.
+  virtual Isolate* GetIsolate() const { return NULL; }
+
   // Posts a message on this handler's message queue.
   void PostMessage(Message* message);
 

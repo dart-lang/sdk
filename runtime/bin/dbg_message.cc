@@ -965,16 +965,8 @@ void DbgMessageQueue::ExceptionThrownHandler(Dart_Handle exception,
 }
 
 
-void DbgMessageQueue::IsolateEventHandler(Dart_Isolate isolate,
+void DbgMessageQueue::IsolateEventHandler(Dart_IsolateId isolate_id,
                                           Dart_IsolateEvent kind) {
   DebuggerConnectionHandler::WaitForConnection();
-#if 0
-  if (kind == kCreated) {
-    printf("Isolate created %p\n", isolate);
-  } else if (kind == kInterrupted) {
-    printf("Isolate interrupted %p\n", isolate);
-  } else if (kind == kShutdown) {
-    printf("Isolate shutdown %p\n", isolate);
-  }
-#endif
+  // TODO(asiva): Add code to send isolate events over to the debugger client.
 }

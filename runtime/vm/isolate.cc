@@ -48,7 +48,7 @@ class IsolateMessageHandler : public MessageHandler {
   void CheckAccess();
 #endif
   bool IsCurrentIsolate() const;
-  Isolate* GetIsolate() const { return isolate_; }
+  virtual Isolate* GetIsolate() const { return isolate_; }
 
  private:
   Isolate* isolate_;
@@ -236,9 +236,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
 
-  // Signal isolate creation event.
-  Debugger::SignalIsolateEvent(Debugger::kIsolateCreated);
-
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
   if (FLAG_trace_isolates) {
@@ -415,9 +412,6 @@ void Isolate::Shutdown() {
     HandleScope handle_scope(this);
     debugger_->Shutdown();
   }
-
-  // Signal isolate shutdown event.
-  Debugger::SignalIsolateEvent(Debugger::kIsolateShutdown);
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());

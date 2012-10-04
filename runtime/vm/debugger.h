@@ -8,6 +8,7 @@
 #include "include/dart_debugger_api.h"
 
 #include "vm/object.h"
+#include "vm/port.h"
 
 namespace dart {
 
@@ -222,7 +223,7 @@ class Debugger {
       DebuggerStackTrace* stack_trace;
       SourceBreakpoint* breakpoint;
       const Object* exception;
-      Isolate* isolate;
+      Dart_Port isolate_id;
     };
   };
   typedef void EventHandler(DebuggerEvent *event);
@@ -270,6 +271,8 @@ class Debugger {
   intptr_t CacheObject(const Object& obj);
   RawObject* GetCachedObject(intptr_t obj_id);
   bool IsValidObjectId(intptr_t obj_id);
+
+  Dart_Port GetIsolateId() { return isolate_id_; }
 
   static void SetEventHandler(EventHandler* handler);
   static void SetBreakpointHandler(BreakpointHandler* handler);
@@ -331,6 +334,7 @@ class Debugger {
                             bool include_private_fields);
 
   Isolate* isolate_;
+  Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
 
   // ID number generator.

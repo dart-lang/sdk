@@ -176,7 +176,7 @@ class DbgMessageQueue {
   static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
   static void ExceptionThrownHandler(Dart_Handle exception,
                                      Dart_StackTrace stack_trace);
-  static void IsolateEventHandler(Dart_Isolate isolate,
+  static void IsolateEventHandler(Dart_IsolateId isolate_id,
                                   Dart_IsolateEvent kind);
 
  private:

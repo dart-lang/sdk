@@ -4,6 +4,8 @@
 
 #include "vm/debugger.h"
 
+#include "include/dart_api.h"
+
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -14,6 +16,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/port.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -159,9 +162,12 @@ const Function& ActivationFrame::DartFunction() {
 
 void Debugger::SignalIsolateEvent(EventType type) {
   if (event_handler_ != NULL) {
+    Debugger* debugger = Isolate::Current()->debugger();
+    ASSERT(debugger != NULL);
     DebuggerEvent event;
     event.type = type;
-    event.isolate = Isolate::Current();
+    event.isolate_id = debugger->GetIsolateId();
+    ASSERT(event.isolate_id != ILLEGAL_ISOLATE_ID);
     (*event_handler_)(&event);
   }
 }
@@ -631,6 +637,7 @@ RawObject* RemoteObjectCache::GetObj(intptr_t obj_id) const {
 
 Debugger::Debugger()
     : isolate_(NULL),
+      isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
       next_id_(1),
       stack_trace_(NULL),
@@ -645,6 +652,8 @@ Debugger::Debugger()
 
 
 Debugger::~Debugger() {
+  PortMap::ClosePort(isolate_id_);
+  isolate_id_ = ILLEGAL_ISOLATE_ID;
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
@@ -664,6 +673,8 @@ void Debugger::Shutdown() {
     bpt->Disable();
     delete bpt;
   }
+  // Signal isolate shutdown event.
+  SignalIsolateEvent(Debugger::kIsolateShutdown);
 }
 
 
@@ -1416,7 +1427,15 @@ void Debugger::Initialize(Isolate* isolate) {
     return;
   }
   isolate_ = isolate;
+  // Create a port here, we don't expect to receive any messages on this port.
+  // This port will be used as a unique ID to represet the isolate in the
+  // debugger wire protocol messages.
+  // NOTE: SetLive is never called on this port.
+  isolate_id_ = PortMap::CreatePort(isolate->message_handler());
   initialized_ = true;
+
+  // Signal isolate creation event.
+  SignalIsolateEvent(Debugger::kIsolateCreated);
 }
 
 
