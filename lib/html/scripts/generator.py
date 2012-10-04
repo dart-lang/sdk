@@ -15,6 +15,7 @@ _pure_interfaces = set([
     'DOMStringMap',
     'ElementTimeControl',
     'ElementTraversal',
+    'EventListener',
     'MediaQueryListListener',
     'NodeSelector',
     'SVGExternalResourcesRequired',
@@ -505,6 +506,9 @@ def TypeName(type_ids, interface):
   # Dynamically type this field for now.
   return 'Dynamic'
 
+def ImplementationClassName(interface_name):
+  return '_%sImpl' % interface_name
+
 # ------------------------------------------------------------------------------
 
 class Conversion(object):
@@ -608,6 +612,9 @@ class IDLTypeInfo(object):
   def dart_type(self):
     return self._data.dart_type or self._idl_type
 
+  def narrow_dart_type(self):
+    return self.dart_type()
+
   def native_type(self):
     return self._data.native_type or self._idl_type
 
@@ -696,6 +703,23 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
   def dart_type(self):
     return self._data.dart_type or self._dart_interface_name
 
+  def narrow_dart_type(self):
+    # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
+    if self._data.suppress_public_interface:
+      return ImplementationClassName(self.idl_type())
+    # TODO(podivilov): only primitive and collection types should override
+    # dart_type.
+    if self._data.dart_type != None:
+      return self.dart_type()
+    if IsPureInterface(self.idl_type()):
+      return self.idl_type()
+    return ImplementationClassName(self._dart_interface_name)
+
+
+class CallbackIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, data):
+    super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
+
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data, item_info):
@@ -775,9 +799,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return re.sub(r'(^| )([a-z])', lambda x: x.group(2).upper(), self.native_type())
 
 
-class SVGTearOffIDLTypeInfo(IDLTypeInfo):
+class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
   def __init__(self, idl_type, data):
-    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data)
+    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data, idl_type)
 
   def native_type(self):
     if self._data.native_type:
@@ -992,6 +1016,8 @@ class TypeRegistry(object):
 
     if not type_name in _idl_type_registry:
       interface = self._database.GetInterface(type_name)
+      if 'Callback' in interface.ext_attrs:
+        return CallbackIDLTypeInfo(type_name, TypeData('Callback'))
       return InterfaceIDLTypeInfo(
           type_name,
           TypeData('Interface'),

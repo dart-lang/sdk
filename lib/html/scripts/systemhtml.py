@@ -1027,25 +1027,10 @@ class Dart2JSBackend(object):
     if element_type and requires_indexer: return True
     return False
 
-  def _ShouldNarrowToImplementationType(self, type_name):
-    # TODO(sra): Move into the 'system' and cache the result.
-    do_not_narrow = ['DOMStringList', 'DOMStringMap', 'EventListener',
-                     'IDBAny', 'IDBKey', 'MediaQueryListListener', 'List<Node>',
-                     'NodeList']
-    if type_name in do_not_narrow:
-      return False
-    if self._database.HasInterface(type_name):
-      interface = self._database.GetInterface(type_name)
-      # Callbacks are typedef functions so don't have a class.
-      return 'Callback' not in interface.ext_attrs
-    return False
-
   def _NarrowToImplementationType(self, type_name):
     if type_name == 'Dynamic':
       return type_name
-    if self._ShouldNarrowToImplementationType(type_name):
-      return self._ImplClassName(self._DartType(type_name))
-    return self._DartType(type_name)
+    return self._type_registry.TypeInfo(type_name).narrow_dart_type()
 
   def _NarrowInputType(self, type_name):
     return self._NarrowToImplementationType(type_name)
