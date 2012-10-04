@@ -166,10 +166,10 @@ class PatchParserTask extends leg.CompilerTask {
     });
   }
 
-  tree.ClassNode parsePatchClassNode(PartialClassElement element) {
+  void parsePatchClassNode(PartialClassElement element) {
     // Parse [PartialClassElement] using a "patch"-aware parser instead
     // of calling its [parseNode] method.
-    if (element.cachedNode != null) return element.cachedNode;
+    if (element.cachedNode != null) return;
 
     return measure(() => compiler.withCurrentElement(element, () {
       PatchMemberListener listener = new PatchMemberListener(compiler, element);
@@ -178,8 +178,95 @@ class PatchParserTask extends leg.CompilerTask {
       assert(token === element.endToken.next);
       element.cachedNode = listener.popNode();
       assert(listener.nodes.isEmpty());
-      return element.cachedNode;
+
+      Link<Element> patches = element.localMembers;
+      applyContainerPatch(element.origin, patches);
     }));
+  }
+
+  void applyContainerPatch(ScopeContainerElement original,
+                           Link<Element> patches) {
+    while (!patches.isEmpty()) {
+      Element patchElement = patches.head;
+      Element originalElement = original.localLookup(patchElement.name);
+      if (patchElement.isAccessor() && originalElement !== null) {
+        if (originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          compiler.internalError(
+              "Cannot patch non-getter/setter with getter/setter",
+              element: originalElement);
+        }
+        AbstractFieldElement originalField = originalElement;
+        if (patchElement.isGetter()) {
+          originalElement = originalField.getter;
+        } else {
+          originalElement = originalField.setter;
+        }
+      }
+      if (originalElement === null) {
+        if (isPatchElement(patchElement)) {
+          compiler.internalError("Cannot patch non-existing member '"
+                        "${patchElement.name.slowToString()}'.");
+        }
+      } else {
+        patchMember(originalElement, patchElement);
+      }
+      patches = patches.tail;
+    }
+  }
+
+  bool isPatchElement(Element element) {
+    // TODO(lrn): More checks needed if we introduce metadata for real.
+    // In that case, it must have the identifier "native" as metadata.
+    for (Link link = element.metadata; !link.isEmpty(); link = link.tail) {
+      if (link.head is PatchMetadataAnnotation) return true;
+    }
+    return false;
+  }
+
+  void patchMember(Element originalElement, Element patchElement) {
+    // The original library has an element with the same name as the patch
+    // library element.
+    // In this case, the patch library element must be a function marked as
+    // "patch" and it must have the same signature as the function it patches.
+    if (!isPatchElement(patchElement)) {
+      compiler.internalError("Cannot overwrite existing '"
+                    "${originalElement.name.slowToString()}' with non-patch.");
+    }
+    if (originalElement is! FunctionElement) {
+      // TODO(lrn): Handle class declarations too.
+      compiler.internalError("Can only patch functions", element: originalElement);
+    }
+    FunctionElement original = originalElement;
+    if (!original.modifiers.isExternal()) {
+      compiler.internalError("Can only patch external functions.", element: original);
+    }
+    if (patchElement is! FunctionElement ||
+        !patchSignatureMatches(original, patchElement)) {
+      compiler.internalError("Can only patch functions with matching signatures",
+                    element: original);
+    }
+    applyFunctionPatch(original, patchElement);
+  }
+
+  bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
+    // TODO(lrn): Check that patches actually match the signature of
+    // the function it's patching.
+    return true;
+  }
+
+  void applyFunctionPatch(FunctionElement element,
+                          FunctionElement patchElement) {
+    if (element.isPatched) {
+      compiler.internalError("Trying to patch a function more than once.",
+                    element: element);
+    }
+    if (element.cachedNode !== null) {
+      compiler.internalError("Trying to patch an already compiled function.",
+                    element: element);
+    }
+    // Don't just assign the patch field. This also updates the cachedNode.
+    element.setPatch(patchElement);
+    patchElement.origin = element;
   }
 }
 
