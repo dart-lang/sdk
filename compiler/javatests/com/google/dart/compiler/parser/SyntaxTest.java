@@ -110,11 +110,17 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   public void test_cascade() {
-    parseUnit("cascade.dart", Joiner.on("\n").join(
-        "class C {",
-        "  var f = g..m1()..m2()..f.a;",
-        "  var f = g..[3].x()..y()();",
-        "}"));
+    parseUnit(
+        "cascade.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C {",
+            "  var f = g..m1()..m2()..f.a;",
+            "  var f = g..[3].x()..y()();",
+            "}"));
+    // test that cascaded invocations have reasonable SourceInfo
+    assertNodeSourceInfo("..m1()");
+    assertNodeSourceInfo("..m2()");
   }
 
 //  public void test_cascade2() {

@@ -34,6 +34,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Base class for compiler tests, with helpful utility methods.
@@ -270,12 +271,13 @@ public abstract class CompilerTestCase extends TestCase {
    * Parse a single compilation unit for the name and source.
    */
   protected DartUnit parseUnit(String srcName, String sourceCode, Object... errors) {
+    testSource = sourceCode;
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
     DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
-    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
+    testUnit = makeParser(src, sourceCode, listener).parseUnit();
     listener.checkAllErrorsReported();
-    return unit;
+    return testUnit;
   }
 
   /**
@@ -382,20 +384,44 @@ public abstract class CompilerTestCase extends TestCase {
     List<DartCompilationError> errors = runner.getErrors();
     assertErrors(errors, expectedWarnings);
   }
+  
   /**
-   * @return the {@link DartExpression} with given source. This is inaccurate approach, but good
+   * Find node in {@link #testUnit} parsed form {@link #testSource}.
+   */
+  public <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
+    final int index = testSource.indexOf(pattern);
+    assertTrue(index != -1);
+    final AtomicReference<T> result = new AtomicReference<T>();
+    testUnit.accept(new ASTVisitor<Void>() {
+      @Override
+      @SuppressWarnings("unchecked")
+      public Void visitNode(DartNode node) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo.getOffset() <= index
+            && index < sourceInfo.getEnd()
+            && clazz.isInstance(node)) {
+          result.set((T) node);
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
+  }
+
+  /**
+   * @return the {@link DartExpression} with given {@link DartNode#toSource()}. This is inaccurate approach, but good
    *         enough for specific tests.
    */
   @SuppressWarnings("unchecked")
-  protected static <T extends DartExpression> T findExpression(DartNode rootNode, final String sampleSource) {
-    final DartExpression result[] = new DartExpression[1];
+  protected static <T extends DartNode> T findNodeBySource(DartNode rootNode, final String sampleSource) {
+    final DartNode result[] = new DartNode[1];
     rootNode.accept(new ASTVisitor<Void>() {
       @Override
-      public Void visitExpression(DartExpression node) {
+      public Void visitNode(DartNode node) {
         if (node.toSource().equals(sampleSource)) {
           result[0] = node;
         }
-        return super.visitExpression(node);
+        return super.visitNode(node);
       }
     });
     return (T) result[0];
@@ -418,6 +444,18 @@ public abstract class CompilerTestCase extends TestCase {
   public static String getNodeSource(String code, DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return code.substring(sourceInfo.getOffset(), sourceInfo.getEnd());
+  }
+
+  /**
+   * Asserts that parsed {@link DartUnit} has {@link DartExpression} with given source and its
+   * {@link SourceInfo} points to the given source.
+   */
+  protected void assertNodeSourceInfo(String nodeSource) {
+    DartNode node = findNode(DartNode.class, nodeSource);
+    assertNotNull(node);
+    SourceInfo sourceInfo = node.getSourceInfo();
+    String actualSource = testSource.substring(sourceInfo.getOffset(), sourceInfo.getEnd());
+    assertEquals(nodeSource, actualSource);
   }
 
 

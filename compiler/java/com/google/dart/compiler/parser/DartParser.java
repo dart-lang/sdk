@@ -2302,7 +2302,9 @@ public class DartParser extends CompletionHooksParserBase {
     if (token == Token.CASCADE) {
       List<DartExpression> cascadeSections = new ArrayList<DartExpression>();
       while (token == Token.CASCADE) {
+        beginExpression();
         DartExpression section = parseCascadeSection();
+        done(section);
         if (section != null) {
           cascadeSections.add(section);
         }
