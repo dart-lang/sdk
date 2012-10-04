@@ -6475,7 +6475,7 @@ const char* PcDescriptors::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
   const char* kFormat =
-      "%#-*"Px"\t%s\t%"Pd"\t%"Pd"\t%"Pd"\n";
+      "%#-*"Px"\t%s\t%"Pd"\t\t%"Pd"\t%"Pd"\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
