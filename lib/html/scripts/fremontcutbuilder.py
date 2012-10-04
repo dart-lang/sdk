@@ -117,18 +117,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
       # TODO(vsm): What else should we define as on when processing IDL?
       idl_defines=webkit_defines + feature_defines,
       source='WebKit',
-      source_attributes={'revision': webkit_revision},
-      type_rename_map={
-        'BarInfo': 'BarProp',
-        'DedicatedWorkerContext': 'DedicatedWorkerGlobalScope',
-        'DOMApplicationCache': 'ApplicationCache',
-        'DOMCoreException': 'DOMException',
-        'DOMFormData': 'FormData',
-        'DOMSelection': 'Selection',
-        'DOMWindow': 'Window',
-        'SharedWorkerContext': 'SharedWorkerGlobalScope',
-        'WorkerContext': 'WorkerGlobalScope',
-      })
+      source_attributes={'revision': webkit_revision})
 
   # Import WebKit IDLs.
   builder.import_idl_files(idl_files, webkit_options)

@@ -33,7 +33,6 @@ class DatabaseBuilderOptions(object):
       idl_syntax=idlparser.WEBIDL_SYNTAX,
       idl_defines=[],
       source=None, source_attributes={},
-      type_rename_map={},
       rename_operation_arguments_on_merge=False,
       add_new_interfaces=True,
       obsolete_old_declarations=False):
@@ -57,7 +56,6 @@ class DatabaseBuilderOptions(object):
     self.source_attributes = source_attributes
     self.idl_syntax = idl_syntax
     self.idl_defines = idl_defines
-    self.type_rename_map = type_rename_map
     self.rename_operation_arguments_on_merge = \
         rename_operation_arguments_on_merge
     self.add_new_interfaces = add_new_interfaces
@@ -117,22 +115,17 @@ class DatabaseBuilder(object):
     """Rename interface and type names with names provided in the
     options. Also clears scopes from scoped names"""
 
-    def rename(name):
-      name_parts = name.split('::')
-      name = name_parts[-1]
-      if name in import_options.type_rename_map:
-        name = import_options.type_rename_map[name]
-      return name
+    strip_modules = lambda name: name.split('::')[-1]
 
     def rename_node(idl_node):
-      idl_node.reset_id(rename(idl_node.id))
+      idl_node.reset_id(strip_modules(idl_node.id))
 
     def rename_ext_attrs(ext_attrs_node):
       for type_valued_attribute_name in ['Supplemental']:
         if type_valued_attribute_name in ext_attrs_node:
           value = ext_attrs_node[type_valued_attribute_name]
           if isinstance(value, str):
-            ext_attrs_node[type_valued_attribute_name] = rename(value)
+            ext_attrs_node[type_valued_attribute_name] = strip_modules(value)
 
     map(rename_node, idl_file.all(IDLInterface))
     map(rename_node, idl_file.all(IDLType))
@@ -570,7 +563,7 @@ class DatabaseBuilder(object):
         map(normalize, interface.operations)
 
   def fetch_constructor_data(self, options):
-    window_interface = self._database.GetInterface('Window')
+    window_interface = self._database.GetInterface('DOMWindow')
     for attr in window_interface.attributes:
       type = attr.type.id
       if not type.endswith('Constructor'):
@@ -579,7 +572,7 @@ class DatabaseBuilder(object):
       # TODO(antonm): Ideally we'd like to have pristine copy of WebKit IDLs and fetch
       # this information directly from it.  Unfortunately right now database is massaged
       # a lot so it's difficult to maintain necessary information on DOMWindow itself.
-      interface = self._database.GetInterface(options.type_rename_map.get(type, type))
+      interface = self._database.GetInterface(type)
       if 'V8EnabledPerContext' in attr.ext_attrs:
         interface.ext_attrs['synthesizedV8EnabledPerContext'] = \
             attr.ext_attrs['V8EnabledPerContext']

@@ -974,7 +974,7 @@ class TypeRegistry(object):
       if self._renamer:
         return self._renamer.RenameInterface(interface)
       else:
-        return interface.id
+        return interface.ext_attrs.get('InterfaceName', interface.id)
     return dart_type
 
   def _TypeInfo(self, type_name):

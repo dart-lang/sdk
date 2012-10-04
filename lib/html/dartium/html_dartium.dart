@@ -9578,7 +9578,7 @@ class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMException
+/// @domName DOMCoreException
 abstract class DOMException {
 
   static const int ABORT_ERR = 20;
@@ -9631,16 +9631,16 @@ abstract class DOMException {
 
   static const int WRONG_DOCUMENT_ERR = 4;
 
-  /** @domName DOMException.code */
+  /** @domName DOMCoreException.code */
   abstract int get code;
 
-  /** @domName DOMException.message */
+  /** @domName DOMCoreException.message */
   abstract String get message;
 
-  /** @domName DOMException.name */
+  /** @domName DOMCoreException.name */
   abstract String get name;
 
-  /** @domName DOMException.toString */
+  /** @domName DOMCoreException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9649,15 +9649,15 @@ abstract class DOMException {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
+class _DOMCoreExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
-  int get code native "DOMException_code_Getter";
+  int get code native "DOMCoreException_code_Getter";
 
-  String get message native "DOMException_message_Getter";
+  String get message native "DOMCoreException_message_Getter";
 
-  String get name native "DOMException_name_Getter";
+  String get name native "DOMCoreException_name_Getter";
 
-  String toString() native "DOMException_toString_Callback";
+  String toString() native "DOMCoreException_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

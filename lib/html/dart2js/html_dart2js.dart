@@ -8512,7 +8512,7 @@ class _DOMErrorImpl implements DOMError native "*DOMError" {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMException
+/// @domName DOMCoreException
 abstract class DOMException {
 
   static const int ABORT_ERR = 20;
@@ -8565,20 +8565,20 @@ abstract class DOMException {
 
   static const int WRONG_DOCUMENT_ERR = 4;
 
-  /** @domName DOMException.code */
+  /** @domName DOMCoreException.code */
   abstract int get code;
 
-  /** @domName DOMException.message */
+  /** @domName DOMCoreException.message */
   abstract String get message;
 
-  /** @domName DOMException.name */
+  /** @domName DOMCoreException.name */
   abstract String get name;
 
-  /** @domName DOMException.toString */
+  /** @domName DOMCoreException.toString */
   String toString();
 }
 
-class _DOMExceptionImpl implements DOMException native "*DOMException" {
+class _DOMExceptionImpl implements DOMException native "*DOMCoreException" {
 
   final int code;
 
