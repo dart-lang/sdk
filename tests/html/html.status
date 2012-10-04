@@ -71,7 +71,7 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
-element_webkit_test: Fail
+element_test: Fail
 localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
@@ -138,6 +138,7 @@ document_test: Fail
 dom_constructors_test: Fail
 element_add_test: Fail
 element_constructor_1_test: Fail
+element_test: Fail
 exceptions_test: Fail
 instance_of_test: Fail
 mutationobserver_test: Fail
@@ -157,7 +158,7 @@ canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribut
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
-element_webkit_test: Fail
+element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
 indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB

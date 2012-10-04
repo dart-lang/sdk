@@ -11115,16 +11115,16 @@ abstract class Element implements Node, NodeSelector {
   String $dom_className;
 
   /** @domName Element.clientHeight */
-  abstract int get clientHeight;
+  abstract int get $dom_clientHeight;
 
   /** @domName Element.clientLeft */
-  abstract int get clientLeft;
+  abstract int get $dom_clientLeft;
 
   /** @domName Element.clientTop */
-  abstract int get clientTop;
+  abstract int get $dom_clientTop;
 
   /** @domName Element.clientWidth */
-  abstract int get clientWidth;
+  abstract int get $dom_clientWidth;
 
   /** @domName Element.dataset */
   abstract Map<String, String> get dataset;
@@ -11139,34 +11139,34 @@ abstract class Element implements Node, NodeSelector {
   abstract Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  abstract int get offsetHeight;
+  abstract int get $dom_offsetHeight;
 
   /** @domName Element.offsetLeft */
-  abstract int get offsetLeft;
+  abstract int get $dom_offsetLeft;
 
   /** @domName Element.offsetParent */
   abstract Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  abstract int get offsetTop;
+  abstract int get $dom_offsetTop;
 
   /** @domName Element.offsetWidth */
-  abstract int get offsetWidth;
+  abstract int get $dom_offsetWidth;
 
   /** @domName Element.previousElementSibling */
   abstract Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  abstract int get scrollHeight;
+  abstract int get $dom_scrollHeight;
 
   /** @domName Element.scrollLeft */
-  int scrollLeft;
+  int $dom_scrollLeft;
 
   /** @domName Element.scrollTop */
-  int scrollTop;
+  int $dom_scrollTop;
 
   /** @domName Element.scrollWidth */
-  abstract int get scrollWidth;
+  abstract int get $dom_scrollWidth;
 
   /** @domName Element.style */
   abstract CSSStyleDeclaration get style;
@@ -11184,10 +11184,10 @@ abstract class Element implements Node, NodeSelector {
   String $dom_getAttribute(String name);
 
   /** @domName Element.getBoundingClientRect */
-  ClientRect getBoundingClientRect();
+  ClientRect $dom_getBoundingClientRect();
 
   /** @domName Element.getClientRects */
-  List<ClientRect> getClientRects();
+  List<ClientRect> $dom_getClientRects();
 
   /** @domName Element.getElementsByClassName */
   List<Node> $dom_getElementsByClassName(String name);
@@ -11961,20 +11961,20 @@ class _ElementRectImpl implements ElementRect {
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
-    client = new _SimpleClientRect(element.clientLeft,
-                                  element.clientTop,
-                                  element.clientWidth,
-                                  element.clientHeight),
-    offset = new _SimpleClientRect(element.offsetLeft,
-                                  element.offsetTop,
-                                  element.offsetWidth,
-                                  element.offsetHeight),
-    scroll = new _SimpleClientRect(element.scrollLeft,
-                                  element.scrollTop,
-                                  element.scrollWidth,
-                                  element.scrollHeight),
-    _boundingClientRect = element.getBoundingClientRect(),
-    _clientRects = element.getClientRects();
+    client = new _SimpleClientRect(element.$dom_clientLeft,
+                                  element.$dom_clientTop,
+                                  element.$dom_clientWidth,
+                                  element.$dom_clientHeight),
+    offset = new _SimpleClientRect(element.$dom_offsetLeft,
+                                  element.$dom_offsetTop,
+                                  element.$dom_offsetWidth,
+                                  element.$dom_offsetHeight),
+    scroll = new _SimpleClientRect(element.$dom_scrollLeft,
+                                  element.$dom_scrollTop,
+                                  element.$dom_scrollWidth,
+                                  element.$dom_scrollHeight),
+    _boundingClientRect = element.$dom_getBoundingClientRect(),
+    _clientRects = element.$dom_getClientRects();
 
   _ClientRectImpl get bounding => _boundingClientRect;
 
@@ -12165,13 +12165,13 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void set $dom_className(String value) native "this.className = value;";
 
-  final int clientHeight;
+  int get $dom_clientHeight() native "return this.clientHeight;";
 
-  final int clientLeft;
+  int get $dom_clientLeft() native "return this.clientLeft;";
 
-  final int clientTop;
+  int get $dom_clientTop() native "return this.clientTop;";
 
-  final int clientWidth;
+  int get $dom_clientWidth() native "return this.clientWidth;";
 
   final Map<String, String> dataset;
 
@@ -12181,25 +12181,29 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   final _ElementImpl nextElementSibling;
 
-  final int offsetHeight;
+  int get $dom_offsetHeight() native "return this.offsetHeight;";
 
-  final int offsetLeft;
+  int get $dom_offsetLeft() native "return this.offsetLeft;";
 
   final _ElementImpl offsetParent;
 
-  final int offsetTop;
+  int get $dom_offsetTop() native "return this.offsetTop;";
 
-  final int offsetWidth;
+  int get $dom_offsetWidth() native "return this.offsetWidth;";
 
   final _ElementImpl previousElementSibling;
 
-  final int scrollHeight;
+  int get $dom_scrollHeight() native "return this.scrollHeight;";
 
-  int scrollLeft;
+  int get $dom_scrollLeft() native "return this.scrollLeft;";
 
-  int scrollTop;
+  void set $dom_scrollLeft(int value) native "this.scrollLeft = value;";
 
-  final int scrollWidth;
+  int get $dom_scrollTop() native "return this.scrollTop;";
+
+  void set $dom_scrollTop(int value) native "this.scrollTop = value;";
+
+  int get $dom_scrollWidth() native "return this.scrollWidth;";
 
   final _CSSStyleDeclarationImpl style;
 
@@ -12211,9 +12215,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   String $dom_getAttribute(String name) native "getAttribute";
 
-  _ClientRectImpl getBoundingClientRect() native;
+  _ClientRectImpl $dom_getBoundingClientRect() native "getBoundingClientRect";
 
-  _ClientRectListImpl getClientRects() native;
+  _ClientRectListImpl $dom_getClientRects() native "getClientRects";
 
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
@@ -19562,7 +19566,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
         throw const UnsupportedOperationException(
             'offsetX is only supported on elements');
       }
-      return this.clientX - this.target.getBoundingClientRect().left;
+      return this.clientX - this.target.$dom_getBoundingClientRect().left;
     }
   }
 
@@ -19576,7 +19580,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
         throw const UnsupportedOperationException(
             'offsetX is only supported on elements');
       }
-      return this.clientY - this.target.getBoundingClientRect().top;
+      return this.clientY - this.target.$dom_getBoundingClientRect().top;
     }
   }
 

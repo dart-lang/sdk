@@ -18,12 +18,6 @@ expectLargeRect(ClientRect rect) {
 
 void testEventHelper(EventListenerList listenerList, String type,
     [Function registerOnEventListener = null]) {
-  testMultipleEventHelper(listenerList, [type], registerOnEventListener);
-}
-
-// Allows testing where we polyfill different browsers firing different events.
-void testMultipleEventHelper(EventListenerList listenerList, List<String> types,
-    [Function registerOnEventListener = null]) {
   bool firedWhenAddedToListenerList = false;
   bool firedOnEvent = false;
   listenerList.add((e) {
@@ -34,10 +28,8 @@ void testMultipleEventHelper(EventListenerList listenerList, List<String> types,
       firedOnEvent = true;
     });
   }
-  for (var type in types) {
-    final event = new Event(type);
-    listenerList.dispatch(event);
-  }
+  final event = new Event(type);
+  listenerList.dispatch(event);
 
   Expect.isTrue(firedWhenAddedToListenerList);
   if (registerOnEventListener != null) {
@@ -83,33 +75,11 @@ main() {
       expectLargeRect(rect.client);
       expectLargeRect(rect.offset);
       expectLargeRect(rect.scroll);
-      expect(rect.bounding.left, 8);
-      expect(rect.bounding.top, 8);
-      expect(rect.clientRects.length, greaterThan(0));
+      Expect.equals(rect.bounding.left, 8);
+      Expect.equals(rect.bounding.top, 8);
+      Expect.isTrue(rect.clientRects.length > 0);
       container.remove();
     }));
-  });
-
-  test('client position synchronous', () {
-    final container = new Element.tag("div");
-    container.style.position = 'absolute';
-    container.style.top = '8px';
-    container.style.left = '8px';
-    final element = new Element.tag("div");
-    element.style.width = '200px';
-    element.style.height = '200px';
-    container.elements.add(element);
-    document.body.elements.add(container);
-
-    expect(element.clientWidth, greaterThan(100));
-    expect(element.clientHeight, greaterThan(100));
-    expect(element.offsetWidth, greaterThan(100));
-    expect(element.offsetHeight, greaterThan(100));
-    expect(element.scrollWidth, greaterThan(100));
-    expect(element.scrollHeight, greaterThan(100));
-    expect(element.getBoundingClientRect().left, 8);
-    expect(element.getBoundingClientRect().top, 8);
-    container.remove();
   });
 
   group('constructors', () {
@@ -152,8 +122,14 @@ main() {
     // test('datalist', () => testConstructorHelper('datalist',
     //     '<datalist>foo</datalist>', 'foo',
     //     (element) => element is DataListElement));
+    test('details', () => testConstructorHelper('details',
+        '<details>foo</details>', 'foo',
+        (element) => element is DetailsElement));
     test('div', () => testConstructorHelper('div', '<div>foo</div>', 'foo',
         (element) => element is DivElement));
+    test('embed', () => testConstructorHelper('embed',
+        '<embed>foo</embed>', '',
+        (element) => element is EmbedElement));
     test('fieldset', () => testConstructorHelper('fieldset',
         '<fieldset>foo</fieldset>', 'foo',
         (element) => element is FieldSetElement));
@@ -185,6 +161,8 @@ main() {
         (element) => element is ImageElement));
     test('input', () => testConstructorHelper('input', '<input/>', '',
         (element) => element is InputElement));
+    test('keygen', () => testConstructorHelper('keygen', '<keygen>', '',
+        (element) => element is KeygenElement));
     test('li', () => testConstructorHelper('li', '<li>foo</li>', 'foo',
         (element) => element is LIElement));
     test('label', () => testConstructorHelper('label',
@@ -197,16 +175,25 @@ main() {
         (element) => element is LinkElement));
     test('map', () => testConstructorHelper('map', '<map>foo</map>', 'foo',
         (element) => element is MapElement));
+    test('marquee', () => testConstructorHelper('marquee',
+        '<marquee>foo</marquee>', 'foo',
+        (element) => element is MarqueeElement));
     test('menu', () => testConstructorHelper('menu', '<menu>foo</menu>', 'foo',
         (element) => element is MenuElement));
     test('meta', () => testConstructorHelper('meta', '<meta>', '',
         (element) => element is MetaElement));
+    test('meter', () => testConstructorHelper('meter',
+        '<meter>foo</meter>', 'foo',
+        (element) => element is MeterElement));
     test('del', () => testConstructorHelper('del', '<del>foo</del>', 'foo',
         (element) => element is ModElement));
     test('ins', () => testConstructorHelper('ins', '<ins>foo</ins>', 'foo',
         (element) => element is ModElement));
     test('ol', () => testConstructorHelper('ol', '<ol>foo</ol>', 'foo',
         (element) => element is OListElement));
+    test('object', () => testConstructorHelper('object',
+        '<object>foo</object>', 'foo',
+        (element) => element is ObjectElement));
     test('optgroup', () => testConstructorHelper('optgroup',
         '<optgroup>foo</optgroup>', 'foo',
         (element) => element is OptGroupElement));
@@ -387,9 +374,7 @@ main() {
     testEventHelper(on.mouseUp, 'mouseup',
         (listener) => Testing.addEventListener(
             element, 'mouseup', listener, true));
-    // Browsers have different events that they use, so fire all variants.
-    testMultipleEventHelper(on.mouseWheel,
-        ['mousewheel', 'wheel', 'DOMMouseScroll'],
+    testEventHelper(on.mouseWheel, 'mousewheel',
         (listener) => Testing.addEventListener(
             element, 'mousewheel', listener, true));
     testEventHelper(on.paste, 'paste',
@@ -426,6 +411,10 @@ main() {
     testEventHelper(on.touchStart, 'touchstart',
         (listener) => Testing.addEventListener(
             element, 'touchstart', listener, true));
+    testEventHelper(on.transitionEnd, 'webkitTransitionEnd');
+    testEventHelper(on.fullscreenChange, 'webkitfullscreenchange',
+        (listener) => Testing.addEventListener(element,
+            'webkitfullscreenchange', listener, true));
   });
 
   group('attributes', () {
