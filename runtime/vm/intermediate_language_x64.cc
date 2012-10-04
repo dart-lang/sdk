@@ -2061,6 +2061,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ testq(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
   }
+  __ LoadClassId(temp, value);
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
   for (intptr_t i = cix; i < num_checks; i++) {
