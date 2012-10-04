@@ -8,10 +8,12 @@ class World {
   final Set<ClassElement> classesNeedingRti;
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final FunctionSet userDefinedGetters;
+  final FunctionSet userDefinedSetters;
 
   World(Compiler compiler)
       : subtypes = new Map<ClassElement, Set<ClassElement>>(),
         userDefinedGetters = new FunctionSet(compiler),
+        userDefinedSetters = new FunctionSet(compiler),
         classesNeedingRti = new Set<ClassElement>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         this.compiler = compiler;
@@ -89,15 +91,28 @@ class World {
     userDefinedGetters.add(element);
   }
 
+  void recordUserDefinedSetter(Element element) {
+    assert(element.isSetter());
+    userDefinedSetters.add(element);
+  }
+
   bool hasAnyUserDefinedGetter(Selector selector) {
     return userDefinedGetters.hasAnyElementMatchingSelector(selector);
   }
 
+  bool hasAnyUserDefinedSetter(Selector selector) {
+    return userDefinedSetters.hasAnyElementMatchingSelector(selector);
+  }
+
   void registerUsedElement(Element element) {
-    if (element.isMember() && element.isGetter()) {
-      // We're collecting user-defined getters to let the codegen know which
-      // field accesses might have side effects.
-      userDefinedGetters.add(element);
+    if (element.isMember()) {
+      if (element.isGetter()) {
+        // We're collecting user-defined getters to let the codegen know which
+        // field accesses might have side effects.
+        recordUserDefinedGetter(element);
+      } else if (element.isSetter()) {
+        recordUserDefinedSetter(element);
+      }
     }
   }
 

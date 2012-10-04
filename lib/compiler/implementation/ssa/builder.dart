@@ -2199,14 +2199,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
     }
+    bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     if (staticInterceptor != null) {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
       addWithPosition(new HInvokeInterceptor(selector, inputs), send);
     } else {
-      addWithPosition(new HInvokeDynamicSetter(selector, null, receiver, value),
-                      send);
+      addWithPosition(
+          new HInvokeDynamicSetter(selector, null, receiver, value, !hasSetter),
+          send);
     }
     stack.add(value);
   }

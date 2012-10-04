@@ -589,6 +589,11 @@ class HBasicBlock extends HInstructionList {
     block.predecessors.add(this);
   }
 
+  void removeSuccessor(HBasicBlock successor) {
+    successors.removeAt(successors.indexOf(successor));
+    successor.predecessors.removeAt(successors.predecessors.indexOf(this));
+  }
+
   void postProcessLoopHeader() {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the
@@ -757,14 +762,24 @@ abstract class HInstruction implements Spannable {
   int flags = 0;
 
   // Changes flags.
-  static const int FLAG_CHANGES_SOMETHING    = 0;
-  static const int FLAG_CHANGES_COUNT        = FLAG_CHANGES_SOMETHING + 1;
+  static const int FLAG_CHANGES_INDEX = 0;
+  static const int FLAG_CHANGES_INSTANCE_PROPERTY = FLAG_CHANGES_INDEX + 1;
+  static const int FLAG_CHANGES_STATIC_PROPERTY
+      = FLAG_CHANGES_INSTANCE_PROPERTY + 1;
+  static const int FLAG_CHANGES_SOMETHING = FLAG_CHANGES_STATIC_PROPERTY + 1;
+  static const int FLAG_CHANGES_COUNT = FLAG_CHANGES_SOMETHING + 1;
 
   // Depends flags (one for each changes flag).
-  static const int FLAG_DEPENDS_ON_SOMETHING = FLAG_CHANGES_COUNT;
+  static const int FLAG_DEPENDS_ON_INDEX_STORE = FLAG_CHANGES_COUNT;
+  static const int FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE =
+      FLAG_DEPENDS_ON_INDEX_STORE + 1;
+  static const int FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE =
+      FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE + 1;
+  static const int FLAG_DEPENDS_ON_SOMETHING =
+      FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE + 1;
 
   // Other flags.
-  static const int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
+  static const int FLAG_USE_GVN = FLAG_DEPENDS_ON_SOMETHING + 1;
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
@@ -800,6 +815,7 @@ abstract class HInstruction implements Spannable {
   static const int BAILOUT_TARGET_TYPECODE = 29;
   static const int INVOKE_STATIC_TYPECODE = 30;
   static const int INVOKE_DYNAMIC_GETTER_TYPECODE = 31;
+  static const int INDEX_TYPECODE = 32;
 
   HInstruction(this.inputs)
       : id = idCounter++,
@@ -822,6 +838,26 @@ abstract class HInstruction implements Spannable {
 
   bool dependsOnSomething() => getFlag(FLAG_DEPENDS_ON_SOMETHING);
   void setDependsOnSomething() { setFlag(FLAG_DEPENDS_ON_SOMETHING); }
+
+  bool dependsOnStaticPropertyStore() {
+    return getFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
+  }
+  void setDependsOnStaticPropertyStore() {
+    setFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
+  }
+  void setChangesStaticProperty() { setFlag(FLAG_CHANGES_STATIC_PROPERTY); }
+
+  bool dependsOnIndexStore() => getFlag(FLAG_DEPENDS_ON_INDEX_STORE);
+  void setDependsOnIndexStore() { setFlag(FLAG_DEPENDS_ON_INDEX_STORE); }
+  void setChangesIndex() { setFlag(FLAG_CHANGES_INDEX); }
+
+  bool dependsOnInstancePropertyStore() {
+    return getFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
+  }
+  void setDependsOnInstancePropertyStore() {
+    setFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
+  }
+  void setChangesInstanceProperty() { setFlag(FLAG_CHANGES_INSTANCE_PROPERTY); }
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
@@ -1299,8 +1335,10 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
-  HInvokeDynamicField(Selector selector, Element element,
-                      List<HInstruction> inputs)
+  final bool isSideEffectFree;
+  HInvokeDynamicField(
+      Selector selector, Element element, List<HInstruction> inputs,
+      this.isSideEffectFree)
       : super(selector, element, inputs);
   toString() => 'invoke dynamic field: $selector';
 
@@ -1309,18 +1347,17 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  final bool isSideEffectFree;
   HInvokeDynamicGetter(
-      selector, element, receiver, this.isSideEffectFree)
-    : super(selector, element,[receiver]);
+      selector, element, receiver, isSideEffectFree)
+    : super(selector, element, [receiver], isSideEffectFree);
   toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     if (isSideEffectFree) {
       setUseGvn();
-      clearAllSideEffects();
-      setDependsOnSomething();
+      setDependsOnInstancePropertyStore();
     } else {
       setAllSideEffects();
     }
@@ -1332,10 +1369,19 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, receiver, value)
-    : super(selector, element, [receiver, value]);
+  HInvokeDynamicSetter(selector, element, receiver, value, isSideEffectFree)
+    : super(selector, element, [receiver, value], isSideEffectFree);
   toString() => 'invoke dynamic setter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+    if (isSideEffectFree) {
+      setChangesInstanceProperty();
+    } else {
+      setAllSideEffects();
+    }
+  }
 }
 
 class HInvokeStatic extends HInvoke {
@@ -1430,17 +1476,16 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     if (isLengthGetterOnStringOrArray(types)) {
       setUseGvn();
-      clearAllSideEffects();
       // If the input is a string, we know the length cannot change.
       // We cannot do the same thing for non-extendable array because
       // we don't express that type yet: a mutable array might be
       // extendable.
-      if (!inputs[1].isString(types)) setDependsOnSomething();
+      if (!inputs[1].isString(types)) setDependsOnInstancePropertyStore();
     } else if (isSideEffectFree) {
       setUseGvn();
-      clearAllSideEffects();
       setDependsOnSomething();
     } else {
       setAllSideEffects();
@@ -1474,9 +1519,11 @@ class HFieldGet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn(HTypeMap types) {
-    setUseGvn();
     clearAllSideEffects();
-    if (isAssignable) setDependsOnSomething();
+    setUseGvn();
+    if (isAssignable) {
+      setDependsOnInstancePropertyStore();
+    }
   }
 
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
@@ -1496,8 +1543,8 @@ class HFieldSet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   void prepareGvn(HTypeMap types) {
-    // TODO(ngeoffray): implement more fine grained side effects.
-    setAllSideEffects();
+    clearAllSideEffects();
+    setChangesInstanceProperty();
   }
 
   bool isJsStatement(HTypeMap types) => true;
@@ -1510,14 +1557,6 @@ class HLocalGet extends HFieldGet {
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
-
-  void prepareGvn(HTypeMap types) {
-    setUseGvn();
-    // TODO(floitsch): if the variable is not captured then it only depends
-    // on assignments to the same variable. Otherwise we need to see if the
-    // variable is mutated inside closures.
-    setDependsOnSomething();
-  }
 }
 
 class HLocalSet extends HFieldSet {
@@ -1527,11 +1566,6 @@ class HLocalSet extends HFieldSet {
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
   HLocalValue get local => inputs[0];
-
-  void prepareGvn(HTypeMap types) {
-    // TODO(floitsch): implement more fine grained side effects.
-    setAllSideEffects();
-  }
 }
 
 class HForeign extends HInstruction {
@@ -1587,11 +1621,11 @@ abstract class HBinaryArithmetic extends HInvokeBinary {
       : super(target, left, right);
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     // An arithmetic expression can take part in global value
     // numbering and do not have any side-effects if we know that all
     // inputs are numbers.
     if (isBuiltin(types)) {
-      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -1863,11 +1897,11 @@ abstract class HInvokeUnary extends HInvokeStatic {
   HInstruction get operand => inputs[1];
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     // A unary arithmetic expression can take part in global value
     // numbering and does not have any side-effects if its input is a
     // number.
     if (isBuiltin(types)) {
-      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -2192,11 +2226,11 @@ abstract class HRelational extends HInvokeBinary {
       : super(target, left, right);
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     // Relational expressions can take part in global value numbering
     // and do not have any side-effects if we know all the inputs are
     // numbers. This can be improved for at least equality.
     if (isBuiltin(types)) {
-      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -2376,10 +2410,11 @@ class HStatic extends HInstruction {
   }
 
   void prepareGvn(HTypeMap types) {
-    if (!element.isAssignable()) {
-      clearAllSideEffects();
-      setUseGvn();
+    clearAllSideEffects();
+    if (element.isAssignable()) {
+      setDependsOnStaticPropertyStore();
     }
+    setUseGvn();
   }
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
@@ -2419,6 +2454,11 @@ class HStaticStore extends HInstruction {
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
   bool isJsStatement(HTypeMap types) => true;
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+    setChangesStaticProperty();
+  }
 }
 
 class HLiteralList extends HInstruction {
@@ -2440,8 +2480,10 @@ class HIndex extends HInvokeStatic {
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
   void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
     if (isBuiltin(types)) {
-      clearAllSideEffects();
+      setDependsOnIndexStore();
+      setUseGvn();
     } else {
       setAllSideEffects();
     }
@@ -2465,6 +2507,10 @@ class HIndex extends HInvokeStatic {
 
   bool isBuiltin(HTypeMap types)
       => receiver.isIndexablePrimitive(types) && index.isInteger(types);
+
+  int typeCode() => HInstruction.INDEX_TYPECODE;
+  bool typeEquals(HInstruction other) => other is HIndex;
+  bool dataEquals(HIndex other) => true;
 }
 
 class HIndexAssign extends HInvokeStatic {
@@ -2479,6 +2525,15 @@ class HIndexAssign extends HInvokeStatic {
   HInstruction get receiver => inputs[1];
   HInstruction get index => inputs[2];
   HInstruction get value => inputs[3];
+
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+    if (isBuiltin(types)) {
+      setChangesIndex();
+    } else {
+      setAllSideEffects();
+    }
+  }
 
   // Note, that we don't have a computeTypeFromInputTypes, since [HIndexAssign]
   // is never used as input.
