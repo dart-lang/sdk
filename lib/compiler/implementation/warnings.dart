@@ -283,7 +283,8 @@ Please include the following information:
 
 * the Dart SDK build number (#{1}), and
 
-* the stack trace you see here.
+* the entire message you see here (including the full stack trace
+  below as well as the source location above).
 ''');
 
   toString() => template;
