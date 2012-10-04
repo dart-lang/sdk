@@ -3544,7 +3544,9 @@ class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const {
+    return (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
+  }
 
   virtual bool HasSideEffect() const { return false; }
 

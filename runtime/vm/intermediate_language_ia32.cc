@@ -2309,13 +2309,34 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresXmmRegister());
-  summary->set_in(1, Location::RequiresXmmRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR: {
+      const intptr_t kNumTemps = 0;
+      LocationSummary* summary =
+          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresXmmRegister());
+      summary->set_in(1, Location::RequiresXmmRegister());
+      summary->set_out(Location::SameAsFirstInput());
+      return summary;
+    }
+    case Token::kADD:
+    case Token::kSUB: {
+      const intptr_t kNumTemps = 2;
+      LocationSummary* summary =
+          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresXmmRegister());
+      summary->set_in(1, Location::RequiresXmmRegister());
+      summary->set_temp(0, Location::RegisterLocation(EAX));
+      summary->set_temp(1, Location::RegisterLocation(EDX));
+      summary->set_out(Location::SameAsFirstInput());
+      return summary;
+    }
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
 }
 
 
@@ -2329,11 +2350,35 @@ void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_AND: __ andpd(left, right); break;
     case Token::kBIT_OR:  __ orpd(left, right); break;
     case Token::kBIT_XOR: __ xorpd(left, right); break;
+    case Token::kADD:
+    case Token::kSUB: {
+      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                             kDeoptBinaryMintOp);
+      Label done, overflow;
+      __ pextrd(EAX, right, Immediate(0));  // Lower half left
+      __ pextrd(EDX, right, Immediate(1));  // Upper half left
+      __ subl(ESP, Immediate(2 * kWordSize));
+      __ movq(Address(ESP, 0), left);
+      if (op_kind() == Token::kADD) {
+        __ addl(Address(ESP, 0), EAX);
+        __ adcl(Address(ESP, 4), EDX);
+      } else {
+        __ subl(Address(ESP, 0), EAX);
+        __ sbbl(Address(ESP, 4), EDX);
+      }
+      __ j(OVERFLOW, &overflow);
+      __ movq(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(2 * kWordSize));
+      __ jmp(&done);
+      __ Bind(&overflow);
+      __ addl(ESP, Immediate(2 * kWordSize));
+      __ jmp(deopt);
+      __ Bind(&done);
+      break;
+    }
     default: UNREACHABLE();
   }
 }
-
-
 
 }  // namespace dart
 

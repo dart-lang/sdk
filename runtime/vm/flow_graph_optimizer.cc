@@ -459,6 +459,17 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = kSmiCid;
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
+        operands_type = kMintCid;
+      } else if (ShouldSpecializeForDouble(ic_data)) {
+        operands_type = kDoubleCid;
+      } else {
+        return false;
+      }
+      break;
     case Token::kMUL:
       if (HasOnlyTwoSmi(ic_data)) {
         operands_type = kSmiCid;

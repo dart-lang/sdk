@@ -35,7 +35,9 @@ static ByteMnemonic two_operands_instr[] = {
   {0x03, "add", REG_OPER_OP_ORDER},
   {0x09, "or", OPER_REG_OP_ORDER},
   {0x0B, "or", REG_OPER_OP_ORDER},
+  {0x11, "adc", OPER_REG_OP_ORDER},
   {0x13, "adc", REG_OPER_OP_ORDER},
+  {0x19, "sbb", OPER_REG_OP_ORDER},
   {0x1B, "sbb", REG_OPER_OP_ORDER},
   {0x21, "and", OPER_REG_OP_ORDER},
   {0x23, "and", REG_OPER_OP_ORDER},
@@ -303,6 +305,7 @@ class X86Decoder : public ValueObject {
   int SetCC(uint8_t* data);
   int CMov(uint8_t* data);
   int D1D3C1Instruction(uint8_t* data);
+  uint8_t* F3Instruction(uint8_t* data);
   int F7Instruction(uint8_t* data);
   int FPUInstruction(uint8_t* data);
   int BitwisePDInstruction(uint8_t* data);
@@ -805,6 +808,103 @@ int X86Decoder::D1D3C1Instruction(uint8_t* data) {
     UNIMPLEMENTED();
   }
   return num_bytes;
+}
+
+
+uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
+  if (*(data+1) == 0x0F) {
+    uint8_t b2 = *(data+2);
+    switch (b2) {
+      case 0x2C: {
+        data += 3;
+        data += PrintOperands("cvttss2si", REG_OPER_OP_ORDER, data);
+        break;
+      }
+      case 0x2A: {
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        Print("cvtsi2ss ");
+        PrintXmmRegister(regop);
+        Print(",");
+        data += PrintRightOperand(data);
+        break;
+      }
+      case 0x2D: {
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        Print("cvtss2si ");
+        PrintCPURegister(regop);
+        Print(",");
+        data += PrintRightXmmOperand(data);
+        break;
+      }
+      case 0x11: {
+        // movss xmm <- address
+        Print("movss ");
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        data += PrintRightXmmOperand(data);
+        Print(",");
+        PrintXmmRegister(regop);
+        break;
+      }
+      case 0x10: {
+        // movss address <- xmm
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        Print("movss ");
+        PrintXmmRegister(regop);
+        Print(",");
+        data += PrintRightOperand(data);
+        break;
+      }
+      case 0x51:  // Fall through.
+      case 0x58:  // Fall through.
+      case 0x59:  // Fall through.
+      case 0x5A:  // Fall through.
+      case 0x5C:  // Fall through.
+      case 0x5E:  // Fall through.
+      case 0xE6: {
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        const char* mnem = "?? 0xF3";
+        switch (b2) {
+          case 0x51: mnem = "sqrtss"; break;
+          case 0x58: mnem = "addss"; break;
+          case 0x59: mnem = "mulss"; break;
+          case 0x5A: mnem = "cvtss2sd"; break;
+          case 0x5C: mnem = "subss"; break;
+          case 0x5E: mnem = "divss"; break;
+          case 0xE6: mnem = "cvtdq2pd"; break;
+          default: UNIMPLEMENTED();
+        }
+        Print(mnem);
+        Print(" ");
+        PrintXmmRegister(regop);
+        Print(",");
+        data += PrintRightXmmOperand(data);
+        break;
+      }
+      case 0x7E: {
+        data += 3;
+        int mod, regop, rm;
+        GetModRm(*data, &mod, &regop, &rm);
+        Print("movq ");
+        PrintXmmRegister(regop);
+        Print(",");
+        data += PrintRightOperand(data);
+        break;
+      }
+      default:
+        UNIMPLEMENTED();
+    }
+  }
+  return data;
 }
 
 
@@ -1372,6 +1472,14 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(regop);
             data++;
+          } else if (*data == 0xD6) {
+            data++;
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print("movq ");
+            data += PrintRightOperand(data);
+            Print(",");
+            PrintXmmRegister(regop);
           } else if (*data == 0x57 || *data == 0x56 || *data == 0x54) {
             data += BitwisePDInstruction(data);
           } else if (*data == 0x1F &&
@@ -1473,89 +1581,7 @@ int X86Decoder::InstructionDecode(uword pc) {
         break;
 
       case 0xF3:
-        if (*(data+1) == 0x0F) {
-          uint8_t b2 = *(data+2);
-          switch (b2) {
-            case 0x2C: {
-              data += 3;
-              data += PrintOperands("cvttss2si", REG_OPER_OP_ORDER, data);
-              break;
-            }
-            case 0x2A: {
-              data += 3;
-              int mod, regop, rm;
-              GetModRm(*data, &mod, &regop, &rm);
-              Print("cvtsi2ss ");
-              PrintXmmRegister(regop);
-              Print(",");
-              data += PrintRightOperand(data);
-              break;
-            }
-            case 0x2D: {
-              data += 3;
-              int mod, regop, rm;
-              GetModRm(*data, &mod, &regop, &rm);
-              Print("cvtss2si ");
-              PrintCPURegister(regop);
-              Print(",");
-              data += PrintRightXmmOperand(data);
-              break;
-            }
-            case 0x11: {
-              // movss xmm <- address
-              Print("movss ");
-              data += 3;
-              int mod, regop, rm;
-              GetModRm(*data, &mod, &regop, &rm);
-              data += PrintRightXmmOperand(data);
-              Print(",");
-              PrintXmmRegister(regop);
-              break;
-            }
-            case 0x10: {
-              // movss address <- xmm
-              data += 3;
-              int mod, regop, rm;
-              GetModRm(*data, &mod, &regop, &rm);
-              Print("movss ");
-              PrintXmmRegister(regop);
-              Print(",");
-              data += PrintRightOperand(data);
-              break;
-            }
-            case 0x51:  // Fall through.
-            case 0x58:  // Fall through.
-            case 0x59:  // Fall through.
-            case 0x5A:  // Fall through.
-            case 0x5C:  // Fall through.
-            case 0x5E:  // Fall through.
-            case 0xE6: {
-              // divss xmm, xmm
-              data += 3;
-              int mod, regop, rm;
-              GetModRm(*data, &mod, &regop, &rm);
-              const char* mnem = "?? 0xF3";
-              switch (b2) {
-                case 0x51: mnem = "sqrtss"; break;
-                case 0x58: mnem = "addss"; break;
-                case 0x59: mnem = "mulss"; break;
-                case 0x5A: mnem = "cvtss2sd"; break;
-                case 0x5C: mnem = "subss"; break;
-                case 0x5E: mnem = "divss"; break;
-                case 0xE6: mnem = "cvtdq2pd"; break;
-                default: UNIMPLEMENTED();
-              }
-              Print(mnem);
-              Print(" ");
-              PrintXmmRegister(regop);
-              Print(",");
-              data += PrintRightXmmOperand(data);
-              break;
-            }
-            default:
-              UNIMPLEMENTED();
-          }
-        }
+        data = F3Instruction(data);
         break;
       case 0xF2: {
         if (*(data+1) == 0x0F) {

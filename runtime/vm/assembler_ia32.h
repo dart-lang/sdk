@@ -335,6 +335,9 @@ class Assembler : public ValueObject {
   void movd(XmmRegister dst, Register src);
   void movd(Register dst, XmmRegister src);
 
+  void movq(const Address& dst, XmmRegister src);
+  void movq(XmmRegister dst, const Address& src);
+
   void addss(XmmRegister dst, XmmRegister src);
   void addss(XmmRegister dst, const Address& src);
   void subss(XmmRegister dst, XmmRegister src);
@@ -447,10 +450,12 @@ class Assembler : public ValueObject {
   void adcl(Register dst, Register src);
   void adcl(Register reg, const Immediate& imm);
   void adcl(Register dst, const Address& address);
+  void adcl(const Address& dst, Register src);
 
   void subl(Register dst, Register src);
   void subl(Register reg, const Immediate& imm);
   void subl(Register reg, const Address& address);
+  void subl(const Address& address, Register reg);
 
   void cdq();
 
@@ -469,6 +474,7 @@ class Assembler : public ValueObject {
   void sbbl(Register dst, Register src);
   void sbbl(Register reg, const Immediate& imm);
   void sbbl(Register reg, const Address& address);
+  void sbbl(const Address& address, Register reg);
 
   void incl(Register reg);
   void incl(const Address& address);
