@@ -41,6 +41,7 @@
 #library('message_lookup_local');
 
 #import('intl.dart');
+#import('src/intl_helpers.dart');
 #import('dart:mirrors');
 
 /**

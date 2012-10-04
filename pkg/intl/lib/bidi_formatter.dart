@@ -155,7 +155,9 @@ class BidiFormatter {
     if (direction == null) direction = estimateDirection(text, isHtml);
     var result = text;
     if (contextDirection.isDirectionChange(direction)) {
-      result = '''${direction == TextDirection.RTL ? RLE : LRE}$text$PDF''';
+      var marker = direction == TextDirection.RTL ? Bidi.RLE : Bidi.LRE;
+      result = "${marker}$text${Bidi.PDF}";
+
     }
     return result.concat(resetDir? _resetDir(text, direction, isHtml) : '');
   }
@@ -167,7 +169,7 @@ class BidiFormatter {
    * [isHtml] is true if [text] HTML or HTML-escaped.
    */
   TextDirection estimateDirection(String text, [bool isHtml=false]) {
-    return estimateDirectionOfText(text, isHtml); //TODO~!!!
+    return Bidi.estimateDirectionOfText(text, isHtml); //TODO~!!!
   }
 
   /**
@@ -182,14 +184,14 @@ class BidiFormatter {
     // endsWithRtl and endsWithLtr are called only if needed (short-circuit).
     if ((contextDirection == TextDirection.LTR &&
           (direction == TextDirection.RTL ||
-           endsWithRtl(text, isHtml))) ||
+           Bidi.endsWithRtl(text, isHtml))) ||
         (contextDirection == TextDirection.RTL &&
           (direction == TextDirection.LTR ||
-           endsWithLtr(text, isHtml)))) {
+           Bidi.endsWithLtr(text, isHtml)))) {
       if (contextDirection == TextDirection.LTR) {
-        return LRM;
+        return Bidi.LRM;
       } else {
-        return RLM;
+        return Bidi.RLM;
       }
     } else {
       return '';

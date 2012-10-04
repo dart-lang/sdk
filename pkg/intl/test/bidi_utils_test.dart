@@ -19,205 +19,205 @@ main() {
   var RLM = '\u200F';
 
   test('isRtlLang', () {
-    expect(isRtlLanguage('en'), isFalse);
-    expect(isRtlLanguage('fr'), isFalse);
-    expect(isRtlLanguage('zh-CN'), isFalse);
-    expect(isRtlLanguage('fil'), isFalse);
-    expect(isRtlLanguage('az'), isFalse);
-    expect(isRtlLanguage('iw-Latn'), isFalse);
-    expect(isRtlLanguage('iw-LATN'), isFalse);
-    expect(isRtlLanguage('iw_latn'), isFalse);
-    expect(isRtlLanguage('ar'), isTrue);
-    expect(isRtlLanguage('AR'), isTrue);
-    expect(isRtlLanguage('iw'), isTrue);
-    expect(isRtlLanguage('he'), isTrue);
-    expect(isRtlLanguage('fa'), isTrue);
-    expect(isRtlLanguage('ar-EG'), isTrue);
-    expect(isRtlLanguage('az-Arab'), isTrue);
-    expect(isRtlLanguage('az-ARAB-IR'), isTrue);
-    expect(isRtlLanguage('az_arab_IR'), isTrue);
+    expect(Bidi.isRtlLanguage('en'), isFalse);
+    expect(Bidi.isRtlLanguage('fr'), isFalse);
+    expect(Bidi.isRtlLanguage('zh-CN'), isFalse);
+    expect(Bidi.isRtlLanguage('fil'), isFalse);
+    expect(Bidi.isRtlLanguage('az'), isFalse);
+    expect(Bidi.isRtlLanguage('iw-Latn'), isFalse);
+    expect(Bidi.isRtlLanguage('iw-LATN'), isFalse);
+    expect(Bidi.isRtlLanguage('iw_latn'), isFalse);
+    expect(Bidi.isRtlLanguage('ar'), isTrue);
+    expect(Bidi.isRtlLanguage('AR'), isTrue);
+    expect(Bidi.isRtlLanguage('iw'), isTrue);
+    expect(Bidi.isRtlLanguage('he'), isTrue);
+    expect(Bidi.isRtlLanguage('fa'), isTrue);
+    expect(Bidi.isRtlLanguage('ar-EG'), isTrue);
+    expect(Bidi.isRtlLanguage('az-Arab'), isTrue);
+    expect(Bidi.isRtlLanguage('az-ARAB-IR'), isTrue);
+    expect(Bidi.isRtlLanguage('az_arab_IR'), isTrue);
   });
 
   test('hasAnyLtr', () {
-    expect(hasAnyLtr(''), isFalse);
-    expect(hasAnyLtr('\u05e0\u05e1\u05e2'), isFalse);
-    expect(hasAnyLtr('\u05e0\u05e1z\u05e2'), isTrue);
-    expect(hasAnyLtr('123\t...  \n'), isFalse);
-    expect(hasAnyLtr('<br>123&lt;', false), isTrue);
-    expect(hasAnyLtr('<br>123&lt;', true), isFalse);
+    expect(Bidi.hasAnyLtr(''), isFalse);
+    expect(Bidi.hasAnyLtr('\u05e0\u05e1\u05e2'), isFalse);
+    expect(Bidi.hasAnyLtr('\u05e0\u05e1z\u05e2'), isTrue);
+    expect(Bidi.hasAnyLtr('123\t...  \n'), isFalse);
+    expect(Bidi.hasAnyLtr('<br>123&lt;', false), isTrue);
+    expect(Bidi.hasAnyLtr('<br>123&lt;', true), isFalse);
   });
 
   test('hasAnyRtl', () {
-    expect(hasAnyRtl(''), isFalse);
-    expect(hasAnyRtl('abc'), isFalse);
-    expect(hasAnyRtl('ab\u05e0c'), isTrue);
-    expect(hasAnyRtl('123\t...  \n'), isFalse);
-    expect(hasAnyRtl('<input value=\u05e0>123', false), isTrue);
-    expect(hasAnyRtl('<input value=\u05e0>123', true), isFalse);
+    expect(Bidi.hasAnyRtl(''), isFalse);
+    expect(Bidi.hasAnyRtl('abc'), isFalse);
+    expect(Bidi.hasAnyRtl('ab\u05e0c'), isTrue);
+    expect(Bidi.hasAnyRtl('123\t...  \n'), isFalse);
+    expect(Bidi.hasAnyRtl('<input value=\u05e0>123', false), isTrue);
+    expect(Bidi.hasAnyRtl('<input value=\u05e0>123', true), isFalse);
   });
 
 
   test('endsWithLtr', () {
-    expect(endsWithLtr('a'), isTrue);
-    expect(endsWithLtr('abc'), isTrue);
-    expect(endsWithLtr('a (!)'), isTrue);
-    expect(endsWithLtr('a.1'), isTrue);
-    expect(endsWithLtr('http://www.google.com '), isTrue);
-    expect(endsWithLtr('\u05e0a'), isTrue);
-    expect(endsWithLtr(' \u05e0\u05e1a\u05e2\u05e3 a (!)'), isTrue);
-    expect(endsWithLtr(''), isFalse);
-    expect(endsWithLtr(' '), isFalse);
-    expect(endsWithLtr('1'), isFalse);
-    expect(endsWithLtr('\u05e0'), isFalse);
-    expect(endsWithLtr('\u05e0 1(!)'), isFalse);
-    expect(endsWithLtr('a\u05e0'), isFalse);
-    expect(endsWithLtr('a abc\u05e0\u05e1def\u05e2. 1'), isFalse);
-    expect(endsWithLtr(' \u05e0\u05e1a\u05e2 &lt;', true), isFalse);
-    expect(endsWithLtr(' \u05e0\u05e1a\u05e2 &lt;', false), isTrue);
+    expect(Bidi.endsWithLtr('a'), isTrue);
+    expect(Bidi.endsWithLtr('abc'), isTrue);
+    expect(Bidi.endsWithLtr('a (!)'), isTrue);
+    expect(Bidi.endsWithLtr('a.1'), isTrue);
+    expect(Bidi.endsWithLtr('http://www.google.com '), isTrue);
+    expect(Bidi.endsWithLtr('\u05e0a'), isTrue);
+    expect(Bidi.endsWithLtr(' \u05e0\u05e1a\u05e2\u05e3 a (!)'), isTrue);
+    expect(Bidi.endsWithLtr(''), isFalse);
+    expect(Bidi.endsWithLtr(' '), isFalse);
+    expect(Bidi.endsWithLtr('1'), isFalse);
+    expect(Bidi.endsWithLtr('\u05e0'), isFalse);
+    expect(Bidi.endsWithLtr('\u05e0 1(!)'), isFalse);
+    expect(Bidi.endsWithLtr('a\u05e0'), isFalse);
+    expect(Bidi.endsWithLtr('a abc\u05e0\u05e1def\u05e2. 1'), isFalse);
+    expect(Bidi.endsWithLtr(' \u05e0\u05e1a\u05e2 &lt;', true), isFalse);
+    expect(Bidi.endsWithLtr(' \u05e0\u05e1a\u05e2 &lt;', false), isTrue);
   });
 
   test('endsWithRtl', () {
-    expect(endsWithRtl('\u05e0'), isTrue);
-    expect(endsWithRtl('\u05e0\u05e1\u05e2'), isTrue);
-    expect(endsWithRtl('\u05e0 (!)'), isTrue);
-    expect(endsWithRtl('\u05e0.1'), isTrue);
-    expect(endsWithRtl('http://www.google.com/\u05e0 '), isTrue);
-    expect(endsWithRtl('a\u05e0'), isTrue);
-    expect(endsWithRtl(' a abc\u05e0def\u05e3. 1'), isTrue);
-    expect(endsWithRtl(''), isFalse);
-    expect(endsWithRtl(' '), isFalse);
-    expect(endsWithRtl('1'), isFalse);
-    expect(endsWithRtl('a'), isFalse);
-    expect(endsWithRtl('a 1(!)'), isFalse);
-    expect(endsWithRtl('\u05e0a'), isFalse);
-    expect(endsWithRtl('\u05e0 \u05e0\u05e1ab\u05e2 a (!)'), isFalse);
-    expect(endsWithRtl(' \u05e0\u05e1a\u05e2 &lt;', true), isTrue);
-    expect(endsWithRtl(' \u05e0\u05e1a\u05e2 &lt;', false), isFalse);
+    expect(Bidi.endsWithRtl('\u05e0'), isTrue);
+    expect(Bidi.endsWithRtl('\u05e0\u05e1\u05e2'), isTrue);
+    expect(Bidi.endsWithRtl('\u05e0 (!)'), isTrue);
+    expect(Bidi.endsWithRtl('\u05e0.1'), isTrue);
+    expect(Bidi.endsWithRtl('http://www.google.com/\u05e0 '), isTrue);
+    expect(Bidi.endsWithRtl('a\u05e0'), isTrue);
+    expect(Bidi.endsWithRtl(' a abc\u05e0def\u05e3. 1'), isTrue);
+    expect(Bidi.endsWithRtl(''), isFalse);
+    expect(Bidi.endsWithRtl(' '), isFalse);
+    expect(Bidi.endsWithRtl('1'), isFalse);
+    expect(Bidi.endsWithRtl('a'), isFalse);
+    expect(Bidi.endsWithRtl('a 1(!)'), isFalse);
+    expect(Bidi.endsWithRtl('\u05e0a'), isFalse);
+    expect(Bidi.endsWithRtl('\u05e0 \u05e0\u05e1ab\u05e2 a (!)'), isFalse);
+    expect(Bidi.endsWithRtl(' \u05e0\u05e1a\u05e2 &lt;', true), isTrue);
+    expect(Bidi.endsWithRtl(' \u05e0\u05e1a\u05e2 &lt;', false), isFalse);
   });
 
   test('guardBracketInHtml', () {
     var strWithRtl = "asc \u05d0 (\u05d0\u05d0\u05d0)";
-    expect(guardBracketInHtml(strWithRtl),
+    expect(Bidi.guardBracketInHtml(strWithRtl),
         equals("asc \u05d0 <span dir=rtl>(\u05d0\u05d0\u05d0)</span>"));
-    expect(guardBracketInHtml(strWithRtl, true),
+    expect(Bidi.guardBracketInHtml(strWithRtl, true),
         equals("asc \u05d0 <span dir=rtl>(\u05d0\u05d0\u05d0)</span>"));
-    expect(guardBracketInHtml(strWithRtl, false),
+    expect(Bidi.guardBracketInHtml(strWithRtl, false),
         equals("asc \u05d0 <span dir=ltr>(\u05d0\u05d0\u05d0)</span>"));
 
     var strWithRtl2 = "\u05d0 a (asc:))";
-    expect(guardBracketInHtml(strWithRtl2),
+    expect(Bidi.guardBracketInHtml(strWithRtl2),
         equals("\u05d0 a <span dir=rtl>(asc:))</span>"));
-    expect(guardBracketInHtml(strWithRtl2, true),
+    expect(Bidi.guardBracketInHtml(strWithRtl2, true),
         equals("\u05d0 a <span dir=rtl>(asc:))</span>"));
-    expect(guardBracketInHtml(strWithRtl2, false),
+    expect(Bidi.guardBracketInHtml(strWithRtl2, false),
         equals("\u05d0 a <span dir=ltr>(asc:))</span>"));
 
     var strWithoutRtl = "a (asc) {{123}}";
-    expect(guardBracketInHtml(strWithoutRtl),
+    expect(Bidi.guardBracketInHtml(strWithoutRtl),
         equals("a <span dir=ltr>(asc)</span> <span dir=ltr>{{123}}</span>"));
-    expect(guardBracketInHtml(strWithoutRtl, true),
+    expect(Bidi.guardBracketInHtml(strWithoutRtl, true),
         equals("a <span dir=rtl>(asc)</span> <span dir=rtl>{{123}}</span>"));
-    expect(guardBracketInHtml(strWithoutRtl, false),
+    expect(Bidi.guardBracketInHtml(strWithoutRtl, false),
         equals("a <span dir=ltr>(asc)</span> <span dir=ltr>{{123}}</span>"));
 
   });
 
   test('guardBracketInText', () {
     var strWithRtl = "asc \u05d0 (\u05d0\u05d0\u05d0)";
-    expect(guardBracketInText(strWithRtl),
+    expect(Bidi.guardBracketInText(strWithRtl),
         equals("asc \u05d0 \u200f(\u05d0\u05d0\u05d0)\u200f"));
-    expect(guardBracketInText(strWithRtl, true),
+    expect(Bidi.guardBracketInText(strWithRtl, true),
         equals("asc \u05d0 \u200f(\u05d0\u05d0\u05d0)\u200f"));
-    expect(guardBracketInText(strWithRtl, false),
+    expect(Bidi.guardBracketInText(strWithRtl, false),
         equals("asc \u05d0 \u200e(\u05d0\u05d0\u05d0)\u200e"));
 
     var strWithRtl2 = "\u05d0 a (asc:))";
-    expect(guardBracketInText(strWithRtl2),
+    expect(Bidi.guardBracketInText(strWithRtl2),
         equals("\u05d0 a \u200f(asc:))\u200f"));
-    expect(guardBracketInText(strWithRtl2, true),
+    expect(Bidi.guardBracketInText(strWithRtl2, true),
         equals("\u05d0 a \u200f(asc:))\u200f"));
-    expect(guardBracketInText(strWithRtl2, false),
+    expect(Bidi.guardBracketInText(strWithRtl2, false),
         equals("\u05d0 a \u200e(asc:))\u200e"));
 
     var strWithoutRtl = "a (asc) {{123}}";
-    expect(guardBracketInText(strWithoutRtl),
+    expect(Bidi.guardBracketInText(strWithoutRtl),
         equals("a \u200e(asc)\u200e \u200e{{123}}\u200e"));
-    expect(guardBracketInText(strWithoutRtl, true),
+    expect(Bidi.guardBracketInText(strWithoutRtl, true),
         equals("a \u200f(asc)\u200f \u200f{{123}}\u200f"));
-    expect(guardBracketInText(strWithoutRtl, false),
+    expect(Bidi.guardBracketInText(strWithoutRtl, false),
         equals("a \u200e(asc)\u200e \u200e{{123}}\u200e"));
 
   });
 
   test('enforceRtlInHtml', () {
     var str = '<div> first <br> second </div>';
-    expect(enforceRtlInHtml(str),
+    expect(Bidi.enforceRtlInHtml(str),
         equals('<div dir=rtl> first <br> second </div>'));
     str = 'first second';
-    expect(enforceRtlInHtml(str),
+    expect(Bidi.enforceRtlInHtml(str),
         equals('\n<span dir=rtl>first second</span>'));
   });
 
   test('enforceRtlInText', () {
     var str = 'first second';
-    expect(enforceRtlInText(str), equals('${RLE}first second$PDF'));
+    expect(Bidi.enforceRtlInText(str), equals('${RLE}first second$PDF'));
   });
 
   test('enforceLtrInHtml', () {
     var str = '<div> first <br> second </div>';
-    expect(enforceLtrInHtml(str),
+    expect(Bidi.enforceLtrInHtml(str),
         equals('<div dir=ltr> first <br> second </div>'));
     str = 'first second';
-    expect(enforceLtrInHtml(str),
+    expect(Bidi.enforceLtrInHtml(str),
         equals('\n<span dir=ltr>first second</span>'));
   });
 
   test('enforceLtrInText', () {
     var str = 'first second';
-    expect(enforceLtrInText(str), equals('${LRE}first second$PDF'));
+    expect(Bidi.enforceLtrInText(str), equals('${LRE}first second$PDF'));
   });
 
   test('normalizeHebrewQuote', () {
-    expect(normalizeHebrewQuote('\u05d0"'), equals('\u05d0\u05f4'));
-    expect(normalizeHebrewQuote('\u05d0\''), equals('\u05d0\u05f3'));
-    expect(normalizeHebrewQuote('\u05d0"\u05d0\''),
+    expect(Bidi.normalizeHebrewQuote('\u05d0"'), equals('\u05d0\u05f4'));
+    expect(Bidi.normalizeHebrewQuote('\u05d0\''), equals('\u05d0\u05f3'));
+    expect(Bidi.normalizeHebrewQuote('\u05d0"\u05d0\''),
         equals('\u05d0\u05f4\u05d0\u05f3'));
   });
 
   test('estimateDirectionOfText', () {
-    expect(estimateDirectionOfText('', false).value,
+    expect(Bidi.estimateDirectionOfText('', false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(estimateDirectionOfText(' ', false).value,
+    expect(Bidi.estimateDirectionOfText(' ', false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(estimateDirectionOfText('! (...)', false).value,
+    expect(Bidi.estimateDirectionOfText('! (...)', false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(estimateDirectionOfText('All-Ascii content', false).value,
+    expect(Bidi.estimateDirectionOfText('All-Ascii content', false).value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText('-17.0%', false).value,
+    expect(Bidi.estimateDirectionOfText('-17.0%', false).value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText('http://foo/bar/', false).value,
+    expect(Bidi.estimateDirectionOfText('http://foo/bar/', false).value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         'http://foo/bar/?s=\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0'
         '\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0'
         '\u05d0\u05d0\u05d0\u05d0\u05d0').value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText('\u05d0', false).value,
+    expect(Bidi.estimateDirectionOfText('\u05d0', false).value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '9 \u05d0 -> 17.5, 23, 45, 19', false).value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         'http://foo/bar/ \u05d0 http://foo2/bar2/ http://foo3/bar3/').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d0\u05d9\u05df \u05de\u05de\u05e9 \u05de\u05d4 \u05dc\u05e8\u05d0'
         '\u05d5\u05ea: \u05dc\u05d0 \u05e6\u05d9\u05dc\u05de\u05ea\u05d9 \u05d4'
         '\u05e8\u05d1\u05d4 \u05d5\u05d2\u05dd \u05d0\u05dd \u05d4\u05d9\u05d9'
         '\u05ea\u05d9 \u05de\u05e6\u05dc\u05dd, \u05d4\u05d9\u05d4 \u05e9'
         '\u05dd').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05db\u05d0 - http://geek.co.il/gallery/v/2007-06 - \u05d0\u05d9'
         '\u05df \u05de\u05de\u05e9 \u05de\u05d4 \u05dc\u05e8\u05d0\u05d5\u05ea:'
         ' \u05dc\u05d0 \u05e6\u05d9\u05dc\u05de\u05ea\u05d9 \u05d4\u05e8\u05d1 '
@@ -231,38 +231,38 @@ main() {
         '\u05ea \u05d9\u05e9\u05e0\u05d5 \u05d9\u05d5\u05ea\u05e8 \u05e9\u05d9'
         '\u05e9 \u05dc\u05d9 \u05d1\u05d0\u05ea\u05e8', false).value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         'CAPTCHA \u05de\u05e9\u05d5\u05db\u05dc\u05dc '
         '\u05de\u05d3\u05d9?').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         'Yes Prime Minister \u05e2\u05d3\u05db\u05d5\u05df. \u05e9\u05d0\u05dc'
         '\u05d5 \u05d0\u05d5\u05ea\u05d9 \u05de\u05d4 \u05d0\u05e0\u05d9 '
         '\u05e8\u05d5\u05e6\u05d4 \u05de\u05ea\u05e0\u05d4 \u05dc\u05d7'
         '\u05d2').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '17.4.02 \u05e9\u05e2\u05d4:13-20 .15-00 .\u05dc\u05d0 \u05d4\u05d9'
         '\u05d9\u05ea\u05d9 \u05db\u05d0\u05df.').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '5710 5720 5730. \u05d4\u05d3\u05dc\u05ea. \u05d4\u05e0\u05e9\u05d9'
         '\u05e7\u05d4', false).value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc\u05ea http://www.google.com '
         'http://www.gmail.com').value,
         equals(TextDirection.RTL.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc <some quite nasty html mark up>').value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc <some quite nasty html mark up>').value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc\u05ea &amp; &lt; &gt;').value,
         equals(TextDirection.LTR.value));
-    expect(estimateDirectionOfText(
+    expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc\u05ea &amp; &lt; &gt;', true).value,
         equals(TextDirection.RTL.value));
   });
@@ -324,7 +324,7 @@ main() {
     bidiText.add(item);
 
     for (var i = 0; i < bidiText.length; i++) {
-        var isRtlDir = detectRtlDirectionality(bidiText[i].text,
+        var isRtlDir = Bidi.detectRtlDirectionality(bidiText[i].text,
                                                             bidiText[i].isHtml);
       if (isRtlDir != bidiText[i].isRtl) {
         var str = '"${bidiText[i].text} " should be '

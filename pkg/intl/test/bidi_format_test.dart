@@ -14,6 +14,11 @@
 main() {
   var LTR = TextDirection.LTR;
   var RTL = TextDirection.RTL;
+  var LRM = Bidi.LRM;
+  var RLM = Bidi.RLM;
+  var RLE = Bidi.RLE;
+  var PDF = Bidi.PDF;
+  var LRE = Bidi.LRE;
   var UNKNOWN = TextDirection.UNKNOWN;
   var he = '\u05e0\u05e1';
   var en = 'abba';
