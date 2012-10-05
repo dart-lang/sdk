@@ -469,6 +469,9 @@ class StandardTestSuite implements TestSuite {
       } else if (configuration['runtime'] == 'd8') {
         var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['$tempDir/out.js']));
+      } else if (configuration['runtime'] == 'jsshell') {
+        var jsshell = TestUtils.jsshellFileName(configuration);
+        commands.add(new Command(jsshell, ['$tempDir/out.js']));
       }
       return commands;
 
@@ -1398,6 +1401,13 @@ class TestUtils {
     return args;
   }
 
+  static String jsshellFileName(Map configuration) {
+    var executableSuffix = executableSuffix('jsshell');
+    var executable = 'jsshell$executableSuffix';
+    var jsshellDir = '${dartDir()}/tools/testing/bin';
+    return '$jsshellDir/$executable';
+  }
+
   static bool isBrowserRuntime(String runtime) => Contains(
       runtime,
       const <String>['drt',
@@ -1407,6 +1417,10 @@ class TestUtils {
                      'opera',
                      'chrome',
                      'ff']);
+
+  static bool isJsCommandLineRuntime(String runtime) =>
+      Contains(runtime, const <String>['d8', 'jsshell']);
+
 }
 
 class SummaryReport {

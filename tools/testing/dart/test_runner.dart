@@ -633,7 +633,8 @@ class RunningProcess {
     }
   }
 
-  VoidFunction makeReadHandler(StringInputStream source, List<String> destination) {
+  VoidFunction makeReadHandler(StringInputStream source,
+                               List<String> destination) {
     void handler () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
@@ -654,8 +655,7 @@ class RunningProcess {
     runCommand(testCase.commands[currentStep++], stepExitHandler);
   }
 
-  void runCommand(Command command,
-                  void exitHandler(int exitCode)) {
+  void runCommand(Command command, void exitHandler(int exitCode)) {
     process = Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
     process.onError = (e) {
