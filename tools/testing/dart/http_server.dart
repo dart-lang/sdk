@@ -10,11 +10,7 @@
 
 HttpServer _httpServer;
 
-// TODO(ager): Get rid of this when we get the Mac to behave.
-int _retries = 10;
-
-Future<bool> startHttpServer(String host, int port) {
-  var completer = new Completer();
+void startHttpServer(String host, int port) {
   var basePath = TestUtils.dartDir();
   _httpServer = new HttpServer();
   _httpServer.onError = (e) {
@@ -46,21 +42,7 @@ Future<bool> startHttpServer(String host, int port) {
     }
   };
 
-  // TODO(ager): Get rid of this when we get the mac to behave.
-  // Even though we have set the SO_REUSEADDR the mac is not
-  // happy and gives us address alread in use errors.
-  try {
-    _httpServer.listen(host, port);
-    completer.complete(true);
-  } catch (e) {
-    if (_retries-- == 0) {
-      completer.completeException(e);
-    }
-    new Timer(1000, (t) {
-      startHttpServer(host, port).then((r) => completer.complete(r));
-    });
-  }
-  return completer.future;
+  _httpServer.listen(host, port);
 }
 
 terminateHttpServer() {

@@ -127,32 +127,17 @@ main() {
   // Start global http server that serves the entire dart repo.
   // The http server is available on localhost:9876 for any
   // test that needs to load resources from the repo over http.
-  //
-  // TODO(ager): Simplify when mac os startHttpServer issues has
-  // been resolved.
-  if (!listTests) {
-    startHttpServer('127.0.0.1', 9876).then((_) {
-      // Start process queue.
-      new ProcessQueue(maxProcesses,
-                       progressIndicator,
-                       startTime,
-                       printTiming,
-                       enqueueConfiguration,
-                       () {
-                         if (!listTests) terminateHttpServer();
-                       },
-                       verbose,
-                       listTests);
-    });
-  } else {
-    // Start process queue.
-    new ProcessQueue(maxProcesses,
-                     progressIndicator,
-                     startTime,
-                     printTiming,
-                     enqueueConfiguration,
-                     () => null,
-                     verbose,
-                     listTests);
-  }
+  if (!listTests) startHttpServer('127.0.0.1', 9876);
+
+  // Start process queue.
+  new ProcessQueue(maxProcesses,
+                   progressIndicator,
+                   startTime,
+                   printTiming,
+                   enqueueConfiguration,
+                   () {
+                     if (!listTests) terminateHttpServer();
+                   },
+                   verbose,
+                   listTests);
 }

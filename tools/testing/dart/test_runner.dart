@@ -747,26 +747,15 @@ class BatchRunnerProcess {
     }
   }
 
-  void terminate() {
-    if (_process !== null) {
-      bool closed = false;
-      _process.onExit = (exitCode) {
-        closed = true;
-        _process.close();
-      };
-      if (_isWebDriver) {
-        // Use a graceful shutdown so our Selenium script can close
-        // the open browser processes. TODO(jmesserly): Send a signal once
-        // that's supported, see dartbug.com/1756.
-        _process.stdin.write('--terminate\n'.charCodes());
-
-        // In case the run_selenium process didn't close, kill it after 30s
-        int shutdownMillisecs = 30000;
-        new Timer(shutdownMillisecs, (e) { if (!closed) _process.kill(); });
-      } else {
-        _process.kill();
-      }
-    }
+  Future terminate() {
+    if (_process == null) return new Future.immediate(true);
+    Completer completer = new Completer();
+    _process.onExit = (exitCode) {
+      _process.close();
+      completer.complete(true);
+    };
+    _process.kill();
+    return completer.future;
   }
 
   void doStartTest(TestCase testCase) {
@@ -1021,8 +1010,6 @@ class ProcessQueue {
    * and notify our progress indicator that we are done.
    */
   void _cleanupAndMarkDone() {
-    // _progress.allDone() exits the process, so we have to call the
-    // _allDone callback before.
     _allDone();
     if (browserUsed != '' && _seleniumServer != null) {
       _seleniumServer.kill();
@@ -1041,8 +1028,7 @@ class ProcessQueue {
     if (_activeTestListers == 0) {
       _progress.allTestsKnown();
       if (_tests.isEmpty() && _numProcesses == 0) {
-        _terminateBatchRunners();
-        _cleanupAndMarkDone();
+        _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
       }
     }
   }
@@ -1173,12 +1159,14 @@ class ProcessQueue {
     };
   }
 
-  void _terminateBatchRunners() {
+  Future _terminateBatchRunners() {
+    var futures = new List();
     for (var runners in _batchProcesses.getValues()) {
       for (var runner in runners) {
-        runner.terminate();
+        futures.add(runner.terminate());
       }
     }
+    return Futures.wait(futures);
   }
 
   BatchRunnerProcess _getBatchRunner(TestCase test) {
