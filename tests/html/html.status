@@ -99,6 +99,7 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
+postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
