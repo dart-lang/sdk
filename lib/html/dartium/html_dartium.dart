@@ -20199,9 +20199,6 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName Window.event */
   abstract Event get event;
 
-  /** @domName Window.frames */
-  abstract Window get frames;
-
   /** @domName Window.history */
   abstract History get history;
 
@@ -20213,9 +20210,6 @@ abstract class LocalWindow implements EventTarget, Window {
 
   /** @domName Window.innerWidth */
   abstract int get innerWidth;
-
-  /** @domName Window.length */
-  abstract int get length;
 
   /** @domName Window.localStorage */
   abstract Storage get localStorage;
@@ -20649,8 +20643,6 @@ class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   Event get event native "DOMWindow_event_Getter";
 
-  Window get frames native "DOMWindow_frames_Getter";
-
   History get history native "DOMWindow_history_Getter";
 
   IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
@@ -20658,8 +20650,6 @@ class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
   int get innerHeight native "DOMWindow_innerHeight_Getter";
 
   int get innerWidth native "DOMWindow_innerWidth_Getter";
-
-  int get length native "DOMWindow_length_Getter";
 
   Storage get localStorage native "DOMWindow_localStorage_Getter";
 
@@ -42316,8 +42306,6 @@ abstract class Window {
   Window get opener;
   Window get parent;
   Window get top;
-
-  // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
   // Methods.
   void focus();

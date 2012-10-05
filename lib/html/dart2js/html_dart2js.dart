@@ -18016,9 +18016,6 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName Window.event */
   abstract Event get event;
 
-  /** @domName Window.frames */
-  abstract Window get frames;
-
   /** @domName Window.history */
   abstract History get history;
 
@@ -18030,9 +18027,6 @@ abstract class LocalWindow implements EventTarget, Window {
 
   /** @domName Window.innerWidth */
   abstract int get innerWidth;
-
-  /** @domName Window.length */
-  abstract int get length;
 
   /** @domName Window.localStorage */
   abstract Storage get localStorage;
@@ -18574,15 +18568,11 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   final _EventImpl event;
 
-  final Window frames;
-
   final _LocalHistoryImpl history;
 
   final int innerHeight;
 
   final int innerWidth;
-
-  final int length;
 
   final _StorageImpl localStorage;
 
@@ -38046,8 +38036,6 @@ abstract class Window {
   Window get opener;
   Window get parent;
   Window get top;
-
-  // TODO(vsm): Add frames to navigate subframes.  See 2312.
 
   // Methods.
   void focus();

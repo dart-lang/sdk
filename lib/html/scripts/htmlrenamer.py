@@ -281,6 +281,8 @@ _removed_html_members = set([
     "WheelEvent.wheelDeltaX",
     "WheelEvent.wheelDeltaY",
     "LocalWindow.get:frameElement",
+    "LocalWindow.get:frames",
+    "LocalWindow.get:length",
     "LocalWindow.webkitCancelRequestAnimationFrame",
     ])
 

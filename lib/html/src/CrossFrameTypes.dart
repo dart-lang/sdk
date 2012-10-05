@@ -12,8 +12,6 @@ abstract class Window {
   Window get parent;
   Window get top;
 
-  // TODO(vsm): Add frames to navigate subframes.  See 2312.
-
   // Methods.
   void focus();
   void blur();
