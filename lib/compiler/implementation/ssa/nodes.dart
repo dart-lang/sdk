@@ -1558,6 +1558,12 @@ class HLocalGet extends HFieldGet {
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
+
+  void prepareGvn(HTypeMap types) {
+    // No need to use GVN for a [HLocalGet], it is just a local
+    // access.
+    clearAllSideEffects();
+  }
 }
 
 class HLocalSet extends HFieldSet {
