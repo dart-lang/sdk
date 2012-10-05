@@ -129,14 +129,20 @@ _convertDartToNative_IDBKey(dartKey) {
 
 
 
-// May modify original.  If so, action is idempotent.
+/// May modify original.  If so, action is idempotent.
 _convertNativeToDart_IDBAny(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object);
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
 }
 
-/// Converts a Dart value into
+/// Converts a Dart value into a JavaScript SerializedScriptValue.
 _convertDartToNative_SerializedScriptValue(value) {
   return _convertDartToNative_PrepareForStructuredClone(value);
+}
+
+/// Since the source object may be viewed via a JavaScript event listener the
+/// original may not be modified.
+_convertNativeToDart_SerializedScriptValue(object) {
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
 }
 
 
@@ -152,6 +158,9 @@ _convertDartToNative_SerializedScriptValue(value) {
  * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
  * https://www.khronos.org/registry/typedarray/specs/latest/#9
  *
+ * Since the result of this function is expected to be passed only to JavaScript
+ * operations that perform the structured clone algorithm which does not mutate
+ * its output, the result may share structure with the input [value].
  */
 _convertDartToNative_PrepareForStructuredClone(value) {
 
@@ -302,15 +311,22 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 /**
  * Converts a native value into a Dart object.
  *
- * May return the original input.  May mutate the original input (but will be
- * idempotent if mutation occurs).  It is assumed that this conversion happens
- * on native serializable script values such values from native DOM calls.
+ * If [mustCopy] is [:false:], may return the original input.  May mutate the
+ * original input (but will be idempotent if mutation occurs).  It is assumed
+ * that this conversion happens on native serializable script values such values
+ * from native DOM calls.
  *
  * [object] is the result of a structured clone operation.
  *
  * If necessary, JavaScript Dates are converted into Dart Dates.
+ *
+ * If [mustCopy] is [:true:], the entire object is copied and the original input
+ * is not mutated.  This should be the case where Dart and JavaScript code can
+ * access the value, for example, via multiple event listeners for
+ * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
+ * the value as seen from the JavaScript listeners.
  */
-_convertNativeToDart_AcceptStructuredClone(object) {
+_convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
 
   // TODO(sra): Replace slots with identity hash table that works on non-dart
   // objects.
@@ -346,8 +362,8 @@ _convertNativeToDart_AcceptStructuredClone(object) {
     }
 
     if (_isJavaScriptSimpleObject(e)) {
-      // TODO(sra): Swizzle the prototype for one of a Map implementation that
-      // uses the properies as storage.
+      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
+      // implementation that uses the properies as storage.
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
@@ -361,18 +377,20 @@ _convertNativeToDart_AcceptStructuredClone(object) {
     }
 
     if (_isJavaScriptArray(e)) {
-      // Since a JavaScript Array is an instance of Dart List, we can modify it
-      // in-place.
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
-      writeSlot(slot, e);
 
       int length = e.length;
+      // Since a JavaScript Array is an instance of Dart List, we can modify it
+      // in-place unless we must copy.
+      copy = mustCopy ? JS('List', 'new Array(#)', length) : e;
+      writeSlot(slot, copy);
+
       for (int i = 0; i < length; i++) {
-        e[i] = walk(e[i]);
+        copy[i] = walk(e[i]);
       }
-      return e;
+      return copy;
     }
 
     // Assume anything else is already a valid Dart object, either by having

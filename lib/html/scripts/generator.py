@@ -522,81 +522,81 @@ class Conversion(object):
     self.input_type = input_type
     self.output_type = output_type
 
-#  TYPE -> "DIRECTION INTERFACE.MEMBER" -> conversion
-#  TYPE -> "DIRECTION INTERFACE.*" -> conversion
-#  TYPE -> "DIRECTION" -> conversion
+#  "TYPE DIRECTION INTERFACE.MEMBER" -> conversion
+#     Specific member of interface
+#  "TYPE DIRECTION INTERFACE.*" -> conversion
+#     All members of interface getting (setting) with type.
+#  "TYPE DIRECTION" -> conversion
+#     All getters (setters) of type.
 #
 # where DIRECTION is 'get' for getters and operation return values, 'set' for
 # setters and operation arguments.  INTERFACE and MEMBER are the idl names.
 #
+
+_serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
+                           'Dynamic', 'Dynamic')
+
 dart2js_conversions = {
-    'IDBKey': {
-        'get':
-          Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
-        'set':
-          Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
-        },
-    'ImageData': {
-        'get':
-          Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
-        'set':
-          Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic')
-        },
-    'Dictionary': {
-        'get':
-          Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
-        'set':
-          Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
-        },
+    'IDBKey get':
+      Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+    'IDBKey set':
+      Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
 
-    'DOMString[]': {
-        'set':
-          Conversion(
-              '_convertDartToNative_StringArray', 'List<String>', 'List'),
-        },
+    'ImageData get':
+      Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+    'ImageData set':
+      Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic'),
 
-    'any': {
-        'set IDBObjectStore.add':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        'set IDBObjectStore.put':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        'set IDBCursor.update':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        },
+    'Dictionary get':
+      Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+    'Dictionary set':
+      Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+
+    'DOMString[] set':
+      Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
+
+    'any set IDBObjectStore.add': _serialize_SSV,
+    'any set IDBObjectStore.put': _serialize_SSV,
+    'any set IDBCursor.update': _serialize_SSV,
+
+    # postMessage
+    'any set DedicatedWorkerContext.postMessage': _serialize_SSV,
+    'any set MessagePort.postMessage': _serialize_SSV,
+    'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
+    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
+
+    # receiving message via MessageEvent
+    'DOMObject get MessageEvent.data':
+      Conversion('_convertNativeToDart_SerializedScriptValue',
+                 'Dynamic', 'Dynamic'),
 
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require
     # serialized script value processing.
-    'IDBAny': {
-        'get IDBCursorWithValue.value':
-          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+    'IDBAny get IDBCursorWithValue.value':
+      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
 
-        # This is problematic.  The result property of IDBRequest is used for
-        # all requests.  Read requests like IDBDataStore.getObject need
-        # conversion, but other requests like opening a database return
-        # something that does not need conversion.
-        'get IDBRequest.result':
-          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+    # This is problematic.  The result property of IDBRequest is used for
+    # all requests.  Read requests like IDBDataStore.getObject need
+    # conversion, but other requests like opening a database return
+    # something that does not need conversion.
+    'IDBAny get IDBRequest.result':
+      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
 
-        # "source: On getting, returns the IDBObjectStore or IDBIndex that the
-        # cursor is iterating. ...".  So we should not try to convert it.
-        'get IDBCursor.source': None,
+    # "source: On getting, returns the IDBObjectStore or IDBIndex that the
+    # cursor is iterating. ...".  So we should not try to convert it.
+    'IDBAny get IDBCursor.source': None,
 
-        # Should be either a DOMString, an Array of DOMStrings or null.
-        'get IDBObjectStore.keyPath': None
-        },
+    # Should be either a DOMString, an Array of DOMStrings or null.
+    'IDBAny get IDBObjectStore.keyPath': None,
 }
 
 def FindConversion(idl_type, direction, interface, member):
-  table = dart2js_conversions.get(idl_type)
-  if table:
-    return (table.get('%s %s.%s' % (direction, interface, member)) or
-            table.get('%s %s.*' % (direction, interface)) or
-            table.get(direction))
+  table = dart2js_conversions
+  return (table.get('%s %s %s.%s' % (idl_type, direction, interface, member)) or
+          table.get('%s %s %s.*' % (idl_type, direction, interface)) or
+          table.get('%s %s' % (idl_type, direction)))
   return None
 
 # ------------------------------------------------------------------------------

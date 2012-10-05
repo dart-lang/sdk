@@ -9600,7 +9600,18 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
   _DedicatedWorkerContextEventsImpl get on =>
     new _DedicatedWorkerContextEventsImpl(this);
 
-  void postMessage(Object message, [List messagePorts]) native;
+  void postMessage(message, [messagePorts]) {
+    if (?messagePorts) {
+      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, messagePorts);
+      return;
+    }
+    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_2);
+    return;
+  }
+  void _postMessage_1(message, List messagePorts) native "postMessage";
+  void _postMessage_2(message) native "postMessage";
 }
 
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
@@ -18680,7 +18691,23 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void postMessage(message, String targetOrigin, [List messagePorts]) native;
+  void postMessage(message, String targetOrigin, [messagePorts]) {
+    if (?message &&
+        !?messagePorts) {
+      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, targetOrigin);
+      return;
+    }
+    if (?message &&
+        (messagePorts is List || messagePorts === null)) {
+      var message_2 = _convertDartToNative_SerializedScriptValue(message);
+      _postMessage_2(message_2, targetOrigin, messagePorts);
+      return;
+    }
+    throw const Exception("Incorrect number or type of arguments");
+  }
+  void _postMessage_1(message, targetOrigin) native "postMessage";
+  void _postMessage_2(message, targetOrigin, List messagePorts) native "postMessage";
 
   void print() native;
 
@@ -20131,7 +20158,8 @@ abstract class MessageEvent implements Event {
 
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
-  final Object data;
+  Dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
+  Dynamic get _data() native "return this.data;";
 
   final String lastEventId;
 
@@ -20194,7 +20222,18 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void postMessage(Object message, [List messagePorts]) native;
+  void postMessage(message, [messagePorts]) {
+    if (?messagePorts) {
+      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, messagePorts);
+      return;
+    }
+    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_2);
+    return;
+  }
+  void _postMessage_1(message, List messagePorts) native "postMessage";
+  void _postMessage_2(message) native "postMessage";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
@@ -37040,7 +37079,18 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
   _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [List messagePorts]) native;
+  void postMessage(message, [messagePorts]) {
+    if (?messagePorts) {
+      var message_1 = _convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, messagePorts);
+      return;
+    }
+    var message_2 = _convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_2);
+    return;
+  }
+  void _postMessage_1(message, List messagePorts) native "postMessage";
+  void _postMessage_2(message) native "postMessage";
 
   void terminate() native;
 }
@@ -39597,14 +39647,20 @@ _convertDartToNative_IDBKey(dartKey) {
 
 
 
-// May modify original.  If so, action is idempotent.
+/// May modify original.  If so, action is idempotent.
 _convertNativeToDart_IDBAny(object) {
-  return _convertNativeToDart_AcceptStructuredClone(object);
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: false);
 }
 
-/// Converts a Dart value into
+/// Converts a Dart value into a JavaScript SerializedScriptValue.
 _convertDartToNative_SerializedScriptValue(value) {
   return _convertDartToNative_PrepareForStructuredClone(value);
+}
+
+/// Since the source object may be viewed via a JavaScript event listener the
+/// original may not be modified.
+_convertNativeToDart_SerializedScriptValue(object) {
+  return _convertNativeToDart_AcceptStructuredClone(object, mustCopy: true);
 }
 
 
@@ -39620,6 +39676,9 @@ _convertDartToNative_SerializedScriptValue(value) {
  * http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#structured-clone
  * https://www.khronos.org/registry/typedarray/specs/latest/#9
  *
+ * Since the result of this function is expected to be passed only to JavaScript
+ * operations that perform the structured clone algorithm which does not mutate
+ * its output, the result may share structure with the input [value].
  */
 _convertDartToNative_PrepareForStructuredClone(value) {
 
@@ -39770,15 +39829,22 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 /**
  * Converts a native value into a Dart object.
  *
- * May return the original input.  May mutate the original input (but will be
- * idempotent if mutation occurs).  It is assumed that this conversion happens
- * on native serializable script values such values from native DOM calls.
+ * If [mustCopy] is [:false:], may return the original input.  May mutate the
+ * original input (but will be idempotent if mutation occurs).  It is assumed
+ * that this conversion happens on native serializable script values such values
+ * from native DOM calls.
  *
  * [object] is the result of a structured clone operation.
  *
  * If necessary, JavaScript Dates are converted into Dart Dates.
+ *
+ * If [mustCopy] is [:true:], the entire object is copied and the original input
+ * is not mutated.  This should be the case where Dart and JavaScript code can
+ * access the value, for example, via multiple event listeners for
+ * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
+ * the value as seen from the JavaScript listeners.
  */
-_convertNativeToDart_AcceptStructuredClone(object) {
+_convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
 
   // TODO(sra): Replace slots with identity hash table that works on non-dart
   // objects.
@@ -39814,8 +39880,8 @@ _convertNativeToDart_AcceptStructuredClone(object) {
     }
 
     if (_isJavaScriptSimpleObject(e)) {
-      // TODO(sra): Swizzle the prototype for one of a Map implementation that
-      // uses the properies as storage.
+      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
+      // implementation that uses the properies as storage.
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
@@ -39829,18 +39895,20 @@ _convertNativeToDart_AcceptStructuredClone(object) {
     }
 
     if (_isJavaScriptArray(e)) {
-      // Since a JavaScript Array is an instance of Dart List, we can modify it
-      // in-place.
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
-      writeSlot(slot, e);
 
       int length = e.length;
+      // Since a JavaScript Array is an instance of Dart List, we can modify it
+      // in-place unless we must copy.
+      copy = mustCopy ? JS('List', 'new Array(#)', length) : e;
+      writeSlot(slot, copy);
+
       for (int i = 0; i < length; i++) {
-        e[i] = walk(e[i]);
+        copy[i] = walk(e[i]);
       }
-      return e;
+      return copy;
     }
 
     // Assume anything else is already a valid Dart object, either by having
