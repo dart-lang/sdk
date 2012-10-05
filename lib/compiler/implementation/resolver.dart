@@ -1385,7 +1385,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       target = receiverClass.buildLocalScope().lookup(name);
       if (target === null) {
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
-        // try to resolve ghost elements if [currentClass] is in the patch
+        // try to resolve injected elements if [currentClass] is in the patch
         // library of [receiverClass].
 
         // TODO(karlklose): this should be reported by the caller of

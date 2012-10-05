@@ -1127,7 +1127,7 @@ class ParenthesizedExpression extends Expression {
 /** Representation of modifiers such as static, abstract, final, etc. */
 class Modifiers extends Node {
   /**
-   * Pseudo-constant for empty modifiers. Use this instead of null.
+   * Pseudo-constant for empty modifiers.
    */
   static final Modifiers EMPTY = new Modifiers(new NodeList.empty());
 

@@ -652,7 +652,7 @@ class LibraryElement extends ScopeContainerElement {
    */
   String getLibraryOrScriptName() {
     if (libraryTag !== null) {
-      return libraryTag.argument.dartString.slowToString();
+      return libraryTag.name.toString();
     } else {
       // Use the file name as script name.
       String path = uri.path;
