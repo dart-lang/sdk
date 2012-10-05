@@ -40,7 +40,6 @@ ObjectStore::ObjectStore()
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
     growable_object_array_class_(Class::null()),
-    byte_array_interface_(Type::null()),
     int8_array_class_(Class::null()),
     uint8_array_class_(Class::null()),
     int16_array_class_(Class::null()),

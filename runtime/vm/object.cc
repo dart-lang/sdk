@@ -858,11 +858,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_list_interface(type);
 
-  cls = CreateAndRegisterInterface("ByteArray", script, core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_byte_array_interface(type);
-
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_type(type);

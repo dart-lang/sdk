@@ -34,7 +34,6 @@ enum {
   kBoolType,
   kStringInterface,
   kListInterface,
-  kByteArrayInterface,
 
   kInstanceObjectId,
   kMaxPredefinedObjectIds,
