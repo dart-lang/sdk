@@ -167,7 +167,7 @@ void DebuggerConnectionHandler::HandleUnknownMsg() {
 }
 
 
-typedef void (*CommandHandler)(DebuggerConnectionHandler* handler);
+typedef void (*CommandHandler)(DbgMessage* msg);
 
 struct JSONDebuggerCommand {
   const char* cmd_string;
@@ -179,7 +179,6 @@ void DebuggerConnectionHandler::HandleMessages() {
   static JSONDebuggerCommand generic_debugger_commands[] = {
     { "interrupt", HandleInterruptCmd },
     { "isolates", HandleIsolatesListCmd },
-    { "quit", HandleQuitCmd },
     { NULL, NULL }
   };
 
@@ -208,23 +207,30 @@ void DebuggerConnectionHandler::HandleMessages() {
     bool is_handled = false;
     while (generic_debugger_commands[i].cmd_string != NULL) {
       if (r.IsStringLiteral(generic_debugger_commands[i].cmd_string)) {
-        (*generic_debugger_commands[i].handler_function)(this);
+        DbgMessage* msg = new DbgMessage(i,
+                                         msgbuf_->buf(),
+                                         r.EndOfObject(),
+                                         debug_fd_);
+        (*generic_debugger_commands[i].handler_function)(msg);
         is_handled = true;
         msgbuf_->PopMessage();
+        delete msg;
         break;
       }
       i++;
     }
     if (!is_handled) {
       // Check if this is an isolate specific command.
-      int32_t cmd_idx = DbgMessageQueue::LookupIsolateCommand(r.ValueChars(),
+      int32_t cmd_idx = DbgMsgQueueList::LookupIsolateCommand(r.ValueChars(),
                                                               r.ValueLen());
-      if (cmd_idx != DbgMessageQueue::kInvalidCommand) {
+      if (cmd_idx != DbgMsgQueueList::kInvalidCommand) {
         // Get debug message queue corresponding to isolate.
-        // TODO(asiva): Need to read the isolate id, map it to the appropriate
-        // isolate and pass it down to GetIsolateMessageQueue to get the
-        // appropriate debug message queue.
-        DbgMessageQueue* queue = DbgMessageQueue::GetIsolateMessageQueue(NULL);
+        // TODO(asiva): Once we have support for including the isolate id
+        // in the debug wire protocol we need to read the isolate id and
+        // pass it down to GetIsolateMsgQueue to get the appropriate debug
+        // message queue.
+        DbgMsgQueue* queue =
+            DbgMsgQueueList::GetIsolateMsgQueue(ILLEGAL_ISOLATE_ID);
         ASSERT(queue != NULL);
         queue->AddMessage(cmd_idx, msgbuf_->buf(), r.EndOfObject(), debug_fd_);
         msgbuf_->PopMessage();
@@ -270,7 +276,7 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   }
 
   // First setup breakpoint, exception and delayed breakpoint handlers.
-  DbgMessageQueue::Initialize();
+  DbgMsgQueueList::Initialize();
 
   // Now setup a listener socket and start a thread which will
   // listen, accept connections from debuggers, read and handle/dispatch
@@ -362,27 +368,29 @@ void DebuggerConnectionHandler::AcceptDbgConnection(int debug_fd) {
 }
 
 
-void DebuggerConnectionHandler::HandleInterruptCmd(
-    DebuggerConnectionHandler* handler) {
-  int msg_id = handler->MessageId();
-  ASSERT(msg_id >= 0);
-  SendError(handler->debug_fd(), msg_id, "interrupt command unimplemented");
+void DebuggerConnectionHandler::HandleInterruptCmd(DbgMessage* in_msg) {
+  MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
+  int msg_id = msg_parser.MessageId();
+  Dart_IsolateId isolate_id =
+      static_cast<Dart_IsolateId>(msg_parser.GetIntParam("isolateId"));
+  if (isolate_id == ILLEGAL_ISOLATE_ID || Dart_GetIsolate(isolate_id) == NULL) {
+    in_msg->SendErrorReply(msg_id, "Invalid isolate specified");
+    return;
+  }
+  DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueue(isolate_id);
+  ASSERT(queue != NULL);
+  queue->InterruptIsolate();
+  dart::TextBuffer msg(64);
+  msg.Printf("{ \"id\": %d }", msg_id);
+  in_msg->SendReply(&msg);
 }
 
 
-void DebuggerConnectionHandler::HandleIsolatesListCmd(
-    DebuggerConnectionHandler* handler) {
-  int msg_id = handler->MessageId();
+void DebuggerConnectionHandler::HandleIsolatesListCmd(DbgMessage* in_msg) {
+  MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
+  int msg_id = msg_parser.MessageId();
   ASSERT(msg_id >= 0);
-  SendError(handler->debug_fd(), msg_id, "isolate list command unimplemented");
-}
-
-
-void DebuggerConnectionHandler::HandleQuitCmd(
-    DebuggerConnectionHandler* handler) {
-  int msg_id = handler->MessageId();
-  ASSERT(msg_id >= 0);
-  SendError(handler->debug_fd(), msg_id, "quit command unimplemented");
+  in_msg->SendErrorReply(msg_id, "isolate list command unimplemented");
 }
 
 

@@ -203,7 +203,8 @@ class DebuggerStackTrace : public ZoneAllocated {
 };
 
 
-typedef void BreakpointHandler(SourceBreakpoint* bpt,
+typedef void BreakpointHandler(Dart_Port isolate_id,
+                               SourceBreakpoint* bpt,
                                DebuggerStackTrace* stack);
 
 

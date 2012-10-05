@@ -121,19 +121,33 @@ class DbgMessage {
 
 
 // Class which represents a queue of debug command messages sent to an isolate.
-class DbgMessageQueue {
+class DbgMsgQueue {
  public:
-  static const int32_t kInvalidCommand = -1;
+  DbgMsgQueue(Dart_IsolateId isolate_id, DbgMsgQueue* next)
+      : is_running_(true),
+        is_interrupted_(false),
+        msglist_head_(NULL),
+        msglist_tail_(NULL),
+        queued_output_messages_(64),
+        isolate_id_(isolate_id),
+        next_(next) {
+  }
+  ~DbgMsgQueue() {
+    DbgMessage* msg = msglist_head_;
+    while (msglist_head_ != NULL) {
+      msglist_head_ = msglist_head_->next();
+      delete msg;
+      msg = msglist_head_;
+    }
+    msglist_tail_ = NULL;
+    isolate_id_ = ILLEGAL_ISOLATE_ID;
+    next_ = NULL;
+  }
 
-  DbgMessageQueue() : is_running_(true),
-                      is_interrupted_(false),
-                      msglist_head_(NULL),
-                      msglist_tail_(NULL),
-                      queued_output_messages_(64) {
-  }
-  ~DbgMessageQueue() {
-    // Cleanup the message queue
-  }
+  // Accessors.
+  Dart_IsolateId isolate_id() const { return isolate_id_; }
+  DbgMsgQueue* next() const { return next_; }
+  void set_next(DbgMsgQueue* next) { next_ = next; }
 
   // Add specified debug command message to the queue.
   void AddMessage(int32_t cmd_idx,
@@ -143,6 +157,9 @@ class DbgMessageQueue {
 
   // Handle all debug command messages in the queue.
   void HandleMessages();
+
+  // Interrupt Isolate.
+  void InterruptIsolate();
 
   // Queue output messages, these are sent out when we hit an event.
   void QueueOutputMsg(dart::TextBuffer* msg);
@@ -156,28 +173,8 @@ class DbgMessageQueue {
   // Send Exception event message over to the debugger.
   void SendExceptionEvent(Dart_Handle exception, Dart_StackTrace trace);
 
-  // Initialize the message queue processing by setting up the appropriate
-  // handlers.
-  static void Initialize();
-
-  // Parses the input message and returns the command index if the message
-  // contains a valid isolate specific command.
-  // It returns kInvalidCommand otherwise.
-  static int32_t LookupIsolateCommand(const char* buf, int32_t buflen);
-
-  // Get Debugger Message Queue corresponding to the Isolate.
-  static DbgMessageQueue* GetIsolateMessageQueue(Dart_Isolate isolate);
-
-  // Generic handlers for breakpoints, exceptions and delayed breakpoint
-  // resolution.
-  static void BptResolvedHandler(intptr_t bp_id,
-                                 Dart_Handle url,
-                                 intptr_t line_number);
-  static void BreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace);
-  static void ExceptionThrownHandler(Dart_Handle exception,
-                                     Dart_StackTrace stack_trace);
-  static void IsolateEventHandler(Dart_IsolateId isolate_id,
-                                  Dart_IsolateEvent kind);
+  // Send Isolate event message over to the debugger.
+  void SendIsolateEvent(Dart_IsolateId isolate_id, Dart_IsolateEvent kind);
 
  private:
   bool is_running_;  // True if isolate is running and not in the debugger loop.
@@ -189,11 +186,62 @@ class DbgMessageQueue {
   // Text buffer that accumulates messages to be output.
   dart::TextBuffer queued_output_messages_;
 
-  // The waits on this condition variable when it needs to process
+  Dart_IsolateId isolate_id_;  // Id of the isolate tied to this queue.
+
+  DbgMsgQueue* next_;  // Used for creating a list of message queues.
+
+  // The isolate waits on this condition variable when it needs to process
   // debug messages.
   dart::Monitor msg_queue_lock_;
 
-  DISALLOW_COPY_AND_ASSIGN(DbgMessageQueue);
+  DISALLOW_COPY_AND_ASSIGN(DbgMsgQueue);
+};
+
+
+// Maintains a list of message queues.
+class DbgMsgQueueList {
+ public:
+  static const int32_t kInvalidCommand = -1;
+
+  // Initialize the message queue processing by setting up the appropriate
+  // handlers.
+  static void Initialize();
+
+  // Parses the input message and returns the command index if the message
+  // contains a valid isolate specific command.
+  // It returns kInvalidCommand otherwise.
+  static int32_t LookupIsolateCommand(const char* buf, int32_t buflen);
+
+  // Add Debugger Message Queue corresponding to the Isolate.
+  static DbgMsgQueue* AddIsolateMsgQueue(Dart_IsolateId isolate_id);
+
+  // Get Debugger Message Queue corresponding to the Isolate.
+  static DbgMsgQueue* GetIsolateMsgQueue(Dart_IsolateId isolate_id);
+
+  // Remove Debugger Message Queue corresponding to the Isolate.
+  static void RemoveIsolateMsgQueue(Dart_IsolateId isolate_id);
+
+  // Generic handlers for breakpoints, exceptions and delayed breakpoint
+  // resolution.
+  static void BptResolvedHandler(Dart_IsolateId isolate_id,
+                                 intptr_t bp_id,
+                                 Dart_Handle url,
+                                 intptr_t line_number);
+  static void BreakpointHandler(Dart_IsolateId isolate_id,
+                                Dart_Breakpoint bpt,
+                                Dart_StackTrace trace);
+  static void ExceptionThrownHandler(Dart_IsolateId isolate_id,
+                                     Dart_Handle exception,
+                                     Dart_StackTrace stack_trace);
+  static void IsolateEventHandler(Dart_IsolateId isolate_id,
+                                  Dart_IsolateEvent kind);
+
+ private:
+  static DbgMsgQueue* list_;
+  static dart::Mutex msg_queue_list_lock_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(DbgMsgQueueList);
 };
 
 #endif  // BIN_DBG_MESSAGE_H_

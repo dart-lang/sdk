@@ -28,7 +28,8 @@ namespace dart {
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
 
-static void DefaultBreakpointHandler(SourceBreakpoint* bpt,
+static void DefaultBreakpointHandler(Dart_Port isolate_id,
+                                     SourceBreakpoint* bpt,
                                      DebuggerStackTrace* stack) {
   String& var_name = String::Handle();
   Instance& value = Instance::Handle();
@@ -168,7 +169,21 @@ void Debugger::SignalIsolateEvent(EventType type) {
     event.type = type;
     event.isolate_id = debugger->GetIsolateId();
     ASSERT(event.isolate_id != ILLEGAL_ISOLATE_ID);
-    (*event_handler_)(&event);
+    if (type == kIsolateInterrupted) {
+      DebuggerStackTrace* stack_trace = debugger->CollectStackTrace();
+      ASSERT(stack_trace->Length() > 0);
+      ASSERT(debugger->stack_trace_ == NULL);
+      ASSERT(debugger->obj_cache_ == NULL);
+      debugger->obj_cache_ = new RemoteObjectCache(64);
+      debugger->stack_trace_ = stack_trace;
+      (*event_handler_)(&event);
+      debugger->stack_trace_ = NULL;
+      debugger->obj_cache_ = NULL;  // Remote object cache is zone allocated.
+      // TODO(asiva): Need some work here to be able to single step after
+      // an interrupt.
+    } else {
+      (*event_handler_)(&event);
+    }
   }
 }
 
@@ -1342,7 +1357,7 @@ void Debugger::SignalBpReached() {
       ASSERT(obj_cache_ == NULL);
       obj_cache_ = new RemoteObjectCache(64);
       stack_trace_ = stack_trace;
-      (*bp_handler_)(src_bpt, stack_trace);
+      (*bp_handler_)(GetIsolateId(), src_bpt, stack_trace);
       stack_trace_ = NULL;
       obj_cache_ = NULL;  // Remote object cache is zone allocated.
       last_bpt_line_ = bpt->LineNumber();

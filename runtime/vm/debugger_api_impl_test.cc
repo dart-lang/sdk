@@ -235,7 +235,9 @@ static void VerifyStackTrace(Dart_StackTrace trace,
 }
 
 
-void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestBreakpointHandler(Dart_IsolateId isolate_id,
+                           Dart_Breakpoint bpt,
+                           Dart_StackTrace trace) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
   breakpoint_hit = true;
@@ -283,7 +285,9 @@ TEST_CASE(Debug_Breakpoint) {
 }
 
 
-void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestStepOutHandler(Dart_IsolateId isolate_id,
+                        Dart_Breakpoint bpt,
+                        Dart_StackTrace trace) {
   const char* expected_bpts[] = {"f1", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
@@ -345,7 +349,9 @@ TEST_CASE(Debug_StepOut) {
 }
 
 
-void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestStepIntoHandler(Dart_IsolateId isolate_id,
+                         Dart_Breakpoint bpt,
+                         Dart_StackTrace trace) {
   const char* expected_bpts[] = {
       "main",
         "foo",
@@ -426,7 +432,9 @@ TEST_CASE(Debug_StepInto) {
 }
 
 
-static void StepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+static void StepIntoHandler(Dart_IsolateId isolate_id,
+                            Dart_Breakpoint bpt,
+                            Dart_StackTrace trace) {
   if (verbose) {
     OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
               breakpoint_hit_counter, BreakpointInfo(trace));
@@ -507,7 +515,9 @@ TEST_CASE(Debug_DeoptimizeFunction) {
 }
 
 
-void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestSingleStepHandler(Dart_IsolateId isolate_id,
+                           Dart_Breakpoint bpt,
+                           Dart_StackTrace trace) {
   const char* expected_bpts[] = {
       "moo", "foo", "moo", "foo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
@@ -563,7 +573,8 @@ TEST_CASE(Debug_SingleStep) {
 }
 
 
-static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
+static void ClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                     Dart_Breakpoint bpt,
                                      Dart_StackTrace trace) {
   const char* expected_trace[] = {"callback", "main"};
   const intptr_t expected_trace_length = 2;
@@ -616,7 +627,8 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 }
 
 
-static void ExprClosureBreakpointHandler(Dart_Breakpoint bpt,
+static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                         Dart_Breakpoint bpt,
                                          Dart_StackTrace trace) {
   static const char* expected_trace[] = {"add", "main"};
   Dart_Handle add_locals = Dart_NewList(4);
@@ -663,7 +675,8 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 
 static intptr_t bp_id_to_be_deleted;
 
-static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
+static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
+                                    Dart_Breakpoint bpt,
                                     Dart_StackTrace trace) {
   const char* expected_trace[] = {"foo", "main"};
   const intptr_t expected_trace_length = 2;
@@ -732,7 +745,8 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 }
 
 
-static void InspectStaticFieldHandler(Dart_Breakpoint bpt,
+static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
+                                      Dart_Breakpoint bpt,
                                       Dart_StackTrace trace) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));

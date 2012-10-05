@@ -25,18 +25,18 @@ typedef Dart_Port Dart_IsolateId;
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
-typedef void Dart_BreakpointHandler(
-                 Dart_Breakpoint breakpoint,
-                 Dart_StackTrace stack_trace);
+typedef void Dart_BreakpointHandler(Dart_IsolateId isolate_id,
+                                    Dart_Breakpoint breakpoint,
+                                    Dart_StackTrace stack_trace);
 
-typedef void Dart_BreakpointResolvedHandler(
-                 intptr_t bp_id,
-                 Dart_Handle url,
-                 intptr_t line_number);
+typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
+                                            intptr_t bp_id,
+                                            Dart_Handle url,
+                                            intptr_t line_number);
 
-typedef void Dart_ExceptionThrownHandler(
-                 Dart_Handle exception_object,
-                 Dart_StackTrace stack_trace);
+typedef void Dart_ExceptionThrownHandler(Dart_IsolateId isolate_id,
+                                         Dart_Handle exception_object,
+                                         Dart_StackTrace stack_trace);
 
 typedef enum {
   kCreated = 0,

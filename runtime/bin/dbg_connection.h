@@ -27,7 +27,10 @@
 #endif
 
 
+// Forward declarations.
+class DbgMessage;
 class MessageBuffer;
+
 
 class DebuggerConnectionHandler {
  public:
@@ -76,9 +79,8 @@ class DebuggerConnectionHandler {
 
   // Handlers for generic debug command messages which are not specific to
   // an isolate.
-  static void HandleInterruptCmd(DebuggerConnectionHandler* handler);
-  static void HandleIsolatesListCmd(DebuggerConnectionHandler* handler);
-  static void HandleQuitCmd(DebuggerConnectionHandler* handler);
+  static void HandleInterruptCmd(DbgMessage* msg);
+  static void HandleIsolatesListCmd(DbgMessage* msg);
 
   // Helper methods to manage debugger client connections.
   static void AddNewDebuggerConnection(int debug_fd);
