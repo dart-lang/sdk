@@ -66,5 +66,9 @@ reg_exp_all_matches_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 
 [ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
+apply_test: Fail # inherited from dart2js
+compare_to2_test: Fail # inherited from VM
+null_nosuchmethod_test: Fail # inherited from VM
+null_test: Fail # inherited from VM
+string_base_vm_test: Fail # inherited from dart2js
+unicode_test: Fail # inherited from VM
