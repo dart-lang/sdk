@@ -31225,6 +31225,9 @@ abstract class SelectElement implements Element {
   /** @domName HTMLSelectElement.setCustomValidity */
   void setCustomValidity(String error);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _SelectElementImpl extends _ElementImpl implements SelectElement native "*HTMLSelectElement" {
 
@@ -31248,8 +31251,6 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   int selectedIndex;
 
-  final _HTMLCollectionImpl selectedOptions;
-
   int size;
 
   final String type;
@@ -31269,6 +31270,11 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
   _NodeImpl namedItem(String name) native;
 
   void setCustomValidity(String error) native;
+
+
+  List<OptionElement> get selectedOptions() {
+    return this.options.filter((o) => o.selected);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

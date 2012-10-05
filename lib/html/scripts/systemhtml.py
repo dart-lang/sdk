@@ -23,6 +23,7 @@ _js_custom_members = set([
     'IFrameElement.contentWindow',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
+    'SelectElement.selectedOptions',
     'TableElement.createTBody',
     'LocalWindow.document',
     'LocalWindow.indexedDB',
