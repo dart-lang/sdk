@@ -501,6 +501,14 @@ void run() {
   });
 }
 
+/// Get the path to the root "util/test/pub" directory containing the pub tests.
+String get testDirectory {
+  var dir = new Path.fromNative(new Options().script);
+  while (dir.filename != 'pub') dir = dir.directoryPath;
+
+  return dir.toNativePath();
+}
+
 /**
  * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
  * validates that its results match [output], [error], and [exitCode].
@@ -521,10 +529,8 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
         dartBin = new File(dartBin).fullPathSync();
       }
 
-      var scriptDir = new File(new Options().script).directorySync().path;
-
       // Find the main pub entrypoint.
-      var pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
+      var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
 
       var dartArgs =
           ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
@@ -664,7 +670,7 @@ void _validateOutputString(String expectedText, List<String> actual) {
  * directory can contain a heterogeneous collection of files and
  * subdirectories.
  */
-class Descriptor {
+abstract class Descriptor {
   /**
    * The name of this file or directory. This must be a [String] if the fiel or
    * directory is going to be created.
@@ -1045,10 +1051,8 @@ class TarFileDescriptor extends Descriptor {
         args.addAll(contents.map(
             (child) => '-i!"${join(tempDir, child.name)}"'));
 
-        // Find 7zip. Note: this assumes the tests are being run from
-        // utils/tests/pub/
-        var scriptDir = new File(new Options().script).directorySync().path;
-        var command = fs.joinPaths(scriptDir,
+        // Find 7zip.
+        var command = fs.joinPaths(testDirectory,
             '../../../third_party/7zip/7za.exe');
 
         return runProcess(command, args).chain((_) {
@@ -1073,6 +1077,10 @@ class TarFileDescriptor extends Descriptor {
    */
   Future validate(String path) {
     throw "TODO(nweiz): implement this";
+  }
+
+  Future delete(dir) {
+    throw new UnsupportedOperationException('');
   }
 
   /**

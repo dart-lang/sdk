@@ -6,33 +6,10 @@
 
 #import('dart:io');
 
-#import('test_pub.dart');
-#import('../../../pkg/unittest/unittest.dart');
+#import('../../test_pub.dart');
+#import('../../../../../pkg/unittest/unittest.dart');
 
 main() {
-  test('checks out a package from the SDK', () {
-    dir(sdkPath, [
-      file('revision', '1234'),
-      dir('pkg', [
-        dir('foo', [
-          libDir('foo', 'foo 0.0.1234'),
-          libPubspec('foo', '0.0.0-not.used')
-        ])
-      ])
-    ]).scheduleCreate();
-
-    dir(appPath, [
-      pubspec({"name": "myapp", "dependencies": {"foo": {"sdk": "foo"}}})
-    ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"));
-
-    packagesDir({"foo": "0.0.1234"}).scheduleValidate();
-
-    run();
-  });
-
   test('includes transitive dependencies', () {
     dir(sdkPath, [
       file('revision', '1234'),
