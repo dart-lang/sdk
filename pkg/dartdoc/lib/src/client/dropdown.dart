@@ -322,15 +322,13 @@ void hideDropDown() {
   dropdown.style.visibility = 'hidden';
 }
 
-bool searchInputFocused = false;
-
 /** Activate search on Ctrl+3 and S. */
 void shortcutHandler(KeyboardEvent event) {
   if (event.keyCode == 0x33/* 3 */ && event.ctrlKey) {
     searchInput.focus();
     event.preventDefault();
-  } else if (!searchInputFocused && event.keyCode == 0x53/* S */) {
-    // Avoid preventing writing 's' in the search input.
+  } else if (event.target != searchInput && event.keyCode == 0x53/* S */) {
+    // Allow writing 's' in the search input.
     searchInput.focus();
     event.preventDefault();
   }
@@ -341,9 +339,6 @@ void shortcutHandler(KeyboardEvent event) {
  */
 void setupShortcuts() {
   window.on.keyDown.add(shortcutHandler);
-  searchInput = query('#q');
-  searchInput.on.focus.add((event) => searchInputFocused = true);
-  searchInput.on.blur.add((event) => searchInputFocused = false);
 }
 
 /** Setup search hooks. */

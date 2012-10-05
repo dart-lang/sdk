@@ -1001,7 +1001,7 @@ class Dartdoc {
 
     host.declaredMembers.forEach((_, MemberMirror member) {
       if (member.isPrivate) return;
-      if (member.isStatic) {
+      if (host is LibraryMirror || member.isStatic) {
         if (member.isMethod) {
           staticMethods.add(member);
         } else  if (member.isField) {
