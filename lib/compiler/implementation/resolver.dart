@@ -133,9 +133,91 @@ class ResolverTask extends CompilerTask {
     }
   }
 
+  void checkMatchingPatchParameters(FunctionElement origin,
+                                    Link<Element> originParameters,
+                                    Link<Element> patchParameters) {
+    while (!originParameters.isEmpty()) {
+      Element originParameter = originParameters.head;
+      Element patchParameter = patchParameters.head;
+      // Hack: Use unparser to test parameter equality. This only works because
+      // we are restricting patch uses and the approach cannot be used
+      // elsewhere.
+      String originParameterText =
+          originParameter.parseNode(compiler).toString();
+      String patchParameterText =
+          patchParameter.parseNode(compiler).toString();
+      if (originParameterText != patchParameterText) {
+        error(originParameter.parseNode(compiler),
+            MessageKind.PATCH_PARAMETER_MISMATCH,
+            [origin.name, originParameterText, patchParameterText]);
+      }
+
+      originParameters = originParameters.tail;
+      patchParameters = patchParameters.tail;
+    }
+  }
+
   void checkMatchingPatchSignatures(FunctionElement origin,
                                     FunctionElement patch) {
-    // TODO(johnniwinther): Stub. Implementation in a later CL.
+    // TODO(johnniwinther): Show both origin and patch locations on errors.
+    FunctionExpression originTree = compiler.withCurrentElement(origin, () {
+      return origin.parseNode(compiler);
+    });
+    FunctionSignature originSignature = compiler.withCurrentElement(origin, () {
+      return origin.computeSignature(compiler);
+    });
+    FunctionExpression patchTree = compiler.withCurrentElement(patch, () {
+      return patch.parseNode(compiler);
+    });
+    FunctionSignature patchSignature = compiler.withCurrentElement(patch, () {
+      return patch.computeSignature(compiler);
+    });
+
+    if (originSignature.returnType != patchSignature.returnType) {
+      compiler.withCurrentElement(patch, () {
+        Node errorNode =
+            patchTree.returnType !== null ? patchTree.returnType : patchTree;
+        error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH, [origin.name,
+              originSignature.returnType, patchSignature.returnType]);
+      });
+    }
+    if (originSignature.requiredParameterCount !=
+        patchSignature.requiredParameterCount) {
+      compiler.withCurrentElement(patch, () {
+        error(patchTree,
+              MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
+              [origin.name, originSignature.requiredParameterCount,
+               patchSignature.requiredParameterCount]);
+      });
+    } else {
+      checkMatchingPatchParameters(origin,
+                                   originSignature.requiredParameters,
+                                   patchSignature.requiredParameters);
+    }
+    if (originSignature.optionalParameterCount != 0 &&
+        patchSignature.optionalParameterCount != 0) {
+      if (originSignature.optionalParametersAreNamed !=
+          patchSignature.optionalParametersAreNamed) {
+        compiler.withCurrentElement(patch, () {
+          error(patchTree,
+              MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
+              [origin.name]);
+        });
+      }
+    }
+    if (originSignature.optionalParameterCount !=
+        patchSignature.optionalParameterCount) {
+      compiler.withCurrentElement(patch, () {
+        error(patchTree,
+              MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
+              [origin.name, originSignature.optionalParameterCount,
+               patchSignature.optionalParameterCount]);
+      });
+    } else {
+      checkMatchingPatchParameters(origin,
+                                   originSignature.optionalParameters,
+                                   patchSignature.optionalParameters);
+    }
   }
 
   TreeElements resolveMethodElement(FunctionElement element) {
