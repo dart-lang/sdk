@@ -153,9 +153,13 @@ class GitSource extends Source {
    * remote repository. See the manpage for `git clone` for more information.
    */
   Future _clone(String from, String to, [bool mirror=false]) {
-    var args = ["clone", from, to];
-    if (mirror) args.insertRange(1, 1, "--mirror");
-    return runGit(args).transform((result) {
+    // Git on Windows does not seem to automatically create the destination
+    // directory.
+    return ensureDir(to).chain((_) {
+      var args = ["clone", from, to];
+      if (mirror) args.insertRange(1, 1, "--mirror");
+      return runGit(args);
+    }).transform((result) {
       if (!result.success) throw 'Git failed.';
       return null;
     });
