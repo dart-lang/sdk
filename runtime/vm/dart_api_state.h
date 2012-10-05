@@ -62,9 +62,9 @@ class ApiZone {
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
  private:
-  BaseZone* GetBaseZone() { return &zone_; }
+  Zone* GetBaseZone() { return &zone_; }
 
-  BaseZone zone_;
+  Zone zone_;
 
   template<typename T> friend class ApiGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(ApiZone);

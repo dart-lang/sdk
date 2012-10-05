@@ -18,12 +18,12 @@ namespace dart {
 template<typename T, typename B>
 class BaseGrowableArray : public B {
  public:
-  explicit BaseGrowableArray(BaseZone* zone)
+  explicit BaseGrowableArray(Zone* zone)
       : length_(0), capacity_(0), data_(NULL), zone_(zone) {
     ASSERT(zone_ != NULL);
   }
 
-  BaseGrowableArray(int initial_capacity, BaseZone* zone)
+  BaseGrowableArray(int initial_capacity, Zone* zone)
       : length_(0), capacity_(0), data_(NULL), zone_(zone) {
     ASSERT(zone_ != NULL);
     if (initial_capacity > 0) {
@@ -88,7 +88,7 @@ class BaseGrowableArray : public B {
   int length_;
   int capacity_;
   T* data_;
-  BaseZone* zone_;  // Zone in which we are allocating the array.
+  Zone* zone_;  // Zone in which we are allocating the array.
 
   void Resize(int new_length);
 

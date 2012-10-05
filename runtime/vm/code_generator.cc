@@ -1572,7 +1572,7 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           uword saved_registers_address) {
   Isolate* isolate = Isolate::Current();
-  Zone zone(isolate);
+  StackZone zone(isolate);
   HANDLESCOPE(isolate);
 
   // All registers have been saved below last-fp.
@@ -1663,7 +1663,7 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   Isolate* isolate = Isolate::Current();
-  Zone zone(isolate);
+  StackZone zone(isolate);
   HANDLESCOPE(isolate);
 
   DartFrameIterator iterator(last_fp);

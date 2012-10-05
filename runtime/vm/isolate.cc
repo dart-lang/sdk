@@ -83,7 +83,7 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StartIsolateScope start_scope(isolate_);
-  Zone zone(isolate_);
+  StackZone zone(isolate_);
   HandleScope handle_scope(isolate_);
 
   // Parse the message.
@@ -354,7 +354,7 @@ static void AddFunctionsFromClass(const Class& cls,
 
 void Isolate::PrintInvokedFunctions() {
   ASSERT(this == Isolate::Current());
-  Zone zone(this);
+  StackZone zone(this);
   HandleScope handle_scope(this);
   const GrowableObjectArray& libraries =
       GrowableObjectArray::Handle(object_store()->libraries());
@@ -408,7 +408,7 @@ void Isolate::Shutdown() {
   // requires a handle zone. We must set up a temporary zone because
   // Isolate::Shutdown is called without a zone.
   {
-    Zone zone(this);
+    StackZone zone(this);
     HandleScope handle_scope(this);
     debugger_->Shutdown();
   }
@@ -434,7 +434,7 @@ void Isolate::Shutdown() {
     DebugInfo::UnregisterAllSections();
   }
   if (FLAG_trace_isolates) {
-    Zone zone(this);
+    StackZone zone(this);
     HandleScope handle_scope(this);
     OS::Print("Number of symbols added = %"Pd"\n", Symbols::Size(this));
     OS::Print("[-] Stopping isolate:\n"

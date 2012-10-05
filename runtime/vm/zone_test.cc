@@ -20,7 +20,7 @@ UNIT_TEST_CASE(AllocateZone) {
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
-    Zone zone(isolate);
+    StackZone zone(isolate);
     EXPECT(isolate->current_zone() != NULL);
     intptr_t allocated_size = 0;
 
@@ -81,7 +81,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
-    Zone zone(isolate);
+    StackZone zone(isolate);
     EXPECT(isolate->current_zone() != NULL);
     intptr_t allocated_size = 0;
 
@@ -105,7 +105,7 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
-    Zone zone(isolate);
+    StackZone zone(isolate);
     EXPECT(isolate->current_zone() != NULL);
 
     const intptr_t kNumElements = (kIntptrMax / sizeof(uint32_t)) + 1;
@@ -137,7 +137,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 
   // Create a few zone allocated objects.
   {
-    Zone zone(isolate);
+    StackZone zone(isolate);
     EXPECT_EQ(0, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
     EXPECT(first != NULL);
@@ -164,7 +164,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 
 
 TEST_CASE(PrintToString) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
   const char* result = zone.PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
 }

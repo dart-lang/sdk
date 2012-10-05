@@ -86,7 +86,7 @@ static void ShutdownIsolate(uword parameter) {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
     StartIsolateScope start_scope(isolate);
-    Zone zone(isolate);
+    StackZone zone(isolate);
     HandleScope handle_scope(isolate);
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
@@ -168,7 +168,7 @@ static bool CanonicalizeUri(Isolate* isolate,
                             const String& uri,
                             char** canonical_uri,
                             char** error) {
-  Zone* zone = isolate->current_zone();
+  StackZone* zone = isolate->current_zone();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     *error = zone->PrintToString(
@@ -311,7 +311,7 @@ static bool CreateIsolate(SpawnState* state, char** error) {
   // TODO(turnidge): Revisit this once we have an isolate death api.
   bool resolve_error = false;
   {
-    Zone zone(child_isolate);
+    StackZone zone(child_isolate);
     HandleScope handle_scope(child_isolate);
     const Object& result = Object::Handle(state->ResolveFunction());
     if (result.IsError()) {
@@ -338,7 +338,7 @@ static bool RunIsolate(uword parameter) {
   isolate->set_spawn_data(NULL);
   {
     StartIsolateScope start_scope(isolate);
-    Zone zone(isolate);
+    StackZone zone(isolate);
     HandleScope handle_scope(isolate);
     if (!ClassFinalizer::FinalizePendingClasses()) {
       // Error is in sticky error already.

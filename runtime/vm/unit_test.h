@@ -31,7 +31,7 @@
   UNIT_TEST_CASE(name)                                                         \
   {                                                                            \
     TestIsolateScope __test_isolate__;                                         \
-    Zone __zone__(__test_isolate__.isolate());                                 \
+    StackZone __zone__(__test_isolate__.isolate());                            \
     HandleScope __hs__(__test_isolate__.isolate());                            \
     Dart_TestHelper##name();                                                   \
   }                                                                            \

@@ -32,14 +32,14 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
                                     NativeArguments* arguments);               \
-  void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {         \
+  void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
     ASSERT(arguments->Count() == argument_count);                              \
     if (FLAG_trace_natives) OS::Print("Calling native: %s\n", ""#name);        \
     {                                                                          \
-      Zone zone(arguments->isolate());                                         \
+      StackZone zone(arguments->isolate());                                    \
       HANDLESCOPE(arguments->isolate());                                       \
       arguments->SetReturnUnsafe(                                              \
           DN_Helper##name(arguments->isolate(), arguments));                   \
@@ -59,7 +59,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   if (!__##name##_instance__.Is##type()) {                                     \
     GrowableArray<const Object*> __args__;                                     \
     __args__.Add(&__##name##_instance__);                                      \
-    Exceptions::ThrowByType(Exceptions::kArgument, __args__);           \
+    Exceptions::ThrowByType(Exceptions::kArgument, __args__);                  \
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
 

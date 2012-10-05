@@ -36,8 +36,8 @@ class RawMint;
 class RawInteger;
 class RawError;
 class StackResource;
+class StackZone;
 class StubCode;
-class Zone;
 
 
 // Used by the deoptimization infrastructure to defer allocation of Double
