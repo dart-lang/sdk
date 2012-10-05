@@ -7,38 +7,68 @@
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
-const String VERSION = '1';
+const int VERSION = 1;
 
 class Test {
-  var db;
+  fail(message) => (e) {
+    guardAsync(() {
+      Expect.fail('IndexedDB failure: $message');
+    });
+  };
 
-  start() {
-    var request = window.indexedDB.open(DB_NAME);
-    Expect.isNotNull(request);
-    request.on.success.add(expectAsync1(initDb));
-    request.on.error.add(fail('open'));
+  _createObjectStore(db) {
+    try {
+      // Nuke object store if it already exists.
+      db.deleteObjectStore(STORE_NAME);
+    }
+    on IDBDatabaseException catch(e) { }  // Chrome
+    on DOMException catch(e) { }          // Firefox
+    db.createObjectStore(STORE_NAME);
   }
 
-  initDb(e) {
-    db = e.target.result;
-    // TODO.  Some browsers do this the w3 way - passing the VERSION to the
-    // open call and listening to onversionchange.  Can we feature-detect the
-    // difference and make it work?
-    var request = db.setVersion(VERSION);
-    request.on.success.add(
-      expectAsync1((e) {
-        try {
-          // Nuke object store if it already exists.
-          db.deleteObjectStore(STORE_NAME);
-        } on IDBDatabaseException catch (e) { }
-        db.createObjectStore(STORE_NAME);
+  var db;
 
-        var transaction = e.target.result;
-        transaction.on.complete.add(expectAsync1((e) => writeItems(0)));
-        transaction.on.error.add(fail);
-      })
-    );
-    request.on.error.add(fail('setVersion error'));
+  _openDb(afterOpen()) {
+    var request = window.indexedDB.open(DB_NAME, VERSION);
+    if (request is IDBOpenDBRequest) {
+      // New upgrade protocol.
+      request.on.success.add(expectAsync1((e) {
+            db = e.target.result;
+            afterOpen();
+          }));
+      request.on.upgradeNeeded.add((e) {
+          guardAsync(() {
+              _createObjectStore(e.target.result);
+            });
+        });
+      request.on.error.add(fail('open'));
+    } else {
+      // Legacy setVersion upgrade protocol.
+      request.on.success.add(expectAsync1((e) {
+            db = e.target.result;
+            if (db.version != '$VERSION') {
+              var setRequest = db.setVersion('$VERSION');
+              setRequest.on.success.add(
+                  expectAsync1((e) {
+                      _createObjectStore(db);
+                      var transaction = e.target.result;
+                      transaction.on.complete.add(
+                          expectAsync1((e) => afterOpen()));
+                      transaction.on.error.add(fail('Upgrade'));
+                    }));
+              setRequest.on.error.add(fail('setVersion error'));
+            } else {
+              afterOpen();
+            }
+          }));
+      request.on.error.add(fail('open'));
+    }
+  }
+
+  _createAndOpenDb(afterOpen()) {
+    var request = window.indexedDB.deleteDatabase(DB_NAME);
+    request.on.success.add(expectAsync1((e) { _openDb(afterOpen); }));
+    request.on.error.add(fail('delete old Db'));
   }
 
   writeItems(int index) {
@@ -46,20 +76,15 @@ class Test {
       var transaction = db.transaction([STORE_NAME], 'readwrite');
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
-      request.on.success.add(
-        expectAsync1((e) {
+      request.on.success.add(expectAsync1((e) {
           writeItems(index + 1);
-        })
-      );
+        }
+      ));
       request.on.error.add(fail('put'));
     }
   }
 
-  fail(message) => (e) {
-    guardAsync(() {
-      Expect.fail('IndexedDB failure: $message');
-    });
-  };
+  setupDb() { _createAndOpenDb(() => writeItems(0)); }
 
   testRange(range, expectedFirst, expectedLast) {
     IDBTransaction txn = db.transaction(STORE_NAME, 'readonly');
@@ -126,7 +151,7 @@ main() {
   useHtmlConfiguration();
 
   var test_ = new Test();
-  test('prepare', test_.start);
+  test('prepare', test_.setupDb);
 
   test('only1', test_.only1);
   test('only2', test_.only2);

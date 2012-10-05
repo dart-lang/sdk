@@ -120,7 +120,6 @@ indexeddb_1_test: Fail # indexedDB not in Safari 6.
 indexeddb_2_test: Fail # indexedDB not in Safari 6.
 indexeddb_3_test: Fail # indexedDB not in Safari 6.
 indexeddb_4_test: Fail # indexedDB not in Safari 6.
-indexeddb_1_test: Fail # indexedDB not in Safari 6.
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
 datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
 contentelement_test: Fail # Safari 6 does not support content element.
@@ -163,10 +162,10 @@ documentfragment_test: Fail
 element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
-indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+indexeddb_1_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_2_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_3_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
