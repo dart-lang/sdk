@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>ConsoleCollector@google.com</em:id>
     <em:name>Console collector</em:name>
-    <em:version>0.1</em:version>    
+    <em:version>0.2</em:version>    
     <em:description>Exposes the Javascript console to each browser window.
     </em:description>
     <em:creator>Graham Wheeler</em:creator>
