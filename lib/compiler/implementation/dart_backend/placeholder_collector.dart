@@ -143,7 +143,7 @@ class PlaceholderCollector extends Visitor {
   final Map<Element, ElementAst> elementAsts;
   final Set<Node> nullNodes;  // Nodes that should not be in output.
   final Set<Identifier> unresolvedNodes;
-  final Map<Element, Set<Node>> elementNodes;
+  final Map<Element, Set<Identifier>> elementNodes;
   final Map<FunctionElement, FunctionScope> functionScopes;
   final Map<LibraryElement, Set<Identifier>> privateNodes;
   final List<DeclarationTypePlaceholder> declarationTypePlaceholders;
@@ -162,7 +162,7 @@ class PlaceholderCollector extends Visitor {
   PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts) :
       nullNodes = new Set<Node>(),
       unresolvedNodes = new Set<Identifier>(),
-      elementNodes = new Map<Element, Set<Node>>(),
+      elementNodes = new Map<Element, Set<Identifier>>(),
       functionScopes = new Map<FunctionElement, FunctionScope>(),
       privateNodes = new Map<LibraryElement, Set<Identifier>>(),
       declarationTypePlaceholders = new List<DeclarationTypePlaceholder>(),
@@ -295,6 +295,13 @@ class PlaceholderCollector extends Visitor {
   }
 
   void makeTypePlaceholder(Node node, DartType type) {
+    if (node is Send) {
+      // Prefix.
+      assert(node.receiver is Identifier);
+      assert(node.selector is Identifier);
+      makeNullPlaceholder(node.receiver);
+      node = node.selector;
+    }
     makeElementPlaceholder(node, type.element);
   }
 
@@ -321,7 +328,7 @@ class PlaceholderCollector extends Visitor {
     nullNodes.add(node);
   }
 
-  void makeElementPlaceholder(Node node, Element element) {
+  void makeElementPlaceholder(Identifier node, Element element) {
     assert(element !== null);
     if (element === entryFunction) return;
     if (element.getLibrary() === coreLibrary) return;
@@ -333,7 +340,7 @@ class PlaceholderCollector extends Visitor {
           'Should never make element placeholder for dynamic type element',
           node);
     }
-    elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
+    elementNodes.putIfAbsent(element, () => new Set<Identifier>()).add(node);
   }
 
   void makePrivateIdentifier(Identifier node) {
@@ -466,6 +473,12 @@ class PlaceholderCollector extends Visitor {
           typeElement === dynamicTypeElement)) {
         makeNullPlaceholder(node.typeName.asSend().receiver);
       } else {
+        if (hasPrefix) {
+          assert(node.typeName is Send);
+          assert(node.typeName.receiver is Identifier);
+          assert(node.typeName.selector is Identifier);
+          makeNullPlaceholder(node.typeName.receiver);
+        }
         if (typeElement !== dynamicTypeElement) {
           makeTypePlaceholder(target, type);
         } else {
