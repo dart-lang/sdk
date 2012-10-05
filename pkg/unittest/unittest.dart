@@ -238,12 +238,12 @@ void expectThrow(function, [bool callback(exception)]) {
       // If the callback explicitly returned false, treat that like an
       // expectation too. (If it returns null, though, don't.)
       if (result == false) {
-        _fail('Exception:\n$e\ndid not match expectation.');
+        fail('Exception:\n$e\ndid not match expectation.');
       }
     }
   }
 
-  if (threw != true) _fail('An expected exception was not thrown.');
+  if (threw != true) fail('An expected exception was not thrown.');
 }
 
 /**
