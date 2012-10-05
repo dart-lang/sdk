@@ -156,6 +156,9 @@ def GenerateSingleFile(library_path, output_dir):
 
 def main():
   parser = optparse.OptionParser()
+  parser.add_option('--parallel', dest='parallel',
+                    action='store_true', default=False,
+                    help='Use fremontcut in parallel mode.')
   parser.add_option('--rebuild', dest='rebuild',
                     action='store_true', default=False,
                     help='Rebuild the database from IDL using fremontcut.')
@@ -189,7 +192,7 @@ def main():
 
   if options.rebuild:
     # Parse the IDL and create the database.
-    database = fremontcutbuilder.main()
+    database = fremontcutbuilder.main(options.parallel)
   else:
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)

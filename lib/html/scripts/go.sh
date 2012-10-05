@@ -48,5 +48,5 @@ if [[ $CACHED ]] ; then
   ./dartdomgenerator.py --use-database-cache --systems="$SYSTEMS"
 else
   reset &&
-  ./dartdomgenerator.py --rebuild --systems="$SYSTEMS"
+  ./dartdomgenerator.py --rebuild --parallel --systems="$SYSTEMS"
 fi

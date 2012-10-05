@@ -89,7 +89,8 @@ DEFAULT_FEATURE_DEFINES = [
     'ENABLE_XSLT',
 ]
 
-def build_database(idl_files, database_dir, feature_defines = None):
+def build_database(idl_files, database_dir, feature_defines=None,
+                   parallel=False):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
@@ -120,7 +121,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
       source_attributes={'revision': webkit_revision})
 
   # Import WebKit IDLs.
-  builder.import_idl_files(idl_files, webkit_options)
+  builder.import_idl_files(idl_files, webkit_options, parallel)
 
   # Import Dart idl:
   dart_options = databasebuilder.DatabaseBuilderOptions(
@@ -130,7 +131,8 @@ def build_database(idl_files, database_dir, feature_defines = None):
 
   builder.import_idl_files(
       [ os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl') ],
-      dart_options)
+      dart_options,
+      parallel)
 
   # Merging:
   builder.merge_imported_interfaces()
@@ -144,7 +146,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
   db.Save()
   return db
 
-def main():
+def main(parallel=False):
   current_dir = os.path.dirname(__file__)
 
   webkit_dirs = [
@@ -200,7 +202,7 @@ def main():
     os.path.walk(dir_path, visitor, None)
 
   database_dir = os.path.join(current_dir, '..', 'database')
-  return build_database(idl_files, database_dir)
+  return build_database(idl_files, database_dir, parallel=parallel)
 
 if __name__ == '__main__':
   sys.exit(main())

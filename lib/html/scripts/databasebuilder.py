@@ -62,7 +62,7 @@ class DatabaseBuilderOptions(object):
     self.obsolete_old_declarations = obsolete_old_declarations
 
 
-def _load_idl_file(file_name, import_options, result_queue):
+def _load_idl_file(file_name, import_options):
   """Loads an IDL file into memory"""
   idl_parser = idlparser.IDLParser(import_options.idl_syntax)
 
@@ -74,13 +74,19 @@ def _load_idl_file(file_name, import_options, result_queue):
     idl_ast = idl_parser.parse(
       content,
       defines=import_options.idl_defines)
-    result = IDLFile(idl_ast, file_name)
+    return IDLFile(idl_ast, file_name)
+  except SyntaxError, e:
+    raise RuntimeError('Failed to load file %s: %s'
+                       % (file_name, e))
+ 
+def _load_idl_file_to_queue(file_name, import_options, result_queue):
+  """Loads an IDL file into a result_queue to process in the master thread"""
+  try:
+    result = _load_idl_file(file_name, import_options)
     result_queue.put(result, False)
     return 0
-  except SyntaxError, e:
-    result_queue.put(RuntimeError('Failed to load file %s: %s'
-                                  % (file_name, e)),
-                     False)
+  except RuntimeError, e:
+    result_queue.put(e, False)
     return 1
   except:
     result_queue.put('Unknown error loading %s' % file_name, False)
@@ -425,28 +431,34 @@ class DatabaseBuilder(object):
     self._impl_stmts = []
     self._imported_interfaces = []
 
-  def import_idl_files(self, file_paths, import_options):
-    # Parse the IDL files in parallel.
-    result_queue = multiprocessing.Queue(len(file_paths))
-    jobs = [ multiprocessing.Process(target=_load_idl_file,
-                                     args=(file_path, import_options,
-                                           result_queue))
-             for file_path in file_paths ]
-    try:
-      for job in jobs:
-        job.start()
-      for job in jobs:
-        # Timeout and throw after 5 sec.
-        result = result_queue.get(True, 5)
-        if isinstance(result, IDLFile):
-          self._process_idl_file(result, import_options)
-        else:
-          raise result
-    except:
-      # Clean up child processes on error.
-      for job in jobs:
-        job.terminate()
-      raise
+  def import_idl_files(self, file_paths, import_options, parallel):
+    if parallel:
+      # Parse the IDL files in parallel.
+      result_queue = multiprocessing.Queue(len(file_paths))
+      jobs = [ multiprocessing.Process(target=_load_idl_file_to_queue,
+                                       args=(file_path, import_options,
+                                             result_queue))
+               for file_path in file_paths ]
+      try:
+        for job in jobs:
+          job.start()
+        for job in jobs:
+          # Timeout and throw after 5 sec.
+          result = result_queue.get(True, 5)
+          if isinstance(result, IDLFile):
+            self._process_idl_file(result, import_options)
+          else:
+            raise result
+      except:
+        # Clean up child processes on error.
+        for job in jobs:
+          job.terminate()
+        raise
+    else:
+      # Parse the IDL files in serial.
+      for file_path in file_paths:
+        idl_file = _load_idl_file(file_path, import_options)
+        self._process_idl_file(idl_file, import_options)
 
   def _process_idl_file(self, idl_file,
                         import_options):
