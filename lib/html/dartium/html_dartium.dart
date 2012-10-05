@@ -402,34 +402,6 @@ class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitAnimationList
-abstract class AnimationList {
-
-  /** @domName WebKitAnimationList.length */
-  abstract int get length;
-
-  /** @domName WebKitAnimationList.item */
-  Animation item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements AnimationList {
-
-  int get length native "WebKitAnimationList_length_Getter";
-
-  Animation item(int index) native "WebKitAnimationList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLAppletElement
 abstract class AppletElement implements Element {
 
@@ -26457,7 +26429,7 @@ class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLResultSetRowList
-abstract class SQLResultSetRowList {
+abstract class SQLResultSetRowList implements List<Map> {
 
   /** @domName SQLResultSetRowList.length */
   abstract int get length;
@@ -26474,6 +26446,87 @@ abstract class SQLResultSetRowList {
 class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLResultSetRowList {
 
   int get length native "SQLResultSetRowList_length_Getter";
+
+  Map operator[](int index) native "SQLResultSetRowList_item_Callback";
+
+  void operator[]=(int index, Map value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Map> mixins.
+  // Map is the element type.
+
+  // From Iterable<Map>:
+
+  Iterator<Map> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Map>(this);
+  }
+
+  // From Collection<Map>:
+
+  void add(Map value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Map value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Map> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Map element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Map element)) => _Collections.map(this, [], f);
+
+  Collection<Map> filter(bool f(Map element)) =>
+     _Collections.filter(this, <Map>[], f);
+
+  bool every(bool f(Map element)) => _Collections.every(this, f);
+
+  bool some(bool f(Map element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Map>:
+
+  void sort(int compare(Map a, Map b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Map element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Map element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Map last() => this[length - 1];
+
+  Map removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Map initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Map> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Map>[]);
+
+  // -- end List<Map> mixins.
 
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
@@ -40684,6 +40737,100 @@ abstract class WebGLVertexArrayObjectOES {
 // WARNING: Do not edit - generated code.
 
 class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements WebGLVertexArrayObjectOES {
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<Animation> {
+
+  int get length native "WebKitAnimationList_length_Getter";
+
+  Animation operator[](int index) native "WebKitAnimationList_item_Callback";
+
+  void operator[]=(int index, Animation value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Animation> mixins.
+  // Animation is the element type.
+
+  // From Iterable<Animation>:
+
+  Iterator<Animation> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Animation>(this);
+  }
+
+  // From Collection<Animation>:
+
+  void add(Animation value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Animation value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Animation> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+
+  Collection<Animation> filter(bool f(Animation element)) =>
+     _Collections.filter(this, <Animation>[], f);
+
+  bool every(bool f(Animation element)) => _Collections.every(this, f);
+
+  bool some(bool f(Animation element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Animation>:
+
+  void sort(int compare(Animation a, Animation b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Animation element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Animation element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Animation last() => this[length - 1];
+
+  Animation removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Animation initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Animation> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Animation>[]);
+
+  // -- end List<Animation> mixins.
+
+  Animation item(int index) native "WebKitAnimationList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

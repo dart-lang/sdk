@@ -913,6 +913,8 @@ _idl_type_registry = {
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
+    'WebKitAnimationList': TypeData(clazz='Interface',
+        dart_type='List<Animation>', suppress_public_interface=True),
     'ClientRectList': TypeData(clazz='Interface', dart_type='List<ClientRect>',
         suppress_public_interface=True),
     'CSSRuleList': TypeData(clazz='Interface', dart_type='List<CSSRule>',
