@@ -69,6 +69,7 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
+element_test: Fail  # Bug 5693
 element_webkit_test: Fail
 localstorage_test: Fail
 node_test: Fail
@@ -134,8 +135,10 @@ canvas_using_html_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
+element_test: Fail # Bug 5693
 element_add_test: Fail
 element_constructor_1_test: Fail
+element_webkit_test: Fail
 exceptions_test: Fail
 instance_of_test: Fail
 mutationobserver_test: Fail
