@@ -21,13 +21,24 @@ class A<T> {
   a) {
     final
     T /// 03: static type warning, dynamic type error
-    a = null;
+    a = "not_null";
     print(a);
+    return a;
   }
 
   static final
   T /// 04: static type warning, dynamic type error
-  staticField = null;
+  staticField = "not_null";
+
+  // Assigning null to a malformed type is not a dynamic error.
+  static
+  T staticMethod2(T a) {
+    final T a = null;
+    print(a);
+    return a;
+  }
+
+  static final T staticField2 = null;
 }
 
 main() {
@@ -45,6 +56,9 @@ main() {
   Expect.isTrue(s is Set<int>);
   Expect.isFalse(s is Set<double>);
 
-  A.staticMethod(null);
+  A.staticMethod("not_null");
   print(A.staticField);
+
+  A.staticMethod2(null);
+  print(A.staticField2);
 }

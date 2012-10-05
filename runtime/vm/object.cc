@@ -3210,7 +3210,10 @@ void Function::set_data(const Object& value) const {
 
 
 bool Function::IsInFactoryScope() const {
-  Function& outer_function = Function::Handle(raw());
+  if (!IsLocalFunction()) {
+    return IsFactory();
+  }
+  Function& outer_function = Function::Handle(parent_function());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }

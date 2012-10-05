@@ -494,7 +494,7 @@ class Parser : public ValueObject {
                          LocalScope** owner_scope,
                          intptr_t* local_index);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  RawClass* TypeParametersScopeClass() const;
+  bool ParsingStaticMember() const;
   const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,

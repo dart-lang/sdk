@@ -63,12 +63,6 @@ compile_time_constant10_test/none: Fail # issue 5214
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
-[ $compiler == none && $checked ]
-type_parameter_test/01: Fail # Issue 4932
-type_parameter_test/02: Fail # Issue 4932
-type_parameter_test/03: Fail # Issue 4932
-type_parameter_test/04: Fail # Issue 4932
-
 [ $compiler == none && $unchecked ]
 field_override_test/02: Fail    # Issue 742: field shadowing now allowed
 
@@ -304,6 +298,7 @@ static_field3_test/01: Fail # http://dartbug.com/5519
 static_field3_test/02: Fail # http://dartbug.com/5519
 static_field3_test/03: Fail # http://dartbug.com/5519
 static_field3_test/04: Fail # http://dartbug.com/5519
+type_parameter_test/none: Fail # Related to closed issue http://dartbug.com/4932
 
 import_combinators_test: Fail
 throw_expr_test: Fail

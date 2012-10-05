@@ -2319,10 +2319,9 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
       if (!lib_prefix.IsNull()) {
         // We have a library prefix qualified identifier, unless the prefix is
         // shadowed by a type parameter in scope.
-        const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-        if (scope_class.IsNull() ||
-            (scope_class.LookupTypeParameter(*(qual_ident->ident),
-                                             TokenPos()) ==
+        if (current_class().IsNull() ||
+            (current_class().LookupTypeParameter(*(qual_ident->ident),
+                                                 TokenPos()) ==
              TypeParameter::null())) {
           ConsumeToken();  // Consume the kPERIOD token.
           qual_ident->lib_prefix = &lib_prefix;
@@ -7575,6 +7574,19 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
             scope_class.LookupTypeParameter(unresolved_class_name,
                                             type->token_pos()));
         if (!type_parameter.IsNull()) {
+          // A type parameter is considered to be a malformed type when
+          // referenced by a static member.
+          if (ParsingStaticMember()) {
+            ASSERT(scope_class.raw() == current_class().raw());
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                scope_class,
+                type->token_pos(),
+                "type parameter '%s' cannot be referenced "
+                "from static member",
+                String::Handle(type_parameter.name()).ToCString());
+            return;
+          }
+          // TODO(regis): Should this be a malformed type as well?
           // A type parameter cannot be parameterized, so report an error if
           // type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
@@ -7738,29 +7750,14 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
 }
 
 
-// If type parameters are currently in scope, return their declaring class,
-// otherwise return null.
-RawClass* Parser::TypeParametersScopeClass() const {
-  // Type parameters cannot be referred to from a static function, except from
-  // a constructor or from a factory.
-  // A constructor is considered as non-static by the compiler.
+bool Parser::ParsingStaticMember() const {
   if (is_top_level_) {
-    if ((current_member_ == NULL) ||
-        (current_member_->has_factory || !current_member_->has_static)) {
-      return current_class().raw();
-    }
-  } else {
-    if (!current_function().IsNull()) {
-      Function& outer_function = Function::Handle(current_function().raw());
-      while (outer_function.IsLocalFunction()) {
-        outer_function = outer_function.parent_function();
-      }
-      if (outer_function.IsFactory() || !outer_function.is_static()) {
-        return current_class().raw();
-      }
-    }
+    return (current_member_ != NULL) &&
+           current_member_->has_static && !current_member_->has_factory;
   }
-  return Class::null();
+  ASSERT(!current_function().IsNull());
+  return
+      current_function().is_static() && !current_function().IsInFactoryScope();
 }
 
 
@@ -7782,14 +7779,11 @@ const Type* Parser::ReceiverType(intptr_t type_pos) const {
 
 bool Parser::IsInstantiatorRequired() const {
   ASSERT(!current_function().IsNull());
-  Function& outer_function = Function::Handle(current_function().raw());
-  while (outer_function.IsLocalFunction()) {
-    outer_function = outer_function.parent_function();
+  if (current_function().is_static() &&
+      !current_function().IsInFactoryScope()) {
+    return false;
   }
-  if (outer_function.IsFactory() || !outer_function.is_static()) {
-    return current_class().NumTypeParameters() > 0;
-  }
-  return false;
+  return current_class().NumTypeParameters() > 0;
 }
 
 
@@ -8289,10 +8283,9 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
   if (resolved == NULL) {
     // Check whether the identifier is a type parameter. Type parameters
     // can never be used in primary expressions.
-    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-    if (!scope_class.IsNull()) {
+    if (!current_class().IsNull()) {
       TypeParameter& type_param = TypeParameter::Handle(
-          scope_class.LookupTypeParameter(ident, ident_pos));
+          current_class().LookupTypeParameter(ident, ident_pos));
       if (!type_param.IsNull()) {
         String& type_param_name = String::Handle(type_param.name());
         ErrorMsg(ident_pos, "illegal use of type parameter %s",
@@ -8386,8 +8379,7 @@ RawAbstractType* Parser::ParseType(
     parameterized_type.set_malformed_error(malformed_error);
   }
   if (finalization >= ClassFinalizer::kTryResolve) {
-    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-    ResolveTypeFromClass(scope_class, finalization, &type);
+    ResolveTypeFromClass(current_class(), finalization, &type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
       type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
     }
@@ -9292,11 +9284,10 @@ AstNode* Parser::ParsePrimary() {
                                     &primary)) {
         // Check whether the identifier is a type parameter. Type parameters
         // can never be used as part of primary expressions.
-        const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-        if (!scope_class.IsNull()) {
+        if (!current_class().IsNull()) {
           TypeParameter& type_param = TypeParameter::ZoneHandle(
-              scope_class.LookupTypeParameter(*(qual_ident.ident),
-                                              TokenPos()));
+              current_class().LookupTypeParameter(*(qual_ident.ident),
+                                                  TokenPos()));
           if (!type_param.IsNull()) {
             const String& type_param_name = String::Handle(type_param.name());
             ErrorMsg(qual_ident.ident_pos,
