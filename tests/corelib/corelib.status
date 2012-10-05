@@ -7,8 +7,7 @@ unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 null_test: Fail           # Bug 5511
-null_nosuchmethod_test: Fail # Bug 5518
-apply_test: Fail # Bug 5670
+null_nosuchmethod_test: Fail # BUg 5518
 
 [ $compiler == dartc ]
 *vm_test: Skip
@@ -38,7 +37,6 @@ unicode_test: Fail
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
-apply_test: Fail # issue 5669
 
 # Bad test, assumes RegExp.allMatches returns a Collection.
 reg_exp_all_matches_test: Fail, OK # NoSuchMethodError : method not found: 'forEach'

@@ -29,14 +29,6 @@ patch class Object {
   }
 }
 
-// Patch for Function implementation.
-patch class Function {
-  patch static apply(Function function,
-                     List positionalArguments,
-                     [Map<String,Dynamic> namedArguments]) {
-    throw new NotImplementedException("Function.apply is not implemented");
-  }
-}
 
 // Patch for Expando implementation.
 patch class Expando<T> {
