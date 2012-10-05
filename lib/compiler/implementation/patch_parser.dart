@@ -143,6 +143,7 @@ class PatchParserTask extends leg.CompilerTask {
     // After scanning declarations, we handle the import tags in the patch.
     // TODO(lrn): These imports end up in the original library and are in
     // scope for the original methods too. This should be fixed.
+    compiler.importHelperLibrary(originLibrary);
     for (tree.LibraryTag tag in imports.toLink()) {
       compiler.scanner.importLibraryFromTag(tag,
                                             patchLibrary.entryCompilationUnit);

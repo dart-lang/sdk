@@ -364,15 +364,19 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void scanBuiltinLibraries() {
-    coreImplLibrary = scanBuiltinLibrary('coreimpl');
+    loadCoreImplLibrary();
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
 
+    // The core and coreimpl libraries were loaded and patched before
+    // jsHelperLibrary was initialized, so it wasn't imported into those
+    // two libraries during patching.
+    importHelperLibrary(coreLibrary);
+    importHelperLibrary(coreImplLibrary);
+    importHelperLibrary(interceptorsLibrary);
+
     addForeignFunctions(jsHelperLibrary);
     addForeignFunctions(interceptorsLibrary);
-
-    libraries['dart:core'] = coreLibrary;
-    libraries['dart:coreimpl'] = coreImplLibrary;
 
     assertMethod = jsHelperLibrary.find(const SourceString('assert'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
@@ -380,9 +384,20 @@ abstract class Compiler implements DiagnosticListener {
     initializeSpecialClasses();
   }
 
+  void loadCoreImplLibrary() {
+    Uri coreImplUri = new Uri.fromComponents(scheme: 'dart', path: 'coreimpl');
+    coreImplLibrary = scanner.loadLibrary(coreImplUri, null, coreImplUri);
+  }
+
+  void importHelperLibrary(LibraryElement library) {
+    if (jsHelperLibrary !== null) {
+      scanner.importLibrary(library, jsHelperLibrary, null);
+    }
+  }
+
   void importCoreLibrary(LibraryElement library) {
-    Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
     if (coreLibrary === null) {
+      Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
       coreLibrary = scanner.loadLibrary(coreUri, null, coreUri);
     }
     scanner.importLibrary(library,

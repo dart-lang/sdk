@@ -4,8 +4,7 @@
 
 #library('dart:_interceptors');
 
-#import('coreimpl.dart');
-#import('js_helper.dart');
+#import('dart:coreimpl');
 
 add$1(var receiver, var value) {
   if (isJsArray(receiver)) {

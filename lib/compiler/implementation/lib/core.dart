@@ -4,9 +4,7 @@
 
 #library('dart:core');
 
-#import('coreimpl.dart');
-
-#import('js_helper.dart'); // TODO(ahe): remove this import.
+#import('dart:coreimpl');
 
 #source('../../../../lib/core/bool.dart');
 #source('../../../../lib/core/collection.dart');

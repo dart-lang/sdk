@@ -118,14 +118,20 @@ class ScannerTask extends CompilerTask {
 
   LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri) {
     bool newLibrary = false;
-    LibraryElement library =
-      compiler.libraries.putIfAbsent(uri.toString(), () {
-          newLibrary = true;
-          Script script = compiler.readScript(uri, node);
-          LibraryElement element = new LibraryElement(script, canonicalUri);
-          native.maybeEnableNative(compiler, element, uri);
-          return element;
-        });
+    LibraryElement createLibrary() {
+      newLibrary = true;
+      Script script = compiler.readScript(uri, node);
+      LibraryElement element = new LibraryElement(script, canonicalUri);
+      native.maybeEnableNative(compiler, element, uri);
+      return element;
+    }
+    LibraryElement library;
+    if (canonicalUri === null) {
+      library = createLibrary();
+    } else {
+      library = compiler.libraries.putIfAbsent(canonicalUri.toString(),
+                                               createLibrary);
+    }
     if (newLibrary) {
       compiler.withCurrentElement(library, () {
         scanLibrary(library);

@@ -4,8 +4,6 @@
 
 #library('dart:coreimpl');
 
-#import('js_helper.dart');
-
 #source('../../../../lib/coreimpl/arrays.dart');
 #source('../../../../lib/coreimpl/collections.dart');
 #source('../../../../lib/coreimpl/date.dart');
