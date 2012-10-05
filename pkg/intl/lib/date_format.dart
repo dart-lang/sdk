@@ -426,9 +426,19 @@ class DateFormat {
    */
   get _formatFields {
     if (_formatFieldsPrivate == null) {
+      if (_pattern == null) _useDefaultPattern();
       _formatFieldsPrivate = parsePattern(_pattern);
     }
     return _formatFieldsPrivate;
+  }
+
+  /**
+   * We are being asked to do formatting without having set any pattern.
+   * Use a default.
+   */
+  _useDefaultPattern() {
+    add_yMMMMd();
+    add_jms();
   }
 
   /**
@@ -454,7 +464,7 @@ class DateFormat {
    * Set our pattern, appending it to any existing patterns. Also adds a single
    * space to separate the two.
    */
-  _setPattern(String inputPattern, [String separator = ' ']) {
+  _appendPattern(String inputPattern, [String separator = ' ']) {
     if (_pattern == null) {
       _pattern = inputPattern;
     } else {
@@ -473,13 +483,14 @@ class DateFormat {
     // TODO(alanknight): This is an expensive operation. Caching recently used
     // formats, or possibly introducing an entire "locale" object that would
     // cache patterns for that locale could be a good optimization.
-    if (!_availableSkeletons.containsKey(inputPattern)) {
-      _setPattern(inputPattern, separator);
-    } else {
-      _setPattern(_availableSkeletons[inputPattern], separator);
-    }
     // If we have already parsed the format fields, reset them.
     _formatFieldsPrivate = null;
+    if (inputPattern == null) return this;
+    if (!_availableSkeletons.containsKey(inputPattern)) {
+      _appendPattern(inputPattern, separator);
+    } else {
+      _appendPattern(_availableSkeletons[inputPattern], separator);
+    }
     return this;
   }
 

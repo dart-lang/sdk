@@ -335,4 +335,13 @@ runDateTests([List<String> subset]) {
     expect(utc.hour, equals(parsedUTC.hour));
     expect(local.hour, equals(parsed.hour));
     });
+
+  test('Test default format', () {
+    var someDate = new Date(2012, 1, 27, 20, 58, 59, 1, false);
+    var emptyFormat = new DateFormat(locale: "en_US");
+    var knownDefault = new DateFormat.yMMMMd("en_US").add_jms();
+    var result = emptyFormat.format(someDate);
+    var knownResult = knownDefault.format(someDate);
+    expect(result, knownResult);
+  });
 }
