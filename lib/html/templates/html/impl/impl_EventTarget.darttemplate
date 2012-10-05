@@ -16,7 +16,7 @@ class _EventsImpl implements Events {
 }
 
 class _EventListenerListImpl implements EventListenerList {
-  
+
   // TODO(jacobr): make this _EventTargetImpl
   final Dynamic _ptr;
   final String _type;
@@ -38,9 +38,6 @@ class _EventListenerListImpl implements EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    // TODO(jacobr): what is the correct behavior here. We could alternately
-    // force the event to have the expected type.
-    assert(evt.type == _type);
     return _ptr.$dom_dispatchEvent(evt);
   }
 
