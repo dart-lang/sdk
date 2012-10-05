@@ -379,8 +379,9 @@ class IDLInterface(IDLNode):
     self._convert_annotations(ast)
     self.parents = self._convert_all(ast, 'ParentInterface',
       IDLParentInterface)
-    self.javascript_binding_name = self.id
-    self.doc_js_name = self.id
+    javascript_interface_name = self.ext_attrs.get('InterfaceName', self.id)
+    self.javascript_binding_name = javascript_interface_name
+    self.doc_js_name = javascript_interface_name
     self.operations = self._convert_all(ast, 'Operation', 
       lambda ast: IDLOperation(ast, self.doc_js_name))
     self.attributes = self._convert_all(ast, 'Attribute',

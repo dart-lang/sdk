@@ -9555,7 +9555,7 @@ class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMCoreException
+/// @domName DOMException
 abstract class DOMException {
 
   static const int ABORT_ERR = 20;
@@ -9608,16 +9608,16 @@ abstract class DOMException {
 
   static const int WRONG_DOCUMENT_ERR = 4;
 
-  /** @domName DOMCoreException.code */
+  /** @domName DOMException.code */
   abstract int get code;
 
-  /** @domName DOMCoreException.message */
+  /** @domName DOMException.message */
   abstract String get message;
 
-  /** @domName DOMCoreException.name */
+  /** @domName DOMException.name */
   abstract String get name;
 
-  /** @domName DOMCoreException.toString */
+  /** @domName DOMException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9742,19 +9742,19 @@ class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImpl
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMMimeType
+/// @domName MimeType
 abstract class DOMMimeType {
 
-  /** @domName DOMMimeType.description */
+  /** @domName MimeType.description */
   abstract String get description;
 
-  /** @domName DOMMimeType.enabledPlugin */
+  /** @domName MimeType.enabledPlugin */
   abstract DOMPlugin get enabledPlugin;
 
-  /** @domName DOMMimeType.suffixes */
+  /** @domName MimeType.suffixes */
   abstract String get suffixes;
 
-  /** @domName DOMMimeType.type */
+  /** @domName MimeType.type */
   abstract String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9763,16 +9763,16 @@ abstract class DOMMimeType {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMMimeTypeArray
+/// @domName MimeTypeArray
 abstract class DOMMimeTypeArray implements List<DOMMimeType> {
 
-  /** @domName DOMMimeTypeArray.length */
+  /** @domName MimeTypeArray.length */
   abstract int get length;
 
-  /** @domName DOMMimeTypeArray.item */
+  /** @domName MimeTypeArray.item */
   DOMMimeType item(int index);
 
-  /** @domName DOMMimeTypeArray.namedItem */
+  /** @domName MimeTypeArray.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9919,25 +9919,25 @@ class _DOMParserImpl extends NativeFieldWrapperClass1 implements DOMParser {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMPlugin
+/// @domName Plugin
 abstract class DOMPlugin {
 
-  /** @domName DOMPlugin.description */
+  /** @domName Plugin.description */
   abstract String get description;
 
-  /** @domName DOMPlugin.filename */
+  /** @domName Plugin.filename */
   abstract String get filename;
 
-  /** @domName DOMPlugin.length */
+  /** @domName Plugin.length */
   abstract int get length;
 
-  /** @domName DOMPlugin.name */
+  /** @domName Plugin.name */
   abstract String get name;
 
-  /** @domName DOMPlugin.item */
+  /** @domName Plugin.item */
   DOMMimeType item(int index);
 
-  /** @domName DOMPlugin.namedItem */
+  /** @domName Plugin.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9946,19 +9946,19 @@ abstract class DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMPluginArray
+/// @domName PluginArray
 abstract class DOMPluginArray implements List<DOMPlugin> {
 
-  /** @domName DOMPluginArray.length */
+  /** @domName PluginArray.length */
   abstract int get length;
 
-  /** @domName DOMPluginArray.item */
+  /** @domName PluginArray.item */
   DOMPlugin item(int index);
 
-  /** @domName DOMPluginArray.namedItem */
+  /** @domName PluginArray.namedItem */
   DOMPlugin namedItem(String name);
 
-  /** @domName DOMPluginArray.refresh */
+  /** @domName PluginArray.refresh */
   void refresh(bool reload);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10086,85 +10086,85 @@ class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMSelection
+/// @domName Selection
 abstract class DOMSelection {
 
-  /** @domName DOMSelection.anchorNode */
+  /** @domName Selection.anchorNode */
   abstract Node get anchorNode;
 
-  /** @domName DOMSelection.anchorOffset */
+  /** @domName Selection.anchorOffset */
   abstract int get anchorOffset;
 
-  /** @domName DOMSelection.baseNode */
+  /** @domName Selection.baseNode */
   abstract Node get baseNode;
 
-  /** @domName DOMSelection.baseOffset */
+  /** @domName Selection.baseOffset */
   abstract int get baseOffset;
 
-  /** @domName DOMSelection.extentNode */
+  /** @domName Selection.extentNode */
   abstract Node get extentNode;
 
-  /** @domName DOMSelection.extentOffset */
+  /** @domName Selection.extentOffset */
   abstract int get extentOffset;
 
-  /** @domName DOMSelection.focusNode */
+  /** @domName Selection.focusNode */
   abstract Node get focusNode;
 
-  /** @domName DOMSelection.focusOffset */
+  /** @domName Selection.focusOffset */
   abstract int get focusOffset;
 
-  /** @domName DOMSelection.isCollapsed */
+  /** @domName Selection.isCollapsed */
   abstract bool get isCollapsed;
 
-  /** @domName DOMSelection.rangeCount */
+  /** @domName Selection.rangeCount */
   abstract int get rangeCount;
 
-  /** @domName DOMSelection.type */
+  /** @domName Selection.type */
   abstract String get type;
 
-  /** @domName DOMSelection.addRange */
+  /** @domName Selection.addRange */
   void addRange(Range range);
 
-  /** @domName DOMSelection.collapse */
+  /** @domName Selection.collapse */
   void collapse(Node node, int index);
 
-  /** @domName DOMSelection.collapseToEnd */
+  /** @domName Selection.collapseToEnd */
   void collapseToEnd();
 
-  /** @domName DOMSelection.collapseToStart */
+  /** @domName Selection.collapseToStart */
   void collapseToStart();
 
-  /** @domName DOMSelection.containsNode */
+  /** @domName Selection.containsNode */
   bool containsNode(Node node, bool allowPartial);
 
-  /** @domName DOMSelection.deleteFromDocument */
+  /** @domName Selection.deleteFromDocument */
   void deleteFromDocument();
 
-  /** @domName DOMSelection.empty */
+  /** @domName Selection.empty */
   void empty();
 
-  /** @domName DOMSelection.extend */
+  /** @domName Selection.extend */
   void extend(Node node, int offset);
 
-  /** @domName DOMSelection.getRangeAt */
+  /** @domName Selection.getRangeAt */
   Range getRangeAt(int index);
 
-  /** @domName DOMSelection.modify */
+  /** @domName Selection.modify */
   void modify(String alter, String direction, String granularity);
 
-  /** @domName DOMSelection.removeAllRanges */
+  /** @domName Selection.removeAllRanges */
   void removeAllRanges();
 
-  /** @domName DOMSelection.selectAllChildren */
+  /** @domName Selection.selectAllChildren */
   void selectAllChildren(Node node);
 
-  /** @domName DOMSelection.setBaseAndExtent */
+  /** @domName Selection.setBaseAndExtent */
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
 
-  /** @domName DOMSelection.setPosition */
+  /** @domName Selection.setPosition */
   void setPosition(Node node, int offset);
 
-  /** @domName DOMSelection.toString */
+  /** @domName Selection.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10435,15 +10435,15 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMURL
+/// @domName URL
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
 
-  /** @domName DOMURL.createObjectURL */
+  /** @domName URL.createObjectURL */
   static final createObjectURL = _DOMURLImpl.createObjectURL;
 
-  /** @domName DOMURL.revokeObjectURL */
+  /** @domName URL.revokeObjectURL */
   static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15779,7 +15779,7 @@ class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMFormData
+/// @domName FormData
 abstract class FormData {
 
   factory FormData([FormElement form]) {
@@ -15789,7 +15789,7 @@ abstract class FormData {
     return _FormDataFactoryProvider.createFormData(form);
   }
 
-  /** @domName DOMFormData.append */
+  /** @domName FormData.append */
   void append(String name, String value, String filename);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18209,13 +18209,13 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
 
 // WARNING: Do not edit - generated code.
 
-/// @domName IDBUpgradeNeededEvent
+/// @domName IDBVersionChangeEvent
 abstract class IDBUpgradeNeededEvent implements Event {
 
-  /** @domName IDBUpgradeNeededEvent.newVersion */
+  /** @domName IDBVersionChangeEvent.newVersion */
   abstract int get newVersion;
 
-  /** @domName IDBUpgradeNeededEvent.oldVersion */
+  /** @domName IDBVersionChangeEvent.oldVersion */
   abstract int get oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20126,7 +20126,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMWindow
+/// @domName Window
 abstract class LocalWindow implements EventTarget, Window {
 
   /**
@@ -20169,145 +20169,145 @@ abstract class LocalWindow implements EventTarget, Window {
 
   static const int TEMPORARY = 0;
 
-  /** @domName DOMWindow.applicationCache */
+  /** @domName Window.applicationCache */
   abstract DOMApplicationCache get applicationCache;
 
-  /** @domName DOMWindow.clientInformation */
+  /** @domName Window.clientInformation */
   abstract Navigator get clientInformation;
 
-  /** @domName DOMWindow.closed */
+  /** @domName Window.closed */
   abstract bool get closed;
 
-  /** @domName DOMWindow.console */
+  /** @domName Window.console */
   abstract Console get console;
 
-  /** @domName DOMWindow.crypto */
+  /** @domName Window.crypto */
   abstract Crypto get crypto;
 
-  /** @domName DOMWindow.defaultStatus */
+  /** @domName Window.defaultStatus */
   String defaultStatus;
 
-  /** @domName DOMWindow.defaultstatus */
+  /** @domName Window.defaultstatus */
   String defaultstatus;
 
-  /** @domName DOMWindow.devicePixelRatio */
+  /** @domName Window.devicePixelRatio */
   abstract num get devicePixelRatio;
 
-  /** @domName DOMWindow.document */
+  /** @domName Window.document */
   abstract Document get document;
 
-  /** @domName DOMWindow.event */
+  /** @domName Window.event */
   abstract Event get event;
 
-  /** @domName DOMWindow.frames */
+  /** @domName Window.frames */
   abstract Window get frames;
 
-  /** @domName DOMWindow.history */
+  /** @domName Window.history */
   abstract History get history;
 
   /** @domName DOMWindow.indexedDB */
   abstract IDBFactory get indexedDB;
 
-  /** @domName DOMWindow.innerHeight */
+  /** @domName Window.innerHeight */
   abstract int get innerHeight;
 
-  /** @domName DOMWindow.innerWidth */
+  /** @domName Window.innerWidth */
   abstract int get innerWidth;
 
-  /** @domName DOMWindow.length */
+  /** @domName Window.length */
   abstract int get length;
 
-  /** @domName DOMWindow.localStorage */
+  /** @domName Window.localStorage */
   abstract Storage get localStorage;
 
-  /** @domName DOMWindow.location */
+  /** @domName Window.location */
   Location location;
 
-  /** @domName DOMWindow.locationbar */
+  /** @domName Window.locationbar */
   abstract BarInfo get locationbar;
 
-  /** @domName DOMWindow.menubar */
+  /** @domName Window.menubar */
   abstract BarInfo get menubar;
 
-  /** @domName DOMWindow.name */
+  /** @domName Window.name */
   String name;
 
-  /** @domName DOMWindow.navigator */
+  /** @domName Window.navigator */
   abstract Navigator get navigator;
 
-  /** @domName DOMWindow.offscreenBuffering */
+  /** @domName Window.offscreenBuffering */
   abstract bool get offscreenBuffering;
 
-  /** @domName DOMWindow.opener */
+  /** @domName Window.opener */
   abstract Window get opener;
 
-  /** @domName DOMWindow.outerHeight */
+  /** @domName Window.outerHeight */
   abstract int get outerHeight;
 
-  /** @domName DOMWindow.outerWidth */
+  /** @domName Window.outerWidth */
   abstract int get outerWidth;
 
   /** @domName DOMWindow.pagePopupController */
   abstract PagePopupController get pagePopupController;
 
-  /** @domName DOMWindow.pageXOffset */
+  /** @domName Window.pageXOffset */
   abstract int get pageXOffset;
 
-  /** @domName DOMWindow.pageYOffset */
+  /** @domName Window.pageYOffset */
   abstract int get pageYOffset;
 
-  /** @domName DOMWindow.parent */
+  /** @domName Window.parent */
   abstract Window get parent;
 
-  /** @domName DOMWindow.performance */
+  /** @domName Window.performance */
   abstract Performance get performance;
 
-  /** @domName DOMWindow.personalbar */
+  /** @domName Window.personalbar */
   abstract BarInfo get personalbar;
 
-  /** @domName DOMWindow.screen */
+  /** @domName Window.screen */
   abstract Screen get screen;
 
-  /** @domName DOMWindow.screenLeft */
+  /** @domName Window.screenLeft */
   abstract int get screenLeft;
 
-  /** @domName DOMWindow.screenTop */
+  /** @domName Window.screenTop */
   abstract int get screenTop;
 
-  /** @domName DOMWindow.screenX */
+  /** @domName Window.screenX */
   abstract int get screenX;
 
-  /** @domName DOMWindow.screenY */
+  /** @domName Window.screenY */
   abstract int get screenY;
 
-  /** @domName DOMWindow.scrollX */
+  /** @domName Window.scrollX */
   abstract int get scrollX;
 
-  /** @domName DOMWindow.scrollY */
+  /** @domName Window.scrollY */
   abstract int get scrollY;
 
-  /** @domName DOMWindow.scrollbars */
+  /** @domName Window.scrollbars */
   abstract BarInfo get scrollbars;
 
-  /** @domName DOMWindow.self */
+  /** @domName Window.self */
   abstract Window get self;
 
-  /** @domName DOMWindow.sessionStorage */
+  /** @domName Window.sessionStorage */
   abstract Storage get sessionStorage;
 
-  /** @domName DOMWindow.status */
+  /** @domName Window.status */
   String status;
 
-  /** @domName DOMWindow.statusbar */
+  /** @domName Window.statusbar */
   abstract BarInfo get statusbar;
 
-  /** @domName DOMWindow.styleMedia */
+  /** @domName Window.styleMedia */
   abstract StyleMedia get styleMedia;
 
-  /** @domName DOMWindow.toolbar */
+  /** @domName Window.toolbar */
   abstract BarInfo get toolbar;
 
-  /** @domName DOMWindow.top */
+  /** @domName Window.top */
   abstract Window get top;
 
   /** @domName DOMWindow.webkitIndexedDB */
@@ -20319,124 +20319,124 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName DOMWindow.webkitStorageInfo */
   abstract StorageInfo get webkitStorageInfo;
 
-  /** @domName DOMWindow.window */
+  /** @domName Window.window */
   abstract Window get window;
 
-  /** @domName DOMWindow.addEventListener */
+  /** @domName Window.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName DOMWindow.alert */
+  /** @domName Window.alert */
   void alert(String message);
 
-  /** @domName DOMWindow.atob */
+  /** @domName Window.atob */
   String atob(String string);
 
-  /** @domName DOMWindow.blur */
+  /** @domName Window.blur */
   void blur();
 
-  /** @domName DOMWindow.btoa */
+  /** @domName Window.btoa */
   String btoa(String string);
 
-  /** @domName DOMWindow.captureEvents */
+  /** @domName Window.captureEvents */
   void captureEvents();
 
-  /** @domName DOMWindow.clearInterval */
+  /** @domName Window.clearInterval */
   void clearInterval(int handle);
 
-  /** @domName DOMWindow.clearTimeout */
+  /** @domName Window.clearTimeout */
   void clearTimeout(int handle);
 
-  /** @domName DOMWindow.close */
+  /** @domName Window.close */
   void close();
 
-  /** @domName DOMWindow.confirm */
+  /** @domName Window.confirm */
   bool confirm(String message);
 
-  /** @domName DOMWindow.dispatchEvent */
+  /** @domName Window.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName DOMWindow.find */
+  /** @domName Window.find */
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
-  /** @domName DOMWindow.focus */
+  /** @domName Window.focus */
   void focus();
 
-  /** @domName DOMWindow.getComputedStyle */
+  /** @domName Window.getComputedStyle */
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
-  /** @domName DOMWindow.getMatchedCSSRules */
+  /** @domName Window.getMatchedCSSRules */
   List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
 
-  /** @domName DOMWindow.getSelection */
+  /** @domName Window.getSelection */
   DOMSelection getSelection();
 
-  /** @domName DOMWindow.matchMedia */
+  /** @domName Window.matchMedia */
   MediaQueryList matchMedia(String query);
 
-  /** @domName DOMWindow.moveBy */
+  /** @domName Window.moveBy */
   void moveBy(num x, num y);
 
-  /** @domName DOMWindow.moveTo */
+  /** @domName Window.moveTo */
   void moveTo(num x, num y);
 
-  /** @domName DOMWindow.open */
+  /** @domName Window.open */
   Window open(String url, String name, [String options]);
 
   /** @domName DOMWindow.openDatabase */
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  /** @domName DOMWindow.postMessage */
+  /** @domName Window.postMessage */
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
 
-  /** @domName DOMWindow.print */
+  /** @domName Window.print */
   void print();
 
-  /** @domName DOMWindow.prompt */
+  /** @domName Window.prompt */
   String prompt(String message, String defaultValue);
 
-  /** @domName DOMWindow.releaseEvents */
+  /** @domName Window.releaseEvents */
   void releaseEvents();
 
-  /** @domName DOMWindow.removeEventListener */
+  /** @domName Window.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName DOMWindow.resizeBy */
+  /** @domName Window.resizeBy */
   void resizeBy(num x, num y);
 
-  /** @domName DOMWindow.resizeTo */
+  /** @domName Window.resizeTo */
   void resizeTo(num width, num height);
 
-  /** @domName DOMWindow.scroll */
+  /** @domName Window.scroll */
   void scroll(int x, int y);
 
-  /** @domName DOMWindow.scrollBy */
+  /** @domName Window.scrollBy */
   void scrollBy(int x, int y);
 
-  /** @domName DOMWindow.scrollTo */
+  /** @domName Window.scrollTo */
   void scrollTo(int x, int y);
 
-  /** @domName DOMWindow.setInterval */
+  /** @domName Window.setInterval */
   int setInterval(TimeoutHandler handler, int timeout);
 
-  /** @domName DOMWindow.setTimeout */
+  /** @domName Window.setTimeout */
   int setTimeout(TimeoutHandler handler, int timeout);
 
-  /** @domName DOMWindow.showModalDialog */
+  /** @domName Window.showModalDialog */
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
-  /** @domName DOMWindow.stop */
+  /** @domName Window.stop */
   void stop();
 
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  /** @domName Window.webkitCancelAnimationFrame */
   void cancelAnimationFrame(int id);
 
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  /** @domName Window.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
 
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  /** @domName Window.webkitConvertPointFromPageToNode */
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  /** @domName Window.webkitRequestAnimationFrame */
   int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
