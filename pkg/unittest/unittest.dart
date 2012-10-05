@@ -816,7 +816,7 @@ String _fullSpec(String spec) {
   return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 
-void _fail(String message) {
+void fail(String message) {
   throw new ExpectException(message);
 }
 
