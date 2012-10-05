@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(gram): dart2js is not handling 'part of' properly yet; when it does
+// uncomment this.
+//part of test_controller;
+
 /** Path to DRT executable. */
 String drt;
 
@@ -160,6 +164,9 @@ listGroups() {
     var msg = formatListMessage('$testfile ', '$g ');
     print('###$msg');
   }
+  if (notifyDone != null) {
+    notifyDone(0);
+  }
 }
 
 listTests() {
@@ -176,6 +183,9 @@ listTests() {
     }
     var msg = formatListMessage('$testfile ', '$groupName ', '$testName ');
     print('###$msg');
+  }
+  if (notifyDone != null) {
+    notifyDone(0);
   }
 }
 

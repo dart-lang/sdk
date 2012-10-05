@@ -5,6 +5,9 @@
 // The following set of variables should be set by the caller that
 // #sources this file.
 /** Whether to include elapsed time. */
+
+part of test_controller;
+
 bool includeTime;
 
 /** Path to DRT executable. */

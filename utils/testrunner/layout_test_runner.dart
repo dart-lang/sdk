@@ -4,6 +4,11 @@
 
 // The filters must be set by the caller that #sources this file.
 List includeFilters;
+
+// TODO(gram): dart2js is not handling 'part of' properly yet; when it
+// does uncomment this.
+//part of layout_test;
+
 List excludeFilters;
 
 class LayoutTestConfiguration extends unittest.Configuration {

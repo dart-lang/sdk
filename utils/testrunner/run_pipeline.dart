@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** The default pipeline code for running a test file. */
-#library('pipeline');
-#import('dart:isolate');
-#import('dart:io');
-#source('pipeline_utils.dart');
+library pipeline;
+import 'dart:isolate';
+import 'dart:io';
+part 'pipeline_utils.dart';
 
 /**
  * The configuration passed in to the pipeline runner; this essentially
@@ -78,10 +78,10 @@ wrapStage() {
 
   if (config["layout"]) {
     directives = '''
-      #import('dart:uri');
-      #import('dart:io');
-      #import('dart:math');
-      #source('${config["runnerDir"]}/layout_test_controller.dart');
+      import 'dart:uri';
+      import 'dart:io';
+      import 'dart:math';
+      part '${config["runnerDir"]}/layout_test_controller.dart';
     ''';
     extras = '''
       sourceDir = '${config["expectedDirectory"]}';
@@ -91,11 +91,11 @@ wrapStage() {
     ''';
   } else if (config["runtime"] == "vm") {
     directives = '''
-      #import('dart:io');
-      #import('dart:isolate');
-      #import('${config["unittest"]}', prefix:'unittest');
-      #import('${config["testfile"]}', prefix: 'test');
-      #source('${config["runnerDir"]}/standard_test_runner.dart');
+      import 'dart:io';
+      import 'dart:isolate';
+      import '${config["unittest"]}' as unittest;
+      import '${config["testfile"]}' as test;
+      part '${config["runnerDir"]}/standard_test_runner.dart';
     ''';
     extras = '''
       includeFilters = ${config["include"]};
@@ -105,11 +105,11 @@ wrapStage() {
     ''';
   } else {
     directives = '''
-      #import('dart:html');
-      #import('dart:isolate');
-      #import('${config["unittest"]}', prefix:'unittest');
-      #import('${config["testfile"]}', prefix: 'test');
-      #source('${config["runnerDir"]}/standard_test_runner.dart');
+      import 'dart:html';
+      import 'dart:isolate';
+      import '${config["unittest"]}' as unittest;
+      import '${config["testfile"]}' as test;
+      part '${config["runnerDir"]}/standard_test_runner.dart';
     ''';
     extras = '''
       includeFilters = ${config["include"]};
@@ -134,7 +134,7 @@ wrapStage() {
 
   logMessage('Creating $tempDartFile');
   writeFile(tempDartFile, '''
-    #library('test_controller');
+    library test_controller;
     $directives
 
     main() {
@@ -157,14 +157,14 @@ wrapStage() {
   if (config["layout"]) {
     logMessage('Creating $tempChildDartFile');
     writeFile(tempChildDartFile, '''
-        #library('layout_test');
-        #import('dart:math');
-        #import('dart:isolate');
-        #import('dart:html');
-        #import('dart:uri');
-        #import('${config["unittest"]}', prefix:'unittest');
-        #import('$testFile', prefix: 'test');
-        #source('${config["runnerDir"]}/layout_test_runner.dart');
+        library layout_test;
+        import 'dart:math';
+        import 'dart:isolate';
+        import 'dart:html';
+        import 'dart:uri';
+        import '${config["unittest"]}' as 'unittest' ;
+        import '$testFile', prefix: 'test' ;
+        part '${config["runnerDir"]}/layout_test_runner.dart';
 
         main() {
           includeFilters = ${config["include"]};
@@ -193,7 +193,7 @@ wrapStage() {
     scriptType = isJavascript ? 'text/javascript' : 'application/dart';
 
     if (config["runtime"] == 'drt-dart' || isJavascript) {
-        logMessage('Creating $tempHtmlFile');
+      logMessage('Creating $tempHtmlFile');
       writeFile(tempHtmlFile, '''
 <!DOCTYPE html>
 <html>
@@ -283,7 +283,7 @@ cleanupStage(exitcode) {
     stopProcess(serverId);
   }
 
-  if (!config["keep_files"]) { // Remove the temporary files.
+  if (!config["keep-files"]) { // Remove the temporary files.
     cleanup(tempDartFile);
     cleanup(tempHtmlFile);
     cleanup(tempJsFile);

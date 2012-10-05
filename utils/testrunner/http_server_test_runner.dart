@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('server');
-#import('dart:io');
-#import('../../pkg/args/lib/args.dart');
+library http_server;
+import 'dart:io';
+import '../../pkg/args/lib/args.dart';
 
 /** A simple HTTP server. Currently handles serving static files. */
 class HttpTestServer {
