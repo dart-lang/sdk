@@ -259,6 +259,7 @@ class EmbeddedArray<T, 0> {
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
+  M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
@@ -516,6 +517,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxDoubleInstr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryMintOpInstr;
+  friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
@@ -3581,6 +3583,65 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   const Token::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
+};
+
+
+class ShiftMintOpInstr : public TemplateDefinition<2> {
+ public:
+  ShiftMintOpInstr(Token::Kind op_kind,
+                   Value* left,
+                   Value* right,
+                   InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    ASSERT(op_kind == Token::kSHR);
+    inputs_[0] = left;
+    inputs_[1] = right;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsShiftMintOp()->op_kind();
+  }
+
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (idx == 0) ? kUnboxedMint : kTagged;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(ShiftMintOp)
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
 };
 
 

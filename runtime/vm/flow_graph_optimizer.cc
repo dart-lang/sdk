@@ -148,7 +148,8 @@ void FlowGraphOptimizer::SelectRepresentations() {
     if (join_entry->phis() != NULL) {
       for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
         PhiInstr* phi = (*join_entry->phis())[i];
-        if ((phi != NULL) && (phi->GetPropagatedCid() == kDoubleCid)) {
+        if (phi == NULL) continue;
+        if (phi->GetPropagatedCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
         }
       }
@@ -268,7 +269,7 @@ static bool HasOnlySmiOrMint(const ICData& ic_data) {
 }
 
 
-static bool HasOnlyTwoSmi(const ICData& ic_data) {
+static bool HasOnlyTwoSmis(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1) &&
       ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid);
 }
@@ -474,7 +475,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -486,7 +487,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kMUL:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -502,7 +503,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kMOD:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else {
         return false;
@@ -511,7 +512,17 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
+        operands_type = kSmiCid;
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
+        operands_type = kMintCid;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kSHR:
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -521,9 +532,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kTRUNCDIV:
-    case Token::kSHR:
     case Token::kSHL:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else {
         return false;
@@ -554,9 +564,15 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
-    BinaryMintOpInstr* bin_op =
-        new BinaryMintOpInstr(op_kind, left, right, call);
-    call->ReplaceWith(bin_op, current_iterator());
+    if (op_kind == Token::kSHR) {
+      ShiftMintOpInstr* shift_op =
+          new ShiftMintOpInstr(op_kind, left, right, call);
+      call->ReplaceWith(shift_op, current_iterator());
+    } else {
+      BinaryMintOpInstr* bin_op =
+          new BinaryMintOpInstr(op_kind, left, right, call);
+      call->ReplaceWith(bin_op, current_iterator());
+    }
     RemovePushArguments(call);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
@@ -1042,7 +1058,7 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
   if (ic_data.NumberOfChecks() != 1) return;
   ASSERT(ic_data.HasOneTarget());
 
-  if (HasOnlyTwoSmi(ic_data)) {
+  if (HasOnlyTwoSmis(ic_data)) {
     optimizer->InsertBefore(
         instr,
         new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
@@ -2979,6 +2995,13 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 void ConstantPropagator::VisitBinaryMintOp(
     BinaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle binary operations.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitShiftMintOp(
+    ShiftMintOpInstr* instr) {
+  // TODO(kmillikin): Handle shift operations.
   SetValue(instr, non_constant_);
 }
 

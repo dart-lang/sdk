@@ -1212,6 +1212,16 @@ intptr_t BinaryMintOpInstr::ResultCid() const {
 }
 
 
+RawAbstractType* ShiftMintOpInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t ShiftMintOpInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
 RawAbstractType* UnaryMintOpInstr::CompileType() const {
   return Type::IntType();
 }

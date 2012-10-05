@@ -2373,10 +2373,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {
         __ addl(Address(ESP, 0), EAX);
-        __ adcl(Address(ESP, 4), EDX);
+        __ adcl(Address(ESP, 1 * kWordSize), EDX);
       } else {
         __ subl(Address(ESP, 0), EAX);
-        __ sbbl(Address(ESP, 4), EDX);
+        __ sbbl(Address(ESP, 1 * kWordSize), EDX);
       }
       __ j(OVERFLOW, &overflow);
       __ movq(left, Address(ESP, 0));
@@ -2389,6 +2389,56 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).xmm_reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->in(1).reg() == ECX);
+  ASSERT(locs()->out().xmm_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kSHR: {
+      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                             kDeoptShiftMintOp);
+      __ subl(ESP, Immediate(2 * kWordSize));
+      __ movq(Address(ESP, 0), left);
+      // Deoptimize if shift count is > 31.
+      // sarl operation masks the count to 5 bits and
+      // shrd is undefined with count > operand size (32)
+      // TODO(fschneider): Support shift counts > 31 without deoptimization.
+      __ SmiUntag(ECX);
+      const Immediate kCountLimit = Immediate(31);
+      __ cmpl(ECX, kCountLimit);
+      __ j(ABOVE, deopt);
+      __ movl(temp, Address(ESP, 1 * kWordSize));
+      __ shrd(Address(ESP, 0), temp);  // Shift count in CL.
+      __ sarl(Address(ESP, 1 * kWordSize), ECX);  // Shift count in CL.
+      __ movq(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(2 * kWordSize));
+      break;
+    }
+    case Token::kSHL:
+      UNIMPLEMENTED();
+      break;
+    default:
+      UNREACHABLE();
+      break;
   }
 }
 

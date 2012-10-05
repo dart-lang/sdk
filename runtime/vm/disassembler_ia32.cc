@@ -760,52 +760,33 @@ int X86Decoder::CMov(uint8_t* data) {
 int X86Decoder::D1D3C1Instruction(uint8_t* data) {
   uint8_t op = *data;
   ASSERT(op == 0xD1 || op == 0xD3 || op == 0xC1);
-  uint8_t modrm = *(data+1);
   int mod, regop, rm;
-  GetModRm(modrm, &mod, &regop, &rm);
-  int imm8 = -1;
-  int num_bytes = 2;
-  if (mod == 3) {
-    const char* mnem = NULL;
-    if (op == 0xD1) {
-      imm8 = 1;
-      switch (regop) {
-        case edx: mnem = "rcl"; break;
-        case edi: mnem = "sar"; break;
-        case esp: mnem = "shl"; break;
-        case ebp: mnem = "shr"; break;
-        default: UNIMPLEMENTED();
-      }
-    } else if (op == 0xC1) {
-      imm8 = *(data+2);
-      num_bytes = 3;
-      switch (regop) {
-        case edx: mnem = "rcl"; break;
-        case esp: mnem = "shl"; break;
-        case ebp: mnem = "shr"; break;
-        case edi: mnem = "sar"; break;
-        default: UNIMPLEMENTED();
-      }
-    } else if (op == 0xD3) {
-      switch (regop) {
-        case esp: mnem = "shl"; break;
-        case ebp: mnem = "shr"; break;
-        case edi: mnem = "sar"; break;
-        default: UNIMPLEMENTED();
-      }
-    }
-    ASSERT(mnem != NULL);
-    Print(mnem);
-    Print(" ");
-    PrintCPURegister(rm);
-    Print(",");
-    if (imm8 > 0) {
-      PrintInt(imm8);
-    } else {
-      Print("cl");
-    }
+  GetModRm(*(data+1), &mod, &regop, &rm);
+  int num_bytes = 1;
+  const char* mnem = NULL;
+  switch (regop) {
+    case 2: mnem = "rcl"; break;
+    case 4: mnem = "shl"; break;
+    case 5: mnem = "shr"; break;
+    case 7: mnem = "sar"; break;
+    default: UNIMPLEMENTED();
+  }
+  ASSERT(mnem != NULL);
+  Print(mnem);
+  Print(" ");
+
+  if (op == 0xD1) {
+    num_bytes += PrintRightOperand(data+1);
+    Print(", 1");
+  } else if (op == 0xC1) {
+    num_bytes += PrintRightOperand(data+1);
+    Print(", ");
+    PrintInt(*(data+2));
+    num_bytes++;
   } else {
-    UNIMPLEMENTED();
+    ASSERT(op == 0xD3);
+    num_bytes += PrintRightOperand(data+1);
+    Print(", cl");
   }
   return num_bytes;
 }
@@ -1336,6 +1317,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(f0mnem);
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
+            Print(" ");
             data += PrintRightOperand(data);
             if (f0byte == 0xAB) {
               Print(",");

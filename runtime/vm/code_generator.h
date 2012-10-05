@@ -63,6 +63,7 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(DoubleToDouble)                                                            \
   V(BinarySmiOp)                                                               \
   V(BinaryMintOp)                                                              \
+  V(ShiftMintOp)                                                               \
   V(BinaryDoubleOp)                                                            \
   V(InstanceSetterSameTarget)                                                  \
   V(InstanceSetter)                                                            \

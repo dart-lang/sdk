@@ -510,6 +510,14 @@ void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void ShiftMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void UnaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);

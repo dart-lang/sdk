@@ -490,7 +490,10 @@ class Assembler : public ValueObject {
   void shrl(Register operand, Register shifter);
   void sarl(Register reg, const Immediate& imm);
   void sarl(Register operand, Register shifter);
+  void sarl(const Address& address, Register shifter);
   void shld(Register dst, Register src);
+  void shrd(Register dst, Register src);
+  void shrd(const Address& dst, Register src);
 
   void negl(Register reg);
   void notl(Register reg);
@@ -657,7 +660,7 @@ class Assembler : public ValueObject {
   void EmitNearLabelLink(Label* label);
 
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
-  void EmitGenericShift(int rm, Register operand, Register shifter);
+  void EmitGenericShift(int rm, const Operand& operand, Register shifter);
 
   void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 

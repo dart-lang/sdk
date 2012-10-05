@@ -1220,7 +1220,7 @@ void Assembler::shll(Register reg, const Immediate& imm) {
 
 
 void Assembler::shll(Register operand, Register shifter) {
-  EmitGenericShift(4, operand, shifter);
+  EmitGenericShift(4, Operand(operand), shifter);
 }
 
 
@@ -1230,7 +1230,7 @@ void Assembler::shrl(Register reg, const Immediate& imm) {
 
 
 void Assembler::shrl(Register operand, Register shifter) {
-  EmitGenericShift(5, operand, shifter);
+  EmitGenericShift(5, Operand(operand), shifter);
 }
 
 
@@ -1240,7 +1240,12 @@ void Assembler::sarl(Register reg, const Immediate& imm) {
 
 
 void Assembler::sarl(Register operand, Register shifter) {
-  EmitGenericShift(7, operand, shifter);
+  EmitGenericShift(7, Operand(operand), shifter);
+}
+
+
+void Assembler::sarl(const Address& address, Register shifter) {
+  EmitGenericShift(7, Operand(address), shifter);
 }
 
 
@@ -1249,6 +1254,22 @@ void Assembler::shld(Register dst, Register src) {
   EmitUint8(0x0F);
   EmitUint8(0xA5);
   EmitRegisterOperand(src, dst);
+}
+
+
+void Assembler::shrd(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xAD);
+  EmitRegisterOperand(src, dst);
+}
+
+
+void Assembler::shrd(const Address& dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xAD);
+  EmitOperand(src, Operand(dst));
 }
 
 
@@ -1906,7 +1927,7 @@ void Assembler::EmitGenericShift(int rm,
 
 
 void Assembler::EmitGenericShift(int rm,
-                                 Register operand,
+                                 const Operand& operand,
                                  Register shifter) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(shifter == ECX);
