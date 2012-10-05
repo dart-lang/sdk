@@ -12,15 +12,18 @@ main() {
 
   test('selectedOptions', () {
     var element = new SelectElement();
+    element.multiple = false;
     var options = [
       new OptionElement(),
+      new DivElement(),
       new OptionElement('data', 'two', false, true),
+      new DivElement(),
       new OptionElement('data', 'two', false, true),
       new OptionElement(),
     ];
     element.elements.addAll(options);
     expect(element.selectedOptions.length, 1);
-    expect(element.selectedOptions[0] == options[2]);
+    expect(element.selectedOptions[0] == options[4]);
   });
 
   test('multiple selectedOptions', () {
@@ -28,13 +31,28 @@ main() {
     element.multiple = true;
     var options = [
       new OptionElement(),
+      new DivElement(),
       new OptionElement('data', 'two', false, true),
+      new DivElement(),
       new OptionElement('data', 'two', false, true),
       new OptionElement(),
     ];
     element.elements.addAll(options);
     expect(element.selectedOptions.length, 2);
-    expect(element.selectedOptions[0] == options[1]);
-    expect(element.selectedOptions[1] == options[2]);
+    expect(element.selectedOptions[0] == options[2]);
+    expect(element.selectedOptions[1] == options[4]);
+  });
+
+  test('options', () {
+    var element = new SelectElement();
+    var options = [
+      new OptionElement(),
+      new OptionElement('data', 'two', false, true),
+      new OptionElement('data', 'two', false, true),
+      new OptionElement(),
+    ];
+    element.elements.addAll(options);
+    // Use last to make sure that the list was correctly wrapped.
+    expect(element.options.last(), options[3]);
   });
 }

@@ -31235,8 +31235,6 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   String name;
 
-  final _HTMLOptionsCollectionImpl options;
-
   bool required;
 
   int selectedIndex;
@@ -31262,8 +31260,19 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
   void setCustomValidity(String error) native;
 
 
+  // Override default options, since IE returns SelectElement itself and it
+  // does not operate as a List.
+  List<OptionElement> get options() {
+    return this.elements.filter((e) => e is OptionElement);
+  }
+
   List<OptionElement> get selectedOptions() {
-    return this.options.filter((o) => o.selected);
+    // IE does not change the selected flag for single-selection items.
+    if (this.multiple) {
+      return this.options.filter((o) => o.selected);
+    } else {
+      return [this.options[this.selectedIndex]];
+    }
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -5,7 +5,18 @@
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
+  // Override default options, since IE returns SelectElement itself and it
+  // does not operate as a List.
+  List<OptionElement> get options() {
+    return this.elements.filter((e) => e is OptionElement);
+  }
+
   List<OptionElement> get selectedOptions() {
-    return this.options.filter((o) => o.selected);
+    // IE does not change the selected flag for single-selection items.
+    if (this.multiple) {
+      return this.options.filter((o) => o.selected);
+    } else {
+      return [this.options[this.selectedIndex]];
+    }
   }
 }
