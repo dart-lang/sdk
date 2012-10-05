@@ -378,8 +378,11 @@ class Primitives {
     }
 
     // Inside browser.
-    if (JS('bool', r'typeof console == "object"')) {
-      JS('void', r'console.log(#)', string);
+    if (JS('bool', r'typeof window == "object"')) {
+      // On IE, the console is only defined if dev tools is open.
+      if (JS('bool', r'typeof console == "object"')) {
+        JS('void', r'console.log(#)', string);
+      }
       return;
     }
 
