@@ -20,7 +20,6 @@ _js_custom_members = set([
     'Element.remove',
     'ElementEvents.mouseWheel',
     'IDBDatabase.transaction',
-    'IFrameElement.contentWindow',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'SelectElement.options',
@@ -30,7 +29,6 @@ _js_custom_members = set([
     'LocalWindow.indexedDB',
     'LocalWindow.location',
     'LocalWindow.open',
-    'LocalWindow.top',
     'LocalWindow.webkitCancelAnimationFrame',
     'LocalWindow.webkitRequestAnimationFrame',
     ])

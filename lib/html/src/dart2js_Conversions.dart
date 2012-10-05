@@ -20,6 +20,34 @@
 // What is required is to ensure that an Lists in the key are actually
 // JavaScript arrays, and any Dates are JavaScript Dates.
 
+// Conversions for Window.  These check if the window is the local
+// window, and if it's not, wraps or unwraps it with a secure wrapper.
+// We need to test for EventTarget here as well as it's a base type.
+// We omit an unwrapper for Window as no methods take a non-local
+// window as a parameter.
+
+Window _convertNativeToDart_Window(win) {
+  return _DOMWindowCrossFrameImpl._createSafe(win);
+}
+
+EventTarget _convertNativeToDart_EventTarget(e) {
+  // Assume it's a Window if it contains the setInterval property.  It may be
+  // from a different frame - without a patched prototype - so we cannot
+  // rely on Dart type checking.
+  if (JS('bool', r'"setInterval" in #', e))
+    return _DOMWindowCrossFrameImpl._createSafe(event);
+  else
+    return e;
+}
+
+EventTarget _convertDartToNative_EventTarget(e) {
+  if (e is _DOMWindowCrossFrameImpl) {
+    return e._window;
+  } else {
+    return e;
+  }
+}
+
 // Conversions for ImageData
 //
 // On Firefox, the returned ImageData is a plain object.

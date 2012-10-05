@@ -63,7 +63,7 @@ class _LocationCrossFrameImpl implements Location {
 
   void set href(String val) => _setHref(_location, val);
   static void _setHref(location, val) {
-    JS('void', '#.href = #', _location, val);
+    JS('void', '#.href = #', location, val);
   }
 
   // Implementation support.

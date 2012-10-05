@@ -10581,7 +10581,8 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   String cookie;
 
-  Window get window() native "return this.defaultView;";
+  Window get window => _convertNativeToDart_Window(this._window);
+  Window get _window() native "return this.defaultView;";
 
   final _ElementImpl documentElement;
 
@@ -10637,7 +10638,11 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   _TextImpl $dom_createTextNode(String data) native "createTextNode";
 
-  _TouchImpl createTouch(_LocalWindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+  _TouchImpl createTouch(_LocalWindowImpl window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+    EventTarget target_1 = _convertDartToNative_EventTarget(target);
+    return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+  }
+  _TouchImpl _createTouch_1(_LocalWindowImpl window, EventTarget target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "createTouch";
 
   _TouchListImpl $dom_createTouchList() native "createTouchList";
 
@@ -13046,7 +13051,8 @@ class _EventImpl implements Event native "*Event" {
 
   final _ClipboardImpl clipboardData;
 
-  final _EventTargetImpl currentTarget;
+  EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
+  EventTarget get _currentTarget() native "return this.currentTarget;";
 
   final bool defaultPrevented;
 
@@ -13054,9 +13060,11 @@ class _EventImpl implements Event native "*Event" {
 
   bool returnValue;
 
-  final _EventTargetImpl srcElement;
+  EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
+  EventTarget get _srcElement() native "return this.srcElement;";
 
-  final _EventTargetImpl target;
+  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
+  EventTarget get _target() native "return this.target;";
 
   final int timeStamp;
 
@@ -14308,7 +14316,8 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
 
   final _DocumentImpl contentDocument;
 
-  final Window contentWindow;
+  Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
+  Window get _contentWindow() native "return this.contentWindow;";
 
   String frameBorder;
 
@@ -16507,13 +16516,13 @@ abstract class IFrameElement implements Element {
   /** @domName HTMLIFrameElement.getSVGDocument */
   SVGDocument getSVGDocument();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
 class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*HTMLIFrameElement" {
 
   String align;
+
+  Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
+  Window get _contentWindow() native "return this.contentWindow;";
 
   String frameBorder;
 
@@ -16538,14 +16547,6 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String width;
 
   _SVGDocumentImpl getSVGDocument() native;
-
-
-  Window get _contentWindow() native "return this.contentWindow;";
-
-  // Override contentWindow to return secure wrapper.
-  Window get contentWindow {
-    return _DOMWindowCrossFrameImpl._createSafe(_contentWindow);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18418,11 +18419,6 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   _DocumentImpl get document() native "return this.document;";
 
-  Window get _top() native "return this.top;";
-
-  // Override top to return secure wrapper.
-  Window get top => _DOMWindowCrossFrameImpl._createSafe(_top);
-
   Window _open2(url, name) native "return this.open(url, name);";
 
   Window _open3(url, name, options) native "return this.open(url, name, options);";
@@ -18590,7 +18586,8 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   final bool offscreenBuffering;
 
-  final Window opener;
+  Window get opener => _convertNativeToDart_Window(this._opener);
+  Window get _opener() native "return this.opener;";
 
   final int outerHeight;
 
@@ -18602,7 +18599,8 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   final int pageYOffset;
 
-  final Window parent;
+  Window get parent => _convertNativeToDart_Window(this._parent);
+  Window get _parent() native "return this.parent;";
 
   final _PerformanceImpl performance;
 
@@ -18624,7 +18622,8 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   final _BarInfoImpl scrollbars;
 
-  final Window self;
+  Window get self => _convertNativeToDart_Window(this._self);
+  Window get _self() native "return this.self;";
 
   final _StorageImpl sessionStorage;
 
@@ -18636,13 +18635,17 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   final _BarInfoImpl toolbar;
 
+  Window get top => _convertNativeToDart_Window(this._top);
+  Window get _top() native "return this.top;";
+
   final _IDBFactoryImpl webkitIndexedDB;
 
   final _NotificationCenterImpl webkitNotifications;
 
   final _StorageInfoImpl webkitStorageInfo;
 
-  final Window window;
+  Window get window => _convertNativeToDart_Window(this._window);
+  Window get _window() native "return this.window;";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -20160,7 +20163,8 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
 
   final List ports;
 
-  final Window source;
+  Window get source => _convertNativeToDart_Window(this._source);
+  Window get _source() native "return this.source;";
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List messagePorts) native;
 
@@ -20473,7 +20477,8 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final bool metaKey;
 
-  final _EventTargetImpl relatedTarget;
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
+  EventTarget get _relatedTarget() native "return this.relatedTarget;";
 
   final int screenX;
 
@@ -20491,7 +20496,12 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final int y;
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _LocalWindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _LocalWindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
+    EventTarget relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
+    _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
+    return;
+  }
+  void _$dom_initMouseEvent_1(type, canBubble, cancelable, _LocalWindowImpl view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, EventTarget relatedTarget) native "initMouseEvent";
 
 
   int get offsetX {
@@ -33878,7 +33888,8 @@ class _TouchImpl implements Touch native "*Touch" {
 
   final int screenY;
 
-  final _EventTargetImpl target;
+  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
+  EventTarget get _target() native "return this.target;";
 
   final num webkitForce;
 
@@ -34217,7 +34228,8 @@ class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
 
   final int pageY;
 
-  final Window view;
+  Window get view => _convertNativeToDart_Window(this._view);
+  Window get _view() native "return this.view;";
 
   final int which;
 
@@ -39531,6 +39543,34 @@ class _SVGSVGElementFactoryProvider {
 // What is required is to ensure that an Lists in the key are actually
 // JavaScript arrays, and any Dates are JavaScript Dates.
 
+// Conversions for Window.  These check if the window is the local
+// window, and if it's not, wraps or unwraps it with a secure wrapper.
+// We need to test for EventTarget here as well as it's a base type.
+// We omit an unwrapper for Window as no methods take a non-local
+// window as a parameter.
+
+Window _convertNativeToDart_Window(win) {
+  return _DOMWindowCrossFrameImpl._createSafe(win);
+}
+
+EventTarget _convertNativeToDart_EventTarget(e) {
+  // Assume it's a Window if it contains the setInterval property.  It may be
+  // from a different frame - without a patched prototype - so we cannot
+  // rely on Dart type checking.
+  if (JS('bool', r'"setInterval" in #', e))
+    return _DOMWindowCrossFrameImpl._createSafe(event);
+  else
+    return e;
+}
+
+EventTarget _convertDartToNative_EventTarget(e) {
+  if (e is _DOMWindowCrossFrameImpl) {
+    return e._window;
+  } else {
+    return e;
+  }
+}
+
 // Conversions for ImageData
 //
 // On Firefox, the returned ImageData is a plain object.
@@ -39986,7 +40026,7 @@ class _LocationCrossFrameImpl implements Location {
 
   void set href(String val) => _setHref(_location, val);
   static void _setHref(location, val) {
-    JS('void', '#.href = #', _location, val);
+    JS('void', '#.href = #', location, val);
   }
 
   // Implementation support.

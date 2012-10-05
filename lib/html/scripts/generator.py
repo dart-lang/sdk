@@ -537,6 +537,18 @@ _serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
                            'Dynamic', 'Dynamic')
 
 dart2js_conversions = {
+    # Wrap non-local Windows.  We need to check EventTarget (the base type)
+    # as well.  Note, there are no functions that take a non-local Window
+    # as a parameter / setter.
+    'DOMWindow get':
+      Conversion('_convertNativeToDart_Window', 'Window', 'Window'),
+    'EventTarget get':
+      Conversion('_convertNativeToDart_EventTarget', 'EventTarget',
+                 'EventTarget'),
+    'EventTarget set':
+      Conversion('_convertDartToNative_EventTarget', 'EventTarget',
+                 'EventTarget'),
+
     'IDBKey get':
       Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
     'IDBKey set':
