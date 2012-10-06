@@ -86,7 +86,7 @@ class ProgressIndicator {
     _printTimingInformation();
     stdout.close();
     stderr.close();
-    if (_failedTests) exit(1);
+    if (_failedTests > 0) exit(1);
   }
 
   void _printStartProgress(TestCase test) {}
@@ -235,7 +235,7 @@ abstract class CompactIndicator extends ProgressIndicator {
     }
     stdout.close();
     stderr.close();
-    if (_failedTests) exit(1);
+    if (_failedTests > 0) exit(1);
   }
 
   void allTestsKnown() {
