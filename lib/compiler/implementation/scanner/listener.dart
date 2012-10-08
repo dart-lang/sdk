@@ -553,6 +553,11 @@ class Listener {
     return skipToEof(token);
   }
 
+  Link<Token> expectedDeclaration(Token token) {
+    error("expected a declaration, but got '${token.slowToString()}'", token);
+    return const EmptyLink<Token>();
+  }
+
   Token unmatched(Token token) {
     error("unmatched '${token.slowToString()}'", token);
     return skipToEof(token);
@@ -948,6 +953,12 @@ class ElementListener extends Listener {
     } else {
       return unexpected(token);
     }
+  }
+
+  Link<Token> expectedDeclaration(Token token) {
+    listener.cancel("expected a declaration, but got '${token.slowToString()}'",
+                    token: token);
+    return const EmptyLink<Token>();
   }
 
   Token unmatched(Token token) {
