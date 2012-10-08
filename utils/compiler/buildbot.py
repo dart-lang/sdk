@@ -25,7 +25,7 @@ DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
     r'dart2js-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
 
@@ -113,22 +113,24 @@ def GetBuildInfo():
       test_set = web_pattern.group(4)
     elif dart2js_pattern:
       compiler = 'dart2js'
-      runtime = 'd8'
       system = dart2js_pattern.group(1)
-      mode = dart2js_pattern.group(2)
+      runtime = 'd8'
+      if dart2js_pattern.group(3) == 'jsshell':
+        runtime = 'jsshell'
+      mode = dart2js_pattern.group(4)
       # The valid naming parts for checked and host-checked are:
       # Empty: checked=False, host_checked=False
       # -checked: checked=True, host_checked=False
       # -host-checked: checked=False, host_checked=True
       # -checked-host-checked: checked=True, host_checked=True
-      if dart2js_pattern.group(4) == 'checked':
+      if dart2js_pattern.group(6) == 'checked':
         checked = True
-      if dart2js_pattern.group(4) == 'host-checked':
-        host_checked = True
       if dart2js_pattern.group(6) == 'host-checked':
         host_checked = True
-      shard_index = dart2js_pattern.group(7)
-      total_shards = dart2js_pattern.group(8)
+      if dart2js_pattern.group(8) == 'host-checked':
+        host_checked = True
+      shard_index = dart2js_pattern.group(9)
+      total_shards = dart2js_pattern.group(10)
 
   if system == 'windows':
     system = 'win7'
@@ -207,7 +209,7 @@ def BuildSDK(mode, system):
 def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
   """ test the compiler.
    Args:
-     - runtime: either 'd8', or one of the browsers, see GetBuildInfo
+     - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
      - flags: extra flags to pass to test.dart
