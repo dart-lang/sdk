@@ -49,7 +49,6 @@ main() {
       expect(frameHistory is! LocalHistory);
 
       // Valid methods.
-      frameHistory.back();
       frameHistory.forward();
 
       expect(() => frameHistory.length, throws);

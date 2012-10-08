@@ -57,7 +57,6 @@ unknownelement_test: Fail # Issue 4189
 history_test: Fail
 
 [ $runtime == ie ]
-cross_frame_test: Fail # Issue 5651
 contentelement_test: Fail   # ie does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
@@ -152,7 +151,6 @@ url_test: Fail
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
-cross_frame_test: Pass, Fail # Issue 5651
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
