@@ -101,11 +101,11 @@ List _ensureFastAndSerializableBuffer(List buffer, int offset, int bytes) {
 }
 
 class _File {
-  factory File(arg) {
+  factory _File(arg) {
     throw new UnsupportedOperationException('new File($arg)');
   }
 
-  factory File.fromPath(arg) {
+  factory _File.fromPath(arg) {
     throw new UnsupportedOperationException('new File.fromPath($arg)');
   }
 }
@@ -133,15 +133,15 @@ class _Platform {
 }
 
 class _Directory {
-  factory Directory(arg) {
+  factory _Directory(arg) {
     throw new UnsupportedOperationException('new Directory($arg)');
   }
 
-  factory Directory.fromPath(arg) {
+  factory _Directory.fromPath(arg) {
     throw new UnsupportedOperationException('new Directory.fromPath($arg)');
   }
 
-  factory Directory.current() {
+  factory _Directory.current() {
     throw new UnsupportedOperationException('new Directory.current()');
   }
 }
@@ -170,14 +170,14 @@ class _Process {
 }
 
 class _ServerSocket {
-  factory ServerSocket(String bindAddress, int port, int backlog) {
+  factory _ServerSocket(String bindAddress, int port, int backlog) {
     throw new UnsupportedOperationException(
         'new ServerSocket($bindAddress, $port, $backlog)');
   }
 }
 
 class _Socket {
-  factory Socket(String host, int port) {
+  factory _Socket(String host, int port) {
     throw new UnsupportedOperationException('new Socket($host, $port)');
   }
 }
