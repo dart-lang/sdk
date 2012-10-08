@@ -301,8 +301,11 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail #
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # inherited from VM
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail # inherited from VM
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # inherited from VM
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail # inherited from VM
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # inherited from VM
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # inherited from VM
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # inherited from VM
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # inherited from VM
