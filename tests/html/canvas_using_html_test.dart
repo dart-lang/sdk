@@ -23,21 +23,6 @@ main() {
 
     // TODO(vsm): Verify the result once we have the ability to read pixels.
   });
-  test('SetFillColor', () {
-    // With floats.
-    context.setFillColor(10, 10, 10, 10);
-    context.fillRect(10, 10, 20, 20);
-
-    // With rationals.
-    context.setFillColor(10.0, 10.0, 10.0, 10.0);
-    context.fillRect(20, 20, 30, 30);
-
-    // With ints.
-    context.setFillColor(10, 10, 10, 10);
-    context.fillRect(30, 30, 40, 40);
-
-    // TODO(vsm): Verify the result once we have the ability to read pixels.
-  });
   test('StrokeStyle', () {
     context.strokeStyle = "blue";
     context.strokeRect(30, 30, 10, 20);

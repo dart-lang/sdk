@@ -8157,9 +8157,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.setCompositeOperation */
   void setCompositeOperation(String compositeOperation);
 
-  /** @domName CanvasRenderingContext2D.setFillColor */
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
   /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
 
@@ -8177,9 +8174,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.setShadow */
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
-  /** @domName CanvasRenderingContext2D.setStrokeColor */
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setTransform */
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
@@ -8204,12 +8198,39 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
+
+
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setFillColorRgb(int r, int g, int b, [num a]);
+
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setFillColorHsl(int h, num s, num l, [num a]);
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setStrokeColorRgb(int r, int g, int b, [num a]);
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setStrokeColorHsl(int h, num s, num l, [num a]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D {
 
@@ -8517,46 +8538,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_1(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_3(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && !?a) {
-      _setFillColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
-      _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void _setFillColor_1(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setFillColor_1_Callback";
-
-  void _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_2_Callback";
-
-  void _setFillColor_3(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setFillColor_3_Callback";
-
-  void _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_4_Callback";
-
-  void _setFillColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setFillColor_5_Callback";
-
-  void _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setFillColor_6_Callback";
-
   void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
 
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
@@ -8613,46 +8594,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_1(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && !?a) {
-      _setStrokeColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
-      _setStrokeColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void _setStrokeColor_1(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setStrokeColor_1_Callback";
-
-  void _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_2_Callback";
-
-  void _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setStrokeColor_3_Callback";
-
-  void _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_4_Callback";
-
-  void _setStrokeColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setStrokeColor_5_Callback";
-
-  void _setStrokeColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setStrokeColor_6_Callback";
-
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
 
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
@@ -8703,6 +8644,22 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
 
+
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

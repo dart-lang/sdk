@@ -83,8 +83,6 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
-canvas_test: Fail
-canvas_using_html_test: Fail
 css_test: Fail
 datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
@@ -130,8 +128,6 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_pixel_array_type_alias_test: Fail
-canvas_test: Fail
-canvas_using_html_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
@@ -153,8 +149,6 @@ url_test: Fail
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
-canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
-canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 cross_frame_test: Pass, Fail # Issue 5651
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
