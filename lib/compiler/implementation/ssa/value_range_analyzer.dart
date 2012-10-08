@@ -52,12 +52,18 @@ class IntValue extends Value {
   }
 
   Value operator -(other) {
-    if (other is !IntValue) return other - this;
+    if (other is !IntValue) {
+      return new OperationValue(this, other, const SubtractOperation());
+    }
     return new IntValue(value - other.value);
   }
 
   Value operator &(other) {
-    if (other is !IntValue) return this;
+    if (other is !IntValue) {
+      if (isPositive()) return this;
+      if (other.isPositive()) return new IntValue(-value);
+      return const UnknownValue();
+    }
     return new IntValue(value & other.value);
   }
 
@@ -286,11 +292,34 @@ class Range {
   }
 
   Range operator -(Range other) {
-    return new Range.normalize(lower - other.lower, upper - other.upper);
+    return new Range.normalize(lower - other.upper, upper - other.lower);
   }
 
   Range operator &(Range other) {
-    return new Range.normalize(lower & other.lower, upper & other.upper);
+    if (isSingleValue()
+        && other.isSingleValue()
+        && lower is IntValue
+        && other.lower is IntValue) {
+      return new Range(lower & other.lower, upper & other.upper);
+    }
+    if (isPositive() && other.isPositive()) {
+      Value up = upper.min(other.upper);
+      if (up == const UnknownValue()) {
+        // If we could not find a trivial bound, just try to use the
+        // one that is an int.
+        up = upper is IntValue ? upper : other.upper;
+        // Make sure we get the same upper bound, whether it's a & b
+        // or b & a.
+        if (up is! IntValue && upper != other.upper) up = const MaxIntValue();
+      }
+      return new Range(const IntValue(0), up);
+    } else if (isPositive()) {
+      return new Range(const IntValue(0), upper);
+    } else if (other.isPositive()) {
+      return new Range(const IntValue(0), other.upper);
+    } else {
+      return const Range.unbound();
+    }
   }
 
   bool operator ==(other) {

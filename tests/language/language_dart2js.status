@@ -56,7 +56,6 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
-value_range2_test: Fail # http://dartbug.com/5585
 
 [ $compiler == dart2js ]
 bad_constructor_test/04: Fail # http://dartbug.com/5519
@@ -77,7 +76,6 @@ optional_named_parameters_test/03: Fail # http://dartbug.com/5519
 optional_named_parameters_test/05: Fail # http://dartbug.com/5519
 optional_named_parameters_test/07: Fail # http://dartbug.com/5519
 optional_named_parameters_test/09: Fail # http://dartbug.com/5519
-value_range_test: Fail # http://dartbug.com/5585
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
