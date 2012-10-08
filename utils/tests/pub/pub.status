@@ -10,10 +10,10 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# Git on Windows is painfully slow compared to Mac/Linux.
+# Git on Windows is cripplingly slow and will make these tests time out (#5271).
 [ $system == windows ]
-install/git/*: Slow
-update/git/*: Slow
+install/git/*: Skip
+update/git/*: Skip
 
 # Getting non-determinstic network errors with these on Windows (#5272).
 [ $system == windows ]
