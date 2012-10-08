@@ -27,6 +27,40 @@
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
 
+/**
+ * The Intl class provides a common entry point for internationalization
+ * related tasks. An Intl instance can be created for a particular locale
+ * and used to create a date format via `anIntl.date()`. Static methods
+ * on this class are also used in message formatting.
+ *
+ * Message example:
+ *     '''I see ${Intl.plural(num_people,
+ *               {'0': 'no one at all',
+ *                '1': 'one other person',
+ *                'other': '$num_people other people'})} in $place.''''
+ *
+ * Usage examples:
+ *      today(date) => intl.message(
+ *          "Today's date is $date",
+ *          desc: 'Indicate the current date',
+ *          examples: {'date' : 'June 8, 2012'});
+ *      print(today(new Date.now());
+ *
+ *      msg(num_people, place) => intl.message(
+ *           '''I see ${Intl.plural(num_people,
+ *             {'0': 'no one at all',
+ *              '1': 'one other person',
+ *              'other': '$num_people other people'})} in $place.'''',
+ *          desc: 'Description of how many people are seen as program start.',
+ *          examples: {'num_people': 3, 'place': 'London'});
+ *
+ * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
+ * produce "I see 2 other people in Athens." as output.
+ *
+ * See `tests/message_format_test.dart` for more examples.
+ */
+ //TODO(efortuna): documentation example involving the offset parameter?
+
 class Intl {
   /**
    * String indicating the locale code with which the message is to be
@@ -46,8 +80,6 @@ class Intl {
    * this is not automatically set, and must be set by importing one of
    * intl_browser.dart or intl_standalone.dart and calling findSystemLocale().
    */
-  // TODO(alanknight): Detect this without forcing the jump through hoops.
-  // Issue 5171.
   static String systemLocale = 'en_US';
 
   /**

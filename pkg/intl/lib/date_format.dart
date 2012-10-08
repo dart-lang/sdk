@@ -184,8 +184,6 @@ class DateFormat {
     // the constructor seems awkward, especially with the possibility of
     // confusion with the locale. A "fluent" interface with cascading on an
     // instance might work better? A list of patterns is also possible.
-    // TODO(alanknight): There will need to be at least setup type async
-    // operations to avoid the need to bring along every locale in every program
     _locale = Intl.verifiedLocale(locale);
     addPattern(newPattern);
   }
@@ -522,7 +520,6 @@ class DateFormat {
     return dateTimeSymbols.containsKey(localeName);
   }
 
-  // TODO(alanknight): This can be a variable once that's permitted.
   static List get _fieldConstructors => [
       (pattern, parent) => new _DateFormatQuotedField(pattern, parent),
       (pattern, parent) => new _DateFormatPatternField(pattern, parent),

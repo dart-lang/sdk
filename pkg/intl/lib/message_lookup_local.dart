@@ -9,32 +9,7 @@
  * 'messages_en_US'. The prefix is set in the [initializeMessages] call, which
  * must be made for a locale before any lookups can be done.
  *
- *
- * _message example:
- *     '''I see ${Intl.plural(num_people,
- *               {'0': 'no one at all',
- *                '1': 'one other person',
- *                'other': '$num_people other people'})} in $place.''''
- *
- * Usage examples:
- *      today(date) => intl.message(
- *          "Today's date is $date",
- *          desc: 'Indicate the current date',
- *          examples: {'date' : 'June 8, 2012'});
- *      print(today(new Date.now());
- *
- *      msg(num_people, place) => intl.message(
- *           '''I see ${Intl.plural(num_people,
- *             {'0': 'no one at all',
- *              '1': 'one other person',
- *              'other': '$num_people other people'})} in $place.'''',
- *          desc: 'Description of how many people are seen as program start.',
- *          examples: {'num_people': 3, 'place': 'London'});
- *
- * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
- * produce "I see 2 other people in Athens." as output.
- *
- * See tests/message_format_test.dart for more examples.
+ * See Intl class comment or `tests/message_format_test.dart` for more examples.
  */
  //TODO(efortuna): documentation example involving the offset parameter?
 

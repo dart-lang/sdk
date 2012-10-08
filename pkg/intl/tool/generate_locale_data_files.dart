@@ -15,7 +15,7 @@
 #import('../lib/date_symbols.dart');
 #import('../lib/date_symbol_data_local.dart');
 #import('../lib/date_time_patterns.dart');
-#import('../lib/date_format.dart');
+#import('../lib/intl.dart');
 #import('dart:io');
 #import('dart:json');
 #import('../test/data_directory.dart');
@@ -24,8 +24,6 @@ main() {
   initializeDateFormatting("en_IGNORED", null);
   writeSymbolData();
   writePatternData();
-  // TODO(alanknight): Are the en_ISO patterns reliably the same as general en?
-  writePatterns("en_ISO", dateTimePatternMap()["en"]);
   writeLocaleList();
 }
 
