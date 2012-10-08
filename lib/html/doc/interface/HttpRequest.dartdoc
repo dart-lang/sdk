@@ -11,57 +11,53 @@
  */
 
 /// @domName XMLHttpRequest
-interface HttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
-  // not correctly implemented yet. (b/4970173)
-  HttpRequest.get(String url, onSuccess(HttpRequest request));
+abstract class HttpRequest implements EventTarget {
+  factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequest_get(url, onSuccess);
 
-  HttpRequest();
+  factory HttpRequest.getWithCredentials(String url, onSuccess(HttpRequest request)) =>
+      _HttpRequestFactoryProvider.createHttpRequestgetWithCredentials(url, onSuccess);
+
+  factory HttpRequest() => _HttpRequestFactoryProvider.createHttpRequest();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  HttpRequestEvents get on();
+  HttpRequestEvents get on;
 
-  static final int DONE = 4;
+  static const int DONE = 4;
 
-  static final int HEADERS_RECEIVED = 2;
+  static const int HEADERS_RECEIVED = 2;
 
-  static final int LOADING = 3;
+  static const int LOADING = 3;
 
-  static final int OPENED = 1;
+  static const int OPENED = 1;
 
-  static final int UNSENT = 0;
-
-  /** @domName XMLHttpRequest.asBlob */
-  bool asBlob;
+  static const int UNSENT = 0;
 
   /** @domName XMLHttpRequest.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName XMLHttpRequest.response */
-  final Object response;
-
-  /** @domName XMLHttpRequest.responseBlob */
-  final Blob responseBlob;
+  abstract Object get response;
 
   /** @domName XMLHttpRequest.responseText */
-  final String responseText;
+  abstract String get responseText;
 
   /** @domName XMLHttpRequest.responseType */
   String responseType;
 
   /** @domName XMLHttpRequest.responseXML */
-  final Document responseXML;
+  abstract Document get responseXML;
 
   /** @domName XMLHttpRequest.status */
-  final int status;
+  abstract int get status;
 
   /** @domName XMLHttpRequest.statusText */
-  final String statusText;
+  abstract String get statusText;
 
   /** @domName XMLHttpRequest.upload */
-  final HttpRequestUpload upload;
+  abstract HttpRequestUpload get upload;
 
   /** @domName XMLHttpRequest.withCredentials */
   bool withCredentials;
@@ -97,19 +93,19 @@ interface HttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider
   void setRequestHeader(String header, String value);
 }
 
-interface HttpRequestEvents extends Events {
+abstract class HttpRequestEvents implements Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get load();
+  EventListenerList get load;
 
-  EventListenerList get loadEnd();
+  EventListenerList get loadEnd;
 
-  EventListenerList get loadStart();
+  EventListenerList get loadStart;
 
-  EventListenerList get progress();
+  EventListenerList get progress;
 
-  EventListenerList get readyStateChange();
+  EventListenerList get readyStateChange;
 }

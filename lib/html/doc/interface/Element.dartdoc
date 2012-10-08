@@ -2,140 +2,133 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
-
-interface ElementList extends List<Element> {
-  // TODO(jacobr): add element batch manipulation methods.
-  ElementList filter(bool f(Element element));
-
-  ElementList getRange(int start, int length);
-
-  Element get first();
-  // TODO(jacobr): add insertAt
-}
+// WARNING: Do not edit - generated code.
 
 /**
  * All your attribute manipulation needs in one place.
  * Extends the regular Map interface by automatically coercing non-string
  * values to strings.
  */
-interface AttributeMap extends Map<String, String> {
+abstract class AttributeMap implements Map<String, String> {
   void operator []=(String key, value);
 }
 
 /**
  * All your element measurement needs in one place
  */
-interface ElementRect {
+abstract class ElementRect {
   // Relative to offsetParent
-  ClientRect get client();
-  ClientRect get offset();
-  ClientRect get scroll();
+  ClientRect get client;
+  ClientRect get offset;
+  ClientRect get scroll;
   // In global coords
-  ClientRect get bounding();
+  ClientRect get bounding;
   // In global coords
-  List<ClientRect> get clientRects();
+  List<ClientRect> get clientRects;
 }
 
-interface NodeSelector {
+abstract class NodeSelector {
   Element query(String selectors);
-  NodeList queryAll(String selectors);
+  List<Element> queryAll(String selectors);
+}
+
+abstract class CSSClassSet implements Set<String> {
+  /**
+   * Adds the class [token] to the element if it is not on it, removes it if it
+   * is.
+   */
+  bool toggle(String token);
+
+  /**
+   * Returns [:true:] classes cannot be added or removed from this
+   * [:CSSClassSet:].
+   */
+  bool get frozen;
 }
 
 /// @domName Element
-interface Element extends Node, NodeSelector default _ElementFactoryProvider {
-  Element.html(String html);
-  Element.tag(String tag);
+abstract class Element implements Node, NodeSelector {
+  factory Element.html(String html) =>
+      _ElementFactoryProvider.createElement_html(html);
+  factory Element.tag(String tag) =>
+      _ElementFactoryProvider.createElement_tag(tag);
 
-  AttributeMap get attributes();
+  AttributeMap get attributes;
   void set attributes(Map<String, String> value);
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
-  ElementList get elements();
+  List<Element> get elements;
 
   void set elements(Collection<Element> value);
 
   /** @domName className, classList */
-  Set<String> get classes();
+  CSSClassSet get classes;
 
   void set classes(Collection<String> value);
 
-  AttributeMap get dataAttributes();
+  AttributeMap get dataAttributes;
   void set dataAttributes(Map<String, String> value);
+
+  /**
+   * Adds the specified text as a text node after the last child of this.
+   */
+  void addText(String text);
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this.
+   */
+  void addHTML(String html);
 
   /**
    * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft
    */
-  Future<ElementRect> get rect();
+  Future<ElementRect> get rect;
 
   /** @domName Window.getComputedStyle */
-  Future<CSSStyleDeclaration> get computedStyle();
+  Future<CSSStyleDeclaration> get computedStyle;
 
   /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   Element clone(bool deep);
 
-  Element get parent();
+  Element get parent;
 
-  void addText(String text) {
-    this.insertAdjacentText('beforeend', text);
-  }
-
-  void addHTML(String text) {
-    this.insertAdjacentHTML('beforeend', text);
-  }
+  /**
+   * Experimental support for [web components][wc]. This field stores a
+   * reference to the component implementation. It was inspired by Mozilla's
+   * [x-tags][] project. Please note: in the future it may be possible to
+   * `extend Element` from your class, in which case this field will be
+   * deprecated and will simply return this [Element] object.
+   *
+   * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
+   * [x-tags]: http://x-tags.org/
+   */
+  var xtag;
 
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  ElementEvents get on();
-
-  static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  /** @domName Element.childElementCount */
-  final int $dom_childElementCount;
+  ElementEvents get on;
 
   /** @domName HTMLElement.children */
-  final HTMLCollection $dom_children;
-
-  /** @domName HTMLElement.className */
-  String $dom_className;
-
-  /** @domName Element.clientHeight */
-  final int $dom_clientHeight;
-
-  /** @domName Element.clientLeft */
-  final int $dom_clientLeft;
-
-  /** @domName Element.clientTop */
-  final int $dom_clientTop;
-
-  /** @domName Element.clientWidth */
-  final int $dom_clientWidth;
+  abstract HTMLCollection get $dom_children;
 
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
-
-  /** @domName Element.dataset */
-  final Map<String, String> dataset;
 
   /** @domName HTMLElement.dir */
   String dir;
 
   /** @domName HTMLElement.draggable */
   bool draggable;
-
-  /** @domName Element.firstElementChild */
-  final Element $dom_firstElementChild;
 
   /** @domName HTMLElement.hidden */
   bool hidden;
@@ -147,40 +140,93 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   String innerHTML;
 
   /** @domName HTMLElement.isContentEditable */
-  final bool isContentEditable;
+  abstract bool get isContentEditable;
 
   /** @domName HTMLElement.lang */
   String lang;
 
+  /** @domName HTMLElement.outerHTML */
+  abstract String get outerHTML;
+
+  /** @domName HTMLElement.spellcheck */
+  bool spellcheck;
+
+  /** @domName HTMLElement.tabIndex */
+  int tabIndex;
+
+  /** @domName HTMLElement.title */
+  String title;
+
+  /** @domName HTMLElement.translate */
+  bool translate;
+
+  /** @domName HTMLElement.webkitdropzone */
+  String webkitdropzone;
+
+  /** @domName HTMLElement.click */
+  void click();
+
+  /** @domName HTMLElement.insertAdjacentElement */
+  Element insertAdjacentElement(String where, Element element);
+
+  /** @domName HTMLElement.insertAdjacentHTML */
+  void insertAdjacentHTML(String where, String html);
+
+  /** @domName HTMLElement.insertAdjacentText */
+  void insertAdjacentText(String where, String text);
+
+  static const int ALLOW_KEYBOARD_INPUT = 1;
+
+  /** @domName Element.childElementCount */
+  abstract int get $dom_childElementCount;
+
+  /** @domName Element.className */
+  String $dom_className;
+
+  /** @domName Element.clientHeight */
+  abstract int get $dom_clientHeight;
+
+  /** @domName Element.clientLeft */
+  abstract int get $dom_clientLeft;
+
+  /** @domName Element.clientTop */
+  abstract int get $dom_clientTop;
+
+  /** @domName Element.clientWidth */
+  abstract int get $dom_clientWidth;
+
+  /** @domName Element.dataset */
+  abstract Map<String, String> get dataset;
+
+  /** @domName Element.firstElementChild */
+  abstract Element get $dom_firstElementChild;
+
   /** @domName Element.lastElementChild */
-  final Element $dom_lastElementChild;
+  abstract Element get $dom_lastElementChild;
 
   /** @domName Element.nextElementSibling */
-  final Element nextElementSibling;
+  abstract Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  final int $dom_offsetHeight;
+  abstract int get $dom_offsetHeight;
 
   /** @domName Element.offsetLeft */
-  final int $dom_offsetLeft;
+  abstract int get $dom_offsetLeft;
 
   /** @domName Element.offsetParent */
-  final Element offsetParent;
+  abstract Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  final int $dom_offsetTop;
+  abstract int get $dom_offsetTop;
 
   /** @domName Element.offsetWidth */
-  final int $dom_offsetWidth;
-
-  /** @domName HTMLElement.outerHTML */
-  final String outerHTML;
+  abstract int get $dom_offsetWidth;
 
   /** @domName Element.previousElementSibling */
-  final Element previousElementSibling;
+  abstract Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  final int $dom_scrollHeight;
+  abstract int get $dom_scrollHeight;
 
   /** @domName Element.scrollLeft */
   int $dom_scrollLeft;
@@ -189,37 +235,16 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int $dom_scrollTop;
 
   /** @domName Element.scrollWidth */
-  final int $dom_scrollWidth;
-
-  /** @domName HTMLElement.spellcheck */
-  bool spellcheck;
+  abstract int get $dom_scrollWidth;
 
   /** @domName Element.style */
-  final CSSStyleDeclaration style;
-
-  /** @domName HTMLElement.tabIndex */
-  int tabIndex;
+  abstract CSSStyleDeclaration get style;
 
   /** @domName Element.tagName */
-  final String tagName;
-
-  /** @domName HTMLElement.title */
-  String title;
-
-  /** @domName HTMLElement.translate */
-  bool translate;
-
-  /** @domName Element.webkitRegionOverflow */
-  final String webkitRegionOverflow;
-
-  /** @domName HTMLElement.webkitdropzone */
-  String webkitdropzone;
+  abstract String get tagName;
 
   /** @domName Element.blur */
   void blur();
-
-  /** @domName HTMLElement.click */
-  void click();
 
   /** @domName Element.focus */
   void focus();
@@ -231,31 +256,25 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   ClientRect $dom_getBoundingClientRect();
 
   /** @domName Element.getClientRects */
-  ClientRectList $dom_getClientRects();
+  List<ClientRect> $dom_getClientRects();
 
   /** @domName Element.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String name);
+  List<Node> $dom_getElementsByClassName(String name);
 
   /** @domName Element.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String name);
+  List<Node> $dom_getElementsByTagName(String name);
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
-
-  /** @domName HTMLElement.insertAdjacentElement */
-  Element insertAdjacentElement(String where, Element element);
-
-  /** @domName HTMLElement.insertAdjacentHTML */
-  void insertAdjacentHTML(String where, String html);
-
-  /** @domName HTMLElement.insertAdjacentText */
-  void insertAdjacentText(String where, String text);
 
   /** @domName Element.querySelector */
   Element $dom_querySelector(String selectors);
 
   /** @domName Element.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
+
+  /** @domName Element.remove */
+  void remove();
 
   /** @domName Element.removeAttribute */
   void $dom_removeAttribute(String name);
@@ -281,103 +300,106 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.webkitRequestFullscreen */
   void webkitRequestFullscreen();
 
+  /** @domName Element.webkitRequestPointerLock */
+  void webkitRequestPointerLock();
+
 }
 
-interface ElementEvents extends Events {
+abstract class ElementEvents implements Events {
 
-  EventListenerList get abort();
+  EventListenerList get abort;
 
-  EventListenerList get beforeCopy();
+  EventListenerList get beforeCopy;
 
-  EventListenerList get beforeCut();
+  EventListenerList get beforeCut;
 
-  EventListenerList get beforePaste();
+  EventListenerList get beforePaste;
 
-  EventListenerList get blur();
+  EventListenerList get blur;
 
-  EventListenerList get change();
+  EventListenerList get change;
 
-  EventListenerList get click();
+  EventListenerList get click;
 
-  EventListenerList get contextMenu();
+  EventListenerList get contextMenu;
 
-  EventListenerList get copy();
+  EventListenerList get copy;
 
-  EventListenerList get cut();
+  EventListenerList get cut;
 
-  EventListenerList get doubleClick();
+  EventListenerList get doubleClick;
 
-  EventListenerList get drag();
+  EventListenerList get drag;
 
-  EventListenerList get dragEnd();
+  EventListenerList get dragEnd;
 
-  EventListenerList get dragEnter();
+  EventListenerList get dragEnter;
 
-  EventListenerList get dragLeave();
+  EventListenerList get dragLeave;
 
-  EventListenerList get dragOver();
+  EventListenerList get dragOver;
 
-  EventListenerList get dragStart();
+  EventListenerList get dragStart;
 
-  EventListenerList get drop();
+  EventListenerList get drop;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get focus();
+  EventListenerList get focus;
 
-  EventListenerList get fullscreenChange();
+  EventListenerList get input;
 
-  EventListenerList get fullscreenError();
+  EventListenerList get invalid;
 
-  EventListenerList get input();
+  EventListenerList get keyDown;
 
-  EventListenerList get invalid();
+  EventListenerList get keyPress;
 
-  EventListenerList get keyDown();
+  EventListenerList get keyUp;
 
-  EventListenerList get keyPress();
+  EventListenerList get load;
 
-  EventListenerList get keyUp();
+  EventListenerList get mouseDown;
 
-  EventListenerList get load();
+  EventListenerList get mouseMove;
 
-  EventListenerList get mouseDown();
+  EventListenerList get mouseOut;
 
-  EventListenerList get mouseMove();
+  EventListenerList get mouseOver;
 
-  EventListenerList get mouseOut();
+  EventListenerList get mouseUp;
 
-  EventListenerList get mouseOver();
+  EventListenerList get mouseWheel;
 
-  EventListenerList get mouseUp();
+  EventListenerList get paste;
 
-  EventListenerList get mouseWheel();
+  EventListenerList get reset;
 
-  EventListenerList get paste();
+  EventListenerList get scroll;
 
-  EventListenerList get reset();
+  EventListenerList get search;
 
-  EventListenerList get scroll();
+  EventListenerList get select;
 
-  EventListenerList get search();
+  EventListenerList get selectStart;
 
-  EventListenerList get select();
+  EventListenerList get submit;
 
-  EventListenerList get selectStart();
+  EventListenerList get touchCancel;
 
-  EventListenerList get submit();
+  EventListenerList get touchEnd;
 
-  EventListenerList get touchCancel();
+  EventListenerList get touchEnter;
 
-  EventListenerList get touchEnd();
+  EventListenerList get touchLeave;
 
-  EventListenerList get touchEnter();
+  EventListenerList get touchMove;
 
-  EventListenerList get touchLeave();
+  EventListenerList get touchStart;
 
-  EventListenerList get touchMove();
+  EventListenerList get transitionEnd;
 
-  EventListenerList get touchStart();
+  EventListenerList get fullscreenChange;
 
-  EventListenerList get transitionEnd();
+  EventListenerList get fullscreenError;
 }

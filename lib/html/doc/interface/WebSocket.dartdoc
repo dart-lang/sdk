@@ -37,43 +37,43 @@
  * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),
  * an HTML5Rocks.com tutorial.
  */
-interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+abstract class WebSocket implements EventTarget {
 
-  WebSocket(String url);
+  factory WebSocket(String url) => _WebSocketFactoryProvider.createWebSocket(url);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
    */
-  WebSocketEvents get on();
+  WebSocketEvents get on;
 
-  static final int CLOSED = 3;
+  static const int CLOSED = 3;
 
-  static final int CLOSING = 2;
+  static const int CLOSING = 2;
 
-  static final int CONNECTING = 0;
+  static const int CONNECTING = 0;
 
-  static final int OPEN = 1;
+  static const int OPEN = 1;
 
   /** @domName WebSocket.URL */
-  final String URL;
+  abstract String get URL;
 
   /** @domName WebSocket.binaryType */
   String binaryType;
 
   /** @domName WebSocket.bufferedAmount */
-  final int bufferedAmount;
+  abstract int get bufferedAmount;
 
   /** @domName WebSocket.extensions */
-  final String extensions;
+  abstract String get extensions;
 
   /** @domName WebSocket.protocol */
-  final String protocol;
+  abstract String get protocol;
 
   /** @domName WebSocket.readyState */
-  final int readyState;
+  abstract int get readyState;
 
   /** @domName WebSocket.url */
-  final String url;
+  abstract String get url;
 
   /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -88,16 +88,16 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WebSocket.send */
-  bool send(String data);
+  void send(data);
 }
 
-interface WebSocketEvents extends Events {
+abstract class WebSocketEvents implements Events {
 
-  EventListenerList get close();
+  EventListenerList get close;
 
-  EventListenerList get error();
+  EventListenerList get error;
 
-  EventListenerList get message();
+  EventListenerList get message;
 
-  EventListenerList get open();
+  EventListenerList get open;
 }

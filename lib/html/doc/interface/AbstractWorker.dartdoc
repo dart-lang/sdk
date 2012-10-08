@@ -7,12 +7,12 @@
 //   Do not make code changes here.
 
 /// An HTML5 Abstract Worker.
-interface AbstractWorker extends EventTarget {
+abstract class AbstractWorker implements EventTarget {
 
   /**
    * The valid events associated with an AbstractWorker.
    */
-  AbstractWorkerEvents get on();
+  AbstractWorkerEvents get on;
 
   /** @domName AbstractWorker.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -24,7 +24,7 @@ interface AbstractWorker extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-interface AbstractWorkerEvents extends Events {
+abstract class AbstractWorkerEvents implements Events {
 
-  EventListenerList get error();
+  EventListenerList get error;
 }

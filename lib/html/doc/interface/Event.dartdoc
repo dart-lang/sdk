@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
+// WARNING: Do not edit - generated code.
 
 /// @domName Event
-interface Event default _EventFactoryProvider {
+abstract class Event {
 
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -15,83 +13,84 @@ interface Event default _EventFactoryProvider {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  Event(String type, [bool canBubble, bool cancelable]);
+  factory Event(String type, [bool canBubble = true, bool cancelable = true]) =>
+      _EventFactoryProvider.createEvent(type, canBubble, cancelable);
 
-  static final int AT_TARGET = 2;
+  static const int AT_TARGET = 2;
 
-  static final int BLUR = 8192;
+  static const int BLUR = 8192;
 
-  static final int BUBBLING_PHASE = 3;
+  static const int BUBBLING_PHASE = 3;
 
-  static final int CAPTURING_PHASE = 1;
+  static const int CAPTURING_PHASE = 1;
 
-  static final int CHANGE = 32768;
+  static const int CHANGE = 32768;
 
-  static final int CLICK = 64;
+  static const int CLICK = 64;
 
-  static final int DBLCLICK = 128;
+  static const int DBLCLICK = 128;
 
-  static final int DRAGDROP = 2048;
+  static const int DRAGDROP = 2048;
 
-  static final int FOCUS = 4096;
+  static const int FOCUS = 4096;
 
-  static final int KEYDOWN = 256;
+  static const int KEYDOWN = 256;
 
-  static final int KEYPRESS = 1024;
+  static const int KEYPRESS = 1024;
 
-  static final int KEYUP = 512;
+  static const int KEYUP = 512;
 
-  static final int MOUSEDOWN = 1;
+  static const int MOUSEDOWN = 1;
 
-  static final int MOUSEDRAG = 32;
+  static const int MOUSEDRAG = 32;
 
-  static final int MOUSEMOVE = 16;
+  static const int MOUSEMOVE = 16;
 
-  static final int MOUSEOUT = 8;
+  static const int MOUSEOUT = 8;
 
-  static final int MOUSEOVER = 4;
+  static const int MOUSEOVER = 4;
 
-  static final int MOUSEUP = 2;
+  static const int MOUSEUP = 2;
 
-  static final int NONE = 0;
+  static const int NONE = 0;
 
-  static final int SELECT = 16384;
+  static const int SELECT = 16384;
 
   /** @domName Event.bubbles */
-  final bool bubbles;
+  abstract bool get bubbles;
 
   /** @domName Event.cancelBubble */
   bool cancelBubble;
 
   /** @domName Event.cancelable */
-  final bool cancelable;
+  abstract bool get cancelable;
 
   /** @domName Event.clipboardData */
-  final Clipboard clipboardData;
+  abstract Clipboard get clipboardData;
 
   /** @domName Event.currentTarget */
-  final EventTarget currentTarget;
+  abstract EventTarget get currentTarget;
 
   /** @domName Event.defaultPrevented */
-  final bool defaultPrevented;
+  abstract bool get defaultPrevented;
 
   /** @domName Event.eventPhase */
-  final int eventPhase;
+  abstract int get eventPhase;
 
   /** @domName Event.returnValue */
   bool returnValue;
 
   /** @domName Event.srcElement */
-  final EventTarget srcElement;
+  abstract EventTarget get srcElement;
 
   /** @domName Event.target */
-  final EventTarget target;
+  abstract EventTarget get target;
 
   /** @domName Event.timeStamp */
-  final int timeStamp;
+  abstract int get timeStamp;
 
   /** @domName Event.type */
-  final String type;
+  abstract String get type;
 
   /** @domName Event.initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
