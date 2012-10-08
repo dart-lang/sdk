@@ -17,6 +17,8 @@
 #import('../source_file.dart');
 #import('../ssa/ssa.dart');
 
+#import('../../compiler.dart', prefix: 'api');
+
 #source('../diagnostic_listener.dart');
 #source('../scanner/byte_array_scanner.dart');
 #source('../scanner/byte_strings.dart');

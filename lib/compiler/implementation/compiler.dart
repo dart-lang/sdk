@@ -748,7 +748,7 @@ abstract class Compiler implements DiagnosticListener {
         : spanFromTokens(position, position, uri);
   }
 
-  Script readScript(Uri uri, [LibraryTag node]) {
+  Script readScript(Uri uri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
 

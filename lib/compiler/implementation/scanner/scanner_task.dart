@@ -87,7 +87,7 @@ class ScannerTask extends CompilerTask {
    * is, any resolution should be done beforehand.
    */
   void loadPart(Part part, Uri path, LibraryElement library) {
-    Script sourceScript = compiler.readScript(path, part);
+    Script sourceScript = compiler.readScript(path, part.uri);
     CompilationUnitElement unit =
         new CompilationUnitElement(sourceScript, library);
     compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
