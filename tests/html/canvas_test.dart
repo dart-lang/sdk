@@ -17,31 +17,6 @@ main() {
   context = canvas.context2d;
 
   useHtmlConfiguration();
-  test('FillStyle', () {
-    context.fillStyle = "red";
-    context.fillRect(10, 10, 20, 20);
-
-    Uint8ClampedArray data = context.getImageData(0, 0, width, height).data;
-    checkPixel(data, 0, [0, 0, 0, 0]);
-    checkPixel(data, 9 + width * 10, [0, 0, 0, 0]);
-    checkPixel(data, 10 + width * 10, [255, 0, 0, 255]);
-    checkPixel(data, 29 + width * 10, [255, 0, 0, 255]);
-    checkPixel(data, 30 + width * 10, [0, 0, 0, 0]);
-  });
-  test('FillStyleGradient', () {
-    var gradient = context.createLinearGradient(0,0,20,20);
-    gradient.addColorStop(0,'red');
-    gradient.addColorStop(1,'blue');
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 20, 20);
-    expect(context.fillStyle is CanvasGradient, isTrue);
-  });
-  test('StrokeStyle', () {
-    context.strokeStyle = "blue";
-    context.strokeRect(30, 30, 10, 20);
-
-    // TODO(vsm): Verify the result once we have the ability to read pixels.
-  });
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,
                                               canvas.height);
@@ -53,16 +28,6 @@ main() {
 
     data[100] = 200;
     expect(data[100], equals(200));
-  });
-  test('PutImageData', () {
-    ImageData data = context.getImageData(0, 0, width, height);
-    data.data[0] = 25;
-    data.data[3] = 255;
-    context.putImageData(data, 0, 0);
-
-    data = context.getImageData(0, 0, width, height);
-    expect(data.data[0], equals(25));
-    expect(data.data[3], equals(255));
   });
 }
 

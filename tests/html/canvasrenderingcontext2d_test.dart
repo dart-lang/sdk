@@ -81,4 +81,40 @@ main() {
     expect(pixel[2], closeTo(127, 1));
     expect(pixel[3], 255);
   });
+
+  test('fillStyle', () {
+    context.fillStyle = "red";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    expect(readPixel(), [255, 0, 0, 255]);
+  });
+
+  test('strokeStyle', () {
+    context.strokeStyle = "blue";
+    context.lineWidth = 10;
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+    expect(readPixel(), [0, 0, 255, 255]);
+  });
+
+  test('fillStyle linearGradient', () {
+    var gradient = context.createLinearGradient(0,0,20,20);
+    gradient.addColorStop(0,'red');
+    gradient.addColorStop(1,'blue');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    expect(context.fillStyle is CanvasGradient, isTrue);
+  });
+
+  test('putImageData', () {
+    ImageData expectedData = context.getImageData(0, 0, 10, 10);
+    expectedData.data[0] = 25;
+    expectedData.data[2] = 255;
+    context.fillStyle = 'green';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.putImageData(expectedData, 0, 0);
+
+    var resultingData = context.getImageData(0, 0, 10, 10);
+    // Make sure that we read back what we wrote.
+    expect(resultingData.data, expectedData.data);
+  });
 }
