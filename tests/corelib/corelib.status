@@ -70,5 +70,4 @@ apply_test: Fail # inherited from dart2js
 compare_to2_test: Fail # inherited from VM
 null_nosuchmethod_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
-string_base_vm_test: Fail # inherited from dart2js
 unicode_test: Fail # inherited from VM
