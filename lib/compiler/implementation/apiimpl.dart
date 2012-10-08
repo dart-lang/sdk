@@ -81,7 +81,7 @@ class Compiler extends leg.Compiler {
     handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  leg.Script readScript(Uri uri, [tree.Node node]) {
+  leg.Script readScript(Uri uri, [tree.LibraryTag node]) {
     if (uri.scheme == 'dart') uri = translateDartUri(uri, node);
     var translated = translateUri(uri, node);
     String text = "";

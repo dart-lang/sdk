@@ -1635,9 +1635,10 @@ class ScriptTag extends Node {
       Identifier prefixNode;
       if (prefix !== null) {
         SourceString source = prefix.dartString.source;
+        Token prefixToken = prefix.getBeginToken();
         Token token = new StringToken.fromSource(IDENTIFIER_INFO, source,
-                                                 prefix.token.charOffset);
-        token.next = prefix.token.next;
+                                                 prefixToken.charOffset);
+        token.next = prefixToken.next;
         prefixNode = new Identifier(token);
       }
       return new Import(tag.token, argument, prefixNode, null);

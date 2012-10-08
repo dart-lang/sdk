@@ -520,7 +520,7 @@ class LibraryElement extends ScopeContainerElement {
   Link<CompilationUnitElement> compilationUnits =
       const EmptyLink<CompilationUnitElement>();
   Link<LibraryTag> tags = const EmptyLink<LibraryTag>();
-  LibraryTag libraryTag;
+  LibraryName libraryTag;
   bool canUseNative = false;
 
   /**

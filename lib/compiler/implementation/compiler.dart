@@ -698,9 +698,7 @@ abstract class Compiler implements DiagnosticListener {
     throw new CompilerCancelledException(message.toString());
   }
 
-  void reportMessage(SourceSpan span,
-                     Diagnostic message,
-                     api.Diagnostic kind) {
+  void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
@@ -750,7 +748,7 @@ abstract class Compiler implements DiagnosticListener {
         : spanFromTokens(position, position, uri);
   }
 
-  Script readScript(Uri uri, [ScriptTag node]) {
+  Script readScript(Uri uri, [LibraryTag node]) {
     unimplemented('Compiler.readScript');
   }
 
