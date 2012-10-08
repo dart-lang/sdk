@@ -61,6 +61,7 @@ cross_frame_test: Fail # Issue 5651
 contentelement_test: Fail   # ie does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
+inner_frame_test: Skip # Issue 5727 (timeout)
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
