@@ -2011,7 +2011,7 @@ class _ProxyConfiguration {
     });
   }
   const _ProxyConfiguration.direct()
-      : proxies = [const _Proxy.direct()];
+      : proxies = const [const _Proxy.direct()];
 
   final List<_Proxy> proxies;
 }
