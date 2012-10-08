@@ -2046,14 +2046,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         }
       }
-      // operator "negate" should return numeric type
-      if (modifiers.isOperator() && methodElement.getName().equals("-")
-          && methodElement.getParameters().isEmpty() && returnTypeNode != null) {
-        Type returnType = node.getElement().getFunctionType().getReturnType();
-        if (!types.isSubtype(returnType, numType)) {
-          typeError(returnTypeNode, TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE);
-        }
-      }
       // operator "[]=" should return void
       if (modifiers.isOperator() && methodElement.getName().equals("[]=")
           && returnTypeNode != null) {

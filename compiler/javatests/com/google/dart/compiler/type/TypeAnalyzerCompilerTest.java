@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -56,6 +53,9 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -3322,37 +3322,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-  }
-
-  /**
-   * It is a static warning if the return type of the user-declared "operator -" is explicitly
-   * declared and not a numerical type.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3224
-   */
-  public void test_negateOperatorType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  num operator -() {}",
-        "}",
-        "class B {",
-        "  int operator -() {}",
-        "}",
-        "class C {",
-        "  double operator -() {}",
-        "}",
-        "class D {",
-        "  String operator -() {}",
-        "}",
-        "class E {",
-        "  Object operator -() {}",
-        "}",
-        "");
-    assertErrors(
-        libraryResult.getErrors(),
-        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 12, 3, 6),
-        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
   }
 
   /**
