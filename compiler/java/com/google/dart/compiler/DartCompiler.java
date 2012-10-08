@@ -44,6 +44,7 @@ import com.google.dart.compiler.resolver.SupertypeResolver;
 import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.util.DefaultTextOutput;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -880,6 +881,9 @@ public class DartCompiler {
     private void reportMissingSource(DartCompilerContext context,
                                      LibrarySource libSrc,
                                      LibraryNode libNode) {
+      if (libNode != null && StringUtils.startsWith(libNode.getText(), "dart-ext:")) {
+        return;
+      }
       DartCompilationError event = new DartCompilationError(libNode,
                                                             DartCompilerErrorCode.MISSING_SOURCE,
                                                             libNode.getText());

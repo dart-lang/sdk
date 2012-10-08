@@ -104,6 +104,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.util.Lists;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -124,7 +125,7 @@ public class DartParser extends CompletionHooksParserBase {
   private final String sourceCode;
   private final boolean isDietParse;
   private final Set<String> prefixes;
-  private final boolean corelibParse;
+  private boolean allowNativeKeyword;
   private final Set<Integer> errorHistory = new HashSet<Integer>();
   private boolean isParsingInterface;
   private boolean isTopLevelAbstract;
@@ -231,7 +232,7 @@ public class DartParser extends CompletionHooksParserBase {
     this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    this.corelibParse = source != null && PackageLibraryManager.isDartUri(source.getUri());
+    this.allowNativeKeyword = source != null && PackageLibraryManager.isDartUri(source.getUri());
   }
 
   public static String read(Source source) throws IOException {
@@ -647,7 +648,12 @@ public class DartParser extends CompletionHooksParserBase {
     beginLiteral();
     expect(Token.STRING);
     DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
-
+    
+    // allow "native" if we have "dart-ext:" import
+    if (StringUtils.startsWith(libUri.getValue(), "dart-ext:")) {
+      allowNativeKeyword = true;
+    }
+    
     DartIdentifier prefix = null;
     if (optional(Token.AS)) {
       prefix = parseIdentifier();
@@ -696,9 +702,16 @@ public class DartParser extends CompletionHooksParserBase {
   protected DartImportDirective parseObsoleteImportDirective() {
     expect(Token.IMPORT);
     expect(Token.LPAREN);
+    
     beginLiteral();
     expect(Token.STRING);
     DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    
+    // allow "native" if we have "dart-ext:" import
+    if (StringUtils.startsWith(libUri.getValue(), "dart-ext:")) {
+      allowNativeKeyword = true;
+    }
+    
     DartBooleanLiteral export = null;
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     DartStringLiteral prefix = null;
@@ -953,7 +966,7 @@ public class DartParser extends CompletionHooksParserBase {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.NATIVE_ONLY_CLASS);
       }
-      if (!corelibParse) {
+      if (!allowNativeKeyword) {
         reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
       }
       beginLiteral();
@@ -1768,7 +1781,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (!optionalPseudoKeyword(NATIVE_KEYWORD)) {
       throw new AssertionError();
     }
-    if (!corelibParse) {
+    if (!allowNativeKeyword) {
       reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
     }
     DartExpression body = null;
