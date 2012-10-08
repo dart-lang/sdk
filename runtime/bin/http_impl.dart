@@ -2017,12 +2017,12 @@ class _ProxyConfiguration {
 }
 
 class _Proxy {
-  const _Proxy(this.host, this.port) : direct = false;
-  const _Proxy.direct() : host = null, port = null, direct = true;
+  const _Proxy(this.host, this.port) : isDirect = false;
+  const _Proxy.direct() : host = null, port = null, isDirect = true;
 
   final String host;
   final int port;
-  final bool direct;
+  final bool isDirect;
 }
 
 class _HttpClient implements HttpClient {
@@ -2144,7 +2144,7 @@ class _HttpClient implements HttpClient {
     String connectHost;
     int connectPort;
     _Proxy proxy = proxyConfiguration.proxies[0];
-    if (proxy.direct) {
+    if (proxy.isDirect) {
       connectHost = host;
       connectPort = port;
     } else {
@@ -2175,17 +2175,13 @@ class _HttpClient implements HttpClient {
         _SocketConnection socketConn =
             new _SocketConnection(connectHost, connectPort, socket);
         _activeSockets.add(socketConn);
-        _connectionOpened(socketConn,
-                          connection,
-                          !proxyConfiguration.proxies[0].direct);
+        _connectionOpened(socketConn, connection, !proxy.isDirect);
       };
     } else {
       _SocketConnection socketConn = socketConnections.removeFirst();
       _activeSockets.add(socketConn);
       new Timer(0, (ignored) =>
-                _connectionOpened(socketConn,
-                                  connection,
-                                  !proxyConfiguration.proxies[0].direct));
+                _connectionOpened(socketConn, connection, !proxy.isDirect));
 
       // Get rid of eviction timer if there are no more active connections.
       if (socketConnections.isEmpty()) _openSockets.remove(key);
