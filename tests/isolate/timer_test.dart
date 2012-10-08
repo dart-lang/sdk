@@ -5,41 +5,32 @@
 #library('timer_test');
 
 #import("dart:isolate");
+#import('../../pkg/unittest/unittest.dart');
 
-class TimerTest {
+const int STARTTIMEOUT = 1050;
+const int DECREASE = 200;
+const int ITERATIONS = 5;
 
-  static const int _STARTTIMEOUT = 1050;
-  static const int _DECREASE = 200;
-  static const int _ITERATIONS = 5;
+int startTime;
+int timeout;
+int iteration;
 
-  static void testSimpleTimer() {
-
-    void timeoutHandler(Timer timer) {
-      int endTime = (new Date.now()).millisecondsSinceEpoch;
-      Expect.equals(true, (endTime - _startTime) >= _timeout);
-      if (_iteration < _ITERATIONS) {
-        _iteration++;
-        _timeout = _timeout - _DECREASE;
-        _startTime = (new Date.now()).millisecondsSinceEpoch;
-        new Timer(_timeout, timeoutHandler);
-      }
-    }
-
-    _iteration = 0;
-    _timeout = _STARTTIMEOUT;
-    _startTime = (new Date.now()).millisecondsSinceEpoch;
-    new Timer(_timeout, timeoutHandler);
+void timeoutHandler(Timer timer) {
+  int endTime = (new Date.now()).millisecondsSinceEpoch;
+  expect((endTime - startTime) >= timeout);
+  if (iteration < ITERATIONS) {
+    iteration++;
+    timeout = timeout - DECREASE;
+    startTime = (new Date.now()).millisecondsSinceEpoch;
+    new Timer(timeout, expectAsync1(timeoutHandler));
   }
-
-  static void testMain() {
-    testSimpleTimer();
-  }
-
-  static int _startTime;
-  static int _timeout;
-  static int _iteration;
 }
 
 main() {
-  TimerTest.testMain();
+  test("timeout test", () {
+    iteration = 0;
+    timeout = STARTTIMEOUT;
+    startTime = (new Date.now()).millisecondsSinceEpoch;
+    new Timer(timeout, expectAsync1(timeoutHandler));
+  });
 }

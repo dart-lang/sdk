@@ -319,6 +319,12 @@ class _SpreadArgsHelper {
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
     ensureInitialized();
+    if (!(_currentTest >= 0 &&
+           _currentTest < _tests.length &&
+           _tests[_currentTest] != null)) {
+      print("No valid test, did you forget to run your test inside a call "
+          "to test()?");
+    }
     assert(_currentTest >= 0 &&
            _currentTest < _tests.length &&
            _tests[_currentTest] != null);

@@ -5,24 +5,17 @@
 #library('timer_cancel2_test');
 
 #import("dart:isolate");
+#import('../../pkg/unittest/unittest.dart');
 
-// Test that a timeout handler can cancel itself.
-class TimerCancel2Test {
-  static void testSelfCancel() {
+main() {
+  // Test that a timeout handler can cancel itself.
+  test("timer cancel test 2", () {
     var cancelTimer;
 
     void cancelHandler(Timer timer) {
       cancelTimer.cancel();
     }
 
-    cancelTimer = new Timer.repeating(1, cancelHandler);
-  }
-
-  static void testMain() {
-    testSelfCancel();
-  }
-}
-
-main() {
-  TimerCancel2Test.testMain();
+    cancelTimer = new Timer.repeating(1, expectAsync1(cancelHandler));
+  });
 }

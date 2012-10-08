@@ -37,6 +37,11 @@ mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 112
 mixed2_test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 message_test: Skip
 
+[ $runtime == ff ]
+# FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
+timer_test: Pass, Fail
+multiple_timer_test: Pass, Fail
+
 # TODO(ager): Update these.
 [ $runtime == ie && $system == windows ]
 v2*: Skip

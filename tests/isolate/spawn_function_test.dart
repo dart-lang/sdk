@@ -14,10 +14,10 @@ child() {
 main() {
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync(msg, _) {
+    port.receive(expectAsync2((msg, _) {
       port.close();
       expect(msg, equals('re: hi'));
-    });
+    }));
 
     SendPort s = spawnFunction(child);
     s.send('hi', port.toSendPort());
