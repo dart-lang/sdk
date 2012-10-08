@@ -117,10 +117,13 @@ class ProgressIndicator {
     return '${_padTime(min)}:${_padTime(sec)}';
   }
 
+  String _header(String header) => header;
+
   void _printFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
-    output.add('FAILED: ${test.configurationString} ${test.displayName}');
+    output.add(_header('FAILED: ${test.configurationString}'
+                       ' ${test.displayName}'));
     StringBuffer expected = new StringBuffer();
     expected.add('Expected: ');
     for (var expectation in test.expectedOutcomes) {
@@ -277,6 +280,7 @@ class ColorProgressIndicator extends CompactIndicator {
   ColorProgressIndicator(Date startTime, bool printTiming)
       : super(startTime, printTiming);
 
+  static int BOLD = 1;
   static int GREEN = 32;
   static int RED = 31;
   static int NONE = 0;
@@ -303,6 +307,12 @@ class ColorProgressIndicator extends CompactIndicator {
     addColorWrapped(progressLine, '-$failedPadded', failedColor);
     progressLine.addAll(']'.charCodes());
     stdout.write(progressLine);
+  }
+
+  String _header(String header) {
+    var result = [];
+    addColorWrapped(result, header, BOLD);
+    return new String.fromCharCodes(result);
   }
 }
 
