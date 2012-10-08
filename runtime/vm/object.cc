@@ -604,37 +604,37 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
   name = Symbols::OneByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
   name = Symbols::TwoByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
   name = Symbols::FourByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
   name = Symbols::ExternalOneByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
   name = Symbols::ExternalTwoByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
   name = Symbols::ExternalFourByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();

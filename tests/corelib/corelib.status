@@ -11,7 +11,6 @@ null_nosuchmethod_test: Fail # Bug 5518
 apply_test: Fail # Bug 5670
 
 [ $compiler == dartc ]
-*vm_test: Skip
 apply_test: Fail # Bug 5670
 
 [ $runtime == ff || $runtime == ie ]

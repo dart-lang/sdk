@@ -1285,7 +1285,8 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
 // Lookup class in the corelib implementation which contains various VM
 // helper methods and classes.
 static RawClass* LookupImplClass(const String& class_name) {
-  return Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name);
+  Library& coreimpl = Library::Handle(Library::CoreImplLibrary());
+  return coreimpl.LookupClassAllowPrivate(class_name);
 }
 
 

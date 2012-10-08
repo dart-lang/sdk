@@ -1,11 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing class 'StringBase' (currently VM specific).
 
 #library("StringBaseTest.dart");
-#import("dart:coreimpl");
-
 
 class StringBaseTest {
 
@@ -13,13 +11,6 @@ class StringBaseTest {
 
   toString() {
     return "StringBase Tester";
-  }
-  static testSubstringMatches() {
-    Expect.equals(true, "Hello".substringMatches(0, "Hello"));
-    Expect.equals(true, "Hello World".substringMatches(0, "Hello"));
-    Expect.equals(false, "My Hello World".substringMatches(0, "Hello"));
-    Expect.equals(true, "My Hello World".substringMatches(6, "lo W"));
-    Expect.equals(false, "Hello".substringMatches(0, "low"));
   }
 
   static testInterpolation() {
@@ -42,10 +33,6 @@ class StringBaseTest {
       a[i] = s.charCodeAt(i);
       ga.add(s.charCodeAt(i));
     }
-    String s2 = StringBase.createFromCharCodes(a);
-    Expect.equals(s, s2);
-    String s3 = StringBase.createFromCharCodes(ga);
-    Expect.equals(s, s3);
     try {
       String s4 = new String.fromCharCodes([0.0]);
     } on ArgumentError catch (ex) {
@@ -82,7 +69,6 @@ class StringBaseTest {
   }
 
   static void testMain() {
-    testSubstringMatches();
     testInterpolation();
     testCreation();
     testSubstring();

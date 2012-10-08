@@ -35,8 +35,8 @@ class Range;
   V(_ImmutableArray, get:length, ImmutableArrayLength)                         \
   V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
-  V(StringBase, get:length, StringBaseLength)                                  \
-  V(StringBase, isEmpty, StringBaseIsEmpty)                                    \
+  V(_StringBase, get:length, StringBaseLength)                                 \
+  V(_StringBase, isEmpty, StringBaseIsEmpty)                                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toDouble, DoubleToDouble)                                         \
   V(::, sqrt, MathSqrt)                                                        \

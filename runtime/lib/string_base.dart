@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * [StringBase] contains common methods used by concrete String implementations,
- * e.g., OneByteString.
+ * [_StringBase] contains common methods used by concrete String
+ * implementations, e.g., _OneByteString.
  */
-class StringBase {
+class _StringBase {
 
-  factory StringBase._uninstantiable() {
+  factory _StringBase._uninstantiable() {
     throw const UnsupportedOperationException(
-        "StringBase can't be instaniated");
+        "_StringBase can't be instaniated");
   }
 
   int hashCode() native "String_hashCode";
@@ -83,7 +83,7 @@ class StringBase {
     return 0;
   }
 
-  bool substringMatches(int start, String other) {
+  bool _substringMatches(int start, String other) {
     if (other.isEmpty()) return true;
     if ((start < 0) || (start >= this.length)) {
       return false;
@@ -101,11 +101,11 @@ class StringBase {
   }
 
   bool endsWith(String other) {
-    return this.substringMatches(this.length - other.length, other);
+    return _substringMatches(this.length - other.length, other);
   }
 
   bool startsWith(String other) {
-    return this.substringMatches(0, other);
+    return _substringMatches(0, other);
   }
 
   int indexOf(String other, [int start = 0]) {
@@ -117,7 +117,7 @@ class StringBase {
     }
     int len = this.length - other.length + 1;
     for (int index = start; index < len; index++) {
-      if (this.substringMatches(index, other)) {
+      if (_substringMatches(index, other)) {
         return index;
       }
     }
@@ -133,7 +133,7 @@ class StringBase {
       start = this.length - 1;
     }
     for (int index = start; index >= 0; index--) {
-      if (this.substringMatches(index, other)) {
+      if (_substringMatches(index, other)) {
         return index;
       }
     }
@@ -354,10 +354,10 @@ class StringBase {
 }
 
 
-class OneByteString extends StringBase implements String {
-  factory OneByteString._uninstantiable() {
+class _OneByteString extends _StringBase implements String {
+  factory _OneByteString._uninstantiable() {
     throw const UnsupportedOperationException(
-        "OneByteString can only be allocated by the VM");
+        "_OneByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.
@@ -372,10 +372,10 @@ class OneByteString extends StringBase implements String {
 }
 
 
-class TwoByteString extends StringBase implements String {
-  factory TwoByteString._uninstantiable() {
+class _TwoByteString extends _StringBase implements String {
+  factory _TwoByteString._uninstantiable() {
     throw const UnsupportedOperationException(
-        "TwoByteString can only be allocated by the VM");
+        "_TwoByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.
@@ -389,10 +389,10 @@ class TwoByteString extends StringBase implements String {
 }
 
 
-class FourByteString extends StringBase implements String {
-  factory FourByteString._uninstantiable() {
+class _FourByteString extends _StringBase implements String {
+  factory _FourByteString._uninstantiable() {
     throw const UnsupportedOperationException(
-        "FourByteString can only be allocated by the VM");
+        "_FourByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.
@@ -406,10 +406,10 @@ class FourByteString extends StringBase implements String {
 }
 
 
-class ExternalOneByteString extends StringBase implements String {
-  factory ExternalOneByteString._uninstantiable() {
+class _ExternalOneByteString extends _StringBase implements String {
+  factory _ExternalOneByteString._uninstantiable() {
     throw const UnsupportedOperationException(
-        "ExternalOneByteString can only be allocated by the VM");
+        "_ExternalOneByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.
@@ -423,10 +423,10 @@ class ExternalOneByteString extends StringBase implements String {
 }
 
 
-class ExternalTwoByteString extends StringBase implements String {
+class _ExternalTwoByteString extends _StringBase implements String {
   factory ExternalTwoByteString._uninstantiable() {
     throw const UnsupportedOperationException(
-        "ExternalTwoByteString can only be allocated by the VM");
+        "_ExternalTwoByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.
@@ -440,8 +440,8 @@ class ExternalTwoByteString extends StringBase implements String {
 }
 
 
-class ExternalFourByteString extends StringBase implements String {
-  factory ExternalFourByteString._uninstantiable() {
+class _ExternalFourByteString extends _StringBase implements String {
+  factory _ExternalFourByteString._uninstantiable() {
     throw const UnsupportedOperationException(
         "ExternalFourByteString can only be allocated by the VM");
   }

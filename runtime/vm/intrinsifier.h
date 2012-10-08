@@ -74,10 +74,10 @@ namespace dart {
   V(Object, ==, Object_equal)                                                  \
   V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                \
   V(_FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)          \
-  V(StringBase, get:length, String_getLength)                                  \
-  V(StringBase, charCodeAt, String_charCodeAt)                                 \
-  V(StringBase, hashCode, String_hashCode)                                     \
-  V(StringBase, isEmpty, String_isEmpty)                                       \
+  V(_StringBase, get:length, String_getLength)                                 \
+  V(_StringBase, charCodeAt, String_charCodeAt)                                \
+  V(_StringBase, hashCode, String_hashCode)                                    \
+  V(_StringBase, isEmpty, String_isEmpty)                                      \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
   V(_Int8Array, [], Int8Array_getIndexed)                                      \
   V(_Uint8Array, [], Uint8Array_getIndexed)                                    \
