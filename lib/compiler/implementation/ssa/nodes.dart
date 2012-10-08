@@ -589,11 +589,6 @@ class HBasicBlock extends HInstructionList {
     block.predecessors.add(this);
   }
 
-  void removeSuccessor(HBasicBlock successor) {
-    successors.removeAt(successors.indexOf(successor));
-    successor.predecessors.removeAt(successors.predecessors.indexOf(this));
-  }
-
   void postProcessLoopHeader() {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the

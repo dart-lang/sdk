@@ -475,9 +475,10 @@ class PlaceholderCollector extends Visitor {
       } else {
         if (hasPrefix) {
           assert(node.typeName is Send);
-          assert(node.typeName.receiver is Identifier);
-          assert(node.typeName.selector is Identifier);
-          makeNullPlaceholder(node.typeName.receiver);
+          Send typeName = node.typeName;
+          assert(typeName.receiver is Identifier);
+          assert(typeName.selector is Identifier);
+          makeNullPlaceholder(typeName.receiver);
         }
         if (typeElement !== dynamicTypeElement) {
           makeTypePlaceholder(target, type);
