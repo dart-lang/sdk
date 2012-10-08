@@ -66,11 +66,20 @@ test_or_1() {
   } finally { }
 }
 
+test_func(x, y) => (x & y) + 1.0;
+
+test_mint_double_op() {
+  for (var i=0; i<10000; i++) test_func(4294967295, 1);
+  Expect.equals(2.0, test_func(4294967295, 1));
+  Expect.equals(4294967296.0, test_func(4294967295, 1));
+}
+
 main() {
   for (var i = 0; i < 5; i++) {
     test_and_1();
     test_and_2();
     test_xor_1();
     test_or_1();
+    test_mint_double_op();
   }
 }

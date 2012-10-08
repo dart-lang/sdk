@@ -80,28 +80,40 @@ void FlowGraphOptimizer::OptimizeComputations() {
 }
 
 
-static Definition* CreateConversion(Representation from,
-                                    Representation to,
-                                    Definition* def,
-                                    Instruction* deopt_target) {
+void FlowGraphOptimizer::InsertConversion(Representation from,
+                                          Representation to,
+                                          Instruction* instr,
+                                          Value* use,
+                                          Definition* def,
+                                          Instruction* deopt_target) {
+  Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    return new UnboxIntegerInstr(new Value(def), deopt_id);
+    converted = new UnboxIntegerInstr(new Value(def), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
-    return new BoxIntegerInstr(new Value(def));
+    converted = new BoxIntegerInstr(new Value(def));
+  } else if (from == kUnboxedMint && to == kUnboxedDouble) {
+    // Convert by boxing/unboxing.
+    // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
+    BoxIntegerInstr* boxed = new BoxIntegerInstr(new Value(def));
+    InsertBefore(instr, boxed, NULL, Definition::kValue);
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    return new BoxDoubleInstr(new Value(def), NULL);
+    converted = new BoxDoubleInstr(new Value(def), NULL);
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    return new UnboxDoubleInstr(new Value(def), deopt_id);
-  } else {
-    UNREACHABLE();
-    return NULL;
+    converted = new UnboxDoubleInstr(new Value(def), deopt_id);
   }
+  ASSERT(converted != NULL);
+  InsertBefore(instr, converted, use->instruction()->env(),
+               Definition::kValue);
+  use->set_definition(converted);
 }
 
 
@@ -130,11 +142,7 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
       deopt_target = instr;
     }
 
-    Definition* converted =
-        CreateConversion(from_rep, to_rep, def, deopt_target);
-    InsertBefore(instr, converted, use->instruction()->env(),
-                 Definition::kValue);
-    use->set_definition(converted);
+    InsertConversion(from_rep, to_rep, instr, use, def, deopt_target);
   }
 }
 

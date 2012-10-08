@@ -62,6 +62,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InsertConversionsFor(Definition* def);
 
+  void InsertConversion(Representation from,
+                        Representation to,
+                        Instruction* instr,
+                        Value* use,
+                        Definition* def,
+                        Instruction* deopt_target);
+
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
 
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
