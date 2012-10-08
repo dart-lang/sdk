@@ -356,6 +356,7 @@ class Parser : public ValueObject {
       const String& function_name, const ArgumentListNode& function_args);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
+                                bool resolve_getter,
                                 bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);

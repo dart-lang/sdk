@@ -421,8 +421,11 @@ Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # 
 
 
 # function 'func' not found in super class, getter 'func' should be invoked first.
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t01: Fail # Issue 3621
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # Issue 3621
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 
 
 # function '?' of class '?' conflicts with getter 'f' of super class '?'

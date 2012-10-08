@@ -1256,18 +1256,26 @@ void Parser::CheckFunctionIsCallable(intptr_t token_pos,
 
 
 // Resolve and return the dynamic function of the given name in the superclass.
-// If it is not found, return noSuchMethod and set is_no_such_method to true.
+// If it is not found, and resolve_getter is true, try to resolve a getter of
+// the same name. If it is still not found, return noSuchMethod and
+// set is_no_such_method to true..
 RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
                                       const String& name,
+                                      bool resolve_getter,
                                       bool* is_no_such_method) {
   const Class& super_class = Class::Handle(current_class().SuperClass());
   if (super_class.IsNull()) {
     ErrorMsg(token_pos, "class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
   }
-
   Function& super_func =
       Function::Handle(Resolver::ResolveDynamicAnyArgs(super_class, name));
+  if (super_func.IsNull() && resolve_getter) {
+    const String& getter_name = String::ZoneHandle(Field::GetterName(name));
+    super_func = Resolver::ResolveDynamicAnyArgs(super_class, getter_name);
+    ASSERT(super_func.IsNull() ||
+           (super_func.kind() != RawFunction::kConstImplicitGetter));
+  }
   if (super_func.IsNull()) {
     const String& no_such_method_name = String::Handle(Symbols::NoSuchMethod());
     super_func =
@@ -1330,11 +1338,27 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   ASSERT(CurrentToken() == Token::kLPAREN);
   const intptr_t supercall_pos = TokenPos();
 
+  const bool kResolveGetter = true;
   bool is_no_such_method = false;
   const Function& super_function = Function::ZoneHandle(
-      GetSuperFunction(supercall_pos, function_name, &is_no_such_method));
-
+      GetSuperFunction(supercall_pos,
+                       function_name,
+                       kResolveGetter,
+                       &is_no_such_method));
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
+  if (super_function.IsGetterFunction() ||
+      super_function.IsImplicitGetterFunction()) {
+    // 'this' is not passed as parameter to the closure.
+    ParseActualParameters(arguments, kAllowConst);
+    const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
+    AstNode* closure = new StaticGetterNode(supercall_pos,
+                                            LoadReceiver(supercall_pos),
+                                            /* is_super_getter */ true,
+                                            super_class,
+                                            function_name);
+    EnsureExpressionTemp();
+    return new ClosureCallNode(supercall_pos, closure, arguments);
+  }
   // 'this' parameter is the first argument to super call.
   AstNode* receiver = LoadReceiver(supercall_pos);
   arguments->Add(receiver);
@@ -1385,10 +1409,12 @@ AstNode* Parser::ParseSuperOperator() {
     // Resolve the [] operator function in the superclass.
     const String& index_operator_name =
         String::ZoneHandle(Symbols::IndexToken());
+    const bool kResolveGetter = false;
     bool is_no_such_method = false;
     const Function& index_operator = Function::ZoneHandle(
         GetSuperFunction(operator_pos,
                          index_operator_name,
+                         kResolveGetter,
                          &is_no_such_method));
 
     ArgumentListNode* index_op_arguments = new ArgumentListNode(operator_pos);
@@ -1413,10 +1439,12 @@ AstNode* Parser::ParseSuperOperator() {
       // Resolve the []= operator function in the superclass.
       const String& assign_index_operator_name =
           String::ZoneHandle(Symbols::AssignIndexToken());
+      const bool kResolveGetter = false;
       bool is_no_such_method = false;
       const Function& assign_index_operator = Function::ZoneHandle(
           GetSuperFunction(operator_pos,
                            assign_index_operator_name,
+                           kResolveGetter,
                            &is_no_such_method));
 
       ArgumentListNode* operator_args = new ArgumentListNode(operator_pos);
@@ -1438,10 +1466,12 @@ AstNode* Parser::ParseSuperOperator() {
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
         String::Handle(Symbols::New(Token::Str(op)));
+    const bool kResolveGetter = false;
     bool is_no_such_method = false;
     const Function& super_operator = Function::ZoneHandle(
         GetSuperFunction(operator_pos,
                          operator_function_name,
+                         kResolveGetter,
                          &is_no_such_method));
 
     ASSERT(Token::Precedence(op) >= Token::Precedence(Token::kBIT_OR));
@@ -4693,7 +4723,7 @@ AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
 AstNode* Parser::CallGetter(intptr_t token_pos,
                             AstNode* object,
                             const String& name) {
-  return new InstanceGetterNode(TokenPos(), object, name);
+  return new InstanceGetterNode(token_pos, object, name);
 }
 
 

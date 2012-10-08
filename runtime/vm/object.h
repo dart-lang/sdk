@@ -1326,6 +1326,11 @@ class Function : public Object {
     return kind() == RawFunction::kGetterFunction;
   }
 
+  // Returns true if this function represents an implicit getter function.
+  bool IsImplicitGetterFunction() const {
+    return kind() == RawFunction::kImplicitGetter;
+  }
+
   // Returns true if this function represents an explicit setter function.
   bool IsSetterFunction() const {
     return kind() == RawFunction::kSetterFunction;
