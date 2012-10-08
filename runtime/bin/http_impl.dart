@@ -846,6 +846,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
+      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
@@ -875,6 +876,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
 
   void _onDataEnd() {
     if (_inputStream != null) _inputStream._closeReceived();
+    _dataEndCalled = true;
   }
 
   // Escaped characters in uri are expected to have been parsed.
@@ -917,6 +919,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   Map<String, String> _queryParameters;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
+  bool _dataEndCalled = false;
   Function _streamErrorHandler;
 }
 
@@ -1544,7 +1547,7 @@ class _HttpServer implements HttpServer {
 class _HttpClientRequest
     extends _HttpRequestResponseBase implements HttpClientRequest {
   _HttpClientRequest(String this._method,
-                     String this._uri,
+                     Uri this._uri,
                      _HttpClientConnection connection)
       : super(connection) {
     _connection = connection;
@@ -1613,7 +1616,23 @@ class _HttpClientRequest
     data = _method.toString().charCodes();
     _httpConnection._write(data);
     _writeSP();
-    data = _uri.toString().charCodes();
+    // Send the path for direct connections and the whole URL for
+    // proxy connections.
+    if (!_connection._usingProxy) {
+      String path;
+      if (_uri.query != "") {
+        if (_uri.fragment != "") {
+          path = "${_uri.path}?${_uri.query}#${_uri.fragment}";
+        } else {
+          path = "${_uri.path}?${_uri.query}";
+        }
+      } else {
+         path = _uri.path;
+      }
+      data = path.charCodes();
+    } else {
+      data = _uri.toString().charCodes();
+    }
     _httpConnection._write(data);
     _writeSP();
     _httpConnection._write(_Const.HTTP11);
@@ -1646,7 +1665,7 @@ class _HttpClientRequest
   }
 
   String _method;
-  String _uri;
+  Uri _uri;
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
   Function _streamErrorHandler;
@@ -1685,6 +1704,7 @@ class _HttpClientResponse
   InputStream get inputStream {
     if (_inputStream == null) {
       _inputStream = new _HttpInputStream(this);
+      _inputStream._streamMarkedClosed = _dataEndCalled;
     }
     return _inputStream;
   }
@@ -1746,6 +1766,7 @@ class _HttpClientResponse
   void _onDataEnd() {
     _connection._responseDone();
     if (_inputStream != null) _inputStream._closeReceived();
+    _dataEndCalled = true;
   }
 
   // Delegate functions for the HttpInputStream implementation.
@@ -1773,6 +1794,8 @@ class _HttpClientResponse
   _HttpClientConnection _connection;
   _HttpInputStream _inputStream;
   _BufferList _buffer;
+  bool _dataEndCalled = false;
+
   Function _streamErrorHandler;
 }
 
@@ -1810,7 +1833,7 @@ class _HttpClientConnection
     _socketConn = null;
   }
 
-  HttpClientRequest open(String method, String uri) {
+  HttpClientRequest open(String method, Uri uri) {
     _method = method;
     // Tell the HTTP parser the method it is expecting a response to.
     _httpParser.responseToMethod = method;
@@ -1913,6 +1936,7 @@ class _HttpClientConnection
   HttpClientRequest _request;
   HttpClientResponse _response;
   String _method;
+  bool _usingProxy;
 
   // Redirect handling
   bool followRedirects = true;
@@ -1948,6 +1972,58 @@ class _SocketConnection {
   Date _returnTime;
 }
 
+class _ProxyConfiguration {
+  static const String PROXY_PREFIX = "PROXY ";
+  static const String DIRECT_PREFIX = "DIRECT";
+
+      _ProxyConfiguration(String configuration) : proxies = new List<_Proxy>() {
+    if (configuration == null) {
+      throw new HttpException("Invalid proxy configuration $configuration");
+    }
+    List<String> list = configuration.split(";");
+    list.forEach((String proxy) {
+      proxy = proxy.trim();
+      if (!proxy.isEmpty()) {
+        if (proxy.startsWith(PROXY_PREFIX)) {
+          int colon = proxy.indexOf(":");
+          if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
+            throw new HttpException(
+                "Invalid proxy configuration $configuration");
+          }
+          // Skip the "PROXY " prefix.
+          String host = proxy.substring(PROXY_PREFIX.length, colon).trim();
+          String portString = proxy.substring(colon + 1).trim();
+          int port;
+          try {
+            port = int.parse(portString);
+          } on FormatException catch (e) {
+            throw new HttpException(
+                "Invalid proxy configuration $configuration, "
+                "invalid port '$portString'");
+          }
+          proxies.add(new _Proxy(host, port));
+        } else if (proxy.trim() == DIRECT_PREFIX) {
+          proxies.add(new _Proxy.direct());
+        } else {
+          throw new HttpException("Invalid proxy configuration $configuration");
+        }
+      }
+    });
+  }
+  const _ProxyConfiguration.direct()
+      : proxies = [const _Proxy.direct()];
+
+  final List<_Proxy> proxies;
+}
+
+class _Proxy {
+  const _Proxy(this.host, this.port) : direct = false;
+  const _Proxy.direct() : host = null, port = null, direct = true;
+
+  final String host;
+  final int port;
+  final bool direct;
+}
 
 class _HttpClient implements HttpClient {
   static const int DEFAULT_EVICTION_TIMEOUT = 60000;
@@ -1975,7 +2051,7 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection openUrl(String method, Uri url) {
-    _openUrl(method, url);
+    return _openUrl(method, url);
   }
 
   HttpClientConnection _openUrl(String method,
@@ -2001,6 +2077,8 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection postUrl(Uri url) => _openUrl("POST", url);
+
+  set findProxy(String f(Uri uri)) => _findProxy = f;
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
@@ -2034,19 +2112,11 @@ class _HttpClient implements HttpClient {
     int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
 
     void _connectionOpened(_SocketConnection socketConn,
-                           _HttpClientConnection connection) {
+                           _HttpClientConnection connection,
+                           bool usingProxy) {
+      connection._usingProxy = usingProxy;
       connection._connectionEstablished(socketConn);
-      String path;
-      if (url.query != "") {
-        if (url.fragment != "") {
-          path = "${url.path}?${url.query}#${url.fragment}";
-        } else {
-          path = "${url.path}?${url.query}";
-        }
-      } else {
-        path = url.path;
-      }
-      HttpClientRequest request = connection.open(method, path);
+      HttpClientRequest request = connection.open(method, url);
       request.headers.host = host;
       request.headers.port = port;
       if (connection._onRequest != null) {
@@ -2062,12 +2132,32 @@ class _HttpClient implements HttpClient {
     }
     connection.onDetach = () => _activeSockets.remove(connection._socketConn);
 
+    // Check to see if a proxy server should be used for this connection.
+    _ProxyConfiguration proxyConfiguration = const _ProxyConfiguration.direct();
+    if (_findProxy != null) {
+      // TODO(sgjesse): Keep a map of these as normally only a few
+      // configuration strings will be used.
+      proxyConfiguration = new _ProxyConfiguration(_findProxy(url));
+    }
+
+    // Determine the actual host to connect to.
+    String connectHost;
+    int connectPort;
+    _Proxy proxy = proxyConfiguration.proxies[0];
+    if (proxy.direct) {
+      connectHost = host;
+      connectPort = port;
+    } else {
+      connectHost = proxy.host;
+      connectPort = proxy.port;
+    }
+
     // If there are active connections for this key get the first one
     // otherwise create a new one.
-    String key = _connectionKey(host, port);
+    String key = _connectionKey(connectHost, connectPort);
     Queue socketConnections = _openSockets[key];
     if (socketConnections == null || socketConnections.isEmpty()) {
-      Socket socket = new Socket(host, port);
+      Socket socket = new Socket(connectHost, connectPort);
       // Until the connection is established handle connection errors
       // here as the HttpClientConnection object is not yet associated
       // with the socket.
@@ -2083,14 +2173,19 @@ class _HttpClient implements HttpClient {
         // the connected socket.
         socket.onError = null;
         _SocketConnection socketConn =
-            new _SocketConnection(host, port, socket);
+            new _SocketConnection(connectHost, connectPort, socket);
         _activeSockets.add(socketConn);
-        _connectionOpened(socketConn, connection);
+        _connectionOpened(socketConn,
+                          connection,
+                          !proxyConfiguration.proxies[0].direct);
       };
     } else {
       _SocketConnection socketConn = socketConnections.removeFirst();
       _activeSockets.add(socketConn);
-      new Timer(0, (ignored) => _connectionOpened(socketConn, connection));
+      new Timer(0, (ignored) =>
+                _connectionOpened(socketConn,
+                                  connection,
+                                  !proxyConfiguration.proxies[0].direct));
 
       // Get rid of eviction timer if there are no more active connections.
       if (socketConnections.isEmpty()) _openSockets.remove(key);
