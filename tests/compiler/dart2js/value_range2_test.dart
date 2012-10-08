@@ -42,18 +42,75 @@ checkAndRange(Range one, Range two, lower, upper) {
 }
 
 checkSubRange(Range one, Range two, [lower, upper]) {
+
+  buildBound(one, two) {
+    // Create a bound just like our current implementation in dart2js does.
+    if (two is IntValue) {
+      if (two.isNegative()) {
+        return new AddValue(one, -two);
+      } else if (two.isZero()) {
+        return one;
+      }
+    }
+    if (one is IntValue) {
+      if (one.isNegative()) {
+        return new SubtractValue(-two, -one);
+      } else if (one.isZero()) {
+        return -two;
+      }
+    }
+    return new SubtractValue(one, two);
+  }
+
   if (lower == null) {
-    lower = new OperationValue(one.lower, two.upper, const SubtractOperation());
+    lower = buildBound(one.lower, two.upper);
   } else if (lower is num) {
     lower = new IntValue(lower);
   }
   if (upper == null) {
-    upper = new OperationValue(one.upper, two.lower, const SubtractOperation());
+    upper = buildBound(one.upper, two.lower);
   } else if (upper is num) {
     upper = new IntValue(upper);
   }
 
   Expect.equals(new Range(lower, upper), one - two);
+}
+
+checkNegateRange(Range range, [arg1, arg2]) {
+  if (arg1 is Range) {
+    Expect.equals(arg1, -range);
+  } else {
+    Value low, up;
+    if (arg1 is num) {
+      low = new IntValue(arg1);
+    } else if (arg1 == null) {
+      low = new NegateValue(range.upper);
+    } else {
+      low = arg1;
+    }
+    if (arg2 is num) {
+      up = new IntValue(arg2);
+    } else if (arg2 == null) {
+      up = new NegateValue(range.lower);
+    } else {
+      up = arg2;
+    }
+    Expect.equals(new Range(low, up), -range);
+  }
+}
+
+testNegate() {
+  checkNegateRange(instruction);
+  checkNegateRange(FF, nFF);
+  checkNegateRange(nFF, FF);
+  checkNegateRange(FA, -0xFA, -0xFA);
+  checkNegateRange(length);
+  checkNegateRange(_FA_FF, -0xFF, -0xFA);
+  checkNegateRange(_0_FF, _nFF_0);
+  checkNegateRange(_nFF_FF, _nFF_FF);
+  checkNegateRange(_nFF_0, _0_FF);
+  checkNegateRange(_0_length, -lengthValue, 0);
+  checkNegateRange(_0_instruction, -instructionValue, 0);
 }
 
 testAnd() {
@@ -309,4 +366,5 @@ main() {
   HInstruction.idCounter = 0;
   testAnd();
   testSub();
+  testNegate();
 }

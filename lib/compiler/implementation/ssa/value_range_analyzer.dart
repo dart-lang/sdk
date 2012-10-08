@@ -12,6 +12,7 @@ abstract class Value {
 
   Value operator +(Value other);
   Value operator -(Value other);
+  Value operator -();
   Value operator &(Value other);
 
   Value min(Value other) {
@@ -47,15 +48,20 @@ class IntValue extends Value {
   const IntValue(this.value);
 
   Value operator +(other) {
+    if (other.isZero()) return this;
     if (other is !IntValue) return other + this;
     return new IntValue(value + other.value);
   }
 
   Value operator -(other) {
-    if (other is !IntValue) {
-      return new OperationValue(this, other, const SubtractOperation());
-    }
+    if (other.isZero()) return this;
+    if (other is !IntValue) return -other + this;
     return new IntValue(value - other.value);
+  }
+
+  Value operator -() {
+    if (isZero()) return this;
+    return new IntValue(-value);
   }
 
   Value operator &(other) {
@@ -96,6 +102,7 @@ class MaxIntValue extends Value {
   const MaxIntValue();
   Value operator +(Value other) => this;
   Value operator -(Value other) => this;
+  Value operator -() => const MinIntValue();
   Value operator &(Value other) {
     if (other.isPositive()) return other;
     if (other.isNegative()) return const IntValue(0);
@@ -116,6 +123,7 @@ class MinIntValue extends Value {
   const MinIntValue();
   Value operator +(Value other) => this;
   Value operator -(Value other) => this;
+  Value operator -() => const MaxIntValue();
   Value operator &(Value other) {
     if (other.isPositive()) return const IntValue(0);
     return this;
@@ -135,6 +143,7 @@ class UnknownValue extends Value {
   const UnknownValue();
   Value operator +(Value other) => const UnknownValue();
   Value operator -(Value other) => const UnknownValue();
+  Value operator -() => const UnknownValue();
   Value operator &(Value other) => const UnknownValue();
   Value min(Value other) => const UnknownValue();
   Value max(Value other) => const UnknownValue();
@@ -157,13 +166,35 @@ class InstructionValue extends Value {
 
   Value operator +(Value other) {
     if (other.isZero()) return this;
-    return new OperationValue(this, other, const AddOperation());
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(this, -other);
+      }
+      return new AddValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new AddValue(this, other);
+    }
+    return other + this;
   }
 
   Value operator -(Value other) {
     if (other.isZero()) return this;
     if (this == other) return const IntValue(0);
-    return new OperationValue(this, other, const SubtractOperation());
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new AddValue(this, -other);
+      }
+      return new SubtractValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(this, other);
+    }
+    return -other + this;
+  }
+
+  Value operator -() {
+    return new NegateValue(this);
   }
 
   Value operator &(Value other) {
@@ -193,56 +224,155 @@ class LengthValue extends InstructionValue {
  * did not yield a canonical value.
  */
 class OperationValue extends Value {
+  Operation operation;
+}
+
+class BinaryOperationValue extends OperationValue {
   final Value left;
   final Value right;
-  final BinaryOperation operation;
-  OperationValue(this.left, this.right, this.operation);
+  BinaryOperationValue(this.left, this.right);
+}
+
+class AddValue extends BinaryOperationValue {
+  AddValue(left, right) : super(left, right);
 
   bool operator ==(other) {
-    if (other is !OperationValue) return false;
-    return left == other.left
-        && right == other.right
-        && operation == other.operation;
+    if (other is !AddValue) return false;
+    return (left == other.left && right == other.right)
+      || (left == other.right && right == other.left);
   }
 
-  Value operator +(Value other) => const UnknownValue();
   Value operator &(Value other) => const UnknownValue();
+  Value operator -() => -left - right;
 
-  Value operator -(Value other) {
-    if (operation is! SubtractOperation && operation is! AddOperation) {
-      return const UnknownValue();
-    }
-    // We try to create a simple [Value] out of this operation. So we
-    // first try to substract [other] to [left]. If the result is simple
-    // enough (not unknown and not an operation), we return the result
-    // of doing the operation of this [OperationValue] on the previous
-    // result and [right].
-    //
-    // For example:
-    // OperationValue(LengthValue(i1), IntValue(42), '-') - LengthValue(i1)
-    //
-    // Will return IntValue(-42)
-    Value value = left - other;
-    if (value != const UnknownValue() && value is! OperationValue) {
-      return operation.apply(value, right);
+  Value operator +(Value other) {
+    if (other.isZero()) return this;
+    Value value = left + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value + right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
-    if (operation is SubtractOperation) {
-      value = right + other;
-    } else {
-      assert(operation is AddOperation);
-      value = right - other;
-    }
-    if (value != const UnknownValue() && value is! OperationValue) {
-      return operation.apply(left, value);
+    value = right + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
     }
     return const UnknownValue();
   }
 
-  bool isNegative() => false;
-  bool isPositive() => false;
-  String toString() => '$left ${operation.name} $right';
+  Value operator -(Value other) {
+    if (other.isZero()) return this;
+    Value value = left - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value + right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = right - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
+    }
+    return const UnknownValue();
+  }
+
+  bool isNegative() => left.isNegative() && right.isNegative();
+  bool isPositive() => left.isPositive() && right.isPositive();
+  String toString() => '$left + $right';
+}
+
+class SubtractValue extends BinaryOperationValue {
+  SubtractValue(left, right) : super(left, right);
+
+  bool operator ==(other) {
+    if (other is !SubtractValue) return false;
+    return left == other.left && right == other.right;
+  }
+
+  Value operator &(Value other) => const UnknownValue();
+  Value operator -() => right - left;
+
+  Value operator +(Value other) {
+    if (other.isZero()) return this;
+    Value value = left + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value - right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = other - right;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
+    }
+    return const UnknownValue();
+  }
+
+  Value operator -(Value other) {
+    if (other.isZero()) return this;
+    Value value = left - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value - right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = right + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left - value;
+    }
+    return const UnknownValue();
+  }
+
+  bool isNegative() => left.isNegative() && right.isPositive();
+  bool isPositive() => left.isPositive() && right.isNegative();
+  String toString() => '$left - $right';
+}
+
+class NegateValue extends OperationValue {
+  final Value value;
+  NegateValue(this.value);
+
+  bool operator ==(other) {
+    if (other is !NegateValue) return false;
+    return value == other.value;
+  }
+
+  Value operator +(other) {
+    if (other.isZero()) return this;
+    if (other == value) return const IntValue(0);
+    if (other is NegateValue) return this - other.value;
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(this, -other);
+      }
+      return new SubtractValue(other, value);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(other, value);
+    }
+    return other - value;
+  }
+
+  Value operator &(Value other) => const UnknownValue();
+
+  Value operator -(other) {
+    if (other.isZero()) return this;
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(-other, value);
+      }
+      return new SubtractValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(this, other);
+    }
+    if (other is NegateValue) return this + other.value;
+    return -other - value;
+  }
+
+  Value operator -() => value;
+
+  bool isNegative() => value.isPositive();
+  bool isPositive() => value.isNegative();
+  String toString() => '-$value';
 }
 
 /**
@@ -293,6 +423,10 @@ class Range {
 
   Range operator -(Range other) {
     return new Range.normalize(lower - other.upper, upper - other.lower);
+  }
+
+  Range operator -() {
+    return new Range.normalize(-upper, -lower);
   }
 
   Range operator &(Range other) {
