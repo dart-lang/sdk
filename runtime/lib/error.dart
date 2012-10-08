@@ -98,7 +98,7 @@ class NoSuchMethodErrorImplementation implements NoSuchMethodError {
         "NoSuchMethodError can only be allocated by the VM");
   }
 
-  String toString() => "No such method: url '$url' line $line "
+  String toString() => "No such method: '$functionName', url '$url' line $line "
       "pos $column\n$failedResolutionLine\n";
 
   static _throwNew(int call_pos, String functionName)
