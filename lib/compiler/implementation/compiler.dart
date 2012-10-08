@@ -86,6 +86,8 @@ abstract class Backend {
   }
 
   SourceString getCheckedModeHelper(DartType type) => null;
+
+  abstract Element getInterceptor(Selector selector);
 }
 
 abstract class Compiler implements DiagnosticListener {

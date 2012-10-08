@@ -1719,16 +1719,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         world.registerStaticUse(target.declaration);
       }
     }
-
     if (target == null) {
       // If we haven't found an element for this send, it might be a
-      // dynamic send on a primitive value. If there is an interceptor
-      // for that send, register it.
-      var interceptor =
-          new Interceptors(compiler).getStaticInterceptorBySelector(selector);
-      if (interceptor !== null) {
-        world.registerStaticUse(interceptor);
-      }
+      // dynamic send on a primitive value. Register the selector with
+      // the world to add an interceptor, if necessary.
+      world.registerUsedSelector(selector);
     }
   }
 
