@@ -129,6 +129,7 @@ audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_pixel_array_type_alias_test: Fail
 canvas_test: Fail # createImageData not in Safari 5.
+canvasrenderingcontext2d_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
