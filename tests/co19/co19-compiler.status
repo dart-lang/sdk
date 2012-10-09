@@ -3,8 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # TODO(analyzer-team): Please triage this crash.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # TODO(analyzer-team): Please triage this crash.
+# We are now actually skipping these because of inter-test dependencies.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Skip # TODO(analyzer-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/3_Includes_A01_t23: Skip # TODO(analyzer-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Skip # TODO(analyzer-team): Please triage this crash.
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.

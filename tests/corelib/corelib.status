@@ -11,9 +11,6 @@ null_nosuchmethod_test: Fail # Bug 5518
 apply_test: Fail # Bug 5670
 apply2_test: Fail # Bug 5670
 
-[ $compiler == dartc ]
-apply_test: Fail # Bug 5670
-
 [ $runtime == ff || $runtime == ie ]
 unicode_test: Fail
 
