@@ -2047,7 +2047,6 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                kNumberOfArguments,
                                Array::Handle(),  // No argument names.,
                                locs());
-  __ Drop(1);
   __ Bind(&done);
 }
 
