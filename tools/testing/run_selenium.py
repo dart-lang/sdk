@@ -141,15 +141,23 @@ def print_server_error():
 
 def start_browser(browser, executable_path, html_out):
   if browser == 'chrome':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    crx = os.path.join(script_dir, 'extensions', 'chrome',
+                       'ConsoleCollector.crx')
+    options = selenium.webdriver.chrome.options.Options()
+    options.add_extension(crx)
     # Note: you need ChromeDriver *in your path* to run Chrome, in addition to
     # installing Chrome. Also note that the build bot runs have a different path
     # from a normal user -- check the build logs.
-    return selenium.webdriver.Chrome()
+    return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'dartium':
     script_dir = os.path.dirname(os.path.abspath(__file__))
     dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
                                'dartium')
+    crx = os.path.join(script_dir, 'extensions', 'chrome',
+                       'ConsoleCollector.crx')
     options = selenium.webdriver.chrome.options.Options()
+    options.add_extension(crx)
     # enable ShadowDOM and style scoped for Dartium
     options.add_argument('--enable-shadow-dom')
     options.add_argument('--enable-style-scoped')
@@ -170,7 +178,8 @@ def start_browser(browser, executable_path, html_out):
     profile.set_preference('dom.max_chrome_script_run_time', 0)
     profile.set_preference('app.update.auto', True)
     profile.set_preference('app.update.enabled', True)
-    xpi = os.path.join(script_dir, 'extensions', 'firefox',                               'ConsoleCollector.xpi')
+    xpi = os.path.join(script_dir, 'extensions', 'firefox',
+        'ConsoleCollector.xpi')
     profile.add_extension(xpi);
     return selenium.webdriver.Firefox(firefox_profile=profile)
   elif browser == 'ie' and platform.system() == 'Windows':
@@ -247,12 +256,16 @@ def report_results(mode, source, browser):
       index += len('<body>')
       end_index = source.find('</body')
       print unicode(source[index : end_index]).encode("utf-8")
+      logs = []
       if type(browser) is selenium.webdriver.firefox.webdriver.WebDriver:
         logs = browser.execute_script("return window.ConsoleCollector.read()");
-        for msg in logs:
-          print('%s:%s:%s:%s %s' %(
-              msg['source'], msg['line'], msg['column'],
-              msg['category'], msg['message']))
+      elif type(browser) is selenium.webdriver.chrome.webdriver.WebDriver:
+        browser.set_script_timeout(100)
+        logs = browser.execute_async_script(
+            "getMessages(arguments[arguments.length-1])");
+      for msg in logs:
+        print('%s:%s:%s %s' %(
+            msg['source'], msg['line'], msg['category'], msg['message']))
       return 1
 
 
