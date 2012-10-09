@@ -10,7 +10,8 @@ dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
 
 [ $compiler == none && $runtime == drt ]
-dummy_compiler_test: Fail # Issue 2264.
+dummy_compiler_test: Fail # http://dartbug.com/2264
+recursive_import_test: Fail # http://dartbug.com/2264
 
 [ $compiler == dart2js && $browser ]
 *: Skip
