@@ -563,6 +563,12 @@ class _IsolateNatives {
     _fillStatics(_globalState.currentContext);
     _lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
+    
+    if (_window != null)  {
+      _globalState.currentContext.eval(
+          () => _setTimerFactoryClosure(_timerFactory));
+    }
+
     topLevel();
   }
 

@@ -9,6 +9,7 @@ spawn_uri_test: Fail, OK # test uses a ".js" suffix that is bogus on vm.
 compute_this_script_browser_test: Skip # browser specific test
 timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                    # implement timer (currently only in d8)
+timer_isolate_test: Skip # See Issue 4997
 
 [ $compiler == none && $runtime == drt ]
 serialization_test: Skip  # tests dart2js-specific serialization code
@@ -16,6 +17,7 @@ spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # not implemented in dartium yet.
 spawn_uri_vm_negative_test: Skip
+timer_isolate_test: Pass, Fail # See Issue 4997
 timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                    # implement timer (currently only in d8)
 
@@ -39,8 +41,9 @@ message_test: Skip
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
-timer_test: Pass, Fail
 multiple_timer_test: Pass, Fail
+timer_isolate_test: Pass, Fail
+timer_test: Pass, Fail
 
 [ $runtime == ff && $system == windows ]
 message2_test: Skip # http://dartbug.com/5744 (bug causes hang, so skip test)
@@ -77,16 +80,17 @@ timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                    # implement timer (currently only in d8)
 
 [ $compiler == dart2js && $runtime == d8 ]
-spawn_uri_test: Fail, OK # loading another file is not supported in d8
+multiple_timer_test: Fail,OK # Needs Timer to run.
 spawn_uri_negative_test: Pass # for the wrong reasons (not supported in d8)
-spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
+spawn_uri_test: Fail, OK # loading another file is not supported in d8
 spawn_uri_vm_negative_test: Skip # ditto above.
+spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 timer_cancel_test: Fail,OK # Needs Timer to run.
 timer_cancel1_test: Fail,OK # Needs Timer to run.
 timer_cancel2_test: Fail,OK # Needs Timer to run.
-multiple_timer_test: Fail,OK # Needs Timer to run.
-timer_test: Fail,OK # Needs Timer to run.
+timer_isolate_test: Fail, OK # Needs Timer to run.
 timer_repeat_test: Fail,OK # Needs Timer to run.
+timer_test: Fail,OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
