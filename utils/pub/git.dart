@@ -29,7 +29,6 @@ Future<List<String>> run(List<String> args, [String workingDir]) {
   }).transform((result) {
     if (!result.success) throw new Exception(
         'Git error. Command: git ${Strings.join(args, " ")}\n'
-        'Working directory: $currentWorkingDir\n'
         '${Strings.join(result.stderr, "\n")}');
 
     return result.stdout;

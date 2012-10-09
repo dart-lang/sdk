@@ -12,7 +12,7 @@
 
 # Git on Windows is cripplingly slow and will make these tests time out (#5271).
 [ $system == windows ]
-install/git/*: Slow
+install/git/*: Skip
 update/git/*: Skip
 
 # Getting non-determinstic network errors with these on Windows (#5272).
