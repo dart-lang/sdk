@@ -83,6 +83,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+import_combinators_test: Fail # Issue 5735
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier

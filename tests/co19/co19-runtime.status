@@ -175,6 +175,8 @@ Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 
 
 [ $compiler == none && $runtime == vm && $checked ]
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # Issue 5736
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # Issue 5736
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A05_t01: Fail # TODO(vm-team): Please triage this failure.

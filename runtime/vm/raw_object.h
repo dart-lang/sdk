@@ -675,7 +675,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;         // Top-level names in this library.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
   RawArray* imports_;            // List of Namespaces imported without prefix.
-  RawArray* exports_;            // List of re-exported Namespaces
+  RawArray* exports_;            // List of re-exported Namespaces.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
