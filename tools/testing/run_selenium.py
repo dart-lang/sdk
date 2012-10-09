@@ -224,13 +224,10 @@ def close_browser(browser):
     return
 
   # A timeout exception is thrown if nothing happens within the time limit.
-  if browser != 'chrome':
+  if (type(browser) is not selenium.webdriver.chrome.webdriver.WebDriver and
+      type(browser) is not selenium.webdriver.ie.webdriver.WebDriver):
     browser.close()
-  try:
-    browser.quit()
-  except selenium.common.exceptions.WebDriverException:
-    # TODO(efortuna): Figure out why this crashes.... and avoid?
-    pass
+  browser.quit()
 
 def report_results(mode, source, browser):
   # TODO(vsm): Add a failure check for Dromaeo.
