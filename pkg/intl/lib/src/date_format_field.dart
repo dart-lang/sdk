@@ -8,7 +8,7 @@
  * fields would be "hh", ":", "mm", ":", and "ss". Each type of field knows
  * how to format that portion of a date.
  */
-class _DateFormatField {
+abstract class _DateFormatField {
   /** The format string that defines us, e.g. "hh" */
   String pattern;
 
@@ -34,7 +34,8 @@ class _DateFormatField {
     return pattern;
   }
 
-  abstract void parse(_Stream input, _DateBuilder dateFields);
+  /** Abstract method for subclasses to implementing parsing for their format.*/
+  void parse(_Stream input, _DateBuilder dateFields);
 
   /** Parse a literal field. We just look for the exact input. */
   void parseLiteral(_Stream input) {

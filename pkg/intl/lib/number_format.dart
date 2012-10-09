@@ -158,7 +158,7 @@ class NumberFormat {
     var paddingDigits = new StringBuffer();
     while ((intValue & 0x7fffffff) != intValue) {
       paddingDigits.add(symbols.ZERO_DIGIT);
-      intValue = (intValue / 10).toInt();
+      intValue = intValue ~/ 10;
     }
     var integerDigits = "${intValue}${paddingDigits}".charCodes();
     var digitLength = integerDigits.length;
