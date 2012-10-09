@@ -10,7 +10,6 @@ void main() {
   testBaseFunctions();
   testCanonicalize();
   testJoinAppend();
-  testRelativeTo();
 }
 
 void testBaseFunctions() {
@@ -164,28 +163,14 @@ void testJoinAppend() {
   // .join can only join a relative path to a path.
   // It cannot join an absolute path to a path.
   Expect.throws(() => new Path('/a/b/').join(new Path('/c/d')));
-}
 
-void testRelativeTo() {
+  // Test Path.relativeTo.
   Expect.equals('c/d',
                 new Path('/a/b/c/d').relativeTo(new Path('/a/b')).toString());
   Expect.equals('c/d',
                 new Path('/a/b/c/d').relativeTo(new Path('/a/b/')).toString());
   Expect.equals('.',
                 new Path('/a').relativeTo(new Path('/a')).toString());
-
-  // Trailing / in base path represents directory
-  Expect.equals('../../z/x/y',
-      new Path('/a/b/z/x/y').relativeTo(new Path('/a/b/c/d/')).toString());
-  Expect.equals('../z/x/y',
-      new Path('/a/b/z/x/y').relativeTo(new Path('/a/b/c/d')).toString());
-  Expect.equals('../z/x/y/',
-      new Path('/a/b/z/x/y/').relativeTo(new Path('/a/b/c/d')).toString());
-
-  Expect.equals('../../z/x/y',
-      new Path('/z/x/y').relativeTo(new Path('/a/b/c')).toString());
-  Expect.equals('../../../z/x/y',
-      new Path('/z/x/y').relativeTo(new Path('/a/b/c/')).toString());
 
   // Not implemented yet.  Should return new Path('../b/c/d/').
   Expect.throws(() =>
