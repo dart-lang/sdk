@@ -1465,7 +1465,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
       Type returnType = checkInvocation(node, nameNode, name, methodType);
       returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
+      warningEffectiveIntegerDivision(node, element);
       return returnType;
+    }
+
+    /**
+     * http://code.google.com/p/dart/issues/detail?id=5652
+     */
+    private void warningEffectiveIntegerDivision(DartMethodInvocation node, Element element) {
+      if (element != null && element.getName().equals("toInt")
+          && element.getEnclosingElement() != null
+          && element.getEnclosingElement().getName().equals("num")) {
+        DartExpression target = node.getTarget();
+        while (target instanceof DartParenthesizedExpression) {
+          target = ((DartParenthesizedExpression) target).getExpression();
+        }
+        if (target instanceof DartBinaryExpression) {
+          DartBinaryExpression binary = (DartBinaryExpression) target;
+          if (binary.getOperator() == Token.DIV) {
+            typeError(node, TypeErrorCode.USE_INTEGER_DIVISION);
+          }
+        }
+      }
     }
 
     private void checkIllegalPrivateAccess(DartNode diagnosticNode, Element element, String name) {

@@ -72,6 +72,7 @@ public enum TypeErrorCode implements ErrorCode {
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE_INFERRED(ErrorSeverity.INFO, "'%s' is not assignable to '%s'"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
+  USE_INTEGER_DIVISION("Use integer division ~/ instead"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");
 

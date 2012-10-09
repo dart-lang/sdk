@@ -5304,4 +5304,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 4, 5, 3));
   }
+  
+  /**
+   * Developers unfamiliar with Dart frequently write (x/y).toInt() instead of x ~/ y. The editor
+   * should recognize that pattern
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5652
+   */
+  public void test_useEffectiveIntegerDivision() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  num x = 7;",
+        "  num y = 2;",
+        "  print( (x / y).toInt() );",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.USE_INTEGER_DIVISION, 5, 10, 15));
+  }
 }
