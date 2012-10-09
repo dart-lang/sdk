@@ -506,7 +506,7 @@ String get testDirectory {
   var dir = new Path.fromNative(new Options().script);
   while (dir.filename != 'pub') dir = dir.directoryPath;
 
-  return dir.toNativePath();
+  return new File(dir.toNativePath()).fullPathSync();
 }
 
 /**
@@ -541,14 +541,27 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
       environment['DART_SDK'] = pathInSandbox(sdkPath);
 
       return runProcess(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
-          environment: environment, pipeStdout: output == null,
-          pipeStderr: error == null);
+          environment: environment);
     }).transform((result) {
-      _validateOutput(output, result.stdout);
-      _validateOutput(error, result.stderr);
+      var failures = [];
 
-      Expect.equals(result.exitCode, exitCode,
-          'Pub returned exit code ${result.exitCode}, expected $exitCode.');
+      _validateOutput(failures, 'stdout', output, result.stdout);
+      _validateOutput(failures, 'stderr', error, result.stderr);
+
+      if (result.exitCode != exitCode) {
+        failures.add(
+            'Pub returned exit code ${result.exitCode}, expected $exitCode.');
+      }
+
+      if (failures.length > 0) {
+        if (error == null) {
+          // If we aren't validating the error, still show it on failure.
+          failures.add('Pub stderr:');
+          failures.addAll(result.stderr.map((line) => '| $line'));
+        }
+
+        throw new ExpectException(Strings.join(failures, '\n'));
+      }
 
       return null;
     });
@@ -617,16 +630,32 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
  * report the offending difference in a nice way. For other [Pattern]s, just
  * reports whether the output contained the pattern.
  */
-void _validateOutput(Pattern expected, List<String> actual) {
+void _validateOutput(List<String> failures, String pipe, Pattern expected,
+                     List<String> actual) {
   if (expected == null) return;
 
-  if (expected is String) return _validateOutputString(expected, actual);
-  var actualText = Strings.join(actual, "\n");
-  if (actualText.contains(expected)) return;
-  Expect.fail('Expected output to match "$expected", was:\n$actualText');
+  if (expected is RegExp) {
+    _validateOutputRegex(failures, pipe, expected, actual);
+  } else {
+    _validateOutputString(failures, pipe, expected, actual);
+  }
 }
 
-void _validateOutputString(String expectedText, List<String> actual) {
+void _validateOutputRegex(List<String> failures, String pipe,
+                          RegExp expected, List<String> actual) {
+  var actualText = Strings.join(actual, '\n');
+  if (actualText.contains(expected)) return;
+
+  if (actual.length == 0) {
+    failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
+  } else {
+    failures.add('Expected $pipe to match "${expected.pattern}" but got:');
+    failures.addAll(actual.map((line) => '| $line'));
+  }
+}
+
+void _validateOutputString(List<String> failures, String pipe,
+                           String expectedText, List<String> actual) {
   final expected = expectedText.split('\n');
 
   // Strip off the last line. This lets us have expected multiline strings
@@ -634,34 +663,41 @@ void _validateOutputString(String expectedText, List<String> actual) {
   // to expect zero lines of output, not a single empty line.
   expected.removeLast();
 
-  final length = min(expected.length, actual.length);
+  var results = [];
+  var failed = false;
+
+  // Compare them line by line to see which ones match.
+  var length = max(expected.length, actual.length);
   for (var i = 0; i < length; i++) {
-    if (expected[i].trim() != actual[i].trim()) {
-      Expect.fail(
-        'Output line ${i + 1} was: ${actual[i]}\nexpected: ${expected[i]}');
+    if (i >= actual.length) {
+      // Missing output.
+      failed = true;
+      results.add('? ${expected[i]}');
+    } else if (i >= expected.length) {
+      // Unexpected extra output.
+      failed = true;
+      results.add('X ${actual[i]}');
+    } else {
+      var expectedLine = expected[i].trim();
+      var actualLine = actual[i].trim();
+
+      if (expectedLine != actualLine) {
+        // Mismatched lines.
+        failed = true;
+        results.add('X ${actual[i]}');
+      } else {
+        // Output is OK, but include it in case other lines are wrong.
+        results.add('| ${actual[i]}');
+      }
     }
   }
 
-  if (expected.length > actual.length) {
-    final message = new StringBuffer();
-    message.add('Missing expected output:\n');
-    for (var i = actual.length; i < expected.length; i++) {
-      message.add(expected[i]);
-      message.add('\n');
-    }
-
-    Expect.fail(message.toString());
-  }
-
-  if (expected.length < actual.length) {
-    final message = new StringBuffer();
-    message.add('Unexpected output:\n');
-    for (var i = expected.length; i < actual.length; i++) {
-      message.add(actual[i]);
-      message.add('\n');
-    }
-
-    Expect.fail(message.toString());
+  // If any lines mismatched, show the expected and actual.
+  if (failed) {
+    failures.add('Expected $pipe:');
+    failures.addAll(expected.map((line) => '| $line'));
+    failures.add('Got:');
+    failures.addAll(results);
   }
 }
 
