@@ -1976,7 +1976,7 @@ class _ProxyConfiguration {
   static const String PROXY_PREFIX = "PROXY ";
   static const String DIRECT_PREFIX = "DIRECT";
 
-      _ProxyConfiguration(String configuration) : proxies = new List<_Proxy>() {
+  _ProxyConfiguration(String configuration) : proxies = new List<_Proxy>() {
     if (configuration == null) {
       throw new HttpException("Invalid proxy configuration $configuration");
     }
@@ -2010,6 +2010,7 @@ class _ProxyConfiguration {
       }
     });
   }
+
   const _ProxyConfiguration.direct()
       : proxies = const [const _Proxy.direct()];
 
