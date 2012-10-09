@@ -164,11 +164,14 @@ def start_browser(browser, executable_path, html_out):
       options.binary_location = os.path.join(dartium_dir, 'chrome')
     return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'ff':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     profile = selenium.webdriver.firefox.firefox_profile.FirefoxProfile()
     profile.set_preference('dom.max_script_run_time', 0)
     profile.set_preference('dom.max_chrome_script_run_time', 0)
     profile.set_preference('app.update.auto', True)
     profile.set_preference('app.update.enabled', True)
+    xpi = os.path.join(script_dir, 'extensions', 'firefox',                               'ConsoleCollector.xpi')
+    profile.add_extension(xpi);
     return selenium.webdriver.Firefox(firefox_profile=profile)
   elif browser == 'ie' and platform.system() == 'Windows':
     return selenium.webdriver.Ie()
@@ -220,7 +223,7 @@ def close_browser(browser):
     # TODO(efortuna): Figure out why this crashes.... and avoid?
     pass
 
-def report_results(mode, source):
+def report_results(mode, source, browser):
   # TODO(vsm): Add a failure check for Dromaeo.
   if mode != 'correctness':
     # We're running a performance test.
@@ -244,6 +247,12 @@ def report_results(mode, source):
       index += len('<body>')
       end_index = source.find('</body')
       print unicode(source[index : end_index]).encode("utf-8")
+      if type(browser) is selenium.webdriver.firefox.webdriver.WebDriver:
+        logs = browser.execute_script("return window.ConsoleCollector.read()");
+        for msg in logs:
+          print('%s:%s:%s:%s %s' %(
+              msg['source'], msg['line'], msg['column'],
+              msg['category'], msg['message']))
       return 1
 
 
@@ -307,7 +316,7 @@ def run_batch_tests():
 
       # print one of:
       # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
-      status = report_results(mode, source)
+      status = report_results(mode, source, browser)
       if status == 0:
         print '>>> TEST PASS'
       elif source == TIMEOUT_ERROR_MSG:
@@ -332,7 +341,7 @@ def main(args):
 
   try:
     output = run_test_in_browser(browser, html_out, timeout, mode)
-    return report_results(mode, output)
+    return report_results(mode, output, browser)
   finally:
     close_browser(browser)
 
