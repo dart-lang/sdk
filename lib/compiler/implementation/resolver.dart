@@ -1757,6 +1757,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitReturn(Return node) {
+    if (node.isRedirectingConstructorBody) {
+      unimplemented(node, 'redirecting constructors');
+    }
     visit(node.expression);
   }
 

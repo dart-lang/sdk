@@ -841,11 +841,16 @@ class Parser {
     return (value === 'get') || (value === 'set');
   }
 
+  bool isFactoryDeclaration(Token token) {
+    if (optional('external', token)) token = token.next;
+    if (optional('const', token)) token = token.next;
+    return optional('factory', token);
+  }
+
   Token parseMember(Token token) {
     token = parseMetadataStar(token);
     String value = token.stringValue;
-    if (value === 'factory' ||
-        (value === 'external' && optional('factory', token.next))) {
+    if (isFactoryDeclaration(token)) {
       return parseFactoryMethod(token);
     }
     Token start = token;
@@ -945,10 +950,14 @@ class Parser {
   }
 
   Token parseFactoryMethod(Token token) {
-    assert((optional('external', token) && optional('factory', token.next)) ||
-           optional('factory', token));
+    assert(isFactoryDeclaration(token));
     Token start = token;
     if (token.stringValue === 'external') token = token.next;
+    Token constKeyword = null;
+    if (optional('const', token)) {
+      constKeyword = token;
+      token = token.next;
+    }
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);
     token = token.next; // Skip 'factory'.
@@ -961,7 +970,11 @@ class Parser {
       token = parseIdentifier(token.next);
     }
     token = parseFormalParameters(token);
-    token = parseFunctionBody(token, false);
+    if (optional('=', token)) {
+      token = parseRedirectingFactoryBody(token);
+    } else {
+      token = parseFunctionBody(token, false);
+    }
     listener.endFactoryMethod(start, period, token);
     return token.next;
   }
@@ -1034,6 +1047,37 @@ class Parser {
     token = parseFunctionBody(token, true);
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
+  }
+
+  Token parseQualifiedList(Token token) {
+    listener.beginQualifiedList(token);
+    Token parseQualifiedPart(Token token) {
+      Token start = token;
+      token = parseIdentifier(token);
+      token = parseTypeVariablesOpt(token);
+      listener.endType(start, null);
+      return token;
+    }
+    Token beginToken = token;
+    token = parseQualifiedPart(token);
+    int count = 1;
+    while (optional('.', token)) {
+      token = parseQualifiedPart(token.next);
+      count++;
+    }
+    listener.endQualifiedList(count);
+    return token;
+  }
+
+  Token parseRedirectingFactoryBody(Token token) {
+    listener.beginRedirectingFactoryBody(token);
+    assert(optional('=', token));
+    Token equals = token;
+    token = parseQualifiedList(token.next);
+    Token semicolon = token;
+    expectSemicolon(token);
+    listener.endRedirectingFactoryBody(equals, semicolon);
+    return token;
   }
 
   Token parseFunctionBody(Token token, bool isExpression) {

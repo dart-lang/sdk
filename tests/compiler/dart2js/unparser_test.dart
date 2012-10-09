@@ -208,6 +208,41 @@ testCombinators() {
   testUnparseTopLevelWithMetadata('export "søhest" hide a,show hide a,show;');
 }
 
+testRedirectingFactoryConstructors() {
+  testUnparseMember("factory Foo() = Bar;");
+  testUnparseMember("factory Foo() = Bar.baz;");
+  testUnparseMember("factory Foo() = Bar<T>;");
+  testUnparseMember("factory Foo() = Bar<T>.baz;");
+  testUnparseMember("factory Foo() = prefix.Bar;");
+  testUnparseMember("factory Foo() = prefix.Bar.baz;");
+  testUnparseMember("factory Foo() = prefix.Bar<T>;");
+  testUnparseMember("factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMember("const factory Foo() = Bar;");
+  testUnparseMember("const factory Foo() = Bar.baz;");
+  testUnparseMember("const factory Foo() = Bar<T>;");
+  testUnparseMember("const factory Foo() = Bar<T>.baz;");
+  testUnparseMember("const factory Foo() = prefix.Bar;");
+  testUnparseMember("const factory Foo() = prefix.Bar.baz;");
+  testUnparseMember("const factory Foo() = prefix.Bar<T>;");
+  testUnparseMember("const factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMember("external factory Foo() = Bar;");
+  testUnparseMember("external factory Foo() = Bar.baz;");
+  testUnparseMember("external factory Foo() = Bar<T>;");
+  testUnparseMember("external factory Foo() = Bar<T>.baz;");
+  testUnparseMember("external factory Foo() = prefix.Bar;");
+  testUnparseMember("external factory Foo() = prefix.Bar.baz;");
+  testUnparseMember("external factory Foo() = prefix.Bar<T>;");
+  testUnparseMember("external factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMember("external const factory Foo() = Bar;");
+  testUnparseMember("external const factory Foo() = Bar.baz;");
+  testUnparseMember("external const factory Foo() = Bar<T>;");
+  testUnparseMember("external const factory Foo() = Bar<T>.baz;");
+  testUnparseMember("external const factory Foo() = prefix.Bar;");
+  testUnparseMember("external const factory Foo() = prefix.Bar.baz;");
+  testUnparseMember("external const factory Foo() = prefix.Bar<T>;");
+  testUnparseMember("external const factory Foo() = prefix.Bar<T>.baz;");
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -225,4 +260,5 @@ main() {
   testPart();
   testPartOf();
   testCombinators();
+  testRedirectingFactoryConstructors();
 }

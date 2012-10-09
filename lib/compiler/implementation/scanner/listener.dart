@@ -268,6 +268,18 @@ class Listener {
   void endPartOf(Token partKeyword, Token semicolon) {
   }
 
+  void beginQualifiedList(Token start) {
+  }
+
+  void endQualifiedList(int count) {
+  }
+
+  void beginRedirectingFactoryBody(Token token) {
+  }
+
+  void endRedirectingFactoryBody(Token beginToken, Token endToken) {
+  }
+
   void beginReturnStatement(Token token) {
   }
 
@@ -1215,6 +1227,16 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
+  void endQualifiedList(int count) {
+    pushNode(makeNodeList(count, null, null, "."));
+  }
+
+  void endRedirectingFactoryBody(Token beginToken,
+                                 Token endToken) {
+    NodeList qualifiedList = popNode();
+    pushNode(new Return(beginToken, endToken, qualifiedList));
+  }
+
   void endReturnStatement(bool hasExpression,
                           Token beginToken, Token endToken) {
     Expression expression = hasExpression ? popNode() : null;
@@ -1642,14 +1664,25 @@ class NodeListener extends ElementListener {
       // A library prefix was handled in [handleQualified].
       name = new Send(popNode(), name);
     }
-    handleModifier(startKeyword);
-    if (startKeyword.stringValue === 'external') {
-      handleModifier(startKeyword.next);
-      handleModifiers(2);
-    } else {
-      handleModifiers(1);
+    // TODO(ahe): Move this parsing to the parser.
+    int modifierCount = 0;
+    Token modifier = startKeyword;
+    if (modifier.stringValue == "external") {
+      handleModifier(modifier);
+      modifierCount++;
+      modifier = modifier.next;
     }
+    if (modifier.stringValue == "const") {
+      handleModifier(modifier);
+      modifierCount++;
+      modifier = modifier.next;
+    }
+    assert(modifier.stringValue == "factory");
+    handleModifier(modifier);
+    modifierCount++;
+    handleModifiers(modifierCount);
     Modifiers modifiers = popNode();
+
     pushNode(new FunctionExpression(name, formals, body, null,
                                     modifiers, null, null));
   }

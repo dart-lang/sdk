@@ -912,7 +912,7 @@ class Operator extends Identifier {
 }
 
 class Return extends Statement {
-  final Expression expression;
+  final Node expression;
   final Token beginToken;
   final Token endToken;
 
@@ -921,6 +921,8 @@ class Return extends Statement {
   Return asReturn() => this;
 
   bool get hasExpression => expression !== null;
+
+  bool get isRedirectingConstructorBody => beginToken.stringValue == '=';
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 

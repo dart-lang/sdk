@@ -140,6 +140,10 @@ LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failu
 LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 
+# Partially implemented rediriecting constructors makes this fail.
+Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
+
+
 [ $compiler == dart2js && $unchecked ]
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.

@@ -52,6 +52,14 @@ class ValidatorVisitor extends Visitor {
       expect(node, !node.arguments.isEmpty());
     }
   }
+
+  visitReturn(Return node) {
+    if (!node.isRedirectingConstructorBody && node.hasExpression) {
+      // We allow non-expression expressions in Return nodes, but only when
+      // using them to hold redirecting factory constructors.
+      expect(node, node.expression.asExpression() != null);
+    }
+  }
 }
 
 class InvalidNodeError {
