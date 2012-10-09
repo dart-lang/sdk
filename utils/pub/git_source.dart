@@ -4,6 +4,7 @@
 
 #library('git_source');
 
+#import('git.dart', prefix: 'git');
 #import('io.dart');
 #import('package.dart');
 #import('source.dart');
@@ -37,7 +38,7 @@ class GitSource extends Source {
   Future<Package> installToSystemCache(PackageId id) {
     var revisionCachePath;
 
-    return isGitInstalled.chain((installed) {
+    return git.isInstalled.chain((installed) {
       if (!installed) {
         throw new Exception(
             "Cannot install '${id.name}' from Git (${_getUrl(id)}).\n"
@@ -117,10 +118,7 @@ class GitSource extends Source {
     return exists(path).chain((exists) {
       if (!exists) return _clone(_getUrl(id), path, mirror: true);
 
-      return runGit(["fetch"], workingDir: path).transform((result) {
-        if (!result.success) throw 'Git failed.';
-        return null;
-      });
+      return git.run(["fetch"], workingDir: path).transform((result) => null);
     });
   }
 
@@ -128,11 +126,8 @@ class GitSource extends Source {
    * Returns a future that completes to the revision hash of [id].
    */
   Future<String> _revisionAt(PackageId id) {
-    return runGit(["rev-parse", _getEffectiveRef(id)],
-        workingDir: _repoCachePath(id)).transform((result) {
-      if (!result.success) throw 'Git failed.';
-      return result.stdout[0];
-    });
+    return git.run(["rev-parse", _getEffectiveRef(id)],
+        workingDir: _repoCachePath(id)).transform((result) => result[0]);
   }
 
   /**
@@ -158,21 +153,16 @@ class GitSource extends Source {
     return ensureDir(to).chain((_) {
       var args = ["clone", from, to];
       if (mirror) args.insertRange(1, 1, "--mirror");
-      return runGit(args);
-    }).transform((result) {
-      if (!result.success) throw 'Git failed.';
-      return null;
-    });
+      return git.run(args);
+    }).transform((result) => null);
   }
 
   /**
    * Checks out the reference [ref] in [repoPath].
    */
   Future _checkOut(String repoPath, String ref) {
-    return runGit(["checkout", ref], workingDir: repoPath).transform((result) {
-      if (!result.success) throw 'Git failed.';
-      return null;
-    });
+    return git.run(["checkout", ref], workingDir: repoPath).transform(
+        (result) => null);
   }
 
   /**

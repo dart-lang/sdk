@@ -197,7 +197,7 @@ class VersionSolver {
         return true;
       }
     }
-    
+
     return dependency.dependers.map(getDependency).some((subdependency) =>
         tryUnlockDepender(subdependency, seen));
   }
@@ -328,7 +328,7 @@ class ChangeVersion implements WorkItem {
  * graph once a dependency has changed. Changing the dependency is the
  * responsibility of subclasses.
  */
-class ChangeConstraint implements WorkItem {
+abstract class ChangeConstraint implements WorkItem {
   abstract Future process(VersionSolver solver);
 
   abstract void undo(VersionSolver solver);

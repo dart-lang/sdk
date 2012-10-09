@@ -140,7 +140,7 @@ void printVersion() {
   print('Pub $pubVersion');
 }
 
-class PubCommand {
+abstract class PubCommand {
   SystemCache cache;
   ArgResults globalOptions;
   ArgResults commandOptions;

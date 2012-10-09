@@ -16,7 +16,7 @@
  * Each source has many packages that it looks up using [PackageId]s. The source
  * is responsible for installing these packages to the package cache.
  */
-class Source {
+abstract class Source {
   /**
    * The name of the source. Should be lower-case, suitable for use in a
    * filename, and unique accross all sources.
