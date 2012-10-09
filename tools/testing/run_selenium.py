@@ -288,6 +288,7 @@ def run_batch_tests():
     while True:
       line = sys.stdin.readline()
       if line == '--terminate\n':
+        print("Terminating selenium driver")
         break
 
       (html_out, browser_name, executable_path,
@@ -324,6 +325,7 @@ def run_batch_tests():
         print '>>> TEST FAIL'
       sys.stdout.flush()
   finally:
+    print("Closing browser");
     close_browser(browser)
 
 
