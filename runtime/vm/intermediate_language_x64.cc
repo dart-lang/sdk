@@ -586,7 +586,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
         result = !result;
       }
     } else {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
+      // TODO(vegorov): should be eliminated earlier by constant propagation.
       result = FlowGraphCompiler::EvaluateCondition(
           true_condition,
           Smi::Cast(left.constant()).Value(),

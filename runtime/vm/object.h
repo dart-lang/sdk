@@ -2796,8 +2796,10 @@ class ICData : public Object {
   void set_num_args_tested(intptr_t value) const;
   void set_ic_data(const Array& value) const;
 
+#if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
+#endif  // DEBUG
 
   intptr_t TestEntryLength() const;
   void WriteSentinel() const;
