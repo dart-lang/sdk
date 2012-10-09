@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # TODO(analyzer-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # TODO(analyzer-team): Please triage this crash.
+
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
@@ -21,6 +24,7 @@ Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(analyzer-team): Please
 Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
@@ -35,6 +39,10 @@ Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # TODO(analyzer-te
 Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(analyzer-team): Please triage this failure.
@@ -44,8 +52,42 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(analyzer-team): Pleas
 Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/19_Conditional_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/19_Conditional_A01_t15: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/22_Equality_A01_t23: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/22_Equality_A01_t24: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/22_Shift_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/22_Shift_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t19: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/26_Postfix_Expressions_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A05_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail # TODO(analyzer-team): Please triage this failure.
+Language/10_Expressions/29_Type_Test_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/03_Variable_Declaration_A01_t09: Fail # TODO(analyzer-team): Please triage this failure.
@@ -55,12 +97,12 @@ Language/11_Statements/03_Variable_Declaration_A02_t06: Fail # TODO(analyzer-tea
 Language/11_Statements/05_For_A01_t07: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/08_Switch_A07_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail # TODO(analyzer-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t12: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t13: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t15: Fail # TODO(analyzer-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(analyzer-team): Please triage this failure.
@@ -77,6 +119,11 @@ LibTest/core/Math/sin_A01_t01: Fail # TODO(analyzer-team): Please triage this fa
 LibTest/core/Math/sqrt_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/Math/tan_A01_t01: Fail # TODO(analyzer-team): Please triage this failure.
 LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t02: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t03: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t04: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # TODO(analyzer-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -87,29 +134,29 @@ Language/07_Classes/10_Superinterfaces_A07_t01: pass # http://dartbug.com/5179
 Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: pass # http://dartbug.com/5179
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t07: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A02_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t07: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A05_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: pass # http://dartbug.com/5179
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A04_t05: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A04_t07: pass # http://dartbug.com/5179
 Language/10_Expressions/28_Identifier_Reference_A05_t06: pass # http://dartbug.com/5179
@@ -117,7 +164,6 @@ Language/10_Expressions/28_Identifier_Reference_A07_t04: fail # http://dartbug.c
 Language/10_Expressions/28_Identifier_Reference_A07_t09: fail # http://dartbug.com/5179
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http://dartbug.com/5179
 
-Language/07_Classes/07_Classes_A03_t01: Fail, OK # 'default' is no longer supported
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # the default constructor invokes a non-existent zero argument constructor
 Language/07_Classes/07_Classes_A02_t32: Fail, OK # constant constructors are not required to have a body
 Language/07_Classes/07_Classes_A02_t34: Fail # co19 issue 221
@@ -135,41 +181,18 @@ Language/07_Classes/07_Classes_A07_t06: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, OK
 
 
-Language/07_Classes/7_Static_Methods_A01_t03: Fail, OK # this should be a warning, not an error
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A03_t04: Fail, OK # this should be a warning, not an error
 Language/10_Expressions/30_Type_Cast_A01_t04: Fail, OK # the expected error is not specified
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail, OK # part directive with invalid URI
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail, OK # contains semantic error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail, OK # contains semantic error
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail, OK # contains semantic error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # co19 issue 243
-Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # should be error
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail, OK # co19 issue 233
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
-Language/06_Functions/06_Functions_A01_t03: Fail, OK # co19 issue 232
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # deprecated use of "default"
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail, OK # should expect error
 Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail, OK # should expect error
 Language/10_Expressions/05_Strings_A02_t39: Fail, OK # no longer an error
@@ -178,8 +201,8 @@ Language/10_Expressions/05_Strings_A02_t43: Fail, OK # no longer an error
 Language/10_Expressions/05_Strings_A02_t45: Fail, OK # no longer an error
 Language/10_Expressions/05_Strings_A02_t47: Fail, OK # no longer an error
 Language/10_Expressions/05_Strings_A02_t49: Fail, OK # no longer an error
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # Issue 5294
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # Issue 5294
 Language/11_Statements/02_Expression_Statements_A01_t09: Fail, OK # maps with type arguments are allowed
 Language/11_Statements/02_Expression_Statements_A01_t10: Fail, OK # maps with type arguments are allowed
 Language/11_Statements/02_Expression_Statements_A01_t11: Fail, OK # maps with type arguments are allowed
@@ -191,9 +214,9 @@ Language/11_Statements/09_Try_A06_t05: Fail, OK # deprecated catch syntax
 
 # The following tests use NoSuchMethodException instead of NoSuchMethodError.
 Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t07: Fail, OK # co19 issue 195
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail, OK # co19 issue 195
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail, OK # co19 issue 195
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t07: Fail, OK # co19 issue 195
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail, OK # co19 issue 195
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail, OK # co19 issue 195
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # co19 issue 195
 
 # Rename "BadNumberFormatException" to "FormatException"
@@ -214,73 +237,35 @@ Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # language change 3368
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # language change 3368
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
-Language/10_Expressions/17_Conditional_A01_t10: Fail # language change 3368
-Language/10_Expressions/17_Conditional_A01_t11: Fail # language change 3368
-Language/10_Expressions/17_Conditional_A01_t12: Fail # language change 3368
-Language/10_Expressions/17_Conditional_A01_t13: Fail # language change 3368
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t10: Fail # language change 3368
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t11: Fail # language change 3368
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t12: Fail # language change 3368
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail # language change 3368
-Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 1489
-Language/10_Expressions/19_Bitwise_Expressions_A01_t12: Fail # language change 3368
-Language/10_Expressions/19_Bitwise_Expressions_A01_t13: Fail # language change 3368
-Language/10_Expressions/19_Bitwise_Expressions_A01_t14: Fail # language change 3368
-Language/10_Expressions/19_Bitwise_Expressions_A01_t15: Fail # language change 3368
-Language/10_Expressions/20_Equality_A01_t01: Fail # Issue 1489
-Language/10_Expressions/20_Equality_A01_t19: Fail # language change 3368
-Language/10_Expressions/20_Equality_A01_t20: Fail # language change 3368
-Language/10_Expressions/20_Equality_A01_t21: Fail # language change 3368
-Language/10_Expressions/20_Equality_A01_t22: Fail # language change 3368
-Language/10_Expressions/20_Equality_A02_t02: Fail, OK # co19 issue 169
-Language/10_Expressions/20_Equality_A02_t03: Fail, OK # co19 issue 169
-Language/10_Expressions/20_Equality_A02_t04: Fail, OK # co19 issue 169
-Language/10_Expressions/20_Equality_A03_t01: Fail, OK # co19 issue 169
-Language/10_Expressions/20_Equality_A03_t02: Fail, OK # co19 issue 169
-Language/10_Expressions/20_Equality_A03_t03: Fail, OK # co19 issue 169
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
+Language/10_Expressions/19_Conditional_A01_t12: Fail # language change 3368
+Language/10_Expressions/19_Conditional_A01_t13: Fail # language change 3368
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # language change 3368
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # language change 3368
+Language/10_Expressions/21_Bitwise_Expressions_A01_t01: Fail # Issue 1489
+Language/10_Expressions/21_Bitwise_Expressions_A01_t14: Fail # language change 3368
+Language/10_Expressions/21_Bitwise_Expressions_A01_t15: Fail # language change 3368
+Language/10_Expressions/22_Equality_A01_t01: Fail # Issue 1489
+Language/10_Expressions/22_Equality_A01_t19: Fail # language change 3368
+Language/10_Expressions/22_Equality_A01_t20: Fail # language change 3368
+Language/10_Expressions/22_Equality_A02_t03: Fail, OK # co19 issue 169
+Language/10_Expressions/22_Equality_A03_t01: Fail, OK # co19 issue 169
+Language/10_Expressions/22_Equality_A03_t03: Fail, OK # co19 issue 169
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
-Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail # language change 3368
-Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # language change 3368
 Language/10_Expressions/21_Relational_Expressions_A01_t20: Fail # language change 3368
 Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail # language change 3368
 Language/10_Expressions/22_Shift_A01_t01: Fail # Issue 1489
-Language/10_Expressions/22_Shift_A01_t09: Fail # language change 3368
-Language/10_Expressions/22_Shift_A01_t10: Fail # language change 3368
 Language/10_Expressions/22_Shift_A01_t11: Fail # language change 3368
 Language/10_Expressions/22_Shift_A01_t12: Fail # language change 3368
-Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail # language change 3368
-Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail # language change 3368
-Language/10_Expressions/23_Additive_Expressions_A01_t09: Fail # language change 3368
-Language/10_Expressions/23_Additive_Expressions_A01_t10: Fail # language change 3368
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail # language change 3368
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # language change 3368
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t12: Fail # language change 3368
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t14: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t15: Fail # language change 3368
-Language/10_Expressions/25_Unary_Expressions_A01_t16: Fail # language change 3368
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # Issue 1489,2439
-Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # language change 3368
-Language/10_Expressions/26_Postfix_Expressions_A01_t04: Fail # language change 3368
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # Issue 1489
-Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail # language change 3368
-Language/10_Expressions/27_Assignable_Expressions_A01_t07: Fail # language change 3368
-Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # language change 3368
-Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail # language change 3368
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # language change 3368
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A06_t02: Fail, OK # out of date - case can use any constant expression
@@ -292,85 +277,50 @@ Language/11_Statements/08_Switch_A06_t04: Fail, OK # out of date - case can use 
 
 LibTest/core/Expect/equals_A02_t01: Fail, OK
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK
-Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail, OK
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t01: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A06_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t03: Fail, OK
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A02_t04: Fail, OK
-Language/10_Expressions/17_Conditional_A01_t10: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail, OK
-Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t03: Fail, OK
-Language/10_Expressions/22_Shift_A01_t09: Fail, OK
-Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail, OK
-Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail, OK
-Language/10_Expressions/19_Bitwise_Expressions_A01_t15: Fail, OK
-Language/10_Expressions/17_Conditional_A01_t13: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t12: Fail, OK
-Language/10_Expressions/19_Bitwise_Expressions_A01_t14: Fail, OK
-Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail, OK
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A05_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail, OK
+Language/10_Expressions/21_Bitwise_Expressions_A01_t15: Fail, OK
+Language/10_Expressions/19_Conditional_A01_t13: Fail, OK
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail, OK
+Language/10_Expressions/21_Bitwise_Expressions_A01_t14: Fail, OK
 Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail, OK
-Language/10_Expressions/20_Equality_A01_t19: Fail, OK
+Language/10_Expressions/22_Equality_A01_t19: Fail, OK
 Language/10_Expressions/01_Constants_A17_t03: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail, OK
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail, OK
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail, OK
-Language/10_Expressions/23_Additive_Expressions_A01_t09: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t14: Fail, OK
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A04_t02: Fail, OK
 Language/10_Expressions/29_Type_Test_A01_t02: Fail, OK
 Language/10_Expressions/22_Shift_A01_t11: Fail, OK
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t13: Fail, OK
-Language/10_Expressions/20_Equality_A01_t20: Fail, OK
-Language/10_Expressions/20_Equality_A01_t21: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t16: Fail, OK
-Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail, OK
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail, OK
+Language/10_Expressions/22_Equality_A01_t20: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t11: Fail, OK
-Language/10_Expressions/26_Postfix_Expressions_A01_t04: Fail, OK
-Language/10_Expressions/17_Conditional_A01_t11: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail, OK
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail, OK
 Language/10_Expressions/01_Constants_A16_t02: Fail, OK
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t10: Fail, OK
 Language/10_Expressions/21_Relational_Expressions_A01_t20: Fail, OK
-Language/10_Expressions/22_Shift_A01_t10: Fail, OK
 Language/10_Expressions/28_Identifier_Reference_A05_t06: Fail, OK
 Language/10_Expressions/01_Constants_A15_t16: Fail, OK
-Language/10_Expressions/20_Equality_A01_t22: Fail, OK
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t12: Fail, OK
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail, OK
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail, OK
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail, OK
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail, OK
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail, OK
-Language/10_Expressions/19_Bitwise_Expressions_A01_t12: Fail, OK
-Language/10_Expressions/27_Assignable_Expressions_A01_t07: Fail, OK
-Language/10_Expressions/23_Additive_Expressions_A01_t10: Fail, OK
-Language/10_Expressions/17_Conditional_A01_t12: Fail, OK
-Language/10_Expressions/19_Bitwise_Expressions_A01_t13: Fail, OK
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail, OK
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail, OK
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail, OK
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: Fail, OK
+Language/10_Expressions/19_Conditional_A01_t12: Fail, OK
 Language/10_Expressions/01_Constants_A16_t03: Fail, OK
 Language/10_Expressions/01_Constants_A16_t01: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t15: Fail, OK
 Language/10_Expressions/22_Shift_A01_t12: Fail, OK
-Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail, OK
 Language/07_Classes/2_Getters_A01_t03: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail, OK
@@ -390,22 +340,6 @@ Language/03_Overview/2_Privacy_A01_t11: Fail, OK
 Language/03_Overview/1_Scoping_A02_t28: Fail, OK
 Language/03_Overview/2_Privacy_A01_t18: Fail, OK
 Language/03_Overview/2_Privacy_A01_t08: Fail, OK
-
-
-# These test cases use the deprecated Isolate API and should be updated to
-# use spawnFunction: issue ...
-LibTest/isolate/Isolate/port_A01_t02: Fail, OK
-LibTest/isolate/Isolate/port_A01_t01: Fail, OK
-LibTest/isolate/Isolate/main_A01_t01: Fail, OK
-LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
-LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
-LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
