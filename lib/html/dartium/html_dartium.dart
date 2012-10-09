@@ -10345,17 +10345,11 @@ abstract class DOMTokenList {
   /** @domName DOMTokenList.length */
   abstract int get length;
 
-  /** @domName DOMTokenList.add */
-  void add(String token);
-
   /** @domName DOMTokenList.contains */
   bool contains(String token);
 
   /** @domName DOMTokenList.item */
   String item(int index);
-
-  /** @domName DOMTokenList.remove */
-  void remove(String token);
 
   /** @domName DOMTokenList.toString */
   String toString();
@@ -10373,13 +10367,9 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 
   int get length native "DOMTokenList_length_Getter";
 
-  void add(String token) native "DOMTokenList_add_Callback";
-
   bool contains(String token) native "DOMTokenList_contains_Callback";
 
   String item(int index) native "DOMTokenList_item_Callback";
-
-  void remove(String token) native "DOMTokenList_remove_Callback";
 
   String toString() native "DOMTokenList_toString_Callback";
 
@@ -25739,6 +25729,9 @@ abstract class RTCPeerConnection implements EventTarget {
   /** @domName RTCPeerConnection.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
+  /** @domName RTCPeerConnection.getStats */
+  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector);
+
   /** @domName RTCPeerConnection.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -25808,6 +25801,8 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
 
+  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
+
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
   void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
@@ -25876,6 +25871,92 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
   String get type native "RTCSessionDescription_type_Getter";
 
   void set type(String value) native "RTCSessionDescription_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool RTCStatsCallback(RTCStatsResponse response);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsElement
+abstract class RTCStatsElement {
+
+  /** @domName RTCStatsElement.timestamp */
+  abstract int get timestamp;
+
+  /** @domName RTCStatsElement.stat */
+  String stat(String name);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCStatsElementImpl extends NativeFieldWrapperClass1 implements RTCStatsElement {
+
+  int get timestamp native "RTCStatsElement_timestamp_Getter";
+
+  String stat(String name) native "RTCStatsElement_stat_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsReport
+abstract class RTCStatsReport {
+
+  /** @domName RTCStatsReport.local */
+  List<RTCStatsElement> local();
+
+  /** @domName RTCStatsReport.remote */
+  List<RTCStatsElement> remote();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCStatsReportImpl extends NativeFieldWrapperClass1 implements RTCStatsReport {
+
+  List<RTCStatsElement> local() native "RTCStatsReport_local_Callback";
+
+  List<RTCStatsElement> remote() native "RTCStatsReport_remote_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsResponse
+abstract class RTCStatsResponse {
+
+  /** @domName RTCStatsResponse.result */
+  List<RTCStatsReport> result();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCStatsResponseImpl extends NativeFieldWrapperClass1 implements RTCStatsResponse {
+
+  List<RTCStatsReport> result() native "RTCStatsResponse_result_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

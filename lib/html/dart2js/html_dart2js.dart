@@ -9286,17 +9286,11 @@ abstract class DOMTokenList {
   /** @domName DOMTokenList.length */
   abstract int get length;
 
-  /** @domName DOMTokenList.add */
-  void add(String token);
-
   /** @domName DOMTokenList.contains */
   bool contains(String token);
 
   /** @domName DOMTokenList.item */
   String item(int index);
-
-  /** @domName DOMTokenList.remove */
-  void remove(String token);
 
   /** @domName DOMTokenList.toString */
   String toString();
@@ -9309,13 +9303,9 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
   final int length;
 
-  void add(String token) native;
-
   bool contains(String token) native;
 
   String item(int index) native;
-
-  void remove(String token) native;
 
   String toString() native;
 
@@ -23185,6 +23175,9 @@ abstract class RTCPeerConnection implements EventTarget {
   /** @domName RTCPeerConnection.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
+  /** @domName RTCPeerConnection.getStats */
+  void getStats(RTCStatsCallback successCallback, MediaStreamTrack selector);
+
   /** @domName RTCPeerConnection.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -23264,6 +23257,8 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
+  void getStats(RTCStatsCallback successCallback, _MediaStreamTrackImpl selector) native;
+
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void removeStream(_MediaStreamImpl stream) native;
@@ -23328,6 +23323,74 @@ class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSe
   String sdp;
 
   String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool RTCStatsCallback(RTCStatsResponse response);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsElement
+abstract class RTCStatsElement {
+
+  /** @domName RTCStatsElement.timestamp */
+  abstract int get timestamp;
+
+  /** @domName RTCStatsElement.stat */
+  String stat(String name);
+}
+
+class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" {
+
+  final int timestamp;
+
+  String stat(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsReport
+abstract class RTCStatsReport {
+
+  /** @domName RTCStatsReport.local */
+  List<RTCStatsElement> local();
+
+  /** @domName RTCStatsReport.remote */
+  List<RTCStatsElement> remote();
+}
+
+class _RTCStatsReportImpl implements RTCStatsReport native "*RTCStatsReport" {
+
+  List<RTCStatsElement> local() native;
+
+  List<RTCStatsElement> remote() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCStatsResponse
+abstract class RTCStatsResponse {
+
+  /** @domName RTCStatsResponse.result */
+  List<RTCStatsReport> result();
+}
+
+class _RTCStatsResponseImpl implements RTCStatsResponse native "*RTCStatsResponse" {
+
+  List<RTCStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
