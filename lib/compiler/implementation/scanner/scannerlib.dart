@@ -14,6 +14,8 @@
 #import('../tree/tree.dart');
 #import('../util/characters.dart');
 #import('../util/util.dart');
+// TODO(ahe): Rename prefix to 'api' when VM bug is fixed.
+#import('../../compiler.dart', prefix: 'api_s');
 
 #source('class_element_parser.dart');
 #source('keyword.dart');

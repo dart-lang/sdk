@@ -6,6 +6,9 @@ class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
   String get name => 'Scanner';
 
+  final Map<String, LibraryElement> libraryNames =
+      new Map<String, LibraryElement>();
+
   void scanLibrary(LibraryElement library) {
     var compilationUnit = library.entryCompilationUnit;
     compiler.log("scanning library ${compilationUnit.script.name}");
@@ -55,6 +58,7 @@ class ScannerTask extends CompilerTask {
         } else {
           library.libraryTag = tag;
         }
+        checkDuplicatedLibraryName(library);
       } else if (tag.isPart) {
         StringNode uri = tag.uri;
         Uri resolved = base.resolve(uri.dartString.slowToString());
@@ -79,6 +83,27 @@ class ScannerTask extends CompilerTask {
 
     for (Import tag in imports.toLink()) {
       importLibraryFromTag(tag, library.entryCompilationUnit);
+    }
+  }
+
+  void checkDuplicatedLibraryName(LibraryElement library) {
+    LibraryTag tag = library.libraryTag;
+    if (tag != null) {
+      String name = library.getLibraryOrScriptName();
+      LibraryElement existing =
+          libraryNames.putIfAbsent(name, () => library);
+      if (existing !== library) {
+        Uri uri = library.entryCompilationUnit.script.uri;
+        compiler.reportMessage(
+            compiler.spanFromNode(tag.name, uri),
+            MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
+            api_s.Diagnostic.WARNING);
+        Uri existingUri = existing.entryCompilationUnit.script.uri;
+        compiler.reportMessage(
+            compiler.spanFromNode(existing.libraryTag.name, existingUri),
+            MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
+            api_s.Diagnostic.WARNING);
+      }
     }
   }
 

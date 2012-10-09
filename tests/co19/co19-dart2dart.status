@@ -439,7 +439,6 @@ Language/11_Statements/15_Assert_A01_t05: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # inherited from dart2js

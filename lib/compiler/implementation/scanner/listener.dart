@@ -691,7 +691,11 @@ class ElementListener extends Listener {
 
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode();
-    addLibraryTag(new PartOf(partKeyword, name));
+    addPartOfTag(new PartOf(partKeyword, name));
+  }
+
+  void addPartOfTag(PartOf tag) {
+    compilationUnitElement.setPartOf(tag, listener);
   }
 
   void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
@@ -1101,6 +1105,10 @@ class NodeListener extends ElementListener {
     : super(listener, element, null);
 
   void addLibraryTag(LibraryTag tag) {
+    pushNode(tag);
+  }
+
+  void addPartOfTag(PartOf tag) {
     pushNode(tag);
   }
 

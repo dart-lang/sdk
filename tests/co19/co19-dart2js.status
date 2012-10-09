@@ -47,19 +47,6 @@ Language/10_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage t
 Language/10_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/18_Assignment_A08_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # TODO(ahe): Please triage this failure.
@@ -135,7 +122,6 @@ Language/11_Statements/15_Assert_A04_t04: Fail # dart2js doesn't throw ClosureAr
 
 
 [ $compiler == dart2js ]
-Language/13_Libraries_and_Scripts/source2: Fail, OK # co19 issue 200
 LibTest/core/Math/acos_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/asin_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/Math/atan2_A01_t01: Fail, OK # co19 issue 200
@@ -184,9 +170,6 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
-Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5519
-Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5519
-
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
@@ -355,7 +338,54 @@ Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t19: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t20: Fail, OK # co19 issue 198
 
+Language/06_Functions/06_Functions_A01_t03: Fail, OK # co19 issue 232. Fixed in r365.
+
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
+
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail, OK # co19 issue 238. Fixed in co19 r363.
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail, OK # co19 issue 242
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # co19 issue 243
+
+Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail, OK # co19 issue 244
+
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # co19 issue 245
+
+Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A01_t01: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A03_t05: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A03_t13: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A03_t14: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A03_t23: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Exports_A03_t24: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail, OK # co19 issue 246
+Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # co19 issue 246
+
+Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # co19 issue 247
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail, OK # co19 issue 248
+Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail, OK # co19 issue 248
+
+Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail, OK # co19 issue 249
+Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # co19 issue 249
+
+Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail, OK # co19 issue 250
 
 
 [ $compiler == dart2js && $runtime == d8 ]
@@ -606,8 +636,6 @@ Language/11_Statements/08_Switch_A06_t04: Fail # Checks that it is a compile-tim
 Language/11_Statements/10_Return_A04_t01: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
 Language/11_Statements/10_Return_A04_t02: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a named generative constructor.
 Language/11_Statements/10_Return_A04_t03: Fail # Checks that a compile-time error occurs if a return statement  of the form return e; appears in a generative constructor.
-Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # Checks that a source tag must be started with the character '#'.
-Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # Checks that it is a compile-time error if the contents of the URI are not a valid compilation unit (invalid variable declaration).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
@@ -615,6 +643,8 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks th
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
 Language/05_Variables/05_Variables_A08_t01: Fail # http://dartbug.com/5170
+
+Language/13_Libraries_and_Scripts/2_Imports_A05_t01: Fail # http://dartbug.com/5715
 
 
 #
@@ -675,44 +705,28 @@ Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
 
-Language/06_Functions/06_Functions_A01_t03: Fail # http://dartbug.com/4050
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A04_t20: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/1_Exports_A01_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t24: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t27: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t28: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t29: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t32: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A05_t01: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # http://dartbug.com/4050
-Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # http://dartbug.com/4050
+Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # http://dartbug.com/4050. Export not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050. Export not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # http://dartbug.com/4050. Export not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050. Export not implemented yet.
+
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
+Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # http://dartbug.com/5712
+
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/5713
+
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http://dartbug.com/5714
 
 
 #

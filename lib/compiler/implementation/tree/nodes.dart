@@ -54,7 +54,7 @@ abstract class Visitor<R> {
     return visitExpression(node);
   }
   R visitPart(Part node) => visitLibraryTag(node);
-  R visitPartOf(PartOf node) => visitLibraryTag(node);
+  R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitReturn(Return node) => visitStatement(node);
@@ -1759,7 +1759,7 @@ class Part extends LibraryTag {
   Token getEndToken() => uri.getEndToken().next;
 }
 
-class PartOf extends LibraryTag {
+class PartOf extends Node {
   final Expression name;
 
   final Token partKeyword;

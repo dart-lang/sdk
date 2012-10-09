@@ -145,7 +145,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # TODO(vm-team): Pleas
 Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
@@ -155,7 +154,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # TODO(vm-team): Pleas
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t23: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t26: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(vm-team): Please triage this failure.
@@ -172,6 +170,10 @@ LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please tria
 
 # Failures related to assert being a reserved word now. co19 issue 218.
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t09: Fail, OK # co19 issue 242
+
+Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # co19 issue 243
 
 
 [ $compiler == none && $runtime == vm && $checked ]

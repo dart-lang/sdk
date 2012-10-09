@@ -259,6 +259,21 @@ class MessageKind {
   static const VOID_NOT_ALLOWED = const MessageKind(
       'type void is only allowed in a return type.');
 
+  static const BEFORE_TOP_LEVEL = const MessageKind(
+      'Error: part header must come before top-level definitions.');
+
+  static const LIBRARY_NAME_MISMATCH = const MessageKind(
+      'Warning: expected part of library name "#{1}".');
+
+  static const DUPLICATED_PART_OF = const MessageKind(
+      'Error: duplicated part-of directive.');
+
+  static const ILLEGAL_DIRECTIVE = const MessageKind(
+      'Error: directive not allowed here.');
+
+  static const DUPLICATED_LIBRARY_NAME = const MessageKind(
+      'Warning: duplicated library name "#{1}".');
+
   static const INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
 Invalid offset (#{1}) in source map.
 File: #{2}
