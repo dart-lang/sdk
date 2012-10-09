@@ -204,7 +204,7 @@ abstract class PubCommand {
       // TODO(rnystrom): Will eventually need better logic to walk up
       // subdirectories until we hit one that looks package-like. For now, just
       // assume the cwd is it.
-      future = Package.load(null, workingDir, cache.sources)
+      future = Package.load(null, currentWorkingDir, cache.sources)
           .transform((package) => new Entrypoint(package, cache));
     }
 
@@ -224,10 +224,10 @@ abstract class PubCommand {
     future.handleException((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
-          '$workingDir.';
+          'currentWorkingDir.';
       } else if (e is PubspecHasNoNameException && e.name == null) {
         e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-          '${basename(workingDir)}").';
+          '${basename(currentWorkingDir)}").';
       }
 
       handleError(e, future.stackTrace);
