@@ -610,6 +610,46 @@ class Primitives {
     }
     JS('void', '#[#] = #', object, key, value);
   }
+
+  static applyFunction(Function function,
+                       List positionalArguments,
+                       Map<String, Dynamic> namedArguments) {
+    int argumentCount = 0;
+    StringBuffer buffer = new StringBuffer();
+    List arguments = [];
+
+    if (positionalArguments != null) {
+      argumentCount += positionalArguments.length;
+      arguments.addAll(positionalArguments);
+    }
+
+    // Sort the named arguments to get the right selector name and
+    // arguments order.
+    if (namedArguments != null && !namedArguments.isEmpty()) {
+      // Call new List.from to make sure we get a JavaScript array.
+      List<String> listOfNamedArguments =
+          new List<String>.from(namedArguments.getKeys());
+      argumentCount += namedArguments.length;
+      // We're sorting on strings, and the behavior is the same between
+      // Dart string sort and JS string sort. To avoid needing the Dart
+      // sort implementation, we use the JavaScript one instead.
+      JS('void', '#.sort()', listOfNamedArguments);
+      listOfNamedArguments.forEach((String name) {
+        buffer.add('\$$name');
+        arguments.add(namedArguments[name]);
+      });
+    }
+
+    String selectorName = 'call\$$argumentCount$buffer';
+    var jsFunction = JS('var', '#[#]', function, selectorName);
+    if (jsFunction == null) {
+      throw new NoSuchMethodError(function, selectorName, arguments);
+    }
+    // We bound 'this' to [function] because of how we compile
+    // closures: escaped local variables are stored and accessed through
+    // [function].
+    return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+  }
 }
 
 /**

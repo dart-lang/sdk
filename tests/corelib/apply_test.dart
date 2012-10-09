@@ -48,7 +48,7 @@ main() {
     Expect.equals(res, Function.apply(func, list, map));
   }
   testList(42, test0, null);
-  testList(42, test0, []]);
+  testList(42, test0, []);
   testMap(42, test0a, {"a": 5});
   testList(42, test1, [41]);
   test(42, test1a, [20], {"a": 22});
