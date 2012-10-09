@@ -27,7 +27,7 @@ class SocketClose {
         _errorEvents = 0,
         _iterations = 0 {
     _sendPort = spawnFunction(startSocketCloseServer);
-    start();
+    initialize();
   }
 
   void proceed() {
@@ -146,7 +146,7 @@ class SocketClose {
     _socket.onConnect = connectHandler;
   }
 
-  void start() {
+  void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {
       _port = message;
       proceed();

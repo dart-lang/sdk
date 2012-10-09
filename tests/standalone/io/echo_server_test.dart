@@ -36,7 +36,7 @@ class EchoServerGame {
       _buffer[i] = FIRSTCHAR + i;
     }
     _sendPort = spawnFunction(startEchoServer);
-    start();
+    initialize();
   }
 
   void sendData() {
@@ -107,7 +107,7 @@ class EchoServerGame {
     }
   }
 
-  void start() {
+  void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {
       _port = message;
       sendData();
