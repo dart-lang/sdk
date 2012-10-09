@@ -451,7 +451,6 @@ Language/11_Statements/05_For/2_For_in_A01_t02: Fail # inherited from VM
 Language/11_Statements/05_For/2_For_in_A01_t04: Fail # inherited from VM
 Language/11_Statements/05_For_A01_t11: Fail # inherited from VM
 Language/11_Statements/05_For_A01_t12: Fail # http://dartbug.com/5519
-Language/11_Statements/05_For_A01_t13: Fail # http://dartbug.com/5519
 Language/11_Statements/07_Do_A02_t02: Fail # inherited from VM
 Language/11_Statements/08_Switch_A01_t01: Fail # inherited from VM
 Language/11_Statements/08_Switch_A02_t01: Fail # inherited from VM

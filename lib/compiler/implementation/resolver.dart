@@ -2015,7 +2015,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visitLoopBodyIn(node, node.body, blockScope);
 
     // TODO(lrn): Also allow a single identifier.
-    if ((declaration is !Send || declaration.asSend().selector is !Identifier)
+    if ((declaration is !Send || declaration.asSend().selector is !Identifier
+        || declaration.asSend().receiver != null)
         && (declaration is !VariableDefinitions ||
         !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty()))
     {
