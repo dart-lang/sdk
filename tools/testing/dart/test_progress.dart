@@ -394,25 +394,33 @@ class BuildbotProgressIndicator extends ProgressIndicator {
 }
 
 class DiffProgressIndicator extends ColorProgressIndicator {
-  Map<String, List<String>> failures = new Map<String, List<String>>();
+  Map<String, List<String>> statusToConfigs = new Map<String, List<String>>();
 
   DiffProgressIndicator(Date startTime, bool printTiming)
       : super(startTime, printTiming);
 
   void _printFailureOutput(TestCase test) {
-    List<String> configurationFailures =
-      failures.putIfAbsent(test.configurationString, () => <String>[]);
-    configurationFailures.add('${test.displayName}: ${test.output.result}');
+    String status = '${test.displayName}: ${test.output.result}';
+    List<String> configs =
+        statusToConfigs.putIfAbsent(status, () => <String>[]);
+    configs.add(test.configurationString);
   }
 
   void _printFailureSummary() {
-    failures.forEach((key, lines) {
+    Map<String, List<String>> groupedStatuses = new Map<String, List<String>>();
+    statusToConfigs.forEach((String status, List<String> configs) {
+      configs.sort((a, b) => a.compareTo(b));
+      List<String> statuses =
+          groupedStatuses.putIfAbsent('$configs', () => <String>[]);
+      statuses.add(status);
+    });
+    groupedStatuses.forEach((String config, List<String> statuses) {
       print('');
       print('');
-      print('$key:');
-      lines.sort((a, b) => a.compareTo(b));
-      for (String line in lines) {
-        print('  $line');
+      print('$config:');
+      statuses.sort((a, b) => a.compareTo(b));
+      for (String status in statuses) {
+        print('  $status');
       }
     });
     _printStatus();
