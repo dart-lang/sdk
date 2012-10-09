@@ -1844,6 +1844,7 @@ class Library : public Object {
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
+  RawObject* LookupExport(const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -1859,9 +1860,10 @@ class Library : public Object {
 
   void AddAnonymousClass(const Class& cls) const;
 
+  void AddExport(const Namespace& ns) const;
+
   // Library imports.
   void AddImport(const Namespace& ns) const;
-  RawLibrary* LookupImport(const String& url) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
@@ -1933,6 +1935,8 @@ class Library : public Object {
     raw_ptr()->num_imports_ = value;
   }
   RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* exports() const { return raw_ptr()->exports_; }
+  bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;

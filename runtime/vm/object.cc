@@ -5382,6 +5382,24 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
+// Lookup a name in the library's export namespace.
+RawObject* Library::LookupExport(const String& name) const {
+  if (HasExports()) {
+    const Array& exports = Array::Handle(this->exports());
+    Namespace& ns = Namespace::Handle();
+    Object& obj = Object::Handle();
+    for (int i = 0; i < exports.Length(); i++) {
+      ns ^= exports.At(i);
+      obj = ns.Lookup(name);
+      if (!obj.IsNull()) {
+        return obj.raw();
+      }
+    }
+  }
+  return Object::null();
+}
+
+
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   Isolate* isolate = Isolate::Current();
   const Array& dict = Array::Handle(isolate, dictionary());
@@ -5738,25 +5756,6 @@ void Library::AddAnonymousClass(const Class& cls) const {
 }
 
 
-RawLibrary* Library::LookupImport(const String& url) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& imports = Array::Handle(isolate, this->imports());
-  intptr_t num_imports = this->num_imports();
-  Namespace& import = Namespace::Handle(isolate, Namespace::null());
-  Library& lib = Library::Handle(isolate, Library::null());
-  String& import_url = String::Handle(isolate, String::null());
-  for (int i = 0; i < num_imports; i++) {
-    import ^= imports.At(i);
-    lib = import.library();
-    import_url = lib.url();
-    if (url.Equals(import_url)) {
-      return lib.raw();
-    }
-  }
-  return Library::null();
-}
-
-
 RawLibrary* Library::ImportLibraryAt(intptr_t index) const {
   Namespace& import = Namespace::Handle(ImportAt(index));
   if (import.IsNull()) {
@@ -5817,6 +5816,25 @@ void Library::AddImport(const Namespace& ns) const {
 }
 
 
+// Convenience function to determine whether the export list is
+// non-empty.
+bool Library::HasExports() const {
+  return exports() != Object::empty_array();
+}
+
+
+// We add one namespace at a time to the exports array and don't
+// pre-allocate any unused capacity. The assumption is that
+// re-exports are quite rare.
+void Library::AddExport(const Namespace& ns) const {
+  Array &exports = Array::Handle(this->exports());
+  intptr_t num_exports = exports.Length();
+  exports = Array::Grow(exports, num_exports + 1);
+  StorePointer(&raw_ptr()->exports_, exports.raw());
+  exports.SetAt(num_exports, ns);
+}
+
+
 void Library::InitClassDictionary() const {
   // The last element of the dictionary specifies the number of in use slots.
   // TODO(iposva): Find reasonable initial size.
@@ -5856,6 +5874,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->anonymous_classes_ = Object::empty_array();
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Object::empty_array();
+  result.raw_ptr()->exports_ = Object::empty_array();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -6264,9 +6283,14 @@ bool Namespace::HidesName(const String& name) const {
 
 
 RawObject* Namespace::Lookup(const String& name) const {
-  intptr_t i = 0;
   const Library& lib = Library::Handle(library());
-  const Object& obj = Object::Handle(lib.LookupEntry(name, &i));
+  intptr_t ignore = 0;
+  // Lookup the name in the library's symbols.
+  Object& obj = Object::Handle(lib.LookupEntry(name, &ignore));
+  if (obj.IsNull()) {
+    // Lookup in the re-exported symbols.
+    obj = lib.LookupExport(name);
+  }
   if (obj.IsNull() || HidesName(name)) {
     return Object::null();
   }

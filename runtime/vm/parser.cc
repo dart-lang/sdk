@@ -4226,87 +4226,87 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 
 
 void Parser::ParseLibraryImportExport() {
-  if (IsLiteral("import")) {
-    const intptr_t import_pos = TokenPos();
+  bool is_import = IsLiteral("import");
+  bool is_export = IsLiteral("export");
+  ASSERT(is_import || is_export);
+  const intptr_t import_pos = TokenPos();
+  ConsumeToken();
+  if (CurrentToken() != Token::kSTRING) {
+    ErrorMsg("library url expected");
+  }
+  const String& url = *CurrentLiteral();
+  if (url.Length() == 0) {
+    ErrorMsg("library url expected");
+  }
+  ConsumeToken();
+  String& prefix = String::Handle();
+  if (is_import && IsLiteral("as")) {
     ConsumeToken();
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("library url expected");
-    }
-    const String& url = *CurrentLiteral();
-    if (url.Length() == 0) {
-      ErrorMsg("library url expected");
-    }
-    ConsumeToken();
-    String& prefix = String::Handle();
-    if (IsLiteral("as")) {
-      ConsumeToken();
-      prefix = ExpectIdentifier("prefix expected")->raw();
-    }
+    prefix = ExpectIdentifier("prefix expected")->raw();
+  }
 
-    Array& show_names = Array::Handle();
-    Array& hide_names = Array::Handle();
-    if (IsLiteral("show") || IsLiteral("hide")) {
-      GrowableObjectArray& show_list =
-          GrowableObjectArray::Handle(GrowableObjectArray::New());
-      GrowableObjectArray& hide_list =
-          GrowableObjectArray::Handle(GrowableObjectArray::New());
-      for (;;) {
-        if (IsLiteral("show")) {
-          ConsumeToken();
-          ParseIdentList(&show_list);
-        } else if (IsLiteral("hide")) {
-          ConsumeToken();
-          ParseIdentList(&hide_list);
-        } else {
-          break;
-        }
-      }
-      if (show_list.Length() > 0) {
-        show_names = Array::MakeArray(show_list);
-      }
-      if (hide_list.Length() > 0) {
-        hide_names = Array::MakeArray(hide_list);
+  Array& show_names = Array::Handle();
+  Array& hide_names = Array::Handle();
+  if (IsLiteral("show") || IsLiteral("hide")) {
+    GrowableObjectArray& show_list =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    GrowableObjectArray& hide_list =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    for (;;) {
+      if (IsLiteral("show")) {
+        ConsumeToken();
+        ParseIdentList(&show_list);
+      } else if (IsLiteral("hide")) {
+        ConsumeToken();
+        ParseIdentList(&hide_list);
+      } else {
+        break;
       }
     }
-    ExpectSemicolon();
+    if (show_list.Length() > 0) {
+      show_names = Array::MakeArray(show_list);
+    }
+    if (hide_list.Length() > 0) {
+      hide_names = Array::MakeArray(hide_list);
+    }
+  }
+  ExpectSemicolon();
 
-    // Canonicalize library URL.
-    Dart_Handle handle =
-        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
-    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
-    // Lookup the library URL.
-    Library& library = Library::Handle(Library::LookupLibrary(canon_url));
+  // Canonicalize library URL.
+  Dart_Handle handle =
+      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
+  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  // Lookup the library URL.
+  Library& library = Library::Handle(Library::LookupLibrary(canon_url));
+  if (library.IsNull()) {
+    // Call the library tag handler to load the library.
+    CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+    // If the library tag handler succeded without registering the
+    // library we create an empty library to import.
+    library = Library::LookupLibrary(canon_url);
     if (library.IsNull()) {
-      // Call the library tag handler to load the library.
-      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
-      // If the library tag handler succeded without registering the
-      // library we create an empty library to import.
-      library = Library::LookupLibrary(canon_url);
-      if (library.IsNull()) {
-        library = Library::New(canon_url);
-        library.Register();
-      }
+      library = Library::New(canon_url);
+      library.Register();
     }
-    // Add the import to the library.
-    const Namespace& import =
-        Namespace::Handle(Namespace::New(library, show_names, hide_names));
+  }
+  const Namespace& ns =
+    Namespace::Handle(Namespace::New(library, show_names, hide_names));
+  if (is_import) {
     if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(import);
+      library_.AddImport(ns);
     } else {
       LibraryPrefix& library_prefix = LibraryPrefix::Handle();
       library_prefix = library_.LookupLocalLibraryPrefix(prefix);
       if (!library_prefix.IsNull()) {
-        library_prefix.AddImport(import);
+        library_prefix.AddImport(ns);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, import);
+        library_prefix = LibraryPrefix::New(prefix, ns);
         library_.AddObject(library_prefix, prefix);
       }
     }
-  } else if (IsLiteral("export")) {
-    ErrorMsg("export clause not yet supported");
   } else {
-    ErrorMsg("unreachable");
-    UNREACHABLE();
+    ASSERT(is_export);
+    library_.AddExport(ns);
   }
 }
 
