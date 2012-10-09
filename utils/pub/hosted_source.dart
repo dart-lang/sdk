@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('hosted_source');
+library hosted_source;
 
-#import('dart:io', prefix: 'io');
-#import('dart:json');
-#import('dart:uri');
+import 'dart:io' as io;
+import 'dart:json';
+import 'dart:uri';
 
-#import('io.dart');
-#import('package.dart');
-#import('pubspec.dart');
-#import('source.dart');
-#import('source_registry.dart');
-#import('utils.dart');
-#import('version.dart');
+import 'io.dart';
+import 'package.dart';
+import 'pubspec.dart';
+import 'source.dart';
+import 'source_registry.dart';
+import 'utils.dart';
+import 'version.dart';
 
 /**
  * A package source that installs packages from a package hosting site that

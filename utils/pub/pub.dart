@@ -5,28 +5,28 @@
 /**
  * The main entrypoint for the pub command line application.
  */
-#library('pub');
+library pub;
 
-#import('../../pkg/args/lib/args.dart');
-#import('dart:io');
-#import('dart:math');
-#import('io.dart');
-#import('command_help.dart');
-#import('command_install.dart');
-#import('command_update.dart');
-#import('command_version.dart');
-#import('entrypoint.dart');
-#import('exit_codes.dart', prefix: 'exit_codes');
-#import('git_source.dart');
-#import('hosted_source.dart');
-#import('package.dart');
-#import('pubspec.dart');
-#import('sdk_source.dart');
-#import('source.dart');
-#import('source_registry.dart');
-#import('system_cache.dart');
-#import('utils.dart');
-#import('version.dart');
+import '../../pkg/args/lib/args.dart';
+import 'dart:io';
+import 'dart:math';
+import 'io.dart';
+import 'command_help.dart';
+import 'command_install.dart';
+import 'command_update.dart';
+import 'command_version.dart';
+import 'entrypoint.dart';
+import 'exit_codes.dart' as exit_codes;
+import 'git_source.dart';
+import 'hosted_source.dart';
+import 'package.dart';
+import 'pubspec.dart';
+import 'sdk_source.dart';
+import 'source.dart';
+import 'source_registry.dart';
+import 'system_cache.dart';
+import 'utils.dart';
+import 'version.dart';
 
 Version get pubVersion => new Version(0, 0, 0);
 

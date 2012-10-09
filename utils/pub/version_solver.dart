@@ -35,18 +35,18 @@
  * and then the change the package to use that version. That cycles back up to
  * the beginning again.
  */
-#library('version_solver');
+library version_solver;
 
-#import('dart:json');
-#import('dart:math');
-#import('lock_file.dart');
-#import('package.dart');
-#import('pubspec.dart');
-#import('root_source.dart');
-#import('source.dart');
-#import('source_registry.dart');
-#import('utils.dart');
-#import('version.dart');
+import 'dart:json';
+import 'dart:math';
+import 'lock_file.dart';
+import 'package.dart';
+import 'pubspec.dart';
+import 'root_source.dart';
+import 'source.dart';
+import 'source_registry.dart';
+import 'utils.dart';
+import 'version.dart';
 
 /**
  * Attempts to select the best concrete versions for all of the transitive

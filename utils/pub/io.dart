@@ -5,13 +5,13 @@
 /**
  * Helper functionality to make working with IO easier.
  */
-#library('io');
+library io;
 
-#import('dart:io');
-#import('dart:isolate');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:uri';
 
-#import('utils.dart');
+import 'utils.dart';
 
 bool _isGitInstalledCache;
 

@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('pub_update_test');
+library pub_update_test;
 
-#import('dart:io');
-#import('dart:isolate');
+import 'dart:io';
+import 'dart:isolate';
 
-#import('../../pub/lock_file.dart');
-#import('../../pub/package.dart');
-#import('../../pub/pubspec.dart');
-#import('../../pub/root_source.dart');
-#import('../../pub/source.dart');
-#import('../../pub/source_registry.dart');
-#import('../../pub/utils.dart');
-#import('../../pub/version.dart');
-#import('../../pub/version_solver.dart');
-#import('../../../pkg/unittest/unittest.dart');
+import '../../pub/lock_file.dart';
+import '../../pub/package.dart';
+import '../../pub/pubspec.dart';
+import '../../pub/root_source.dart';
+import '../../pub/source.dart';
+import '../../pub/source_registry.dart';
+import '../../pub/utils.dart';
+import '../../pub/version.dart';
+import '../../pub/version_solver.dart';
+import '../../../pkg/unittest/unittest.dart';
 
 final noVersion = 'no version';
 final disjointConstraint = 'disjoint';

@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('lock_file_test');
+library lock_file_test;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../pub/lock_file.dart');
-#import('../../pub/package.dart');
-#import('../../pub/source.dart');
-#import('../../pub/source_registry.dart');
-#import('../../pub/utils.dart');
-#import('../../pub/version.dart');
-#import('../../pub/yaml/yaml.dart');
+import '../../../pkg/unittest/unittest.dart';
+import '../../pub/lock_file.dart';
+import '../../pub/package.dart';
+import '../../pub/source.dart';
+import '../../pub/source_registry.dart';
+import '../../pub/utils.dart';
+import '../../pub/version.dart';
+import '../../pub/yaml/yaml.dart';
 
 class MockSource extends Source {
   final String name = 'mock';

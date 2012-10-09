@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('git_source');
+library git_source;
 
-#import('git.dart', prefix: 'git');
-#import('io.dart');
-#import('package.dart');
-#import('source.dart');
-#import('source_registry.dart');
-#import('utils.dart');
+import 'git.dart' as git;
+import 'io.dart';
+import 'package.dart';
+import 'source.dart';
+import 'source_registry.dart';
+import 'utils.dart';
 
 /**
  * A package source that installs packages from Git repos.

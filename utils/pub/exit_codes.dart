@@ -7,7 +7,7 @@
 /// appropriate for errors encountered by pub.
 ///
 /// [manpage]: http://www.freebsd.org/cgi/man.cgi?query=sysexits
-#library('exit_codes');
+library exit_codes;
 
 /// The command was used incorrectly.
 final USAGE = 64;

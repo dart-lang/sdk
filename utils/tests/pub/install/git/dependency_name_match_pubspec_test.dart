@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('pub_tests');
+library pub_tests;
 
-#import('dart:io');
+import 'dart:io';
 
-#import('../../test_pub.dart');
-#import('../../../../../pkg/unittest/unittest.dart');
+import '../../test_pub.dart';
+import '../../../../../pkg/unittest/unittest.dart';
 
 main() {
   test('requires the dependency name to match the remote pubspec name', () {

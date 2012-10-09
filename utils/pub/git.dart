@@ -5,10 +5,10 @@
 /**
  * Helper functionality for invoking Git.
  */
-#library('git');
+library git;
 
-#import('io.dart');
-#import('utils.dart');
+import 'io.dart';
+import 'utils.dart';
 
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isInstalled {

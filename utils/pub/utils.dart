@@ -5,10 +5,10 @@
 /**
  * Generic utility functions. Stuff that should possibly be in core.
  */
-#library('utils');
+library utils;
 
-#import('dart:crypto');
-#import('dart:isolate');
+import 'dart:crypto';
+import 'dart:isolate';
 
 /** A pair of values. */
 class Pair<E, F> {

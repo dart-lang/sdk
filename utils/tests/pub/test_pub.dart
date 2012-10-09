@@ -8,22 +8,22 @@
  * pub, and then validate the results. This library provides an API to build
  * tests like that.
  */
-#library('test_pub');
+library test_pub;
 
-#import('dart:io');
-#import('dart:isolate');
-#import('dart:json');
-#import('dart:math');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:json';
+import 'dart:math';
+import 'dart:uri';
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../lib/file_system.dart', prefix: 'fs');
-#import('../../pub/git_source.dart');
-#import('../../pub/hosted_source.dart');
-#import('../../pub/io.dart');
-#import('../../pub/sdk_source.dart');
-#import('../../pub/utils.dart');
-#import('../../pub/yaml/yaml.dart');
+import '../../../pkg/unittest/unittest.dart';
+import '../../lib/file_system.dart' as fs;
+import '../../pub/git_source.dart';
+import '../../pub/hosted_source.dart';
+import '../../pub/io.dart';
+import '../../pub/sdk_source.dart';
+import '../../pub/utils.dart';
+import '../../pub/yaml/yaml.dart';
 
 /**
  * Creates a new [FileDescriptor] with [name] and [contents].

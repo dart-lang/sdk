@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('source');
+library source;
 
-#import('io.dart');
-#import('package.dart');
-#import('pubspec.dart');
-#import('system_cache.dart');
-#import('version.dart');
+import 'io.dart';
+import 'package.dart';
+import 'pubspec.dart';
+import 'system_cache.dart';
+import 'version.dart';
 
 /**
  * A source from which to install packages.

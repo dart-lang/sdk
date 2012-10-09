@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('version_test');
+library version_test;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../pub/utils.dart');
-#import('../../pub/version.dart');
+import '../../../pkg/unittest/unittest.dart';
+import '../../pub/utils.dart';
+import '../../pub/version.dart';
 
 main() {
   final v123 = new Version.parse('1.2.3');
