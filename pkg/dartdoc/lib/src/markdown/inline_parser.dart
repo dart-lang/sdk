@@ -9,6 +9,18 @@ class InlineParser {
     // Lazy initialize.
     if (_syntaxes == null) {
       _syntaxes = <InlineSyntax>[
+        // This first regexp matches plain text to accelerate parsing.  It must
+        // be written so that it does not match any prefix of any following
+        // syntax.  Most markdown is plain text, so it is faster to match one
+        // regexp per 'word' rather than fail to match all the following regexps
+        // at each non-syntax character position.  It is much more important
+        // that the regexp is fast than complete (for example, adding grouping
+        // is likely to slow the regexp down enough to negate its benefit).
+        // Since it is purely for optimization, it can be removed for debugging.
+        new TextSyntax(r'\s*[A-Za-z0-9]+'),
+
+        // The real syntaxes.
+
         new AutolinkSyntax(),
         new LinkSyntax(),
         // "*" surrounded by spaces is left alone.
