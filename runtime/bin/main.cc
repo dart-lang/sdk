@@ -532,6 +532,18 @@ static void PrintUsage() {
 "--package-root=<path>\n"
 "  Where to find packages, that is, \"package:...\" imports.\n"
 "\n"
+"--debug[:<port number>]\n"
+"  enables debugging and listens on specified port for debugger connections\n"
+"  (default port number is 5858)\n"
+"\n"
+"--break_at=<location>\n"
+"  sets a breakpoint at specified location where <location> is one of :\n"
+"  url:<line_num> e.g. test.dart:10\n"
+"  [<class_name>.]<function_name> e.g. B.foo\n"
+"\n"
+"--use_script_snapshot=<file_name>\n"
+"  executes Dart script present in the specified snapshot file\n"
+"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
