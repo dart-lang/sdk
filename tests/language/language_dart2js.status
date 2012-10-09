@@ -359,3 +359,5 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 typed_message_test: Fail # http://dartbug.com/5383
 first_class_types_test: Fail # http://dartbug.com/5523
+part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
+part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.

@@ -42,6 +42,9 @@ message_test: Skip
 timer_test: Pass, Fail
 multiple_timer_test: Pass, Fail
 
+[ $runtime == ff && $system == windows ]
+message2_test: Skip # http://dartbug.com/5744 (bug causes hang, so skip test)
+
 # TODO(ager): Update these.
 [ $runtime == ie && $system == windows ]
 v2*: Skip
