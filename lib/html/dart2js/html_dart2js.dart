@@ -1639,7 +1639,7 @@ class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*
 
   bool disabled;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String formAction;
 
@@ -1791,13 +1791,13 @@ abstract class CSSKeyframesRule implements CSSRule {
 
 class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule native "*WebKitCSSKeyframesRule" {
 
-  final List<CSSRule> cssRules;
+  final _CSSRuleListImpl cssRules;
 
   String name;
 
   void deleteRule(String key) native;
 
-  CSSKeyframeRule findRule(String key) native;
+  _CSSKeyframeRuleImpl findRule(String key) native;
 
   void insertRule(String rule) native;
 }
@@ -1960,25 +1960,25 @@ class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 
   num m44;
 
-  CSSMatrix inverse() native;
+  _CSSMatrixImpl inverse() native;
 
-  CSSMatrix multiply(_CSSMatrixImpl secondMatrix) native;
+  _CSSMatrixImpl multiply(_CSSMatrixImpl secondMatrix) native;
 
-  CSSMatrix rotate(num rotX, num rotY, num rotZ) native;
+  _CSSMatrixImpl rotate(num rotX, num rotY, num rotZ) native;
 
-  CSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
+  _CSSMatrixImpl rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  CSSMatrix scale(num scaleX, num scaleY, num scaleZ) native;
+  _CSSMatrixImpl scale(num scaleX, num scaleY, num scaleZ) native;
 
   void setMatrixValue(String string) native;
 
-  CSSMatrix skewX(num angle) native;
+  _CSSMatrixImpl skewX(num angle) native;
 
-  CSSMatrix skewY(num angle) native;
+  _CSSMatrixImpl skewY(num angle) native;
 
   String toString() native;
 
-  CSSMatrix translate(num x, num y, num z) native;
+  _CSSMatrixImpl translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2004,7 +2004,7 @@ abstract class CSSMediaRule implements CSSRule {
 
 class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule native "*CSSMediaRule" {
 
-  final List<CSSRule> cssRules;
+  final _CSSRuleListImpl cssRules;
 
   final _MediaListImpl media;
 
@@ -7047,11 +7047,11 @@ abstract class CSSStyleSheet implements StyleSheet {
 
 class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet native "*CSSStyleSheet" {
 
-  final List<CSSRule> cssRules;
+  final _CSSRuleListImpl cssRules;
 
   final _CSSRuleImpl ownerRule;
 
-  final List<CSSRule> rules;
+  final _CSSRuleListImpl rules;
 
   int addRule(String selector, String style, [int index]) native;
 
@@ -7794,7 +7794,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
 class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  final CanvasElement canvas;
+  final _CanvasElementImpl canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8021,7 +8021,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   String effectAllowed;
 
-  final List<File> files;
+  final _FileListImpl files;
 
   final _DataTransferItemListImpl items;
 
@@ -8680,7 +8680,7 @@ class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementa
 
   _DocumentTypeImpl createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  Document createHTMLDocument(String title) native;
+  _DocumentImpl createHTMLDocument(String title) native;
 
   bool hasFeature(String feature, String version) native;
 }
@@ -9913,7 +9913,7 @@ abstract class DirectoryReaderSync {
 
 class _DirectoryReaderSyncImpl implements DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  List<EntrySync> readEntries() native;
+  _EntryArraySyncImpl readEntries() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10614,7 +10614,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   final _ElementImpl activeElement;
 
-  Element body;
+  _ElementImpl body;
 
   String charset;
 
@@ -10627,7 +10627,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   final String domain;
 
-  final HeadElement head;
+  final _HeadElementImpl head;
 
   final _DOMImplementationImpl implementation;
 
@@ -10641,7 +10641,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   String selectedStylesheetSet;
 
-  final List<StyleSheet> styleSheets;
+  final _StyleSheetListImpl styleSheets;
 
   String title;
 
@@ -12244,7 +12244,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   _ClientRectImpl getBoundingClientRect() native;
 
-  List<ClientRect> getClientRects() native;
+  _ClientRectListImpl getClientRects() native;
 
   List<Node> $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
@@ -13345,7 +13345,7 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 
   final _HTMLCollectionImpl elements;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String name;
 
@@ -15180,7 +15180,7 @@ class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest native "*
 
   final String statusText;
 
-  final HttpRequestUpload upload;
+  final _HttpRequestUploadImpl upload;
 
   bool withCredentials;
 
@@ -16980,9 +16980,9 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   bool disabled;
 
-  List<File> files;
+  _FileListImpl files;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String formAction;
 
@@ -17002,7 +17002,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   final List<Node> labels;
 
-  final Element list;
+  final _ElementImpl list;
 
   String max;
 
@@ -17048,7 +17048,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   num valueAsNumber;
 
-  final List<Entry> webkitEntries;
+  final _EntryArrayImpl webkitEntries;
 
   bool webkitGrammar;
 
@@ -17661,7 +17661,7 @@ class _KeygenElementImpl extends _ElementImpl implements KeygenElement native "*
 
   bool disabled;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String keytype;
 
@@ -17728,9 +17728,9 @@ abstract class LabelElement implements Element {
 
 class _LabelElementImpl extends _ElementImpl implements LabelElement native "*HTMLLabelElement" {
 
-  final Element control;
+  final _ElementImpl control;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String htmlFor;
 }
@@ -17756,7 +17756,7 @@ class _LegendElementImpl extends _ElementImpl implements LegendElement native "*
 
   String align;
 
-  final FormElement form;
+  final _FormElementImpl form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18714,7 +18714,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "getComputedStyle";
 
-  List<CSSRule> getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
+  _CSSRuleListImpl getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
 
   _DOMSelectionImpl getSelection() native;
 
@@ -18770,9 +18770,9 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   void stop() native;
 
-  Point webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
+  _PointImpl webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
 
-  Point webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
+  _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
@@ -19339,7 +19339,7 @@ abstract class MediaElementAudioSourceNode implements AudioSourceNode {
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  final MediaElement mediaElement;
+  final _MediaElementImpl mediaElement;
 }
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
@@ -21032,7 +21032,7 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   bool javaEnabled() native;
 
-  List<Gamepad> webkitGetGamepads() native;
+  _GamepadListImpl webkitGetGamepads() native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [errorCallback]) {
     if (?errorCallback) {
@@ -22055,7 +22055,7 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
 
   bool declare;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   String height;
 
@@ -22177,7 +22177,7 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
 
   bool disabled;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   final int index;
 
@@ -22304,7 +22304,7 @@ class _OutputElementImpl extends _ElementImpl implements OutputElement native "*
 
   String defaultValue;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   _DOMSettableTokenListImpl htmlFor;
 
@@ -22572,13 +22572,13 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   final _SessionDescriptionImpl localDescription;
 
-  final List<MediaStream> localStreams;
+  final _MediaStreamListImpl localStreams;
 
   final int readyState;
 
   final _SessionDescriptionImpl remoteDescription;
 
-  final List<MediaStream> remoteStreams;
+  final _MediaStreamListImpl remoteStreams;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -23227,13 +23227,13 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   final _RTCSessionDescriptionImpl localDescription;
 
-  final List<MediaStream> localStreams;
+  final _MediaStreamListImpl localStreams;
 
   final String readyState;
 
   final _RTCSessionDescriptionImpl remoteDescription;
 
-  final List<MediaStream> remoteStreams;
+  final _MediaStreamListImpl remoteStreams;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -23537,7 +23537,7 @@ class _RangeImpl implements Range native "*Range" {
 
   _ClientRectImpl getBoundingClientRect() native;
 
-  List<ClientRect> getClientRects() native;
+  _ClientRectListImpl getClientRects() native;
 
   void insertNode(_NodeImpl newNode) native;
 
@@ -25325,7 +25325,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   _SVGElementInstanceEventsImpl get on =>
     new _SVGElementInstanceEventsImpl(this);
 
-  final List<SVGElementInstance> childNodes;
+  final _SVGElementInstanceListImpl childNodes;
 
   final _SVGElementImpl correspondingElement;
 
@@ -31306,7 +31306,7 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   bool disabled;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   final List<Node> labels;
 
@@ -31868,7 +31868,7 @@ abstract class SpeechInputEvent implements Event {
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
 
-  final List<SpeechInputResult> results;
+  final _SpeechInputResultListImpl results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32138,7 +32138,7 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
 
   final _SpeechRecognitionResultImpl result;
 
-  final List<SpeechRecognitionResult> resultHistory;
+  final _SpeechRecognitionResultListImpl resultHistory;
 
   final int resultIndex;
 }
@@ -32944,7 +32944,7 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   String border;
 
-  TableCaptionElement caption;
+  _TableCaptionElementImpl caption;
 
   String cellPadding;
 
@@ -32960,17 +32960,17 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   final _HTMLCollectionImpl tBodies;
 
-  TableSectionElement tFoot;
+  _TableSectionElementImpl tFoot;
 
-  TableSectionElement tHead;
+  _TableSectionElementImpl tHead;
 
   String width;
 
-  Element createCaption() native;
+  _ElementImpl createCaption() native;
 
-  Element createTFoot() native;
+  _ElementImpl createTFoot() native;
 
-  Element createTHead() native;
+  _ElementImpl createTHead() native;
 
   void deleteCaption() native;
 
@@ -32980,7 +32980,7 @@ class _TableElementImpl extends _ElementImpl implements TableElement native "*HT
 
   void deleteTHead() native;
 
-  Element insertRow(int index) native;
+  _ElementImpl insertRow(int index) native;
 
 
   _ElementImpl createTBody() {
@@ -33056,7 +33056,7 @@ class _TableRowElementImpl extends _ElementImpl implements TableRowElement nativ
 
   void deleteCell(int index) native;
 
-  Element insertCell(int index) native;
+  _ElementImpl insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33103,7 +33103,7 @@ class _TableSectionElementImpl extends _ElementImpl implements TableSectionEleme
 
   void deleteRow(int index) native;
 
-  Element insertRow(int index) native;
+  _ElementImpl insertRow(int index) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33225,7 +33225,7 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
 
   bool disabled;
 
-  final FormElement form;
+  final _FormElementImpl form;
 
   final List<Node> labels;
 
@@ -36551,7 +36551,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   final int length;
 
-  Animation operator[](int index) native "return this[index];";
+  _AnimationImpl operator[](int index) native "return this[index];";
 
   void operator[]=(int index, _AnimationImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -36632,7 +36632,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   // -- end List<Animation> mixins.
 
-  Animation item(int index) native;
+  _AnimationImpl item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

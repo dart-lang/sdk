@@ -1057,11 +1057,8 @@ class Dart2JSBackend(object):
     return self._NarrowToImplementationType(type_name)
 
   def _NarrowOutputType(self, type_name):
-    secure_name = SecureOutputType(self, type_name)
-    if (type_name == secure_name):
-      return self._NarrowToImplementationType(type_name)
-    else:
-      return secure_name
+    secure_name = SecureOutputType(self, type_name, True)
+    return self._NarrowToImplementationType(secure_name)
 
   def _FindShadowedAttribute(self, attr, merged_interfaces={}):
     """Returns (attribute, superinterface) or (None, None)."""
