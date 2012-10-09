@@ -66,7 +66,9 @@ def SecureOutputType(generator, type_name, is_dart_type=False):
     dart_name = type_name
   else:
     dart_name = generator._DartType(type_name)
-  if dart_name in _secure_base_types:
+  # We only need to secure Window.  Only local History and Location are returned
+  # in generated code.
+  if dart_name == 'LocalWindow':
     return _secure_base_types[dart_name]
   return dart_name
 

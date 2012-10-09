@@ -20154,7 +20154,7 @@ abstract class LocalWindow implements EventTarget, Window {
   abstract Event get event;
 
   /** @domName Window.history */
-  abstract History get history;
+  abstract LocalHistory get history;
 
   /** @domName DOMWindow.indexedDB */
   abstract IDBFactory get indexedDB;
@@ -20169,7 +20169,7 @@ abstract class LocalWindow implements EventTarget, Window {
   abstract Storage get localStorage;
 
   /** @domName Window.location */
-  Location location;
+  LocalLocation location;
 
   /** @domName Window.locationbar */
   abstract BarInfo get locationbar;
@@ -20597,7 +20597,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   Event get event native "DOMWindow_event_Getter";
 
-  History get history native "DOMWindow_history_Getter";
+  LocalHistory get history native "DOMWindow_history_Getter";
 
   IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
@@ -20607,7 +20607,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   Storage get localStorage native "DOMWindow_localStorage_Getter";
 
-  Location get location native "DOMWindow_location_Getter";
+  LocalLocation get location native "DOMWindow_location_Getter";
 
   void set location(LocalLocation value) native "DOMWindow_location_Setter";
 

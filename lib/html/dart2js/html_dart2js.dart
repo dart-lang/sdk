@@ -18061,7 +18061,7 @@ abstract class LocalWindow implements EventTarget, Window {
   abstract Event get event;
 
   /** @domName Window.history */
-  abstract History get history;
+  abstract LocalHistory get history;
 
   /** @domName DOMWindow.indexedDB */
   abstract IDBFactory get indexedDB;
@@ -18076,7 +18076,7 @@ abstract class LocalWindow implements EventTarget, Window {
   abstract Storage get localStorage;
 
   /** @domName Window.location */
-  Location location;
+  LocalLocation location;
 
   /** @domName Window.locationbar */
   abstract BarInfo get locationbar;
