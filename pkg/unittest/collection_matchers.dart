@@ -183,7 +183,7 @@ class _UnorderedEquals extends BaseMatcher {
  * Collection matchers match against [Collection]s. We add this intermediate
  * class to give better mismatch error messages than the base Matcher class.
  */
-/* abstract */ class _CollectionMatcher extends BaseMatcher {
+abstract class _CollectionMatcher extends BaseMatcher {
   const _CollectionMatcher();
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {

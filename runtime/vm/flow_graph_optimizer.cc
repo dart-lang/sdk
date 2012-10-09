@@ -80,28 +80,40 @@ void FlowGraphOptimizer::OptimizeComputations() {
 }
 
 
-static Definition* CreateConversion(Representation from,
-                                    Representation to,
-                                    Definition* def,
-                                    Instruction* deopt_target) {
+void FlowGraphOptimizer::InsertConversion(Representation from,
+                                          Representation to,
+                                          Instruction* instr,
+                                          Value* use,
+                                          Definition* def,
+                                          Instruction* deopt_target) {
+  Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    return new UnboxIntegerInstr(new Value(def), deopt_id);
+    converted = new UnboxIntegerInstr(new Value(def), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
-    return new BoxIntegerInstr(new Value(def));
+    converted = new BoxIntegerInstr(new Value(def));
+  } else if (from == kUnboxedMint && to == kUnboxedDouble) {
+    // Convert by boxing/unboxing.
+    // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
+    BoxIntegerInstr* boxed = new BoxIntegerInstr(new Value(def));
+    InsertBefore(instr, boxed, NULL, Definition::kValue);
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    return new BoxDoubleInstr(new Value(def), NULL);
+    converted = new BoxDoubleInstr(new Value(def), NULL);
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    return new UnboxDoubleInstr(new Value(def), deopt_id);
-  } else {
-    UNREACHABLE();
-    return NULL;
+    converted = new UnboxDoubleInstr(new Value(def), deopt_id);
   }
+  ASSERT(converted != NULL);
+  InsertBefore(instr, converted, use->instruction()->env(),
+               Definition::kValue);
+  use->set_definition(converted);
 }
 
 
@@ -130,11 +142,7 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
       deopt_target = instr;
     }
 
-    Definition* converted =
-        CreateConversion(from_rep, to_rep, def, deopt_target);
-    InsertBefore(instr, converted, use->instruction()->env(),
-                 Definition::kValue);
-    use->set_definition(converted);
+    InsertConversion(from_rep, to_rep, instr, use, def, deopt_target);
   }
 }
 
@@ -148,7 +156,8 @@ void FlowGraphOptimizer::SelectRepresentations() {
     if (join_entry->phis() != NULL) {
       for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
         PhiInstr* phi = (*join_entry->phis())[i];
-        if ((phi != NULL) && (phi->GetPropagatedCid() == kDoubleCid)) {
+        if (phi == NULL) continue;
+        if (phi->GetPropagatedCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
         }
       }
@@ -230,12 +239,13 @@ static bool ClassIdIsOneOf(intptr_t class_id,
 }
 
 
+// Returns true if ICData tests two arguments and all ICData cids are in the
+// required sets 'receiver_class_ids' or 'argument_class_ids', respectively.
 static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
     const GrowableArray<intptr_t>& receiver_class_ids,
     const GrowableArray<intptr_t>& argument_class_ids) {
   if (ic_data.num_args_tested() != 2) return false;
-
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<intptr_t> class_ids;
@@ -250,12 +260,24 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 }
 
 
-static bool HasOneSmi(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kSmiCid);
+static bool HasOnlyOneSmi(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1)
+      && ICDataHasReceiverClassId(ic_data, kSmiCid);
 }
 
 
-static bool HasOnlyTwoSmi(const ICData& ic_data) {
+static bool HasOnlySmiOrMint(const ICData& ic_data) {
+  if (ic_data.NumberOfChecks() == 1) {
+    return ICDataHasReceiverClassId(ic_data, kSmiCid)
+        || ICDataHasReceiverClassId(ic_data, kMintCid);
+  }
+  return (ic_data.NumberOfChecks() == 2)
+      && ICDataHasReceiverClassId(ic_data, kSmiCid)
+      && ICDataHasReceiverClassId(ic_data, kMintCid);
+}
+
+
+static bool HasOnlyTwoSmis(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1) &&
       ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid);
 }
@@ -271,8 +293,9 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
 }
 
 
-static bool HasOneDouble(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kDoubleCid);
+static bool HasOnlyOneDouble(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1)
+      && ICDataHasReceiverClassId(ic_data, kDoubleCid);
 }
 
 
@@ -332,7 +355,8 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
-  CheckClassInstr* check = new CheckClassInstr(value, call, unary_checks);
+  CheckClassInstr* check =
+      new CheckClassInstr(value, call->deopt_id(), unary_checks);
   InsertBefore(call, check, call->env(), Definition::kEffect);
 }
 
@@ -459,8 +483,19 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
+      if (HasOnlyTwoSmis(ic_data)) {
+        operands_type = kSmiCid;
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
+        operands_type = kMintCid;
+      } else if (ShouldSpecializeForDouble(ic_data)) {
+        operands_type = kDoubleCid;
+      } else {
+        return false;
+      }
+      break;
     case Token::kMUL:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
@@ -476,7 +511,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kMOD:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else {
         return false;
@@ -485,7 +520,17 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
+        operands_type = kSmiCid;
+      } else if (HasTwoMintOrSmi(ic_data) &&
+                 FlowGraphCompiler::SupportsUnboxedMints()) {
+        operands_type = kMintCid;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kSHR:
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
                  FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -495,9 +540,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kTRUNCDIV:
-    case Token::kSHR:
     case Token::kSHL:
-      if (HasOnlyTwoSmi(ic_data)) {
+      if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else {
         return false;
@@ -521,19 +565,22 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  call->env(),
                  Definition::kEffect);
 
-    UnboxedDoubleBinaryOpInstr* double_bin_op =
-        new UnboxedDoubleBinaryOpInstr(op_kind,
-                                       left->Copy(),
-                                       right->Copy(),
-                                       call);
+    BinaryDoubleOpInstr* double_bin_op =
+        new BinaryDoubleOpInstr(op_kind, left->Copy(), right->Copy(), call);
     call->ReplaceWith(double_bin_op, current_iterator());
     RemovePushArguments(call);
   } else if (operands_type == kMintCid) {
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
-    UnboxedMintBinaryOpInstr* bin_op =
-        new UnboxedMintBinaryOpInstr(op_kind, left, right, call);
-    call->ReplaceWith(bin_op, current_iterator());
+    if (op_kind == Token::kSHR) {
+      ShiftMintOpInstr* shift_op =
+          new ShiftMintOpInstr(op_kind, left, right, call);
+      call->ReplaceWith(shift_op, current_iterator());
+    } else {
+      BinaryMintOpInstr* bin_op =
+          new BinaryMintOpInstr(op_kind, left, right, call);
+      call->ReplaceWith(bin_op, current_iterator());
+    }
     RemovePushArguments(call);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
@@ -581,13 +628,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
-  if (call->ic_data()->NumberOfChecks() != 1) {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  }
   ASSERT(call->ArgumentCount() == 1);
   Definition* unary_op = NULL;
-  if (HasOneSmi(*call->ic_data())) {
+  if (HasOnlyOneSmi(*call->ic_data())) {
     Value* value = call->ArgumentAt(0)->value();
     InsertBefore(call,
                  new CheckSmiInstr(value->Copy(), call->deopt_id()),
@@ -596,16 +639,22 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new UnarySmiOpInstr(op_kind,
                                    (op_kind == Token::kNEGATE) ? call : NULL,
                                    value);
-  } else if (HasOneDouble(*call->ic_data()) && (op_kind == Token::kNEGATE)) {
+  } else if ((op_kind == Token::kBIT_NOT) &&
+             HasOnlySmiOrMint(*call->ic_data()) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    Value* value = call->ArgumentAt(0)->value();
+    unary_op = new UnaryMintOpInstr(op_kind, value, call);
+  } else if (HasOnlyOneDouble(*call->ic_data()) &&
+             (op_kind == Token::kNEGATE)) {
     Value* value = call->ArgumentAt(0)->value();
     AddCheckClass(call, value->Copy());
     ConstantInstr* minus_one =
         new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
     InsertBefore(call, minus_one, NULL, Definition::kValue);
-    unary_op = new UnboxedDoubleBinaryOpInstr(Token::kMUL,
-                                              value,
-                                              new Value(minus_one),
-                                              call);
+    unary_op = new BinaryDoubleOpInstr(Token::kMUL,
+                                       value,
+                                       new Value(minus_one),
+                                       call);
   }
   if (unary_op == NULL) return false;
 
@@ -1017,7 +1066,7 @@ static void HandleRelationalOp(FlowGraphOptimizer* optimizer,
   if (ic_data.NumberOfChecks() != 1) return;
   ASSERT(ic_data.HasOneTarget());
 
-  if (HasOnlyTwoSmi(ic_data)) {
+  if (HasOnlyTwoSmis(ic_data)) {
     optimizer->InsertBefore(
         instr,
         new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
@@ -1058,9 +1107,11 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     instr->ReplaceWith(strict_comp, iterator);
     return;
   }
-  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
+    return;
+  }
+  ASSERT(comp->ic_data()->num_args_tested() == 2);
   if (comp->ic_data()->NumberOfChecks() == 1) {
-    ASSERT(comp->ic_data()->num_args_tested() == 2);
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
     comp->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -1091,6 +1142,60 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
     comp->set_receiver_class_id(kMintCid);
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);
+  }
+
+  if (comp->receiver_class_id() != kIllegalCid) {
+    // Done.
+    return;
+  }
+
+  // Check if ICDData contains checks with Smi/Null combinations. In that case
+  // we can still emit the optimized Smi equality operation but need to add
+  // checks for null or Smi.
+  // TODO(srdjan): Add it for Double and Mint.
+  GrowableArray<intptr_t> smi_or_null(2);
+  smi_or_null.Add(kSmiCid);
+  smi_or_null.Add(kNullCid);
+  if (ICDataHasOnlyReceiverArgumentClassIds(
+        *comp->ic_data(), smi_or_null, smi_or_null)) {
+    ICData& unary_checks =
+        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+    const intptr_t deopt_id = comp->deopt_id();
+    if ((unary_checks.NumberOfChecks() == 1) &&
+        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+      // Smi only.
+      optimizer->InsertBefore(
+        instr,
+        new CheckSmiInstr(comp->left()->Copy(), deopt_id),
+        instr->env(),
+        Definition::kEffect);
+    } else {
+      // Smi or NULL.
+      optimizer->InsertBefore(
+        instr,
+        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks),
+        instr->env(),
+        Definition::kEffect);
+    }
+
+    unary_checks = comp->ic_data()->AsUnaryClassChecksForArgNr(1);
+    if ((unary_checks.NumberOfChecks() == 1) &&
+        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+      // Smi only.
+      optimizer->InsertBefore(
+        instr,
+        new CheckSmiInstr(comp->right()->Copy(), deopt_id),
+        instr->env(),
+        Definition::kEffect);
+    } else {
+      // Smi or NULL.
+      optimizer->InsertBefore(
+        instr,
+        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks),
+        instr->env(),
+        Definition::kEffect);
+    }
+    comp->set_receiver_class_id(kSmiCid);
   }
 }
 
@@ -2895,9 +3000,23 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxedMintBinaryOp(
-    UnboxedMintBinaryOpInstr* instr) {
+void ConstantPropagator::VisitBinaryMintOp(
+    BinaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle binary operations.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitShiftMintOp(
+    ShiftMintOpInstr* instr) {
+  // TODO(kmillikin): Handle shift operations.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnaryMintOp(
+    UnaryMintOpInstr* instr) {
+  // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }
 
@@ -2941,8 +3060,8 @@ void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxedDoubleBinaryOp(
-    UnboxedDoubleBinaryOpInstr* instr) {
+void ConstantPropagator::VisitBinaryDoubleOp(
+    BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {

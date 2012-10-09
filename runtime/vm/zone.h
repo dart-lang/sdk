@@ -16,10 +16,10 @@ namespace dart {
 // chunks cannot be deallocated individually, but instead zones
 // support deallocating all chunks in one fast operation.
 
-class BaseZone {
+class Zone {
  private:
-  BaseZone();
-  ~BaseZone();  // Delete all memory associated with the zone.
+  Zone();
+  ~Zone();  // Delete all memory associated with the zone.
 
   // Allocate an array sized to hold 'len' elements of type
   // 'ElementType'.  Checks for integer overflow when performing the
@@ -103,20 +103,24 @@ class BaseZone {
   // List of large segments allocated in this zone; may be NULL.
   Segment* large_segments_;
 
-  friend class Zone;
+  // Structure for managing handles allocation.
+  VMHandles handles_;
+  VMHandles* handles() { return &handles_; }
+
+  friend class StackZone;
   friend class ApiZone;
   template<typename T, typename B> friend class BaseGrowableArray;
-  DISALLOW_COPY_AND_ASSIGN(BaseZone);
+  DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 
 
-class Zone : public StackResource {
+class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Isolate.
-  explicit Zone(BaseIsolate* isolate);
+  explicit StackZone(BaseIsolate* isolate);
 
   // Delete all memory associated with the zone.
-  ~Zone();
+  ~StackZone();
 
   // Allocates an array sized to hold 'len' elements of type
   // 'ElementType'.  Checks for integer overflow when performing the
@@ -154,33 +158,31 @@ class Zone : public StackResource {
   // Make a zone-allocated string based on printf format and args.
   char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
-  VMHandles* handles() { return &handles_; }
+  // TODO(tball): remove once zone refactoring is finished.
+  VMHandles* handles() { return zone_.handles(); }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
-  BaseZone* GetBaseZone() { return &zone_; }
+  Zone* GetBaseZone() { return &zone_; }
 
-  BaseZone zone_;
-
-  // Structure for managing handles allocation.
-  VMHandles handles_;
+  Zone zone_;
 
   // Used for chaining zones in order to allow unwinding of stacks.
-  Zone* previous_;
+  StackZone* previous_;
 
   template<typename T> friend class GrowableArray;
   template<typename T> friend class ZoneGrowableArray;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Zone);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StackZone);
 };
 
-inline uword BaseZone::AllocUnsafe(intptr_t size) {
+inline uword Zone::AllocUnsafe(intptr_t size) {
   ASSERT(size >= 0);
 
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
-    FATAL1("BaseZone::Alloc: 'size' is too large: size=%"Pd"", size);
+    FATAL1("Zone::Alloc: 'size' is too large: size=%"Pd"", size);
   }
   size = Utils::RoundUp(size, kAlignment);
 
@@ -200,17 +202,17 @@ inline uword BaseZone::AllocUnsafe(intptr_t size) {
 }
 
 template <class ElementType>
-inline ElementType* BaseZone::Alloc(intptr_t len) {
+inline ElementType* Zone::Alloc(intptr_t len) {
   const intptr_t element_size = sizeof(ElementType);
   if (len > (kIntptrMax / element_size)) {
-    FATAL2("BaseZone::Alloc: 'len' is too large: len=%"Pd", element_size=%"Pd,
+    FATAL2("Zone::Alloc: 'len' is too large: len=%"Pd", element_size=%"Pd,
            len, element_size);
   }
   return reinterpret_cast<ElementType*>(AllocUnsafe(len * element_size));
 }
 
 template <class ElementType>
-inline ElementType* BaseZone::Realloc(ElementType* old_data,
+inline ElementType* Zone::Realloc(ElementType* old_data,
                                       intptr_t old_len,
                                       intptr_t new_len) {
   ElementType* new_data = Alloc<ElementType>(new_len);

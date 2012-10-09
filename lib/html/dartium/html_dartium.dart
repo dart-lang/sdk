@@ -16,9 +16,9 @@
 
 
 
-Window __window;
+LocalWindow __window;
 
-Window get window {
+LocalWindow get window {
   if (__window !== null) {
     return __window;
   }
@@ -26,7 +26,7 @@ Window get window {
   return __window;
 }
 
-Window get _window native "Utils_window";
+LocalWindow get _window native "Utils_window";
 
 Document __document;
 
@@ -89,12 +89,6 @@ abstract class AbstractWorkerEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
-  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -112,6 +106,12 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
+}
+
+class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
+  _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -394,34 +394,6 @@ class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation
   void pause() native "WebKitAnimation_pause_Callback";
 
   void play() native "WebKitAnimation_play_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName WebKitAnimationList
-abstract class AnimationList {
-
-  /** @domName WebKitAnimationList.length */
-  abstract int get length;
-
-  /** @domName WebKitAnimationList.item */
-  Animation item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements AnimationList {
-
-  int get length native "WebKitAnimationList_length_Getter";
-
-  Animation item(int index) native "WebKitAnimationList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1011,12 +983,6 @@ abstract class AudioContextEvents implements Events {
 
   EventListenerList get complete;
 }
-
-class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
-  _AudioContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get complete => this['complete'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1129,6 +1095,12 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   void startRendering() native "AudioContext_startRendering_Callback";
 
+}
+
+class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
+  _AudioContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get complete => this['complete'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1729,18 +1701,6 @@ abstract class BatteryManagerEvents implements Events {
 
   EventListenerList get levelChange;
 }
-
-class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
-  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get chargingChange => this['chargingchange'];
-
-  EventListenerList get chargingTimeChange => this['chargingtimechange'];
-
-  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
-
-  EventListenerList get levelChange => this['levelchange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1766,6 +1726,18 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
+}
+
+class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
+  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get chargingChange => this['chargingchange'];
+
+  EventListenerList get chargingTimeChange => this['chargingtimechange'];
+
+  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
+
+  EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1973,36 +1945,6 @@ abstract class BodyElementEvents implements ElementEvents {
 
   EventListenerList get unload;
 }
-
-class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
-  _BodyElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get hashChange => this['hashchange'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get offline => this['offline'];
-
-  EventListenerList get online => this['online'];
-
-  EventListenerList get popState => this['popstate'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get storage => this['storage'];
-
-  EventListenerList get unload => this['unload'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2034,6 +1976,36 @@ class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
 
   void set vLink(String value) native "HTMLBodyElement_vLink_Setter";
 
+}
+
+class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
+  _BodyElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get hashChange => this['hashchange'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get offline => this['offline'];
+
+  EventListenerList get online => this['online'];
+
+  EventListenerList get popState => this['popstate'];
+
+  EventListenerList get resize => this['resize'];
+
+  EventListenerList get storage => this['storage'];
+
+  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2071,7 +2043,7 @@ abstract class ButtonElement implements Element {
   String formTarget;
 
   /** @domName HTMLButtonElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLButtonElement.name */
   String name;
@@ -2135,7 +2107,7 @@ class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
 
   void set formTarget(String value) native "HTMLButtonElement_formTarget_Setter";
 
-  NodeList get labels native "HTMLButtonElement_labels_Getter";
+  List<Node> get labels native "HTMLButtonElement_labels_Getter";
 
   String get name native "HTMLButtonElement_name_Getter";
 
@@ -2928,9 +2900,6 @@ abstract class CSSStyleDeclaration  {
 
   /** @domName CSSStyleDeclaration.getPropertyShorthand */
   String getPropertyShorthand(String propertyName);
-
-  /** @domName CSSStyleDeclaration.getPropertyValue */
-  String getPropertyValue(String propertyName);
 
   /** @domName CSSStyleDeclaration.isPropertyImplicit */
   bool isPropertyImplicit(String propertyName);
@@ -3730,6 +3699,9 @@ abstract class CSSStyleDeclaration  {
 
   /** Sets the value of "font-weight" */
   void set fontWeight(var value);
+
+  /** @domName CSSStyleDeclaration.getPropertyValue. */
+  String getPropertyValue(String propertyName);
 
   /** Gets the value of "height" */
   String get height;
@@ -4825,7 +4797,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
 
-  String getPropertyValue(String propertyName) native "CSSStyleDeclaration_getPropertyValue_Callback";
+  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
 
   bool isPropertyImplicit(String propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
 
@@ -4835,6 +4807,11 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
+
+  String getPropertyValue(String propertyName) {
+    var propValue = _getPropertyValue(propertyName);
+    return propValue != null ? propValue : '';
+  }
 
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -8180,9 +8157,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.setCompositeOperation */
   void setCompositeOperation(String compositeOperation);
 
-  /** @domName CanvasRenderingContext2D.setFillColor */
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
   /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
 
@@ -8200,9 +8174,6 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.setShadow */
   void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
-  /** @domName CanvasRenderingContext2D.setStrokeColor */
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setTransform */
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
@@ -8227,12 +8198,39 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
+
+
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setFillColorRgb(int r, int g, int b, [num a]);
+
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setFillColorHsl(int h, num s, num l, [num a]);
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setStrokeColorRgb(int r, int g, int b, [num a]);
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setStrokeColorHsl(int h, num s, num l, [num a]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D {
 
@@ -8540,46 +8538,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native "CanvasRenderingContext2D_setCompositeOperation_Callback";
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_1(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_3(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && !?a) {
-      _setFillColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
-      _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void _setFillColor_1(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setFillColor_1_Callback";
-
-  void _setFillColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_2_Callback";
-
-  void _setFillColor_3(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setFillColor_3_Callback";
-
-  void _setFillColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setFillColor_4_Callback";
-
-  void _setFillColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setFillColor_5_Callback";
-
-  void _setFillColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setFillColor_6_Callback";
-
   void setLineCap(String cap) native "CanvasRenderingContext2D_setLineCap_Callback";
 
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
@@ -8636,46 +8594,6 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setShadow_7_Callback";
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_1(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
-      _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && !?a) {
-      _setStrokeColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
-      return;
-    }
-    if ((c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
-      _setStrokeColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
-      return;
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void _setStrokeColor_1(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setStrokeColor_1_Callback";
-
-  void _setStrokeColor_2(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_2_Callback";
-
-  void _setStrokeColor_3(c_OR_color_OR_grayLevel_OR_r) native "CanvasRenderingContext2D_setStrokeColor_3_Callback";
-
-  void _setStrokeColor_4(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m) native "CanvasRenderingContext2D_setStrokeColor_4_Callback";
-
-  void _setStrokeColor_5(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k) native "CanvasRenderingContext2D_setStrokeColor_5_Callback";
-
-  void _setStrokeColor_6(c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a) native "CanvasRenderingContext2D_setStrokeColor_6_Callback";
-
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
 
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
@@ -8726,6 +8644,22 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
 
+
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9071,7 +9005,7 @@ abstract class CompositionEvent implements UIEvent {
   abstract String get data;
 
   /** @domName CompositionEvent.initCompositionEvent */
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9083,7 +9017,7 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 
   String get data native "CompositionEvent_data_Getter";
 
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9503,26 +9437,6 @@ abstract class DOMApplicationCacheEvents implements Events {
 
   EventListenerList get updateReady;
 }
-
-class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
-  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cached => this['cached'];
-
-  EventListenerList get checking => this['checking'];
-
-  EventListenerList get downloading => this['downloading'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noUpdate => this['noupdate'];
-
-  EventListenerList get obsolete => this['obsolete'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get updateReady => this['updateready'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9548,6 +9462,26 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void update() native "DOMApplicationCache_update_Callback";
 
+}
+
+class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
+  _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get cached => this['cached'];
+
+  EventListenerList get checking => this['checking'];
+
+  EventListenerList get downloading => this['downloading'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noUpdate => this['noupdate'];
+
+  EventListenerList get obsolete => this['obsolete'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9649,15 +9583,15 @@ abstract class DOMException {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
+class _DOMCoreExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
-  int get code native "DOMException_code_Getter";
+  int get code native "DOMCoreException_code_Getter";
 
-  String get message native "DOMException_message_Getter";
+  String get message native "DOMCoreException_message_Getter";
 
-  String get name native "DOMException_name_Getter";
+  String get name native "DOMCoreException_name_Getter";
 
-  String toString() native "DOMException_toString_Callback";
+  String toString() native "DOMCoreException_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9765,19 +9699,19 @@ class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImpl
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMMimeType
+/// @domName MimeType
 abstract class DOMMimeType {
 
-  /** @domName DOMMimeType.description */
+  /** @domName MimeType.description */
   abstract String get description;
 
-  /** @domName DOMMimeType.enabledPlugin */
+  /** @domName MimeType.enabledPlugin */
   abstract DOMPlugin get enabledPlugin;
 
-  /** @domName DOMMimeType.suffixes */
+  /** @domName MimeType.suffixes */
   abstract String get suffixes;
 
-  /** @domName DOMMimeType.type */
+  /** @domName MimeType.type */
   abstract String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9786,16 +9720,16 @@ abstract class DOMMimeType {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMMimeTypeArray
+/// @domName MimeTypeArray
 abstract class DOMMimeTypeArray implements List<DOMMimeType> {
 
-  /** @domName DOMMimeTypeArray.length */
+  /** @domName MimeTypeArray.length */
   abstract int get length;
 
-  /** @domName DOMMimeTypeArray.item */
+  /** @domName MimeTypeArray.item */
   DOMMimeType item(int index);
 
-  /** @domName DOMMimeTypeArray.namedItem */
+  /** @domName MimeTypeArray.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9942,25 +9876,25 @@ class _DOMParserImpl extends NativeFieldWrapperClass1 implements DOMParser {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMPlugin
+/// @domName Plugin
 abstract class DOMPlugin {
 
-  /** @domName DOMPlugin.description */
+  /** @domName Plugin.description */
   abstract String get description;
 
-  /** @domName DOMPlugin.filename */
+  /** @domName Plugin.filename */
   abstract String get filename;
 
-  /** @domName DOMPlugin.length */
+  /** @domName Plugin.length */
   abstract int get length;
 
-  /** @domName DOMPlugin.name */
+  /** @domName Plugin.name */
   abstract String get name;
 
-  /** @domName DOMPlugin.item */
+  /** @domName Plugin.item */
   DOMMimeType item(int index);
 
-  /** @domName DOMPlugin.namedItem */
+  /** @domName Plugin.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9969,19 +9903,19 @@ abstract class DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMPluginArray
+/// @domName PluginArray
 abstract class DOMPluginArray implements List<DOMPlugin> {
 
-  /** @domName DOMPluginArray.length */
+  /** @domName PluginArray.length */
   abstract int get length;
 
-  /** @domName DOMPluginArray.item */
+  /** @domName PluginArray.item */
   DOMPlugin item(int index);
 
-  /** @domName DOMPluginArray.namedItem */
+  /** @domName PluginArray.namedItem */
   DOMPlugin namedItem(String name);
 
-  /** @domName DOMPluginArray.refresh */
+  /** @domName PluginArray.refresh */
   void refresh(bool reload);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10109,85 +10043,85 @@ class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMSelection
+/// @domName Selection
 abstract class DOMSelection {
 
-  /** @domName DOMSelection.anchorNode */
+  /** @domName Selection.anchorNode */
   abstract Node get anchorNode;
 
-  /** @domName DOMSelection.anchorOffset */
+  /** @domName Selection.anchorOffset */
   abstract int get anchorOffset;
 
-  /** @domName DOMSelection.baseNode */
+  /** @domName Selection.baseNode */
   abstract Node get baseNode;
 
-  /** @domName DOMSelection.baseOffset */
+  /** @domName Selection.baseOffset */
   abstract int get baseOffset;
 
-  /** @domName DOMSelection.extentNode */
+  /** @domName Selection.extentNode */
   abstract Node get extentNode;
 
-  /** @domName DOMSelection.extentOffset */
+  /** @domName Selection.extentOffset */
   abstract int get extentOffset;
 
-  /** @domName DOMSelection.focusNode */
+  /** @domName Selection.focusNode */
   abstract Node get focusNode;
 
-  /** @domName DOMSelection.focusOffset */
+  /** @domName Selection.focusOffset */
   abstract int get focusOffset;
 
-  /** @domName DOMSelection.isCollapsed */
+  /** @domName Selection.isCollapsed */
   abstract bool get isCollapsed;
 
-  /** @domName DOMSelection.rangeCount */
+  /** @domName Selection.rangeCount */
   abstract int get rangeCount;
 
-  /** @domName DOMSelection.type */
+  /** @domName Selection.type */
   abstract String get type;
 
-  /** @domName DOMSelection.addRange */
+  /** @domName Selection.addRange */
   void addRange(Range range);
 
-  /** @domName DOMSelection.collapse */
+  /** @domName Selection.collapse */
   void collapse(Node node, int index);
 
-  /** @domName DOMSelection.collapseToEnd */
+  /** @domName Selection.collapseToEnd */
   void collapseToEnd();
 
-  /** @domName DOMSelection.collapseToStart */
+  /** @domName Selection.collapseToStart */
   void collapseToStart();
 
-  /** @domName DOMSelection.containsNode */
+  /** @domName Selection.containsNode */
   bool containsNode(Node node, bool allowPartial);
 
-  /** @domName DOMSelection.deleteFromDocument */
+  /** @domName Selection.deleteFromDocument */
   void deleteFromDocument();
 
-  /** @domName DOMSelection.empty */
+  /** @domName Selection.empty */
   void empty();
 
-  /** @domName DOMSelection.extend */
+  /** @domName Selection.extend */
   void extend(Node node, int offset);
 
-  /** @domName DOMSelection.getRangeAt */
+  /** @domName Selection.getRangeAt */
   Range getRangeAt(int index);
 
-  /** @domName DOMSelection.modify */
+  /** @domName Selection.modify */
   void modify(String alter, String direction, String granularity);
 
-  /** @domName DOMSelection.removeAllRanges */
+  /** @domName Selection.removeAllRanges */
   void removeAllRanges();
 
-  /** @domName DOMSelection.selectAllChildren */
+  /** @domName Selection.selectAllChildren */
   void selectAllChildren(Node node);
 
-  /** @domName DOMSelection.setBaseAndExtent */
+  /** @domName Selection.setBaseAndExtent */
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
 
-  /** @domName DOMSelection.setPosition */
+  /** @domName Selection.setPosition */
   void setPosition(Node node, int offset);
 
-  /** @domName DOMSelection.toString */
+  /** @domName Selection.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10458,15 +10392,15 @@ class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMURL
+/// @domName URL
 abstract class DOMURL {
 
   factory DOMURL() => _DOMURLFactoryProvider.createDOMURL();
 
-  /** @domName DOMURL.createObjectURL */
+  /** @domName URL.createObjectURL */
   static final createObjectURL = _DOMURLImpl.createObjectURL;
 
-  /** @domName DOMURL.revokeObjectURL */
+  /** @domName URL.revokeObjectURL */
   static final revokeObjectURL = _DOMURLImpl.revokeObjectURL;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10951,12 +10885,6 @@ abstract class DedicatedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get message;
 }
-
-class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
-  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message => this['message'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10970,6 +10898,12 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
+}
+
+class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
+  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11391,7 +11325,7 @@ abstract class Document extends HtmlElement {
   Text $dom_createTextNode(String data);
 
   /** @domName Document.createTouch */
-  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
+  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
 
   /** @domName Document.createTouchList */
   TouchList $dom_createTouchList();
@@ -11409,13 +11343,13 @@ abstract class Document extends HtmlElement {
   Element $dom_getElementById(String elementId);
 
   /** @domName Document.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String tagname);
+  List<Node> $dom_getElementsByClassName(String tagname);
 
   /** @domName Document.getElementsByName */
-  NodeList $dom_getElementsByName(String elementName);
+  List<Node> $dom_getElementsByName(String elementName);
 
   /** @domName Document.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String tagname);
+  List<Node> $dom_getElementsByTagName(String tagname);
 
   /** @domName Document.queryCommandEnabled */
   bool queryCommandEnabled(String command);
@@ -11436,7 +11370,7 @@ abstract class Document extends HtmlElement {
   Element $dom_querySelector(String selectors);
 
   /** @domName Document.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
   /** @domName Document.webkitCancelFullScreen */
   void webkitCancelFullScreen();
@@ -11580,7 +11514,7 @@ abstract class DocumentFragment extends Element {
   Element $dom_querySelector(String selectors);
 
   /** @domName DocumentFragment.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -11589,7 +11523,7 @@ abstract class DocumentFragment extends Element {
 
 class _FilteredElementList implements List {
   final Node _node;
-  final NodeList _childNodes;
+  final List<Node> _childNodes;
 
   _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 
@@ -11944,8 +11878,163 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
-  NodeList $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
+  List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DocumentImpl extends _NodeImpl implements Document
+{
+
+
+  _DocumentEventsImpl get on =>
+    new _DocumentEventsImpl(this);
+
+  Element get body native "Document_body_Getter";
+
+  void set body(Element value) native "Document_body_Setter";
+
+  String get charset native "Document_charset_Getter";
+
+  void set charset(String value) native "Document_charset_Setter";
+
+  String get cookie native "Document_cookie_Getter";
+
+  void set cookie(String value) native "Document_cookie_Setter";
+
+  Window get window native "Document_defaultView_Getter";
+
+  Element get documentElement native "Document_documentElement_Getter";
+
+  String get domain native "Document_domain_Getter";
+
+  HeadElement get head native "Document_head_Getter";
+
+  DOMImplementation get implementation native "Document_implementation_Getter";
+
+  String get lastModified native "Document_lastModified_Getter";
+
+  String get preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
+
+  String get readyState native "Document_readyState_Getter";
+
+  String get referrer native "Document_referrer_Getter";
+
+  String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
+
+  void set selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
+
+  List<StyleSheet> get styleSheets native "Document_styleSheets_Getter";
+
+  String get title native "Document_title_Getter";
+
+  void set title(String value) native "Document_title_Setter";
+
+  Element get webkitCurrentFullScreenElement native "Document_webkitCurrentFullScreenElement_Getter";
+
+  bool get webkitFullScreenKeyboardInputAllowed native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
+
+  Element get webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
+
+  bool get webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
+
+  bool get webkitHidden native "Document_webkitHidden_Getter";
+
+  bool get webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
+
+  Element get webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
+
+  String get webkitVisibilityState native "Document_webkitVisibilityState_Getter";
+
+  Range caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
+
+  CDATASection createCDATASection(String data) native "Document_createCDATASection_Callback";
+
+  DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
+
+  Element $dom_createElement(String tagName) native "Document_createElement_Callback";
+
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "Document_createElementNS_Callback";
+
+  Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
+
+  Range createRange() native "Document_createRange_Callback";
+
+  Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
+
+  Touch createTouch(LocalWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
+
+  TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+
+  Element elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
+
+  bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
+
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
+
+  Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
+
+  List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
+
+  List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
+
+  List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+
+  bool queryCommandEnabled(String command) native "Document_queryCommandEnabled_Callback";
+
+  bool queryCommandIndeterm(String command) native "Document_queryCommandIndeterm_Callback";
+
+  bool queryCommandState(String command) native "Document_queryCommandState_Callback";
+
+  bool queryCommandSupported(String command) native "Document_queryCommandSupported_Callback";
+
+  String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
+
+  Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
+
+  List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
+
+  void webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
+
+  void webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
+
+  void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
+
+  // TODO(jacobr): implement all Element methods not on Document. 
+
+  _ElementImpl query(String selectors) {
+    // It is fine for our RegExp to detect element id query selectors to have
+    // false negatives but not false positives.
+    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
+      return $dom_getElementById(selectors.substring(1));
+    }
+    return $dom_querySelector(selectors);
+  }
+
+  List<Element> queryAll(String selectors) {
+    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByName(
+          selectors.substring(7,selectors.length - 2));
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByTagName(selectors);
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else {
+      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    }
+  }
 }
 
 class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
@@ -12048,161 +12137,6 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DocumentImpl extends _NodeImpl implements Document
-{
-
-
-  _DocumentEventsImpl get on =>
-    new _DocumentEventsImpl(this);
-
-  Element get body native "Document_body_Getter";
-
-  void set body(Element value) native "Document_body_Setter";
-
-  String get charset native "Document_charset_Getter";
-
-  void set charset(String value) native "Document_charset_Setter";
-
-  String get cookie native "Document_cookie_Getter";
-
-  void set cookie(String value) native "Document_cookie_Setter";
-
-  Window get window native "Document_defaultView_Getter";
-
-  Element get documentElement native "Document_documentElement_Getter";
-
-  String get domain native "Document_domain_Getter";
-
-  HeadElement get head native "Document_head_Getter";
-
-  DOMImplementation get implementation native "Document_implementation_Getter";
-
-  String get lastModified native "Document_lastModified_Getter";
-
-  String get preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
-
-  String get readyState native "Document_readyState_Getter";
-
-  String get referrer native "Document_referrer_Getter";
-
-  String get selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
-
-  void set selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
-
-  List<StyleSheet> get styleSheets native "Document_styleSheets_Getter";
-
-  String get title native "Document_title_Getter";
-
-  void set title(String value) native "Document_title_Setter";
-
-  Element get webkitCurrentFullScreenElement native "Document_webkitCurrentFullScreenElement_Getter";
-
-  bool get webkitFullScreenKeyboardInputAllowed native "Document_webkitFullScreenKeyboardInputAllowed_Getter";
-
-  Element get webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
-
-  bool get webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
-
-  bool get webkitHidden native "Document_webkitHidden_Getter";
-
-  bool get webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
-
-  Element get webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
-
-  String get webkitVisibilityState native "Document_webkitVisibilityState_Getter";
-
-  Range caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
-
-  CDATASection createCDATASection(String data) native "Document_createCDATASection_Callback";
-
-  DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
-
-  Element $dom_createElement(String tagName) native "Document_createElement_Callback";
-
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "Document_createElementNS_Callback";
-
-  Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
-
-  Range createRange() native "Document_createRange_Callback";
-
-  Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
-
-  Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
-
-  TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
-
-  Element elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
-
-  bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
-
-  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
-
-  Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
-
-  NodeList $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
-
-  NodeList $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
-
-  NodeList $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
-
-  bool queryCommandEnabled(String command) native "Document_queryCommandEnabled_Callback";
-
-  bool queryCommandIndeterm(String command) native "Document_queryCommandIndeterm_Callback";
-
-  bool queryCommandState(String command) native "Document_queryCommandState_Callback";
-
-  bool queryCommandSupported(String command) native "Document_queryCommandSupported_Callback";
-
-  String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
-
-  Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
-
-  NodeList $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
-
-  void webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
-
-  void webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
-
-  void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
-
-  // TODO(jacobr): implement all Element methods not on Document. 
-
-  _ElementImpl query(String selectors) {
-    // It is fine for our RegExp to detect element id query selectors to have
-    // false negatives but not false positives.
-    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
-      return $dom_getElementById(selectors.substring(1));
-    }
-    return $dom_querySelector(selectors);
-  }
-
-  List<Element> queryAll(String selectors) {
-    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByName(
-          selectors.substring(7,selectors.length - 2));
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByTagName(selectors);
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else {
-      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
-    }
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12524,16 +12458,16 @@ abstract class Element implements Node, NodeSelector {
   String $dom_className;
 
   /** @domName Element.clientHeight */
-  abstract int get $dom_clientHeight;
+  abstract int get clientHeight;
 
   /** @domName Element.clientLeft */
-  abstract int get $dom_clientLeft;
+  abstract int get clientLeft;
 
   /** @domName Element.clientTop */
-  abstract int get $dom_clientTop;
+  abstract int get clientTop;
 
   /** @domName Element.clientWidth */
-  abstract int get $dom_clientWidth;
+  abstract int get clientWidth;
 
   /** @domName Element.dataset */
   abstract Map<String, String> get dataset;
@@ -12548,34 +12482,34 @@ abstract class Element implements Node, NodeSelector {
   abstract Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  abstract int get $dom_offsetHeight;
+  abstract int get offsetHeight;
 
   /** @domName Element.offsetLeft */
-  abstract int get $dom_offsetLeft;
+  abstract int get offsetLeft;
 
   /** @domName Element.offsetParent */
   abstract Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  abstract int get $dom_offsetTop;
+  abstract int get offsetTop;
 
   /** @domName Element.offsetWidth */
-  abstract int get $dom_offsetWidth;
+  abstract int get offsetWidth;
 
   /** @domName Element.previousElementSibling */
   abstract Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  abstract int get $dom_scrollHeight;
+  abstract int get scrollHeight;
 
   /** @domName Element.scrollLeft */
-  int $dom_scrollLeft;
+  int scrollLeft;
 
   /** @domName Element.scrollTop */
-  int $dom_scrollTop;
+  int scrollTop;
 
   /** @domName Element.scrollWidth */
-  abstract int get $dom_scrollWidth;
+  abstract int get scrollWidth;
 
   /** @domName Element.style */
   abstract CSSStyleDeclaration get style;
@@ -12593,16 +12527,16 @@ abstract class Element implements Node, NodeSelector {
   String $dom_getAttribute(String name);
 
   /** @domName Element.getBoundingClientRect */
-  ClientRect $dom_getBoundingClientRect();
+  ClientRect getBoundingClientRect();
 
   /** @domName Element.getClientRects */
-  List<ClientRect> $dom_getClientRects();
+  List<ClientRect> getClientRects();
 
   /** @domName Element.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String name);
+  List<Node> $dom_getElementsByClassName(String name);
 
   /** @domName Element.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String name);
+  List<Node> $dom_getElementsByTagName(String name);
 
   /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
@@ -12611,7 +12545,7 @@ abstract class Element implements Node, NodeSelector {
   Element $dom_querySelector(String selectors);
 
   /** @domName Element.querySelectorAll */
-  NodeList $dom_querySelectorAll(String selectors);
+  List<Node> $dom_querySelectorAll(String selectors);
 
   /** @domName Element.remove */
   void remove();
@@ -12742,106 +12676,6 @@ abstract class ElementEvents implements Events {
   EventListenerList get fullscreenChange;
 
   EventListenerList get fullscreenError;
-}
-
-class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
-  _ElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  EventListenerList get beforeCut => this['beforecut'];
-
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get copy => this['copy'];
-
-  EventListenerList get cut => this['cut'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get paste => this['paste'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get selectStart => this['selectstart'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchEnter => this['touchenter'];
-
-  EventListenerList get touchLeave => this['touchleave'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13470,20 +13304,20 @@ class _ElementRectImpl implements ElementRect {
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
-    client = new _SimpleClientRect(element.$dom_clientLeft,
-                                  element.$dom_clientTop,
-                                  element.$dom_clientWidth,
-                                  element.$dom_clientHeight),
-    offset = new _SimpleClientRect(element.$dom_offsetLeft,
-                                  element.$dom_offsetTop,
-                                  element.$dom_offsetWidth,
-                                  element.$dom_offsetHeight),
-    scroll = new _SimpleClientRect(element.$dom_scrollLeft,
-                                  element.$dom_scrollTop,
-                                  element.$dom_scrollWidth,
-                                  element.$dom_scrollHeight),
-    _boundingClientRect = element.$dom_getBoundingClientRect(),
-    _clientRects = element.$dom_getClientRects();
+    client = new _SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth,
+                                  element.clientHeight),
+    offset = new _SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new _SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
 
   _ClientRectImpl get bounding => _boundingClientRect;
 
@@ -13592,13 +13426,13 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set $dom_className(String value) native "Element_className_Setter";
 
-  int get $dom_clientHeight native "Element_clientHeight_Getter";
+  int get clientHeight native "Element_clientHeight_Getter";
 
-  int get $dom_clientLeft native "Element_clientLeft_Getter";
+  int get clientLeft native "Element_clientLeft_Getter";
 
-  int get $dom_clientTop native "Element_clientTop_Getter";
+  int get clientTop native "Element_clientTop_Getter";
 
-  int get $dom_clientWidth native "Element_clientWidth_Getter";
+  int get clientWidth native "Element_clientWidth_Getter";
 
   Map<String, String> get dataset native "Element_dataset_Getter";
 
@@ -13608,29 +13442,29 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   Element get nextElementSibling native "Element_nextElementSibling_Getter";
 
-  int get $dom_offsetHeight native "Element_offsetHeight_Getter";
+  int get offsetHeight native "Element_offsetHeight_Getter";
 
-  int get $dom_offsetLeft native "Element_offsetLeft_Getter";
+  int get offsetLeft native "Element_offsetLeft_Getter";
 
   Element get offsetParent native "Element_offsetParent_Getter";
 
-  int get $dom_offsetTop native "Element_offsetTop_Getter";
+  int get offsetTop native "Element_offsetTop_Getter";
 
-  int get $dom_offsetWidth native "Element_offsetWidth_Getter";
+  int get offsetWidth native "Element_offsetWidth_Getter";
 
   Element get previousElementSibling native "Element_previousElementSibling_Getter";
 
-  int get $dom_scrollHeight native "Element_scrollHeight_Getter";
+  int get scrollHeight native "Element_scrollHeight_Getter";
 
-  int get $dom_scrollLeft native "Element_scrollLeft_Getter";
+  int get scrollLeft native "Element_scrollLeft_Getter";
 
-  void set $dom_scrollLeft(int value) native "Element_scrollLeft_Setter";
+  void set scrollLeft(int value) native "Element_scrollLeft_Setter";
 
-  int get $dom_scrollTop native "Element_scrollTop_Getter";
+  int get scrollTop native "Element_scrollTop_Getter";
 
-  void set $dom_scrollTop(int value) native "Element_scrollTop_Setter";
+  void set scrollTop(int value) native "Element_scrollTop_Setter";
 
-  int get $dom_scrollWidth native "Element_scrollWidth_Getter";
+  int get scrollWidth native "Element_scrollWidth_Getter";
 
   CSSStyleDeclaration get style native "Element_style_Getter";
 
@@ -13642,19 +13476,19 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
 
-  ClientRect $dom_getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
+  ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
-  List<ClientRect> $dom_getClientRects() native "Element_getClientRects_Callback";
+  List<ClientRect> getClientRects() native "Element_getClientRects_Callback";
 
-  NodeList $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
+  List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
-  NodeList $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
+  List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
   bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
 
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
-  NodeList $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
+  List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
   void remove() native "Element_remove_Callback";
 
@@ -13746,6 +13580,106 @@ class _ElementFactoryProvider {
   /** @domName Document.createElement */
   static Element createElement_tag(String tag) =>
       _document.$dom_createElement(tag);
+}
+
+class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
+  _ElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeCopy => this['beforecopy'];
+
+  EventListenerList get beforeCut => this['beforecut'];
+
+  EventListenerList get beforePaste => this['beforepaste'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get copy => this['copy'];
+
+  EventListenerList get cut => this['cut'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get paste => this['paste'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get selectStart => this['selectstart'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchEnter => this['touchenter'];
+
+  EventListenerList get touchLeave => this['touchleave'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
+
+  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
+
+  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14629,16 +14563,6 @@ abstract class EventSourceEvents implements Events {
 
   EventListenerList get open;
 }
-
-class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
-  _EventSourceEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14664,6 +14588,16 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
+}
+
+class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
+  _EventSourceEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14717,7 +14651,7 @@ class _EventsImpl implements Events {
 }
 
 class _EventListenerListImpl implements EventListenerList {
-  
+
   // TODO(jacobr): make this _EventTargetImpl
   final Dynamic _ptr;
   final String _type;
@@ -14739,9 +14673,6 @@ class _EventListenerListImpl implements EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    // TODO(jacobr): what is the correct behavior here. We could alternately
-    // force the event to have the expected type.
-    assert(evt.type == _type);
     return _ptr.$dom_dispatchEvent(evt);
   }
 
@@ -15209,22 +15140,6 @@ abstract class FileReaderEvents implements Events {
 
   EventListenerList get progress;
 }
-
-class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
-  _FileReaderEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15268,6 +15183,22 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
+}
+
+class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
+  _FileReaderEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15400,22 +15331,6 @@ abstract class FileWriterEvents implements Events {
 // WARNING: Do not edit - generated code.
 
 typedef bool FileWriterCallback(FileWriter fileWriter);
-
-class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
-  _FileWriterEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get write => this['write'];
-
-  EventListenerList get writeEnd => this['writeend'];
-
-  EventListenerList get writeStart => this['writestart'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15449,6 +15364,22 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
   void write(Blob data) native "FileWriter_write_Callback";
 
+}
+
+class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
+  _FileWriterEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get write => this['write'];
+
+  EventListenerList get writeEnd => this['writeend'];
+
+  EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15802,7 +15733,7 @@ class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMFormData
+/// @domName FormData
 abstract class FormData {
 
   factory FormData([FormElement form]) {
@@ -15812,7 +15743,7 @@ abstract class FormData {
     return _FormDataFactoryProvider.createFormData(form);
   }
 
-  /** @domName DOMFormData.append */
+  /** @domName FormData.append */
   void append(String name, String value, String filename);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16080,6 +16011,26 @@ abstract class FrameSetElementEvents implements ElementEvents {
 
   EventListenerList get unload;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
+
+  _FrameSetElementEventsImpl get on =>
+    new _FrameSetElementEventsImpl(this);
+
+  String get cols native "HTMLFrameSetElement_cols_Getter";
+
+  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
+
+  String get rows native "HTMLFrameSetElement_rows_Getter";
+
+  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
+
+}
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
   _FrameSetElementEventsImpl(_ptr) : super(_ptr);
@@ -16109,26 +16060,6 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
   EventListenerList get storage => this['storage'];
 
   EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
-
-  _FrameSetElementEventsImpl get on =>
-    new _FrameSetElementEventsImpl(this);
-
-  String get cols native "HTMLFrameSetElement_cols_Getter";
-
-  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
-
-  String get rows native "HTMLFrameSetElement_rows_Getter";
-
-  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16395,7 +16326,7 @@ abstract class HTMLAllCollection implements List<Node> {
   Node namedItem(String name);
 
   /** @domName HTMLAllCollection.tags */
-  NodeList tags(String name);
+  List<Node> tags(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16492,7 +16423,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 
   Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
 
-  NodeList tags(String name) native "HTMLAllCollection_tags_Callback";
+  List<Node> tags(String name) native "HTMLAllCollection_tags_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16751,59 +16682,6 @@ class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement
 
 // WARNING: Do not edit - generated code.
 
-/// @domName History
-abstract class History {
-
-  /** @domName History.length */
-  abstract int get length;
-
-  /** @domName History.state */
-  abstract Dynamic get state;
-
-  /** @domName History.back */
-  void back();
-
-  /** @domName History.forward */
-  void forward();
-
-  /** @domName History.go */
-  void go(int distance);
-
-  /** @domName History.pushState */
-  void pushState(Object data, String title, [String url]);
-
-  /** @domName History.replaceState */
-  void replaceState(Object data, String title, [String url]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _HistoryImpl extends NativeFieldWrapperClass1 implements History {
-
-  int get length native "History_length_Getter";
-
-  Dynamic get state native "History_state_Getter";
-
-  void back() native "History_back_Callback";
-
-  void forward() native "History_forward_Callback";
-
-  void go(int distance) native "History_go_Callback";
-
-  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
-
-  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLHtmlElement
 abstract class HtmlElement implements Element {
 
@@ -16965,24 +16843,6 @@ class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements H
   String toString() native "XMLHttpRequestException_toString_Callback";
 
 }
-
-class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
-  _HttpRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get readyStateChange => this['readystatechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17036,6 +16896,24 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+}
+
+class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
+  _HttpRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17103,22 +16981,6 @@ abstract class HttpRequestUploadEvents implements Events {
 
   EventListenerList get progress;
 }
-
-class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
-  _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadEnd => this['loadend'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get progress => this['progress'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17136,6 +16998,22 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestU
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
+}
+
+class _HttpRequestUploadEventsImpl extends _EventsImpl implements HttpRequestUploadEvents {
+  _HttpRequestUploadEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadEnd => this['loadend'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17374,16 +17252,6 @@ class _IDBDatabaseExceptionImpl extends NativeFieldWrapperClass1 implements IDBD
   String toString() native "IDBDatabaseException_toString_Callback";
 
 }
-
-class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
-  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get versionChange => this['versionchange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17443,6 +17311,16 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
 
+}
+
+class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
+  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18071,14 +17949,6 @@ abstract class IDBOpenDBRequestEvents implements IDBRequestEvents {
 
   EventListenerList get upgradeNeeded;
 }
-
-class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
-  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18096,6 +17966,14 @@ class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest 
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBOpenDBRequest_removeEventListener_Callback";
 
+}
+
+class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
+  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked => this['blocked'];
+
+  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18148,14 +18026,6 @@ abstract class IDBRequestEvents implements Events {
 
   EventListenerList get success;
 }
-
-class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
-  _IDBRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get success => this['success'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18187,6 +18057,14 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
+}
+
+class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
+  _IDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get success => this['success'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18241,16 +18119,6 @@ abstract class IDBTransactionEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
-  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get complete => this['complete'];
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18279,19 +18147,29 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
 }
+
+class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
+  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get complete => this['complete'];
+
+  EventListenerList get error => this['error'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-/// @domName IDBUpgradeNeededEvent
+/// @domName IDBVersionChangeEvent
 abstract class IDBUpgradeNeededEvent implements Event {
 
-  /** @domName IDBUpgradeNeededEvent.newVersion */
+  /** @domName IDBVersionChangeEvent.newVersion */
   abstract int get newVersion;
 
-  /** @domName IDBUpgradeNeededEvent.oldVersion */
+  /** @domName IDBVersionChangeEvent.oldVersion */
   abstract int get oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18349,12 +18227,6 @@ abstract class IDBVersionChangeRequestEvents implements IDBRequestEvents {
 
   EventListenerList get blocked;
 }
-
-class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
-  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get blocked => this['blocked'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18372,6 +18244,12 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBVersionChangeRequest_removeEventListener_Callback";
 
+}
+
+class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
+  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18788,7 +18666,7 @@ abstract class InputElement implements Element {
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLInputElement.list */
   abstract Element get list;
@@ -18900,12 +18778,6 @@ abstract class InputElementEvents implements ElementEvents {
 
   EventListenerList get speechChange;
 }
-
-class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
-  _InputElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get speechChange => this['webkitSpeechChange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18991,7 +18863,7 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
-  NodeList get labels native "HTMLInputElement_labels_Getter";
+  List<Node> get labels native "HTMLInputElement_labels_Getter";
 
   Element get list native "HTMLInputElement_list_Getter";
 
@@ -19131,6 +19003,12 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
+}
+
+class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
+  _InputElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19550,12 +19428,6 @@ abstract class JavaScriptAudioNodeEvents implements Events {
 
   EventListenerList get audioProcess;
 }
-
-class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
-  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioProcess => this['audioprocess'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19575,6 +19447,12 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "JavaScriptAudioNode_removeEventListener_Callback";
 
+}
+
+class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
+  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19690,7 +19568,7 @@ abstract class KeyboardEvent implements UIEvent {
   abstract bool get shiftKey;
 
   /** @domName KeyboardEvent.initKeyboardEvent */
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19714,7 +19592,7 @@ class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent {
 
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19744,7 +19622,7 @@ abstract class KeygenElement implements Element {
   String keytype;
 
   /** @domName HTMLKeygenElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLKeygenElement.name */
   String name;
@@ -19793,7 +19671,7 @@ class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
 
   void set keytype(String value) native "HTMLKeygenElement_keytype_Setter";
 
-  NodeList get labels native "HTMLKeygenElement_labels_Getter";
+  List<Node> get labels native "HTMLKeygenElement_labels_Getter";
 
   String get name native "HTMLKeygenElement_name_Getter";
 
@@ -20016,11 +19894,29 @@ class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName LocalMediaStream
-abstract class LocalMediaStream implements MediaStream, EventTarget {
+/// @domName History
+abstract class LocalHistory implements History {
 
-  /** @domName LocalMediaStream.stop */
-  void stop();
+  /** @domName History.length */
+  abstract int get length;
+
+  /** @domName History.state */
+  abstract Dynamic get state;
+
+  /** @domName History.back */
+  void back();
+
+  /** @domName History.forward */
+  void forward();
+
+  /** @domName History.go */
+  void go(int distance);
+
+  /** @domName History.pushState */
+  void pushState(Object data, String title, [String url]);
+
+  /** @domName History.replaceState */
+  void replaceState(Object data, String title, [String url]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20028,15 +19924,21 @@ abstract class LocalMediaStream implements MediaStream, EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream {
+class _HistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory {
 
-  void stop() native "LocalMediaStream_stop_Callback";
+  int get length native "History_length_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_addEventListener_Callback";
+  Dynamic get state native "History_state_Getter";
 
-  bool $dom_dispatchEvent(Event event) native "LocalMediaStream_dispatchEvent_Callback";
+  void back() native "History_back_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_removeEventListener_Callback";
+  void forward() native "History_forward_Callback";
+
+  void go(int distance) native "History_go_Callback";
+
+  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
+
+  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20046,7 +19948,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 // WARNING: Do not edit - generated code.
 
 /// @domName Location
-abstract class Location {
+abstract class LocalLocation implements Location {
 
   /** @domName Location.ancestorOrigins */
   abstract List<String> get ancestorOrigins;
@@ -20096,7 +19998,7 @@ abstract class Location {
 
 // WARNING: Do not edit - generated code.
 
-class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
+class _LocationImpl extends NativeFieldWrapperClass1 implements LocalLocation {
 
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
@@ -20142,6 +20044,875 @@ class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
 
   String toString() native "Location_toString_Callback";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName LocalMediaStream
+abstract class LocalMediaStream implements MediaStream, EventTarget {
+
+  /** @domName LocalMediaStream.stop */
+  void stop();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream {
+
+  void stop() native "LocalMediaStream_stop_Callback";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "LocalMediaStream_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_removeEventListener_Callback";
+
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName Window
+abstract class LocalWindow implements EventTarget, Window {
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, SendPortSync port);
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name);
+
+  /**
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
+   */
+  void requestLayoutFrame(TimeoutHandler callback);
+
+  /**
+   * Creates a new object URL for the specified object. The URL will be
+   * available until revokeObjectUrl is called.
+   * [object] can be a Blob, MediaStream or MediaSource.
+   */
+  String createObjectUrl(object);
+
+  /** @domName DOMURL.revokeObjectURL */
+  void revokeObjectUrl(String objectUrl);
+
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  LocalWindowEvents get on;
+
+  static const int PERSISTENT = 1;
+
+  static const int TEMPORARY = 0;
+
+  /** @domName Window.applicationCache */
+  abstract DOMApplicationCache get applicationCache;
+
+  /** @domName Window.clientInformation */
+  abstract Navigator get clientInformation;
+
+  /** @domName Window.closed */
+  abstract bool get closed;
+
+  /** @domName Window.console */
+  abstract Console get console;
+
+  /** @domName Window.crypto */
+  abstract Crypto get crypto;
+
+  /** @domName Window.defaultStatus */
+  String defaultStatus;
+
+  /** @domName Window.defaultstatus */
+  String defaultstatus;
+
+  /** @domName Window.devicePixelRatio */
+  abstract num get devicePixelRatio;
+
+  /** @domName Window.document */
+  abstract Document get document;
+
+  /** @domName Window.event */
+  abstract Event get event;
+
+  /** @domName Window.history */
+  abstract History get history;
+
+  /** @domName DOMWindow.indexedDB */
+  abstract IDBFactory get indexedDB;
+
+  /** @domName Window.innerHeight */
+  abstract int get innerHeight;
+
+  /** @domName Window.innerWidth */
+  abstract int get innerWidth;
+
+  /** @domName Window.localStorage */
+  abstract Storage get localStorage;
+
+  /** @domName Window.location */
+  Location location;
+
+  /** @domName Window.locationbar */
+  abstract BarInfo get locationbar;
+
+  /** @domName Window.menubar */
+  abstract BarInfo get menubar;
+
+  /** @domName Window.name */
+  String name;
+
+  /** @domName Window.navigator */
+  abstract Navigator get navigator;
+
+  /** @domName Window.offscreenBuffering */
+  abstract bool get offscreenBuffering;
+
+  /** @domName Window.opener */
+  abstract Window get opener;
+
+  /** @domName Window.outerHeight */
+  abstract int get outerHeight;
+
+  /** @domName Window.outerWidth */
+  abstract int get outerWidth;
+
+  /** @domName DOMWindow.pagePopupController */
+  abstract PagePopupController get pagePopupController;
+
+  /** @domName Window.pageXOffset */
+  abstract int get pageXOffset;
+
+  /** @domName Window.pageYOffset */
+  abstract int get pageYOffset;
+
+  /** @domName Window.parent */
+  abstract Window get parent;
+
+  /** @domName Window.performance */
+  abstract Performance get performance;
+
+  /** @domName Window.personalbar */
+  abstract BarInfo get personalbar;
+
+  /** @domName Window.screen */
+  abstract Screen get screen;
+
+  /** @domName Window.screenLeft */
+  abstract int get screenLeft;
+
+  /** @domName Window.screenTop */
+  abstract int get screenTop;
+
+  /** @domName Window.screenX */
+  abstract int get screenX;
+
+  /** @domName Window.screenY */
+  abstract int get screenY;
+
+  /** @domName Window.scrollX */
+  abstract int get scrollX;
+
+  /** @domName Window.scrollY */
+  abstract int get scrollY;
+
+  /** @domName Window.scrollbars */
+  abstract BarInfo get scrollbars;
+
+  /** @domName Window.self */
+  abstract Window get self;
+
+  /** @domName Window.sessionStorage */
+  abstract Storage get sessionStorage;
+
+  /** @domName Window.status */
+  String status;
+
+  /** @domName Window.statusbar */
+  abstract BarInfo get statusbar;
+
+  /** @domName Window.styleMedia */
+  abstract StyleMedia get styleMedia;
+
+  /** @domName Window.toolbar */
+  abstract BarInfo get toolbar;
+
+  /** @domName Window.top */
+  abstract Window get top;
+
+  /** @domName DOMWindow.webkitIndexedDB */
+  abstract IDBFactory get webkitIndexedDB;
+
+  /** @domName DOMWindow.webkitNotifications */
+  abstract NotificationCenter get webkitNotifications;
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  abstract StorageInfo get webkitStorageInfo;
+
+  /** @domName Window.window */
+  abstract Window get window;
+
+  /** @domName Window.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Window.alert */
+  void alert(String message);
+
+  /** @domName Window.atob */
+  String atob(String string);
+
+  /** @domName Window.blur */
+  void blur();
+
+  /** @domName Window.btoa */
+  String btoa(String string);
+
+  /** @domName Window.captureEvents */
+  void captureEvents();
+
+  /** @domName Window.clearInterval */
+  void clearInterval(int handle);
+
+  /** @domName Window.clearTimeout */
+  void clearTimeout(int handle);
+
+  /** @domName Window.close */
+  void close();
+
+  /** @domName Window.confirm */
+  bool confirm(String message);
+
+  /** @domName Window.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName Window.find */
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
+
+  /** @domName Window.focus */
+  void focus();
+
+  /** @domName Window.getComputedStyle */
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
+
+  /** @domName Window.getMatchedCSSRules */
+  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
+
+  /** @domName Window.getSelection */
+  DOMSelection getSelection();
+
+  /** @domName Window.matchMedia */
+  MediaQueryList matchMedia(String query);
+
+  /** @domName Window.moveBy */
+  void moveBy(num x, num y);
+
+  /** @domName Window.moveTo */
+  void moveTo(num x, num y);
+
+  /** @domName Window.open */
+  Window open(String url, String name, [String options]);
+
+  /** @domName DOMWindow.openDatabase */
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  /** @domName Window.postMessage */
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
+
+  /** @domName Window.print */
+  void print();
+
+  /** @domName Window.prompt */
+  String prompt(String message, String defaultValue);
+
+  /** @domName Window.releaseEvents */
+  void releaseEvents();
+
+  /** @domName Window.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName Window.resizeBy */
+  void resizeBy(num x, num y);
+
+  /** @domName Window.resizeTo */
+  void resizeTo(num width, num height);
+
+  /** @domName Window.scroll */
+  void scroll(int x, int y);
+
+  /** @domName Window.scrollBy */
+  void scrollBy(int x, int y);
+
+  /** @domName Window.scrollTo */
+  void scrollTo(int x, int y);
+
+  /** @domName Window.setInterval */
+  int setInterval(TimeoutHandler handler, int timeout);
+
+  /** @domName Window.setTimeout */
+  int setTimeout(TimeoutHandler handler, int timeout);
+
+  /** @domName Window.showModalDialog */
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
+
+  /** @domName Window.stop */
+  void stop();
+
+  /** @domName Window.webkitCancelAnimationFrame */
+  void cancelAnimationFrame(int id);
+
+  /** @domName Window.webkitConvertPointFromNodeToPage */
+  Point webkitConvertPointFromNodeToPage(Node node, Point p);
+
+  /** @domName Window.webkitConvertPointFromPageToNode */
+  Point webkitConvertPointFromPageToNode(Node node, Point p);
+
+  /** @domName Window.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
+  /** @domName DOMWindow.webkitRequestFileSystem */
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
+
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
+
+}
+
+abstract class LocalWindowEvents implements Events {
+
+  EventListenerList get abort;
+
+  EventListenerList get beforeUnload;
+
+  EventListenerList get blur;
+
+  EventListenerList get canPlay;
+
+  EventListenerList get canPlayThrough;
+
+  EventListenerList get change;
+
+  EventListenerList get click;
+
+  EventListenerList get contextMenu;
+
+  EventListenerList get doubleClick;
+
+  EventListenerList get deviceMotion;
+
+  EventListenerList get deviceOrientation;
+
+  EventListenerList get drag;
+
+  EventListenerList get dragEnd;
+
+  EventListenerList get dragEnter;
+
+  EventListenerList get dragLeave;
+
+  EventListenerList get dragOver;
+
+  EventListenerList get dragStart;
+
+  EventListenerList get drop;
+
+  EventListenerList get durationChange;
+
+  EventListenerList get emptied;
+
+  EventListenerList get ended;
+
+  EventListenerList get error;
+
+  EventListenerList get focus;
+
+  EventListenerList get hashChange;
+
+  EventListenerList get input;
+
+  EventListenerList get invalid;
+
+  EventListenerList get keyDown;
+
+  EventListenerList get keyPress;
+
+  EventListenerList get keyUp;
+
+  EventListenerList get load;
+
+  EventListenerList get loadedData;
+
+  EventListenerList get loadedMetadata;
+
+  EventListenerList get loadStart;
+
+  EventListenerList get message;
+
+  EventListenerList get mouseDown;
+
+  EventListenerList get mouseMove;
+
+  EventListenerList get mouseOut;
+
+  EventListenerList get mouseOver;
+
+  EventListenerList get mouseUp;
+
+  EventListenerList get mouseWheel;
+
+  EventListenerList get offline;
+
+  EventListenerList get online;
+
+  EventListenerList get pageHide;
+
+  EventListenerList get pageShow;
+
+  EventListenerList get pause;
+
+  EventListenerList get play;
+
+  EventListenerList get playing;
+
+  EventListenerList get popState;
+
+  EventListenerList get progress;
+
+  EventListenerList get rateChange;
+
+  EventListenerList get reset;
+
+  EventListenerList get resize;
+
+  EventListenerList get scroll;
+
+  EventListenerList get search;
+
+  EventListenerList get seeked;
+
+  EventListenerList get seeking;
+
+  EventListenerList get select;
+
+  EventListenerList get stalled;
+
+  EventListenerList get storage;
+
+  EventListenerList get submit;
+
+  EventListenerList get suspend;
+
+  EventListenerList get timeUpdate;
+
+  EventListenerList get touchCancel;
+
+  EventListenerList get touchEnd;
+
+  EventListenerList get touchMove;
+
+  EventListenerList get touchStart;
+
+  EventListenerList get unload;
+
+  EventListenerList get volumeChange;
+
+  EventListenerList get waiting;
+
+  EventListenerList get animationEnd;
+
+  EventListenerList get animationIteration;
+
+  EventListenerList get animationStart;
+
+  EventListenerList get transitionEnd;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
+
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  // TODO(kasperl): Document these.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  String createObjectUrl(object) => DOMURL.createObjectURL(object);
+  void revokeObjectUrl(String url) {
+    DOMURL.revokeObjectURL(url);
+  }
+
+
+  _LocalWindowEventsImpl get on =>
+    new _LocalWindowEventsImpl(this);
+
+  DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
+
+  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
+
+  bool get closed native "DOMWindow_closed_Getter";
+
+  Console get console native "DOMWindow_console_Getter";
+
+  Crypto get crypto native "DOMWindow_crypto_Getter";
+
+  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
+
+  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
+
+  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
+
+  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
+
+  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
+
+  Document get document native "DOMWindow_document_Getter";
+
+  Event get event native "DOMWindow_event_Getter";
+
+  History get history native "DOMWindow_history_Getter";
+
+  IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
+
+  int get innerHeight native "DOMWindow_innerHeight_Getter";
+
+  int get innerWidth native "DOMWindow_innerWidth_Getter";
+
+  Storage get localStorage native "DOMWindow_localStorage_Getter";
+
+  Location get location native "DOMWindow_location_Getter";
+
+  void set location(LocalLocation value) native "DOMWindow_location_Setter";
+
+  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
+
+  BarInfo get menubar native "DOMWindow_menubar_Getter";
+
+  String get name native "DOMWindow_name_Getter";
+
+  void set name(String value) native "DOMWindow_name_Setter";
+
+  Navigator get navigator native "DOMWindow_navigator_Getter";
+
+  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
+
+  Window get opener native "DOMWindow_opener_Getter";
+
+  int get outerHeight native "DOMWindow_outerHeight_Getter";
+
+  int get outerWidth native "DOMWindow_outerWidth_Getter";
+
+  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
+
+  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
+
+  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
+
+  Window get parent native "DOMWindow_parent_Getter";
+
+  Performance get performance native "DOMWindow_performance_Getter";
+
+  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
+
+  Screen get screen native "DOMWindow_screen_Getter";
+
+  int get screenLeft native "DOMWindow_screenLeft_Getter";
+
+  int get screenTop native "DOMWindow_screenTop_Getter";
+
+  int get screenX native "DOMWindow_screenX_Getter";
+
+  int get screenY native "DOMWindow_screenY_Getter";
+
+  int get scrollX native "DOMWindow_scrollX_Getter";
+
+  int get scrollY native "DOMWindow_scrollY_Getter";
+
+  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
+
+  Window get self native "DOMWindow_self_Getter";
+
+  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
+
+  String get status native "DOMWindow_status_Getter";
+
+  void set status(String value) native "DOMWindow_status_Setter";
+
+  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
+
+  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
+
+  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
+
+  Window get top native "DOMWindow_top_Getter";
+
+  IDBFactory get webkitIndexedDB native "DOMWindow_webkitIndexedDB_Getter";
+
+  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
+
+  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
+
+  Window get window native "DOMWindow_window_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
+
+  void alert(String message) native "DOMWindow_alert_Callback";
+
+  String atob(String string) native "DOMWindow_atob_Callback";
+
+  void blur() native "DOMWindow_blur_Callback";
+
+  String btoa(String string) native "DOMWindow_btoa_Callback";
+
+  void captureEvents() native "DOMWindow_captureEvents_Callback";
+
+  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
+
+  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
+
+  void close() native "DOMWindow_close_Callback";
+
+  bool confirm(String message) native "DOMWindow_confirm_Callback";
+
+  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
+
+  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
+
+  void focus() native "DOMWindow_focus_Callback";
+
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
+
+  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
+
+  DOMSelection getSelection() native "DOMWindow_getSelection_Callback";
+
+  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
+
+  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
+
+  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
+
+  Window open(String url, String name, [String options]) native "DOMWindow_open_Callback";
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
+
+  void postMessage(message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+
+  void print() native "DOMWindow_print_Callback";
+
+  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
+
+  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
+
+  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
+
+  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
+
+  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
+
+  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
+
+  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
+
+  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+
+  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
+
+  void stop() native "DOMWindow_stop_Callback";
+
+  void cancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+
+  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+
+  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+}
+
+class _LocalWindowEventsImpl extends _EventsImpl implements LocalWindowEvents {
+  _LocalWindowEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort => this['abort'];
+
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  EventListenerList get blur => this['blur'];
+
+  EventListenerList get canPlay => this['canplay'];
+
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  EventListenerList get change => this['change'];
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get contextMenu => this['contextmenu'];
+
+  EventListenerList get doubleClick => this['dblclick'];
+
+  EventListenerList get deviceMotion => this['devicemotion'];
+
+  EventListenerList get deviceOrientation => this['deviceorientation'];
+
+  EventListenerList get drag => this['drag'];
+
+  EventListenerList get dragEnd => this['dragend'];
+
+  EventListenerList get dragEnter => this['dragenter'];
+
+  EventListenerList get dragLeave => this['dragleave'];
+
+  EventListenerList get dragOver => this['dragover'];
+
+  EventListenerList get dragStart => this['dragstart'];
+
+  EventListenerList get drop => this['drop'];
+
+  EventListenerList get durationChange => this['durationchange'];
+
+  EventListenerList get emptied => this['emptied'];
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get focus => this['focus'];
+
+  EventListenerList get hashChange => this['hashchange'];
+
+  EventListenerList get input => this['input'];
+
+  EventListenerList get invalid => this['invalid'];
+
+  EventListenerList get keyDown => this['keydown'];
+
+  EventListenerList get keyPress => this['keypress'];
+
+  EventListenerList get keyUp => this['keyup'];
+
+  EventListenerList get load => this['load'];
+
+  EventListenerList get loadedData => this['loadeddata'];
+
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get mouseDown => this['mousedown'];
+
+  EventListenerList get mouseMove => this['mousemove'];
+
+  EventListenerList get mouseOut => this['mouseout'];
+
+  EventListenerList get mouseOver => this['mouseover'];
+
+  EventListenerList get mouseUp => this['mouseup'];
+
+  EventListenerList get mouseWheel => this['mousewheel'];
+
+  EventListenerList get offline => this['offline'];
+
+  EventListenerList get online => this['online'];
+
+  EventListenerList get pageHide => this['pagehide'];
+
+  EventListenerList get pageShow => this['pageshow'];
+
+  EventListenerList get pause => this['pause'];
+
+  EventListenerList get play => this['play'];
+
+  EventListenerList get playing => this['playing'];
+
+  EventListenerList get popState => this['popstate'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get rateChange => this['ratechange'];
+
+  EventListenerList get reset => this['reset'];
+
+  EventListenerList get resize => this['resize'];
+
+  EventListenerList get scroll => this['scroll'];
+
+  EventListenerList get search => this['search'];
+
+  EventListenerList get seeked => this['seeked'];
+
+  EventListenerList get seeking => this['seeking'];
+
+  EventListenerList get select => this['select'];
+
+  EventListenerList get stalled => this['stalled'];
+
+  EventListenerList get storage => this['storage'];
+
+  EventListenerList get submit => this['submit'];
+
+  EventListenerList get suspend => this['suspend'];
+
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  EventListenerList get touchCancel => this['touchcancel'];
+
+  EventListenerList get touchEnd => this['touchend'];
+
+  EventListenerList get touchMove => this['touchmove'];
+
+  EventListenerList get touchStart => this['touchstart'];
+
+  EventListenerList get unload => this['unload'];
+
+  EventListenerList get volumeChange => this['volumechange'];
+
+  EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get animationEnd => this['webkitAnimationEnd'];
+
+  EventListenerList get animationIteration => this['webkitAnimationIteration'];
+
+  EventListenerList get animationStart => this['webkitAnimationStart'];
+
+  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20613,60 +21384,6 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
   MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
-
-class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
-  _MediaElementEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get canPlay => this['canplay'];
-
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  EventListenerList get durationChange => this['durationchange'];
-
-  EventListenerList get emptied => this['emptied'];
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get loadedData => this['loadeddata'];
-
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get pause => this['pause'];
-
-  EventListenerList get play => this['play'];
-
-  EventListenerList get playing => this['playing'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get rateChange => this['ratechange'];
-
-  EventListenerList get seeked => this['seeked'];
-
-  EventListenerList get seeking => this['seeking'];
-
-  EventListenerList get show => this['show'];
-
-  EventListenerList get stalled => this['stalled'];
-
-  EventListenerList get suspend => this['suspend'];
-
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  EventListenerList get volumeChange => this['volumechange'];
-
-  EventListenerList get waiting => this['waiting'];
-
-  EventListenerList get keyAdded => this['webkitkeyadded'];
-
-  EventListenerList get keyError => this['webkitkeyerror'];
-
-  EventListenerList get keyMessage => this['webkitkeymessage'];
-
-  EventListenerList get needKey => this['webkitneedkey'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20822,6 +21539,60 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
+}
+
+class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
+  _MediaElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get canPlay => this['canplay'];
+
+  EventListenerList get canPlayThrough => this['canplaythrough'];
+
+  EventListenerList get durationChange => this['durationchange'];
+
+  EventListenerList get emptied => this['emptied'];
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get loadedData => this['loadeddata'];
+
+  EventListenerList get loadedMetadata => this['loadedmetadata'];
+
+  EventListenerList get loadStart => this['loadstart'];
+
+  EventListenerList get pause => this['pause'];
+
+  EventListenerList get play => this['play'];
+
+  EventListenerList get playing => this['playing'];
+
+  EventListenerList get progress => this['progress'];
+
+  EventListenerList get rateChange => this['ratechange'];
+
+  EventListenerList get seeked => this['seeked'];
+
+  EventListenerList get seeking => this['seeking'];
+
+  EventListenerList get show => this['show'];
+
+  EventListenerList get stalled => this['stalled'];
+
+  EventListenerList get suspend => this['suspend'];
+
+  EventListenerList get timeUpdate => this['timeupdate'];
+
+  EventListenerList get volumeChange => this['volumechange'];
+
+  EventListenerList get waiting => this['waiting'];
+
+  EventListenerList get keyAdded => this['webkitkeyadded'];
+
+  EventListenerList get keyError => this['webkitkeyerror'];
+
+  EventListenerList get keyMessage => this['webkitkeymessage'];
+
+  EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21203,12 +21974,6 @@ class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
   MediaStream get stream native "MediaStreamEvent_stream_Getter";
 
 }
-
-class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
-  _MediaStreamEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get ended => this['ended'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21234,6 +21999,12 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
+}
+
+class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
+  _MediaStreamEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21402,16 +22173,6 @@ class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackE
   MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
 }
-
-class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
-  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get mute => this['mute'];
-
-  EventListenerList get unmute => this['unmute'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21439,6 +22200,16 @@ class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
+}
+
+class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
+  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended => this['ended'];
+
+  EventListenerList get mute => this['mute'];
+
+  EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21482,14 +22253,6 @@ abstract class MediaStreamTrackListEvents implements Events {
 
   EventListenerList get removeTrack;
 }
-
-class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
-  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addTrack => this['addtrack'];
-
-  EventListenerList get removeTrack => this['removetrack'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21515,6 +22278,14 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
 
+}
+
+class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
+  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack => this['addtrack'];
+
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21631,10 +22402,10 @@ abstract class MessageEvent implements Event {
   abstract Window get source;
 
   /** @domName MessageEvent.initMessageEvent */
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts);
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts);
 
   /** @domName MessageEvent.webkitInitMessageEvent */
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables);
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21654,9 +22425,9 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent {
 
   Window get source native "MessageEvent_source_Getter";
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21696,12 +22467,6 @@ abstract class MessagePortEvents implements Events {
 
   EventListenerList get message;
 }
-
-class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
-  _MessagePortEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get message => this['message'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21725,6 +22490,12 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
   void start() native "MessagePort_start_Callback";
 
+}
+
+class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
+  _MessagePortEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21822,7 +22593,7 @@ abstract class MeterElement implements Element {
   num high;
 
   /** @domName HTMLMeterElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLMeterElement.low */
   num low;
@@ -21851,7 +22622,7 @@ class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
 
   void set high(num value) native "HTMLMeterElement_high_Setter";
 
-  NodeList get labels native "HTMLMeterElement_labels_Getter";
+  List<Node> get labels native "HTMLMeterElement_labels_Getter";
 
   num get low native "HTMLMeterElement_low_Getter";
 
@@ -21985,7 +22756,7 @@ abstract class MouseEvent implements UIEvent {
   abstract int get y;
 
   /** @domName MouseEvent.initMouseEvent */
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22033,7 +22804,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   int get y native "MouseEvent_y_Getter";
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22208,7 +22979,7 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
 abstract class MutationRecord {
 
   /** @domName MutationRecord.addedNodes */
-  abstract NodeList get addedNodes;
+  abstract List<Node> get addedNodes;
 
   /** @domName MutationRecord.attributeName */
   abstract String get attributeName;
@@ -22226,7 +22997,7 @@ abstract class MutationRecord {
   abstract Node get previousSibling;
 
   /** @domName MutationRecord.removedNodes */
-  abstract NodeList get removedNodes;
+  abstract List<Node> get removedNodes;
 
   /** @domName MutationRecord.target */
   abstract Node get target;
@@ -22242,7 +23013,7 @@ abstract class MutationRecord {
 
 class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRecord {
 
-  NodeList get addedNodes native "MutationRecord_addedNodes_Getter";
+  List<Node> get addedNodes native "MutationRecord_addedNodes_Getter";
 
   String get attributeName native "MutationRecord_attributeName_Getter";
 
@@ -22254,7 +23025,7 @@ class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRe
 
   Node get previousSibling native "MutationRecord_previousSibling_Getter";
 
-  NodeList get removedNodes native "MutationRecord_removedNodes_Getter";
+  List<Node> get removedNodes native "MutationRecord_removedNodes_Getter";
 
   Node get target native "MutationRecord_target_Getter";
 
@@ -22565,7 +23336,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 
 /// @domName Node
 abstract class Node implements EventTarget {
-  NodeList get nodes;
+  List<Node> get nodes;
 
   void set nodes(Collection<Node> value);
 
@@ -22622,7 +23393,7 @@ abstract class Node implements EventTarget {
   abstract NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  abstract NodeList get $dom_childNodes;
+  abstract List<Node> get $dom_childNodes;
 
   /** @domName Node.firstChild */
   abstract Node get $dom_firstChild;
@@ -22743,7 +23514,7 @@ class _NodeFilterImpl extends NativeFieldWrapperClass1 implements NodeFilter {
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy implements NodeList {
+class _ChildNodeListLazy implements List {
   final _NodeImpl _this;
 
   _ChildNodeListLazy(this._this);
@@ -22827,7 +23598,7 @@ class _ChildNodeListLazy implements NodeList {
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int rangeLength) =>
+  List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
@@ -22876,7 +23647,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
-  NodeList get $dom_childNodes native "Node_childNodes_Getter";
+  List<Node> get $dom_childNodes native "Node_childNodes_Getter";
 
   Node get $dom_firstChild native "Node_firstChild_Getter";
 
@@ -22989,9 +23760,9 @@ class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator
 /// @domName NodeList
 abstract class NodeList implements List<Node> {
 
-  NodeList filter(bool f(Node element));
+  List<Node> filter(bool f(Node element));
 
-  NodeList getRange(int start, int length);
+  List<Node> getRange(int start, int length);
 
   Node get first;
 
@@ -23071,7 +23842,7 @@ class _ListWrapper<E> implements List<E> {
  * This class is used to insure the results of list operations are NodeLists
  * instead of lists.
  */
-class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
+class _NodeListWrapper extends _ListWrapper<Node> implements List {
   _NodeListWrapper(List list) : super(list);
 
   List<Node> filter(bool f(Node element)) =>
@@ -23312,20 +24083,6 @@ class _NotificationCenterImpl extends NativeFieldWrapperClass1 implements Notifi
   void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
 
 }
-
-class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
-  _NotificationEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get display => this['display'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get show => this['show'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23365,6 +24122,20 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void show() native "Notification_show_Callback";
 
+}
+
+class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
+  _NotificationEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get click => this['click'];
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get display => this['display'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23894,7 +24665,7 @@ abstract class OutputElement implements Element {
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLOutputElement.name */
   String name;
@@ -23938,7 +24709,7 @@ class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
 
   void set htmlFor(DOMSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
-  NodeList get labels native "HTMLOutputElement_labels_Getter";
+  List<Node> get labels native "HTMLOutputElement_labels_Getter";
 
   String get name native "HTMLOutputElement_name_Getter";
 
@@ -24237,20 +25008,6 @@ abstract class PeerConnection00Events implements Events {
 
   EventListenerList get stateChange;
 }
-
-class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
-  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get connecting => this['connecting'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24336,6 +25093,20 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void _startIce_2() native "PeerConnection00_startIce_2_Callback";
 
+}
+
+class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
+  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream => this['addstream'];
+
+  EventListenerList get connecting => this['connecting'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24720,7 +25491,7 @@ abstract class ProgressElement implements Element {
   factory ProgressElement() => _Elements.createProgressElement();
 
   /** @domName HTMLProgressElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLProgressElement.max */
   num max;
@@ -24739,7 +25510,7 @@ abstract class ProgressElement implements Element {
 
 class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressElement {
 
-  NodeList get labels native "HTMLProgressElement_labels_Getter";
+  List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
   num get max native "HTMLProgressElement_max_Getter";
 
@@ -25000,24 +25771,6 @@ abstract class RTCPeerConnectionEvents implements Events {
 
   EventListenerList get stateChange;
 }
-
-class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
-  _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream => this['addstream'];
-
-  EventListenerList get iceCandidate => this['icecandidate'];
-
-  EventListenerList get iceChange => this['icechange'];
-
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  EventListenerList get open => this['open'];
-
-  EventListenerList get removeStream => this['removestream'];
-
-  EventListenerList get stateChange => this['statechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25065,6 +25818,24 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
 
   void updateIce(Map configuration, Map mediaConstraints) native "RTCPeerConnection_updateIce_Callback";
 
+}
+
+class _RTCPeerConnectionEventsImpl extends _EventsImpl implements RTCPeerConnectionEvents {
+  _RTCPeerConnectionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream => this['addstream'];
+
+  EventListenerList get iceCandidate => this['icecandidate'];
+
+  EventListenerList get iceChange => this['icechange'];
+
+  EventListenerList get negotiationNeeded => this['negotiationneeded'];
+
+  EventListenerList get open => this['open'];
+
+  EventListenerList get removeStream => this['removestream'];
+
+  EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25114,7 +25885,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements NodeList, List<Node> {
+abstract class RadioNodeList implements List<Node> {
 
   /** @domName RadioNodeList.value */
   String value;
@@ -25130,87 +25901,6 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
   String get value native "RadioNodeList_value_Getter";
 
   void set value(String value) native "RadioNodeList_value_Setter";
-
-  Node operator[](int index) native "RadioNodeList_item_Callback";
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<Node>:
-
-  void sort(int compare(Node a, Node b)) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
-  }
-
-  Node last() => this[length - 1];
-
-  Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      _Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25554,7 +26244,7 @@ class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RequestAnimationFrameCallback(int time);
+typedef void RequestAnimationFrameCallback(int time);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25683,7 +26373,7 @@ class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet
 // WARNING: Do not edit - generated code.
 
 /// @domName SQLResultSetRowList
-abstract class SQLResultSetRowList {
+abstract class SQLResultSetRowList implements List<Map> {
 
   /** @domName SQLResultSetRowList.length */
   abstract int get length;
@@ -25700,6 +26390,87 @@ abstract class SQLResultSetRowList {
 class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLResultSetRowList {
 
   int get length native "SQLResultSetRowList_length_Getter";
+
+  Map operator[](int index) native "SQLResultSetRowList_item_Callback";
+
+  void operator[]=(int index, Map value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Map> mixins.
+  // Map is the element type.
+
+  // From Iterable<Map>:
+
+  Iterator<Map> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Map>(this);
+  }
+
+  // From Collection<Map>:
+
+  void add(Map value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Map value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Map> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Map element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Map element)) => _Collections.map(this, [], f);
+
+  Collection<Map> filter(bool f(Map element)) =>
+     _Collections.filter(this, <Map>[], f);
+
+  bool every(bool f(Map element)) => _Collections.every(this, f);
+
+  bool some(bool f(Map element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Map>:
+
+  void sort(int compare(Map a, Map b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Map element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Map element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Map last() => this[length - 1];
+
+  Map removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Map initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Map> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Map>[]);
+
+  // -- end List<Map> mixins.
 
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
@@ -27318,6 +28089,34 @@ abstract class SVGElementInstanceEvents implements Events {
 
   EventListenerList get unload;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
+
+  _SVGElementInstanceEventsImpl get on =>
+    new _SVGElementInstanceEventsImpl(this);
+
+  List<SVGElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
+
+  SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
+
+  SVGUseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
+
+  SVGElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
+
+  SVGElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
+
+  SVGElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
+
+  SVGElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
+
+  SVGElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
+
+}
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
   _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
@@ -27401,34 +28200,6 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
   EventListenerList get submit => this['submit'];
 
   EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
-
-  _SVGElementInstanceEventsImpl get on =>
-    new _SVGElementInstanceEventsImpl(this);
-
-  List<SVGElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
-
-  SVGElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
-
-  SVGUseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
-
-  SVGElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
-
-  SVGElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
-
-  SVGElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
-
-  SVGElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
-
-  SVGElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32214,10 +32985,10 @@ abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpac
   Element getElementById(String elementId);
 
   /** @domName SVGSVGElement.getEnclosureList */
-  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement);
+  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement);
 
   /** @domName SVGSVGElement.getIntersectionList */
-  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement);
+  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement);
 
   /** @domName SVGSVGElement.pauseAnimations */
   void pauseAnimations();
@@ -32312,9 +33083,9 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   Element getElementById(String elementId) native "SVGSVGElement_getElementById_Callback";
 
-  NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
+  List<Node> getEnclosureList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
 
-  NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
+  List<Node> getIntersectionList(SVGRect rect, SVGElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
 
   void pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
 
@@ -33860,7 +34631,7 @@ abstract class SelectElement implements Element {
   abstract FormElement get form;
 
   /** @domName HTMLSelectElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLSelectElement.length */
   int length;
@@ -33931,7 +34702,7 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   FormElement get form native "HTMLSelectElement_form_Getter";
 
-  NodeList get labels native "HTMLSelectElement_labels_Getter";
+  List<Node> get labels native "HTMLSelectElement_labels_Getter";
 
   int get length native "HTMLSelectElement_length_Getter";
 
@@ -34060,10 +34831,10 @@ abstract class ShadowRoot implements DocumentFragment {
   Element $dom_getElementById(String elementId);
 
   /** @domName ShadowRoot.getElementsByClassName */
-  NodeList $dom_getElementsByClassName(String className);
+  List<Node> $dom_getElementsByClassName(String className);
 
   /** @domName ShadowRoot.getElementsByTagName */
-  NodeList $dom_getElementsByTagName(String tagName);
+  List<Node> $dom_getElementsByTagName(String tagName);
 
   /** @domName ShadowRoot.getSelection */
   DOMSelection getSelection();
@@ -34096,9 +34867,9 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
-  NodeList $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
+  List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
-  NodeList $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
+  List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
   DOMSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
@@ -34145,12 +34916,6 @@ abstract class SharedWorkerContextEvents implements WorkerContextEvents {
 
   EventListenerList get connect;
 }
-
-class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
-  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get connect => this['connect'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34164,6 +34929,12 @@ class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorke
 
   String get name native "SharedWorkerContext_name_Getter";
 
+}
+
+class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
+  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34901,34 +35672,6 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
 }
-
-class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
-  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioEnd => this['audioend'];
-
-  EventListenerList get audioStart => this['audiostart'];
-
-  EventListenerList get end => this['end'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get noMatch => this['nomatch'];
-
-  EventListenerList get result => this['result'];
-
-  EventListenerList get resultDeleted => this['resultdeleted'];
-
-  EventListenerList get soundEnd => this['soundend'];
-
-  EventListenerList get soundStart => this['soundstart'];
-
-  EventListenerList get speechEnd => this['speechend'];
-
-  EventListenerList get speechStart => this['speechstart'];
-
-  EventListenerList get start => this['start'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34968,6 +35711,34 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void stop() native "SpeechRecognition_stop_Callback";
 
+}
+
+class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
+  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioEnd => this['audioend'];
+
+  EventListenerList get audioStart => this['audiostart'];
+
+  EventListenerList get end => this['end'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get noMatch => this['nomatch'];
+
+  EventListenerList get result => this['result'];
+
+  EventListenerList get resultDeleted => this['resultdeleted'];
+
+  EventListenerList get soundEnd => this['soundend'];
+
+  EventListenerList get soundStart => this['soundstart'];
+
+  EventListenerList get speechEnd => this['speechend'];
+
+  EventListenerList get speechStart => this['speechstart'];
+
+  EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36090,7 +36861,7 @@ abstract class TextAreaElement implements Element {
   abstract FormElement get form;
 
   /** @domName HTMLTextAreaElement.labels */
-  abstract NodeList get labels;
+  abstract List<Node> get labels;
 
   /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
@@ -36178,7 +36949,7 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
-  NodeList get labels native "HTMLTextAreaElement_labels_Getter";
+  List<Node> get labels native "HTMLTextAreaElement_labels_Getter";
 
   int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
@@ -36266,7 +37037,7 @@ abstract class TextEvent implements UIEvent {
   abstract String get data;
 
   /** @domName TextEvent.initTextEvent */
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36278,7 +37049,7 @@ class _TextEventImpl extends _UIEventImpl implements TextEvent {
 
   String get data native "TextEvent_data_Getter";
 
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36442,14 +37213,6 @@ abstract class TextTrackCueEvents implements Events {
 
   EventListenerList get exit;
 }
-
-class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
-  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get enter => this['enter'];
-
-  EventListenerList get exit => this['exit'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36515,6 +37278,14 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
+}
+
+class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
+  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get enter => this['enter'];
+
+  EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36630,12 +37401,6 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   TextTrackCue item(int index) native "TextTrackCueList_item_Callback";
 
 }
-
-class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
-  _TextTrackEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get cueChange => this['cuechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36672,6 +37437,12 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
 }
+
+class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
+  _TextTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get cueChange => this['cuechange'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36705,12 +37476,6 @@ abstract class TextTrackList implements List<TextTrack>, EventTarget {
 abstract class TextTrackListEvents implements Events {
 
   EventListenerList get addTrack;
-}
-
-class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
-  _TextTrackListEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36814,6 +37579,12 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
+}
+
+class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
+  _TextTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36951,7 +37722,7 @@ abstract class TouchEvent implements UIEvent {
   abstract TouchList get touches;
 
   /** @domName TouchEvent.initTouchEvent */
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36975,7 +37746,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent {
 
   TouchList get touches native "TouchEvent_touches_Getter";
 
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37361,7 +38132,7 @@ abstract class UIEvent implements Event {
   abstract int get which;
 
   /** @domName UIEvent.initUIEvent */
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
+  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37389,7 +38160,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent {
 
   int get which native "UIEvent_which_Getter";
 
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
+  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail) native "UIEvent_initUIEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39918,6 +40689,100 @@ class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements
 
 // WARNING: Do not edit - generated code.
 
+class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<Animation> {
+
+  int get length native "WebKitAnimationList_length_Getter";
+
+  Animation operator[](int index) native "WebKitAnimationList_item_Callback";
+
+  void operator[]=(int index, Animation value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Animation> mixins.
+  // Animation is the element type.
+
+  // From Iterable<Animation>:
+
+  Iterator<Animation> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Animation>(this);
+  }
+
+  // From Collection<Animation>:
+
+  void add(Animation value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Animation value) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Animation> collection) {
+    throw const UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Animation element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Animation element)) => _Collections.map(this, [], f);
+
+  Collection<Animation> filter(bool f(Animation element)) =>
+     _Collections.filter(this, <Animation>[], f);
+
+  bool every(bool f(Animation element)) => _Collections.every(this, f);
+
+  bool some(bool f(Animation element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Animation>:
+
+  void sort(int compare(Animation a, Animation b)) {
+    throw const UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Animation element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Animation element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  Animation last() => this[length - 1];
+
+  Animation removeLast() {
+    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
+    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Animation initialValue]) {
+    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<Animation> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Animation>[]);
+
+  // -- end List<Animation> mixins.
+
+  Animation item(int index) native "WebKitAnimationList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName WebKitCSSFilterValue
 abstract class WebKitCSSFilterValue implements List<CSSValue> {
 
@@ -39984,13 +40849,13 @@ abstract class WebKitNamedFlow implements EventTarget {
   bool $dom_dispatchEvent(Event event);
 
   /** @domName WebKitNamedFlow.getContent */
-  NodeList getContent();
+  List<Node> getContent();
 
   /** @domName WebKitNamedFlow.getRegions */
-  NodeList getRegions();
+  List<Node> getRegions();
 
   /** @domName WebKitNamedFlow.getRegionsByContent */
-  NodeList getRegionsByContent(Node contentNode);
+  List<Node> getRegionsByContent(Node contentNode);
 
   /** @domName WebKitNamedFlow.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
@@ -40013,11 +40878,11 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
   bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
-  NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
+  List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
 
-  NodeList getRegions() native "WebKitNamedFlow_getRegions_Callback";
+  List<Node> getRegions() native "WebKitNamedFlow_getRegions_Callback";
 
-  NodeList getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+  List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
@@ -40093,18 +40958,6 @@ abstract class WebSocketEvents implements Events {
 
   EventListenerList get open;
 }
-
-class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
-  _WebSocketEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get close => this['close'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get open => this['open'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40159,6 +41012,18 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   void send(data) native "WebSocket_send_Callback";
 
 }
+
+class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
+  _WebSocketEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40170,7 +41035,7 @@ abstract class WheelEvent implements MouseEvent {
   abstract bool get webkitDirectionInvertedFromDevice;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 
 
   /** @domName WheelEvent.deltaX */
@@ -40190,866 +41055,12 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 
   bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   num get deltaY native 'WheelEvent_wheelDelta_Getter';
   num get deltaX native 'WheelEvent_wheelDeltaX_Getter';
   int get deltaMode => 0;
-
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName DOMWindow
-abstract class Window implements EventTarget {
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, SendPortSync port);
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name);
-
-  /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
-   */
-  void requestLayoutFrame(TimeoutHandler callback);
-
-  /**
-   * Creates a new object URL for the specified object. The URL will be
-   * available until revokeObjectUrl is called.
-   * [object] can be a Blob, MediaStream or MediaSource.
-   */
-  String createObjectUrl(object);
-
-  /** @domName DOMURL.revokeObjectURL */
-  void revokeObjectUrl(String objectUrl);
-
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  WindowEvents get on;
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-  /** @domName DOMWindow.applicationCache */
-  abstract DOMApplicationCache get applicationCache;
-
-  /** @domName DOMWindow.clientInformation */
-  abstract Navigator get clientInformation;
-
-  /** @domName DOMWindow.closed */
-  abstract bool get closed;
-
-  /** @domName DOMWindow.console */
-  abstract Console get console;
-
-  /** @domName DOMWindow.crypto */
-  abstract Crypto get crypto;
-
-  /** @domName DOMWindow.defaultStatus */
-  String defaultStatus;
-
-  /** @domName DOMWindow.defaultstatus */
-  String defaultstatus;
-
-  /** @domName DOMWindow.devicePixelRatio */
-  abstract num get devicePixelRatio;
-
-  /** @domName DOMWindow.document */
-  abstract Document get document;
-
-  /** @domName DOMWindow.event */
-  abstract Event get event;
-
-  /** @domName DOMWindow.frames */
-  abstract Window get frames;
-
-  /** @domName DOMWindow.history */
-  abstract History get history;
-
-  /** @domName DOMWindow.indexedDB */
-  abstract IDBFactory get indexedDB;
-
-  /** @domName DOMWindow.innerHeight */
-  abstract int get innerHeight;
-
-  /** @domName DOMWindow.innerWidth */
-  abstract int get innerWidth;
-
-  /** @domName DOMWindow.length */
-  abstract int get length;
-
-  /** @domName DOMWindow.localStorage */
-  abstract Storage get localStorage;
-
-  /** @domName DOMWindow.location */
-  Location location;
-
-  /** @domName DOMWindow.locationbar */
-  abstract BarInfo get locationbar;
-
-  /** @domName DOMWindow.menubar */
-  abstract BarInfo get menubar;
-
-  /** @domName DOMWindow.name */
-  String name;
-
-  /** @domName DOMWindow.navigator */
-  abstract Navigator get navigator;
-
-  /** @domName DOMWindow.offscreenBuffering */
-  abstract bool get offscreenBuffering;
-
-  /** @domName DOMWindow.opener */
-  abstract Window get opener;
-
-  /** @domName DOMWindow.outerHeight */
-  abstract int get outerHeight;
-
-  /** @domName DOMWindow.outerWidth */
-  abstract int get outerWidth;
-
-  /** @domName DOMWindow.pagePopupController */
-  abstract PagePopupController get pagePopupController;
-
-  /** @domName DOMWindow.pageXOffset */
-  abstract int get pageXOffset;
-
-  /** @domName DOMWindow.pageYOffset */
-  abstract int get pageYOffset;
-
-  /** @domName DOMWindow.parent */
-  abstract Window get parent;
-
-  /** @domName DOMWindow.performance */
-  abstract Performance get performance;
-
-  /** @domName DOMWindow.personalbar */
-  abstract BarInfo get personalbar;
-
-  /** @domName DOMWindow.screen */
-  abstract Screen get screen;
-
-  /** @domName DOMWindow.screenLeft */
-  abstract int get screenLeft;
-
-  /** @domName DOMWindow.screenTop */
-  abstract int get screenTop;
-
-  /** @domName DOMWindow.screenX */
-  abstract int get screenX;
-
-  /** @domName DOMWindow.screenY */
-  abstract int get screenY;
-
-  /** @domName DOMWindow.scrollX */
-  abstract int get scrollX;
-
-  /** @domName DOMWindow.scrollY */
-  abstract int get scrollY;
-
-  /** @domName DOMWindow.scrollbars */
-  abstract BarInfo get scrollbars;
-
-  /** @domName DOMWindow.self */
-  abstract Window get self;
-
-  /** @domName DOMWindow.sessionStorage */
-  abstract Storage get sessionStorage;
-
-  /** @domName DOMWindow.status */
-  String status;
-
-  /** @domName DOMWindow.statusbar */
-  abstract BarInfo get statusbar;
-
-  /** @domName DOMWindow.styleMedia */
-  abstract StyleMedia get styleMedia;
-
-  /** @domName DOMWindow.toolbar */
-  abstract BarInfo get toolbar;
-
-  /** @domName DOMWindow.top */
-  abstract Window get top;
-
-  /** @domName DOMWindow.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
-
-  /** @domName DOMWindow.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
-
-  /** @domName DOMWindow.webkitStorageInfo */
-  abstract StorageInfo get webkitStorageInfo;
-
-  /** @domName DOMWindow.window */
-  abstract Window get window;
-
-  /** @domName DOMWindow.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DOMWindow.alert */
-  void alert(String message);
-
-  /** @domName DOMWindow.atob */
-  String atob(String string);
-
-  /** @domName DOMWindow.blur */
-  void blur();
-
-  /** @domName DOMWindow.btoa */
-  String btoa(String string);
-
-  /** @domName DOMWindow.captureEvents */
-  void captureEvents();
-
-  /** @domName DOMWindow.clearInterval */
-  void clearInterval(int handle);
-
-  /** @domName DOMWindow.clearTimeout */
-  void clearTimeout(int handle);
-
-  /** @domName DOMWindow.close */
-  void close();
-
-  /** @domName DOMWindow.confirm */
-  bool confirm(String message);
-
-  /** @domName DOMWindow.dispatchEvent */
-  bool $dom_dispatchEvent(Event evt);
-
-  /** @domName DOMWindow.find */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
-
-  /** @domName DOMWindow.focus */
-  void focus();
-
-  /** @domName DOMWindow.getComputedStyle */
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
-
-  /** @domName DOMWindow.getMatchedCSSRules */
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement);
-
-  /** @domName DOMWindow.getSelection */
-  DOMSelection getSelection();
-
-  /** @domName DOMWindow.matchMedia */
-  MediaQueryList matchMedia(String query);
-
-  /** @domName DOMWindow.moveBy */
-  void moveBy(num x, num y);
-
-  /** @domName DOMWindow.moveTo */
-  void moveTo(num x, num y);
-
-  /** @domName DOMWindow.open */
-  Window open(String url, String name, [String options]);
-
-  /** @domName DOMWindow.openDatabase */
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
-
-  /** @domName DOMWindow.postMessage */
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
-
-  /** @domName DOMWindow.print */
-  void print();
-
-  /** @domName DOMWindow.prompt */
-  String prompt(String message, String defaultValue);
-
-  /** @domName DOMWindow.releaseEvents */
-  void releaseEvents();
-
-  /** @domName DOMWindow.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DOMWindow.resizeBy */
-  void resizeBy(num x, num y);
-
-  /** @domName DOMWindow.resizeTo */
-  void resizeTo(num width, num height);
-
-  /** @domName DOMWindow.scroll */
-  void scroll(int x, int y);
-
-  /** @domName DOMWindow.scrollBy */
-  void scrollBy(int x, int y);
-
-  /** @domName DOMWindow.scrollTo */
-  void scrollTo(int x, int y);
-
-  /** @domName DOMWindow.setInterval */
-  int setInterval(TimeoutHandler handler, int timeout);
-
-  /** @domName DOMWindow.setTimeout */
-  int setTimeout(TimeoutHandler handler, int timeout);
-
-  /** @domName DOMWindow.showModalDialog */
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
-
-  /** @domName DOMWindow.stop */
-  void stop();
-
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
-  Point webkitConvertPointFromNodeToPage(Node node, Point p);
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
-  Point webkitConvertPointFromPageToNode(Node node, Point p);
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
-
-  /** @domName DOMWindow.webkitRequestFileSystem */
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
-
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]);
-
-}
-
-abstract class WindowEvents implements Events {
-
-  EventListenerList get contentLoaded;
-
-  EventListenerList get abort;
-
-  EventListenerList get beforeUnload;
-
-  EventListenerList get blur;
-
-  EventListenerList get canPlay;
-
-  EventListenerList get canPlayThrough;
-
-  EventListenerList get change;
-
-  EventListenerList get click;
-
-  EventListenerList get contextMenu;
-
-  EventListenerList get doubleClick;
-
-  EventListenerList get deviceMotion;
-
-  EventListenerList get deviceOrientation;
-
-  EventListenerList get drag;
-
-  EventListenerList get dragEnd;
-
-  EventListenerList get dragEnter;
-
-  EventListenerList get dragLeave;
-
-  EventListenerList get dragOver;
-
-  EventListenerList get dragStart;
-
-  EventListenerList get drop;
-
-  EventListenerList get durationChange;
-
-  EventListenerList get emptied;
-
-  EventListenerList get ended;
-
-  EventListenerList get error;
-
-  EventListenerList get focus;
-
-  EventListenerList get hashChange;
-
-  EventListenerList get input;
-
-  EventListenerList get invalid;
-
-  EventListenerList get keyDown;
-
-  EventListenerList get keyPress;
-
-  EventListenerList get keyUp;
-
-  EventListenerList get load;
-
-  EventListenerList get loadedData;
-
-  EventListenerList get loadedMetadata;
-
-  EventListenerList get loadStart;
-
-  EventListenerList get message;
-
-  EventListenerList get mouseDown;
-
-  EventListenerList get mouseMove;
-
-  EventListenerList get mouseOut;
-
-  EventListenerList get mouseOver;
-
-  EventListenerList get mouseUp;
-
-  EventListenerList get mouseWheel;
-
-  EventListenerList get offline;
-
-  EventListenerList get online;
-
-  EventListenerList get pageHide;
-
-  EventListenerList get pageShow;
-
-  EventListenerList get pause;
-
-  EventListenerList get play;
-
-  EventListenerList get playing;
-
-  EventListenerList get popState;
-
-  EventListenerList get progress;
-
-  EventListenerList get rateChange;
-
-  EventListenerList get reset;
-
-  EventListenerList get resize;
-
-  EventListenerList get scroll;
-
-  EventListenerList get search;
-
-  EventListenerList get seeked;
-
-  EventListenerList get seeking;
-
-  EventListenerList get select;
-
-  EventListenerList get stalled;
-
-  EventListenerList get storage;
-
-  EventListenerList get submit;
-
-  EventListenerList get suspend;
-
-  EventListenerList get timeUpdate;
-
-  EventListenerList get touchCancel;
-
-  EventListenerList get touchEnd;
-
-  EventListenerList get touchMove;
-
-  EventListenerList get touchStart;
-
-  EventListenerList get unload;
-
-  EventListenerList get volumeChange;
-
-  EventListenerList get waiting;
-
-  EventListenerList get animationEnd;
-
-  EventListenerList get animationIteration;
-
-  EventListenerList get animationStart;
-
-  EventListenerList get transitionEnd;
-}
-
-class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
-  _WindowEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
-  EventListenerList get abort => this['abort'];
-
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  EventListenerList get blur => this['blur'];
-
-  EventListenerList get canPlay => this['canplay'];
-
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  EventListenerList get change => this['change'];
-
-  EventListenerList get click => this['click'];
-
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  EventListenerList get doubleClick => this['dblclick'];
-
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  EventListenerList get drag => this['drag'];
-
-  EventListenerList get dragEnd => this['dragend'];
-
-  EventListenerList get dragEnter => this['dragenter'];
-
-  EventListenerList get dragLeave => this['dragleave'];
-
-  EventListenerList get dragOver => this['dragover'];
-
-  EventListenerList get dragStart => this['dragstart'];
-
-  EventListenerList get drop => this['drop'];
-
-  EventListenerList get durationChange => this['durationchange'];
-
-  EventListenerList get emptied => this['emptied'];
-
-  EventListenerList get ended => this['ended'];
-
-  EventListenerList get error => this['error'];
-
-  EventListenerList get focus => this['focus'];
-
-  EventListenerList get hashChange => this['hashchange'];
-
-  EventListenerList get input => this['input'];
-
-  EventListenerList get invalid => this['invalid'];
-
-  EventListenerList get keyDown => this['keydown'];
-
-  EventListenerList get keyPress => this['keypress'];
-
-  EventListenerList get keyUp => this['keyup'];
-
-  EventListenerList get load => this['load'];
-
-  EventListenerList get loadedData => this['loadeddata'];
-
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  EventListenerList get loadStart => this['loadstart'];
-
-  EventListenerList get message => this['message'];
-
-  EventListenerList get mouseDown => this['mousedown'];
-
-  EventListenerList get mouseMove => this['mousemove'];
-
-  EventListenerList get mouseOut => this['mouseout'];
-
-  EventListenerList get mouseOver => this['mouseover'];
-
-  EventListenerList get mouseUp => this['mouseup'];
-
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  EventListenerList get offline => this['offline'];
-
-  EventListenerList get online => this['online'];
-
-  EventListenerList get pageHide => this['pagehide'];
-
-  EventListenerList get pageShow => this['pageshow'];
-
-  EventListenerList get pause => this['pause'];
-
-  EventListenerList get play => this['play'];
-
-  EventListenerList get playing => this['playing'];
-
-  EventListenerList get popState => this['popstate'];
-
-  EventListenerList get progress => this['progress'];
-
-  EventListenerList get rateChange => this['ratechange'];
-
-  EventListenerList get reset => this['reset'];
-
-  EventListenerList get resize => this['resize'];
-
-  EventListenerList get scroll => this['scroll'];
-
-  EventListenerList get search => this['search'];
-
-  EventListenerList get seeked => this['seeked'];
-
-  EventListenerList get seeking => this['seeking'];
-
-  EventListenerList get select => this['select'];
-
-  EventListenerList get stalled => this['stalled'];
-
-  EventListenerList get storage => this['storage'];
-
-  EventListenerList get submit => this['submit'];
-
-  EventListenerList get suspend => this['suspend'];
-
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  EventListenerList get touchEnd => this['touchend'];
-
-  EventListenerList get touchMove => this['touchmove'];
-
-  EventListenerList get touchStart => this['touchstart'];
-
-  EventListenerList get unload => this['unload'];
-
-  EventListenerList get volumeChange => this['volumechange'];
-
-  EventListenerList get waiting => this['waiting'];
-
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DOMWindowImpl extends _EventTargetImpl implements Window {
-
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
-  }
-
-  // TODO(kasperl): Document these.
-  lookupPort(String name) {
-    var port = JSON.parse(localStorage['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    localStorage['dart-port:$name'] = JSON.stringify(serialized);
-  }
-
-  String createObjectUrl(object) => DOMURL.createObjectURL(object);
-  void revokeObjectUrl(String url) {
-    DOMURL.revokeObjectURL(url);
-  }
-
-
-  _WindowEventsImpl get on =>
-    new _WindowEventsImpl(this);
-
-  DOMApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
-
-  Navigator get clientInformation native "DOMWindow_clientInformation_Getter";
-
-  bool get closed native "DOMWindow_closed_Getter";
-
-  Console get console native "DOMWindow_console_Getter";
-
-  Crypto get crypto native "DOMWindow_crypto_Getter";
-
-  String get defaultStatus native "DOMWindow_defaultStatus_Getter";
-
-  void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
-
-  String get defaultstatus native "DOMWindow_defaultstatus_Getter";
-
-  void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
-
-  num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
-
-  Document get document native "DOMWindow_document_Getter";
-
-  Event get event native "DOMWindow_event_Getter";
-
-  Window get frames native "DOMWindow_frames_Getter";
-
-  History get history native "DOMWindow_history_Getter";
-
-  IDBFactory get indexedDB native "DOMWindow_indexedDB_Getter";
-
-  int get innerHeight native "DOMWindow_innerHeight_Getter";
-
-  int get innerWidth native "DOMWindow_innerWidth_Getter";
-
-  int get length native "DOMWindow_length_Getter";
-
-  Storage get localStorage native "DOMWindow_localStorage_Getter";
-
-  Location get location native "DOMWindow_location_Getter";
-
-  void set location(Location value) native "DOMWindow_location_Setter";
-
-  BarInfo get locationbar native "DOMWindow_locationbar_Getter";
-
-  BarInfo get menubar native "DOMWindow_menubar_Getter";
-
-  String get name native "DOMWindow_name_Getter";
-
-  void set name(String value) native "DOMWindow_name_Setter";
-
-  Navigator get navigator native "DOMWindow_navigator_Getter";
-
-  bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
-
-  Window get opener native "DOMWindow_opener_Getter";
-
-  int get outerHeight native "DOMWindow_outerHeight_Getter";
-
-  int get outerWidth native "DOMWindow_outerWidth_Getter";
-
-  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
-
-  int get pageXOffset native "DOMWindow_pageXOffset_Getter";
-
-  int get pageYOffset native "DOMWindow_pageYOffset_Getter";
-
-  Window get parent native "DOMWindow_parent_Getter";
-
-  Performance get performance native "DOMWindow_performance_Getter";
-
-  BarInfo get personalbar native "DOMWindow_personalbar_Getter";
-
-  Screen get screen native "DOMWindow_screen_Getter";
-
-  int get screenLeft native "DOMWindow_screenLeft_Getter";
-
-  int get screenTop native "DOMWindow_screenTop_Getter";
-
-  int get screenX native "DOMWindow_screenX_Getter";
-
-  int get screenY native "DOMWindow_screenY_Getter";
-
-  int get scrollX native "DOMWindow_scrollX_Getter";
-
-  int get scrollY native "DOMWindow_scrollY_Getter";
-
-  BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
-
-  Window get self native "DOMWindow_self_Getter";
-
-  Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
-
-  String get status native "DOMWindow_status_Getter";
-
-  void set status(String value) native "DOMWindow_status_Setter";
-
-  BarInfo get statusbar native "DOMWindow_statusbar_Getter";
-
-  StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
-
-  BarInfo get toolbar native "DOMWindow_toolbar_Getter";
-
-  Window get top native "DOMWindow_top_Getter";
-
-  IDBFactory get webkitIndexedDB native "DOMWindow_webkitIndexedDB_Getter";
-
-  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
-
-  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
-
-  Window get window native "DOMWindow_window_Getter";
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
-
-  void alert(String message) native "DOMWindow_alert_Callback";
-
-  String atob(String string) native "DOMWindow_atob_Callback";
-
-  void blur() native "DOMWindow_blur_Callback";
-
-  String btoa(String string) native "DOMWindow_btoa_Callback";
-
-  void captureEvents() native "DOMWindow_captureEvents_Callback";
-
-  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
-
-  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
-
-  void close() native "DOMWindow_close_Callback";
-
-  bool confirm(String message) native "DOMWindow_confirm_Callback";
-
-  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
-
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
-
-  void focus() native "DOMWindow_focus_Callback";
-
-  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
-
-  List<CSSRule> getMatchedCSSRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
-
-  DOMSelection getSelection() native "DOMWindow_getSelection_Callback";
-
-  MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
-
-  void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
-
-  void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
-
-  Window open(String url, String name, [String options]) native "DOMWindow_open_Callback";
-
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
-
-  void postMessage(message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
-
-  void print() native "DOMWindow_print_Callback";
-
-  String prompt(String message, String defaultValue) native "DOMWindow_prompt_Callback";
-
-  void releaseEvents() native "DOMWindow_releaseEvents_Callback";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
-
-  void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
-
-  void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
-
-  void scroll(int x, int y) native "DOMWindow_scroll_Callback";
-
-  void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
-
-  void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
-
-  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
-
-  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
-
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
-
-  void stop() native "DOMWindow_stop_Callback";
-
-  void cancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
-
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
-
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
-
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
-
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
-
-  void webkitResolveLocalFileSystemURL(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41165,12 +41176,6 @@ abstract class WorkerContextEvents implements Events {
 
   EventListenerList get error;
 }
-
-class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
-  _WorkerContextEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get error => this['error'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -41226,10 +41231,10 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
 }
 
-class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
-  _WorkerEventsImpl(_ptr) : super(_ptr);
+class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
+  _WorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message => this['message'];
+  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41246,6 +41251,12 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 
   void terminate() native "Worker_terminate_Callback";
 
+}
+
+class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
+  _WorkerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42236,7 +42247,38 @@ class _XSLTProcessorFactoryProvider {
   static XSLTProcessor createXSLTProcessor() => _createXSLTProcessor();
   static XSLTProcessor _createXSLTProcessor() native "XSLTProcessor_constructor_Callback";
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+abstract class Window {
+  // Fields.
+  Location get location;
+  History get history;
+
+  bool get closed;
+  Window get opener;
+  Window get parent;
+  Window get top;
+
+  // Methods.
+  void focus();
+  void blur();
+  void close();
+  void postMessage(Dynamic message,
+                   String targetOrigin,
+		   [List messagePorts = null]);
+}
+
+abstract class Location {
+  void set href(String val);
+}
+
+abstract class History {
+  void back();
+  void forward();
+  void go(int distance);
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -44000,9 +44042,9 @@ class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Windo
   Location get location() native "DOMWindow_location_cross_frame_Getter";
   bool get closed() native "DOMWindow_closed_Getter";
   int get length() native "DOMWindow_length_Getter";
-  DOMWindow get opener() native "DOMWindow_opener_Getter";
-  DOMWindow get parent() native "DOMWindow_parent_Getter";
-  DOMWindow get top() native "DOMWindow_top_Getter";
+  Window get opener() native "DOMWindow_opener_Getter";
+  Window get parent() native "DOMWindow_parent_Getter";
+  Window get top() native "DOMWindow_top_Getter";
 
   // Methods.
   void focus() native "DOMWindow_focus_Callback";

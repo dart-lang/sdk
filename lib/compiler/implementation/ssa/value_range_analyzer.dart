@@ -12,6 +12,7 @@ abstract class Value {
 
   Value operator +(Value other);
   Value operator -(Value other);
+  Value operator -();
   Value operator &(Value other);
 
   Value min(Value other) {
@@ -47,17 +48,28 @@ class IntValue extends Value {
   const IntValue(this.value);
 
   Value operator +(other) {
+    if (other.isZero()) return this;
     if (other is !IntValue) return other + this;
     return new IntValue(value + other.value);
   }
 
   Value operator -(other) {
-    if (other is !IntValue) return other - this;
+    if (other.isZero()) return this;
+    if (other is !IntValue) return -other + this;
     return new IntValue(value - other.value);
   }
 
+  Value operator -() {
+    if (isZero()) return this;
+    return new IntValue(-value);
+  }
+
   Value operator &(other) {
-    if (other is !IntValue) return this;
+    if (other is !IntValue) {
+      if (isPositive()) return this;
+      if (other.isPositive()) return new IntValue(-value);
+      return const UnknownValue();
+    }
     return new IntValue(value & other.value);
   }
 
@@ -90,6 +102,7 @@ class MaxIntValue extends Value {
   const MaxIntValue();
   Value operator +(Value other) => this;
   Value operator -(Value other) => this;
+  Value operator -() => const MinIntValue();
   Value operator &(Value other) {
     if (other.isPositive()) return other;
     if (other.isNegative()) return const IntValue(0);
@@ -110,6 +123,7 @@ class MinIntValue extends Value {
   const MinIntValue();
   Value operator +(Value other) => this;
   Value operator -(Value other) => this;
+  Value operator -() => const MaxIntValue();
   Value operator &(Value other) {
     if (other.isPositive()) return const IntValue(0);
     return this;
@@ -129,6 +143,7 @@ class UnknownValue extends Value {
   const UnknownValue();
   Value operator +(Value other) => const UnknownValue();
   Value operator -(Value other) => const UnknownValue();
+  Value operator -() => const UnknownValue();
   Value operator &(Value other) => const UnknownValue();
   Value min(Value other) => const UnknownValue();
   Value max(Value other) => const UnknownValue();
@@ -151,13 +166,35 @@ class InstructionValue extends Value {
 
   Value operator +(Value other) {
     if (other.isZero()) return this;
-    return new OperationValue(this, other, const AddOperation());
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(this, -other);
+      }
+      return new AddValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new AddValue(this, other);
+    }
+    return other + this;
   }
 
   Value operator -(Value other) {
     if (other.isZero()) return this;
     if (this == other) return const IntValue(0);
-    return new OperationValue(this, other, const SubtractOperation());
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new AddValue(this, -other);
+      }
+      return new SubtractValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(this, other);
+    }
+    return -other + this;
+  }
+
+  Value operator -() {
+    return new NegateValue(this);
   }
 
   Value operator &(Value other) {
@@ -187,56 +224,155 @@ class LengthValue extends InstructionValue {
  * did not yield a canonical value.
  */
 class OperationValue extends Value {
+  Operation operation;
+}
+
+class BinaryOperationValue extends OperationValue {
   final Value left;
   final Value right;
-  final Operation operation;
-  OperationValue(this.left, this.right, this.operation);
+  BinaryOperationValue(this.left, this.right);
+}
+
+class AddValue extends BinaryOperationValue {
+  AddValue(left, right) : super(left, right);
 
   bool operator ==(other) {
-    if (other is !OperationValue) return false;
-    return left == other.left
-        && right == other.right
-        && operation == other.operation;
+    if (other is !AddValue) return false;
+    return (left == other.left && right == other.right)
+      || (left == other.right && right == other.left);
   }
 
-  Value operator +(Value other) => const UnknownValue();
   Value operator &(Value other) => const UnknownValue();
+  Value operator -() => -left - right;
 
-  Value operator -(Value other) {
-    if (operation is! SubtractOperation && operation is! AddOperation) {
-      return const UnknownValue();
-    }
-    // We try to create a simple [Value] out of this operation. So we
-    // first try to substract [other] to [left]. If the result is simple
-    // enough (not unknown and not an operation), we return the result
-    // of doing the operation of this [OperationValue] on the previous
-    // result and [right].
-    //
-    // For example:
-    // OperationValue(LengthValue(i1), IntValue(42), '-') - LengthValue(i1)
-    //
-    // Will return IntValue(-42)
-    Value value = left - other;
-    if (value != const UnknownValue() && value is! OperationValue) {
-      return operation.apply(value, right);
+  Value operator +(Value other) {
+    if (other.isZero()) return this;
+    Value value = left + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value + right;
     }
     // If the result is not simple enough, we try the same approach
     // with [right].
-    if (operation is SubtractOperation) {
-      value = right + other;
-    } else {
-      assert(operation is AddOperation);
-      value = right - other;
-    }
-    if (value != const UnknownValue() && value is! OperationValue) {
-      return operation.apply(left, value);
+    value = right + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
     }
     return const UnknownValue();
   }
 
-  bool isNegative() => false;
-  bool isPositive() => false;
-  String toString() => '$left ${operation.name} $right';
+  Value operator -(Value other) {
+    if (other.isZero()) return this;
+    Value value = left - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value + right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = right - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
+    }
+    return const UnknownValue();
+  }
+
+  bool isNegative() => left.isNegative() && right.isNegative();
+  bool isPositive() => left.isPositive() && right.isPositive();
+  String toString() => '$left + $right';
+}
+
+class SubtractValue extends BinaryOperationValue {
+  SubtractValue(left, right) : super(left, right);
+
+  bool operator ==(other) {
+    if (other is !SubtractValue) return false;
+    return left == other.left && right == other.right;
+  }
+
+  Value operator &(Value other) => const UnknownValue();
+  Value operator -() => right - left;
+
+  Value operator +(Value other) {
+    if (other.isZero()) return this;
+    Value value = left + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value - right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = other - right;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left + value;
+    }
+    return const UnknownValue();
+  }
+
+  Value operator -(Value other) {
+    if (other.isZero()) return this;
+    Value value = left - other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return value - right;
+    }
+    // If the result is not simple enough, we try the same approach
+    // with [right].
+    value = right + other;
+    if (value != const UnknownValue() && value is! BinaryOperationValue) {
+      return left - value;
+    }
+    return const UnknownValue();
+  }
+
+  bool isNegative() => left.isNegative() && right.isPositive();
+  bool isPositive() => left.isPositive() && right.isNegative();
+  String toString() => '$left - $right';
+}
+
+class NegateValue extends OperationValue {
+  final Value value;
+  NegateValue(this.value);
+
+  bool operator ==(other) {
+    if (other is !NegateValue) return false;
+    return value == other.value;
+  }
+
+  Value operator +(other) {
+    if (other.isZero()) return this;
+    if (other == value) return const IntValue(0);
+    if (other is NegateValue) return this - other.value;
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(this, -other);
+      }
+      return new SubtractValue(other, value);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(other, value);
+    }
+    return other - value;
+  }
+
+  Value operator &(Value other) => const UnknownValue();
+
+  Value operator -(other) {
+    if (other.isZero()) return this;
+    if (other is IntValue) {
+      if (other.isNegative()) {
+        return new SubtractValue(-other, value);
+      }
+      return new SubtractValue(this, other);
+    }
+    if (other is InstructionValue) {
+      return new SubtractValue(this, other);
+    }
+    if (other is NegateValue) return this + other.value;
+    return -other - value;
+  }
+
+  Value operator -() => value;
+
+  bool isNegative() => value.isPositive();
+  bool isPositive() => value.isNegative();
+  String toString() => '-$value';
 }
 
 /**
@@ -286,11 +422,38 @@ class Range {
   }
 
   Range operator -(Range other) {
-    return new Range.normalize(lower - other.lower, upper - other.upper);
+    return new Range.normalize(lower - other.upper, upper - other.lower);
+  }
+
+  Range operator -() {
+    return new Range.normalize(-upper, -lower);
   }
 
   Range operator &(Range other) {
-    return new Range.normalize(lower & other.lower, upper & other.upper);
+    if (isSingleValue()
+        && other.isSingleValue()
+        && lower is IntValue
+        && other.lower is IntValue) {
+      return new Range(lower & other.lower, upper & other.upper);
+    }
+    if (isPositive() && other.isPositive()) {
+      Value up = upper.min(other.upper);
+      if (up == const UnknownValue()) {
+        // If we could not find a trivial bound, just try to use the
+        // one that is an int.
+        up = upper is IntValue ? upper : other.upper;
+        // Make sure we get the same upper bound, whether it's a & b
+        // or b & a.
+        if (up is! IntValue && upper != other.upper) up = const MaxIntValue();
+      }
+      return new Range(const IntValue(0), up);
+    } else if (isPositive()) {
+      return new Range(const IntValue(0), upper);
+    } else if (other.isPositive()) {
+      return new Range(const IntValue(0), other.upper);
+    } else {
+      return const Range.unbound();
+    }
   }
 
   bool operator ==(other) {
@@ -298,12 +461,25 @@ class Range {
     return other.lower == lower && other.upper == upper;
   }
 
-  bool isLessThan(Range other) {
+  bool operator <(Range other) {
     return upper != other.lower && upper.min(other.lower) == upper;
+  }
+
+  bool operator >(Range other) {
+    return lower != other.upper && lower.max(other.upper) == lower;
+  }
+
+  bool operator <=(Range other) {
+    return upper.min(other.lower) == upper;
+  }
+
+  bool operator >=(Range other) {
+    return lower.max(other.upper) == lower;
   }
 
   bool isNegative() => upper.isNegative();
   bool isPositive() => lower.isPositive();
+  bool isSingleValue() => lower == upper;
 
   String toString() => '[$lower, $upper]';
 }
@@ -398,7 +574,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitConstant(HConstant constant) {
     if (!constant.isInteger(types)) return const Range.unbound();
-    Value value = new IntValue(constant.constant.value);
+    IntConstant constantInt = constant.constant;
+    Value value = new IntValue(constantInt.value);
     return new Range(value, value);
   }
 
@@ -435,7 +612,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (indexRange.isPositive() && belowLength) {
       check.block.rewrite(check, check.index);
       check.block.remove(check);
-    } else if (indexRange.isNegative() || lengthRange.isLessThan(indexRange)) {
+    } else if (indexRange.isNegative() || lengthRange < indexRange) {
       check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       // The check is always false, and whatever instruction it
       // dominates is dead code.
@@ -471,22 +648,37 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return indexRange;
   }
 
-  Range visitLess(HLess less) {
-    HInstruction right = less.right;
-    HInstruction left = less.left;
+  Range visitRelational(HRelational relational) {
+    HInstruction right = relational.right;
+    HInstruction left = relational.left;
     if (!left.isInteger(types)) return const Range.unbound();
     if (!right.isInteger(types)) return const Range.unbound();
-    if (ranges[left].isLessThan(ranges[right])) {
-      less.block.rewrite(less, graph.addConstantBool(true, constantSystem));
-      less.block.remove(less);
-      return const Range.unbound();
-    }
-    if (ranges[right].isLessThan(ranges[left])) {
-      less.block.rewrite(less, graph.addConstantBool(false, constantSystem));
-      less.block.remove(less);
-      return const Range.unbound();
+    Operation operation = relational.operation(constantSystem);
+    Range rightRange = ranges[relational.right];
+    Range leftRange = ranges[relational.left];
+
+    if (relational is HEquals || relational is HIdentity) {
+      handleEqualityCheck(relational);
+    } else if (operation.apply(leftRange, rightRange)) {
+      relational.block.rewrite(
+          relational, graph.addConstantBool(true, constantSystem));
+      relational.block.remove(relational);
+    } else if (reverseOperation(operation).apply(leftRange, rightRange)) {
+      relational.block.rewrite(
+          relational, graph.addConstantBool(false, constantSystem));
+      relational.block.remove(relational);
     }
     return const Range.unbound();
+  }
+
+  void handleEqualityCheck(HRelational node) {
+    Range right = ranges[node.right];
+    Range left = ranges[node.left];
+    if (left.isSingleValue() && right.isSingleValue() && left == right) {
+      node.block.rewrite(
+          node, graph.addConstantBool(true, constantSystem));
+      node.block.remove(node);
+    }
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
@@ -550,30 +742,96 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return newInstruction;
   }
 
+  static Operation reverseOperation(BinaryOperation operation) {
+    if (operation == const LessOperation()) {
+      return const GreaterEqualOperation();
+    } else if (operation == const LessEqualOperation()) {
+      return const GreaterOperation();
+    } else if (operation == const GreaterOperation()) {
+      return const LessEqualOperation();
+    } else if (operation == const GreaterEqualOperation()) {
+      return const LessOperation();
+    } else {
+      return null;
+    }
+  }
+
+  static Range computeConstrainedRange(BinaryOperation operation,
+                                       Range leftRange,
+                                       Range rightRange) {
+    Range range;
+    if (operation == const LessOperation()) {
+      range = new Range(
+          const MinIntValue(), rightRange.upper - const IntValue(1));
+    } else if (operation == const LessEqualOperation()) {
+      range = new Range(const MinIntValue(), rightRange.upper);
+    } else if (operation == const GreaterOperation()) {
+      range = new Range(
+          rightRange.lower + const IntValue(1), const MaxIntValue());
+    } else if (operation == const GreaterEqualOperation()) {
+      range = new Range(rightRange.lower, const MaxIntValue());
+    } else {
+      range = const Range.unbound();
+    }
+    return range.intersection(leftRange);
+  }
+
   Range visitConditionalBranch(HConditionalBranch branch) {
     var condition = branch.condition;
-    // TODO(ngeoffray): Handle more condition kinds.
-    if (condition is !HLess) return const Range.unbound();
+    // TODO(ngeoffray): Handle complex conditions.
+    if (condition is !HRelational) return const Range.unbound();
+    if (condition is HEquals) return const Range.unbound();
+    if (condition is HIdentity) return const Range.unbound();
     HInstruction right = condition.right;
     HInstruction left = condition.left;
     if (!left.isInteger(types)) return const Range.unbound();
     if (!right.isInteger(types)) return const Range.unbound();
 
-    // Update the true branch to use a narrower range for [left].
-    // TODO(ngeoffray): Also do it for [right].
-    HInstruction instruction =
-        createRangeConversion(branch.trueBranch.first, left);
-    Range range = new Range(
-        const MinIntValue(), ranges[right].upper - const IntValue(1));
-    range = range.intersection(ranges[left]);
-    ranges[instruction] = range;
+    Range rightRange = ranges[right];
+    Range leftRange = ranges[left];
+    Operation operation = condition.operation(constantSystem);
+    Operation reverse = reverseOperation(operation);
+    // Only update the true branch if this block is the only
+    // predecessor.
+    if (branch.trueBranch.predecessors.length == 1) {
+      assert(branch.trueBranch.predecessors[0] == branch.block);
+      // Update the true branch to use narrower ranges for [left] and
+      // [right].
+      Range range = computeConstrainedRange(operation, leftRange, rightRange);
+      if (leftRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.trueBranch.first, left);
+        ranges[instruction] = range;
+      }
 
-    // Update the false branch to use a narrower range for [left].
-    // TODO(ngeoffray): Also do it for [right].
-    instruction = createRangeConversion(branch.falseBranch.first, left);
-    range = new Range(ranges[right].lower, const MaxIntValue());
-    range = range.intersection(ranges[left]);
-    ranges[instruction] = range;
+      range = computeConstrainedRange(reverse, rightRange, leftRange);
+      if (rightRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.trueBranch.first, right);
+        ranges[instruction] = range;
+      }
+    }
+
+    // Only update the false branch if this block is the only
+    // predecessor.
+    if (branch.falseBranch.predecessors.length == 1) {
+      assert(branch.falseBranch.predecessors[0] == branch.block);
+      // Update the false branch to use narrower ranges for [left] and
+      // [right].
+      Range range = computeConstrainedRange(reverse, leftRange, rightRange);
+      if (leftRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.falseBranch.first, left);
+        ranges[instruction] = range;
+      }
+
+      range = computeConstrainedRange(operation, rightRange, leftRange);
+      if (rightRange != range) {
+        HInstruction instruction =
+            createRangeConversion(branch.falseBranch.first, right);
+        ranges[instruction] = range;
+      }
+    }
 
     return const Range.unbound();
   }

@@ -27,11 +27,11 @@ main() {
   new A.foo();     /// 05: runtime error
   new library.A(); /// 06: runtime error
 
-  var ex;                            /// 07: static type warning
-  try {                              /// 07: continued
-    new A();                         /// 07: continued
-  } catch (e) {                      /// 07: continued
-    ex = e;                          /// 07: continued
-  }                                  /// 07: continued
-  Expect.isTrue(ex is RuntimeError); /// 07: continued
+  var ex;                    /// 07: static type warning
+  try {                      /// 07: continued
+    new A();                 /// 07: continued
+  } catch (e) {              /// 07: continued
+    ex = e;                  /// 07: continued
+  }                          /// 07: continued
+  Expect.isTrue(ex != null); /// 07: continued
 }

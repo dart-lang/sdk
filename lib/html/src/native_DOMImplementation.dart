@@ -53,9 +53,9 @@ class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Windo
   Location get location() native "DOMWindow_location_cross_frame_Getter";
   bool get closed() native "DOMWindow_closed_Getter";
   int get length() native "DOMWindow_length_Getter";
-  DOMWindow get opener() native "DOMWindow_opener_Getter";
-  DOMWindow get parent() native "DOMWindow_parent_Getter";
-  DOMWindow get top() native "DOMWindow_top_Getter";
+  Window get opener() native "DOMWindow_opener_Getter";
+  Window get parent() native "DOMWindow_parent_Getter";
+  Window get top() native "DOMWindow_top_Getter";
 
   // Methods.
   void focus() native "DOMWindow_focus_Callback";

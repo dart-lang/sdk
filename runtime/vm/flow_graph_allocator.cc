@@ -2167,7 +2167,6 @@ void FlowGraphAllocator::CollectRepresentations() {
 }
 
 
-
 void FlowGraphAllocator::AllocateRegisters() {
   CollectRepresentations();
 

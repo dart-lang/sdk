@@ -55,7 +55,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 // Arg1: src value.
 // Arg2: dst type name.
 // Arg3: dst name.
-// Arg4: malformed type error message.
+// Arg4: type error message.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   // No need to type check the arguments. This function can only be called
@@ -64,11 +64,11 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   const Instance& src_value = Instance::CheckedHandle(arguments->At(1));
   const String& dst_type_name = String::CheckedHandle(arguments->At(2));
   const String& dst_name = String::CheckedHandle(arguments->At(3));
-  const String& malformed_error = String::CheckedHandle(arguments->At(4));
+  const String& type_error = String::CheckedHandle(arguments->At(4));
   const String& src_type_name =
       String::Handle(Type::Handle(src_value.GetType()).UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
-                                      dst_type_name, dst_name, malformed_error);
+                                      dst_type_name, dst_name, type_error);
   UNREACHABLE();
   return Object::null();
 }
@@ -137,30 +137,33 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
 }
 
 
-// Allocate and throw StaticResolutionException.
-// Arg0: index of the static call that was not resolved at compile time.
+// Allocate and throw NoSuchMethodError.
+// Arg0: index of the call that was not resolved at compile time.
+// Arg1: name of the method that was not resolved at compile time.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(StaticResolutionException_throwNew, 1) {
+DEFINE_NATIVE_ENTRY(NoSuchMethodError_throwNew, 2) {
   GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, function_name, arguments->At(1));
   intptr_t call_pos = smi_pos.Value();
-  // Allocate a new instance of type StaticResolutionException.
-  const Instance& resolution_exception =
-      Instance::Handle(Exceptions::NewInstance("StaticResolutionException"));
-  ASSERT(!resolution_exception.IsNull());
+  // Allocate a new instance of type NoSuchMethodError.
+  const Instance& error = Instance::Handle(
+      Exceptions::NewInstance("NoSuchMethodErrorImplementation"));
+  ASSERT(!error.IsNull());
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
-  const Class& cls = Class::Handle(resolution_exception.clazz());
-  Exceptions::SetLocationFields(resolution_exception, cls, script, call_pos);
+  const Class& cls = Class::Handle(error.clazz());
+  Exceptions::SetLocationFields(error, cls, script, call_pos);
+  Exceptions::SetField(error, cls, "functionName", function_name);
 
   intptr_t line, column;
   script.GetTokenLocation(call_pos, &line, &column);
-  Exceptions::SetField(resolution_exception, cls, "failedResolutionLine",
+  Exceptions::SetField(error, cls, "failedResolutionLine",
                        String::Handle(script.GetLine(line)));
 
-  Exceptions::Throw(resolution_exception);
+  Exceptions::Throw(error);
   UNREACHABLE();
   return Object::null();
 }

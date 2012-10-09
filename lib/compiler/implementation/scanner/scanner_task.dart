@@ -40,6 +40,9 @@ class ScannerTask extends CompilerTask {
     for (LibraryTag tag in library.tags.reverse()) {
       if (tag.isImport) {
         tagState = checkTag(TagState.IMPORT, tag);
+        if (tag.combinators != null) {
+          compiler.unimplemented('combinators', node: tag.combinators);
+        }
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
         // before it fully declares all the members that are sourced
@@ -84,7 +87,7 @@ class ScannerTask extends CompilerTask {
    * is, any resolution should be done beforehand.
    */
   void loadPart(Part part, Uri path, LibraryElement library) {
-    Script sourceScript = compiler.readScript(path, part);
+    Script sourceScript = compiler.readScript(path, part.uri);
     CompilationUnitElement unit =
         new CompilationUnitElement(sourceScript, library);
     compiler.withCurrentElement(unit, () => compiler.scanner.scan(unit));
@@ -115,14 +118,20 @@ class ScannerTask extends CompilerTask {
 
   LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri) {
     bool newLibrary = false;
-    LibraryElement library =
-      compiler.libraries.putIfAbsent(uri.toString(), () {
-          newLibrary = true;
-          Script script = compiler.readScript(uri, node);
-          LibraryElement element = new LibraryElement(script, canonicalUri);
-          native.maybeEnableNative(compiler, element, uri);
-          return element;
-        });
+    LibraryElement createLibrary() {
+      newLibrary = true;
+      Script script = compiler.readScript(uri, node);
+      LibraryElement element = new LibraryElement(script, canonicalUri);
+      native.maybeEnableNative(compiler, element, uri);
+      return element;
+    }
+    LibraryElement library;
+    if (canonicalUri === null) {
+      library = createLibrary();
+    } else {
+      library = compiler.libraries.putIfAbsent(canonicalUri.toString(),
+                                               createLibrary);
+    }
     if (newLibrary) {
       compiler.withCurrentElement(library, () {
         scanLibrary(library);

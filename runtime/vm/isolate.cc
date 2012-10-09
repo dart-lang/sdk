@@ -48,7 +48,7 @@ class IsolateMessageHandler : public MessageHandler {
   void CheckAccess();
 #endif
   bool IsCurrentIsolate() const;
-  Isolate* GetIsolate() const { return isolate_; }
+  virtual Isolate* GetIsolate() const { return isolate_; }
 
  private:
   Isolate* isolate_;
@@ -83,7 +83,7 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StartIsolateScope start_scope(isolate_);
-  Zone zone(isolate_);
+  StackZone zone(isolate_);
   HandleScope handle_scope(isolate_);
 
   // Parse the message.
@@ -236,9 +236,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
 
-  // Signal isolate creation event.
-  Debugger::SignalIsolateEvent(Debugger::kIsolateCreated);
-
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
   if (FLAG_trace_isolates) {
@@ -357,7 +354,7 @@ static void AddFunctionsFromClass(const Class& cls,
 
 void Isolate::PrintInvokedFunctions() {
   ASSERT(this == Isolate::Current());
-  Zone zone(this);
+  StackZone zone(this);
   HandleScope handle_scope(this);
   const GrowableObjectArray& libraries =
       GrowableObjectArray::Handle(object_store()->libraries());
@@ -411,13 +408,10 @@ void Isolate::Shutdown() {
   // requires a handle zone. We must set up a temporary zone because
   // Isolate::Shutdown is called without a zone.
   {
-    Zone zone(this);
+    StackZone zone(this);
     HandleScope handle_scope(this);
     debugger_->Shutdown();
   }
-
-  // Signal isolate shutdown event.
-  Debugger::SignalIsolateEvent(Debugger::kIsolateShutdown);
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
@@ -440,7 +434,7 @@ void Isolate::Shutdown() {
     DebugInfo::UnregisterAllSections();
   }
   if (FLAG_trace_isolates) {
-    Zone zone(this);
+    StackZone zone(this);
     HandleScope handle_scope(this);
     OS::Print("Number of symbols added = %"Pd"\n", Symbols::Size(this));
     OS::Print("[-] Stopping isolate:\n"

@@ -135,7 +135,7 @@ static Dart_NativeFunction PropagateError_native_lookup(
 TEST_CASE(Dart_PropagateError) {
   const char* kScriptChars =
       "raiseCompileError() {\n"
-      "  return badIdent;\n"
+      "  return missing_semicolon\n"
       "}\n"
       "\n"
       "void throwException() {\n"
@@ -158,7 +158,7 @@ TEST_CASE(Dart_PropagateError) {
   result = Dart_Invoke(lib, Dart_NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(!Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("badIdent", Dart_GetError(result));
+  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, Dart_NewString("Func2"), 0, NULL);
   EXPECT(Dart_IsError(result));

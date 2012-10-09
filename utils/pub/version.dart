@@ -7,11 +7,11 @@
  *
  * [semver]: http://semver.org/
  */
-#library('version');
+library version;
 
-#import('dart:math');
+import 'dart:math';
 
-#import('utils.dart');
+import 'utils.dart';
 
 /** A parsed semantic version number. */
 class Version implements Comparable, VersionConstraint {

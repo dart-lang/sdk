@@ -103,13 +103,14 @@ class FlowGraphCompiler : public ValueObject {
                           bool negate_result,
                           LocationSummary* locs);
 
-  void GenerateInstanceCall(intptr_t deopt_id,
-                            intptr_t token_pos,
-                            const String& function_name,
-                            intptr_t argument_count,
-                            const Array& argument_names,
-                            intptr_t checked_argument_count,
-                            LocationSummary* locs);
+  // Returns ICData used in the instance call.
+  const ICData& GenerateInstanceCall(intptr_t deopt_id,
+                                     intptr_t token_pos,
+                                     const String& function_name,
+                                     intptr_t argument_count,
+                                     const Array& argument_names,
+                                     intptr_t checked_argument_count,
+                                     LocationSummary* locs);
 
   void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,

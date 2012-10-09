@@ -924,4 +924,64 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   visitTypedef(Typedef node) {
     return unhandledStatement();
   }
+
+  DartType visitNode(Node node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitCombinator(Combinator node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitExport(Export node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitExpression(Expression node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitGotoStatement(GotoStatement node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitImport(Import node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitLibraryName(LibraryName node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitLibraryTag(LibraryTag node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitLiteral(Literal node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitPart(Part node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitPartOf(PartOf node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitPostfix(Postfix node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitPrefix(Prefix node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitStatement(Statement node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
+
+  DartType visitStringNode(StringNode node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
 }

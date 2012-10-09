@@ -1326,6 +1326,11 @@ class Function : public Object {
     return kind() == RawFunction::kGetterFunction;
   }
 
+  // Returns true if this function represents an implicit getter function.
+  bool IsImplicitGetterFunction() const {
+    return kind() == RawFunction::kImplicitGetter;
+  }
+
   // Returns true if this function represents an explicit setter function.
   bool IsSetterFunction() const {
     return kind() == RawFunction::kSetterFunction;
@@ -1839,6 +1844,7 @@ class Library : public Object {
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
+  RawObject* LookupExport(const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -1854,9 +1860,10 @@ class Library : public Object {
 
   void AddAnonymousClass(const Class& cls) const;
 
+  void AddExport(const Namespace& ns) const;
+
   // Library imports.
   void AddImport(const Namespace& ns) const;
-  RawLibrary* LookupImport(const String& url) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
@@ -1928,6 +1935,8 @@ class Library : public Object {
     raw_ptr()->num_imports_ = value;
   }
   RawArray* imports() const { return raw_ptr()->imports_; }
+  RawArray* exports() const { return raw_ptr()->exports_; }
+  bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
@@ -2735,6 +2744,8 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, function_);
   }
 
+  // Adding checks.
+
   // Adds one more class test to ICData. Length of 'classes' must be equal to
   // the number of arguments tested. Use only for num_args_tested > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
@@ -2743,19 +2754,27 @@ class ICData : public Object {
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
                         const Function& target) const;
+
+  // Retrieving checks.
+
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
-  void GetOneClassCheckAt(
-      int index, intptr_t* class_id, Function* target) const;
-
+  void GetOneClassCheckAt(intptr_t index,
+                          intptr_t* class_id,
+                          Function* target) const;
   intptr_t GetReceiverClassIdAt(intptr_t index) const;
+  intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
+
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
-  // Returns this->raw() if num_args_tested == 1, otherwise returns a new
-  // ICData object containing only unique arg0 checks.
-  RawICData* AsUnaryClassChecks() const;
+  // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
+  // returns a new ICData object containing only unique arg_nr checks.
+  RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
+  RawICData* AsUnaryClassChecks() const {
+    return AsUnaryClassChecksForArgNr(0);
+  }
 
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
@@ -2776,6 +2795,9 @@ class ICData : public Object {
   void set_deopt_id(intptr_t value) const;
   void set_num_args_tested(intptr_t value) const;
   void set_ic_data(const Array& value) const;
+
+  // Used in asserts to verify that a check is not added twice.
+  bool HasCheck(const GrowableArray<intptr_t>& cids) const;
 
   intptr_t TestEntryLength() const;
   void WriteSentinel() const;

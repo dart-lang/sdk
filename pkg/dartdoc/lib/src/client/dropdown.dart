@@ -322,13 +322,23 @@ void hideDropDown() {
   dropdown.style.visibility = 'hidden';
 }
 
-/** Activate search on Ctrl+F and F3. */
+/** Activate search on Ctrl+3 and S. */
 void shortcutHandler(KeyboardEvent event) {
-  if (event.keyCode == 0x46/*F*/ && event.ctrlKey ||
-      event.keyIdentifier == KeyName.F3) {
+  if (event.keyCode == 0x33/* 3 */ && event.ctrlKey) {
+    searchInput.focus();
+    event.preventDefault();
+  } else if (event.target != searchInput && event.keyCode == 0x53/* S */) {
+    // Allow writing 's' in the search input.
     searchInput.focus();
     event.preventDefault();
   }
+}
+
+/**
+ * Setup window shortcuts.
+ */
+void setupShortcuts() {
+  window.on.keyDown.add(shortcutHandler);
 }
 
 /** Setup search hooks. */
@@ -343,5 +353,4 @@ void setupSearch(var libraries) {
   searchInput.on.reset.add(updateDropDown);
   searchInput.on.focus.add((event) => showDropDown());
   searchInput.on.blur.add((event) => hideDropDown());
-  window.on.keyDown.add(shortcutHandler);
 }

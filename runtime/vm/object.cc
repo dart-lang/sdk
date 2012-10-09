@@ -604,37 +604,37 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
   name = Symbols::OneByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
   name = Symbols::TwoByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
   name = Symbols::FourByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
   name = Symbols::ExternalOneByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
   name = Symbols::ExternalTwoByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
   name = Symbols::ExternalFourByteString();
-  RegisterClass(cls, name, core_impl_lib);
+  RegisterPrivateClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
@@ -857,11 +857,6 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_list_interface(type);
-
-  cls = CreateAndRegisterInterface("ByteArray", script, core_lib);
-  pending_classes.Add(cls, Heap::kOld);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_byte_array_interface(type);
 
   cls = object_store->bool_class();
   type = Type::NewNonParameterizedType(cls);
@@ -3215,7 +3210,10 @@ void Function::set_data(const Object& value) const {
 
 
 bool Function::IsInFactoryScope() const {
-  Function& outer_function = Function::Handle(raw());
+  if (!IsLocalFunction()) {
+    return IsFactory();
+  }
+  Function& outer_function = Function::Handle(parent_function());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -5384,6 +5382,24 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
+// Lookup a name in the library's export namespace.
+RawObject* Library::LookupExport(const String& name) const {
+  if (HasExports()) {
+    const Array& exports = Array::Handle(this->exports());
+    Namespace& ns = Namespace::Handle();
+    Object& obj = Object::Handle();
+    for (int i = 0; i < exports.Length(); i++) {
+      ns ^= exports.At(i);
+      obj = ns.Lookup(name);
+      if (!obj.IsNull()) {
+        return obj.raw();
+      }
+    }
+  }
+  return Object::null();
+}
+
+
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   Isolate* isolate = Isolate::Current();
   const Array& dict = Array::Handle(isolate, dictionary());
@@ -5740,25 +5756,6 @@ void Library::AddAnonymousClass(const Class& cls) const {
 }
 
 
-RawLibrary* Library::LookupImport(const String& url) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& imports = Array::Handle(isolate, this->imports());
-  intptr_t num_imports = this->num_imports();
-  Namespace& import = Namespace::Handle(isolate, Namespace::null());
-  Library& lib = Library::Handle(isolate, Library::null());
-  String& import_url = String::Handle(isolate, String::null());
-  for (int i = 0; i < num_imports; i++) {
-    import ^= imports.At(i);
-    lib = import.library();
-    import_url = lib.url();
-    if (url.Equals(import_url)) {
-      return lib.raw();
-    }
-  }
-  return Library::null();
-}
-
-
 RawLibrary* Library::ImportLibraryAt(intptr_t index) const {
   Namespace& import = Namespace::Handle(ImportAt(index));
   if (import.IsNull()) {
@@ -5819,6 +5816,25 @@ void Library::AddImport(const Namespace& ns) const {
 }
 
 
+// Convenience function to determine whether the export list is
+// non-empty.
+bool Library::HasExports() const {
+  return exports() != Object::empty_array();
+}
+
+
+// We add one namespace at a time to the exports array and don't
+// pre-allocate any unused capacity. The assumption is that
+// re-exports are quite rare.
+void Library::AddExport(const Namespace& ns) const {
+  Array &exports = Array::Handle(this->exports());
+  intptr_t num_exports = exports.Length();
+  exports = Array::Grow(exports, num_exports + 1);
+  StorePointer(&raw_ptr()->exports_, exports.raw());
+  exports.SetAt(num_exports, ns);
+}
+
+
 void Library::InitClassDictionary() const {
   // The last element of the dictionary specifies the number of in use slots.
   // TODO(iposva): Find reasonable initial size.
@@ -5858,6 +5874,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->anonymous_classes_ = Object::empty_array();
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Object::empty_array();
+  result.raw_ptr()->exports_ = Object::empty_array();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -6266,9 +6283,14 @@ bool Namespace::HidesName(const String& name) const {
 
 
 RawObject* Namespace::Lookup(const String& name) const {
-  intptr_t i = 0;
   const Library& lib = Library::Handle(library());
-  const Object& obj = Object::Handle(lib.LookupEntry(name, &i));
+  intptr_t ignore = 0;
+  // Lookup the name in the library's symbols.
+  Object& obj = Object::Handle(lib.LookupEntry(name, &ignore));
+  if (obj.IsNull()) {
+    // Lookup in the re-exported symbols.
+    obj = lib.LookupExport(name);
+  }
   if (obj.IsNull() || HidesName(name)) {
     return Object::null();
   }
@@ -6475,7 +6497,7 @@ const char* PcDescriptors::ToCString() const {
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
   const char* kFormat =
-      "%#-*"Px"\t%s\t%"Pd"\t%"Pd"\t%"Pd"\n";
+      "%#-*"Px"\t%s\t%"Pd"\t\t%"Pd"\t%"Pd"\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -7379,8 +7401,30 @@ void ICData::WriteSentinel() const {
 }
 
 
+// Used in asserts to verify that a check is not added twice.
+bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    Function& target = Function::Handle();
+    GetCheckAt(i, &class_ids, &target);
+    bool matches = true;
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (class_ids[k] != cids[k]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
+  ASSERT(!HasCheck(class_ids));
   ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
   const intptr_t old_num = NumberOfChecks();
@@ -7402,6 +7446,11 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target) const {
+#if defined(DEBUG)
+  GrowableArray<intptr_t> class_ids(1);
+  class_ids.Add(receiver_class_id);
+  ASSERT(!HasCheck(class_ids));
+#endif  // DEBUG
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
   ASSERT(!target.IsNull());
@@ -7432,6 +7481,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
 void ICData::GetCheckAt(intptr_t index,
                         GrowableArray<intptr_t>* class_ids,
                         Function* target) const {
+  ASSERT(index < NumberOfChecks());
   ASSERT(class_ids != NULL);
   ASSERT(target != NULL);
   class_ids->Clear();
@@ -7446,8 +7496,9 @@ void ICData::GetCheckAt(intptr_t index,
 }
 
 
-void ICData::GetOneClassCheckAt(
-    int index, intptr_t* class_id, Function* target) const {
+void ICData::GetOneClassCheckAt(intptr_t index,
+                                intptr_t* class_id,
+                                Function* target) const {
   ASSERT(class_id != NULL);
   ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
@@ -7457,6 +7508,14 @@ void ICData::GetOneClassCheckAt(
   smi ^= data.At(data_pos);
   *class_id = smi.Value();
   *target ^= data.At(data_pos + 1);
+}
+
+
+intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
+  GrowableArray<intptr_t> class_ids;
+  Function& target = Function::Handle();
+  GetCheckAt(index, &class_ids, &target);
+  return class_ids[arg_nr];
 }
 
 
@@ -7489,10 +7548,13 @@ RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
 }
 
 
-RawICData* ICData::AsUnaryClassChecks() const {
+RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   ASSERT(!IsNull());
-  ASSERT(num_args_tested() > 0);
-  if (num_args_tested() == 1) return raw();
+  ASSERT(num_args_tested() > arg_nr);
+  if ((arg_nr == 0) && (num_args_tested() == 1)) {
+    // Frequent case.
+    return raw();
+  }
   const intptr_t kNumArgsTested = 1;
   ICData& result = ICData::Handle(ICData::New(
       Function::Handle(function()),
@@ -7500,7 +7562,7 @@ RawICData* ICData::AsUnaryClassChecks() const {
       deopt_id(),
       kNumArgsTested));
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    const intptr_t class_id = GetReceiverClassIdAt(i);
+    const intptr_t class_id = GetClassIdAt(i, arg_nr);
     intptr_t duplicate_class_id = -1;
     for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
       if (class_id == result.GetReceiverClassIdAt(k)) {
@@ -7509,7 +7571,9 @@ RawICData* ICData::AsUnaryClassChecks() const {
       }
     }
     if (duplicate_class_id >= 0) {
-      ASSERT(result.GetTargetAt(duplicate_class_id) == GetTargetAt(i));
+      // This check is valid only when checking the receiver.
+      ASSERT((arg_nr != 0) ||
+             (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
     } else {
       // This will make sure that Smi is first if it exists.
       result.AddReceiverCheck(class_id,
@@ -9630,7 +9694,7 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
 
 
 static uword BigintAllocator(intptr_t size) {
-  Zone* zone = Isolate::Current()->current_zone();
+  StackZone* zone = Isolate::Current()->current_zone();
   return zone->AllocUnsafe(size);
 }
 
@@ -10142,7 +10206,7 @@ RawString* String::NewFormattedV(const char* format, va_list args) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
-  Zone* zone = Isolate::Current()->current_zone();
+  StackZone* zone = Isolate::Current()->current_zone();
   char* buffer = zone->Alloc<char>(len + 1);
   OS::VSNPrint(buffer, (len + 1), format, args);
 
@@ -10247,7 +10311,7 @@ RawString* String::SubString(const String& str,
 
 const char* String::ToCString() const {
   intptr_t len = Utf8::Length(*this);
-  Zone* zone = Isolate::Current()->current_zone();
+  StackZone* zone = Isolate::Current()->current_zone();
   char* result = zone->Alloc<char>(len + 1);
   Utf8::Encode(*this, result, len);
   result[len] = 0;

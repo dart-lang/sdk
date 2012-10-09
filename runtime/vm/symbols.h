@@ -35,7 +35,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughErrorImplementation")                        \
   V(AbstractClassInstantiationError,                                           \
     "AbstractClassInstantiationErrorImplementation")                           \
-  V(StaticResolutionException, "StaticResolutionException")                    \
+  V(NoSuchMethodError, "NoSuchMethodErrorImplementation")                      \
   V(ThrowNew, "_throwNew")                                                     \
   V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
   V(ListLiteralFactory, "List.fromLiteral")                                    \
@@ -45,7 +45,7 @@ class ObjectPointerVisitor;
   V(MapLiteralFactory, "Map.fromLiteral")                                      \
   V(ImmutableMap, "ImmutableMap")                                              \
   V(ImmutableMapConstructor, "ImmutableMap._create")                           \
-  V(StringBase, "StringBase")                                                  \
+  V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
@@ -104,12 +104,12 @@ class ObjectPointerVisitor;
   V(ObjectArray, "_ObjectArray")                                               \
   V(GrowableObjectArray, "_GrowableObjectArray")                               \
   V(ImmutableArray, "_ImmutableArray")                                         \
-  V(OneByteString, "OneByteString")                                            \
-  V(TwoByteString, "TwoByteString")                                            \
-  V(FourByteString, "FourByteString")                                          \
-  V(ExternalOneByteString, "ExternalOneByteString")                            \
-  V(ExternalTwoByteString, "ExternalTwoByteString")                            \
-  V(ExternalFourByteString, "ExternalFourByteString")                          \
+  V(OneByteString, "_OneByteString")                                           \
+  V(TwoByteString, "_TwoByteString")                                           \
+  V(FourByteString, "_FourByteString")                                         \
+  V(ExternalOneByteString, "_ExternalOneByteString")                           \
+  V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
+  V(ExternalFourByteString, "_ExternalFourByteString")                         \
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
   V(Object, "Object")                                                          \

@@ -524,6 +524,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeConversion(HTypeConversion node) {
-    return "TypeConversion: ${temporaryId(node.inputs[0])} to ${node.type}";
+    return "TypeConversion: ${temporaryId(node.checkedInput)} to ${node.type}";
+  }
+
+  String visitRangeConversion(HRangeConversion node) {
+    return "RangeConversion: ${node.checkedInput}";
   }
 }

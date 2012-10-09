@@ -5,7 +5,7 @@
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
-const String VERSION = '1';
+const int VERSION = 1;
 
 testReadWrite(key, value, check,
               [dbName = DB_NAME,
@@ -15,13 +15,13 @@ testReadWrite(key, value, check,
 
   fail(e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure');
+      throw const Exception('IndexedDB failure');
     });
   }
 
-  createObjectStore() {
+  createObjectStore(db) {
     var store = db.createObjectStore(storeName);
-    Expect.isNotNull(store);
+    expect(store, isNotNull);
   }
 
   step2(e) {
@@ -29,6 +29,7 @@ testReadWrite(key, value, check,
     var request = transaction.objectStore(storeName).getObject(key);
     request.on.success.add(expectAsync1((e) {
       var object = e.target.result;
+      db.close();
       check(value, object);
     }));
     request.on.error.add(fail);
@@ -44,14 +45,11 @@ testReadWrite(key, value, check,
   initDb(e) {
     db = e.target.result;
     if (version != db.version) {
-      // TODO.  Some browsers do this the w3 way - passing the version to the
-      // open call and listening to onversionchange.  Can we feature-detect the
-      // difference and make it work?
-      var request = db.setVersion(version);
+      // Legacy 'setVersion' upgrade protocol. Chrome 23 and earlier.
+      var request = db.setVersion('$version');
       request.on.success.add(
         expectAsync1((e) {
-          createObjectStore();
-
+          createObjectStore(db);
           var transaction = e.target.result;
           transaction.on.complete.add(expectAsync1((e) => step1()));
           transaction.on.error.add(fail);
@@ -63,10 +61,26 @@ testReadWrite(key, value, check,
     }
   }
 
-  var request = window.indexedDB.open(dbName);
-  Expect.isNotNull(request);
-  request.on.success.add(expectAsync1(initDb));
-  request.on.error.add(fail);
+  openDb(e) {
+    var request = window.indexedDB.open(dbName, version);
+    expect(request, isNotNull);
+    request.on.success.add(expectAsync1(initDb));
+    request.on.error.add(fail);
+    if (request is IDBOpenDBRequest) {
+      // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
+      // setVersion instead. This path take by FireFox 15, Chrome 24.
+      request.on.upgradeNeeded.add((e) {
+          guardAsync(() {
+              createObjectStore(e.target.result);
+            });
+        });
+    }
+  }
+
+  // Delete any existing DB.
+  var deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  deleteRequest.on.success.add(expectAsync1(openDb));
+  deleteRequest.on.error.add(fail);
 };
 
 testReadWriteTyped(key, value, check,
@@ -77,13 +91,13 @@ testReadWriteTyped(key, value, check,
 
   fail(e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure');
+      throw const Exception('IndexedDB failure');
     });
   }
 
-  createObjectStore() {
+  createObjectStore(db) {
     IDBObjectStore store = db.createObjectStore(storeName);
-    Expect.isNotNull(store);
+    expect(store, isNotNull);
   }
 
   step2(e) {
@@ -91,14 +105,14 @@ testReadWriteTyped(key, value, check,
     IDBRequest request = transaction.objectStore(storeName).getObject(key);
     request.on.success.add(expectAsync1((e) {
       var object = e.target.result;
+      db.close();
       check(value, object);
     }));
     request.on.error.add(fail);
   }
 
   step1() {
-    IDBTransaction transaction =
-    db.transaction([storeName], 'readwrite');
+    IDBTransaction transaction = db.transaction([storeName], 'readwrite');
     IDBRequest request = transaction.objectStore(storeName).put(value, key);
     request.on.success.add(expectAsync1(step2));
     request.on.error.add(fail);
@@ -107,11 +121,14 @@ testReadWriteTyped(key, value, check,
   initDb(e) {
     db = e.target.result;
     if (version != db.version) {
-      IDBRequest request = db.setVersion(version);
+      // Legacy 'setVersion' upgrade protocol.
+      IDBRequest request = db.setVersion('$version');
       request.on.success.add(
         expectAsync1((e) {
-          createObjectStore();
-           step1();
+          createObjectStore(db);
+          IDBTransaction transaction = e.target.result;
+          transaction.on.complete.add(expectAsync1((e) => step1()));
+          transaction.on.error.add(fail);
         })
       );
       request.on.error.add(fail);
@@ -120,10 +137,26 @@ testReadWriteTyped(key, value, check,
     }
   }
 
-  IDBRequest request = window.indexedDB.open(dbName);
-  Expect.isNotNull(request);
-  request.on.success.add(expectAsync1(initDb));
-  request.on.error.add(fail);
+  openDb(e) {
+    IDBRequest request = window.indexedDB.open(dbName, version);
+    expect(request, isNotNull);
+    request.on.success.add(expectAsync1(initDb));
+    request.on.error.add(fail);
+    if (request is IDBOpenDBRequest) {
+      // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
+      // setVersion instead.
+      request.on.upgradeNeeded.add((e) {
+          guardAsync(() {
+              createObjectStore(e.target.result);
+            });
+        });
+    }
+  }
+
+  // Delete any existing DB.
+  IDBRequest deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  deleteRequest.on.success.add(expectAsync1(openDb));
+  deleteRequest.on.error.add(fail);
 };
 
 tests_dynamic() {

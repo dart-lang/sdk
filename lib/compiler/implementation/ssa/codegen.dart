@@ -76,7 +76,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       Map<Element, String> parameterNames = getParameterNames(work);
       // Use [work.element] to ensure that the parameter element come from
       // the declaration.
-      work.element.computeSignature(compiler).forEachParameter((element) {
+      FunctionElement function = work.element;
+      function.computeSignature(compiler).forEachParameter((element) {
         compiler.enqueuer.codegen.addToWorkList(element);
       });
       List<js.Parameter> parameters = <js.Parameter>[];
@@ -178,7 +179,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 typedef void ElementAction(Element element);
 
-class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
+abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
    * Returned by [expressionType] to tell how code can be generated for
    * a subgraph.
@@ -1788,23 +1789,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
 
   void generateNot(HInstruction input) {
-    bool isBuiltinRelational(HInstruction instruction) {
+    bool canGenerateOptimizedComparison(HInstruction instruction) {
       if (instruction is !HRelational) return false;
       HRelational relational = instruction;
-      return relational.isBuiltin(types);
+      HInstruction left = relational.left;
+      HInstruction right = relational.right;
+      // This optimization doesn't work for NaN, so we only do it if the
+      // type is known to be an integer.
+      return relational.isBuiltin(types)
+          && types[left].isUseful() && left.isInteger(types)
+          && types[right].isUseful() && right.isInteger(types);
     }
 
     if (input is HBoolify && isGenerateAtUseSite(input)) {
       use(input.inputs[0]);
       push(new js.Binary("!==", pop(), new js.LiteralBool(true)), input);
-    } else if (isBuiltinRelational(input) &&
-               isGenerateAtUseSite(input) &&
-               types[input.inputs[0]].isUseful() &&
-               !input.inputs[0].isDouble(types) &&
-               types[input.inputs[1]].isUseful() &&
-               !input.inputs[1].isDouble(types)) {
-      // This optimization doesn't work for NaN, so we only do it if the
-      // type is known to be non-Double.
+    } else if (canGenerateOptimizedComparison(input) &&
+               isGenerateAtUseSite(input)) {
       Map<String, String> inverseOperator = const <String, String>{
         "==" : "!=",
         "!=" : "==",
@@ -1816,8 +1817,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ">=" : "<"
       };
       HRelational relational = input;
-      visitInvokeBinary(input,
-                        inverseOperator[relational.operation.name.stringValue]);
+      BinaryOperation operation = relational.operation(backend.constantSystem);
+      visitInvokeBinary(input, inverseOperator[operation.name.stringValue]);
     } else {
       use(input);
       push(new js.Prefix("!", pop()));
@@ -2448,7 +2449,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           helper = castNames[helper.stringValue];
         }
       }
-      Element helperElement = compiler.findHelper(helper);
+      FunctionElement helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);

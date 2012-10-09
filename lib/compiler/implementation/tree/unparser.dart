@@ -518,6 +518,7 @@ class Unparser implements Visitor {
       visit(node.prefix);
     }
     if (node.combinators != null) {
+      sb.add(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);
@@ -527,6 +528,7 @@ class Unparser implements Visitor {
     addToken(node.exportKeyword);
     visit(node.uri);
     if (node.combinators != null) {
+      sb.add(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);
@@ -543,5 +545,46 @@ class Unparser implements Visitor {
     addToken(node.ofKeyword);
     visit(node.name);
     add(node.getEndToken().value);
+  }
+
+  visitCombinator(Combinator node) {
+    addToken(node.keywordToken);
+    visit(node.identifiers);
+  }
+
+  visitNode(Node node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitExpression(Expression node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitLibraryTag(LibraryTag node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitLiteral(Literal node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitLoop(Loop node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitPostfix(Postfix node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitPrefix(Prefix node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitStatement(Statement node) {
+    throw 'internal error'; // Should not be called.
+  }
+
+  visitStringNode(StringNode node) {
+    throw 'internal error'; // Should not be called.
   }
 }

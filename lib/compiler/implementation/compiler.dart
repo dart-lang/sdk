@@ -57,7 +57,7 @@ class WorkItem {
   }
 }
 
-class Backend {
+abstract class Backend {
   final Compiler compiler;
   final ConstantSystem constantSystem;
 
@@ -78,14 +78,19 @@ class Backend {
   abstract void assembleProgram();
   abstract List<CompilerTask> get tasks;
 
+  // TODO(ahe,karlklose): rename this?
+  void dumpInferredTypes() {}
+
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
   }
 
   SourceString getCheckedModeHelper(DartType type) => null;
+
+  abstract Element getInterceptor(Selector selector);
 }
 
-class Compiler implements DiagnosticListener {
+abstract class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
   World world;
@@ -361,15 +366,19 @@ class Compiler implements DiagnosticListener {
   }
 
   void scanBuiltinLibraries() {
-    coreImplLibrary = scanBuiltinLibrary('coreimpl');
+    loadCoreImplLibrary();
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
 
+    // The core and coreimpl libraries were loaded and patched before
+    // jsHelperLibrary was initialized, so it wasn't imported into those
+    // two libraries during patching.
+    importHelperLibrary(coreLibrary);
+    importHelperLibrary(coreImplLibrary);
+    importHelperLibrary(interceptorsLibrary);
+
     addForeignFunctions(jsHelperLibrary);
     addForeignFunctions(interceptorsLibrary);
-
-    libraries['dart:core'] = coreLibrary;
-    libraries['dart:coreimpl'] = coreImplLibrary;
 
     assertMethod = jsHelperLibrary.find(const SourceString('assert'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
@@ -377,9 +386,20 @@ class Compiler implements DiagnosticListener {
     initializeSpecialClasses();
   }
 
+  void loadCoreImplLibrary() {
+    Uri coreImplUri = new Uri.fromComponents(scheme: 'dart', path: 'coreimpl');
+    coreImplLibrary = scanner.loadLibrary(coreImplUri, null, coreImplUri);
+  }
+
+  void importHelperLibrary(LibraryElement library) {
+    if (jsHelperLibrary !== null) {
+      scanner.importLibrary(library, jsHelperLibrary, null);
+    }
+  }
+
   void importCoreLibrary(LibraryElement library) {
-    Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
     if (coreLibrary === null) {
+      Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
       coreLibrary = scanner.loadLibrary(coreUri, null, coreUri);
     }
     scanner.importLibrary(library,
@@ -394,105 +414,6 @@ class Compiler implements DiagnosticListener {
     if (patchUri !== null) {
       patchParser.patchLibrary(patchUri, library);
     }
-  }
-
-  void applyContainerPatch(ScopeContainerElement original,
-                           Link<Element> patches) {
-    while (!patches.isEmpty()) {
-      Element patchElement = patches.head;
-      Element originalElement = original.localLookup(patchElement.name);
-      if (patchElement.isAccessor() && originalElement !== null) {
-        if (originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
-          internalError("Cannot patch non-getter/setter with getter/setter",
-                        element: originalElement);
-        }
-        AbstractFieldElement originalField = originalElement;
-        if (patchElement.isGetter()) {
-          originalElement = originalField.getter;
-        } else {
-          originalElement = originalField.setter;
-        }
-      }
-      if (originalElement === null) {
-        if (isPatchElement(patchElement)) {
-          internalError("Cannot patch non-existing member '"
-                        "${patchElement.name.slowToString()}'.");
-        }
-      } else {
-        patchMember(originalElement, patchElement);
-      }
-      patches = patches.tail;
-    }
-  }
-
-  bool isPatchElement(Element element) {
-    // TODO(lrn): More checks needed if we introduce metadata for real.
-    // In that case, it must have the identifier "native" as metadata.
-    for (Link link = element.metadata; !link.isEmpty(); link = link.tail) {
-      if (link.head is PatchMetadataAnnotation) return true;
-    }
-    return false;
-  }
-
-  Element clonePatch(Element patchElement, Element enclosing) {
-    // The original library does not have an element with the same name
-    // as the patch library element.
-    // In this case, the patch library element must not be marked as "patch",
-    // and its name must make it private.
-    if (!patchElement.name.isPrivate()) {
-      internalError("Cannot add non-private member '"
-                    "${patchElement.name.slowToString()}' from patch.");
-    }
-    Element override =
-        new CompilationUnitOverrideElement(patchElement.getCompilationUnit(),
-                                           enclosing);
-    return patchElement.cloneTo(override, this);
-  }
-
-  void patchMember(Element originalElement, Element patchElement) {
-    // The original library has an element with the same name as the patch
-    // library element.
-    // In this case, the patch library element must be a function marked as
-    // "patch" and it must have the same signature as the function it patches.
-    if (!isPatchElement(patchElement)) {
-      internalError("Cannot overwrite existing '"
-                    "${originalElement.name.slowToString()}' with non-patch.");
-    }
-    if (originalElement is! FunctionElement) {
-      // TODO(lrn): Handle class declarations too.
-      internalError("Can only patch functions", element: originalElement);
-    }
-    FunctionElement original = originalElement;
-    if (!original.modifiers.isExternal()) {
-      internalError("Can only patch external functions.", element: original);
-    }
-    if (patchElement is! FunctionElement ||
-        !patchSignatureMatches(original, patchElement)) {
-      internalError("Can only patch functions with matching signatures",
-                    element: original);
-    }
-    applyFunctionPatch(original, patchElement);
-  }
-
-  bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
-    // TODO(lrn): Check that patches actually match the signature of
-    // the function it's patching.
-    return true;
-  }
-
-  void applyFunctionPatch(FunctionElement element,
-                          FunctionElement patchElement) {
-    if (element.isPatched) {
-      internalError("Trying to patch a function more than once.",
-                    element: element);
-    }
-    if (element.cachedNode !== null) {
-      internalError("Trying to patch an already compiled function.",
-                    element: element);
-    }
-    // Don't just assign the patch field. This also updates the cachedNode.
-    element.setPatch(patchElement);
-    patchElement.origin = element;
   }
 
   /**
@@ -592,18 +513,7 @@ class Compiler implements DiagnosticListener {
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
-      print("Inferred argument types:");
-      print("------------------------");
-      backend.argumentTypes.dump();
-      print("");
-      print("Inferred return types:");
-      print("----------------------");
-      backend.dumpReturnTypes();
-      print("");
-      print("Inferred field types:");
-      print("------------------------");
-      backend.fieldTypes.dump();
-      print("");
+      backend.dumpInferredTypes();
     }
   }
 
@@ -790,9 +700,7 @@ class Compiler implements DiagnosticListener {
     throw new CompilerCancelledException(message.toString());
   }
 
-  void reportMessage(SourceSpan span,
-                     Diagnostic message,
-                     api.Diagnostic kind) {
+  void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.
     reportDiagnostic(span, "$message", kind);
@@ -842,7 +750,7 @@ class Compiler implements DiagnosticListener {
         : spanFromTokens(position, position, uri);
   }
 
-  Script readScript(Uri uri, [ScriptTag node]) {
+  Script readScript(Uri uri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
 
@@ -850,6 +758,8 @@ class Compiler implements DiagnosticListener {
     unimplemented('Compiler.legDirectory');
   }
 
+  // TODO(karlklose): split into findHelperFunction and findHelperClass and
+  // add a check that the element has the expected kind.
   Element findHelper(SourceString name)
       => jsHelperLibrary.findLocal(name);
   Element findInterceptor(SourceString name)

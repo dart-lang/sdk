@@ -644,6 +644,7 @@ class Parser {
   }
 
   Link<Token> findMemberName(Token token) {
+    Token start = token;
     Link<Token> identifiers = const EmptyLink<Token>();
     while (token.kind !== EOF_TOKEN) {
       String value = token.stringValue;
@@ -673,7 +674,7 @@ class Parser {
       }
       token = token.next;
     }
-    return listener.unexpected(token);
+    return listener.expectedDeclaration(start);
   }
 
   Token parseVariableInitializerOpt(Token token) {

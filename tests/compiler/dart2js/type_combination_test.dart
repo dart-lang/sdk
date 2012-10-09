@@ -19,6 +19,7 @@ const INDEXABLE_PRIMITIVE = HType.INDEXABLE_PRIMITIVE;
 const STRING = HType.STRING;
 const READABLE_ARRAY = HType.READABLE_ARRAY;
 const MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
+const FIXED_ARRAY = HType.FIXED_ARRAY;
 const EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
 const NON_PRIMITIVE1 = const HBoundedType.nonNull(const DartType("type1"));
 const NON_PRIMITIVE2 = const HBoundedType.nonNull(const DartType("type2"));
@@ -55,6 +56,7 @@ void testUnion() {
   Expect.equals(DOUBLE_OR_NULL, CONFLICTING.union(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, CONFLICTING.union(STRING_OR_NULL));
   Expect.equals(NULL, CONFLICTING.union(NULL));
+  Expect.equals(FIXED_ARRAY, CONFLICTING.union(FIXED_ARRAY));
 
   Expect.equals(UNKNOWN, UNKNOWN.union(CONFLICTING));
   Expect.equals(UNKNOWN, UNKNOWN.union(UNKNOWN));
@@ -77,6 +79,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, UNKNOWN.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, UNKNOWN.union(STRING_OR_NULL));
   Expect.equals(UNKNOWN, UNKNOWN.union(NULL));
+  Expect.equals(UNKNOWN, UNKNOWN.union(FIXED_ARRAY));
 
   Expect.equals(BOOLEAN, BOOLEAN.union(CONFLICTING));
   Expect.equals(UNKNOWN, BOOLEAN.union(UNKNOWN));
@@ -99,6 +102,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, BOOLEAN.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, BOOLEAN.union(STRING_OR_NULL));
   Expect.equals(BOOLEAN_OR_NULL, BOOLEAN.union(NULL));
+  Expect.equals(UNKNOWN, BOOLEAN.union(FIXED_ARRAY));
 
   Expect.equals(NUMBER, NUMBER.union(CONFLICTING));
   Expect.equals(UNKNOWN, NUMBER.union(UNKNOWN));
@@ -121,6 +125,7 @@ void testUnion() {
   Expect.equals(NUMBER_OR_NULL, NUMBER.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, NUMBER.union(STRING_OR_NULL));
   Expect.equals(NUMBER_OR_NULL, NUMBER.union(NULL));
+  Expect.equals(UNKNOWN, NUMBER.union(FIXED_ARRAY));
 
   Expect.equals(INTEGER, INTEGER.union(CONFLICTING));
   Expect.equals(UNKNOWN, INTEGER.union(UNKNOWN));
@@ -143,6 +148,7 @@ void testUnion() {
   Expect.equals(NUMBER_OR_NULL, INTEGER.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, INTEGER.union(STRING_OR_NULL));
   Expect.equals(INTEGER_OR_NULL, INTEGER.union(NULL));
+  Expect.equals(UNKNOWN, INTEGER.union(FIXED_ARRAY));
 
   Expect.equals(DOUBLE, DOUBLE.union(CONFLICTING));
   Expect.equals(UNKNOWN, DOUBLE.union(UNKNOWN));
@@ -165,6 +171,7 @@ void testUnion() {
   Expect.equals(DOUBLE_OR_NULL, DOUBLE.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, DOUBLE.union(STRING_OR_NULL));
   Expect.equals(DOUBLE_OR_NULL, DOUBLE.union(NULL));
+  Expect.equals(UNKNOWN, DOUBLE.union(FIXED_ARRAY));
 
   Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(CONFLICTING));
   Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(UNKNOWN));
@@ -189,6 +196,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(STRING_OR_NULL));
   Expect.equals(UNKNOWN, INDEXABLE_PRIMITIVE.union(NULL));
+  Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.union(FIXED_ARRAY));
 
   Expect.equals(STRING, STRING.union(CONFLICTING));
   Expect.equals(UNKNOWN, STRING.union(UNKNOWN));
@@ -211,6 +219,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, STRING.union(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, STRING.union(STRING_OR_NULL));
   Expect.equals(STRING_OR_NULL, STRING.union(NULL));
+  Expect.equals(INDEXABLE_PRIMITIVE, STRING.union(FIXED_ARRAY));
 
   Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(CONFLICTING));
   Expect.equals(UNKNOWN, READABLE_ARRAY.union(UNKNOWN));
@@ -233,6 +242,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, READABLE_ARRAY.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, READABLE_ARRAY.union(STRING_OR_NULL));
   Expect.equals(UNKNOWN, READABLE_ARRAY.union(NULL));
+  Expect.equals(READABLE_ARRAY, READABLE_ARRAY.union(FIXED_ARRAY));
 
   Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(CONFLICTING));
   Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(UNKNOWN));
@@ -255,6 +265,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(STRING_OR_NULL));
   Expect.equals(UNKNOWN, MUTABLE_ARRAY.union(NULL));
+  Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.union(FIXED_ARRAY));
 
   Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.union(CONFLICTING));
   Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(UNKNOWN));
@@ -277,6 +288,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(STRING_OR_NULL));
   Expect.equals(UNKNOWN, EXTENDABLE_ARRAY.union(NULL));
+  Expect.equals(MUTABLE_ARRAY, EXTENDABLE_ARRAY.union(FIXED_ARRAY));
 
   Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.union(CONFLICTING));
   Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(UNKNOWN));
@@ -299,6 +311,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(STRING_OR_NULL));
   Expect.isTrue(NON_PRIMITIVE1.union(NULL) is HBoundedType);
+  Expect.equals(UNKNOWN, NON_PRIMITIVE1.union(FIXED_ARRAY));
 
   Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.union(CONFLICTING));
   Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(UNKNOWN));
@@ -321,6 +334,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(STRING_OR_NULL));
   Expect.isTrue(NON_PRIMITIVE2.union(NULL) is HBoundedType);
+  Expect.equals(UNKNOWN, NON_PRIMITIVE2.union(FIXED_ARRAY));
 
   Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(CONFLICTING));
   Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(UNKNOWN));
@@ -343,6 +357,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, POTENTIAL_ARRAY.union(STRING_OR_NULL));
   Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(NULL));
+  Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.union(FIXED_ARRAY));
 
   Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(CONFLICTING));
   Expect.equals(UNKNOWN, POTENTIAL_STRING.union(UNKNOWN));
@@ -365,6 +380,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, POTENTIAL_STRING.union(DOUBLE_OR_NULL));
   Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(STRING_OR_NULL));
   Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.union(NULL));
+  Expect.equals(UNKNOWN, POTENTIAL_STRING.union(FIXED_ARRAY));
 
   Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(UNKNOWN));
@@ -387,6 +403,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(STRING_OR_NULL));
   Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.union(NULL));
+  Expect.equals(UNKNOWN, BOOLEAN_OR_NULL.union(FIXED_ARRAY));
 
   Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(UNKNOWN));
@@ -409,6 +426,7 @@ void testUnion() {
   Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(STRING_OR_NULL));
   Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.union(NULL));
+  Expect.equals(UNKNOWN, NUMBER_OR_NULL.union(FIXED_ARRAY));
 
   Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(UNKNOWN));
@@ -431,6 +449,7 @@ void testUnion() {
   Expect.equals(NUMBER_OR_NULL, INTEGER_OR_NULL.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(STRING_OR_NULL));
   Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.union(NULL));
+  Expect.equals(UNKNOWN, INTEGER_OR_NULL.union(FIXED_ARRAY));
 
   Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(UNKNOWN));
@@ -453,6 +472,7 @@ void testUnion() {
   Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(DOUBLE_OR_NULL));
   Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(STRING_OR_NULL));
   Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.union(NULL));
+  Expect.equals(UNKNOWN, DOUBLE_OR_NULL.union(FIXED_ARRAY));
 
   Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, STRING_OR_NULL.union(UNKNOWN));
@@ -475,6 +495,7 @@ void testUnion() {
   Expect.equals(UNKNOWN, STRING_OR_NULL.union(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(STRING_OR_NULL));
   Expect.equals(STRING_OR_NULL, STRING_OR_NULL.union(NULL));
+  Expect.equals(UNKNOWN, STRING_OR_NULL.union(FIXED_ARRAY));
 
   Expect.equals(NULL, NULL.union(CONFLICTING));
   Expect.equals(UNKNOWN, NULL.union(UNKNOWN));
@@ -497,6 +518,30 @@ void testUnion() {
   Expect.equals(DOUBLE_OR_NULL, NULL.union(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, NULL.union(STRING_OR_NULL));
   Expect.equals(NULL, NULL.union(NULL));
+  Expect.equals(UNKNOWN, NULL.union(FIXED_ARRAY));
+
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.union(CONFLICTING));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(UNKNOWN));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(BOOLEAN));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NUMBER));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(INTEGER));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(DOUBLE));
+  Expect.equals(INDEXABLE_PRIMITIVE, FIXED_ARRAY.union(INDEXABLE_PRIMITIVE));
+  Expect.equals(INDEXABLE_PRIMITIVE, FIXED_ARRAY.union(STRING));
+  Expect.equals(READABLE_ARRAY, FIXED_ARRAY.union(READABLE_ARRAY));
+  Expect.equals(MUTABLE_ARRAY, FIXED_ARRAY.union(MUTABLE_ARRAY));
+  Expect.equals(MUTABLE_ARRAY, FIXED_ARRAY.union(EXTENDABLE_ARRAY));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NON_PRIMITIVE1));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NON_PRIMITIVE2));
+  Expect.equals(POTENTIAL_ARRAY, FIXED_ARRAY.union(POTENTIAL_ARRAY));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(POTENTIAL_STRING));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(BOOLEAN_OR_NULL));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NUMBER_OR_NULL));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(INTEGER_OR_NULL));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(DOUBLE_OR_NULL));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(STRING_OR_NULL));
+  Expect.equals(UNKNOWN, FIXED_ARRAY.union(NULL));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.union(FIXED_ARRAY));
 }
 
 void testIntersection() {
@@ -521,6 +566,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, CONFLICTING.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, CONFLICTING.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, CONFLICTING.intersection(NULL));
+  Expect.equals(CONFLICTING, CONFLICTING.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, UNKNOWN.intersection(CONFLICTING));
   Expect.equals(UNKNOWN, UNKNOWN.intersection(UNKNOWN));
@@ -543,6 +589,7 @@ void testIntersection() {
   Expect.equals(DOUBLE_OR_NULL, UNKNOWN.intersection(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, UNKNOWN.intersection(STRING_OR_NULL));
   Expect.equals(NULL, UNKNOWN.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, UNKNOWN.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, BOOLEAN.intersection(CONFLICTING));
   Expect.equals(BOOLEAN, BOOLEAN.intersection(UNKNOWN));
@@ -565,6 +612,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, BOOLEAN.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, BOOLEAN.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, BOOLEAN.intersection(NULL));
+  Expect.equals(CONFLICTING, BOOLEAN.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, NUMBER.intersection(CONFLICTING));
   Expect.equals(NUMBER, NUMBER.intersection(UNKNOWN));
@@ -587,6 +635,7 @@ void testIntersection() {
   Expect.equals(DOUBLE, NUMBER.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, NUMBER.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, NUMBER.intersection(NULL));
+  Expect.equals(CONFLICTING, NUMBER.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, INTEGER.intersection(CONFLICTING));
   Expect.equals(INTEGER, INTEGER.intersection(UNKNOWN));
@@ -609,6 +658,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, INTEGER.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, INTEGER.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, INTEGER.intersection(NULL));
+  Expect.equals(CONFLICTING, INTEGER.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, DOUBLE.intersection(CONFLICTING));
   Expect.equals(DOUBLE, DOUBLE.intersection(UNKNOWN));
@@ -631,6 +681,7 @@ void testIntersection() {
   Expect.equals(DOUBLE, DOUBLE.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, DOUBLE.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, DOUBLE.intersection(NULL));
+  Expect.equals(CONFLICTING, DOUBLE.intersection(FIXED_ARRAY));
   
   Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(CONFLICTING));
   Expect.equals(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE.intersection(UNKNOWN));
@@ -659,6 +710,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, INDEXABLE_PRIMITIVE.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, INDEXABLE_PRIMITIVE.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, STRING.intersection(CONFLICTING));
   Expect.equals(STRING, STRING.intersection(UNKNOWN));
@@ -681,6 +733,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, STRING.intersection(DOUBLE_OR_NULL));
   Expect.equals(STRING, STRING.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, STRING.intersection(NULL));
+  Expect.equals(CONFLICTING, STRING.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(CONFLICTING));
   Expect.equals(READABLE_ARRAY, READABLE_ARRAY.intersection(UNKNOWN));
@@ -703,6 +756,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, READABLE_ARRAY.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, READABLE_ARRAY.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(CONFLICTING));
   Expect.equals(MUTABLE_ARRAY, MUTABLE_ARRAY.intersection(UNKNOWN));
@@ -725,6 +779,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, MUTABLE_ARRAY.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, MUTABLE_ARRAY.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(CONFLICTING));
   Expect.equals(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY.intersection(UNKNOWN));
@@ -751,6 +806,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(NULL));
+  Expect.equals(CONFLICTING, EXTENDABLE_ARRAY.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(CONFLICTING));
   Expect.equals(NON_PRIMITIVE1, NON_PRIMITIVE1.intersection(UNKNOWN));
@@ -773,6 +829,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(NULL));
+  Expect.equals(CONFLICTING, NON_PRIMITIVE1.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(CONFLICTING));
   Expect.equals(NON_PRIMITIVE2, NON_PRIMITIVE2.intersection(UNKNOWN));
@@ -795,6 +852,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(DOUBLE_OR_NULL));
   Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(STRING_OR_NULL));
   Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(NULL));
+  Expect.equals(CONFLICTING, NON_PRIMITIVE2.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(CONFLICTING));
   Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.intersection(UNKNOWN));
@@ -817,6 +875,7 @@ void testIntersection() {
   Expect.equals(NULL, POTENTIAL_ARRAY.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, POTENTIAL_ARRAY.intersection(STRING_OR_NULL));
   Expect.equals(NULL, POTENTIAL_ARRAY.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, POTENTIAL_ARRAY.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(CONFLICTING));
   Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.intersection(UNKNOWN));
@@ -839,6 +898,7 @@ void testIntersection() {
   Expect.equals(NULL, POTENTIAL_STRING.intersection(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, POTENTIAL_STRING.intersection(STRING_OR_NULL));
   Expect.equals(NULL, POTENTIAL_STRING.intersection(NULL));
+  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(CONFLICTING));
   Expect.equals(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL.intersection(UNKNOWN));
@@ -861,6 +921,7 @@ void testIntersection() {
   Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, BOOLEAN_OR_NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, BOOLEAN_OR_NULL.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(CONFLICTING));
   Expect.equals(NUMBER_OR_NULL, NUMBER_OR_NULL.intersection(UNKNOWN));
@@ -883,6 +944,7 @@ void testIntersection() {
   Expect.equals(DOUBLE_OR_NULL, NUMBER_OR_NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, NUMBER_OR_NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, NUMBER_OR_NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, NUMBER_OR_NULL.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(CONFLICTING));
   Expect.equals(INTEGER_OR_NULL, INTEGER_OR_NULL.intersection(UNKNOWN));
@@ -905,6 +967,7 @@ void testIntersection() {
   Expect.equals(NULL, INTEGER_OR_NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, INTEGER_OR_NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, INTEGER_OR_NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, INTEGER_OR_NULL.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(CONFLICTING));
   Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.intersection(UNKNOWN));
@@ -927,6 +990,7 @@ void testIntersection() {
   Expect.equals(DOUBLE_OR_NULL, DOUBLE_OR_NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, DOUBLE_OR_NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, DOUBLE_OR_NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, DOUBLE_OR_NULL.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(CONFLICTING));
   Expect.equals(STRING_OR_NULL, STRING_OR_NULL.intersection(UNKNOWN));
@@ -949,6 +1013,7 @@ void testIntersection() {
   Expect.equals(NULL, STRING_OR_NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(STRING_OR_NULL, STRING_OR_NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, STRING_OR_NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, STRING_OR_NULL.intersection(FIXED_ARRAY));
 
   Expect.equals(CONFLICTING, NULL.intersection(CONFLICTING));
   Expect.equals(NULL, NULL.intersection(UNKNOWN));
@@ -971,6 +1036,30 @@ void testIntersection() {
   Expect.equals(NULL, NULL.intersection(DOUBLE_OR_NULL));
   Expect.equals(NULL, NULL.intersection(STRING_OR_NULL));
   Expect.equals(NULL, NULL.intersection(NULL));
+  Expect.equals(CONFLICTING, NULL.intersection(FIXED_ARRAY));
+
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(CONFLICTING));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(UNKNOWN));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(BOOLEAN));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NUMBER));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(INTEGER));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(DOUBLE));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(INDEXABLE_PRIMITIVE));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(STRING));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(READABLE_ARRAY));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(MUTABLE_ARRAY));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(EXTENDABLE_ARRAY));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NON_PRIMITIVE1));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NON_PRIMITIVE2));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(POTENTIAL_ARRAY));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(POTENTIAL_STRING));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(BOOLEAN_OR_NULL));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NUMBER_OR_NULL));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(INTEGER_OR_NULL));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(DOUBLE_OR_NULL));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(STRING_OR_NULL));
+  Expect.equals(CONFLICTING, FIXED_ARRAY.intersection(NULL));
+  Expect.equals(FIXED_ARRAY, FIXED_ARRAY.intersection(FIXED_ARRAY));
 }
 
 void main() {

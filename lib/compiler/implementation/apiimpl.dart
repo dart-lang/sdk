@@ -56,6 +56,7 @@ class Compiler extends leg.Compiler {
     }
     return "lib/$path";
   }
+
   String lookupPatchPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
     if (info === null) return null;
@@ -67,10 +68,8 @@ class Compiler extends leg.Compiler {
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
-    Uri canonicalUri;
-    if (path.startsWith("_")) {
-      canonicalUri = uri;
-    } else {
+    Uri canonicalUri = null;
+    if (!path.startsWith("_")) {
       canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
     }
     elements.LibraryElement library =

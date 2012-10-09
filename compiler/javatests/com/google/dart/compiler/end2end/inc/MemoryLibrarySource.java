@@ -9,6 +9,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlDartSource;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -66,6 +67,9 @@ public class MemoryLibrarySource implements LibrarySource {
     String content = sourceContentMap.get(libName);
     if (IO_EXCEPTION_CONTENT.equals(content)) {
       throw new IOException("simulated");
+    }
+    if (content == null) {
+      throw new FileNotFoundException(libName);
     }
     return new StringReader(content);
   }

@@ -24,13 +24,11 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "core": const LibraryInfo(
       "core/core.dart",
-      dart2jsPath: "compiler/implementation/lib/core.dart",
       dart2jsPatchPath: "compiler/implementation/lib/core_patch.dart"),
 
   "coreimpl": const LibraryInfo(
       "coreimpl/coreimpl.dart",
       implementation: true,
-      dart2jsPath: "compiler/implementation/lib/coreimpl.dart",
       dart2jsPatchPath: "compiler/implementation/lib/coreimpl_patch.dart"),
 
   "crypto": const LibraryInfo(

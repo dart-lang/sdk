@@ -5,30 +5,23 @@
 #library('timer_cancel1_test');
 
 #import("dart:isolate");
+#import('../../pkg/unittest/unittest.dart');
 
-// Test that a timeout handler can cancel another.
-class TimerCancel1Test {
-  static void testOtherCancel() {
+main() {
+  // Test that a timeout handler can cancel another.
+  test("timer cancel1 test", () {
     var canceleeTimer;
     var cancelerTimer;
 
-    void timeoutHandlerUnreachable(Timer timer) {
-      Expect.fail("A canceled timeout handler should be unreachable.");
+    void unreachable(Timer timer) {
+      fail("A canceled timeout handler should be unreachable.");
     }
 
-    void cancelHandler(Timer timer) {
+    void handler(Timer timer) {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer = new Timer(1, cancelHandler);
-    canceleeTimer = new Timer(1000, timeoutHandlerUnreachable);
-  }
-
-  static void testMain() {
-    testOtherCancel();
-  }
-}
-
-main() {
-  TimerCancel1Test.testMain();
+    cancelerTimer = new Timer(1, expectAsync1(handler));
+    canceleeTimer = new Timer(1000, expectAsync1(unreachable, count: 0));
+  });
 }

@@ -57,6 +57,7 @@
 import os
 import re
 import sys
+import subprocess
 import tempfile
 import utils
 
@@ -167,6 +168,8 @@ def Main(argv):
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
+  if utils.GuessOS() != 'win32':
+    subprocess.call(['strip', dart_dest_binary])
 
   if ShouldCopyAnalyzer():
     # Copy analyzer into sdk/bin

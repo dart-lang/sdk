@@ -5,41 +5,47 @@
 #library('multiple_timer_test');
 
 #import("dart:isolate");
+#import('../../pkg/unittest/unittest.dart');
 
-class MultipleTimerTest {
+const int TIMEOUT1 = 1000;
+const int TIMEOUT2 = 2000;
+const int TIMEOUT3 = 500;
+const int TIMEOUT4 = 1500;
 
-  static const int TIMEOUT1 = 1000;
-  static const int TIMEOUT2 = 2000;
-  static const int TIMEOUT3 = 500;
-  static const int TIMEOUT4 = 1500;
-
-  static void testMultipleTimer() {
+main() {
+  test("multiple timer test", () {
+    int _startTime1;
+    int _startTime2;
+    int _startTime3;
+    int _startTime4;
+    List<int> _order;
+    int _message;
 
     void timeoutHandler1(Timer timer) {
       int endTime = (new Date.now()).millisecondsSinceEpoch;
-      Expect.equals(true, (endTime - _startTime1) >= TIMEOUT1);
-      Expect.equals(true, _order[_message] == 0);
+      expect((endTime - _startTime1) >= TIMEOUT1);
+      expect(_order[_message] == 0);
       _message++;
     }
 
     void timeoutHandler2(Timer timer) {
       int endTime  = (new Date.now()).millisecondsSinceEpoch;
-      Expect.equals(true, (endTime - _startTime2) >= TIMEOUT2);
-      Expect.equals(true, _order[_message] == 1);
+      expect((endTime - _startTime2) >= TIMEOUT2);
+      expect(_order[_message] == 1);
       _message++;
     }
 
     void timeoutHandler3(Timer timer) {
       int endTime = (new Date.now()).millisecondsSinceEpoch;
-      Expect.equals(true, (endTime - _startTime3) >= TIMEOUT3);
-      Expect.equals(true, _order[_message] == 2);
+      expect((endTime - _startTime3) >= TIMEOUT3);
+      expect(_order[_message] == 2);
       _message++;
     }
 
     void timeoutHandler4(Timer timer) {
       int endTime  = (new Date.now()).millisecondsSinceEpoch;
-      Expect.equals(true, (endTime - _startTime4) >= TIMEOUT4);
-      Expect.equals(true, _order[_message] == 3);
+      expect((endTime - _startTime4) >= TIMEOUT4);
+      expect(_order[_message] == 3);
       _message++;
     }
 
@@ -51,27 +57,12 @@ class MultipleTimerTest {
     _message = 0;
 
     _startTime1 = (new Date.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT1, timeoutHandler1);
+    new Timer(TIMEOUT1, expectAsync1(timeoutHandler1));
     _startTime2 = (new Date.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT2, timeoutHandler2);
+    new Timer(TIMEOUT2, expectAsync1(timeoutHandler2));
     _startTime3 = (new Date.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT3, timeoutHandler3);
+    new Timer(TIMEOUT3, expectAsync1(timeoutHandler3));
     _startTime4 = (new Date.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT4, timeoutHandler4);
-  }
-
-  static void testMain() {
-    testMultipleTimer();
-  }
-
-  static int _startTime1;
-  static int _startTime2;
-  static int _startTime3;
-  static int _startTime4;
-  static List<int> _order;
-  static int _message;
-}
-
-main() {
-  MultipleTimerTest.testMain();
+    new Timer(TIMEOUT4, expectAsync1(timeoutHandler4));
+  });
 }

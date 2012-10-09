@@ -7,37 +7,43 @@
 //   Do not make code changes here.
 
 /// @domName MouseEvent
-interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
+abstract class MouseEvent implements UIEvent {
 
-  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
-      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
-      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
-      EventTarget relatedTarget]);
+  factory MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+      int clientX, int clientY, int button, [bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) =>
+      _MouseEventFactoryProvider.createMouseEvent(
+          type, view, detail, screenX, screenY,
+          clientX, clientY, button, canBubble, cancelable,
+          ctrlKey, altKey, shiftKey, metaKey,
+          relatedTarget);
 
 
   /** @domName MouseEvent.altKey */
-  final bool altKey;
+  abstract bool get altKey;
 
   /** @domName MouseEvent.button */
-  final int button;
+  abstract int get button;
 
   /** @domName MouseEvent.clientX */
-  final int clientX;
+  abstract int get clientX;
 
   /** @domName MouseEvent.clientY */
-  final int clientY;
+  abstract int get clientY;
 
   /** @domName MouseEvent.ctrlKey */
-  final bool ctrlKey;
+  abstract bool get ctrlKey;
 
   /** @domName MouseEvent.dataTransfer */
-  final Clipboard dataTransfer;
+  abstract Clipboard get dataTransfer;
 
   /** @domName MouseEvent.fromElement */
-  final Node fromElement;
+  abstract Node get fromElement;
 
   /** @domName MouseEvent.metaKey */
-  final bool metaKey;
+  abstract bool get metaKey;
 
   /**
    * The X coordinate of the mouse pointer in target node coordinates.
@@ -45,7 +51,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  final int offsetX;
+  abstract int get offsetX;
 
   /**
    * The Y coordinate of the mouse pointer in target node coordinates.
@@ -53,35 +59,35 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  final int offsetY;
+  abstract int get offsetY;
 
   /** @domName MouseEvent.relatedTarget */
-  final EventTarget relatedTarget;
+  abstract EventTarget get relatedTarget;
 
   /** @domName MouseEvent.screenX */
-  final int screenX;
+  abstract int get screenX;
 
   /** @domName MouseEvent.screenY */
-  final int screenY;
+  abstract int get screenY;
 
   /** @domName MouseEvent.shiftKey */
-  final bool shiftKey;
+  abstract bool get shiftKey;
 
   /** @domName MouseEvent.toElement */
-  final Node toElement;
+  abstract Node get toElement;
 
   /** @domName MouseEvent.webkitMovementX */
-  final int webkitMovementX;
+  abstract int get webkitMovementX;
 
   /** @domName MouseEvent.webkitMovementY */
-  final int webkitMovementY;
+  abstract int get webkitMovementY;
 
   /** @domName MouseEvent.x */
-  final int x;
+  abstract int get x;
 
   /** @domName MouseEvent.y */
-  final int y;
+  abstract int get y;
 
   /** @domName MouseEvent.initMouseEvent */
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }

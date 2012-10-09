@@ -1,0 +1,137 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
+
+  _DocumentImpl get document() native "return this.document;";
+
+  Window _open2(url, name) native "return this.open(url, name);";
+
+  Window _open3(url, name, options) native "return this.open(url, name, options);";
+
+  Window open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+    }
+  }
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here or folded into
+  // _LocationWrapper.
+  LocalLocation get location => _get_location();
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location. [value] may be a Location object or a string.
+   */
+  void set location(value) => _set_location(value);
+
+  // Firefox work-around for Location.  The Firefox location object cannot be
+  // made to behave like a Dart object so must be wrapped.
+
+  LocalLocation _get_location() {
+    var result = _location;
+    if (_isDartLocation(result)) return result;  // e.g. on Chrome.
+    if (null == _location_wrapper) {
+      _location_wrapper = new _LocationWrapper(result);
+    }
+    return _location_wrapper;
+  }
+
+  void _set_location(value) {
+    if (value is _LocationWrapper) {
+      _location = value._ptr;
+    } else {
+      _location = value;
+    }
+  }
+
+  var _location_wrapper;  // Cached wrapped Location object.
+
+  // Native getter and setter to access raw Location object.
+  Location get _location() native 'return this.location';
+  void set _location(Location value) native 'this.location = value';
+  // Prevent compiled from thinking 'location' property is available for a Dart
+  // member.
+  _protect_location() native 'location';
+
+  static _isDartLocation(thing) {
+    // On Firefox the code that implements 'is Location' fails to find the patch
+    // stub on Object.prototype and throws an exception.
+    try {
+      return thing is Location;
+    } catch (e) {
+      return false;
+    }
+  }
+
+
+  void requestLayoutFrame(TimeoutHandler callback) {
+    _addMeasurementFrameCallback(callback);
+  }
+
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    _ensureRequestAnimationFrame();
+    return _requestAnimationFrame(callback);
+  }
+
+  void cancelAnimationFrame(id) {
+    _ensureRequestAnimationFrame();
+    _cancelAnimationFrame(id);
+  }
+
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback)
+      native 'requestAnimationFrame';
+
+  void _cancelAnimationFrame(int id)
+      native 'cancelAnimationFrame';
+
+  _ensureRequestAnimationFrame() native '''
+   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+   var vendors = ['ms', 'moz', 'webkit', 'o'];
+   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
+     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
+     this.cancelAnimationFrame =
+         this[vendors[i]+'CancelAnimationFrame'] ||
+         this[vendors[i]+'CancelRequestAnimationFrame'];
+   }
+   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+   this.requestAnimationFrame = function(callback) {
+      return window.setTimeout(function() {
+        callback(Date.now());
+      }, 16 /* 16ms ~= 60fps */);
+   };
+   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+''';
+
+
+  _IDBFactoryImpl get indexedDB => _get_indexedDB();
+
+  _IDBFactoryImpl _get_indexedDB() native
+      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+
+  // TODO(kasperl): Document these.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
+
+  String createObjectUrl(object) native '''
+    return (window.URL || window.webkitURL).createObjectURL(object)
+  ''';
+
+  void revokeObjectUrl(String objectUrl) native '''
+    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
+  ''';
+$!MEMBERS
+}

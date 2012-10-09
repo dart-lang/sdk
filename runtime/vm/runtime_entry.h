@@ -61,7 +61,7 @@ class RuntimeEntry : public ValueObject {
     VERIFY_ON_TRANSITION;                                                      \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
     {                                                                          \
-      Zone zone(arguments.isolate());                                          \
+      StackZone zone(arguments.isolate());                                     \
       HANDLESCOPE(arguments.isolate());                                        \
       DRT_Helper##name(arguments.isolate(), arguments);                        \
     }                                                                          \

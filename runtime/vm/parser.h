@@ -356,6 +356,7 @@ class Parser : public ValueObject {
       const String& function_name, const ArgumentListNode& function_args);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
+                                bool resolve_getter,
                                 bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
   AstNode* ParseSuperFieldAccess(const String& field_name);
@@ -409,7 +410,6 @@ class Parser : public ValueObject {
   AstNode* ParseSwitchStatement(String* label_name);
 
   // try/catch/finally parsing.
-  void ParseCatchParameter(CatchParamDesc* catch_param);
   void AddCatchParamsToScope(const CatchParamDesc& exception_param,
                              const CatchParamDesc& stack_trace_param,
                              LocalScope* scope);
@@ -495,7 +495,7 @@ class Parser : public ValueObject {
                          LocalScope** owner_scope,
                          intptr_t* local_index);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  RawClass* TypeParametersScopeClass() const;
+  bool ParsingStaticMember() const;
   const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
@@ -558,6 +558,7 @@ class Parser : public ValueObject {
   String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
+  AstNode* ThrowNoSuchMethodError(intptr_t call_pos, const String& name);
 
   void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);

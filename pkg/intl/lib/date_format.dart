@@ -155,17 +155,6 @@
  * pattern "MM/dd/yyyy", "01/11/12" parses to Jan 11, 12 A.D.
  */
 
-#library('date_format');
-
-#import('dart:math');
-#import('intl.dart');
-#import('date_symbols.dart');
-#import('src/intl_helpers.dart');
-#import('src/date_format_internal.dart');
-
-#source('src/date_format_field.dart');
-#source('src/date_format_helpers.dart');
-
 class DateFormat {
 
   /**
@@ -195,8 +184,6 @@ class DateFormat {
     // the constructor seems awkward, especially with the possibility of
     // confusion with the locale. A "fluent" interface with cascading on an
     // instance might work better? A list of patterns is also possible.
-    // TODO(alanknight): There will need to be at least setup type async
-    // operations to avoid the need to bring along every locale in every program
     _locale = Intl.verifiedLocale(locale);
     addPattern(newPattern);
   }
@@ -437,9 +424,19 @@ class DateFormat {
    */
   get _formatFields {
     if (_formatFieldsPrivate == null) {
+      if (_pattern == null) _useDefaultPattern();
       _formatFieldsPrivate = parsePattern(_pattern);
     }
     return _formatFieldsPrivate;
+  }
+
+  /**
+   * We are being asked to do formatting without having set any pattern.
+   * Use a default.
+   */
+  _useDefaultPattern() {
+    add_yMMMMd();
+    add_jms();
   }
 
   /**
@@ -465,7 +462,7 @@ class DateFormat {
    * Set our pattern, appending it to any existing patterns. Also adds a single
    * space to separate the two.
    */
-  _setPattern(String inputPattern, [String separator = ' ']) {
+  _appendPattern(String inputPattern, [String separator = ' ']) {
     if (_pattern == null) {
       _pattern = inputPattern;
     } else {
@@ -484,13 +481,14 @@ class DateFormat {
     // TODO(alanknight): This is an expensive operation. Caching recently used
     // formats, or possibly introducing an entire "locale" object that would
     // cache patterns for that locale could be a good optimization.
-    if (!_availableSkeletons.containsKey(inputPattern)) {
-      _setPattern(inputPattern, separator);
-    } else {
-      _setPattern(_availableSkeletons[inputPattern], separator);
-    }
     // If we have already parsed the format fields, reset them.
     _formatFieldsPrivate = null;
+    if (inputPattern == null) return this;
+    if (!_availableSkeletons.containsKey(inputPattern)) {
+      _appendPattern(inputPattern, separator);
+    } else {
+      _appendPattern(_availableSkeletons[inputPattern], separator);
+    }
     return this;
   }
 
@@ -522,7 +520,6 @@ class DateFormat {
     return dateTimeSymbols.containsKey(localeName);
   }
 
-  // TODO(alanknight): This can be a variable once that's permitted.
   static List get _fieldConstructors => [
       (pattern, parent) => new _DateFormatQuotedField(pattern, parent),
       (pattern, parent) => new _DateFormatPatternField(pattern, parent),

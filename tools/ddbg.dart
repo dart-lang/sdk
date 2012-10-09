@@ -48,6 +48,7 @@ void printHelp() {
   ls <lib_id> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
   epi <none|all|unhandled>  Set exception pause info
+  i <id> Interrupt execution of given isolate id
   h   Print help
 """);
 }
@@ -156,6 +157,10 @@ void processCommand(String cmdLine) {
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum, "command":  "setPauseOnException",
                 "params": { "exceptions": args[1] }};
+    sendCmd(cmd).then((result) => handleGenericResponse(result));
+  } else if (command == "i" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "interrupt",
+                "params": {"isolateId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "q") {
     quitShell();
@@ -356,16 +361,19 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
+  var id = msg["params"]["id"];
   stackTrace = msg["params"]["callFrames"];
   assert(stackTrace != null);
   assert(stackTrace.length >= 1);
   curFrame = stackTrace[0];
   if (reason == "breakpoint") {
-    print("VM paused on breakpoint");
+    print("Isolate $id paused on breakpoint");
+  } else if (reason == "interrupted") {
+    print("Isolate $id paused due to an interrupt");
   } else {
     assert(reason == "exception");
     var excObj = msg["params"]["exception"];
-    print("VM paused on exception");
+    print("Isolate $id paused on exception");
     print(remoteObject(excObj));
   }
   print("Stack trace:");
@@ -388,6 +396,12 @@ void processVmMessage(String json) {
     assert(params != null);
     print("BP ${params["breakpointId"]} resolved and "
           "set at line ${params["line"]}.");
+    return;
+  }
+  if (event == "isolate") {
+    Map params = msg["params"];
+    assert(params != null);
+    print("Isolate ${params["id"]} has been ${params["reason"]}.");
     return;
   }
   if (msg["id"] != null) {

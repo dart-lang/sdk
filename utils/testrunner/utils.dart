@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of testrunner;
+
 /**
  * Read the contents of a file [fileName] into a [List] of [String]s.
  * If the file does not exist and [errorIfNoFile] is true, throw an

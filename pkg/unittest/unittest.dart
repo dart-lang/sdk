@@ -238,12 +238,12 @@ void expectThrow(function, [bool callback(exception)]) {
       // If the callback explicitly returned false, treat that like an
       // expectation too. (If it returns null, though, don't.)
       if (result == false) {
-        _fail('Exception:\n$e\ndid not match expectation.');
+        fail('Exception:\n$e\ndid not match expectation.');
       }
     }
   }
 
-  if (threw != true) _fail('An expected exception was not thrown.');
+  if (threw != true) fail('An expected exception was not thrown.');
 }
 
 /**
@@ -319,6 +319,12 @@ class _SpreadArgsHelper {
   _init(Function callback, Function shouldCallBack, Function isDone,
        [expectedCalls = 0]) {
     ensureInitialized();
+    if (!(_currentTest >= 0 &&
+           _currentTest < _tests.length &&
+           _tests[_currentTest] != null)) {
+      print("No valid test, did you forget to run your test inside a call "
+          "to test()?");
+    }
     assert(_currentTest >= 0 &&
            _currentTest < _tests.length &&
            _tests[_currentTest] != null);
@@ -816,7 +822,7 @@ String _fullSpec(String spec) {
   return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 
-void _fail(String message) {
+void fail(String message) {
   throw new ExpectException(message);
 }
 

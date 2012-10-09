@@ -393,7 +393,7 @@ class _ReturnsNormally extends BaseMatcher {
  * for each exception type.
  */
 
-/* abstract */ class ExceptionMatcher extends BaseMatcher {
+abstract class ExceptionMatcher extends BaseMatcher {
   final String _name;
   const ExceptionMatcher(this._name);
   Description describe(Description description) =>

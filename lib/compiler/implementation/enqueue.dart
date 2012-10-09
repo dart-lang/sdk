@@ -359,4 +359,11 @@ class Enqueuer {
   }
 
   String toString() => 'Enqueuer($name)';
+
+  registerUsedSelector(Selector selector) {
+    Element interceptor = compiler.backend.getInterceptor(selector);
+    if (interceptor != null) {
+      registerStaticUse(interceptor);
+    }
+  }
 }

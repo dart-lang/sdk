@@ -395,4 +395,72 @@ class PrettyPrinter implements Visitor {
   visitWhile(While node) {
     visitNodeWithChildren(node, "While");
   }
+
+  visitNode(Node node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitCombinator(Combinator node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitExport(Export node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitExpression(Expression node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitGotoStatement(GotoStatement node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitImport(Import node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitLibraryName(LibraryName node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitLibraryTag(LibraryTag node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitLiteral(Literal node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitLoop(Loop node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitPart(Part node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitPartOf(PartOf node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitPostfix(Postfix node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitPrefix(Prefix node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitStatement(Statement node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  visitStringNode(StringNode node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  unimplemented(String message, {Node node}) {
+    throw message;
+  }
 }

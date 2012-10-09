@@ -55,13 +55,13 @@ const char* CanonicalFunction(const char* func);
 #define DARTSCOPE_NOCHECKS(isolate)                                            \
   Isolate* __temp_isolate__ = (isolate);                                       \
   ASSERT(__temp_isolate__ != NULL);                                            \
-  Zone zone(__temp_isolate__);                                                 \
+  StackZone zone(__temp_isolate__);                                            \
   HANDLESCOPE(__temp_isolate__);
 
 #define DARTSCOPE(isolate)                                                     \
   Isolate* __temp_isolate__ = (isolate);                                       \
   CHECK_ISOLATE_SCOPE(__temp_isolate__);                                       \
-  Zone zone(__temp_isolate__);                                                 \
+  StackZone zone(__temp_isolate__);                                            \
   HANDLESCOPE(__temp_isolate__);
 
 

@@ -11,7 +11,7 @@
 namespace dart {
 
 static uword ZoneAllocator(intptr_t size) {
-  Zone* zone = Isolate::Current()->current_zone();
+  StackZone* zone = Isolate::Current()->current_zone();
   return zone->AllocUnsafe(size);
 }
 

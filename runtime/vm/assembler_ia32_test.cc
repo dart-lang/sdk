@@ -494,6 +494,19 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(Address(EAX, 0), EAX);
   __ Bind(&donetest13);
 
+  Label donetest14;
+  __ subl(ESP, Immediate(kWordSize));
+  __ movl(Address(ESP, 0), Immediate(0x80000000));
+  __ movl(EAX, Immediate(0));
+  __ movl(ECX, Immediate(3));
+  __ sarl(Address(ESP, 0), ECX);
+  __ shrd(Address(ESP, 0), EAX);
+  __ cmpl(Address(ESP, 0), Immediate(0x1e000000));
+  __ j(EQUAL, &donetest14);
+  __ int3();
+  __ Bind(&donetest14);
+  __ addl(ESP, Immediate(kWordSize));
+
   __ movl(EAX, Immediate(0));
   __ ret();
 }
@@ -1500,7 +1513,6 @@ ASSEMBLER_TEST_RUN(LongAddReg, entry) {
 
 
 ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
-  // Preserve clobbered callee-saved register (EBX).
   __ movl(EAX, Address(ESP, 1 * kWordSize));  // left low.
   __ movl(EDX, Address(ESP, 2 * kWordSize));  // left high.
   __ addl(EAX, Address(ESP, 3 * kWordSize));  // low.
@@ -1552,7 +1564,6 @@ ASSEMBLER_TEST_RUN(LongSubReg, entry) {
 
 
 ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
-  // Preserve clobbered callee-saved register (EBX).
   __ movl(EAX, Address(ESP, 1 * kWordSize));  // left low.
   __ movl(EDX, Address(ESP, 2 * kWordSize));  // left high.
   __ subl(EAX, Address(ESP, 3 * kWordSize));  // low.
@@ -1572,6 +1583,74 @@ ASSEMBLER_TEST_RUN(LongSubAddress, entry) {
   b = 2147483647;
   res = reinterpret_cast<LongSubAddressCode>(entry)(a, b);
   EXPECT_EQ((a - b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongSubAddress2, assembler) {
+  // Preserve clobbered callee-saved register (EBX).
+  __ pushl(EBX);
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
+  __ subl(ESP, Immediate(2 * kWordSize));
+  __ movl(Address(ESP, 0 * kWordSize), EAX);  // left low.
+  __ movl(Address(ESP, 1 * kWordSize), EDX);  // left high.
+  __ subl(Address(ESP, 0 * kWordSize), ECX);
+  __ sbbl(Address(ESP, 1 * kWordSize), EBX);
+  __ movl(EAX, Address(ESP, 0 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ addl(ESP, Immediate(2 * kWordSize));
+  __ popl(EBX);
+  // Result is in EAX/EDX.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongSubAddress2, entry) {
+  typedef int64_t (*LongSubAddress2Code)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongSubAddress2Code>(entry)(a, b);
+  EXPECT_EQ((a - b), res);
+  a = 600000;
+  b = 2147483647;
+  res = reinterpret_cast<LongSubAddress2Code>(entry)(a, b);
+  EXPECT_EQ((a - b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongAddAddress2, assembler) {
+  // Preserve clobbered callee-saved register (EBX).
+  __ pushl(EBX);
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // left low.
+  __ movl(EDX, Address(ESP, 3 * kWordSize));  // left high.
+  __ movl(ECX, Address(ESP, 4 * kWordSize));  // right low.
+  __ movl(EBX, Address(ESP, 5 * kWordSize));  // right high
+  __ subl(ESP, Immediate(2 * kWordSize));
+  __ movl(Address(ESP, 0 * kWordSize), EAX);  // left low.
+  __ movl(Address(ESP, 1 * kWordSize), EDX);  // left high.
+  __ addl(Address(ESP, 0 * kWordSize), ECX);
+  __ adcl(Address(ESP, 1 * kWordSize), EBX);
+  __ movl(EAX, Address(ESP, 0 * kWordSize));
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ addl(ESP, Immediate(2 * kWordSize));
+  __ popl(EBX);
+  // Result is in EAX/EDX.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongAddAddress2, entry) {
+  typedef int64_t (*LongAddAddress2Code)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongAddAddress2Code>(entry)(a, b);
+  EXPECT_EQ((a + b), res);
+  a = 600000;
+  b = 2147483647;
+  res = reinterpret_cast<LongAddAddress2Code>(entry)(a, b);
+  EXPECT_EQ((a + b), res);
 }
 
 
@@ -1655,6 +1734,26 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
+  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ pxor(XMM0, XMM0);
+  __ pushl(EAX);
+  __ pushl(EAX);
+  __ movsd(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Pxor, entry) {
+  typedef double (*PxorCode)(double d);
+  double res = reinterpret_cast<PxorCode>(entry)(12.3456e3);
+  EXPECT_FLOAT_EQ(0.0, res, 0.0);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Orpd, assembler) {
   __ movsd(XMM0, Address(ESP, kWordSize));
   __ xorpd(XMM1, XMM1);
@@ -1681,8 +1780,8 @@ ASSEMBLER_TEST_GENERATE(Pextrd0, assembler) {
   if (CPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pextrd(EAX, XMM0, Immediate(0));
-    __ ret();
   }
+  __ ret();
 }
 
 
@@ -1699,8 +1798,8 @@ ASSEMBLER_TEST_GENERATE(Pextrd1, assembler) {
   if (CPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pextrd(EAX, XMM0, Immediate(1));
-    __ ret();
   }
+  __ ret();
 }
 
 
@@ -1718,8 +1817,8 @@ ASSEMBLER_TEST_GENERATE(Pmovsxdq, assembler) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pmovsxdq(XMM0, XMM0);
     __ pextrd(EAX, XMM0, Immediate(1));
-    __ ret();
   }
+  __ ret();
 }
 
 
@@ -1738,8 +1837,8 @@ ASSEMBLER_TEST_GENERATE(Pcmpeqq, assembler) {
     __ xorpd(XMM1, XMM1);
     __ pcmpeqq(XMM0, XMM1);
     __ movd(EAX, XMM0);
-    __ ret();
   }
+  __ ret();
 }
 
 
@@ -1769,6 +1868,23 @@ ASSEMBLER_TEST_RUN(AndPd, entry) {
   typedef double (*AndpdCode)(double d);
   double res = reinterpret_cast<AndpdCode>(entry)(12.56e3);
   EXPECT_FLOAT_EQ(12.56e3, res, 0.0);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Movq, assembler) {
+  __ movq(XMM0, Address(ESP, kWordSize));
+  __ subl(ESP, Immediate(kDoubleSize));
+  __ movq(Address(ESP, 0), XMM0);
+  __ fldl(Address(ESP, 0));
+  __ addl(ESP, Immediate(kDoubleSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Movq, entry) {
+  typedef double (*MovqCode)(double d);
+  double res = reinterpret_cast<MovqCode>(entry)(12.34e5);
+  EXPECT_FLOAT_EQ(12.34e5, res, 0.0);
 }
 
 

@@ -207,4 +207,72 @@ class CloningVisitor implements Visitor<Node> {
 
   visitWhile(While node) => new While(
       visit(node.condition), visit(node.body), node.whileKeyword);
+
+  Node visitNode(Node node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitCombinator(Combinator node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitExport(Export node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitExpression(Expression node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitGotoStatement(GotoStatement node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitImport(Import node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitLibraryName(LibraryName node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitLibraryTag(LibraryTag node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitLiteral(Literal node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitLoop(Loop node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitPart(Part node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitPartOf(PartOf node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitPostfix(Postfix node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitPrefix(Prefix node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitStatement(Statement node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  Node visitStringNode(StringNode node) {
+    unimplemented('visitNode', node: node);
+  }
+
+  unimplemented(String message, {Node node}) {
+    throw message;
+  }
 }

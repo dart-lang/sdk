@@ -154,21 +154,21 @@ void main() {
  * HTML library.
  */
 class Htmldoc extends doc.Dartdoc {
-  String libraryComment;
+  doc.DocComment libraryComment;
 
   /**
    * Map from qualified type names to comments.
    */
-  Map<String, String> typeComments;
+  Map<String, doc.DocComment> typeComments;
 
   /**
    * Map from qualified member names to comments.
    */
-  Map<String, String> memberComments;
+  Map<String, doc.DocComment> memberComments;
 
   Htmldoc() {
-    typeComments = new Map<String, String>();
-    memberComments = new Map<String, String>();
+    typeComments = new Map<String, doc.DocComment>();
+    memberComments = new Map<String, doc.DocComment>();
   }
 
   // Suppress any actual writing to file.  This is only for analysis.
@@ -178,21 +178,21 @@ class Htmldoc extends doc.Dartdoc {
   void write(String s) {
   }
 
-  String getRecordedLibraryComment(LibraryMirror library) {
+  doc.DocComment getRecordedLibraryComment(LibraryMirror library) {
     if (library.simpleName == HTML_LIBRARY_NAME) {
       return libraryComment;
     }
     return null;
   }
 
-  String getRecordedTypeComment(TypeMirror type) {
+  doc.DocComment getRecordedTypeComment(TypeMirror type) {
     if (typeComments.containsKey(type.qualifiedName)) {
       return typeComments[type.qualifiedName];
     }
     return null;
   }
 
-  String getRecordedMemberComment(MemberMirror member) {
+  doc.DocComment getRecordedMemberComment(MemberMirror member) {
     if (memberComments.containsKey(member.qualifiedName)) {
       return memberComments[member.qualifiedName];
     }
@@ -201,40 +201,34 @@ class Htmldoc extends doc.Dartdoc {
 
   // These methods are subclassed and used for internal processing.
   // Do not invoke outside of this class.
-  String getLibraryComment(LibraryMirror library) {
-    String comment = super.getLibraryComment(library);
+  doc.DocComment getLibraryComment(LibraryMirror library) {
+    doc.DocComment comment = super.getLibraryComment(library);
     libraryComment = comment;
     return comment;
   }
 
-  String getTypeComment(TypeMirror type) {
-    String comment = super.getTypeComment(type);
+  doc.DocComment getTypeComment(TypeMirror type) {
+    doc.DocComment comment = super.getTypeComment(type);
     recordTypeComment(type, comment);
     return comment;
   }
 
-  String getMethodComment(MethodMirror method) {
-    String comment = super.getMethodComment(method);
-    recordMemberComment(method, comment);
+  doc.DocComment getMemberComment(MemberMirror member) {
+    doc.DocComment comment = super.getMemberComment(member);
+    recordMemberComment(member, comment);
     return comment;
   }
 
-  String getFieldComment(FieldMirror field) {
-    String comment = super.getFieldComment(field);
-    recordMemberComment(field, comment);
-    return comment;
-  }
-
-  void recordTypeComment(TypeMirror type, String comment) {
-    if (comment != null && comment.contains('@domName')) {
+  void recordTypeComment(TypeMirror type, doc.DocComment comment) {
+    if (comment != null && comment.text.contains('@domName')) {
       // This is not a handwritten comment.
       return;
     }
     typeComments[type.qualifiedName] = comment;
   }
 
-  void recordMemberComment(MemberMirror member, String comment) {
-    if (comment != null && comment.contains('@domName')) {
+  void recordMemberComment(MemberMirror member, doc.DocComment comment) {
+    if (comment != null && comment.text.contains('@domName')) {
       // This is not a handwritten comment.
       return;
     }
@@ -261,7 +255,7 @@ class Apidoc extends doc.Dartdoc {
    * type being documented. Will be `null` if the type doesn't use any MDN
    * content.
    */
-  String mdnUrl;
+  String mdnUrl = null;
 
   Apidoc(this.mdn, this.htmldoc, Path outputDir, int mode,
          bool generateAppCache) {
@@ -376,61 +370,51 @@ class Apidoc extends doc.Dartdoc {
   }
 
   /** Override definition from parent class to strip out annotation tags. */
-  String commentToHtml(String comment) {
-    return super.commentToHtml(
-        comment.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"), ''));
+  doc.DocComment createDocComment(String text,
+                                  [InterfaceMirror inheritedFrom]) {
+    String strippedText =
+        text.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
+                        '').trim();
+    if (strippedText.isEmpty()) return null;
+    return super.createDocComment(strippedText, inheritedFrom);
   }
 
-  String getLibraryComment(LibraryMirror library) {
+  doc.DocComment getLibraryComment(LibraryMirror library) {
     if (library.simpleName == HTML_LIBRARY_NAME) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
   }
 
-  String getTypeComment(TypeMirror type) {
+  doc.DocComment getTypeComment(TypeMirror type) {
     return _mergeDocs(
         includeMdnTypeComment(type), super.getTypeComment(type),
         htmldoc.getRecordedTypeComment(type));
   }
 
-  String getMethodComment(MethodMirror method) {
+  doc.DocComment getMemberComment(MemberMirror member) {
     return _mergeDocs(
-        includeMdnMemberComment(method), super.getMethodComment(method),
-        htmldoc.getRecordedMemberComment(method));
+        includeMdnMemberComment(member), super.getMemberComment(member),
+        htmldoc.getRecordedMemberComment(member));
   }
 
-  String getFieldComment(FieldMirror field) {
-    return _mergeDocs(
-        includeMdnMemberComment(field), super.getFieldComment(field),
-        htmldoc.getRecordedMemberComment(field));
-  }
-
-  bool isNonEmpty(String string) => (string != null) && (string.trim() != '');
-
-  String _mergeDocs(String mdnComment, String fileComment,
-                    String handWrittenComment) {
+  doc.DocComment _mergeDocs(MdnComment mdnComment,
+                            doc.DocComment fileComment,
+                            doc.DocComment handWrittenComment) {
     // Prefer the hand-written comment first.
-    if (isNonEmpty(handWrittenComment)) return handWrittenComment;
+    if (handWrittenComment !== null) return handWrittenComment;
 
-    // Otherwise, prefer comment from the (possibly generated) Dart
-    // file.
-    if (isNonEmpty(fileComment)) return fileComment;
+    // Otherwise, prefer comment from the (possibly generated) Dart file.
+    if (fileComment !== null) return fileComment;
 
     // Finally, fallback on MDN if available.
-    if (isNonEmpty(mdnComment)) {
-      // Wrap it so we can highlight it and so we handle MDN scraped content
-      // that lacks a top-level block tag.
-      return '''
-          <div class="mdn">
-          $mdnComment
-          <div class="mdn-note"><a href="$mdnUrl">from MDN</a></div>
-          </div>
-          ''';
+    if (mdnComment !== null) {
+      mdnUrl = mdnComment.mdnUrl;
+      return mdnComment;
     }
 
     // We got nothing!
-    return '';
+    return null;
   }
 
   void docType(TypeMirror type) {
@@ -469,7 +453,7 @@ class Apidoc extends doc.Dartdoc {
    * Gets the MDN-scraped docs for [type], or `null` if this type isn't
    * scraped from MDN.
    */
-  includeMdnTypeComment(TypeMirror type) {
+  MdnComment includeMdnTypeComment(TypeMirror type) {
     if (_mdnTypeNamesToSkip.contains(type.simpleName)) {
       print('Skipping MDN type ${type.simpleName}');
       return null;
@@ -496,17 +480,18 @@ class Apidoc extends doc.Dartdoc {
     final mdnType = mdn[typeString];
     if (mdnType == null) return null;
     if (mdnType['skipped'] != null) return null;
+    if (mdnType['summary'] == null) return null;
+    if (mdnType['summary'].trim().isEmpty()) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    mdnUrl = mdnType['srcUrl'];
-    return mdnType['summary'];
+    return new MdnComment(mdnType['summary'], mdnType['srcUrl']);
   }
 
   /**
    * Gets the MDN-scraped docs for [member], or `null` if this type isn't
    * scraped from MDN.
    */
-  includeMdnMemberComment(MemberMirror member) {
+  MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
     if (library.simpleName == HTML_LIBRARY_NAME) {
@@ -545,10 +530,11 @@ class Apidoc extends doc.Dartdoc {
     }
 
     if (mdnMember == null) return null;
+    if (mdnMember['help'] == null) return null;
+    if (mdnMember['help'].trim().isEmpty()) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    mdnUrl = mdnType['srcUrl'];
-    return mdnMember['help'];
+    return new MdnComment(mdnMember['help'], mdnType['srcUrl']);
   }
 
   /**
@@ -565,4 +551,28 @@ class Apidoc extends doc.Dartdoc {
 
     return a(memberUrl(member), memberName);
   }
+}
+
+class MdnComment implements doc.DocComment {
+  final String mdnComment;
+  final String mdnUrl;
+
+  MdnComment(String this.mdnComment, String this.mdnUrl);
+
+  String get text => mdnComment;
+
+  InterfaceMirror get inheritedFrom => null;
+
+  String get html {
+    // Wrap the mdn comment so we can highlight it and so we handle MDN scraped
+    // content that lacks a top-level block tag.
+   return '''
+        <div class="mdn">
+        $mdnComment
+        <div class="mdn-note"><a href="$mdnUrl">from MDN</a></div>
+        </div>
+        ''';
+  }
+
+  String toString() => mdnComment;
 }

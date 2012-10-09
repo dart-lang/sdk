@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+}

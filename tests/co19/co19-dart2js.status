@@ -2,9 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js ]
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 
+# Crashes first, please. Then untriaged bugs. There is a section below
+# for co19 bugs.
+[ $compiler == dart2js ]
 Language/11_Statements/05_For_A01_t13: Crash # http://dartbug.com/5015
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
 Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # http://dartbug.com/5429
@@ -23,6 +24,7 @@ Language/10_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage th
 Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(ahe): Please triage this failure.
+Language/10_Expressions/05_Strings_A12_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/08_Throw_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/08_Throw_A03_t03: Fail # TODO(ahe): Please triage this failure.
@@ -170,7 +172,6 @@ LibTest/core/List/setRange_A05_t01: Fail, OK
 LibTest/core/Set/addAll_A01_t04: Fail, OK
 LibTest/core/Set/contains_A01_t03: Fail, OK
 LibTest/core/Set/containsAll_A01_t03: Fail, OK
-LibTest/core/Set/intersection_A01_t02: Fail, OK
 LibTest/core/Set/remove_A01_t04: Fail, OK
 LibTest/core/Set/removeAll_A01_t03: Fail, OK
 
@@ -312,8 +313,6 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
-LibTest/core/String/String_class_A03_t01: Fail # co19 issue 230
-
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
@@ -337,8 +336,6 @@ Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 1
 
 Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189
 
-Language/03_Overview/2_Privacy_A01_t12: Fail, OK # co19 issue 191
-
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # co19 issue 193
 Language/07_Classes/07_Classes_A02_t34: Fail, OK # co19 issue 193
 
@@ -353,11 +350,12 @@ Language/06_Functions/4_External_Functions_A01_t01: Fail, OK # http://dartbug.co
 
 Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 195
 
-Language/03_Overview/2_Privacy_A01_t02: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t19: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t20: Fail, OK # co19 issue 198
+
+Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 
 
 [ $compiler == dart2js && $runtime == d8 ]
@@ -724,7 +722,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # http://dartbug.com/4
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TypeError: Object #<C> has no method 'call$0'
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TypeError: Object #<Foo> has no method 'call$0'
 Language/10_Expressions/30_Type_Cast_A02_t01: Fail # Expect.identical(expected: <Instance of 'C'>, actual: <Instance of 'C'>) fails.
-Language/10_Expressions/30_Type_Cast_A02_t02: Fail # Expect.fail('NullPointerException expected')
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail # Expect.fail('CastError expected')
 Language/10_Expressions/30_Type_Cast_A05_t03: Fail # CastError: Casting value of type Number to incompatible type G
 Language/10_Expressions/30_Type_Cast_A05_t05: Fail # CastError: Casting value of type Number to incompatible type G

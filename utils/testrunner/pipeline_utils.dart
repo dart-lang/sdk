@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of pipeline;
+
 List stdout, stderr, log;
 var replyPort;
 int _procId = 1;
@@ -127,6 +129,7 @@ bool cleanup(String fname) {
     var f = new File(fname);
     try {
       if (f.existsSync()) {
+        logMessage('Removing $fname');
         f.deleteSync();
       }
     } catch (e) {

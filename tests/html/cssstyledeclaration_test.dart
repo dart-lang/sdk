@@ -46,6 +46,15 @@ main() {
       equals("color: blue;"));
   });
 
+  test('CSS property empty getters and setters', () {
+    var style = createTestStyle();
+    expect(style.border, equals(""));
+    
+    style.border = "1px solid blue";
+    style.border = "";
+    expect(style.border, equals(""));
+  });
+
   test('CSS property getters and setters', () {
     var style = createTestStyle();
     expect(style.color, equals("blue"));

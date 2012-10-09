@@ -59,6 +59,8 @@ class SentinelConstant extends Constant {
   bool isSentinel() => true;
 
   accept(ConstantVisitor visitor) => visitor.visitSentinel(this);
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 }
 
 class FunctionConstant extends Constant {

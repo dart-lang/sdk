@@ -2,40 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
+// WARNING: Do not edit - generated code.
 
 /// @domName UIEvent
-interface UIEvent extends Event {
+abstract class UIEvent implements Event {
 
   /** @domName UIEvent.charCode */
-  final int charCode;
+  abstract int get charCode;
 
   /** @domName UIEvent.detail */
-  final int detail;
+  abstract int get detail;
 
   /** @domName UIEvent.keyCode */
-  final int keyCode;
+  abstract int get keyCode;
 
   /** @domName UIEvent.layerX */
-  final int layerX;
+  abstract int get layerX;
 
   /** @domName UIEvent.layerY */
-  final int layerY;
+  abstract int get layerY;
 
   /** @domName UIEvent.pageX */
-  final int pageX;
+  abstract int get pageX;
 
   /** @domName UIEvent.pageY */
-  final int pageY;
+  abstract int get pageY;
 
   /** @domName UIEvent.view */
-  final Window view;
+  abstract Window get view;
 
   /** @domName UIEvent.which */
-  final int which;
+  abstract int get which;
 
   /** @domName UIEvent.initUIEvent */
-  void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
+  void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail);
 }

@@ -35,8 +35,8 @@ class Range;
   V(_ImmutableArray, get:length, ImmutableArrayLength)                         \
   V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
-  V(StringBase, get:length, StringBaseLength)                                  \
-  V(StringBase, isEmpty, StringBaseIsEmpty)                                    \
+  V(_StringBase, get:length, StringBaseLength)                                 \
+  V(_StringBase, isEmpty, StringBaseIsEmpty)                                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toDouble, DoubleToDouble)                                         \
   V(::, sqrt, MathSqrt)                                                        \
@@ -252,13 +252,15 @@ class EmbeddedArray<T, 0> {
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
   M(CheckEitherNonSmi)                                                         \
-  M(UnboxedDoubleBinaryOp)                                                     \
+  M(BinaryDoubleOp)                                                            \
   M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
-  M(UnboxedMintBinaryOp)                                                       \
+  M(BinaryMintOp)                                                              \
+  M(ShiftMintOp)                                                               \
+  M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
 
@@ -513,8 +515,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Classes that set deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
-  friend class UnboxedDoubleBinaryOpInstr;
-  friend class UnboxedMintBinaryOpInstr;
+  friend class BinaryDoubleOpInstr;
+  friend class BinaryMintOpInstr;
+  friend class ShiftMintOpInstr;
+  friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
   friend class CheckSmiInstr;
@@ -3464,9 +3468,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 };
 
 
-class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
+class BinaryDoubleOpInstr : public TemplateDefinition<2> {
  public:
-  UnboxedDoubleBinaryOpInstr(Token::Kind op_kind,
+  BinaryDoubleOpInstr(Token::Kind op_kind,
                              Value* left,
                              Value* right,
                              InstanceCallInstr* instance_call)
@@ -3492,11 +3496,10 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnboxedDoubleBinaryOp()->op_kind();
+    return op_kind() == other->AsBinaryDoubleOp()->op_kind();
   }
 
-  // The output is not an instance but when it is boxed it becomes double.
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
+  virtual intptr_t ResultCid() const;
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -3513,19 +3516,19 @@ class UnboxedDoubleBinaryOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(UnboxedDoubleBinaryOp)
+  DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual RawAbstractType* CompileType() const;
 
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedDoubleBinaryOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
 
-class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
+class BinaryMintOpInstr : public TemplateDefinition<2> {
  public:
-  UnboxedMintBinaryOpInstr(Token::Kind op_kind,
+  BinaryMintOpInstr(Token::Kind op_kind,
                            Value* left,
                            Value* right,
                            InstanceCallInstr* instance_call)
@@ -3544,14 +3547,16 @@ class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const {
+    return (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
+  }
 
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnboxedMintBinaryOp()->op_kind();
+    return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
   virtual intptr_t ResultCid() const;
@@ -3572,12 +3577,126 @@ class UnboxedMintBinaryOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(UnboxedMintBinaryOp)
+  DECLARE_INSTRUCTION(BinaryMintOp)
 
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedMintBinaryOpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
+};
+
+
+class ShiftMintOpInstr : public TemplateDefinition<2> {
+ public:
+  ShiftMintOpInstr(Token::Kind op_kind,
+                   Value* left,
+                   Value* right,
+                   InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    ASSERT(op_kind == Token::kSHR);
+    inputs_[0] = left;
+    inputs_[1] = right;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsShiftMintOp()->op_kind();
+  }
+
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (idx == 0) ? kUnboxedMint : kTagged;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(ShiftMintOp)
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
+};
+
+
+class UnaryMintOpInstr : public TemplateDefinition<1> {
+ public:
+  UnaryMintOpInstr(Token::Kind op_kind,
+                          Value* value,
+                          InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    ASSERT(value != NULL);
+    ASSERT(op_kind == Token::kBIT_NOT);
+    inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsUnaryMintOp()->op_kind();
+  }
+
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedMint;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instuction cannot deoptimize, and the deopt-id
+    // was inherited from another instuction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(UnaryMintOp)
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
 };
 
 
@@ -3752,12 +3871,12 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
 class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
-                  InstanceCallInstr* instance_call,
+                  intptr_t deopt_id,
                   const ICData& unary_checks)
       : unary_checks_(unary_checks) {
     ASSERT(value != NULL);
     inputs_[0] = value;
-    deopt_id_ = instance_call->deopt_id();
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(CheckClass)

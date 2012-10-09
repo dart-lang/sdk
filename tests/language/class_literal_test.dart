@@ -14,20 +14,20 @@ main() {
   if (false) {
     Class; /// 01: compile-time error
     Class(); /// 02: compile-time error
-    Class.method(); /// 03: compile-time error
-    Class.field; /// 04: compile-time error
+    Class.method(); /// 03: static type warning
+    Class.field; /// 04: static type warning
     Class[0]; /// 05: compile-time error
     var x = Class; /// 06: compile-time error
     var x = Class(); /// 07: compile-time error
-    var x = Class.method(); /// 08: compile-time error
-    var x = Class.field; /// 09: compile-time error
+    var x = Class.method(); /// 08: static type warning
+    var x = Class.field; /// 09: static type warning
     var x = Class[0]; /// 10: compile-time error
     var x = Class[0].field; /// 11: compile-time error
     var x = Class[0].method(); /// 12: compile-time error
     foo(Class); /// 13: compile-time error
     foo(Class()); /// 14: compile-time error
-    foo(Class.method()); /// 15: compile-time error
-    foo(Class.field); /// 16: compile-time error
+    foo(Class.method()); /// 15: static type warning
+    foo(Class.field); /// 16: static type warning
     foo(Class[0]); /// 17: compile-time error
     foo(Class[0].field); /// 18: compile-time error
     foo(Class[0].method()); /// 19: compile-time error

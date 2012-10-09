@@ -553,6 +553,11 @@ class Listener {
     return skipToEof(token);
   }
 
+  Link<Token> expectedDeclaration(Token token) {
+    error("expected a declaration, but got '${token.slowToString()}'", token);
+    return const EmptyLink<Token>();
+  }
+
   Token unmatched(Token token) {
     error("unmatched '${token.slowToString()}'", token);
     return skipToEof(token);
@@ -666,18 +671,17 @@ class ElementListener extends Listener {
     }
   }
 
-  void endHide(Token hideKeyword) {
-    recoverableError('hide is not implemented', token: hideKeyword);
-    // TODO(ahe): Do not ignore.
-  }
+  void endHide(Token hideKeyword) => pushCombinator(hideKeyword);
 
-  void endShow(Token showKeyword) {
-    recoverableError('show is not implemented', token: showKeyword);
-    // TODO(ahe): Do not ignore.
+  void endShow(Token showKeyword) => pushCombinator(showKeyword);
+
+  void pushCombinator(Token keywordToken) {
+    NodeList identifiers = popNode();
+    pushNode(new Combinator(identifiers, keywordToken));
   }
 
   void endIdentifierList(int count) {
-    pushNode(makeNodeList(count, null, null, " "));
+    pushNode(makeNodeList(count, null, null, ","));
   }
 
   void endPart(Token partKeyword, Token semicolon) {
@@ -949,6 +953,12 @@ class ElementListener extends Listener {
     } else {
       return unexpected(token);
     }
+  }
+
+  Link<Token> expectedDeclaration(Token token) {
+    listener.cancel("expected a declaration, but got '${token.slowToString()}'",
+                    token: token);
+    return const EmptyLink<Token>();
   }
 
   Token unmatched(Token token) {

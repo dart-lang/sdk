@@ -311,11 +311,12 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RegisterLocation(EAX));
     return locs;
   }
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(ECX));
+  locs->set_in(0, Location::RegisterLocation(EBX));
   locs->set_in(1, Location::RegisterLocation(EDX));
+  locs->set_temp(0, Location::RegisterLocation(ECX));
   locs->set_out(Location::RegisterLocation(EAX));
   return locs;
 }
@@ -336,44 +337,38 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
 
-  Label done, false_label, true_label;
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  __ popl(right);
-  __ popl(left);
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label check_identity, instance_call;
-  __ cmpl(right, raw_null);
+  Label check_identity;
+  __ cmpl(Address(ESP, 0 * kWordSize), raw_null);
   __ j(EQUAL, &check_identity, Assembler::kNearJump);
-  __ cmpl(left, raw_null);
-  __ j(NOT_EQUAL, &instance_call, Assembler::kNearJump);
+  __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
+  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+
+  const ICData& ic_data = compiler->GenerateInstanceCall(deopt_id,
+                                                         token_pos,
+                                                         operator_name,
+                                                         kNumberOfArguments,
+                                                         kNoArgumentNames,
+                                                         kNumArgumentsChecked,
+                                                         locs);
+  Label check_ne;
+  __ jmp(&check_ne);
 
   __ Bind(&check_identity);
-  __ cmpl(left, right);
-  __ j(EQUAL, &true_label);
-  if (kind == Token::kEQ) {
-    __ LoadObject(EAX, compiler->bool_false());
-    __ jmp(&done);
-    __ Bind(&true_label);
-    __ LoadObject(EAX, compiler->bool_true());
-    __ jmp(&done);
-  } else {
-    ASSERT(kind == Token::kNE);
-    __ jmp(&false_label);
-  }
-
-  __ Bind(&instance_call);
-  __ pushl(left);
-  __ pushl(right);
-  compiler->GenerateInstanceCall(deopt_id,
-                                 token_pos,
-                                 operator_name,
-                                 kNumberOfArguments,
-                                 kNoArgumentNames,
-                                 kNumArgumentsChecked,
-                                 locs);
+  // Call stub, load IC data in register. The stub will update ICData if
+  // necessary.
+  Register ic_data_reg = locs->temp(0).reg();
+  ASSERT(ic_data_reg == ECX);  // Stub depends on it.
+  __ LoadObject(ic_data_reg, ic_data);
+  compiler->GenerateCall(token_pos,
+                         &StubCode::EqualityWithNullArgLabel(),
+                         PcDescriptors::kOther,
+                         locs);
+  __ Drop(2);
+  __ Bind(&check_ne);
   if (kind == Token::kNE) {
+    Label false_label, true_label, done;
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(EAX, compiler->bool_true());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
@@ -382,8 +377,8 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);
     __ LoadObject(EAX, compiler->bool_false());
+    __ Bind(&done);
   }
-  __ Bind(&done);
 }
 
 
@@ -584,11 +579,21 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Condition true_condition = TokenKindToSmiCondition(kind);
 
   if (left.IsConstant() && right.IsConstant()) {
+    bool result = false;
+    // One of them could be NULL (for equality only).
+    if (left.constant().IsNull() || right.constant().IsNull()) {
+      ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+      result = left.constant().IsNull() && right.constant().IsNull();
+      if (kind == Token::kNE) {
+        result = !result;
+      }
+    } else {
     // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = FlowGraphCompiler::EvaluateCondition(
-        true_condition,
-        Smi::Cast(left.constant()).Value(),
-        Smi::Cast(right.constant()).Value());
+      result = FlowGraphCompiler::EvaluateCondition(
+          true_condition,
+          Smi::Cast(left.constant()).Value(),
+          Smi::Cast(right.constant()).Value());
+    }
 
     if (branch != NULL) {
       branch->EmitBranchOnValue(compiler, result);
@@ -1864,7 +1869,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -1876,7 +1881,7 @@ LocationSummary* UnboxedDoubleBinaryOpInstr::MakeLocationSummary() const {
 }
 
 
-void UnboxedDoubleBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
   XmmRegister right = locs()->in(1).xmm_reg();
 
@@ -2080,14 +2085,21 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckClass);
-  ASSERT(unary_checks().GetReceiverClassIdAt(0) != kSmiCid);
-  __ testl(value, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  __ LoadClassId(temp, value);
   Label is_ok;
+  intptr_t cix = 0;
+  if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, &is_ok);
+    cix++;  // Skip first check.
+  } else {
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+  }
+  __ LoadClassId(temp, value);
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   const bool use_near_jump = num_checks < 5;
-  for (intptr_t i = 0; i < num_checks; i++) {
+  for (intptr_t i = cix; i < num_checks; i++) {
+    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
     __ cmpl(temp, Immediate(unary_checks().GetReceiverClassIdAt(i)));
     if (i == (num_checks - 1)) {
       __ j(NOT_EQUAL, deopt);
@@ -2201,7 +2213,7 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(value);  // Restore input register.
   } else {
     Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptUnboxInteger);
     Label is_smi, done;
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
@@ -2307,19 +2319,40 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* UnboxedMintBinaryOpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresXmmRegister());
-  summary->set_in(1, Location::RequiresXmmRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR: {
+      const intptr_t kNumTemps = 0;
+      LocationSummary* summary =
+          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresXmmRegister());
+      summary->set_in(1, Location::RequiresXmmRegister());
+      summary->set_out(Location::SameAsFirstInput());
+      return summary;
+    }
+    case Token::kADD:
+    case Token::kSUB: {
+      const intptr_t kNumTemps = 2;
+      LocationSummary* summary =
+          new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresXmmRegister());
+      summary->set_in(1, Location::RequiresXmmRegister());
+      summary->set_temp(0, Location::RegisterLocation(EAX));
+      summary->set_temp(1, Location::RegisterLocation(EDX));
+      summary->set_out(Location::SameAsFirstInput());
+      return summary;
+    }
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
 }
 
 
-void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
   XmmRegister right = locs()->in(1).xmm_reg();
 
@@ -2329,10 +2362,105 @@ void UnboxedMintBinaryOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_AND: __ andpd(left, right); break;
     case Token::kBIT_OR:  __ orpd(left, right); break;
     case Token::kBIT_XOR: __ xorpd(left, right); break;
+    case Token::kADD:
+    case Token::kSUB: {
+      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                             kDeoptBinaryMintOp);
+      Label done, overflow;
+      __ pextrd(EAX, right, Immediate(0));  // Lower half left
+      __ pextrd(EDX, right, Immediate(1));  // Upper half left
+      __ subl(ESP, Immediate(2 * kWordSize));
+      __ movq(Address(ESP, 0), left);
+      if (op_kind() == Token::kADD) {
+        __ addl(Address(ESP, 0), EAX);
+        __ adcl(Address(ESP, 1 * kWordSize), EDX);
+      } else {
+        __ subl(Address(ESP, 0), EAX);
+        __ sbbl(Address(ESP, 1 * kWordSize), EDX);
+      }
+      __ j(OVERFLOW, &overflow);
+      __ movq(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(2 * kWordSize));
+      __ jmp(&done);
+      __ Bind(&overflow);
+      __ addl(ESP, Immediate(2 * kWordSize));
+      __ jmp(deopt);
+      __ Bind(&done);
+      break;
+    }
     default: UNREACHABLE();
   }
 }
 
+
+LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).xmm_reg();
+  Register temp = locs()->temp(0).reg();
+  ASSERT(locs()->in(1).reg() == ECX);
+  ASSERT(locs()->out().xmm_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kSHR: {
+      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                             kDeoptShiftMintOp);
+      __ subl(ESP, Immediate(2 * kWordSize));
+      __ movq(Address(ESP, 0), left);
+      // Deoptimize if shift count is > 31.
+      // sarl operation masks the count to 5 bits and
+      // shrd is undefined with count > operand size (32)
+      // TODO(fschneider): Support shift counts > 31 without deoptimization.
+      __ SmiUntag(ECX);
+      const Immediate kCountLimit = Immediate(31);
+      __ cmpl(ECX, kCountLimit);
+      __ j(ABOVE, deopt);
+      __ movl(temp, Address(ESP, 1 * kWordSize));
+      __ shrd(Address(ESP, 0), temp);  // Shift count in CL.
+      __ sarl(Address(ESP, 1 * kWordSize), ECX);  // Shift count in CL.
+      __ movq(left, Address(ESP, 0));
+      __ addl(ESP, Immediate(2 * kWordSize));
+      break;
+    }
+    case Token::kSHL:
+      UNIMPLEMENTED();
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+LocationSummary* UnaryMintOpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresXmmRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  XmmRegister value = locs()->in(0).xmm_reg();
+  ASSERT(value == locs()->out().xmm_reg());
+  __ pcmpeqq(XMM0, XMM0);  // Generate all 1's.
+  __ pxor(value, XMM0);
+}
 
 
 }  // namespace dart

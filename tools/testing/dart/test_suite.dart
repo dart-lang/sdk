@@ -445,20 +445,9 @@ class StandardTestSuite implements TestSuite {
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
     Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
 
-    // Check for an "ExtraCommand" comment from the file, and generate
-    // a command for it, if needed.
-    var optionsFromFile = info.optionsFromFile;
-    var commands = [];
-    var command = optionsFromFile['extraCommand'];
-    var args = optionsFromFile['extraCommandArgs'];
-    addExtraCommand(command, args, commands);
-
-    List _append(list1,list2) => []..addAll(list1)..addAll(list2);
-
     for (var vmOptions in vmOptionsList) {
       doTest(new TestCase('$suiteName/$testName',
-                          _append(commands,
-                              makeCommands(info, vmOptions, commonArguments)),
+                          makeCommands(info, vmOptions, commonArguments),
                           configuration,
                           completeHandler,
                           expectations,
@@ -480,6 +469,9 @@ class StandardTestSuite implements TestSuite {
       } else if (configuration['runtime'] == 'd8') {
         var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['$tempDir/out.js']));
+      } else if (configuration['runtime'] == 'jsshell') {
+        var jsshell = TestUtils.jsshellFileName(configuration);
+        commands.add(new Command(jsshell, ['$tempDir/out.js']));
       }
       return commands;
 
@@ -521,18 +513,6 @@ class StandardTestSuite implements TestSuite {
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
     }
-  }
-
-  void addExtraCommand(String command, List<String> arguments, List commands) {
-    if (command == null) return;
-    // As a special case, a command of "dart" should run with the
-    // dart VM that we are testing.
-    if (command == 'dart') {
-      command = TestUtils.vmFileName(configuration);
-    }
-    arguments =
-        arguments.map((arg)=>arg.replaceAll(r"$dartDir", dartDir.toString()));
-    commands.add(new Command(command, arguments));
   }
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
@@ -712,10 +692,6 @@ class StandardTestSuite implements TestSuite {
               compiler, tempDir, vmOptions));
         }
       }
-
-      var extraCommand = optionsFromFile['extraCommand'];
-      var extraArgs = optionsFromFile['extraCommandArgs'];
-      addExtraCommand(extraCommand, extraArgs, commands);
 
       // Construct the command that executes the browser test
       List<String> args;
@@ -995,10 +971,6 @@ class StandardTestSuite implements TestSuite {
         const RegExp(r"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
         const RegExp(r"^#(source|import|resource)\(", multiLine: true);
-    RegExp extraCommandRegExp =
-        const RegExp(r"// ExtraCommand=(.*)", multiLine: true);
-    RegExp extraArgsRegExp =
-        const RegExp(r"// ExtraCommandArgs=(.*)", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -1034,11 +1006,6 @@ class StandardTestSuite implements TestSuite {
       }
       dartOptions = match[1].split(' ').filter((e) => e != '');
     }
-
-    var match = extraCommandRegExp.firstMatch(contents);
-    var extraCommand = (match != null) ? match.group(1) : null;
-    match = extraArgsRegExp.firstMatch(contents);
-    var extraCommandArgs = (match != null) ? match.group(1).split(' ') : [];
 
     matches = staticCleanRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1084,9 +1051,7 @@ class StandardTestSuite implements TestSuite {
              "isLibraryDefinition": isLibraryDefinition,
              "containsSourceOrImport": containsSourceOrImport,
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
-             "numCompileTimeAnnotations": numCompileTimeAnnotations,
-             "extraCommand": extraCommand,
-             "extraCommandArgs": extraCommandArgs};
+             "numCompileTimeAnnotations": numCompileTimeAnnotations };
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
@@ -1436,6 +1401,13 @@ class TestUtils {
     return args;
   }
 
+  static String jsshellFileName(Map configuration) {
+    var executableSuffix = executableSuffix('jsshell');
+    var executable = 'jsshell$executableSuffix';
+    var jsshellDir = '${dartDir()}/tools/testing/bin';
+    return '$jsshellDir/$executable';
+  }
+
   static bool isBrowserRuntime(String runtime) => Contains(
       runtime,
       const <String>['drt',
@@ -1445,6 +1417,10 @@ class TestUtils {
                      'opera',
                      'chrome',
                      'ff']);
+
+  static bool isJsCommandLineRuntime(String runtime) =>
+      Contains(runtime, const <String>['d8', 'jsshell']);
+
 }
 
 class SummaryReport {

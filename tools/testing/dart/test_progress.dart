@@ -84,6 +84,8 @@ class ProgressIndicator {
     _printFailureSummary();
     _printStatus();
     _printTimingInformation();
+    stdout.close();
+    stderr.close();
     exit(_failedTests > 0 ? 1 : 0);
   }
 
@@ -115,10 +117,13 @@ class ProgressIndicator {
     return '${_padTime(min)}:${_padTime(sec)}';
   }
 
+  String _header(String header) => header;
+
   void _printFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
-    output.add('FAILED: ${test.configurationString} ${test.displayName}');
+    output.add(_header('FAILED: ${test.configurationString}'
+                       ' ${test.displayName}'));
     StringBuffer expected = new StringBuffer();
     expected.add('Expected: ');
     for (var expectation in test.expectedOutcomes) {
@@ -220,7 +225,7 @@ class SilentProgressIndicator extends ProgressIndicator {
   }
 }
 
-class CompactIndicator extends ProgressIndicator {
+abstract class CompactIndicator extends ProgressIndicator {
   CompactIndicator(Date startTime, bool printTiming)
       : super(startTime, printTiming);
 
@@ -234,6 +239,7 @@ class CompactIndicator extends ProgressIndicator {
       print('');
     }
     stdout.close();
+    stderr.close();
     exit(_failedTests > 0 ? 1 : 0);
   }
 
@@ -250,7 +256,7 @@ class CompactIndicator extends ProgressIndicator {
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
 
-  abstract void _printProgress();
+  void _printProgress();
 }
 
 
@@ -276,6 +282,7 @@ class ColorProgressIndicator extends CompactIndicator {
   ColorProgressIndicator(Date startTime, bool printTiming)
       : super(startTime, printTiming);
 
+  static int BOLD = 1;
   static int GREEN = 32;
   static int RED = 31;
   static int NONE = 0;
@@ -302,6 +309,12 @@ class ColorProgressIndicator extends CompactIndicator {
     addColorWrapped(progressLine, '-$failedPadded', failedColor);
     progressLine.addAll(']'.charCodes());
     stdout.write(progressLine);
+  }
+
+  String _header(String header) {
+    var result = [];
+    addColorWrapped(result, header, BOLD);
+    return new String.fromCharCodes(result);
   }
 }
 

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('lock_file');
+library lock_file;
 
-#import('dart:json');
-#import('package.dart');
-#import('source_registry.dart');
-#import('utils.dart');
-#import('version.dart');
-#import('yaml/yaml.dart');
+import 'dart:json';
+import 'package.dart';
+import 'source_registry.dart';
+import 'utils.dart';
+import 'version.dart';
+import 'yaml/yaml.dart';
 
 /**
  * A parsed and validated `pubspec.lock` file.

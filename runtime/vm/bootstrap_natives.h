@@ -101,7 +101,7 @@ namespace dart {
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
-  V(StaticResolutionException_throwNew, 1)                                     \
+  V(NoSuchMethodError_throwNew, 2)                                             \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
   V(ByteArray_getLength, 1)                                                    \

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
+// WARNING: Do not edit - generated code.
 
-interface EventListenerList {
+abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
   EventListenerList remove(EventListener handler, [bool useCapture]);
@@ -14,15 +12,15 @@ interface EventListenerList {
   bool dispatch(Event evt);
 }
 
-interface Events {
+abstract class Events {
   EventListenerList operator [](String type);
 }
 
 /// @domName EventTarget
-interface EventTarget {
+abstract class EventTarget {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
-  final Events on;
+  abstract Events get on;
 
   /** @domName EventTarget.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);

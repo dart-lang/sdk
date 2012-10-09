@@ -7,7 +7,6 @@
  */
 #library('intl_message_test_2');
 
-#import('../lib/date_format.dart');
 #import('../lib/date_symbol_data_local.dart');
 #import('../lib/intl.dart');
 #import('../lib/message_lookup_local.dart');

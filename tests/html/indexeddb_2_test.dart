@@ -9,7 +9,7 @@
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
-const String VERSION = '1';
+const int VERSION = 1;
 
 testReadWrite(key, value, check,
               [dbName = DB_NAME,
@@ -19,23 +19,23 @@ testReadWrite(key, value, check,
 
   fail(e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure');
+      throw const Exception('IndexedDB failure');
     });
   }
 
-  createObjectStore() {
+  createObjectStore(db) {
     var store = db.createObjectStore(storeName);
-    Expect.isNotNull(store);
+    expect(store, isNotNull);
   }
 
   step2(e) {
     var transaction = db.transaction(storeName, 'readonly');
     var request = transaction.objectStore(storeName).getObject(key);
     request.on.success.add(expectAsync1((e) {
-        var object = e.target.result;
-        check(value, object);
-      })
-    );
+      var object = e.target.result;
+      db.close();
+      check(value, object);
+    }));
     request.on.error.add(fail);
   }
 
@@ -49,14 +49,11 @@ testReadWrite(key, value, check,
   initDb(e) {
     db = e.target.result;
     if (version != db.version) {
-      // TODO.  Some browsers do this the w3 way - passing the version to the
-      // open call and listening to onversionchange.  Can we feature-detect the
-      // difference and make it work?
-      var request = db.setVersion(version);
+      // Legacy 'setVersion' upgrade protocol.
+      var request = db.setVersion('$version');
       request.on.success.add(
         expectAsync1((e) {
-          createObjectStore();
-
+          createObjectStore(db);
           var transaction = e.target.result;
           transaction.on.complete.add(expectAsync1((e) => step1()));
           transaction.on.error.add(fail);
@@ -68,10 +65,26 @@ testReadWrite(key, value, check,
     }
   }
 
-  var request = window.indexedDB.open(dbName);
-  Expect.isNotNull(request);
-  request.on.success.add(expectAsync1(initDb));
-  request.on.error.add(fail);
+  openDb(e) {
+    var request = window.indexedDB.open(dbName, version);
+    expect(request, isNotNull);
+    request.on.success.add(expectAsync1(initDb));
+    request.on.error.add(fail);
+    if (request is IDBOpenDBRequest) {
+      // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
+      // setVersion instead.
+      request.on.upgradeNeeded.add((e) {
+          guardAsync(() {
+              createObjectStore(e.target.result);
+            });
+        });
+    }
+  }
+
+  // Delete any existing DB.
+  var deleteRequest = window.indexedDB.deleteDatabase(dbName);
+  deleteRequest.on.success.add(expectAsync1(openDb));
+  deleteRequest.on.error.add(fail);
 };
 
 
@@ -96,7 +109,6 @@ main() {
 
   test('test_verifyGraph', () {
       // Nice to know verifyGraph is working before we rely on it.
-      Expect.mapEquals(obj4, obj4);
       verifyGraph(obj4, obj4);
       verifyGraph(obj1, new Map.from(obj1));
       verifyGraph(obj4, new Map.from(obj4));
@@ -104,7 +116,7 @@ main() {
       var l1 = [1,2,3];
       var l2 = [const [1, 2, 3], const [1, 2, 3]];
       verifyGraph([l1, l1], l2);
-      Expect.throws(() => verifyGraph([[1, 2, 3], [1, 2, 3]], l2));
+      expect(() => verifyGraph([[1, 2, 3], [1, 2, 3]], l2), throws);
 
       verifyGraph(cyclic_list, cyclic_list);
     });

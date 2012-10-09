@@ -4,7 +4,7 @@
 
 #library('dart:_js_helper');
 
-#import('coreimpl.dart');
+#import('dart:coreimpl');
 
 #source('constant_map.dart');
 #source('native_helper.dart');
@@ -378,8 +378,11 @@ class Primitives {
     }
 
     // Inside browser.
-    if (JS('bool', r'typeof console == "object"')) {
-      JS('void', r'console.log(#)', string);
+    if (JS('bool', r'typeof window == "object"')) {
+      // On IE, the console is only defined if dev tools is open.
+      if (JS('bool', r'typeof console == "object"')) {
+        JS('void', r'console.log(#)', string);
+      }
       return;
     }
 
@@ -389,7 +392,10 @@ class Primitives {
       return;
     }
 
-    throw 'Unable to print message: ${NoSuchMethodError.safeToString(string)}';
+    // This is somewhat nasty, but we don't want to drag in a bunch of
+    // dependencies to handle a situation that cannot happen. So we
+    // avoid using Dart [:throw:] and Dart [toString].
+    JS('void', "throw 'Unable to print message: ' + String(#)", string);
   }
 
   static int parseInt(String string) {

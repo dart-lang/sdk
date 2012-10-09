@@ -47,7 +47,7 @@ main() {
 
   group('nodes', () {
     test('is a NodeList', () {
-      Expect.isTrue(makeNodeWithChildren().nodes is NodeList);
+      Expect.isTrue(makeNodeWithChildren().nodes is List<Node>);
     });
 
     test('first', () {
@@ -73,7 +73,7 @@ main() {
       var filtered = makeNodeWithChildren().nodes.filter((n) => n is BRElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is BRElement);
-      Expect.isTrue(filtered is NodeList);
+      Expect.isTrue(filtered is List<Node>);
     });
 
     test('every', () {
@@ -167,7 +167,7 @@ main() {
 
     test('getRange', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.getRange(1, 2) is NodeList);
+      Expect.isTrue(node.nodes.getRange(1, 2) is List<Node>);
     });
   });
 
@@ -184,12 +184,12 @@ main() {
       var filtered = makeNodeList().filter((n) => n is BRElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is BRElement);
-      Expect.isTrue(filtered is NodeList);
+      Expect.isTrue(filtered is List<Node>);
     });
 
     test('getRange', () {
       var range = makeNodeList().getRange(1, 2);
-      Expect.isTrue(range is NodeList);
+      Expect.isTrue(range is List<Node>);
       Expect.isTrue(range[0] is BRElement);
       Expect.isTrue(range[1] is Comment);
     });

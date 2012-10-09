@@ -39,7 +39,7 @@ const String DEFAULT_HELPERLIB = r'''
   getRuntimeTypeInfo(a) {}
   stringTypeCheck(x) {}
   boolConversionCheck(x) {}
-  interface JavaScriptIndexingBehavior {}
+  abstract class JavaScriptIndexingBehavior {}
   S() {}
   assert(a){}''';
 
@@ -54,12 +54,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}
-  interface int extends num {}
-  interface double extends num {}
+  abstract class int extends num {}
+  abstract class double extends num {}
   class bool {}
   class String {}
   class Object {}
-  interface num {}
+  abstract class num {}
   class Function {}
   interface List default ListImplementation { List([length]);}
   class ListImplementation { factory List([length]) => null; }

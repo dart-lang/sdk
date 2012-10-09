@@ -29,10 +29,10 @@
  * section of the library tour.
  *
  */
-interface Storage extends Map<String, String> {
+abstract class Storage implements Map<String, String> {
 
   /** @domName Storage.length */
-  final int $dom_length;
+  abstract int get $dom_length;
 
   /** @domName Storage.clear */
   void $dom_clear();

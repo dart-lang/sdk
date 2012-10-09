@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
-
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(analyzer-team): Please triage this failure.
@@ -170,7 +168,6 @@ Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directiv
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t01: Fail, OK # co19 issue 233
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
-Language/03_Overview/2_Privacy_A01_t12: Fail, OK # deprecated import directive without parens
 Language/06_Functions/06_Functions_A01_t03: Fail, OK # co19 issue 232
 Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail, OK # deprecated use of "default"
 Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail, OK # should expect error
@@ -204,7 +201,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # c
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
-Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t03: Fail, OK # out of date - getters are not allowed to have parameters
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
@@ -392,7 +388,6 @@ Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK
 Language/11_Statements/08_Switch_A06_t04: Fail, OK
 Language/03_Overview/2_Privacy_A01_t11: Fail, OK
 Language/03_Overview/1_Scoping_A02_t28: Fail, OK
-Language/03_Overview/2_Privacy_A01_t02: Fail, OK
 Language/03_Overview/2_Privacy_A01_t18: Fail, OK
 Language/03_Overview/2_Privacy_A01_t08: Fail, OK
 

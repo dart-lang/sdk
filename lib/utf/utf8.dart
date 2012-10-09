@@ -133,9 +133,8 @@ class IterableUtf8Decoder implements Iterable<int> {
   final int length;
   final int replacementCodepoint;
 
-  IterableUtf8Decoder(List<int> this.bytes, [int this.offset = 0,
-      int this.length = null,
-      int this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]);
+  IterableUtf8Decoder(this.bytes, [this.offset = 0, this.length = null,
+      this.replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]);
 
   Utf8Decoder iterator() => new Utf8Decoder(bytes, offset, length,
           replacementCodepoint);
@@ -154,14 +153,14 @@ class Utf8Decoder implements Iterator<int> {
   final int replacementCodepoint;
 
   Utf8Decoder(List<int> utf8EncodedBytes, [int offset = 0, int length,
-      int this.replacementCodepoint =
+      this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       utf8EncodedBytesIterator = (new _ListRange(utf8EncodedBytes, offset,
           length)).iterator();
 
 
   Utf8Decoder._fromListRangeIterator(_ListRange source, [
-      int this.replacementCodepoint =
+      this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       utf8EncodedBytesIterator = source.iterator();
 

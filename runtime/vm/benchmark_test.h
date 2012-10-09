@@ -27,9 +27,8 @@ DECLARE_FLAG(int, heap_growth_space_ratio);
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_heap_growth_space_ratio = 100;                                        \
-    FLAG_code_heap_size = 12;                                                  \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
-    Zone __zone__(benchmark->isolate());                                       \
+    StackZone __zone__(benchmark->isolate());                                  \
     HandleScope __hs__(benchmark->isolate());                                  \
     Dart_BenchmarkHelper##name(benchmark);                                     \
   }                                                                            \

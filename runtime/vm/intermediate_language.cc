@@ -1202,18 +1202,44 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
 }
 
 
-RawAbstractType* UnboxedMintBinaryOpInstr::CompileType() const {
+RawAbstractType* BinaryMintOpInstr::CompileType() const {
   return Type::IntType();
 }
 
 
-intptr_t UnboxedMintBinaryOpInstr::ResultCid() const {
+intptr_t BinaryMintOpInstr::ResultCid() const {
   return kDynamicCid;
 }
 
 
-RawAbstractType* UnboxedDoubleBinaryOpInstr::CompileType() const {
+RawAbstractType* ShiftMintOpInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t ShiftMintOpInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
+RawAbstractType* UnaryMintOpInstr::CompileType() const {
+  return Type::IntType();
+}
+
+
+intptr_t UnaryMintOpInstr::ResultCid() const {
+  return kDynamicCid;
+}
+
+
+RawAbstractType* BinaryDoubleOpInstr::CompileType() const {
   return Type::Double();
+}
+
+
+intptr_t BinaryDoubleOpInstr::ResultCid() const {
+  // The output is not an instance but when it is boxed it becomes double.
+  return kDoubleCid;
 }
 
 

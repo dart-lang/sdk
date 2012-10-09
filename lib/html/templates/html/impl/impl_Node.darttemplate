@@ -7,7 +7,7 @@
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy implements NodeList {
+class _ChildNodeListLazy implements List {
   final _NodeImpl _this;
 
   _ChildNodeListLazy(this._this);
@@ -96,7 +96,7 @@ $endif
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int rangeLength) =>
+  List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.

@@ -14,7 +14,7 @@ DOMFileSystem fs;
 main() {
   useHtmlConfiguration();
   test('getFileSystem', () {
-    window.webkitRequestFileSystem(Window.TEMPORARY, 100, expectAsync1(
+    window.webkitRequestFileSystem(LocalWindow.TEMPORARY, 100, expectAsync1(
       (DOMFileSystem fileSystem) {
         fs = fileSystem;
       }),

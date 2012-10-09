@@ -160,11 +160,6 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, array_class_);
   }
 
-  RawType* byte_array_interface() const { return byte_array_interface_; }
-  void set_byte_array_interface(const Type& value) {
-    byte_array_interface_ = value.raw();
-  }
-
   RawClass* immutable_array_class() const { return immutable_array_class_; }
   void set_immutable_array_class(const Class& value) {
     immutable_array_class_ = value.raw();
@@ -502,7 +497,6 @@ class ObjectStore {
   RawClass* array_class_;
   RawClass* immutable_array_class_;
   RawClass* growable_object_array_class_;
-  RawType* byte_array_interface_;
   RawClass* int8_array_class_;
   RawClass* uint8_array_class_;
   RawClass* int16_array_class_;

@@ -8,7 +8,6 @@ statements_test: Fail
 typed_locals_test: Fail
 regress/4740_test: Fail
 inline_position_crash_test: Fail # http://www.dartbug.com/3905
-constant_javascript_semantics2_test: Fail # http://www.dartbug.com/5581
 
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK

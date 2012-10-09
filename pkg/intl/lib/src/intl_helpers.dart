@@ -41,3 +41,22 @@ class LocaleDataException implements Exception {
 abstract class LocaleDataReader {
   abstract Future read(String locale);
 }
+
+/**
+ * The internal mechanism for looking up messages. We expect this to be set
+ * by the implementing package so that we're not dependent on its
+ * implementation.
+ */
+var messageLookup = const
+    UninitializedLocaleData('initializeMessages(<locale>)');
+
+/**
+ * Initialize the message lookup mechanism. This is for internal use only.
+ * User applications should import `message_lookup_local.dart` and call
+ * `initializeMessages`
+ */
+void initializeInternalMessageLookup(Function lookupFunction) {
+  if (messageLookup is UninitializedLocaleData) {
+    messageLookup = lookupFunction();
+  }
+}

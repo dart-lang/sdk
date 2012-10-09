@@ -5,40 +5,38 @@
 #library('timer_cancel_test');
 
 #import("dart:isolate");
-
-void testSimpleTimer() {
-  Timer cancelTimer;
-  int repeatTimer;
-
-  void timeoutHandlerUnreachable(Timer timer) {
-    Expect.equals(true, false);
-  }
-
-  void timeoutHandler(Timer timer) {
-    cancelTimer.cancel();
-  }
-
-  void timeoutHandlerRepeat(Timer timer) {
-    repeatTimer++;
-    timer.cancel();
-    Expect.equals(true, repeatTimer == 1);
-  }
-
-  cancelTimer = new Timer(1000, timeoutHandlerUnreachable);
-  cancelTimer.cancel();
-  new Timer(1000, timeoutHandler);
-  cancelTimer = new Timer(2000, timeoutHandlerUnreachable);
-  repeatTimer = 0;
-  new Timer.repeating(1500, timeoutHandlerRepeat);
-}
-
-void testCancelTimerWithSameTime() {
-  var t2;
-  var t1 = new Timer(0, (t) => t2.cancel());
-  t2 = new Timer(0, (t) => t1.cancel());
-}
+#import('../../pkg/unittest/unittest.dart');
 
 main() {
-  testSimpleTimer();
-  testCancelTimerWithSameTime();
+  test("simple timer", () {
+    Timer cancelTimer;
+    int repeatTimer;
+
+    void unreachable(Timer timer) {
+      fail("should not be reached");
+    }
+
+    void handler(Timer timer) {
+      cancelTimer.cancel();
+    }
+
+    void repeatHandler(Timer timer) {
+      repeatTimer++;
+      timer.cancel();
+      expect(repeatTimer == 1);
+    }
+
+    cancelTimer = new Timer(1000, expectAsync1(unreachable, count: 0));
+    cancelTimer.cancel();
+    new Timer(1000, expectAsync1(handler));
+    cancelTimer = new Timer(2000, expectAsync1(unreachable, count: 0));
+    repeatTimer = 0;
+    new Timer.repeating(1500, expectAsync1(repeatHandler));
+  });
+  
+  test("cancel timer with same time", () {
+    var t2;
+    var t1 = new Timer(0, expectAsync1((t) => t2.cancel()));
+    t2 = new Timer(0, expectAsync1((t) => t1.cancel(), count: 0));
+  });
 }

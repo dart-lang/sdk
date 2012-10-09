@@ -36,7 +36,7 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
 
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
-  return (index >= kObjectType && index <= kByteArrayInterface);
+  return (index >= kObjectType && index <= kListInterface);
 }
 
 
@@ -68,7 +68,6 @@ static RawType* GetType(ObjectStore* object_store, int index) {
     case kBoolType: return object_store->bool_type();
     case kStringInterface: return object_store->string_interface();
     case kListInterface: return object_store->list_interface();
-    case kByteArrayInterface: return object_store->byte_array_interface();
     default: break;
   }
   UNREACHABLE();
@@ -104,8 +103,6 @@ static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
     return kStringInterface;
   } else if (raw_type == object_store->list_interface()) {
     return kListInterface;
-  } else if (raw_type == object_store->byte_array_interface()) {
-    return kByteArrayInterface;
   }
   return kInvalidIndex;
 }

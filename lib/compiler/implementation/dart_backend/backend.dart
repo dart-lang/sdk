@@ -132,8 +132,9 @@ class DartBackend extends Backend {
     workQueue.addAll(
         classMembers.getKeys().map((classElement) => classElement.type));
     workQueue.addAll(compiler.resolverWorld.isChecks);
-    DartType typeErrorType =
-        compiler.coreLibrary.find(new SourceString('TypeError')).type;
+    Element typeErrorElement =
+        compiler.coreLibrary.find(new SourceString('TypeError'));
+    DartType typeErrorType = typeErrorElement.computeType(compiler);
     if (workQueue.indexOf(typeErrorType) != -1) {
       return false;
     }
@@ -187,6 +188,8 @@ class DartBackend extends Backend {
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
+
+  Element getInterceptor(Selector selector) => null;
 
   void enqueueHelpers(Enqueuer world) {
     // Right now resolver doesn't always resolve interfaces needed

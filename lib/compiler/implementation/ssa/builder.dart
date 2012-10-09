@@ -184,6 +184,9 @@ class SsaBuilderTask extends CompilerTask {
         graph = builder.buildMethod(element);
       } else if (kind === ElementKind.FIELD) {
         graph = builder.buildLazyInitializer(element);
+      } else {
+        compiler.internalErrorOnElement(element,
+                                        'unexpected element kind $kind');
       }
       assert(graph.isValid());
       if (kind !== ElementKind.FIELD) {
@@ -196,8 +199,11 @@ class SsaBuilderTask extends CompilerTask {
 
         // If there is an estimate of the parameter types assume these types
         // when compiling.
+        // TODO(karlklose,ngeoffray): add a check to make sure that element is
+        // of type FunctionElement.
+        FunctionElement function = element;
         OptionalParameterTypes defaultValueTypes = null;
-        FunctionSignature signature = element.computeSignature(compiler);
+        FunctionSignature signature = function.computeSignature(compiler);
         if (signature.optionalParameterCount > 0) {
           defaultValueTypes =
               new OptionalParameterTypes(signature.optionalParameterCount);
@@ -1345,7 +1351,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // for us here?
       LibraryElement library = body.getLibrary();
       Selector selector = new Selector.call(name, library, arity);
-      HInstruction invoke = new HInvokeDynamicMethod(selector, bodyCallInputs);
+      HInvokeDynamic invoke =
+          new HInvokeDynamicMethod(selector, bodyCallInputs);
       invoke.element = body;
       add(invoke);
     }
@@ -2192,14 +2199,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (methodInterceptionEnabled) {
       staticInterceptor = interceptors.getStaticSetInterceptor(setterName);
     }
+    bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     if (staticInterceptor != null) {
       HStatic target = new HStatic(staticInterceptor);
       add(target);
       List<HInstruction> inputs = <HInstruction>[target, receiver, value];
       addWithPosition(new HInvokeInterceptor(selector, inputs), send);
     } else {
-      addWithPosition(new HInvokeDynamicSetter(selector, null, receiver, value),
-                      send);
+      addWithPosition(
+          new HInvokeDynamicSetter(selector, null, receiver, value, !hasSetter),
+          send);
     }
     stack.add(value);
   }
@@ -2625,8 +2634,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
     // and implementation signatures. Currently it is need because the
     // signatures have different elements for parameters.
-    FunctionSignature params
-        = function.implementation.computeSignature(compiler);
+    FunctionElement implementation = function.implementation;
+    FunctionSignature params = implementation.computeSignature(compiler);
     if (params.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',

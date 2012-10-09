@@ -173,15 +173,17 @@ bool hasUtf32leBom(List<int> utf32EncodedBytes, [int offset = 0, int length]) {
       utf32EncodedBytes[offset + 2] == 0 && utf32EncodedBytes[offset + 3] == 0;
 }
 
+typedef Utf32BytesDecoder Utf32BytesDecoderProvider();
+
 /**
  * Return type of [decodeUtf32AsIterable] and variants. The Iterable type
  * provides an iterator on demand and the iterator will only translate bytes
  * as requested by the user of the iterator. (Note: results are not cached.)
  */
 class IterableUtf32Decoder implements Iterable<int> {
-  final Function codeunitsProvider;
+  final Utf32BytesDecoderProvider codeunitsProvider;
 
-  IterableUtf32Decoder._(Function this.codeunitsProvider);
+  IterableUtf32Decoder._(this.codeunitsProvider);
 
   Utf32BytesDecoder iterator() => codeunitsProvider();
 }
@@ -194,8 +196,7 @@ class Utf32BytesDecoder implements _ListRangeIterator {
   final int replacementCodepoint;
 
   Utf32BytesDecoder._fromListRangeIterator(
-      _ListRangeIterator this.utf32EncodedBytesIterator,
-      int this.replacementCodepoint);
+      this.utf32EncodedBytesIterator, this.replacementCodepoint);
 
   factory Utf32BytesDecoder(List<int> utf32EncodedBytes, [
       int offset = 0, int length,

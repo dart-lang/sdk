@@ -18,6 +18,8 @@ abstract class double extends num {
   static const double NAN = 0.0 / 0.0;
   static const double INFINITY = 1.0 / 0.0;
   static const double NEGATIVE_INFINITY = -INFINITY;
+  static const double MIN_POSITIVE = 5e-324;
+  static const double MAX_FINITE = 1.7976931348623157e+308;
 
   /** Return the remainder from dividing this [double] by [other]. */
   abstract double remainder(num other);

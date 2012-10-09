@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+xhr_cross_origin_test: Skip # http://dartbug.com/5645
+
 window_open_test: Fail, Pass # http://dartbug.com/5151
 
 event_test: Skip  # Issue 1996
@@ -11,9 +13,6 @@ xmlelement_test: Skip  # XML in dart:html is incomplete
 
 [ $runtime == chrome ]
 contentelement_test: Fail   # Issue 5445: not currently supported on chrome stable.
-
-[ $runtime == drt ]
-xhr_cross_origin_test: Skip  # Issue 4502: Passes with --allow-external-pages.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
@@ -61,6 +60,7 @@ history_test: Fail
 contentelement_test: Fail   # ie does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
+inner_frame_test: Skip # Issue 5727 (timeout)
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
@@ -69,7 +69,8 @@ typed_arrays_5_test: Skip
 typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
 typed_arrays_range_checks_test: Fail
-element_test: Fail
+element_test: Fail  # Bug 5693
+element_webkit_test: Fail
 localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
@@ -81,9 +82,7 @@ websql_test: Fail # IE does not support web SQL
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
-cache_test: Fail
-canvas_test: Fail
-canvas_using_html_test: Fail
+cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
 css_test: Fail
 datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
@@ -99,6 +98,7 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
+postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
@@ -110,7 +110,6 @@ window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
-xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
 
 [ $runtime == safari ]
 performance_api_test: Fail # window.performance.timing not in Safari 6.
@@ -118,7 +117,6 @@ indexeddb_1_test: Fail # indexedDB not in Safari 6.
 indexeddb_2_test: Fail # indexedDB not in Safari 6.
 indexeddb_3_test: Fail # indexedDB not in Safari 6.
 indexeddb_4_test: Fail # indexedDB not in Safari 6.
-indexeddb_1_test: Fail # indexedDB not in Safari 6.
 fileapi_test: Fail # requestFileSystem not supported in Safari 6.
 datalistelement_test: Fail # HTMLDataListElement not yet supported in Safari.
 contentelement_test: Fail # Safari 6 does not support content element.
@@ -130,14 +128,15 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_pixel_array_type_alias_test: Fail
-canvas_test: Fail
-canvas_using_html_test: Fail
+canvas_test: Fail # createImageData not in Safari 5.
+canvasrenderingcontext2d_test: Fail
 datalistelement_test: Pass,Fail
 document_test: Fail
 dom_constructors_test: Fail
+element_test: Fail # Bug 5693
 element_add_test: Fail
 element_constructor_1_test: Fail
-element_test: Fail
+element_webkit_test: Fail
 exceptions_test: Fail
 instance_of_test: Fail
 mutationobserver_test: Fail
@@ -152,18 +151,16 @@ url_test: Fail
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
-canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
-canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 contentelement_test: Fail    # FF does not support content element.
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
-element_test: Fail
+element_webkit_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test: Fail         # FF does not support filesystem APIs.
-indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+indexeddb_1_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_2_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_3_test: Fail     # FF disables indexedDB from file URLs.
+indexeddb_4_test: Fail     # FF disables indexedDB from file URLs.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
@@ -217,7 +214,6 @@ typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
 
 [ $compiler == dart2js && $runtime == ff ]
-cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodError : method not found: 'get$status'
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout

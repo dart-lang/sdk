@@ -5,39 +5,31 @@
 #library('timer_repeat_test');
 
 #import("dart:isolate");
+#import('../../pkg/unittest/unittest.dart');
 
-class TimerRepeatTest {
+  const int TIMEOUT = 500;
+  const int ITERATIONS = 5;
 
-  static const int _TIMEOUT = 500;
-  static const int _ITERATIONS = 5;
-
-  static void testRepeatTimer() {
-
-    void timeoutHandler(Timer timer) {
-      int endTime = (new Date.now()).millisecondsSinceEpoch;
-      _iteration++;
-      if (_iteration < _ITERATIONS) {
-        _startTime = (new Date.now()).millisecondsSinceEpoch;
-      } else {
-        Expect.equals(_iteration, _ITERATIONS);
-        timer.cancel();
-      }
+  Timer timer;
+  int startTime;
+  int iteration;
+  
+  void timeoutHandler(Timer timer) {
+    int endTime = (new Date.now()).millisecondsSinceEpoch;
+    iteration++;
+    if (iteration < ITERATIONS) {
+      startTime = (new Date.now()).millisecondsSinceEpoch;
+    } else {
+      expect(iteration, ITERATIONS);
+      timer.cancel();
     }
-
-    _iteration = 0;
-    _startTime = (new Date.now()).millisecondsSinceEpoch;
-    timer = new Timer.repeating(_TIMEOUT, timeoutHandler);
   }
-
-  static void testMain() {
-    testRepeatTimer();
-  }
-
-  static Timer timer;
-  static int _startTime;
-  static int _iteration;
-}
 
 main() {
-  TimerRepeatTest.testMain();
+  test("timer_repeat", () {
+    iteration = 0;
+    startTime = new Date.now().millisecondsSinceEpoch;
+    timer = new Timer.repeating(TIMEOUT, 
+        expectAsync1(timeoutHandler, count: ITERATIONS));
+  });
 }

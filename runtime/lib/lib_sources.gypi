@@ -14,6 +14,7 @@
     'errors_patch.dart',
     'error.h',
     'expando_patch.dart',
+    'function_patch.dart',
     'integers.cc',
     'integers.dart',
     'integers_patch.dart',

@@ -5,6 +5,7 @@
 #include "include/dart_debugger_api.h"
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -234,7 +235,9 @@ static void VerifyStackTrace(Dart_StackTrace trace,
 }
 
 
-void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestBreakpointHandler(Dart_IsolateId isolate_id,
+                           Dart_Breakpoint bpt,
+                           Dart_StackTrace trace) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
   breakpoint_hit = true;
@@ -282,7 +285,9 @@ TEST_CASE(Debug_Breakpoint) {
 }
 
 
-void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestStepOutHandler(Dart_IsolateId isolate_id,
+                        Dart_Breakpoint bpt,
+                        Dart_StackTrace trace) {
   const char* expected_bpts[] = {"f1", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
@@ -344,7 +349,9 @@ TEST_CASE(Debug_StepOut) {
 }
 
 
-void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestStepIntoHandler(Dart_IsolateId isolate_id,
+                         Dart_Breakpoint bpt,
+                         Dart_StackTrace trace) {
   const char* expected_bpts[] = {
       "main",
         "foo",
@@ -425,7 +432,9 @@ TEST_CASE(Debug_StepInto) {
 }
 
 
-static void StepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+static void StepIntoHandler(Dart_IsolateId isolate_id,
+                            Dart_Breakpoint bpt,
+                            Dart_StackTrace trace) {
   if (verbose) {
     OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
               breakpoint_hit_counter, BreakpointInfo(trace));
@@ -506,7 +515,9 @@ TEST_CASE(Debug_DeoptimizeFunction) {
 }
 
 
-void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+void TestSingleStepHandler(Dart_IsolateId isolate_id,
+                           Dart_Breakpoint bpt,
+                           Dart_StackTrace trace) {
   const char* expected_bpts[] = {
       "moo", "foo", "moo", "foo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
@@ -562,7 +573,8 @@ TEST_CASE(Debug_SingleStep) {
 }
 
 
-static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
+static void ClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                     Dart_Breakpoint bpt,
                                      Dart_StackTrace trace) {
   const char* expected_trace[] = {"callback", "main"};
   const intptr_t expected_trace_length = 2;
@@ -615,7 +627,8 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 }
 
 
-static void ExprClosureBreakpointHandler(Dart_Breakpoint bpt,
+static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                         Dart_Breakpoint bpt,
                                          Dart_StackTrace trace) {
   static const char* expected_trace[] = {"add", "main"};
   Dart_Handle add_locals = Dart_NewList(4);
@@ -662,7 +675,8 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 
 static intptr_t bp_id_to_be_deleted;
 
-static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
+static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
+                                    Dart_Breakpoint bpt,
                                     Dart_StackTrace trace) {
   const char* expected_trace[] = {"foo", "main"};
   const intptr_t expected_trace_length = 2;
@@ -731,7 +745,8 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 }
 
 
-static void InspectStaticFieldHandler(Dart_Breakpoint bpt,
+static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
+                                      Dart_Breakpoint bpt,
                                       Dart_StackTrace trace) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
@@ -1038,6 +1053,176 @@ TEST_CASE(GetLibraryURLs) {
   EXPECT_SUBSTRING(TestCase::url(), list_cstr);
 }
 
+
+static Dart_IsolateId test_isolate_id = ILLEGAL_ISOLATE_ID;
+static int verify_callback = 0;
+static void TestIsolateID(Dart_IsolateId isolate_id, Dart_IsolateEvent kind) {
+  if (kind == kCreated) {
+    EXPECT(test_isolate_id == ILLEGAL_ISOLATE_ID);
+    test_isolate_id = isolate_id;
+    Dart_Isolate isolate = Dart_GetIsolate(isolate_id);
+    EXPECT(isolate == Dart_CurrentIsolate());
+    verify_callback |= 0x1;  // Register create callback.
+  } else if (kind == kInterrupted) {
+    EXPECT(test_isolate_id == isolate_id);
+    Dart_Isolate isolate = Dart_GetIsolate(isolate_id);
+    EXPECT(isolate == Dart_CurrentIsolate());
+    verify_callback |= 0x2;  // Register interrupt callback.
+  } else if (kind == kShutdown) {
+    EXPECT(test_isolate_id == isolate_id);
+    Dart_Isolate isolate = Dart_GetIsolate(isolate_id);
+    EXPECT(isolate == Dart_CurrentIsolate());
+    verify_callback |= 0x4;  // Register shutdown callback.
+  }
+}
+
+
+UNIT_TEST_CASE(Debug_IsolateID) {
+  const char* kScriptChars =
+      "void moo(s) { }        \n"
+      "class A {              \n"
+      "  static void foo() {  \n"
+      "    moo('good news');  \n"
+      "  }                    \n"
+      "}                      \n"
+      "void main() {          \n"
+      "  A.foo();             \n"
+      "}                      \n";
+
+  Dart_SetIsolateEventHandler(&TestIsolateID);
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  ASSERT(isolate != NULL);
+  Dart_EnterScope();
+  LoadScript(kScriptChars);
+  Dart_Handle retval = Invoke("main");
+  EXPECT_VALID(retval);
+  EXPECT(test_isolate_id != ILLEGAL_ISOLATE_ID);
+  EXPECT(Dart_GetIsolate(test_isolate_id) == isolate);
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+  EXPECT(verify_callback == 0x5);  // Only created and shutdown events.
+}
+
+
+static Monitor* sync = NULL;
+static bool isolate_interrupted = false;
+static Dart_IsolateId interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
+static volatile bool continue_isolate_loop = true;
+
+
+static void TestInterruptIsolate(Dart_IsolateId isolate_id,
+                                 Dart_IsolateEvent kind) {
+  if (kind == kCreated) {
+    EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+    // Indicate that the isolate has been created.
+    {
+      MonitorLocker ml(sync);
+      interrupt_isolate_id = isolate_id;
+      ml.Notify();
+    }
+  } else if (kind == kInterrupted) {
+    // Indicate that isolate has been interrupted.
+    {
+      MonitorLocker ml(sync);
+      isolate_interrupted = true;
+      continue_isolate_loop = false;
+      ml.Notify();
+    }
+  } else if (kind == kShutdown) {
+    if (interrupt_isolate_id == isolate_id) {
+      MonitorLocker ml(sync);
+      interrupt_isolate_id = ILLEGAL_ISOLATE_ID;
+      ml.Notify();
+    }
+  }
+}
+
+
+static void InterruptNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle val = Dart_NewBoolean(continue_isolate_loop);
+  Dart_SetReturnValue(args, val);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction InterruptNativeResolver(Dart_Handle name,
+                                                   int arg_count) {
+  return &InterruptNativeFunction;
+}
+
+
+static void InterruptIsolateRun(uword unused) {
+  const char* kScriptChars =
+      "void moo(s) { }              \n"
+      "class A {                    \n"
+      "  static check() native 'a'; \n"
+      "  static void foo() {        \n"
+      "    var loop = true;         \n"
+      "    while (loop) {           \n"
+      "      moo('good news');      \n"
+      "      loop = check();        \n"
+      "    }                        \n"
+      "  }                          \n"
+      "}                            \n"
+      "void main() {                \n"
+      "  A.foo();                   \n"
+      "}                            \n";
+
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  ASSERT(isolate != NULL);
+  Dart_EnterScope();
+  LoadScript(kScriptChars);
+
+  Dart_Handle result = Dart_SetNativeResolver(script_lib,
+                                              &InterruptNativeResolver);
+  EXPECT_VALID(result);
+
+  Dart_Handle retval = Invoke("main");
+  EXPECT_VALID(retval);
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+TEST_CASE(Debug_InterruptIsolate) {
+  Dart_SetIsolateEventHandler(&TestInterruptIsolate);
+  sync = new Monitor();
+  EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  int result = Thread::Start(InterruptIsolateRun, 0);
+  EXPECT_EQ(0, result);
+
+  // Wait for the test isolate to be created.
+  {
+    MonitorLocker ml(sync);
+    while (interrupt_isolate_id == ILLEGAL_ISOLATE_ID) {
+      ml.Wait();
+    }
+  }
+  EXPECT(interrupt_isolate_id != ILLEGAL_ISOLATE_ID);
+
+  Dart_Isolate isolate = Dart_GetIsolate(interrupt_isolate_id);
+  EXPECT(isolate != NULL);
+  Dart_InterruptIsolate(isolate);
+
+  // Wait for the test isolate to be interrupted.
+  {
+    MonitorLocker ml(sync);
+    while (!isolate_interrupted) {
+      ml.Wait();
+    }
+  }
+  EXPECT(isolate_interrupted);
+
+  // Wait for the test isolate to shutdown.
+  {
+    MonitorLocker ml(sync);
+    while (interrupt_isolate_id != ILLEGAL_ISOLATE_ID) {
+      ml.Wait();
+    }
+  }
+  EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+}
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 

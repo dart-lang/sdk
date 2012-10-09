@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('pubspec');
+library pubspec;
 
-#import('package.dart');
-#import('source.dart');
-#import('source_registry.dart');
-#import('utils.dart');
-#import('version.dart');
-#import('yaml/yaml.dart');
+import 'package.dart';
+import 'source.dart';
+import 'source_registry.dart';
+import 'utils.dart';
+import 'version.dart';
+import 'yaml/yaml.dart';
 
 /**
  * The parsed and validated contents of a pubspec file.

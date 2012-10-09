@@ -131,6 +131,8 @@ class JavaScriptIdentityOperation implements BinaryOperation {
     }
     return result;
   }
+
+  apply(left, right) => identical(left, right);
 }
 
 /**

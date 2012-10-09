@@ -184,7 +184,7 @@ class _MatchesRegExp extends _StringMatcher {
 
 // String matchers match against a string. We add this intermediate
 // class to give better mismatch error messages than the base Matcher class.
-/* abstract */ class _StringMatcher extends BaseMatcher {
+abstract class _StringMatcher extends BaseMatcher {
   const _StringMatcher();
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {

@@ -45,6 +45,7 @@ DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
+DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
 
 #define DEOPT_REASONS(V)                                                       \
   V(Unknown)                                                                   \
@@ -62,6 +63,7 @@ DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
   V(DoubleToDouble)                                                            \
   V(BinarySmiOp)                                                               \
   V(BinaryMintOp)                                                              \
+  V(ShiftMintOp)                                                               \
   V(BinaryDoubleOp)                                                            \
   V(InstanceSetterSameTarget)                                                  \
   V(InstanceSetter)                                                            \
@@ -78,8 +80,8 @@ DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
   V(LoadIndexedGrowableArray)                                                  \
   V(LoadIndexedPolymorphic)                                                    \
   V(NoTypeFeedback)                                                            \
-  V(SAR)                                                                       \
   V(UnaryOp)                                                                   \
+  V(UnboxInteger)                                                              \
   V(CheckClass)                                                                \
   V(CheckSmi)                                                                  \
   V(AtCall)                                                                    \

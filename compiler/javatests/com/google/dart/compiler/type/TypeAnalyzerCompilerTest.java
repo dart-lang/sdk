@@ -33,6 +33,7 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
@@ -41,7 +42,6 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -63,7 +63,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Variant of {@link TypeAnalyzerTest}, which is based on {@link CompilerTestCase}. It is probably
@@ -576,7 +575,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // "new I.foo()" - resolved, but we produce error.
     {
-      DartNewExpression newExpression = findExpression(unit, "new I.foo(0)");
+      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
       DartNode constructorNode = newExpression.getElement().getNode();
       assertEquals(true, constructorNode.toSource().contains("F.foo("));
     }
@@ -3107,13 +3106,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
     // v.f1() was resolved
     {
-      DartExpression expression = findExpression(testUnit, "v.f1()");
+      DartExpression expression = findNodeBySource(testUnit, "v.f1()");
       assertNotNull(expression);
       assertNotNull(expression.getElement());
     }
     // v.f2() was resolved
     {
-      DartExpression expression = findExpression(testUnit, "v.f1()");
+      DartExpression expression = findNodeBySource(testUnit, "v.f1()");
       assertNotNull(expression);
       assertNotNull(expression.getElement());
     }
@@ -3326,37 +3325,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * It is a static warning if the return type of the user-declared "operator -" is explicitly
-   * declared and not a numerical type.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3224
-   */
-  public void test_negateOperatorType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  num operator -() {}",
-        "}",
-        "class B {",
-        "  int operator -() {}",
-        "}",
-        "class C {",
-        "  double operator -() {}",
-        "}",
-        "class D {",
-        "  String operator -() {}",
-        "}",
-        "class E {",
-        "  Object operator -() {}",
-        "}",
-        "");
-    assertErrors(
-        libraryResult.getErrors(),
-        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 12, 3, 6),
-        errEx(TypeErrorCode.OPERATOR_NEGATE_NUM_RETURN_TYPE, 15, 3, 6));
-  }
-
-  /**
    * It is a static warning if the return type of the user-declared operator == is explicitly
    * declared and not bool.
    */
@@ -3396,7 +3364,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // find == expression
-    DartExpression expression = findExpression(unit, "new C() == new C()");
+    DartExpression expression = findNodeBySource(unit, "new C() == new C()");
     assertNotNull(expression);
     // validate == element
     MethodElement equalsElement = (MethodElement) expression.getElement();
@@ -4392,6 +4360,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+    {
+      DartPropertyAccess access = findNode(DartPropertyAccess.class, "..f = 1");
+      assertNotNull(access.getElement());
+    }
+    {
+      DartPropertyAccess access = findNode(DartPropertyAccess.class, "..f = 2");
+      assertNotNull(access.getElement());
+    }
   }
   
   /**
@@ -4402,16 +4378,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int m() {}",
+        "  int m(p) {}",
         "}",
         "main() {",
         "  A a = new A();",
         "  a",
-        "    ..m()",
-        "    ..m();",
+        "    ..m(1)",
+        "    ..m(2);",
         "}",
         "");
     assertErrors(libraryResult.getErrors());
+    {
+      DartMethodInvocation invocation = findNode(DartMethodInvocation.class, "..m(1)");
+      assertNotNull(invocation.getElement());
+    }
+    {
+      DartMethodInvocation invocation = findNode(DartMethodInvocation.class, "..m(2)");
+      assertNotNull(invocation.getElement());
+    }
   }
 
   /**
@@ -5320,24 +5304,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 4, 5, 3));
   }
-
-  private <T extends DartNode> T findNode(final Class<T> clazz, String pattern) {
-    final int index = testSource.indexOf(pattern);
-    assertTrue(index != -1);
-    final AtomicReference<T> result = new AtomicReference<T>();
-    testUnit.accept(new ASTVisitor<Void>() {
-      @Override
-      @SuppressWarnings("unchecked")
-      public Void visitNode(DartNode node) {
-        SourceInfo sourceInfo = node.getSourceInfo();
-        if (sourceInfo.getOffset() <= index
-            && index < sourceInfo.getEnd()
-            && clazz.isInstance(node)) {
-          result.set((T) node);
-        }
-        return super.visitNode(node);
-      }
-    });
-    return result.get();
+  
+  /**
+   * Developers unfamiliar with Dart frequently write (x/y).toInt() instead of x ~/ y. The editor
+   * should recognize that pattern
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5652
+   */
+  public void test_useEffectiveIntegerDivision() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  num x = 7;",
+        "  num y = 2;",
+        "  print( (x / y).toInt() );",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.USE_INTEGER_DIVISION, 5, 10, 15));
   }
 }

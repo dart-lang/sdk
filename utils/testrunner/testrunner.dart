@@ -70,14 +70,14 @@
  */
 
 // TODO - layout tests that use PNGs rather than DRT text render dumps.
-#library('testrunner');
-#import('dart:io');
-#import('dart:isolate');
-#import('dart:math');
-#import('../../pkg/args/lib/args.dart');
+library testrunner;
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
+import '../../pkg/args/lib/args.dart';
 
-#source('options.dart');
-#source('utils.dart');
+part 'options.dart';
+part 'utils.dart';
 
 /** The set of [PipelineRunner]s to execute. */
 List _tasks;
@@ -188,6 +188,14 @@ void writelog(List messages, OutputStream out, OutputStream log,
         out.writeString(msg.substring(3));
         out.writeString('\n');
       }
+    } else if (msg.startsWith('CONSOLE MESSAGE:')) {
+      if (!skipNonVerbose && out != null) {
+        int idx = msg.indexOf('###');
+        if (idx > 0) {
+          out.writeString(msg.substring(idx + 3));
+          out.writeString('\n');
+        }
+      }
     } else if (includeVerbose && log != null) {
       log.writeString(msg);
       log.writeString('\n');
@@ -206,9 +214,6 @@ sanitizeConfig(Map config, ArgParser parser) {
 
   config['timeout'] = int.parse(config['timeout']);
   config['tasks'] = int.parse(config['tasks']);
-
-  config['keep-files'] = (config['keep-files'] &&
-      !(config['list-groups'] || config['list-tests']));
 
   var dartsdk = config['dartsdk'];
   var pathSep = Platform.pathSeparator;

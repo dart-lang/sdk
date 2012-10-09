@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('root_source');
+library root_source;
 
-#import('package.dart');
-#import('pubspec.dart');
-#import('source.dart');
+import 'package.dart';
+import 'pubspec.dart';
+import 'source.dart';
 
 /**
  * A source used only for the root package when doing version resolution. It

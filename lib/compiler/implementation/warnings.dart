@@ -264,6 +264,25 @@ Invalid offset (#{1}) in source map.
 File: #{2}
 Length: #{3}''');
 
+  static const PATCH_RETURN_TYPE_MISMATCH = const MessageKind(
+      "Patch return type '#{3}' doesn't match '#{2}' on origin method '#{1}'.");
+
+  static const PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH = const MessageKind(
+      "Required parameter count of patch method (#{3}) doesn't match parameter "
+      "count on origin method '#{1}' (#{2}).");
+
+  static const PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH = const MessageKind(
+      "Optional parameter count of patch method (#{3}) doesn't match parameter "
+      "count on origin method '#{1}' (#{2}).");
+
+  static const PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH = const MessageKind(
+      "Optional parameters of origin and patch method '#{1}' must "
+      "both be either named or positional.");
+
+  static const PATCH_PARAMETER_MISMATCH = const MessageKind(
+      "Patch method parameter '#{3}' doesn't match '#{2}' on origin method "
+      "#{1}.");
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
@@ -283,7 +302,8 @@ Please include the following information:
 
 * the Dart SDK build number (#{1}), and
 
-* the stack trace you see here.
+* the entire message you see here (including the full stack trace
+  below as well as the source location above).
 ''');
 
   toString() => template;

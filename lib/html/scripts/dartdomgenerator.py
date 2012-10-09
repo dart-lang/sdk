@@ -18,7 +18,6 @@ import sys
 from generator import TypeRegistry
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
-from systembase import GeneratorOptions
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
                        HtmlDartInterfaceGenerator
 from systemnative import CPPLibraryEmitter, DartiumBackend
@@ -37,6 +36,13 @@ _webkit_renames = {
     'SharedWorkerGlobalScope': 'SharedWorkerContext',
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
+
+class GeneratorOptions(object):
+  def __init__(self, templates, database, type_registry, renamer):
+    self.templates = templates
+    self.database = database
+    self.type_registry = type_registry
+    self.renamer = renamer
 
 # TODO(vsm): Remove once we fix Dartium to pass in the database directly.
 def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
@@ -150,6 +156,9 @@ def GenerateSingleFile(library_path, output_dir):
 
 def main():
   parser = optparse.OptionParser()
+  parser.add_option('--parallel', dest='parallel',
+                    action='store_true', default=False,
+                    help='Use fremontcut in parallel mode.')
   parser.add_option('--rebuild', dest='rebuild',
                     action='store_true', default=False,
                     help='Rebuild the database from IDL using fremontcut.')
@@ -183,7 +192,7 @@ def main():
 
   if options.rebuild:
     # Parse the IDL and create the database.
-    database = fremontcutbuilder.main()
+    database = fremontcutbuilder.main(options.parallel)
   else:
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)

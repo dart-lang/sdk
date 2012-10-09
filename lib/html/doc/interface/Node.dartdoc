@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
+// WARNING: Do not edit - generated code.
 
 /// @domName Node
-interface Node extends EventTarget {
-  NodeList get nodes();
+abstract class Node implements EventTarget {
+  List<Node> get nodes;
 
   void set nodes(Collection<Node> value);
 
@@ -22,71 +20,71 @@ interface Node extends EventTarget {
    * Removes this node from the DOM.
    * @domName Node.removeChild
    */
-  Node remove();
+  void remove();
 
 
-  static final int ATTRIBUTE_NODE = 2;
+  static const int ATTRIBUTE_NODE = 2;
 
-  static final int CDATA_SECTION_NODE = 4;
+  static const int CDATA_SECTION_NODE = 4;
 
-  static final int COMMENT_NODE = 8;
+  static const int COMMENT_NODE = 8;
 
-  static final int DOCUMENT_FRAGMENT_NODE = 11;
+  static const int DOCUMENT_FRAGMENT_NODE = 11;
 
-  static final int DOCUMENT_NODE = 9;
+  static const int DOCUMENT_NODE = 9;
 
-  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 
-  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
 
-  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
 
-  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
 
-  static final int DOCUMENT_TYPE_NODE = 10;
+  static const int DOCUMENT_TYPE_NODE = 10;
 
-  static final int ELEMENT_NODE = 1;
+  static const int ELEMENT_NODE = 1;
 
-  static final int ENTITY_NODE = 6;
+  static const int ENTITY_NODE = 6;
 
-  static final int ENTITY_REFERENCE_NODE = 5;
+  static const int ENTITY_REFERENCE_NODE = 5;
 
-  static final int NOTATION_NODE = 12;
+  static const int NOTATION_NODE = 12;
 
-  static final int PROCESSING_INSTRUCTION_NODE = 7;
+  static const int PROCESSING_INSTRUCTION_NODE = 7;
 
-  static final int TEXT_NODE = 3;
+  static const int TEXT_NODE = 3;
 
   /** @domName Node.attributes */
-  final NamedNodeMap $dom_attributes;
+  abstract NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  final NodeList $dom_childNodes;
+  abstract List<Node> get $dom_childNodes;
 
   /** @domName Node.firstChild */
-  final Node $dom_firstChild;
+  abstract Node get $dom_firstChild;
 
   /** @domName Node.lastChild */
-  final Node $dom_lastChild;
+  abstract Node get $dom_lastChild;
 
   /** @domName Node.nextSibling */
-  final Node nextNode;
+  abstract Node get nextNode;
 
   /** @domName Node.nodeType */
-  final int $dom_nodeType;
+  abstract int get $dom_nodeType;
 
   /** @domName Node.ownerDocument */
-  final Document document;
+  abstract Document get document;
 
   /** @domName Node.parentNode */
-  final Node parent;
+  abstract Node get parent;
 
   /** @domName Node.previousSibling */
-  final Node previousNode;
+  abstract Node get previousNode;
 
   /** @domName Node.textContent */
   String text;

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('source');
+library source;
 
-#import('io.dart');
-#import('package.dart');
-#import('pubspec.dart');
-#import('system_cache.dart');
-#import('version.dart');
+import 'io.dart';
+import 'package.dart';
+import 'pubspec.dart';
+import 'system_cache.dart';
+import 'version.dart';
 
 /**
  * A source from which to install packages.
@@ -16,7 +16,7 @@
  * Each source has many packages that it looks up using [PackageId]s. The source
  * is responsible for installing these packages to the package cache.
  */
-class Source {
+abstract class Source {
   /**
    * The name of the source. Should be lower-case, suitable for use in a
    * filename, and unique accross all sources.

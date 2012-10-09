@@ -387,6 +387,22 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
 }
 
 
+AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
+  // Return this node if it represents a 'throw NoSuchMethodError' indicating
+  // that a getter was not found, otherwise return null.
+  const Class& cls = Class::Handle(function().Owner());
+  const String& cls_name = String::Handle(cls.Name());
+  const String& func_name = String::Handle(function().name());
+  const String& error_cls_name = String::Handle(Symbols::NoSuchMethodError());
+  const String& error_func_name = String::Handle(Symbols::ThrowNew());
+  if (cls_name.Equals(error_cls_name) &&
+      func_name.StartsWith(error_func_name)) {
+    return this;
+  }
+  return NULL;
+}
+
+
 const Instance* StaticGetterNode::EvalConstExpr() const {
   const String& getter_name =
       String::Handle(Field::GetterName(this->field_name()));

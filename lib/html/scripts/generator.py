@@ -15,6 +15,7 @@ _pure_interfaces = set([
     'DOMStringMap',
     'ElementTimeControl',
     'ElementTraversal',
+    'EventListener',
     'MediaQueryListListener',
     'NodeSelector',
     'SVGExternalResourcesRequired',
@@ -141,12 +142,6 @@ def MatchSourceFilter(thing):
   return 'WebKit' in thing.annotations or 'Dart' in thing.annotations
 
 
-def DartType(idl_type_name):
-  if idl_type_name in _idl_type_registry:
-    return _idl_type_registry[idl_type_name].dart_type or idl_type_name
-  return idl_type_name
-
-
 class ParamInfo(object):
   """Holder for various information about a parameter of a Dart operation.
 
@@ -187,11 +182,15 @@ def _BuildArguments(args, interface, constructor=False):
   def OverloadedName(args):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
 
+  def DartType(idl_type_name):
+   if idl_type_name in _idl_type_registry:
+     return _idl_type_registry[idl_type_name].dart_type or idl_type_name
+   return idl_type_name
+
   # Given a list of overloaded arguments, choose a suitable type.
   def OverloadedType(args):
     type_ids = sorted(set(arg.type.id for arg in args))
-    dart_types = sorted(set(DartType(arg.type.id) for arg in args))
-    if len(dart_types) == 1:
+    if len(set(DartType(arg.type.id) for arg in args)) == 1:
       if len(type_ids) == 1:
         return (type_ids[0], type_ids[0])
       else:
@@ -347,9 +346,13 @@ class OperationInfo(object):
 
   def ParametersInterfaceDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the interface."""
-    return self._FormatParams(
-        self.param_infos, None,
-        lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
+    def type_function(param):
+      # TODO(podivilov): replace param.dart_type field with param.is_optional
+      dart_type = param.dart_type
+      if dart_type != 'Dynamic':
+        dart_type = rename_type(dart_type)
+      return TypeOrNothing(dart_type, param.type_id)
+    return self._FormatParams(self.param_infos, None, type_function)
 
   def ParametersImplementationDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the
@@ -359,9 +362,13 @@ class OperationInfo(object):
       rename_type: A function that allows the types to be renamed.
         The function is applied to the parameter's dart_type.
     """
-    return self._FormatParams(
-        self.param_infos, 'null',
-        lambda param: TypeOrNothing(rename_type(param.dart_type)))
+    def type_function(param):
+      # TODO(podivilov): replace param.dart_type field with param.is_optional
+      dart_type = param.dart_type
+      if dart_type != 'Dynamic':
+        dart_type = rename_type(dart_type)
+      return TypeOrNothing(dart_type)
+    return self._FormatParams(self.param_infos, 'null', type_function)
 
   def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
@@ -401,14 +408,14 @@ class OperationInfo(object):
     assert any([is_static == o.is_static for o in self.overloads])
     return is_static
 
-  def _ConstructorFullName(self):
+  def _ConstructorFullName(self, rename_type):
     if self.constructor_name:
-      return self.type_name + '.' + self.constructor_name
+      return rename_type(self.type_name) + '.' + self.constructor_name
     else:
-      return self.type_name
+      return rename_type(self.type_name)
 
   def ConstructorFactoryName(self, rename_type):
-    return 'create' + rename_type(self._ConstructorFullName()).replace('.', '_')
+    return 'create' + self._ConstructorFullName(rename_type).replace('.', '_')
 
   def GenerateFactoryInvocation(self, rename_type, emitter, factory_provider):
     has_optional = any(param_info.is_optional
@@ -420,7 +427,7 @@ class OperationInfo(object):
           '\n'
           '  factory $CTOR($PARAMS) => '
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
-          CTOR=rename_type(self._ConstructorFullName()),
+          CTOR=self._ConstructorFullName(rename_type),
           PARAMS=self.ParametersInterfaceDeclaration(rename_type),
           FACTORY=factory_provider,
           CTOR_FACTORY_NAME=factory_name,
@@ -433,7 +440,7 @@ class OperationInfo(object):
         '$!DISPATCHER'
         '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '  }\n',
-        CTOR=rename_type(self._ConstructorFullName()),
+        CTOR=self._ConstructorFullName(rename_type),
         PARAMS=self.ParametersInterfaceDeclaration(rename_type),
         FACTORY=factory_provider,
         CTOR_FACTORY_NAME=factory_name,
@@ -499,6 +506,9 @@ def TypeName(type_ids, interface):
   # Dynamically type this field for now.
   return 'Dynamic'
 
+def ImplementationClassName(interface_name):
+  return '_%sImpl' % interface_name
+
 # ------------------------------------------------------------------------------
 
 class Conversion(object):
@@ -512,81 +522,93 @@ class Conversion(object):
     self.input_type = input_type
     self.output_type = output_type
 
-#  TYPE -> "DIRECTION INTERFACE.MEMBER" -> conversion
-#  TYPE -> "DIRECTION INTERFACE.*" -> conversion
-#  TYPE -> "DIRECTION" -> conversion
+#  "TYPE DIRECTION INTERFACE.MEMBER" -> conversion
+#     Specific member of interface
+#  "TYPE DIRECTION INTERFACE.*" -> conversion
+#     All members of interface getting (setting) with type.
+#  "TYPE DIRECTION" -> conversion
+#     All getters (setters) of type.
 #
 # where DIRECTION is 'get' for getters and operation return values, 'set' for
 # setters and operation arguments.  INTERFACE and MEMBER are the idl names.
 #
+
+_serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
+                           'Dynamic', 'Dynamic')
+
 dart2js_conversions = {
-    'IDBKey': {
-        'get':
-          Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
-        'set':
-          Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
-        },
-    'ImageData': {
-        'get':
-          Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
-        'set':
-          Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic')
-        },
-    'Dictionary': {
-        'get':
-          Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
-        'set':
-          Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
-        },
+    # Wrap non-local Windows.  We need to check EventTarget (the base type)
+    # as well.  Note, there are no functions that take a non-local Window
+    # as a parameter / setter.
+    'DOMWindow get':
+      Conversion('_convertNativeToDart_Window', 'Window', 'Window'),
+    'EventTarget get':
+      Conversion('_convertNativeToDart_EventTarget', 'EventTarget',
+                 'EventTarget'),
+    'EventTarget set':
+      Conversion('_convertDartToNative_EventTarget', 'EventTarget',
+                 'EventTarget'),
 
-    'DOMString[]': {
-        'set':
-          Conversion(
-              '_convertDartToNative_StringArray', 'List<String>', 'List'),
-        },
+    'IDBKey get':
+      Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+    'IDBKey set':
+      Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
 
-    'any': {
-        'set IDBObjectStore.add':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        'set IDBObjectStore.put':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        'set IDBCursor.update':
-          Conversion('_convertDartToNative_SerializedScriptValue',
-                     'Dynamic', 'Dynamic'),
-        },
+    'ImageData get':
+      Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+    'ImageData set':
+      Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic'),
+
+    'Dictionary get':
+      Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+    'Dictionary set':
+      Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+
+    'DOMString[] set':
+      Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
+
+    'any set IDBObjectStore.add': _serialize_SSV,
+    'any set IDBObjectStore.put': _serialize_SSV,
+    'any set IDBCursor.update': _serialize_SSV,
+
+    # postMessage
+    'any set DedicatedWorkerContext.postMessage': _serialize_SSV,
+    'any set MessagePort.postMessage': _serialize_SSV,
+    'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
+    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
+
+    # receiving message via MessageEvent
+    'DOMObject get MessageEvent.data':
+      Conversion('_convertNativeToDart_SerializedScriptValue',
+                 'Dynamic', 'Dynamic'),
 
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require
     # serialized script value processing.
-    'IDBAny': {
-        'get IDBCursorWithValue.value':
-          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+    'IDBAny get IDBCursorWithValue.value':
+      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
 
-        # This is problematic.  The result property of IDBRequest is used for
-        # all requests.  Read requests like IDBDataStore.getObject need
-        # conversion, but other requests like opening a database return
-        # something that does not need conversion.
-        'get IDBRequest.result':
-          Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+    # This is problematic.  The result property of IDBRequest is used for
+    # all requests.  Read requests like IDBDataStore.getObject need
+    # conversion, but other requests like opening a database return
+    # something that does not need conversion.
+    'IDBAny get IDBRequest.result':
+      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
 
-        # "source: On getting, returns the IDBObjectStore or IDBIndex that the
-        # cursor is iterating. ...".  So we should not try to convert it.
-        'get IDBCursor.source': None,
+    # "source: On getting, returns the IDBObjectStore or IDBIndex that the
+    # cursor is iterating. ...".  So we should not try to convert it.
+    'IDBAny get IDBCursor.source': None,
 
-        # Should be either a DOMString, an Array of DOMStrings or null.
-        'get IDBObjectStore.keyPath': None
-        },
+    # Should be either a DOMString, an Array of DOMStrings or null.
+    'IDBAny get IDBObjectStore.keyPath': None,
 }
 
 def FindConversion(idl_type, direction, interface, member):
-  table = dart2js_conversions.get(idl_type)
-  if table:
-    return (table.get('%s %s.%s' % (direction, interface, member)) or
-            table.get('%s %s.*' % (direction, interface)) or
-            table.get(direction))
+  table = dart2js_conversions
+  return (table.get('%s %s %s.%s' % (idl_type, direction, interface, member)) or
+          table.get('%s %s %s.*' % (idl_type, direction, interface)) or
+          table.get('%s %s' % (idl_type, direction)))
   return None
 
 # ------------------------------------------------------------------------------
@@ -601,6 +623,9 @@ class IDLTypeInfo(object):
 
   def dart_type(self):
     return self._data.dart_type or self._idl_type
+
+  def narrow_dart_type(self):
+    return self.dart_type()
 
   def native_type(self):
     return self._data.native_type or self._idl_type
@@ -683,8 +708,29 @@ class IDLTypeInfo(object):
 
 
 class InterfaceIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data):
+  def __init__(self, idl_type, data, dart_interface_name):
     super(InterfaceIDLTypeInfo, self).__init__(idl_type, data)
+    self._dart_interface_name = dart_interface_name
+
+  def dart_type(self):
+    return self._data.dart_type or self._dart_interface_name
+
+  def narrow_dart_type(self):
+    # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
+    if self._data.suppress_public_interface:
+      return ImplementationClassName(self.idl_type())
+    # TODO(podivilov): only primitive and collection types should override
+    # dart_type.
+    if self._data.dart_type != None:
+      return self.dart_type()
+    if IsPureInterface(self.idl_type()):
+      return self.idl_type()
+    return ImplementationClassName(self._dart_interface_name)
+
+
+class CallbackIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, data):
+    super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
@@ -765,9 +811,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return re.sub(r'(^| )([a-z])', lambda x: x.group(2).upper(), self.native_type())
 
 
-class SVGTearOffIDLTypeInfo(IDLTypeInfo):
+class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
   def __init__(self, idl_type, data):
-    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data)
+    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data, idl_type)
 
   def native_type(self):
     if self._data.native_type:
@@ -810,7 +856,7 @@ class TypeData(object):
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
                requires_v8_scope=False, suppress_public_interface=False):
-    """Constructor. 
+    """Constructor.
     Arguments:
     - suppress_public_interface is True if we are converting a DOM type to a
         built-in Dart type in which case we do not want to generate the new
@@ -879,6 +925,8 @@ _idl_type_registry = {
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
+    'WebKitAnimationList': TypeData(clazz='Interface',
+        dart_type='List<Animation>', suppress_public_interface=True),
     'ClientRectList': TypeData(clazz='Interface', dart_type='List<ClientRect>',
         suppress_public_interface=True),
     'CSSRuleList': TypeData(clazz='Interface', dart_type='List<CSSRule>',
@@ -908,6 +956,8 @@ _idl_type_registry = {
         dart_type='List<MediaStream>', suppress_public_interface=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
+    'NodeList': TypeData(clazz='Interface', dart_type='List<Node>',
+        suppress_public_interface=False),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
     'SVGElementInstanceList': TypeData(clazz='Interface',
@@ -968,14 +1018,7 @@ class TypeRegistry(object):
     return self._cache[type_name]
 
   def DartType(self, type_name):
-    dart_type = self.TypeInfo(type_name).dart_type()
-    if self._database.HasInterface(dart_type):
-      interface = self._database.GetInterface(dart_type)
-      if self._renamer:
-        return self._renamer.RenameInterface(interface)
-      else:
-        return interface.id
-    return dart_type
+    return self.TypeInfo(type_name).dart_type()
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
@@ -984,8 +1027,24 @@ class TypeRegistry(object):
         return DOMStringArrayTypeInfo(TypeData('Sequence'), self.TypeInfo('DOMString'))
       item_info = self.TypeInfo(match.group(1) or match.group(2))
       return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
+
     if not type_name in _idl_type_registry:
-      return InterfaceIDLTypeInfo(type_name, TypeData('Interface'))
+      interface = self._database.GetInterface(type_name)
+      if 'Callback' in interface.ext_attrs:
+        return CallbackIDLTypeInfo(type_name, TypeData('Callback'))
+      return InterfaceIDLTypeInfo(
+          type_name,
+          TypeData('Interface'),
+          self._renamer.RenameInterface(interface))
+
     type_data = _idl_type_registry.get(type_name)
+    if type_data.clazz == 'Interface':
+      if self._database.HasInterface(type_name):
+        dart_interface_name = self._renamer.RenameInterface(
+            self._database.GetInterface(type_name))
+      else:
+        dart_interface_name = type_name
+      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name)
+
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

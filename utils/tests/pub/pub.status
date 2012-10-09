@@ -12,10 +12,10 @@
 
 # Git on Windows is cripplingly slow and will make these tests time out (#5271).
 [ $system == windows ]
-pub_install_git_test: Skip
-pub_update_git_test: Skip
+install/git/*: Skip
+update/git/*: Skip
 
 # Getting non-determinstic network errors with these on Windows (#5272).
 [ $system == windows ]
-pub_install_hosted_test: Skip
-pub_update_hosted_test: Skip
+install/hosted/*: Skip
+update/hosted/*: Skip

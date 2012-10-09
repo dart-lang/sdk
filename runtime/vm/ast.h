@@ -1378,6 +1378,8 @@ class StaticCallNode : public AstNode {
     arguments()->Visit(visitor);
   }
 
+  virtual AstNode* MakeAssignmentNode(AstNode* rhs);
+
   DECLARE_COMMON_NODE_FUNCTIONS(StaticCallNode);
 
  private:

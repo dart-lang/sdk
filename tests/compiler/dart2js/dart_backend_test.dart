@@ -50,6 +50,10 @@ abstract class Navigator {
 }
 ''';
 
+const helperLib = r'''
+#library('js_helper');
+''';
+
 testDart2Dart(String src, [void continuation(String s), bool minify = false,
     bool stripTypes = false]) {
   // If continuation is not provided, check that source string remains the same.
@@ -78,6 +82,7 @@ testDart2DartWithLibrary(
     }
     if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
     if (uri.path.endsWith('/io.dart')) return new Future.immediate(ioLib);
+    if (uri.path.endsWith('/js_helper.dart')) return new Future.immediate(helperLib);
     // TODO(smok): The file should change to html_dartium at some point.
     if (uri.path.endsWith('/html_dart2js.dart')) return new Future.immediate(htmlLib);
     return new Future.immediate('');

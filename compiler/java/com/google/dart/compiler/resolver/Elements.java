@@ -6,7 +6,9 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
@@ -821,5 +823,32 @@ static FieldElementImplementation fieldFromNode(DartField node,
   
   public static DuplicateElement createDuplicateElement(Element oldElement, Element newElement) {
     return new DuplicateElementImplementation(oldElement, newElement);
+  }
+  
+  
+  public static List<Element> getAllMembers(ClassElement classElement) {
+    List<Element> allMembers = Lists.newArrayList();
+    Set<ClassElement> visited = Sets.newHashSet();
+    addAllMembers(visited, allMembers, classElement);
+    return allMembers;
+  }
+  
+  private static void addAllMembers(Set<ClassElement> visited, List<Element> allMembers, ClassElement classElement) {
+    if (classElement == null) {
+      return;
+    }
+    if (visited.contains(classElement)) {
+      return;
+    }
+    visited.add(classElement);
+    Iterables.addAll(allMembers, classElement.getMembers());
+    {
+      InterfaceType superType = classElement.getSupertype();
+      if (superType != null)
+        addAllMembers(visited, allMembers, superType.getElement());
+    }
+    for (InterfaceType intf : classElement.getInterfaces()) {
+      addAllMembers(visited, allMembers, intf.getElement());
+    }
   }
 }

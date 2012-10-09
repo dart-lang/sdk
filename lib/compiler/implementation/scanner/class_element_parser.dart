@@ -47,9 +47,7 @@ class PartialClassElement extends ClassElement {
         if (isPatched) {
           // TODO(lrn): Perhaps extract functionality so it doesn't
           // need compiler.
-          ClassNode patchNode = compiler.patchParser.parsePatchClassNode(patch);
-          Link<Element> patches = patch.localMembers;
-          compiler.applyContainerPatch(this, patches);
+          compiler.patchParser.parsePatchClassNode(patch);
         }
       });
     });

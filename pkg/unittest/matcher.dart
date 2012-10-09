@@ -26,7 +26,7 @@ class MatchState {
  * the benefit that a default implementation of describeMismatch will
  * be provided.
  */
-class BaseMatcher implements Matcher {
+abstract class BaseMatcher implements Matcher {
   const BaseMatcher();
 
   /**

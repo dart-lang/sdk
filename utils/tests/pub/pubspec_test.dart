@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('pubspec_test');
+library pubspec_test;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../pub/pubspec.dart');
-#import('../../pub/source.dart');
-#import('../../pub/source_registry.dart');
-#import('../../pub/utils.dart');
-#import('../../pub/version.dart');
+import '../../../pkg/unittest/unittest.dart';
+import '../../pub/pubspec.dart';
+import '../../pub/source.dart';
+import '../../pub/source_registry.dart';
+import '../../pub/utils.dart';
+import '../../pub/version.dart';
 
 class MockSource extends Source {
   final String name = "mock";

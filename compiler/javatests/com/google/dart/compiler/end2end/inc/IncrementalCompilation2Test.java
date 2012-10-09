@@ -1262,7 +1262,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     ErrorExpectation.assertErrors(errors);
   }
-  
+
   /**
    * Investigation of failing "language/ct_const4_test".
    */
@@ -1281,6 +1281,46 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "library application;",
             "import 'A.dart' as mylib;",
             "final A = mylib.B;",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+  }
+
+  /**
+   * Internals of Dart use "dart-ext:" import scheme, and these libraries are allowed to use
+   * "native". New import syntax.
+   */
+  public void test_useNative_withDartExt_new() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "import 'dart-ext:test_extension';",
+            "class A {",
+            "  static int ifNull(a, b) native 'TestExtension_IfNull';",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+  }
+  
+  /**
+   * Internals of Dart use "dart-ext:" import scheme, and these libraries are allowed to use
+   * "native". Obsolete import syntax.
+   */
+  public void test_useNative_withDartExt_obsolete() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "#import('dart-ext:test_extension');",
+            "class A {",
+            "  static int ifNull(a, b) native 'TestExtension_IfNull';",
+            "}",
             ""));
     // do compile, no errors expected
     compile();

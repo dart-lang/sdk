@@ -92,7 +92,7 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
         if (appLibraryUnit == null) {
           try {
             appLibraryUnit = new DartParser(lib, DartParser.read(lib), false,
-                Sets.<String> newHashSet(), listener, null).preProcessLibraryDirectives(lib);
+                Sets.<String> newHashSet(), DartCompilerListener.EMPTY, null).preProcessLibraryDirectives(lib);
           } catch (IOException e) {
             onError(new DartCompilationError(lib, DartCompilerErrorCode.IO, e.getMessage()));
             return null;

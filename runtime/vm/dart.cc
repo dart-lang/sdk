@@ -68,7 +68,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     vm_isolate_ = Isolate::Init("vm-isolate");
-    Zone zone(vm_isolate_);
+    StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
@@ -132,7 +132,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  Zone zone(isolate);
+  StackZone zone(isolate);
   HandleScope handle_scope(isolate);
   Heap::Init(isolate);
   ObjectStore::Init(isolate);

@@ -4,7 +4,7 @@
 
 class _FilteredElementList implements List {
   final Node _node;
-  final NodeList _childNodes;
+  final List<Node> _childNodes;
 
   _FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
 

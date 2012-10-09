@@ -15,7 +15,7 @@ $!MEMBERS
         throw const UnsupportedOperationException(
             'offsetX is only supported on elements');
       }
-      return this.clientX - this.target.$dom_getBoundingClientRect().left;
+      return this.clientX - this.target.getBoundingClientRect().left;
     }
   }
 
@@ -29,7 +29,7 @@ $!MEMBERS
         throw const UnsupportedOperationException(
             'offsetX is only supported on elements');
       }
-      return this.clientY - this.target.$dom_getBoundingClientRect().top;
+      return this.clientY - this.target.getBoundingClientRect().top;
     }
   }
 

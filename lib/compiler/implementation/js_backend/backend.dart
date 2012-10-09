@@ -661,6 +661,8 @@ class JavaScriptBackend extends Backend {
   ArgumentTypesRegistry argumentTypes;
   FieldTypesRegistry fieldTypes;
 
+  final Interceptors interceptors;
+
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
@@ -669,6 +671,7 @@ class JavaScriptBackend extends Backend {
       : namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
+        interceptors = new Interceptors(compiler),
         super(compiler, constantSystem: JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
@@ -684,6 +687,10 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
     return new JavaScriptItemCompilationContext();
+  }
+
+  Element getInterceptor(Selector selector) {
+    return interceptors.getStaticInterceptorBySelector(selector);
   }
 
   void enqueueHelpers(Enqueuer world) {
@@ -924,5 +931,20 @@ class JavaScriptBackend extends Backend {
             : const SourceString('propertyTypeCheck');
       }
     }
+  }
+
+  void dumpInferredTypes() {
+    print("Inferred argument types:");
+    print("------------------------");
+    argumentTypes.dump();
+    print("");
+    print("Inferred return types:");
+    print("----------------------");
+    dumpReturnTypes();
+    print("");
+    print("Inferred field types:");
+    print("------------------------");
+    fieldTypes.dump();
+    print("");
   }
 }

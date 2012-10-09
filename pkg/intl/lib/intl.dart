@@ -3,16 +3,63 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Internationalization object providing access to message formatting objects,
- * date formatting, parsing, bidirectional text relative to a specific locale.
+ * This library provides internationalization and localization. This includes
+ * message formatting and replacement, date and number formatting and parsing,
+ * and utilities for working with Bidirectional text.
+ *
+ * For things that require locale or other data, there are multiple different
+ * ways of making that data available, which may require importing different
+ * libraries. See the class comments for more details.
+ *
+ * There is also a simple example application that can be found in the
+ * `example/basic` directory.
  */
 #library('intl');
 
-#import('date_format.dart');
 #import('src/intl_helpers.dart');
+#import('dart:math');
+#import('date_symbols.dart');
+#import('src/date_format_internal.dart');
 
+#source('date_format.dart');
+#source('src/date_format_field.dart');
+#source('src/date_format_helpers.dart');
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
+
+/**
+ * The Intl class provides a common entry point for internationalization
+ * related tasks. An Intl instance can be created for a particular locale
+ * and used to create a date format via `anIntl.date()`. Static methods
+ * on this class are also used in message formatting.
+ *
+ * Message example:
+ *     '''I see ${Intl.plural(num_people,
+ *               {'0': 'no one at all',
+ *                '1': 'one other person',
+ *                'other': '$num_people other people'})} in $place.''''
+ *
+ * Usage examples:
+ *      today(date) => intl.message(
+ *          "Today's date is $date",
+ *          desc: 'Indicate the current date',
+ *          examples: {'date' : 'June 8, 2012'});
+ *      print(today(new Date.now());
+ *
+ *      msg(num_people, place) => intl.message(
+ *           '''I see ${Intl.plural(num_people,
+ *             {'0': 'no one at all',
+ *              '1': 'one other person',
+ *              'other': '$num_people other people'})} in $place.'''',
+ *          desc: 'Description of how many people are seen as program start.',
+ *          examples: {'num_people': 3, 'place': 'London'});
+ *
+ * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
+ * produce "I see 2 other people in Athens." as output.
+ *
+ * See `tests/message_format_test.dart` for more examples.
+ */
+ //TODO(efortuna): documentation example involving the offset parameter?
 
 class Intl {
   /**
@@ -33,8 +80,6 @@ class Intl {
    * this is not automatically set, and must be set by importing one of
    * intl_browser.dart or intl_standalone.dart and calling findSystemLocale().
    */
-  // TODO(alanknight): Detect this without forcing the jump through hoops.
-  // Issue 5171.
   static String systemLocale = 'en_US';
 
   /**
@@ -81,7 +126,7 @@ class Intl {
   static String message(String message_str, [final String desc='',
       final Map examples=const {}, String locale, String name,
       List<String> args]) {
-    return _messageLookup.lookupMessage(
+    return messageLookup.lookupMessage(
         message_str, desc, examples, locale, name, args);
   }
 
@@ -197,24 +242,5 @@ class Intl {
   static String getCurrentLocale() {
     if (_defaultLocale == null) _defaultLocale = systemLocale;
     return _defaultLocale;
-  }
-}
-
-/**
- * The internal mechanism for looking up messages. We expect this to be set
- * by the implementing package so that we're not dependent on its
- * implementation.
- */
-var _messageLookup = const
-    UninitializedLocaleData('initializeMessages(<locale>)');
-
-/**
- * Initialize the message lookup mechanism. This is for internal use only.
- * User applications should import message_lookup_local.dart and call
- * initializeMessages
- */
-void initializeInternalMessageLookup(Function lookupFunction) {
-  if (_messageLookup is UninitializedLocaleData) {
-    _messageLookup = lookupFunction();
   }
 }

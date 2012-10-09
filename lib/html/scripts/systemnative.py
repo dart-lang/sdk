@@ -9,17 +9,17 @@ native binding from the IDL database."""
 import emitter
 import os
 from generator import *
-from systembase import BaseGenerator
+from systemhtml import SecureOutputType
 
-
-class DartiumBackend(BaseGenerator):
+class DartiumBackend(object):
   """Generates Dart implementation for one DOM IDL interface."""
 
   def __init__(self, interface, cpp_library_emitter, options):
-    super(DartiumBackend, self).__init__(
-        options.database, options.type_registry, interface)
+    self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
+    self._database = options.database
     self._template_loader = options.templates
+    self._type_registry = options.type_registry
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
@@ -27,9 +27,6 @@ class DartiumBackend(BaseGenerator):
 
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
-
-  def SetImplementationEmitter(self, implementation_emitter):
-    self._dart_impl_emitter = implementation_emitter
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -100,7 +97,22 @@ class DartiumBackend(BaseGenerator):
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
-  def StartInterface(self):
+  def ImplementationTemplate(self):
+    template = None
+    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
+      template_file = 'impl_%s.darttemplate' % self._html_interface_name
+      template = self._template_loader.TryLoad(template_file)
+    if not template:
+      template = self._template_loader.Load('dart_implementation.darttemplate')
+    return template
+
+  def AdditionalImplementedInterfaces(self):
+    return []
+
+  def NativeSpec(self):
+    return ''
+
+  def StartInterface(self, memebers_emitter):
     # Create emitters for c++ implementation.
     if self.HasImplementation():
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
@@ -110,14 +122,13 @@ class DartiumBackend(BaseGenerator):
       self._cpp_impl_emitter = emitter.Emitter()
 
     self._interface_type_info = self._TypeInfo(self._interface.id)
-    self._members_emitter = emitter.Emitter()
+    self._members_emitter = memebers_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
     self._GenerateConstructors()
-    return self._members_emitter
 
   def _GenerateConstructors(self):
     if not self._IsConstructable():
@@ -169,7 +180,7 @@ class DartiumBackend(BaseGenerator):
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
 
-  def _BaseClassName(self):
+  def BaseClassName(self):
     root_class = 'NativeFieldWrapperClass1'
 
     if not self._interface.parents:
@@ -224,22 +235,6 @@ class DartiumBackend(BaseGenerator):
         NATIVE_NAME=native_binding)
 
   def FinishInterface(self):
-    template = None
-    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
-      template_file = 'impl_%s.darttemplate' % self._html_interface_name
-      template = self._template_loader.TryLoad(template_file)
-    if not template:
-      template = self._template_loader.Load('dart_implementation.darttemplate')
-
-    class_name = self._ImplClassName(self._interface.id)
-    members_emitter = self._dart_impl_emitter.Emit(
-        template,
-        CLASSNAME=class_name,
-        EXTENDS=' extends ' + self._BaseClassName(),
-        IMPLEMENTS=' implements ' + self._html_interface_name,
-        NATIVESPEC='')
-    members_emitter.Emit(''.join(self._members_emitter.Fragments()))
-
     self._GenerateCPPHeader()
 
     self._cpp_impl_emitter.Emit(
@@ -248,7 +243,7 @@ class DartiumBackend(BaseGenerator):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=class_name)
+        DART_IMPLEMENTATION_CLASS=self.ImplementationClassName())
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -314,7 +309,7 @@ class DartiumBackend(BaseGenerator):
 
   def _AddGetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
-    dart_declaration = '%s get %s' % (self._DartType(attr.type.id), html_name)
+    dart_declaration = '%s get %s' % (SecureOutputType(self, attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -405,7 +400,7 @@ class DartiumBackend(BaseGenerator):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
-          TYPE=dart_element_type, INTERFACE=self._interface.id)
+          TYPE=SecureOutputType(self, element_type), INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -452,7 +447,7 @@ class DartiumBackend(BaseGenerator):
         'NumericIndexedGetter' in ext_attrs)
 
   def _EmitNativeIndexGetter(self, element_type):
-    dart_declaration = '%s operator[](int index)' % element_type
+    dart_declaration = '%s operator[](int index)' % SecureOutputType(self, element_type, True)
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
         'Callback', True)
 
@@ -482,7 +477,7 @@ class DartiumBackend(BaseGenerator):
 
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
-        self._DartType(info.type_name),
+        SecureOutputType(self, info.type_name),
         html_name,
         info.ParametersImplementationDeclaration(
             (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
@@ -527,7 +522,7 @@ class DartiumBackend(BaseGenerator):
 
       dart_declaration = '%s%s _%s(%s)' % (
           'static ' if operation.is_static else '',
-          self._DartType(operation.type.id), overload_name, argument_list)
+          SecureOutputType(self, operation.type.id), overload_name, argument_list)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
           dart_declaration, 'Callback', False)
@@ -852,6 +847,12 @@ class DartiumBackend(BaseGenerator):
     return re.sub(r'^(create|exclusive)',
                   lambda s: 'is' + s.group(1).capitalize(),
                   name)
+
+  def _TypeInfo(self, type_name):
+    return self._type_registry.TypeInfo(type_name)
+
+  def _DartType(self, type_name):
+    return self._type_registry.DartType(type_name)
 
 
 class CPPLibraryEmitter():

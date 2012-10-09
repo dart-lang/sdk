@@ -58,7 +58,7 @@ static uint8_t* malloc_allocator(
 
 static uint8_t* zone_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  Zone* zone = Isolate::Current()->current_zone();
+  StackZone* zone = Isolate::Current()->current_zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
@@ -132,7 +132,7 @@ static void CheckEncodeDecodeMessage(Dart_CObject* root) {
 }
 
 TEST_CASE(SerializeNull) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -158,7 +158,7 @@ TEST_CASE(SerializeNull) {
 
 
 TEST_CASE(SerializeSmi1) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -185,7 +185,7 @@ TEST_CASE(SerializeSmi1) {
 
 
 TEST_CASE(SerializeSmi2) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -234,7 +234,7 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
 
 void CheckMint(int64_t value) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   const Mint& mint = Mint::Handle(Mint::New(value));
   ApiNativeScope scope;
@@ -279,7 +279,7 @@ TEST_CASE(SerializeMints) {
 
 
 TEST_CASE(SerializeDouble) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -306,7 +306,7 @@ TEST_CASE(SerializeDouble) {
 
 
 TEST_CASE(SerializeTrue) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with true object.
   uint8_t* buffer;
@@ -335,7 +335,7 @@ TEST_CASE(SerializeTrue) {
 
 
 TEST_CASE(SerializeFalse) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with false object.
   uint8_t* buffer;
@@ -367,7 +367,7 @@ static uword allocator(intptr_t size) {
 
 
 TEST_CASE(SerializeBigint) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -427,7 +427,7 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 
 void CheckBigint(const char* bigint_value) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   Bigint& bigint = Bigint::Handle();
   bigint ^= BigintOperations::NewFromCString(bigint_value);
@@ -498,7 +498,7 @@ TEST_CASE(SerializeSingletons) {
 
 
 TEST_CASE(SerializeString) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -526,7 +526,7 @@ TEST_CASE(SerializeString) {
 
 
 TEST_CASE(SerializeArray) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -564,7 +564,7 @@ TEST_CASE(SerializeArray) {
 
 
 TEST_CASE(SerializeEmptyArray) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -593,7 +593,7 @@ TEST_CASE(SerializeEmptyArray) {
 
 
 TEST_CASE(SerializeByteArray) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -628,7 +628,7 @@ TEST_CASE(SerializeByteArray) {
 
 
 TEST_CASE(SerializeEmptyByteArray) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
@@ -856,7 +856,7 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     Isolate* isolate = Isolate::Current();
-    Zone zone(isolate);
+    StackZone zone(isolate);
     HandleScope scope(isolate);
     FullSnapshotWriter writer(&buffer, &malloc_allocator);
     writer.WriteFullSnapshot();
@@ -902,7 +902,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     TestIsolateScope __test_isolate__;
 
     Isolate* isolate = Isolate::Current();
-    Zone zone(isolate);
+    StackZone zone(isolate);
     HandleScope scope(isolate);
 
     // Create a test library and Load up a test script in it.
@@ -1070,7 +1070,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
 
 TEST_CASE(IntArrayMessage) {
-  Zone zone(Isolate::Current());
+  StackZone zone(Isolate::Current());
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, &zone_allocator);
 
@@ -1153,7 +1153,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     DARTSCOPE_NOCHECKS(isolate);
 
     {
-      Zone zone(Isolate::Current());
+      StackZone zone(Isolate::Current());
       uint8_t* buffer;
       MessageWriter writer(&buffer, &zone_allocator);
       Smi& smi = Smi::Handle();
@@ -1171,7 +1171,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      Zone zone(Isolate::Current());
+      StackZone zone(Isolate::Current());
       uint8_t* buffer;
       MessageWriter writer(&buffer, &zone_allocator);
       Bigint& bigint = Bigint::Handle();
@@ -1190,7 +1190,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      Zone zone(Isolate::Current());
+      StackZone zone(Isolate::Current());
       uint8_t* buffer;
       MessageWriter writer(&buffer, &zone_allocator);
       String& str = String::Handle();

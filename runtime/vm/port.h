@@ -43,6 +43,9 @@ class PortMap: public AllStatic {
   // Returns whether a port is local to the current isolate.
   static bool IsLocalPort(Dart_Port id);
 
+  // Returns the owning Isolate for port 'id'.
+  static Isolate* GetIsolate(Dart_Port id);
+
   static void InitOnce();
 
  private:

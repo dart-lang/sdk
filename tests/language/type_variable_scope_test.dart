@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that type variables aren't in scope of static methods and factories.
+// Test that type variables referenced from within static members are malformed.
 
 class Foo<T> {
   Foo() { }
 
-  // T is not in scope for a static method.
   static
   Foo<T> /// 00: dynamic type error
   m(

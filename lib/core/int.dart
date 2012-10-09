@@ -16,7 +16,7 @@
  * class therefore sometimes differs between the Dart VM and Dart code
  * compiled to JavaScript.*
  */
-abstract class int implements num {
+abstract class int extends num {
   /** The bit-wise and operator. */
   int operator &(int other);
 

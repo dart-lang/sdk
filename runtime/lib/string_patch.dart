@@ -4,14 +4,14 @@
 
 patch class StringImplementation {
   /* patch */ static String _fromCharCodes(List<int> charCodes) {
-    return StringBase.createFromCharCodes(charCodes);
+    return _StringBase.createFromCharCodes(charCodes);
   }
 
   /* patch */ static String join(List<String> strings, String separator) {
-    return StringBase.join(strings, separator);
+    return _StringBase.join(strings, separator);
   }
 
   /* patch */ static String concatAll(List<String> strings) {
-    return StringBase.concatAll(strings);
+    return _StringBase.concatAll(strings);
   }
 }

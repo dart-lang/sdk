@@ -335,6 +335,9 @@ class Assembler : public ValueObject {
   void movd(XmmRegister dst, Register src);
   void movd(Register dst, XmmRegister src);
 
+  void movq(const Address& dst, XmmRegister src);
+  void movq(XmmRegister dst, const Address& src);
+
   void addss(XmmRegister dst, XmmRegister src);
   void addss(XmmRegister dst, const Address& src);
   void subss(XmmRegister dst, XmmRegister src);
@@ -395,6 +398,8 @@ class Assembler : public ValueObject {
   void pmovsxdq(XmmRegister dst, XmmRegister src);
   void pcmpeqq(XmmRegister dst, XmmRegister src);
 
+  void pxor(XmmRegister dst, XmmRegister src);
+
   void flds(const Address& src);
   void fstps(const Address& dst);
 
@@ -447,10 +452,12 @@ class Assembler : public ValueObject {
   void adcl(Register dst, Register src);
   void adcl(Register reg, const Immediate& imm);
   void adcl(Register dst, const Address& address);
+  void adcl(const Address& dst, Register src);
 
   void subl(Register dst, Register src);
   void subl(Register reg, const Immediate& imm);
   void subl(Register reg, const Address& address);
+  void subl(const Address& address, Register reg);
 
   void cdq();
 
@@ -469,6 +476,7 @@ class Assembler : public ValueObject {
   void sbbl(Register dst, Register src);
   void sbbl(Register reg, const Immediate& imm);
   void sbbl(Register reg, const Address& address);
+  void sbbl(const Address& address, Register reg);
 
   void incl(Register reg);
   void incl(const Address& address);
@@ -482,7 +490,10 @@ class Assembler : public ValueObject {
   void shrl(Register operand, Register shifter);
   void sarl(Register reg, const Immediate& imm);
   void sarl(Register operand, Register shifter);
+  void sarl(const Address& address, Register shifter);
   void shld(Register dst, Register src);
+  void shrd(Register dst, Register src);
+  void shrd(const Address& dst, Register src);
 
   void negl(Register reg);
   void notl(Register reg);
@@ -649,7 +660,7 @@ class Assembler : public ValueObject {
   void EmitNearLabelLink(Label* label);
 
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
-  void EmitGenericShift(int rm, Register operand, Register shifter);
+  void EmitGenericShift(int rm, const Operand& operand, Register shifter);
 
   void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 
