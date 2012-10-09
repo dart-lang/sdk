@@ -3595,7 +3595,7 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
       : op_kind_(op_kind) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
-    ASSERT(op_kind == Token::kSHR);
+    ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
     inputs_[0] = left;
     inputs_[1] = right;
     deopt_id_ = instance_call->deopt_id();

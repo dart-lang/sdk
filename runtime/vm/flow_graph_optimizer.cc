@@ -530,17 +530,20 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kSHR:
+    case Token::kSHL:
       if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data) &&
-                 FlowGraphCompiler::SupportsUnboxedMints()) {
+      } else if (FlowGraphCompiler::SupportsUnboxedMints() &&
+                 HasTwoMintOrSmi(ic_data) &&
+                 HasOnlyOneSmi(ICData::Handle(
+                     ic_data.AsUnaryClassChecksForArgNr(1)))) {
+        // Check for smi/mint << smi or smi/mint >> smi.
         operands_type = kMintCid;
       } else {
         return false;
       }
       break;
     case Token::kTRUNCDIV:
-    case Token::kSHL:
       if (HasOnlyTwoSmis(ic_data)) {
         operands_type = kSmiCid;
       } else {
@@ -572,7 +575,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     Value* left = call->ArgumentAt(0)->value();
     Value* right = call->ArgumentAt(1)->value();
-    if (op_kind == Token::kSHR) {
+    if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
       ShiftMintOpInstr* shift_op =
           new ShiftMintOpInstr(op_kind, left, right, call);
       call->ReplaceWith(shift_op, current_iterator());

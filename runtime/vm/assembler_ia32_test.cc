@@ -507,6 +507,19 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ Bind(&donetest14);
   __ addl(ESP, Immediate(kWordSize));
 
+  Label donetest15;
+  __ subl(ESP, Immediate(kWordSize));
+  __ movl(Address(ESP, 0), Immediate(0xFF000000));
+  __ movl(EAX, Immediate(-1));
+  __ movl(ECX, Immediate(2));
+  __ shll(Address(ESP, 0), ECX);
+  __ shld(Address(ESP, 0), EAX);
+  __ cmpl(Address(ESP, 0), Immediate(0xF0000003));
+  __ j(EQUAL, &donetest15);
+  __ int3();
+  __ Bind(&donetest15);
+  __ addl(ESP, Immediate(kWordSize));
+
   __ movl(EAX, Immediate(0));
   __ ret();
 }

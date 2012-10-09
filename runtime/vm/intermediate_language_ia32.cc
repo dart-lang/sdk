@@ -2395,12 +2395,15 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = op_kind() == Token::kSHL ? 2 : 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresXmmRegister());
   summary->set_in(1, Location::RegisterLocation(ECX));
   summary->set_temp(0, Location::RequiresRegister());
+  if (op_kind() == Token::kSHL) {
+    summary->set_temp(1, Location::RequiresRegister());
+  }
   summary->set_out(Location::SameAsFirstInput());
   return summary;
 }
@@ -2408,38 +2411,55 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
 
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
-  Register temp = locs()->temp(0).reg();
   ASSERT(locs()->in(1).reg() == ECX);
   ASSERT(locs()->out().xmm_reg() == left);
 
+  Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                         kDeoptShiftMintOp);
+  Label done;
+  __ testl(ECX, ECX);
+  __ j(ZERO, &done);  // Shift by 0 is a nop.
+  __ subl(ESP, Immediate(2 * kWordSize));
+  __ movq(Address(ESP, 0), left);
+  // Deoptimize if shift count is > 31.
+  // sarl operation masks the count to 5 bits and
+  // shrd is undefined with count > operand size (32)
+  // TODO(fschneider): Support shift counts > 31 without deoptimization.
+  __ SmiUntag(ECX);
+  const Immediate kCountLimit = Immediate(31);
+  __ cmpl(ECX, kCountLimit);
+  __ j(ABOVE, deopt);
   switch (op_kind()) {
     case Token::kSHR: {
-      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
-                                             kDeoptShiftMintOp);
-      __ subl(ESP, Immediate(2 * kWordSize));
-      __ movq(Address(ESP, 0), left);
-      // Deoptimize if shift count is > 31.
-      // sarl operation masks the count to 5 bits and
-      // shrd is undefined with count > operand size (32)
-      // TODO(fschneider): Support shift counts > 31 without deoptimization.
-      __ SmiUntag(ECX);
-      const Immediate kCountLimit = Immediate(31);
-      __ cmpl(ECX, kCountLimit);
-      __ j(ABOVE, deopt);
-      __ movl(temp, Address(ESP, 1 * kWordSize));
+      Register temp = locs()->temp(0).reg();
+      __ movl(temp, Address(ESP, 1 * kWordSize));  // High half.
       __ shrd(Address(ESP, 0), temp);  // Shift count in CL.
       __ sarl(Address(ESP, 1 * kWordSize), ECX);  // Shift count in CL.
-      __ movq(left, Address(ESP, 0));
-      __ addl(ESP, Immediate(2 * kWordSize));
       break;
     }
-    case Token::kSHL:
-      UNIMPLEMENTED();
+    case Token::kSHL: {
+      Register temp1 = locs()->temp(0).reg();
+      Register temp2 = locs()->temp(1).reg();
+      __ movl(temp1, Address(ESP, 0 * kWordSize));  // Low 32 bits.
+      __ movl(temp2, Address(ESP, 1 * kWordSize));  // High 32 bits.
+      __ shll(Address(ESP, 0 * kWordSize), ECX);  // Shift count in CL.
+      __ shld(Address(ESP, 1 * kWordSize), temp1);  // Shift count in CL.
+      // Check for overflow by shifting back the high 32 bits
+      // and comparing with the input.
+      __ movl(temp1, temp2);
+      __ movl(temp2, Address(ESP, 1 * kWordSize));
+      __ sarl(temp2, ECX);
+      __ cmpl(temp1, temp2);
+      __ j(NOT_EQUAL, deopt);
       break;
+    }
     default:
       UNREACHABLE();
       break;
   }
+  __ movq(left, Address(ESP, 0));
+  __ addl(ESP, Immediate(2 * kWordSize));
+  __ Bind(&done);
 }
 
 

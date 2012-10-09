@@ -57,6 +57,10 @@ class BitOperationsTest {
     for (int i = 0; i < 10000; i++) {
       TestCornerCasesRightShifts();
       TestRightShift64Bit();
+      TestLeftShift64Bit();
+      TestLeftShift64BitWithOverflow1();
+      TestLeftShift64BitWithOverflow2();
+      TestLeftShift64BitWithOverflow3();
     }
   }
 
@@ -74,6 +78,31 @@ class BitOperationsTest {
   static void TestRightShift64Bit() {
     var t = 0x1ffffffff;
     Expect.equals(0xffffffff, t >> 1);
+  }
+
+  static void TestLeftShift64Bit() {
+    var t = 0xffffffff;
+    Expect.equals(0xffffffff, t << 0);
+    Expect.equals(0x1fffffffe, t << 1);
+    Expect.equals(0x7fffffff80000000, t << 31);
+    Expect.equals(0x10000000000000000, 2*(t+1) << 31);
+    Expect.equals(0x20000000000000000, 4*(t+1) << 31);
+    Expect.equals(0x8000000000000000, (t+1) << 31);
+  }
+
+  static void TestLeftShift64BitWithOverflow1() {
+    var t = 0xffffffff;
+    Expect.equals(0x10000000000000000, 2*(t+1) << 31);
+  }
+
+  static void TestLeftShift64BitWithOverflow2() {
+    var t = 0xffffffff;
+    Expect.equals(0x20000000000000000, 4*(t+1) << 31);
+  }
+
+  static void TestLeftShift64BitWithOverflow3() {
+    var t = 0xffffffff;
+    Expect.equals(0x8000000000000000, (t+1) << 31);
   }
 
   static void TestNegativeCountShifts() {
