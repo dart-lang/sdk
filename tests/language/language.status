@@ -17,7 +17,7 @@
 
 [ $compiler == none ]
 part_test: Fail
-part_test2: Fail
+part2_test: Fail
 gc_test: Fail # Issue 1487
 field_override_test/none: Fail  # Issue 742: field shadowing now allowed
 field_override_test/01: Fail    # Issue 742: field shadowing now allowed
