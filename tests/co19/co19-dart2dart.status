@@ -591,3 +591,6 @@ LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test:
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
+
+# Partially implemented redirecting constructors makes this fail.
+Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
