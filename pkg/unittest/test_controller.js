@@ -17,30 +17,8 @@ var testRunner = window.testRunner || window.layoutTestController;
 
 var waitForDone = false;
 
-// _callback and getMessages are used to retrieve console messages
-// from the Chrome ConsoleCollector extension. run_selenium.py can
-// call getMessages with execute_async_script, and when the messages
-// are returned from the extension they can be returned via a callback
-// provided by Selenium. _callback is used to hold a reference to 
-// that callback. The messages are returned from the extension via
-// a window.postMessage call with type property 'gotMessages'.
-var _callback;
-function getMessages(callback) {
-  _callback = callback;
-  window.postMessage("getMessages", "*");
-}
-
 function processMessage(msg) {
-  if (typeof msg != 'string') {
-    if (msg.type == 'gotMessages') {
-      // Handle console messages from Chrome extension.
-      if (_callback) {
-        _callback(msg.messages);
-        _callback = null;
-      }
-    }
-    return;
-  }
+  if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-done') {
     if (testRunner) testRunner.notifyDone();
   } else if (msg == 'unittest-suite-wait-for-done') {
