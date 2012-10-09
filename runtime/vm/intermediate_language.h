@@ -39,6 +39,8 @@ class Range;
   V(_StringBase, isEmpty, StringBaseIsEmpty)                                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toDouble, DoubleToDouble)                                         \
+  V(_Double, toInt, DoubleToInteger)                                           \
+  V(_IntegerImplementation, toInt, IntegerToInteger)                           \
   V(::, sqrt, MathSqrt)                                                        \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -248,6 +250,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(DoubleToDouble)                                                            \
   M(SmiToDouble)                                                               \
+  M(DoubleToInteger)                                                           \
   M(CheckClass)                                                                \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
@@ -3865,6 +3868,36 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
   InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
+};
+
+
+class DoubleToIntegerInstr : public TemplateDefinition<1> {
+ public:
+  explicit DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
+      : instance_call_(instance_call) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  Value* value() const { return inputs_[0]; }
+  InstanceCallInstr* instance_call() const { return instance_call_; }
+
+  DECLARE_INSTRUCTION(DoubleToInteger)
+  virtual RawAbstractType* CompileType() const;
+
+  virtual intptr_t ArgumentCount() const { return 1; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  // Result could be any of the int types.
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
+
+ private:
+  InstanceCallInstr* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 
 

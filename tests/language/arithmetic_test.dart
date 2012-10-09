@@ -319,6 +319,7 @@ class ArithmeticTest {
     Expect.equals(-1073741825, (-1073741825.0).toInt());
     Expect.equals(1073741823, (1073741823.0).toInt());
     Expect.equals(1073741824, (1073741824.0).toInt());
+
     { int i = (-1073741824.0).toInt(); }
     { int i = (-1073741825.0).toInt(); }
     { int i = (1073741823.0).toInt(); }

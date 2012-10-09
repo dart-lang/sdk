@@ -1975,6 +1975,55 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleToIntegerInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::RegisterLocation(RCX));
+  result->set_out(Location::RegisterLocation(RAX));
+  result->set_temp(0, Location::RegisterLocation(RBX));
+  return result;
+}
+
+
+void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out().reg();
+  Register value_obj = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  XmmRegister value_double = XMM0;
+  ASSERT(result == RAX);
+  ASSERT(result != value_obj);
+  ASSERT(result != temp);
+  __ movsd(value_double, FieldAddress(value_obj, Double::value_offset()));
+  __ cvttsd2siq(result, value_double);
+  // Overflow is signalled with minint.
+  Label do_call, done;
+  // Check for overflow and that it fits into Smi.
+  __ movq(temp, result);
+  __ shlq(temp, Immediate(1));
+  __ j(OVERFLOW, &do_call, Assembler::kNearJump);
+  __ SmiTag(result);
+  __ jmp(&done);
+  __ Bind(&do_call);
+  ASSERT(instance_call()->HasICData());
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT((ic_data.NumberOfChecks() == 1));
+  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+
+  const intptr_t kNumberOfArguments = 1;
+  __ pushq(value_obj);
+  compiler->GenerateStaticCall(instance_call()->deopt_id(),
+                               instance_call()->token_pos(),
+                               target,
+                               kNumberOfArguments,
+                               Array::Handle(),  // No argument names.
+                               locs());
+  __ Drop(1);
+  __ Bind(&done);
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }

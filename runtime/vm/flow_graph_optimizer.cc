@@ -890,7 +890,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if ((ic_data.NumberOfChecks() == 0) || !ic_data.HasOneTarget()) {
-    // No type feedback collected.
+    // No type feedback collected or multiple targets found.
     return false;
   }
   Function& target = Function::Handle();
@@ -917,6 +917,31 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
+  const intptr_t cid0 = class_ids[0];
+  if ((recognized_kind == MethodRecognizer::kIntegerToInteger) &&
+      ((cid0 == kSmiCid) || (cid0 == kMintCid) || (cid0 == kBigintCid))) {
+    // TODO(srdjan): implement also for mixed integer cids.
+    InsertBefore(call,
+                 new CheckSmiInstr(call->ArgumentAt(0)->value()->Copy(),
+                                   call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    call->ReplaceUsesWith(call->ArgumentAt(0));
+    RemovePushArguments(call);
+    call->RemoveFromGraph();
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kDoubleToInteger) &&
+      (class_ids[0] == kDoubleCid)) {
+    AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+    DoubleToIntegerInstr* d2int_instr =
+        new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
+    call->ReplaceWith(d2int_instr, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
+
   if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
     if (!ic_data.HasOneTarget()) {
       // Target is not only StringBase_get_length.
@@ -930,6 +955,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = instr->token_kind();
@@ -3047,6 +3074,12 @@ void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitDoubleToInteger(DoubleToIntegerInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
 }

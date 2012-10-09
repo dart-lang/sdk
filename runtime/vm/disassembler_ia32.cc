@@ -1595,6 +1595,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             const char* mnem = "? 0xF2";
             switch (b2) {
               case 0x2A: mnem = "cvtsi2sd"; break;
+              case 0x2C: mnem = "cvttsd2si"; break;
               case 0x2D: mnem = "cvtsd2i"; break;
               case 0x51: mnem = "sqrtsd"; break;
               case 0x58: mnem = "addsd"; break;
@@ -1602,6 +1603,7 @@ int X86Decoder::InstructionDecode(uword pc) {
               case 0x5A: mnem = "cvtsd2ss"; break;
               case 0x5C: mnem = "subsd"; break;
               case 0x5E: mnem = "divsd"; break;
+              default: UNIMPLEMENTED();
             }
             data += 3;
             int mod, regop, rm;
@@ -1612,7 +1614,7 @@ int X86Decoder::InstructionDecode(uword pc) {
               PrintXmmRegister(regop);
               Print(",");
               data += PrintRightOperand(data);
-            } else if (b2 == 0x2D) {
+            } else if ((b2 == 0x2D) || (b2 == 0x2C)) {
               Print(mnem);
               Print(" ");
               PrintCPURegister(regop);
