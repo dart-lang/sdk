@@ -34,7 +34,7 @@ patch class Function {
   patch static apply(Function function,
                      List positionalArguments,
                      [Map<String,Dynamic> namedArguments]) {
-    return applyFunction(
+    return Primitives.applyFunction(
         function, positionalArguments, namedArguments);
   }
 }
