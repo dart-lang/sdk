@@ -384,12 +384,10 @@ abstract class Compiler implements DiagnosticListener {
 
     assertMethod = jsHelperLibrary.find(const SourceString('assert'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
+    functionApplyMethod =
+        jsHelperLibrary.find(const SourceString('applyFunction'));
 
     initializeSpecialClasses();
-
-    functionClass.ensureResolved(this);
-    functionApplyMethod =
-        functionClass.lookupLocalMember(const SourceString('apply'));
   }
 
   void loadCoreImplLibrary() {
