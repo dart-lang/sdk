@@ -4470,6 +4470,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     RETURN_NULL_ERROR(peer);
   }
   Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
@@ -4487,6 +4488,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
