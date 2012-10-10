@@ -232,7 +232,7 @@ class Intl {
    * until the proper locale has been set. This returns the result of calling
    * [msg_function], which could be of an arbitrary type.
    */
-  static dynamic withLocale(String locale, Function message_function) {
+  static withLocale(String locale, Function message_function) {
     // We have to do this silliness because Locale is not known at compile time,
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
