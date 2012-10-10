@@ -364,7 +364,9 @@ bool Value::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = AbstractType::Handle(CompileType());
-  ASSERT(!compile_type.IsMalformed());
+  if (compile_type.IsMalformed()) {
+    return false;
+  }
 
   // If the compile type of the value is void, we are type checking the result
   // of a void function, which was checked to be null at the return statement
