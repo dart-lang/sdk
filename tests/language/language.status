@@ -219,11 +219,6 @@ import_combinators_test: Fail
 export_test: Fail # Issue 5785
 export_cyclic_test: Fail # Issue 5785
 
-[ $compiler == drt && $runtime == ff ]
-export_test: Fail # Issue 5785
-export_cyclic_test: Fail # Issue 5785
-generic_creation_test: Fail # Issue 5785
-
 [ $runtime == dartium ]
 import_combinators_test: Fail
 
