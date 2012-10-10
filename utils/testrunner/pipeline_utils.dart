@@ -20,6 +20,24 @@ String createTempName(String tmpDir, String basis, String suffix) {
       '${p.filenameWithoutExtension}${suffix}';
 }
 
+/**
+ * Given a file path [file], make it absolute if it is relative,
+ * and return the result as a [Path].
+ */
+Path getAbsolutePath(String file) {
+  var p = new Path(file).canonicalize();
+  if (p.isAbsolute) {
+    return p;
+  } else {
+    var cwd = new Path((new Directory.current()).path);
+    return cwd.join(p);
+  }
+}
+
+/** Get the directory that contains a [file]. */
+String getDirectory(String file) =>
+    getAbsolutePath(file).directoryPath.toString();
+
 /** Create a file [fileName] and populate it with [contents]. */
 void writeFile(String fileName, String contents) {
   var file = new File(fileName);

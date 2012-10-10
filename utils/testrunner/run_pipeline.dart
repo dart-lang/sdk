@@ -251,11 +251,26 @@ compileStage(isJavascript) {
 
 /** Third stage of pipeline - runs the tests. */
 runTestStage(_) {
-  if (config["server"]) { // Start the HTTP server.
-    serverId = startProcess(config["dart"],
-        [ '${config["runnerDir"]}/http_server_test_runner.dart',
-          '--port=${config["port"]}',
-          '--root=${config["root"]}']);
+  if (config["server"]) {
+    var serverPath = config["testfile"];
+    // Replace .dart with _server.dart to get test's server file, if any.
+    var truncLen = serverPath.length - '.dart'.length;
+    serverPath = '${serverPath.substring(0, truncLen)}_server.dart';
+    var serverFile = new File(serverPath);
+    if (!serverFile.existsSync()) {
+      // No custom server; run the default server.
+      serverPath = '${config["runnerDir"]}/http_server_runner.dart';
+    }
+    if (serverPath != null) {
+      var root = config["root"];
+      if (root == null) {
+        // Set the root to be the directory containing the test file.
+        root =  getDirectory(config["testfile"]);
+      }
+      // Start the HTTP server.
+      serverId = startProcess(config["dart"],
+          [ serverPath, '--port=${config["port"]}', '--root=$root']);
+    }
   }
 
   var cmd, args;

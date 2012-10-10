@@ -143,7 +143,7 @@ ArgParser getOptionParser() {
   parser.addFlag('server', help: 'Run an HTTP server.', defaultsTo: false);
 
   parser.addOption('port', help: 'Port to use for HTTP server',
-      defaultsTo: '80');
+      defaultsTo: '8080');
 
   parser.addOption('root',
       help: 'Root directory for HTTP server for static files');
@@ -264,5 +264,3 @@ bool isSane(ArgResults config) {
   }
   return true;
 }
-
-
