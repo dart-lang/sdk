@@ -90,6 +90,7 @@ class MockCompiler extends Compiler {
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
+    objectClass.ensureResolved(this);
   }
 
   /**

@@ -498,7 +498,7 @@ class ArgumentTypesRegistry {
     staticTypeMap[element] = HTypeList.ALL_UNKNOWN;
   }
 
-  void registerDynamicInvocation(HInvokeDynamicMethod node,
+  void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
     // If there are any getters for this method we cannot know anything about
@@ -764,7 +764,7 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamicMethod node,
+  void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
     argumentTypes.registerDynamicInvocation(node, selector, types);

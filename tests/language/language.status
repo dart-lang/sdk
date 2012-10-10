@@ -229,6 +229,7 @@ import_combinators_test: Fail
 
 
 [ $runtime == vm ]
+call_test: Fail # Issue 1604
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
