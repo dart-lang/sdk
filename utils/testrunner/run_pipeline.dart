@@ -6,6 +6,7 @@
 library pipeline;
 import 'dart:isolate';
 import 'dart:io';
+import 'dart:math';
 part 'pipeline_utils.dart';
 
 /**
@@ -37,11 +38,79 @@ String scriptType;
 /** Process id for the HTTP server. */
 int serverId;
 
+/** Port used by HTTP server. */
+int serverPort;
+
+/** Root directory for static files used by HTTP server. */
+String serverRoot;
+
+/** Path of the HTTP server script. */
+String serverPath;
+
+/** Number of attempts we will make to start the HTTP server. */
+const int MAX_SERVER_TRIES = 10;
+
 void main() {
   port.receive((cfg, replyPort) {
     config = cfg;
     initPipeline(replyPort);
-    wrapStage();
+    startHTTPServerStage();
+  });
+}
+
+/** Initial pipeline stage - starts the HTTP server, if appropriate. */
+
+startHTTPServerStage() {
+  if (config["server"]) {
+    serverPath = config["testfile"];
+    // Replace .dart with _server.dart to get test's server file, if any.
+    var truncLen = serverPath.length - '.dart'.length;
+    serverPath = '${serverPath.substring(0, truncLen)}_server.dart';
+    var serverFile = new File(serverPath);
+    if (!serverFile.existsSync()) {
+      // No custom server; run the default server.
+      serverPath = '${config["runnerDir"]}/http_server_runner.dart';
+    }
+    if (serverPath != null) {
+      serverRoot = config["root"];
+      if (serverRoot == null) {
+        // Set the root to be the directory containing the test file.
+        serverRoot =  getDirectory(config["testfile"]);
+      }
+
+      if (config["port"] == null) {
+        // In this case we have to choose a random port and we need
+        // to see if the server starts successfully on that port.
+        var r = new Random();
+        tryStartHTTPServer(r, MAX_SERVER_TRIES);
+      } else {
+        serverPort = parseInt(config["port"]);
+        // Start the HTTP server.
+        serverId = startProcess(config["dart"],
+            [ serverPath, '--port=$serverPort', '--root=$serverRoot']);
+      }
+    }
+  }
+  wrapStage();
+}
+
+void tryStartHTTPServer(Random r, int remainingAttempts) {
+  // Pick a port from 1024 to 32767.
+  serverPort = 1024 + r.nextInt(32768 - 1024);
+  logMessage('Trying ${config["dart"]} $serverPath --port=$serverPort '
+      '--root=$serverRoot');
+  serverId = startProcess(config["dart"],
+      [ serverPath, '--port=$serverPort', '--root=$serverRoot'],
+      (line) {
+        if (line.startsWith('Server listening')) {
+          wrapStage();
+        } else if (remainingAttempts == 0) {
+          print('Failed to start HTTP server after $MAX_SERVER_TRIES'
+              ' attempts; aborting.');
+      exit(1);
+    } else {
+      tryStartHTTPServer(r, remainingAttempts - 1);
+    }
   });
 }
 
@@ -102,6 +171,7 @@ wrapStage() {
       excludeFilters = ${config["exclude"]};
       tprint = (msg) => print('###\$msg');
       notifyDone = (e) {};
+      unittest.testState["port"] = $serverPort;
     ''';
   } else {
     directives = '''
@@ -116,6 +186,7 @@ wrapStage() {
       excludeFilters = ${config["exclude"]};
       tprint = (msg) => query('#console').addText('###\$msg\\n');
       notifyDone = (e) => window.postMessage('done', '*');
+      unittest.testState["port"] = $serverPort;
     ''';
   }
 
@@ -169,11 +240,11 @@ wrapStage() {
         main() {
           includeFilters = ${config["include"]};
           excludeFilters = ${config["exclude"]};
+          unittest.testState["port"] = $serverPort;
           runTests(test.main);
         }
     ''');
   }
-
 
   // Create the HTML wrapper and compile to Javascript if necessary.
   var isJavascript = config["runtime"] == 'drt-js';
@@ -251,28 +322,6 @@ compileStage(isJavascript) {
 
 /** Third stage of pipeline - runs the tests. */
 runTestStage(_) {
-  if (config["server"]) {
-    var serverPath = config["testfile"];
-    // Replace .dart with _server.dart to get test's server file, if any.
-    var truncLen = serverPath.length - '.dart'.length;
-    serverPath = '${serverPath.substring(0, truncLen)}_server.dart';
-    var serverFile = new File(serverPath);
-    if (!serverFile.existsSync()) {
-      // No custom server; run the default server.
-      serverPath = '${config["runnerDir"]}/http_server_runner.dart';
-    }
-    if (serverPath != null) {
-      var root = config["root"];
-      if (root == null) {
-        // Set the root to be the directory containing the test file.
-        root =  getDirectory(config["testfile"]);
-      }
-      // Start the HTTP server.
-      serverId = startProcess(config["dart"],
-          [ serverPath, '--port=${config["port"]}', '--root=$root']);
-    }
-  }
-
   var cmd, args;
   if (config["runtime"] == 'vm' || config["layout"]) { // Run the tests.
     if (config["checked"]) {

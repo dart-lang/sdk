@@ -51,9 +51,15 @@ class HttpTestServer {
       'vc1'  : 'video/vc1'
   };
 
-  HttpTestServer(port, this.staticFileDirectory) {
+  HttpTestServer(int port, this.staticFileDirectory) {
     server = new HttpServer();
-    server.listen("127.0.0.1", port);
+    try {
+      server.listen("127.0.0.1", port);
+      print('Server listening on port $port');
+    } catch (e) {
+      print('Server listen on port $port failed');
+      throw e;
+    }
     server.onError = (e) {
     };
     server.defaultRequestHandler =
