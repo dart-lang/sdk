@@ -158,7 +158,7 @@ class Intl {
    * Note that null is interpreted as meaning the default locale, so if
    * [newLocale] is null it will be returned.
    */
-  static String verifiedLocale(String newLocale, bool localeExists(String),
+  static String verifiedLocale(String newLocale, Function localeExists,
                                [Function onFailure = _throwLocaleError]) {
     // TODO(alanknight): Previously we kept a single verified locale on the Intl
     // object, but with different verification for different uses, that's more
@@ -232,7 +232,7 @@ class Intl {
    * until the proper locale has been set. This returns the result of calling
    * [msg_function], which could be of an arbitrary type.
    */
-  static dynamic withLocale(String locale, message_function()) {
+  static dynamic withLocale(String locale, Function message_function) {
     // We have to do this silliness because Locale is not known at compile time,
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
