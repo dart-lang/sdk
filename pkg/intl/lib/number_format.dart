@@ -52,7 +52,7 @@ class NumberFormat {
    * [locale].
    */
   NumberFormat([String newPattern, String locale]):
-    _locale = Intl.verifiedLocale(locale) {
+    _locale = Intl.verifiedLocale(locale, localeExists) {
     // TODO(alanknight): There will need to be some kind of async setup
     // operations so as not to bring along every locale in every program.
     _symbols = numberFormatSymbols[_locale];
@@ -63,6 +63,15 @@ class NumberFormat {
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
    */
   String get locale => _locale;
+
+  /**
+   * Return true if the locale exists, or if it is null. The null case
+   * is interpreted to mean that we use the default locale.
+   */
+  static bool localeExists(localeName) {
+    if (localeName == null) return false;
+    return numberFormatSymbols.containsKey(localeName);
+  }
 
   /**
    * Return the symbols which are used in our locale. Cache them to avoid

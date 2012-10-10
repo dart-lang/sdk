@@ -40,13 +40,13 @@
  *                'other': '$num_people other people'})} in $place.''''
  *
  * Usage examples:
- *      today(date) => intl.message(
+ *      today(date) => Intl.message(
  *          "Today's date is $date",
  *          desc: 'Indicate the current date',
  *          examples: {'date' : 'June 8, 2012'});
  *      print(today(new Date.now());
  *
- *      msg(num_people, place) => intl.message(
+ *      msg({num_people, place}) => Intl.message(
  *           '''I see ${Intl.plural(num_people,
  *             {'0': 'no one at all',
  *              '1': 'one other person',
@@ -55,7 +55,11 @@
  *          examples: {'num_people': 3, 'place': 'London'});
  *
  * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
- * produce "I see 2 other people in Athens." as output.
+ * produce "I see 2 other people in Athens." as output in the default locale.
+ *
+ * To use a locale other than the default, use the `withLocale` function.
+ *       var todayString = new DateFormat("pt_BR").format(new Date.now());
+ *       print(withLocale("pt_BR", () => today(todayString));
  *
  * See `tests/message_format_test.dart` for more examples.
  */
@@ -154,19 +158,32 @@ class Intl {
    * Note that null is interpreted as meaning the default locale, so if
    * [newLocale] is null it will be returned.
    */
-  static String verifiedLocale(String newLocale) {
-    // TODO(alanknight): This is specific to DateFormat, and only used there
-    // now. This should be moved, renamed, or generalized.
+  static String verifiedLocale(String newLocale, bool localeExists(String),
+                               [Function onFailure = _throwLocaleError]) {
+    // TODO(alanknight): Previously we kept a single verified locale on the Intl
+    // object, but with different verification for different uses, that's more
+    // difficult. As a result, we call this more often. Consider keeping
+    // verified locales for each purpose if it turns out to be a performance
+    // issue.
     if (newLocale == null) return systemLocale;
-    if (_localeExists(newLocale)) {
+    if (localeExists(newLocale)) {
       return newLocale;
     }
-    for (var each in [canonicalizedLocale(newLocale), _shortLocale(newLocale)]) {
-      if (_localeExists(each)) {
+    for (var each in
+        [canonicalizedLocale(newLocale), _shortLocale(newLocale)]) {
+      if (localeExists(each)) {
         return each;
       }
     }
-    throw new ArgumentError("Invalid locale '$newLocale'");
+    return onFailure(newLocale);
+  }
+
+  /**
+   * The default action if a locale isn't found in verifiedLocale. Throw
+   * an exception indicating the locale isn't correct.
+   */
+  static String _throwLocaleError(String localeName) {
+    throw new ArgumentError("Invalid locale '$localeName'");
   }
 
   /** Return the short version of a locale name, e.g. 'en_US' => 'en' */
@@ -205,17 +222,24 @@ class Intl {
 
   /**
    * Format the given function with a specific [locale], given a
-   * [msg_function] that takes no parameters and returns a String. We
-   * basically delay calling the message function proper until after the proper
-   * locale has been set.
+   * [message_function] that takes no parameters. The [message_function] can be
+   * a simple message function that just returns the result of `Intl.message()`
+   * it can be a wrapper around a message function that takes arguments, or it
+   * can be something more complex that manipulates multiple message
+   * functions.
+   *
+   * In either case, the purpose of this is to delay calling [message_function]
+   * until the proper locale has been set. This returns the result of calling
+   * [msg_function], which could be of an arbitrary type.
    */
-  static String withLocale(String locale, Function msg_function) {
+  static dynamic withLocale(String locale, message_function()) {
     // We have to do this silliness because Locale is not known at compile time,
-    // but must be a static variable.
+    // but must be a static variable in order to be visible to the Intl.message
+    // invocation.
     if (_defaultLocale == null) _defaultLocale = systemLocale;
     var oldLocale = _defaultLocale;
     _defaultLocale = locale;
-    var result = msg_function();
+    var result = message_function();
     _defaultLocale = oldLocale;
     return result;
   }

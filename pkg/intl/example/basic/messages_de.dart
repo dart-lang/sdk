@@ -9,7 +9,7 @@
  * up based on a naming convention.
  */
 
-#library('messages_de_DE');
+#library('messages_de');
 #import('../../lib/intl.dart');
 
 runAt(time, day) => Intl.message('Ausgedruckt am $time am $day.', name: 'runAt',
