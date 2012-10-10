@@ -289,7 +289,11 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
 static Dart_Handle TypeToHandle(Isolate* isolate,
                                 const char* function_name,
                                 const AbstractType& type) {
-  if (type.HasResolvedTypeClass()) {
+  if (type.IsMalformed()) {
+    const Error& error = Error::Handle(type.malformed_error());
+    return Api::NewError("%s: malformed type encountered: %s.",
+        function_name, error.ToErrorCString());
+  } else if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(isolate, type.type_class());
 #if defined(DEBUG)
     const Library& lib = Library::Handle(cls.library());
