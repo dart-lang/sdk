@@ -1320,8 +1320,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Create the runtime type information, if needed.
     InterfaceType type = classElement.computeType(compiler);
-      List<HInstruction> inputs = <HInstruction>[];
-      if (compiler.world.needsRti(classElement)) {
+    List<HInstruction> inputs = <HInstruction>[];
+    if (compiler.world.needsRti(classElement)) {
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         inputs.add(localsHandler.directLocals[typeVariable.element]);
       });
@@ -2737,39 +2737,95 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
-    if (argument.element.isTypeVariable()) {
+    // These variables are shared between invocations of the helper methods.
+    HInstruction typeInfo;
+    StringBuffer template = new StringBuffer();
+    List<HInstruction> inputs = <HInstruction>[];
+
+    /**
+     * Helper to create an instruction that gets the value of a type variable.
+     */
+    void addTypeVariableReference(TypeVariableType type) {
       Element member = work.element;
       if (member.enclosingElement.isClosure()) {
-        member = (member.enclosingElement as ClosureClassElement).methodElement;
+        ClosureClassElement closureClass = member.enclosingElement;
+        member = closureClass.methodElement;
         member = member.getOutermostEnclosingMemberOrTopLevel();
       }
       if (member.isFactoryConstructor()) {
-        // The type variable is stored in a parameter of the
-        // factory.
-        return localsHandler.readLocal(argument.element);
+        // The type variable is stored in a parameter of the factory.
+        inputs.add(localsHandler.readLocal(type.element));
       } else if (member.isInstanceMember()
                  || member.isGenerativeConstructor()) {
         // The type variable is stored in [this].
-        pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
-                          localsHandler.readThis());
-        HInstruction typeInfo = pop();
+        if (typeInfo == null) {
+          pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
+                            localsHandler.readThis());
+          typeInfo = pop();
+        }
         HInstruction foreign = new HForeign(
-            new LiteralDartString('#.$argument'),
+            new LiteralDartString('#.${type.name.slowToString()}'),
             new LiteralDartString('String'),
             <HInstruction>[typeInfo]);
         add(foreign);
-        return foreign;
+        inputs.add(foreign);
       } else {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
         compiler.cancel('Unimplemented unresolved type variable',
                         node: currentNode);
       }
-    } else {
-      // The type variable is a type (e.g. int).
-      return graph.addConstantString(
-          new LiteralDartString('$argument'), currentNode, constantSystem);
     }
+
+    /**
+     * Helper to build an instruction that builds the string representation for
+     * this type, where type variables are substituted by their runtime value.
+     *
+     * Examples:
+     *   Type            Template                Inputs
+     *   int             'int'                   []
+     *   C<int, int>     'C<int, int>'           []
+     *   Var             #                       [getRuntimeType(this).Var]
+     *   C<int, D<Var>>  'C<int, D<' + # + '>>'  [getRuntimeType(this).Var]
+     */
+    void buildTypeString(DartType type, {isInQuotes: false}) {
+      if (type is TypeVariableType) {
+        addTypeVariableReference(type);
+        template.add(isInQuotes ? "' + # +'" : "#");
+      } else if (type is InterfaceType) {
+        bool isFirstVariable = true;
+        InterfaceType interfaceType = type;
+        bool hasTypeArguments = !interfaceType.arguments.isEmpty();
+        if (!isInQuotes) template.add("'");
+        template.add("${type.element.name.slowToString()}");
+        if (hasTypeArguments) {
+          template.add("<");
+          for (DartType argument in interfaceType.arguments) {
+            if (!isFirstVariable) {
+              template.add(", ");
+            } else {
+              isFirstVariable = false;
+            }
+            buildTypeString(argument, isInQuotes: true);
+          }
+          template.add(">");
+        }
+        if (!isInQuotes) template.add("'");
+      } else {
+        assert(type is TypedefType);
+        if (!isInQuotes) template.add("'");
+        template.add(argument.toString());
+        if (!isInQuotes) template.add("'");
+      }
+    }
+
+    buildTypeString(argument, isInQuotes: false);
+    HInstruction result =
+        new HForeign(new LiteralDartString("$template"),
+            new LiteralDartString('String'),
+            inputs);
+    add(result);
+    return result;
   }
 
   void handleListConstructor(InterfaceType type,
