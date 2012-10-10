@@ -153,6 +153,7 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
+lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
