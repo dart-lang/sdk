@@ -35,7 +35,7 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
   if (JS('bool', r'"setInterval" in #', e))
-    return _DOMWindowCrossFrameImpl._createSafe(event);
+    return _DOMWindowCrossFrameImpl._createSafe(e);
   else
     return e;
 }
