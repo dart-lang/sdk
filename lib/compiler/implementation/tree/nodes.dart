@@ -1171,6 +1171,17 @@ class Modifiers extends Node {
     }
     return flags;
   }
+  
+  Node findModifier(String modifier) {
+    Link<Node> nodeList = nodes.nodes;
+    for (; !nodeList.isEmpty(); nodeList = nodeList.tail) {
+      String value = nodeList.head.asIdentifier().source.stringValue;
+      if(value === modifier) {
+        return nodeList.head;
+      }
+    }
+    return null;
+  }
 
   Modifiers asModifiers() => this;
   Token getBeginToken() => nodes.getBeginToken();
@@ -1185,6 +1196,8 @@ class Modifiers extends Node {
   bool isConst() => (flags & FLAG_CONST) != 0;
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
+
+  Node getStatic() => findModifier('static');
 
   /**
    * Use this to check if the declaration is either explicitly or implicitly

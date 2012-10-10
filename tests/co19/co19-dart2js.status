@@ -547,12 +547,6 @@ Language/05_Variables/05_Variables_A04_t07: Fail # Checks that a compile-time er
 Language/05_Variables/05_Variables_A04_t08: Fail # Checks that a compile-time error occurs if a global typed constant variable is not initialized at declaration.
 Language/05_Variables/05_Variables_A04_t10: Fail # Checks that assigning a constant variable to the same value it already holds still produces a compile-time error.
 Language/05_Variables/05_Variables_A05_t01: Fail # Checks that a compile-time error occurs if a constant variable is not initialized.
-Language/05_Variables/05_Variables_A08_t02: Fail # Checks that it is a compile-time error if a top level variable declaration is prefaced with the built-in identifier static.
-Language/05_Variables/05_Variables_A08_t03: Fail # Checks that it is a compile-time error if a top level typed variable declaration is prefaced with the built-in identifier static.
-Language/05_Variables/05_Variables_A08_t04: Fail # Checks that it is a compile-time error if a top level final variable declaration is prefaced with the built-in identifier static.
-Language/05_Variables/05_Variables_A08_t05: Fail # Checks that it is a compile-time error if a top level final typed variable declaration is prefaced with the built-in identifier static.
-Language/05_Variables/05_Variables_A08_t06: Fail # Checks that it is a compile-time error if a top level constant variable declaration is prefaced with the built-in identifier static.
-Language/05_Variables/05_Variables_A08_t07: Fail # Checks that it is a compile-time error if a top level constant typed variable declaration is prefaced with the built-in identifier static.
 Language/06_Functions/06_Functions_A01_t06: Fail # Checks that it is a compile error if a block of a function body isn't closed
 Language/06_Functions/06_Functions_A01_t31: Fail # Checks that functions can't be declared as static inside of a function body.
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # Checks that it is a compile-time error to preface library function with 'static'.
@@ -669,8 +663,6 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
-
-Language/05_Variables/05_Variables_A08_t01: Fail # http://dartbug.com/5170
 
 
 #

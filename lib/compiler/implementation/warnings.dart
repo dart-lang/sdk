@@ -297,6 +297,9 @@ Length: #{3}''');
   static const PATCH_PARAMETER_MISMATCH = const MessageKind(
       "Patch method parameter '#{3}' doesn't match '#{2}' on origin method "
       "#{1}.");
+  
+  static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
+      "Top-level variable cannot be declared static.");
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

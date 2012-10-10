@@ -313,8 +313,11 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  TreeElements resolveField(Element element) {
+  TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
+    if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
+      error(element.modifiers.getStatic(), MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+    }
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     initializerDo(tree, visitor.visit);
     return visitor.mapping;
