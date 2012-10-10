@@ -131,6 +131,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement listClass;
   Element assertMethod;
   Element identicalFunction;
+  Element functionApplyMethod;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -178,6 +179,7 @@ abstract class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
+  bool enabledFunctionApply = false;
 
   Stopwatch progress;
 
@@ -384,6 +386,10 @@ abstract class Compiler implements DiagnosticListener {
     identicalFunction = coreLibrary.find(const SourceString('identical'));
 
     initializeSpecialClasses();
+
+    functionClass.ensureResolved(this);
+    functionApplyMethod =
+        functionClass.lookupLocalMember(const SourceString('apply'));
   }
 
   void loadCoreImplLibrary() {

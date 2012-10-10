@@ -67,44 +67,6 @@ class DartGenerator(object):
         self._auxiliary_files[name] = os.path.join(dirname, name)
     os.path.walk(auxiliary_dir, Visitor, None)
 
-  def RenameTypes(self, database, conversion_table, rename_javascript_binding_names):
-    """Renames interfaces using the given conversion table.
-
-    References through all interfaces will be renamed as well.
-
-    Args:
-      database: the database to apply the renames to.
-      conversion_table: maps old names to new names.
-    """
-
-    if conversion_table is None:
-      conversion_table = {}
-
-    # Rename interfaces:
-    for old_name, new_name in conversion_table.items():
-      if database.HasInterface(old_name):
-        _logger.info('renaming interface %s to %s' % (old_name, new_name))
-        interface = database.GetInterface(old_name)
-        if not database.HasInterface(new_name):
-          interface.id = new_name
-          database.DeleteInterface(old_name)
-          database.AddInterface(interface)
-
-        if rename_javascript_binding_names:
-          interface.javascript_binding_name = new_name
-          interface.doc_js_name = new_name
-          for member in (interface.operations + interface.constants
-              + interface.attributes):
-            member.doc_js_interface_name = new_name
-
-
-    # Fix references:
-    for interface in database.GetInterfaces():
-      for idl_type in interface.all(idlnode.IDLType):
-        type_name = self._StripModules(idl_type.id)
-        if type_name in conversion_table:
-          idl_type.id = conversion_table[type_name]
-
   def FilterMembersWithUnidentifiedTypes(self, database):
     """Removes unidentified types.
 
@@ -188,8 +150,7 @@ class DartGenerator(object):
 
     self.FilterMembersWithUnidentifiedTypes(database)
 
-  def Generate(self, database, super_database, webkit_renames,
-               generate_interface):
+  def Generate(self, database, super_database, generate_interface):
     self._database = database
 
     # Collect interfaces
@@ -205,20 +166,8 @@ class DartGenerator(object):
     # tell dart2js which exceptions can be passed from JS to Dart code.
     exceptions = self._CollectExceptions(interfaces)
 
-    super_map = dict((v, k) for k, v in webkit_renames.iteritems())
-
     # Render all interfaces into Dart and save them in files.
     for interface in self._PreOrderInterfaces(interfaces):
-
-      super_name = interface.id
-
-      if super_name in super_map:
-        super_name = super_map[super_name]
-
-      if (super_database is not None and
-          super_database.HasInterface(super_name)):
-        interface.ext_attrs['synthesizedSuperInterfaceName'] = super_name
-
       interface_name = interface.id
       auxiliary_file = self._auxiliary_files.get(interface_name)
       if auxiliary_file is not None:

@@ -1985,7 +1985,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const Class& double_class = compiler->double_class();
   const Code& stub =
-    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+      Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
   // TODO(vegorov): allocate box in the driver loop to avoid spilling.
@@ -2004,6 +2004,50 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtsi2sd(XMM0, value);
   __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
   __ Drop(1);
+}
+
+
+LocationSummary* DoubleToIntegerInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::RegisterLocation(ECX));
+  result->set_out(Location::RegisterLocation(EAX));
+  return result;
+}
+
+
+void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out().reg();
+  Register value_obj = locs()->in(0).reg();
+  XmmRegister value_double = XMM0;
+  ASSERT(result == EAX);
+  ASSERT(result != value_obj);
+  __ movsd(value_double, FieldAddress(value_obj, Double::value_offset()));
+  __ cvttsd2si(result, value_double);
+  // Overflow is signalled with minint.
+  Label do_call, done;
+  // Check for overflow and that it fits into Smi.
+  __ cmpl(result, Immediate(0xC0000000));
+  __ j(NEGATIVE, &do_call, Assembler::kNearJump);
+  __ SmiTag(result);
+  __ jmp(&done);
+  __ Bind(&do_call);
+  __ pushl(value_obj);
+  ASSERT(instance_call()->HasICData());
+  const ICData& ic_data = *instance_call()->ic_data();
+  ASSERT((ic_data.NumberOfChecks() == 1));
+  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+
+  const intptr_t kNumberOfArguments = 1;
+  compiler->GenerateStaticCall(instance_call()->deopt_id(),
+                               instance_call()->token_pos(),
+                               target,
+                               kNumberOfArguments,
+                               Array::Handle(),  // No argument names.,
+                               locs());
+  __ Bind(&done);
 }
 
 
@@ -2340,8 +2384,8 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
           new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresXmmRegister());
       summary->set_in(1, Location::RequiresXmmRegister());
-      summary->set_temp(0, Location::RegisterLocation(EAX));
-      summary->set_temp(1, Location::RegisterLocation(EDX));
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresRegister());
       summary->set_out(Location::SameAsFirstInput());
       return summary;
     }
@@ -2364,19 +2408,21 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR: __ xorpd(left, right); break;
     case Token::kADD:
     case Token::kSUB: {
+      Register lo = locs()->temp(0).reg();
+      Register hi = locs()->temp(1).reg();
       Label* deopt  = compiler->AddDeoptStub(deopt_id(),
                                              kDeoptBinaryMintOp);
       Label done, overflow;
-      __ pextrd(EAX, right, Immediate(0));  // Lower half left
-      __ pextrd(EDX, right, Immediate(1));  // Upper half left
+      __ pextrd(lo, right, Immediate(0));  // Lower half left
+      __ pextrd(hi, right, Immediate(1));  // Upper half left
       __ subl(ESP, Immediate(2 * kWordSize));
       __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {
-        __ addl(Address(ESP, 0), EAX);
-        __ adcl(Address(ESP, 1 * kWordSize), EDX);
+        __ addl(Address(ESP, 0), lo);
+        __ adcl(Address(ESP, 1 * kWordSize), hi);
       } else {
-        __ subl(Address(ESP, 0), EAX);
-        __ sbbl(Address(ESP, 1 * kWordSize), EDX);
+        __ subl(Address(ESP, 0), lo);
+        __ sbbl(Address(ESP, 1 * kWordSize), hi);
       }
       __ j(OVERFLOW, &overflow);
       __ movq(left, Address(ESP, 0));
@@ -2395,12 +2441,15 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = op_kind() == Token::kSHL ? 2 : 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresXmmRegister());
   summary->set_in(1, Location::RegisterLocation(ECX));
   summary->set_temp(0, Location::RequiresRegister());
+  if (op_kind() == Token::kSHL) {
+    summary->set_temp(1, Location::RequiresRegister());
+  }
   summary->set_out(Location::SameAsFirstInput());
   return summary;
 }
@@ -2408,38 +2457,55 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary() const {
 
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).xmm_reg();
-  Register temp = locs()->temp(0).reg();
   ASSERT(locs()->in(1).reg() == ECX);
   ASSERT(locs()->out().xmm_reg() == left);
 
+  Label* deopt  = compiler->AddDeoptStub(deopt_id(),
+                                         kDeoptShiftMintOp);
+  Label done;
+  __ testl(ECX, ECX);
+  __ j(ZERO, &done);  // Shift by 0 is a nop.
+  __ subl(ESP, Immediate(2 * kWordSize));
+  __ movq(Address(ESP, 0), left);
+  // Deoptimize if shift count is > 31.
+  // sarl operation masks the count to 5 bits and
+  // shrd is undefined with count > operand size (32)
+  // TODO(fschneider): Support shift counts > 31 without deoptimization.
+  __ SmiUntag(ECX);
+  const Immediate kCountLimit = Immediate(31);
+  __ cmpl(ECX, kCountLimit);
+  __ j(ABOVE, deopt);
   switch (op_kind()) {
     case Token::kSHR: {
-      Label* deopt  = compiler->AddDeoptStub(deopt_id(),
-                                             kDeoptShiftMintOp);
-      __ subl(ESP, Immediate(2 * kWordSize));
-      __ movq(Address(ESP, 0), left);
-      // Deoptimize if shift count is > 31.
-      // sarl operation masks the count to 5 bits and
-      // shrd is undefined with count > operand size (32)
-      // TODO(fschneider): Support shift counts > 31 without deoptimization.
-      __ SmiUntag(ECX);
-      const Immediate kCountLimit = Immediate(31);
-      __ cmpl(ECX, kCountLimit);
-      __ j(ABOVE, deopt);
-      __ movl(temp, Address(ESP, 1 * kWordSize));
+      Register temp = locs()->temp(0).reg();
+      __ movl(temp, Address(ESP, 1 * kWordSize));  // High half.
       __ shrd(Address(ESP, 0), temp);  // Shift count in CL.
       __ sarl(Address(ESP, 1 * kWordSize), ECX);  // Shift count in CL.
-      __ movq(left, Address(ESP, 0));
-      __ addl(ESP, Immediate(2 * kWordSize));
       break;
     }
-    case Token::kSHL:
-      UNIMPLEMENTED();
+    case Token::kSHL: {
+      Register temp1 = locs()->temp(0).reg();
+      Register temp2 = locs()->temp(1).reg();
+      __ movl(temp1, Address(ESP, 0 * kWordSize));  // Low 32 bits.
+      __ movl(temp2, Address(ESP, 1 * kWordSize));  // High 32 bits.
+      __ shll(Address(ESP, 0 * kWordSize), ECX);  // Shift count in CL.
+      __ shld(Address(ESP, 1 * kWordSize), temp1);  // Shift count in CL.
+      // Check for overflow by shifting back the high 32 bits
+      // and comparing with the input.
+      __ movl(temp1, temp2);
+      __ movl(temp2, Address(ESP, 1 * kWordSize));
+      __ sarl(temp2, ECX);
+      __ cmpl(temp1, temp2);
+      __ j(NOT_EQUAL, deopt);
       break;
+    }
     default:
       UNREACHABLE();
       break;
   }
+  __ movq(left, Address(ESP, 0));
+  __ addl(ESP, Immediate(2 * kWordSize));
+  __ Bind(&done);
 }
 
 

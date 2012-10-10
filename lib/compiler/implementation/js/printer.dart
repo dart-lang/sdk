@@ -10,12 +10,18 @@ class Printer implements NodeVisitor {
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
+  final Namer namer;
 
   Printer(leg.Compiler compiler)
       : shouldCompressOutput = compiler.enableMinification,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
-        danglingElseVisitor = new DanglingElseVisitor(compiler);
+        danglingElseVisitor = new DanglingElseVisitor(compiler),
+        namer = DetermineRenamer(compiler.enableMinification);
+  
+  static Namer DetermineRenamer(bool shouldCompressOutput) {
+    return shouldCompressOutput ? new MinifyRenamer() : new IdentityNamer();
+  }
 
   void spaceOut() {
     if (!shouldCompressOutput) out(" ");
@@ -352,6 +358,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
+    namer.enterScope();
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -359,6 +366,7 @@ class Printer implements NodeVisitor {
     }
     out(")");
     blockBody(fun.body, needsSeparation: false, needsNewline: false);
+    namer.leaveScope();
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
@@ -596,7 +604,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableUse(VariableUse ref) {
-    out(ref.name);
+    out(namer.getName(ref.name));
   }
 
   visitThis(This node) {
@@ -604,11 +612,11 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclaration(VariableDeclaration decl) {
-    out(decl.name);
+    out(namer.declareName(decl.name));
   }
 
   visitParameter(Parameter param) {
-    out(param.name);
+    out(namer.declareName(param.name));
   }
 
   bool isDigit(int charCode) {
@@ -824,4 +832,56 @@ leg.CodeBuffer prettyPrint(Node node,
   Printer printer = new Printer(compiler);
   printer.visit(node);
   return printer.outBuffer;
+}
+
+
+abstract class Namer {
+  String getName(String oldName);
+  String declareName(String oldName);
+  void enterScope();
+  void leaveScope();
+}
+
+
+class IdentityNamer implements Namer {
+  String getName(String oldName) => oldName;
+  String declareName(String oldName) => oldName;
+  void enterScope() {}
+  void leaveScope() {}
+}
+
+
+class MinifyRenamer implements Namer {
+  final List<Map<String, String>> maps;
+  final List<int> nameNumberStack;
+  int nameNumber;
+
+  MinifyRenamer() : maps = [], nameNumberStack = [], nameNumber = 0;
+
+  void enterScope() {
+    maps.add(new Map<String, String>());
+    nameNumberStack.add(nameNumber);
+  }
+
+  void leaveScope() {
+    maps.removeLast();
+    nameNumber = nameNumberStack.removeLast();
+  }
+
+  String getName(String oldName) {
+    for (int i = maps.length - 1; i >= 0; i--) {
+      var map = maps[i];
+      var replacement = map[oldName];
+      if (replacement != null) return replacement;
+    }
+    return oldName;
+  }
+
+  String declareName(String oldName) {
+    if (maps.length == 0) return oldName;
+    var newName = "z${nameNumber++}";
+    maps.last()[oldName] = newName;
+    return newName;
+  }
+
 }

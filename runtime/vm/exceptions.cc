@@ -32,7 +32,11 @@ static bool FindExceptionHandler(uword* handler_pc,
                                  const GrowableObjectArray& pc_offset_list) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);
+  if (frame == NULL) {
+    // We have no dart invocation frames and hence cannot find a handler
+    // to return to.
+    return false;
+  }
   Function& func = Function::Handle();
   Code& code = Code::Handle();
   Smi& offset = Smi::Handle();
@@ -157,6 +161,17 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                                              func_list,
                                              code_list,
                                              pc_offset_list);
+  if (handler_pc == 0) {
+    // There are no dart invocation frames on the stack so we do not
+    // have a caller to return to. This is a case where we would have
+    // to call the Isolate error handler and let it deal with the shutdown.
+    // We report an error and shutdown the process as a temporary solution
+    // until the isolate error handler stuff is implemented.
+    ASSERT(!handler_exists);
+    OS::PrintErr("Exception '%s' thrown:\n", exception.ToCString());
+    OS::PrintErr("Exiting the process\n");
+    OS::Exit(255);
+  }
   // TODO(5411263): At some point we can optimize by figuring out if a
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.

@@ -547,7 +547,9 @@ Note: currently only implemented for dart2js.''',
           timeout *= 4;
           break;
         case 'dart2js':
-          timeout = 30;
+          // TODO(ahe): Restore the timeout of 30 seconds when dart2js
+          // compile-time performance has improved.
+          timeout = 60;
           if (configuration['mode'] == 'debug') {
             timeout *= 8;
           }

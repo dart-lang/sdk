@@ -34,7 +34,8 @@ patch class Function {
   patch static apply(Function function,
                      List positionalArguments,
                      [Map<String,Dynamic> namedArguments]) {
-    throw new NotImplementedException("Function.apply is not implemented");
+    return Primitives.applyFunction(
+        function, positionalArguments, namedArguments);
   }
 }
 

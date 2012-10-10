@@ -101,6 +101,8 @@ class Enqueuer {
     // runtime type.
     if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
+    } else if (element == compiler.functionApplyMethod) {
+      compiler.enabledFunctionApply = true;
     }
 
     // Enable isolate support if we start using something from the

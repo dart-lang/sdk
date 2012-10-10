@@ -250,6 +250,9 @@ void compile(List<String> argv) {
       print(color(message));
     } else if (fatal || showWarnings) {
       SourceFile file = sourceFiles[uri.toString()];
+      if (file == null) {
+        throw '$uri: file is null';
+      }
       print(file.getLocationMessage(color(message), begin, end, true, color));
     }
     if (fatal && throwOnError) {

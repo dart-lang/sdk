@@ -6,7 +6,6 @@
 
 #include "vm/assembler.h"
 
-#include "vm/assert.h"
 #include "vm/ast_printer.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
@@ -50,7 +49,8 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     " certain optimizations");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
-DEFINE_FLAG(bool, slow_asserts, false, "Enable slow assertions");
+DEFINE_FLAG(bool, verify_compiler, false,
+    "Enable compiler verification assertions");
 DECLARE_FLAG(bool, print_flow_graph);
 
 

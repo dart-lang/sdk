@@ -35,12 +35,12 @@ class TestingServerTest {
   TestingServerTest.start(SendPort port)
       : _receivePort = new ReceivePort(),
         _sendPort = port {
-    start();
+    initialize();
   }
 
   abstract void run();
 
-  void start() {
+  void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {
       _port = message;
       run();

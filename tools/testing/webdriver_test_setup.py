@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -42,6 +42,9 @@ def parse_args():
       help="Don't install Firefox", action='store_true', default=False)
   parser.add_option('--chromedriver', '-c', dest='chromedriver',
       help="Don't install chromedriver.", action='store_true', default=False)
+  parser.add_option('--iedriver', '-i', dest='iedriver',
+      help="Don't install iedriver (only used on Windows).",
+      action='store_true', default=False)
   parser.add_option('--seleniumrc', '-s', dest='seleniumrc', 
       help="Don't install the Selenium RC server (used for Safari and Opera "
            "tests).", action='store_true', default=False)
@@ -281,6 +284,9 @@ def main():
   if not args.seleniumrc:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),
         lambda x: 'selenium-server-standalone-%(version)s.jar' % x).run()
+  if not args.iedriver and platform.system() == 'Windows':
+    GoogleCodeInstaller('selenium', find_depot_tools_location(args.buildbot),
+        lambda x: 'IEDriverServer_Win32_%(version)s.zip' % x).run()
 
   if not args.firefox:
     FirefoxInstaller().run()

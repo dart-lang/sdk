@@ -6,6 +6,8 @@
 
 #import('dart:uri');
 
+// TODO(ahe): Rename prefix to 'api' when VM bug is fixed.
+#import('../../compiler.dart', prefix: 'api_e');
 #import('../tree/tree.dart');
 #import('../scanner/scannerlib.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
@@ -493,6 +495,7 @@ class ScopeContainerElement extends ContainerElement {
 
 class CompilationUnitElement extends ContainerElement {
   final Script script;
+  PartOf partTag;
 
   CompilationUnitElement(Script script, LibraryElement library)
     : this.script = script,
@@ -510,6 +513,43 @@ class CompilationUnitElement extends ContainerElement {
       getImplementationLibrary().addMember(element, listener);
     } else {
       getLibrary().addMember(element, listener);
+    }
+  }
+
+  void setPartOf(PartOf tag, DiagnosticListener listener) {
+    LibraryElement library = enclosingElement;
+    if (library.entryCompilationUnit == this) {
+      listener.reportMessage(
+          listener.spanFromNode(tag),
+          MessageKind.ILLEGAL_DIRECTIVE.error(),
+          api_e.Diagnostic.WARNING);
+      return;
+    }
+    if (!localMembers.isEmpty()) {
+      listener.reportMessage(
+          listener.spanFromNode(tag),
+          MessageKind.BEFORE_TOP_LEVEL.error(),
+          api_e.Diagnostic.ERROR);
+      return;
+    }
+    if (partTag != null) {
+      listener.reportMessage(
+          listener.spanFromNode(tag),
+          MessageKind.DUPLICATED_PART_OF.error(),
+          api_e.Diagnostic.WARNING);
+      return;
+    }
+    partTag = tag;
+    LibraryName libraryTag = getLibrary().libraryTag;
+    if (libraryTag != null) {
+      String expectedName = tag.name.toString();
+      String actualName = libraryTag.name.toString();
+      if (expectedName != actualName) {
+        listener.reportMessage(
+            listener.spanFromNode(tag.name),
+            MessageKind.LIBRARY_NAME_MISMATCH.error([expectedName]),
+            api_e.Diagnostic.WARNING);
+      }
     }
   }
 }

@@ -25,18 +25,6 @@ from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartdomgenerator')
 
-_webkit_renames = {
-    # W3C -> WebKit name conversion
-    # TODO(vsm): Maybe Store these renames in the IDLs.
-    'ApplicationCache': 'DOMApplicationCache',
-    'BarProp': 'BarInfo',
-    'DedicatedWorkerGlobalScope': 'DedicatedWorkerContext',
-    'FormData': 'DOMFormData',
-    'Selection': 'DOMSelection',
-    'SharedWorkerGlobalScope': 'SharedWorkerContext',
-    'Window': 'DOMWindow',
-    'WorkerGlobalScope': 'WorkerContext'}
-
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):
     self.templates = templates
@@ -75,7 +63,6 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
                              or_annotations = ['WebKit', 'Dart'],
                              exclude_displaced = ['WebKit'],
                              exclude_suppressed = ['WebKit', 'Dart'])
-  generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
   generator.AddMissingArguments(webkit_database)
 
@@ -97,8 +84,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
           options, dart_library_emitter, event_generator, interface, backend)
       interface_generator.Generate()
 
-    generator.Generate(
-        webkit_database, common_database, _webkit_renames, generate_interface)
+    generator.Generate(webkit_database, common_database, generate_interface)
     dart_library_emitter.EmitLibrary(dart_library_path, auxiliary_dir)
 
   if dart2js_output_dir:

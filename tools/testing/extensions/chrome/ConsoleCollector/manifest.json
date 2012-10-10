@@ -1,0 +1,22 @@
+{
+  "name": "Console Collector",
+  "version": "1.0",
+  "manifest_version": 2,
+  "description": "Allow querying of the Javascript console.",
+  "browser_action": {
+    "name": "ConsoleCollector"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "file://*" ],
+      "js": [ "content.js" ]
+    }
+  ],
+  "permissions": [
+    "tabs", "http://*/*", "file://*", "debugger"
+  ]
+}

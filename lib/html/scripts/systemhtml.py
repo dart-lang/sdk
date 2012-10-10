@@ -66,7 +66,9 @@ def SecureOutputType(generator, type_name, is_dart_type=False):
     dart_name = type_name
   else:
     dart_name = generator._DartType(type_name)
-  if dart_name in _secure_base_types:
+  # We only need to secure Window.  Only local History and Location are returned
+  # in generated code.
+  if dart_name == 'LocalWindow':
     return _secure_base_types[dart_name]
   return dart_name
 
@@ -239,9 +241,9 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
+    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     if (not self._interface.id in _merged_html_interfaces and
-        # Don't re-generate types that have been converted to native dart types.
-        self._html_interface_name not in nativified_classes):
+        interface_type_info.has_generated_interface()):
       interface_emitter = self._library_emitter.FileEmitter(
           self._html_interface_name)
     else:
@@ -257,17 +259,19 @@ class HtmlDartInterfaceGenerator(object):
     suppressed_implements = []
 
     for parent in self._interface.parents:
+      parent_type_info = self._type_registry.TypeInfo(parent.type.id)
+      parent_interface_name = parent_type_info.interface_name()
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(parent):
         # Parent is a DOM type.
-        implements.append(self._DartType(parent.type.id))
+        implements.append(parent_interface_name)
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
-        implements.append(self._DartType(parent.type.id))
+        implements.append(parent_interface_name)
       else:
         suppressed_implements.append('%s.%s' %
-            (self._common_prefix, self._DartType(parent.type.id)))
+            (self._common_prefix, parent_interface_name))
 
     if typename in _secure_base_types:
       implements.append(_secure_base_types[typename])
@@ -327,8 +331,6 @@ class HtmlDartInterfaceGenerator(object):
     if self._backend.HasImplementation():
       if not self._interface.id in _merged_html_interfaces:
         name = self._html_interface_name
-        if self._html_interface_name in nativified_classes:
-          name = nativified_classes[self._html_interface_name]
         basename = '%sImpl' % name
       else:
         basename = '%sImpl_Merged' % self._html_interface_name
@@ -337,7 +339,8 @@ class HtmlDartInterfaceGenerator(object):
       implementation_emitter = emitter.Emitter()
 
     base_class = self._backend.BaseClassName()
-    implemented_interfaces = [self._html_interface_name] +\
+    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
+    implemented_interfaces = [interface_type_info.interface_name()] +\
                              self._backend.AdditionalImplementedInterfaces()
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -608,10 +611,7 @@ class Dart2JSBackend(object):
     return True
 
   def _ImplClassName(self, type_name):
-    name = type_name
-    if type_name in nativified_classes:
-      name = nativified_classes[type_name]
-    return '_%sImpl' % name
+    return '_%sImpl' % type_name
 
   def GenerateCallback(self, info):
     pass
@@ -625,10 +625,7 @@ class Dart2JSBackend(object):
       return None
     if IsPureInterface(supertype):
       return None
-    elif supertype == 'NodeList':
-      # Special case as NodeList gets converted to List<Node>.
-      return '_NodeListImpl'
-    return self._ImplClassName(self._DartType(supertype))
+    return self._type_registry.TypeInfo(supertype).implementation_name()
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
@@ -1057,11 +1054,8 @@ class Dart2JSBackend(object):
     return self._NarrowToImplementationType(type_name)
 
   def _NarrowOutputType(self, type_name):
-    secure_name = SecureOutputType(self, type_name)
-    if (type_name == secure_name):
-      return self._NarrowToImplementationType(type_name)
-    else:
-      return secure_name
+    secure_name = SecureOutputType(self, type_name, True)
+    return self._NarrowToImplementationType(secure_name)
 
   def _FindShadowedAttribute(self, attr, merged_interfaces={}):
     """Returns (attribute, superinterface) or (None, None)."""

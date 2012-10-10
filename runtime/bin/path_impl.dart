@@ -49,10 +49,34 @@ class _Path implements Path {
       if (_path[base._path.length] == '/') {
         return new Path(_path.substring(base._path.length + 1));
       }
+    } else if (base.isAbsolute && isAbsolute) {
+      List<String> baseSegments = base.canonicalize().segments();
+      List<String> pathSegments = canonicalize().segments();
+      int common = 0;
+      int length = min(pathSegments.length, baseSegments.length);
+      while (common < length && pathSegments[common] == baseSegments[common]) {
+        common++;
+      }
+      final sb = new StringBuffer();
+
+      for (int i = common + 1; i < baseSegments.length; i++) {
+        sb.add('../');
+      }
+      if (base.hasTrailingSeparator) {
+        sb.add('../');
+      }
+      for (int i = common; i < pathSegments.length - 1; i++) {
+        sb.add('${pathSegments[i]}/');
+      }
+      sb.add('${pathSegments.last()}');
+      if (hasTrailingSeparator) {
+        sb.add('/');
+      }
+      return new Path(sb.toString());
     }
     throw new NotImplementedException(
       "Unimplemented case of Path.relativeTo(base):\n"
-      "  Only absolute paths with strict containment are handled at present.\n"
+      "  Only absolute paths are handled at present.\n"
       "  Arguments: $_path.relativeTo($base)");
   }
 

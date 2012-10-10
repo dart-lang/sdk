@@ -18,7 +18,7 @@ class SocketManyConnectionsTest {
         _connections = 0,
         _sockets = new List<Socket>(CONNECTIONS) {
     _sendPort = spawnFunction(startTestServer);
-    start();
+    initialize();
   }
 
   void run() {
@@ -43,7 +43,7 @@ class SocketManyConnectionsTest {
     }
   }
 
-  void start() {
+  void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {
       _port = message;
       run();

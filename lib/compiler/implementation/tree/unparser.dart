@@ -236,6 +236,9 @@ class Unparser implements Visitor {
   }
 
   visitReturn(Return node) {
+    if (node.isRedirectingConstructorBody) {
+      sb.add(' ');
+    }
     add(node.beginToken.value);
     if (node.hasExpression && node.beginToken.stringValue != '=>') {
       sb.add(' ');

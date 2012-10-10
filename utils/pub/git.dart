@@ -28,7 +28,8 @@ Future<List<String>> run(List<String> args, [String workingDir]) {
     return runProcess(git, args, workingDir);
   }).transform((result) {
     if (!result.success) throw new Exception(
-        'Git failed:\n${Strings.join(result.stderr, "\n")}');
+        'Git error. Command: git ${Strings.join(args, " ")}\n'
+        '${Strings.join(result.stderr, "\n")}');
 
     return result.stdout;
   });

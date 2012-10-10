@@ -476,18 +476,95 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     //
     // We need to generate a stub for (5) because the order of the
     // stub arguments and the real method may be different.
-    Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-    if (selectors == null) return;
+
     // Keep a cache of which stubs have already been generated, to
     // avoid duplicates. Note that even if selectors are
     // canonicalized, we would still need this cache: a typed selector
     // on A and a typed selector on B could yield the same stub.
     Set<String> generatedStubNames = new Set<String>();
-    for (Selector selector in selectors) {
-      if (!selector.applies(member, compiler)) continue;
-      addParameterStub(
-          member, selector, defineInstanceMember, generatedStubNames);
+    if (compiler.enabledFunctionApply
+        && member.name == Namer.CLOSURE_INVOCATION_NAME) {
+      // If [Function.apply] is called, we pessimistically compile all
+      // possible stubs for this closure.
+      // TODO(5074): This functionality only supports the new
+      // parameter specification, and this comment should be removed
+      // once the old specification is not supported.
+      FunctionSignature signature = member.computeSignature(compiler);
+      Set<Selector> selectors = signature.optionalParametersAreNamed
+          ? computeNamedSelectors(signature, member)
+          : computeOptionalSelectors(signature, member);
+      for (Selector selector in selectors) {
+        addParameterStub(
+            member, selector, defineInstanceMember, generatedStubNames);
+      }
+    } else {
+      Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
+      if (selectors == null) return;
+      for (Selector selector in selectors) {
+        if (!selector.applies(member, compiler)) continue;
+        addParameterStub(
+            member, selector, defineInstanceMember, generatedStubNames);
+      }
     }
+  }
+
+  /**
+   * Compute the set of possible selectors in the presence of named
+   * parameters.
+   */
+  Set<Selector> computeNamedSelectors(FunctionSignature signature,
+                                      FunctionElement element) {
+    Set<Selector> selectors = new Set<Selector>();
+    // Add the selector that does not have any optional argument.
+    selectors.add(new Selector(SelectorKind.CALL,
+                               element.name,
+                               element.getLibrary(),
+                               signature.requiredParameterCount,
+                               <SourceString>[]));
+
+    // For each optional parameter, we iterator over the set of
+    // already computed selectors and create new selectors with that
+    // parameter now being passed.
+    signature.forEachOptionalParameter((Element element) {
+      Set<Selector> newSet = new Set<Selector>();
+      selectors.forEach((Selector other) {
+        List<SourceString> namedArguments = [element.name];
+        namedArguments.addAll(other.namedArguments);
+        newSet.add(new Selector(other.kind,
+                                other.name,
+                                other.library,
+                                other.argumentCount + 1,
+                                namedArguments));
+      });
+      selectors.addAll(newSet);
+    });
+    return selectors;
+  }
+
+  /**
+   * Compute the set of possible selectors in the presence of optional
+   * non-named parameters.
+   */
+  Set<Selector> computeOptionalSelectors(FunctionSignature signature,
+                                         FunctionElement element) {
+    Set<Selector> selectors = new Set<Selector>();
+    // Add the selector that does not have any optional argument.
+    selectors.add(new Selector(SelectorKind.CALL,
+                               element.name,
+                               element.getLibrary(),
+                               signature.requiredParameterCount,
+                               <SourceString>[]));
+
+    // For each optional parameter, we increment the number of passed
+    // argument.
+    for (int i = 1; i <= signature.optionalParameterCount; i++) {
+      selectors.add(new Selector(SelectorKind.CALL,
+                                 element.name,
+                                 element.getLibrary(),
+                                 signature.requiredParameterCount + i,
+                                 <SourceString>[]));
+    }
+    return selectors;
   }
 
   bool instanceFieldNeedsGetter(Element member) {

@@ -7401,6 +7401,7 @@ void ICData::WriteSentinel() const {
 }
 
 
+#if defined(DEBUG)
 // Used in asserts to verify that a check is not added twice.
 bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
@@ -7420,11 +7421,12 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   }
   return false;
 }
+#endif  // DEBUG
 
 
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
-  ASSERT(!HasCheck(class_ids));
+  DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
   const intptr_t old_num = NumberOfChecks();

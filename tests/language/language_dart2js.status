@@ -153,7 +153,6 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
-lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
@@ -316,6 +315,9 @@ optimization_test: Fail, OK # Expects negative results of bit-operations.
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 reg_exp3_test: Fail, OK # Expects exception from const constructor.
 
+# Partially implemented redirecting constructors makes this throw instead
+# of failing.
+const_factory_negative_test: Crash, Fail
 
 [ $compiler == dart2js && $mode == release ]
 assign_top_method_negative_test: Crash
@@ -356,3 +358,5 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 typed_message_test: Fail # http://dartbug.com/5383
 first_class_types_test: Fail # http://dartbug.com/5523
+part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
+part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.

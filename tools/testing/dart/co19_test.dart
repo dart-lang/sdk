@@ -30,6 +30,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease,debug', '-rvm', '-cnone'],
     const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
     const <String>['-mrelease', '-rnone', '-cdartc'],
+    const <String>['-mrelease', '-rvm', '-cdart2dart'],
     const <String>['-mrelease', '-rd8', '-cdart2js'],
     const <String>['-mrelease', '-rd8', '-cdart2js', '--checked']];
 
@@ -80,6 +81,7 @@ void main() {
                                startTime,
                                false,
                                enqueueConfiguration,
+                               () {},
                                verbose,
                                listTests);
 }

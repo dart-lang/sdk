@@ -69,7 +69,7 @@ class PipeServerGame {
         _sendPort = null,
         _messages = 0 {
     _sendPort = spawnFunction(startPipeServer);
-    start();
+    initialize();
   }
 
   void runTest() {
@@ -124,7 +124,7 @@ class PipeServerGame {
     }
   }
 
-  void start() {
+  void initialize() {
     _receivePort.receive((var message, SendPort replyTo) {
       _port = message;
       runTest();

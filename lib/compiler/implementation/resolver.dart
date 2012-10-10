@@ -313,8 +313,11 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  TreeElements resolveField(Element element) {
+  TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
+    if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
+      error(element.modifiers.getStatic(), MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
+    }
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     initializerDo(tree, visitor.visit);
     return visitor.mapping;
@@ -1369,6 +1372,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
+    if (scope.element.kind == ElementKind.VARIABLE_LIST) {
+      compiler.internalError("Bad enclosing element", node: node);
+    }
     FunctionElement enclosing = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         scope.element);
@@ -1757,6 +1763,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitReturn(Return node) {
+    if (node.isRedirectingConstructorBody) {
+      unimplemented(node, 'redirecting constructors');
+    }
     visit(node.expression);
   }
 
@@ -2015,7 +2024,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visitLoopBodyIn(node, node.body, blockScope);
 
     // TODO(lrn): Also allow a single identifier.
-    if ((declaration is !Send || declaration.asSend().selector is !Identifier)
+    if ((declaration is !Send || declaration.asSend().selector is !Identifier
+        || declaration.asSend().receiver != null)
         && (declaration is !VariableDefinitions ||
         !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty()))
     {

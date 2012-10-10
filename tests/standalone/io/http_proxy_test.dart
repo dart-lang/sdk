@@ -13,7 +13,7 @@ class Server {
   Server(this.proxyHops) : server = new HttpServer();
 
   void start() {
-    server.listen("127.0.0.1", 0, 5);
+    server.listen("127.0.0.1", 0);
     server.defaultRequestHandler =
         (HttpRequest request, HttpResponse response) {
           requestCount++;
@@ -23,20 +23,20 @@ class Server {
             Expect.equals(
                 proxyHops,
                 request.headers[HttpHeaders.VIA][0].split(",").length);
-        } else {
-          Expect.isNull(request.headers[HttpHeaders.VIA]);
-        }
-        StringInputStream stream = new StringInputStream(request.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          String path = request.path.substring(1);
-          String content = "$path$path$path";
-          Expect.equals(content, body.toString());
-          response.outputStream.writeString(request.path);
-          response.outputStream.close();
-       };
-     };
+          } else {
+            Expect.isNull(request.headers[HttpHeaders.VIA]);
+          }
+          StringInputStream stream = new StringInputStream(request.inputStream);
+          StringBuffer body = new StringBuffer();
+          stream.onData = () => body.add(stream.read());
+          stream.onClosed = () {
+            String path = request.path.substring(1);
+            String content = "$path$path$path";
+            Expect.equals(content, body.toString());
+            response.outputStream.writeString(request.path);
+            response.outputStream.close();
+          };
+        };
   }
 
   void shutdown() {
@@ -60,7 +60,7 @@ class ProxyServer {
   ProxyServer() : server = new HttpServer(), client = new HttpClient();
 
   void start() {
-    server.listen("127.0.0.1", 0, 5);
+    server.listen("127.0.0.1", 0);
     server.defaultRequestHandler =
         (HttpRequest request, HttpResponse response) {
           requestCount++;

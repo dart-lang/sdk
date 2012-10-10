@@ -259,6 +259,21 @@ class MessageKind {
   static const VOID_NOT_ALLOWED = const MessageKind(
       'type void is only allowed in a return type.');
 
+  static const BEFORE_TOP_LEVEL = const MessageKind(
+      'Error: part header must come before top-level definitions.');
+
+  static const LIBRARY_NAME_MISMATCH = const MessageKind(
+      'Warning: expected part of library name "#{1}".');
+
+  static const DUPLICATED_PART_OF = const MessageKind(
+      'Error: duplicated part-of directive.');
+
+  static const ILLEGAL_DIRECTIVE = const MessageKind(
+      'Error: directive not allowed here.');
+
+  static const DUPLICATED_LIBRARY_NAME = const MessageKind(
+      'Warning: duplicated library name "#{1}".');
+
   static const INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
 Invalid offset (#{1}) in source map.
 File: #{2}
@@ -282,6 +297,9 @@ Length: #{3}''');
   static const PATCH_PARAMETER_MISMATCH = const MessageKind(
       "Patch method parameter '#{3}' doesn't match '#{2}' on origin method "
       "#{1}.");
+  
+  static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
+      "Top-level variable cannot be declared static.");
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

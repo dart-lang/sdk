@@ -54,7 +54,7 @@ abstract class Visitor<R> {
     return visitExpression(node);
   }
   R visitPart(Part node) => visitLibraryTag(node);
-  R visitPartOf(PartOf node) => visitLibraryTag(node);
+  R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
   R visitReturn(Return node) => visitStatement(node);
@@ -912,7 +912,7 @@ class Operator extends Identifier {
 }
 
 class Return extends Statement {
-  final Expression expression;
+  final Node expression;
   final Token beginToken;
   final Token endToken;
 
@@ -921,6 +921,8 @@ class Return extends Statement {
   Return asReturn() => this;
 
   bool get hasExpression => expression !== null;
+
+  bool get isRedirectingConstructorBody => beginToken.stringValue == '=';
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
@@ -1169,6 +1171,17 @@ class Modifiers extends Node {
     }
     return flags;
   }
+  
+  Node findModifier(String modifier) {
+    Link<Node> nodeList = nodes.nodes;
+    for (; !nodeList.isEmpty(); nodeList = nodeList.tail) {
+      String value = nodeList.head.asIdentifier().source.stringValue;
+      if(value === modifier) {
+        return nodeList.head;
+      }
+    }
+    return null;
+  }
 
   Modifiers asModifiers() => this;
   Token getBeginToken() => nodes.getBeginToken();
@@ -1183,6 +1196,8 @@ class Modifiers extends Node {
   bool isConst() => (flags & FLAG_CONST) != 0;
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
   bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
+
+  Node getStatic() => findModifier('static');
 
   /**
    * Use this to check if the declaration is either explicitly or implicitly
@@ -1759,7 +1774,7 @@ class Part extends LibraryTag {
   Token getEndToken() => uri.getEndToken().next;
 }
 
-class PartOf extends LibraryTag {
+class PartOf extends Node {
   final Expression name;
 
   final Token partKeyword;

@@ -113,6 +113,7 @@ void renamePlaceholders(
     MinifyingGenerator generator = new MinifyingGenerator();
     Set<String> forbiddenIdentifiers = new Set<String>.from(['main']);
     forbiddenIdentifiers.addAll(Keyword.keywords.getKeys());
+    forbiddenIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (_) =>
         generator.generate(forbiddenIdentifiers.contains);
     rename = makeRenamer(generateUniqueName);
@@ -149,14 +150,11 @@ void renamePlaceholders(
     String elementRenamer(ElementRenamable elementRenamable) =>
         renameElement(elementRenamable.element);
     String memberRenamer(MemberRenamable memberRenamable) =>
-        generator.generate((name) =>
-            forbiddenIdentifiers.contains(name)
-            || fixedMemberNames.contains(name));
+        generator.generate(forbiddenIdentifiers.contains);
     String localRenamer(LocalRenamable localRenamable) =>
         generator.generate((name) =>
             allParameterIdentifiers.contains(name)
-            || forbiddenIdentifiers.contains(name)
-            || fixedMemberNames.contains(name));
+            || forbiddenIdentifiers.contains(name));
     List<Renamable> renamables = [];
     placeholderCollector.elementNodes.forEach(
         (Element element, Set<Node> nodes) {

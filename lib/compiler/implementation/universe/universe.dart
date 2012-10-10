@@ -8,8 +8,7 @@
 #import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../scanner/scannerlib.dart');
-// For RuntimeTypeInformation. TODO(ngeoffray): remove this dependency.
-#import('../ssa/ssa.dart');
+#import('../runtime_types.dart');
 #import('../tree/tree.dart');
 #import('../util/util.dart');
 

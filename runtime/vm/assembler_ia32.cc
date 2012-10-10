@@ -1224,6 +1224,11 @@ void Assembler::shll(Register operand, Register shifter) {
 }
 
 
+void Assembler::shll(const Address& operand, Register shifter) {
+  EmitGenericShift(4, Operand(operand), shifter);
+}
+
+
 void Assembler::shrl(Register reg, const Immediate& imm) {
   EmitGenericShift(5, reg, imm);
 }
@@ -1256,6 +1261,13 @@ void Assembler::shld(Register dst, Register src) {
   EmitRegisterOperand(src, dst);
 }
 
+
+void Assembler::shld(const Address& operand, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xA5);
+  EmitOperand(src, Operand(operand));
+}
 
 void Assembler::shrd(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);

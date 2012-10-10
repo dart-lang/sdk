@@ -750,19 +750,21 @@ class BatchRunnerProcess {
   Future terminate() {
     if (_process == null) return new Future.immediate(true);
     Completer completer = new Completer();
+    Timer killTimer;
     _process.onExit = (exitCode) {
       _process.close();
+      if (killTimer != null) killTimer.cancel();
       completer.complete(true);
     };
-    if (_isWebDriver && Platform.operatingSystem == 'windows') {
+    if (_isWebDriver) {
       // Use a graceful shutdown so our Selenium script can close
-      // the open browser processes. TODO(jmesserly): Send a signal once
-      // that's supported in Windows.
+      // the open browser processes. On Windows, signals do not exist
+      // and a kill is a hard kill.
       _process.stdin.write('--terminate\n'.charCodes());
 
       // In case the run_selenium process didn't close, kill it after 30s
       int shutdownMillisecs = 30000;
-      new Timer(shutdownMillisecs, (e) { if (!closed) _process.kill(); });
+      killTimer = new Timer(shutdownMillisecs, (e) { _process.kill(); });
     } else {
       _process.kill();
     }

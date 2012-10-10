@@ -989,7 +989,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 3) {
 
 
 // Updates IC data for two arguments. Used by the equality operation when
-// teh control flow bypasses regular inline cache (null arguments).
+// the control flow bypasses regular inline cache (null arguments).
 //   Arg0: Receiver object.
 //   Arg1: Argument after receiver.
 //   Arg2: Target's name.
