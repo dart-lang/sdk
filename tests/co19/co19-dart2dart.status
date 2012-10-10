@@ -115,13 +115,6 @@ Language/05_Variables/05_Variables_A04_t08: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A04_t10: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t02: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t01: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t02: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t03: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t04: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t05: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t06: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A08_t07: Fail # http://dartbug.com/5519
 Language/06_Functions/06_Functions_A01_t06: Fail # inherited from VM
 Language/06_Functions/06_Functions_A01_t22: Fail # inherited from VM
 Language/06_Functions/06_Functions_A01_t23: Fail # http://dartbug.com/5519
