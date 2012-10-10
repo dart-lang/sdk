@@ -7,8 +7,6 @@
 # for co19 bugs.
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
-Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # http://dartbug.com/5429
-Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # http://dartbug.com/5429
 
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
@@ -409,13 +407,12 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail, OK # co19 issue 246
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # co19 issue 246
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # co19 issue 246
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail, OK # co19 issue 246
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail, OK # co19 issue 246
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # co19 issue 246
+
+Language/13_Libraries_and_Scripts/2_Imports_A03_t16: Fail # co19 issue 226
+Language/13_Libraries_and_Scripts/2_Imports_A03_t26: Fail # co19 issue 226
 
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail, OK # co19 issue 249
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # co19 issue 249
@@ -722,11 +719,6 @@ Language/14_Types/5_Function_Types_A01_t20: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
-
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # http://dartbug.com/4050. Export not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # http://dartbug.com/4050. Export not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # http://dartbug.com/4050. Export not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # http://dartbug.com/4050. Export not implemented yet.
 
 Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050. Combinators not implemented yet.
 Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050. Combinators not implemented yet.

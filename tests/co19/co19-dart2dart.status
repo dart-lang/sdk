@@ -485,25 +485,16 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t27: Fail # inherited from dart2js
+Language/13_Libraries_and_Scripts/2_Imports_A02_t28: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A03_t07: Crash # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A03_t08: Crash # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t13: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t16: Fail # co19 issue 226
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t23: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A03_t26: Fail # co19 issue 226
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail # inherited from dart2js
@@ -587,3 +578,11 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
 
 # Partially implemented redirecting constructors makes this fail.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
+
+[ $compiler == dart2dart && $system == windows ]
+LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
+LibTest/core/double/round_A01_t01: Fail # Result is NaN
+LibTest/core/int/operator_remainder_A01_t02: Fail # Result is NaN
+LibTest/core/int/remainder_A01_t02: Fail # Result is NaN
+LibTest/core/double/remainder_A01_t04: Fail # Result is NaN
+LibTest/core/Math/atan2_A01_t03: Fail # Result is NaN

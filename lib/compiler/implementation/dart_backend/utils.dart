@@ -232,6 +232,10 @@ class CloningVisitor implements Visitor<Node> {
     unimplemented('visitNode', node: node);
   }
 
+  Node visitLibraryDependency(LibraryTag node) {
+    unimplemented('visitNode', node: node);
+  }
+
   Node visitLibraryName(LibraryName node) {
     unimplemented('visitNode', node: node);
   }

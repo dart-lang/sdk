@@ -48,6 +48,8 @@ class MessageKind {
       'duplicate definition of #{1}');
   static const DUPLICATE_IMPORT = const MessageKind(
       'duplicate import of #{1}');
+  static const DUPLICATE_EXPORT = const MessageKind(
+      'duplicate export of #{1}');
   static const NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
   static const NOT_A_PREFIX = const MessageKind(

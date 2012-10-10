@@ -233,7 +233,7 @@ class LibraryCompiler extends api.Compiler {
     scanBuiltinLibraries();
     var elementList = <LibraryElement>[];
     for (var uri in uriList) {
-      elementList.add(scanner.loadLibrary(uri, null, uri));
+      elementList.add(libraryLoader.loadLibrary(uri, null, uri));
     }
     libraries.forEach((_, library) {
       maybeEnableJSHelper(library);
@@ -365,11 +365,6 @@ class Dart2JsCompilation implements Compilation {
       // TODO(johnniwinther): Detect file not found
     }
     _compiler.runList(librariesUri);
-  }
-
-  void addLibrary(String path) {
-    var uri = cwd.resolve(nativeToUriPath(path));
-    _compiler.scanner.loadLibrary(uri, null);
   }
 
   MirrorSystem get mirrors => new Dart2JsMirrorSystem(_compiler);
@@ -518,12 +513,16 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
           if (e.isClass()) {
             e.ensureResolved(system.compiler);
             var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
-            assert(!_types.containsKey(type.simpleName));
+            assert(invariant(_library, !_types.containsKey(type.simpleName),
+                message: "Type name '${type.simpleName}' "
+                         "is not unique in $_library."));
             _types[type.simpleName] = type;
           } else if (e.isTypedef()) {
             var type = new Dart2JsTypedefMirror.fromLibrary(this,
                 e.computeType(system.compiler));
-            assert(!_types.containsKey(type.simpleName));
+            assert(invariant(_library, !_types.containsKey(type.simpleName),
+                message: "Type name '${type.simpleName}' "
+                         "is not unique in $_library."));
             _types[type.simpleName] = type;
           }
         }

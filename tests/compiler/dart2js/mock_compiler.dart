@@ -81,24 +81,28 @@ class MockCompiler extends Compiler {
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions) {
-    Uri uri = new Uri.fromComponents(scheme: "source");
-    var script = new Script(uri, new MockFile(coreSource));
-    coreLibrary = new LibraryElement(script);
-    parseScript(coreSource, coreLibrary);
+    coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
-
-    script = new Script(uri, new MockFile(helperSource));
-    jsHelperLibrary = new LibraryElement(script);
-    parseScript(helperSource, jsHelperLibrary);
+    jsHelperLibrary = createLibrary("helper", helperSource);
     assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
-
-    script = new Script(uri, new MockFile(interceptorsSource));
-    interceptorsLibrary = new LibraryElement(script);
-    parseScript(interceptorsSource, interceptorsLibrary);
+    interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
+  }
+
+  /**
+   * Used internally to create a library from a source text. The created library
+   * is fixed to export its top-level declarations.
+   */
+  LibraryElement createLibrary(String name, String source) {
+    Uri uri = new Uri.fromComponents(scheme: "source", path: name);
+    var script = new Script(uri, new MockFile(source));
+    var library = new LibraryElement(script);
+    parseScript(source, library);
+    library.setExports(library.localScope.getValues());
+    return library;
   }
 
   void reportWarning(Node node, var message) {
@@ -106,7 +110,7 @@ class MockCompiler extends Compiler {
   }
 
   void reportError(Node node, var message) {
-    if (message is String && message.startsWith("no #library tag found in")) {
+    if (message is String && message.startsWith("no library name found in")) {
       // TODO(ahe): Fix the MockCompiler to not have this problem.
       return;
     }

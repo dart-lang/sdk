@@ -19,7 +19,7 @@ abstract class Visitor<R> {
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
-  R visitExport(Export node) => visitLibraryTag(node);
+  R visitExport(Export node) => visitLibraryDependency(node);
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
@@ -29,9 +29,10 @@ abstract class Visitor<R> {
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
   R visitIf(If node) => visitStatement(node);
-  R visitImport(Import node) => visitLibraryTag(node);
+  R visitImport(Import node) => visitLibraryDependency(node);
   R visitLabel(Label node) => visitNode(node);
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+  R visitLibraryDependency(LibraryDependency node) => visitLibraryTag(node);
   R visitLibraryName(LibraryName node) => visitLibraryTag(node);
   R visitLibraryTag(LibraryTag node) => visitNode(node);
   R visitLiteral(Literal node) => visitExpression(node);
@@ -1171,7 +1172,7 @@ class Modifiers extends Node {
     }
     return flags;
   }
-  
+
   Node findModifier(String modifier) {
     Link<Node> nodeList = nodes.nodes;
     for (; !nodeList.isEmpty(); nodeList = nodeList.tail) {
@@ -1695,14 +1696,32 @@ class LibraryName extends LibraryTag {
   Token getEndToken() => name.getEndToken().next;
 }
 
-class Import extends LibraryTag {
+/**
+ * This tag describes a dependency between one library and the exported
+ * identifiers of another library. The other library is specified by the [uri].
+ * Combinators filter away some identifiers from the other library.
+ */
+abstract class LibraryDependency extends LibraryTag {
   final LiteralString uri;
-  final Identifier prefix;
   final NodeList combinators;
 
+  LibraryDependency(this.uri, this.combinators);
+}
+
+/**
+ * An [:import:] library tag.
+ *
+ * An import tag is dependency on another library where the exported identifiers
+ * are put into the import scope of the importing library. The import scope is
+ * only visible inside the library.
+ */
+class Import extends LibraryDependency {
+  final Identifier prefix;
   final Token importKeyword;
 
-  Import(this.importKeyword, this.uri, this.prefix, this.combinators);
+  Import(this.importKeyword, LiteralString uri,
+         this.prefix, NodeList combinators)
+      : super(uri, combinators);
 
   bool get isImport => true;
 
@@ -1727,13 +1746,18 @@ class Import extends LibraryTag {
   }
 }
 
-class Export extends LibraryTag {
-  final LiteralString uri;
-  final NodeList combinators;
-
+/**
+ * An [:export:] library tag.
+ *
+ * An export tag is dependency on another library where the exported identifiers
+ * are put into the export scope of the exporting library. The export scope is
+ * not visible inside the library.
+ */
+class Export extends LibraryDependency {
   final Token exportKeyword;
 
-  Export(this.exportKeyword, this.uri, this.combinators);
+  Export(this.exportKeyword, LiteralString uri, NodeList combinators)
+      : super(uri, combinators);
 
   bool get isExport => true;
 

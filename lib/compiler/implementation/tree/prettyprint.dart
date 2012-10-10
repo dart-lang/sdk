@@ -420,6 +420,10 @@ class PrettyPrinter implements Visitor {
     unimplemented('visitNode', node: node);
   }
 
+  visitLibraryDependency(Node node) {
+    unimplemented('visitNode', node: node);
+  }
+
   visitLibraryName(LibraryName node) {
     unimplemented('visitNode', node: node);
   }

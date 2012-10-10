@@ -130,9 +130,12 @@ class PatchParserTask extends leg.CompilerTask {
    * injections to the library, and returns a list of class
    * patches.
    */
-  void patchLibrary(Uri patchUri, LibraryElement originLibrary) {
+  void patchLibrary(leg.LibraryDependencyHandler handler,
+                    Uri patchUri, LibraryElement originLibrary) {
+
     leg.Script script = compiler.readScript(patchUri, null);
     var patchLibrary = new LibraryElement(script, patchUri, originLibrary);
+    handler.registerNewLibrary(patchLibrary);
     LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
     compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
       // This patches the elements of the patch library into [library].
@@ -145,8 +148,7 @@ class PatchParserTask extends leg.CompilerTask {
     // scope for the original methods too. This should be fixed.
     compiler.importHelperLibrary(originLibrary);
     for (tree.LibraryTag tag in imports.toLink()) {
-      compiler.scanner.importLibraryFromTag(tag,
-                                            patchLibrary.entryCompilationUnit);
+      compiler.libraryLoader.registerLibraryFromTag(handler, patchLibrary, tag);
     }
   }
 
