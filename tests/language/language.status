@@ -216,6 +216,8 @@ interface_test/none: Fail, OK
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
 import_combinators_test: Fail
+export_test: Fail
+export_cyclic_test: Fail
 
 
 [ $runtime == dartium ]
