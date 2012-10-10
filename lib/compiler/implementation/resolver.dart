@@ -1369,6 +1369,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
+    if (scope.element.kind == ElementKind.VARIABLE_LIST) {
+      compiler.internalError("Bad enclosing element", node: node);
+    }
     FunctionElement enclosing = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         scope.element);
