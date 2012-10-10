@@ -2384,8 +2384,8 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary() const {
           new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresXmmRegister());
       summary->set_in(1, Location::RequiresXmmRegister());
-      summary->set_temp(0, Location::RegisterLocation(EAX));
-      summary->set_temp(1, Location::RegisterLocation(EDX));
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresRegister());
       summary->set_out(Location::SameAsFirstInput());
       return summary;
     }
@@ -2408,19 +2408,21 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR: __ xorpd(left, right); break;
     case Token::kADD:
     case Token::kSUB: {
+      Register lo = locs()->temp(0).reg();
+      Register hi = locs()->temp(1).reg();
       Label* deopt  = compiler->AddDeoptStub(deopt_id(),
                                              kDeoptBinaryMintOp);
       Label done, overflow;
-      __ pextrd(EAX, right, Immediate(0));  // Lower half left
-      __ pextrd(EDX, right, Immediate(1));  // Upper half left
+      __ pextrd(lo, right, Immediate(0));  // Lower half left
+      __ pextrd(hi, right, Immediate(1));  // Upper half left
       __ subl(ESP, Immediate(2 * kWordSize));
       __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {
-        __ addl(Address(ESP, 0), EAX);
-        __ adcl(Address(ESP, 1 * kWordSize), EDX);
+        __ addl(Address(ESP, 0), lo);
+        __ adcl(Address(ESP, 1 * kWordSize), hi);
       } else {
-        __ subl(Address(ESP, 0), EAX);
-        __ sbbl(Address(ESP, 1 * kWordSize), EDX);
+        __ subl(Address(ESP, 0), lo);
+        __ sbbl(Address(ESP, 1 * kWordSize), hi);
       }
       __ j(OVERFLOW, &overflow);
       __ movq(left, Address(ESP, 0));
