@@ -4,7 +4,6 @@
 
 #include "vm/flow_graph_inliner.h"
 
-#include "vm/assert.h"
 #include "vm/compiler.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
@@ -26,6 +25,7 @@ DEFINE_FLAG(bool, inline_control_flow, true,
     "Inline functions with control flow.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, verify_compiler);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -229,7 +229,7 @@ class CallSiteInliner : public FlowGraphVisitor {
       TRACE_INLINING(OS::Print("     Success\n"));
 
       // Check that inlining maintains use lists.
-      SLOW_ASSERT(caller_graph_->ValidateUseLists());
+      DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
