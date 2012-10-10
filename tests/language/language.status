@@ -62,6 +62,8 @@ type_error_test: Fail # http://dartbug.com/5280
 
 compile_time_constant10_test/none: Fail # issue 5214
 
+export_cyclic_test: Crash
+
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
