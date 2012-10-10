@@ -216,9 +216,13 @@ interface_test/none: Fail, OK
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
 import_combinators_test: Fail
-export_test: Fail
-export_cyclic_test: Fail
+export_test: Fail # Issue 5785
+export_cyclic_test: Fail # Issue 5785
 
+[ $compiler == drt && $runtime == ff ]
+export_test: Fail # Issue 5785
+export_cyclic_test: Fail # Issue 5785
+generic_creation_test: Fail # Issue 5785
 
 [ $runtime == dartium ]
 import_combinators_test: Fail
