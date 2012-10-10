@@ -25966,7 +25966,7 @@ class _RTCStatsResponseImpl extends NativeFieldWrapperClass1 implements RTCStats
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements List<Node> {
+abstract class RadioNodeList implements NodeList {
 
   /** @domName RadioNodeList.value */
   String value;

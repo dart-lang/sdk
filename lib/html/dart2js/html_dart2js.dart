@@ -23399,7 +23399,7 @@ class _RTCStatsResponseImpl implements RTCStatsResponse native "*RTCStatsRespons
 // WARNING: Do not edit - generated code.
 
 /// @domName RadioNodeList
-abstract class RadioNodeList implements List<Node> {
+abstract class RadioNodeList implements NodeList {
 
   /** @domName RadioNodeList.value */
   String value;

@@ -259,17 +259,19 @@ class HtmlDartInterfaceGenerator(object):
     suppressed_implements = []
 
     for parent in self._interface.parents:
+      parent_type_info = self._type_registry.TypeInfo(parent.type.id)
+      parent_interface_name = parent_type_info.interface_name()
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(parent):
         # Parent is a DOM type.
-        implements.append(self._DartType(parent.type.id))
+        implements.append(parent_interface_name)
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
-        implements.append(self._DartType(parent.type.id))
+        implements.append(parent_interface_name)
       else:
         suppressed_implements.append('%s.%s' %
-            (self._common_prefix, self._DartType(parent.type.id)))
+            (self._common_prefix, parent_interface_name))
 
     if typename in _secure_base_types:
       implements.append(_secure_base_types[typename])
@@ -339,7 +341,8 @@ class HtmlDartInterfaceGenerator(object):
       implementation_emitter = emitter.Emitter()
 
     base_class = self._backend.BaseClassName()
-    implemented_interfaces = [self._html_interface_name] +\
+    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
+    implemented_interfaces = [interface_type_info.interface_name()] +\
                              self._backend.AdditionalImplementedInterfaces()
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -630,7 +633,7 @@ class Dart2JSBackend(object):
     elif supertype == 'NodeList':
       # Special case as NodeList gets converted to List<Node>.
       return '_NodeListImpl'
-    return self._ImplClassName(self._DartType(supertype))
+    return self._type_registry.TypeInfo(supertype).implementation_name()
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.

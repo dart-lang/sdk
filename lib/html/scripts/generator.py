@@ -506,7 +506,7 @@ def TypeName(type_ids, interface):
   # Dynamically type this field for now.
   return 'Dynamic'
 
-def ImplementationClassName(interface_name):
+def ImplementationClassNameForInterfaceName(interface_name):
   return '_%sImpl' % interface_name
 
 # ------------------------------------------------------------------------------
@@ -627,6 +627,12 @@ class IDLTypeInfo(object):
   def narrow_dart_type(self):
     return self.dart_type()
 
+  def interface_name(self):
+    raise NotImplementedError()
+
+  def implementation_name(self):
+    raise NotImplementedError()
+
   def native_type(self):
     return self._data.native_type or self._idl_type
 
@@ -718,14 +724,23 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
   def narrow_dart_type(self):
     # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
     if self._data.suppress_public_interface:
-      return ImplementationClassName(self.idl_type())
+      return ImplementationClassNameForInterfaceName(self.idl_type())
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
       return self.dart_type()
     if IsPureInterface(self.idl_type()):
       return self.idl_type()
-    return ImplementationClassName(self._dart_interface_name)
+    return self.implementation_name()
+
+  def interface_name(self):
+    return self._dart_interface_name
+
+  def implementation_name(self):
+    # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
+    if self._data.suppress_public_interface:
+      return ImplementationClassNameForInterfaceName(self.idl_type())
+    return ImplementationClassNameForInterfaceName(self._dart_interface_name)
 
 
 class CallbackIDLTypeInfo(IDLTypeInfo):
@@ -740,6 +755,12 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def dart_type(self):
     return 'List<%s>' % self._item_info.dart_type()
+
+  def interface_name(self):
+    return self.dart_type()
+
+  def implementation_name(self):
+    return self.dart_type()
 
   def vector_to_dart_template_parameter(self):
     raise Exception('sequences of sequences are not supported yet')
