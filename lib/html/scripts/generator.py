@@ -633,6 +633,9 @@ class IDLTypeInfo(object):
   def implementation_name(self):
     raise NotImplementedError()
 
+  def has_generated_interface(self):
+    raise NotImplementedError()
+
   def native_type(self):
     return self._data.native_type or self._idl_type
 
@@ -722,9 +725,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return self._data.dart_type or self._dart_interface_name
 
   def narrow_dart_type(self):
-    # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
-    if self._data.suppress_public_interface:
-      return ImplementationClassNameForInterfaceName(self.idl_type())
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
@@ -737,15 +737,47 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return self._dart_interface_name
 
   def implementation_name(self):
-    # TODO(podivilov): introduce ListLikeIDLTypeInfo and remove this hack.
-    if self._data.suppress_public_interface:
-      return ImplementationClassNameForInterfaceName(self.idl_type())
     return ImplementationClassNameForInterfaceName(self._dart_interface_name)
+
+  def has_generated_interface(self):
+    return True
 
 
 class CallbackIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
+
+
+# Type info for DOM types that are converted to dart lists and therefore whose
+# actual interface generation should be suppressed. For type information, we
+# still generate the implementations though, so these types should not be
+# suppressed entirely.
+class ListLikeIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, data, item_info):
+    super(ListLikeIDLTypeInfo, self).__init__(idl_type, data)
+    self._item_info = item_info
+
+  def dart_type(self):
+    return 'List<%s>' % self._item_info.dart_type()
+
+  def narrow_dart_type(self):
+    if self.has_generated_interface():
+      return self.dart_type()
+    return ImplementationClassNameForInterfaceName(self.idl_type())
+
+  def interface_name(self):
+    if self.has_generated_interface():
+      return self.idl_type()
+    return self.dart_type()
+
+  def implementation_name(self):
+    return ImplementationClassNameForInterfaceName(self.idl_type())
+
+  def has_generated_interface(self):
+    # Don't generate interfaces for list-like types.
+    # TODO(podivilov): why NodeList is special? Is it indeed a list-like type
+    # or should just implement sequence<Node>?
+    return self.idl_type() == 'NodeList'
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
@@ -876,13 +908,8 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               requires_v8_scope=False, suppress_public_interface=False):
-    """Constructor.
-    Arguments:
-    - suppress_public_interface is True if we are converting a DOM type to a
-        built-in Dart type in which case we do not want to generate the new
-        interface in the library (FooList -> List<Foo> for example) but we still
-        generate the underlying implementation classes."""
+               requires_v8_scope=False,
+               item_type=None):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -892,7 +919,7 @@ class TypeData(object):
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
     self.requires_v8_scope = requires_v8_scope
-    self.suppress_public_interface = suppress_public_interface
+    self.item_type = item_type
 
 
 _idl_type_registry = {
@@ -946,50 +973,40 @@ _idl_type_registry = {
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
-    'WebKitAnimationList': TypeData(clazz='Interface',
-        dart_type='List<Animation>', suppress_public_interface=True),
-    'ClientRectList': TypeData(clazz='Interface', dart_type='List<ClientRect>',
-        suppress_public_interface=True),
-    'CSSRuleList': TypeData(clazz='Interface', dart_type='List<CSSRule>',
-        suppress_public_interface=True),
-    'CSSValueList': TypeData(clazz='Interface', dart_type='List<CSSValue>',
-        suppress_public_interface=True),
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
     'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
     'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
     'Element': TypeData(clazz='Interface', custom_to_dart=True),
-    'EntryArray': TypeData(clazz='Interface', dart_type='List<Entry>',
-        suppress_public_interface=True),
-    'EntryArraySync': TypeData(clazz='Interface',
-        dart_type='List<EntrySync>', suppress_public_interface=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
     'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
-    'FileList': TypeData(clazz='Interface', dart_type='List<File>',
-       suppress_public_interface=True),
-    'GamepadList': TypeData(clazz='Interface', dart_type='List<Gamepad>',
-        suppress_public_interface=True),
     'HTMLElement': TypeData(clazz='Interface', custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
     'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
-    'MediaStreamList': TypeData(clazz='Interface',
-        dart_type='List<MediaStream>', suppress_public_interface=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
-    'NodeList': TypeData(clazz='Interface', dart_type='List<Node>',
-        suppress_public_interface=False),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
-    'SVGElementInstanceList': TypeData(clazz='Interface',
-        dart_type='List<SVGElementInstance>', suppress_public_interface=True),
-    'SpeechInputResultList': TypeData(clazz='Interface',
-        dart_type='List<SpeechInputResult>', suppress_public_interface=True),
-    'SpeechRecognitionResultList': TypeData(clazz='Interface',
-        dart_type='List<SpeechRecognitionResult>',
-        suppress_public_interface=True),
-    'StyleSheetList': TypeData(clazz='Interface',
-        dart_type='List<StyleSheet>', suppress_public_interface=True),
+
+    'ClientRectList': TypeData(clazz='ListLike', item_type='ClientRect'),
+    'CSSRuleList': TypeData(clazz='ListLike', item_type='CSSRule'),
+    'CSSValueList': TypeData(clazz='ListLike', item_type='CSSValue'),
+    'EntryArray': TypeData(clazz='ListLike', item_type='Entry'),
+    'EntryArraySync': TypeData(clazz='ListLike', item_type='EntrySync'),
+    'FileList': TypeData(clazz='ListLike', item_type='File'),
+    'GamepadList': TypeData(clazz='ListLike', item_type='Gamepad'),
+    'MediaStreamList': TypeData(clazz='ListLike', item_type='MediaStream'),
+    'NodeList': TypeData(clazz='ListLike', item_type='Node'),
+    'SVGElementInstanceList': TypeData(clazz='ListLike',
+        item_type='SVGElementInstance'),
+    'SpeechInputResultList': TypeData(clazz='ListLike',
+        item_type='SpeechInputResult'),
+    'SpeechRecognitionResultList': TypeData(clazz='ListLike',
+        item_type='SpeechRecognitionResult'),
+    'StyleSheetList': TypeData(clazz='ListLike', item_type='StyleSheet'),
+    'WebKitAnimationList': TypeData(clazz='ListLike',
+        item_type='WebKitAnimation'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
@@ -1006,17 +1023,6 @@ _idl_type_registry = {
     'SVGTransform': TypeData(clazz='SVGTearOff'),
     'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff'),
 }
-
-# A list constructed of DOM types that are converted to built-in dart types
-# (like Lists) and therefore whose actual interface generation should be
-# suppressed. (For type information, we still generate the implementations
-# though, so these types should not be suppressed entirely.)
-nativified_classes = {}
-for key in _idl_type_registry:
-  value = _idl_type_registry[key]
-  if value.suppress_public_interface:
-    nativified_classes[value.dart_type] = key
-    html_interface_renames[key] = value.dart_type
 
 _svg_supplemental_includes = [
     '"SVGAnimatedPropertyTearOff.h"',
@@ -1059,6 +1065,7 @@ class TypeRegistry(object):
           self._renamer.RenameInterface(interface))
 
     type_data = _idl_type_registry.get(type_name)
+
     if type_data.clazz == 'Interface':
       if self._database.HasInterface(type_name):
         dart_interface_name = self._renamer.RenameInterface(
@@ -1066,6 +1073,9 @@ class TypeRegistry(object):
       else:
         dart_interface_name = type_name
       return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name)
+
+    if type_data.clazz == 'ListLike':
+      return ListLikeIDLTypeInfo(type_name, type_data, self.TypeInfo(type_data.item_type))
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

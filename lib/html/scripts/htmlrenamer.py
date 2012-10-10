@@ -11,7 +11,6 @@ html_interface_renames = {
     'Location': 'LocalLocation',
     'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
-    'WebKitAnimationList': 'AnimationList',
     'WebKitBlobBuilder': 'BlobBuilder',
     'WebKitCSSKeyframeRule': 'CSSKeyframeRule',
     'WebKitCSSKeyframesRule': 'CSSKeyframesRule',

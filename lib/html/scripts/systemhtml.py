@@ -241,9 +241,9 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
+    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     if (not self._interface.id in _merged_html_interfaces and
-        # Don't re-generate types that have been converted to native dart types.
-        self._html_interface_name not in nativified_classes):
+        interface_type_info.has_generated_interface()):
       interface_emitter = self._library_emitter.FileEmitter(
           self._html_interface_name)
     else:
@@ -331,8 +331,6 @@ class HtmlDartInterfaceGenerator(object):
     if self._backend.HasImplementation():
       if not self._interface.id in _merged_html_interfaces:
         name = self._html_interface_name
-        if self._html_interface_name in nativified_classes:
-          name = nativified_classes[self._html_interface_name]
         basename = '%sImpl' % name
       else:
         basename = '%sImpl_Merged' % self._html_interface_name
@@ -613,10 +611,7 @@ class Dart2JSBackend(object):
     return True
 
   def _ImplClassName(self, type_name):
-    name = type_name
-    if type_name in nativified_classes:
-      name = nativified_classes[type_name]
-    return '_%sImpl' % name
+    return '_%sImpl' % type_name
 
   def GenerateCallback(self, info):
     pass
@@ -630,9 +625,6 @@ class Dart2JSBackend(object):
       return None
     if IsPureInterface(supertype):
       return None
-    elif supertype == 'NodeList':
-      # Special case as NodeList gets converted to List<Node>.
-      return '_NodeListImpl'
     return self._type_registry.TypeInfo(supertype).implementation_name()
 
   def AdditionalImplementedInterfaces(self):
