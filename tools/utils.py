@@ -297,6 +297,15 @@ def Touch(name):
     os.utime(name, None)
 
 
+def DartBinary():
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')
+  if IsWindows():
+    return os.path.join(dart_binary_prefix, 'windows', 'dart.exe')
+  else:
+    return os.path.join(dart_binary_prefix, GuessOS(), 'dart')
+
+
 if __name__ == "__main__":
   import sys
   Main(sys.argv)
