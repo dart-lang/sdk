@@ -422,7 +422,8 @@ class PlaceholderCollector extends Visitor {
   static bool isDynamicType(TypeAnnotation typeAnnotation) {
     if (!isPlainTypeName(typeAnnotation)) return false;
     String name = typeAnnotation.typeName.asIdentifier().source.slowToString();
-    return name == 'Dynamic';
+    // TODO(aprelev@gmail.com): Removed deprecated Dynamic keyword support.
+    return name == 'Dynamic' || name == 'dynamic';
   }
 
   visitTypeAnnotation(TypeAnnotation node) {

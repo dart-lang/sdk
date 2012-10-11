@@ -409,6 +409,7 @@ Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # inherited from VM
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail, OK # co19 issue 254
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A06_t16: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519

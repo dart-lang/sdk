@@ -42,6 +42,7 @@ class Keyword implements SourceString {
       const Keyword("abstract", isBuiltIn: true),
       const Keyword("as", info: AS_INFO, isBuiltIn: true),
       const Keyword("assert", isBuiltIn: true),
+      const Keyword("dynamic", isBuiltIn: true),
       const Keyword("external", isBuiltIn: true),
       const Keyword("factory", isBuiltIn: true),
       const Keyword("get", isBuiltIn: true),
@@ -63,7 +64,8 @@ class Keyword implements SourceString {
       const Keyword("show", isPseudo: true),
       const Keyword("source", isPseudo: true) ];
 
-  static const DYNAMIC = const Keyword("Dynamic", isBuiltIn: true);
+  // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+  static const DYNAMIC_DEPRECATED = const Keyword("Dynamic", isBuiltIn: true);
 
   final String syntax;
   final bool isPseudo;

@@ -655,6 +655,8 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
 
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
     bool isAscii = true;
+
+    // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
     bool isDynamicBuiltIn = false;
 
     if (next === $D) {
@@ -693,7 +695,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         if (start == byteOffset) {
           return error(const SourceString("expected identifier"));
         } else if (isDynamicBuiltIn) {
-          appendKeywordToken(Keyword.DYNAMIC);
+          appendKeywordToken(Keyword.DYNAMIC_DEPRECATED);
         } else if (isAscii) {
           appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {

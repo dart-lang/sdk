@@ -984,7 +984,10 @@ class TypeResolver {
     }
     if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
-    } else if (typeName.source.stringValue === 'Dynamic') {
+    } else if (
+        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+        typeName.source.stringValue === 'Dynamic'
+        || typeName.source.stringValue === 'dynamic') {
       return compiler.dynamicClass;
     } else if (send !== null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);

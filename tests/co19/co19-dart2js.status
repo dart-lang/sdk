@@ -376,6 +376,7 @@ LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
+Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail, OK # co19 issue 254
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
 
 Language/07_Classes/3_Setters_A01_t02: Fail, OK # co19 issue 189
