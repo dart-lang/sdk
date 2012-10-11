@@ -62,6 +62,8 @@ type_error_test: Fail # http://dartbug.com/5280
 
 compile_time_constant10_test/none: Fail # issue 5214
 
+export_cyclic_test: Crash
+
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
 
@@ -214,13 +216,16 @@ interface_test/none: Fail, OK
 gc_test: Skip # Issue 1487
 prefix_new_test: Fail
 import_combinators_test: Fail
-
+export_test: Fail # Issue 5785
+export_cyclic_test: Fail # Issue 5785
+call_test: Fail # Issue 5797
 
 [ $runtime == dartium ]
 import_combinators_test: Fail
 
 
 [ $runtime == vm ]
+call_test: Fail # Issue 1604
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip

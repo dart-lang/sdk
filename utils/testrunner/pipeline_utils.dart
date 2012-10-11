@@ -20,6 +20,24 @@ String createTempName(String tmpDir, String basis, String suffix) {
       '${p.filenameWithoutExtension}${suffix}';
 }
 
+/**
+ * Given a file path [file], make it absolute if it is relative,
+ * and return the result as a [Path].
+ */
+Path getAbsolutePath(String file) {
+  var p = new Path(file).canonicalize();
+  if (p.isAbsolute) {
+    return p;
+  } else {
+    var cwd = new Path((new Directory.current()).path);
+    return cwd.join(p);
+  }
+}
+
+/** Get the directory that contains a [file]. */
+String getDirectory(String file) =>
+    getAbsolutePath(file).directoryPath.toString();
+
 /** Create a file [fileName] and populate it with [contents]. */
 void writeFile(String fileName, String contents) {
   var file = new File(fileName);
@@ -32,22 +50,22 @@ void writeFile(String fileName, String contents) {
  * Run an external process [cmd] with command line arguments [args].
  * [timeout] can be used to forcefully terminate the process after
  * some number of seconds. This is used by runCommand and startProcess.
- * If [procId] is 0 (runCommand) then this will return a [Future] for
- * when the process terminates; if [procId] is instead non-zero
- * (startProcess) then a reference to the [Process] will be put in a
- * map with key [procId]; in this case the process can be terminated
- * later by calling [stopProcess] and passing in the [procId].
+ * If [procId] is non-zero (i.e. called from startProcess) then a reference
+ * to the [Process] will be put in a map with key [procId]; in this case
+ * the process can be terminated later by calling [stopProcess] and
+ * passing in the [procId].
+ * [outputMonitor] is an optional function that will be called back with each
+ * line of output from the process.
+ * Returns a [Future] for when the process terminates.
  */
 Future _processHelper(String command, List<String> args,
-    [int timeout = 300, int procId = 0]) {
-  var completer = null;
+    [int timeout = 300, int procId = 0, Function outputMonitor]) {
+  var completer = new Completer();
   log.add('Running $command ${Strings.join(args, " ")}');
   var timer = null;
   var stdoutHandler, stderrHandler;
   var process = Process.start(command, args);
-  if (procId == 0) {
-    completer = new Completer();
-  } else {
+  if (procId != 0) {
     _procs[procId] = process;
   }
   process.onStart = () {
@@ -72,13 +90,14 @@ Future _processHelper(String command, List<String> args,
     completePipeline(-1);
   };
 
-  _pipeStream(process.stdout, stdout);
-  _pipeStream(process.stderr, stderr);
+  _pipeStream(process.stdout, stdout, outputMonitor);
+  _pipeStream(process.stderr, stderr, outputMonitor);
 
-  return (completer == null) ? null : completer.future;
+  return completer.future;
 }
 
-void _pipeStream(InputStream stream, List<String> destination) {
+void _pipeStream(InputStream stream, List<String> destination,
+                 Function outputMonitor) {
   var source = new StringInputStream(stream);
   source.onLine = () {
     if (source.available() == 0) return;
@@ -87,6 +106,9 @@ void _pipeStream(InputStream stream, List<String> destination) {
       if (config["immediate"] && line.startsWith('###')) {
         // TODO - when we dump the list later skip '###' messages if immediate.
         print(line.substring(3));
+      }
+      if (outputMonitor != null) {
+        outputMonitor(line);
       }
       destination.add(line);
       line = source.readLine();
@@ -100,18 +122,27 @@ void _pipeStream(InputStream stream, List<String> destination) {
  * some number of seconds.
  * Returns a [Future] for when the process terminates.
  */
-Future runCommand(String command, List<String> args, [int timeout = 300]) {
-  return _processHelper(command, args, timeout);
+Future runCommand(String command, List<String> args,
+                  [int timeout = 300, Function outputMonitor]) {
+  return _processHelper(command, args, timeout, outputMonitor:outputMonitor);
 }
 
 /**
  * Start an external process [cmd] with command line arguments [args].
  * Returns an ID by which it can later be stopped.
  */
-int startProcess(String command, List<String> args) {
+int startProcess(String command, List<String> args, [Function outputMonitor]) {
   int id = _procId++;
-  _processHelper(command, args, 3000, id);
+  _processHelper(command, args, 3000, id,
+      outputMonitor:outputMonitor).then((e) {
+    _procs.remove(id);
+  });
   return id;
+}
+
+/** Checks if a process is still running. */
+bool isProcessRunning(int id) {
+  return _procs.containsKey(id);
 }
 
 /**
@@ -119,8 +150,10 @@ int startProcess(String command, List<String> args) {
  * given the id string.
  */
 void stopProcess(int id) {
-  Process p = _procs.remove(id);
-  p.kill();
+  if (_procs.containsKey(id)) {
+    Process p = _procs.remove(id);
+    p.kill();
+  }
 }
 
 /** Delete a file named [fname] if it exists. */

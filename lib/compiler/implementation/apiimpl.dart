@@ -73,7 +73,7 @@ class Compiler extends leg.Compiler {
       canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
     }
     elements.LibraryElement library =
-        scanner.loadLibrary(uri, null, canonicalUri);
+        libraryLoader.loadLibrary(uri, null, canonicalUri);
     return library;
   }
 

@@ -567,6 +567,10 @@ class Unparser implements Visitor {
     throw 'internal error'; // Should not be called.
   }
 
+  visitLibraryDependency(Node node) {
+    throw 'internal error'; // Should not be called.
+  }
+
   visitLiteral(Literal node) {
     throw 'internal error'; // Should not be called.
   }

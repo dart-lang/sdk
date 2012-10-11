@@ -36918,15 +36918,15 @@ abstract class WheelEvent implements MouseEvent {
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   abstract bool get webkitDirectionInvertedFromDevice;
 
+  /** @domName WheelEvent.deltaX */
+  abstract int get deltaX;
+
+  /** @domName WheelEvent.deltaY */
+  abstract int get deltaY;
+
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 
-
-  /** @domName WheelEvent.deltaX */
-  num get deltaX;
-
-  /** @domName WheelEvent.deltaY */
-  num get deltaY;
 
   /** @domName WheelEvent.deltaMode */
   int get deltaMode;

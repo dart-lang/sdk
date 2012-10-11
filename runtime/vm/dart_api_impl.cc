@@ -289,7 +289,11 @@ bool Api::ExternalStringGetPeerHelper(Dart_Handle object, void** peer) {
 static Dart_Handle TypeToHandle(Isolate* isolate,
                                 const char* function_name,
                                 const AbstractType& type) {
-  if (type.HasResolvedTypeClass()) {
+  if (type.IsMalformed()) {
+    const Error& error = Error::Handle(type.malformed_error());
+    return Api::NewError("%s: malformed type encountered: %s.",
+        function_name, error.ToErrorCString());
+  } else if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(isolate, type.type_class());
 #if defined(DEBUG)
     const Library& lib = Library::Handle(cls.library());
@@ -4466,6 +4470,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     RETURN_NULL_ERROR(peer);
   }
   Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =
@@ -4483,6 +4488,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
   if (obj.IsNull() || obj.IsNumber() || obj.IsBool()) {
     const char* msg =

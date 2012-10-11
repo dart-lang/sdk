@@ -367,25 +367,21 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, Expression node) {
-    assert(invariant(node, element.isImplementation));
+  void startFunction(FunctionElement function,
+                     FunctionExpression node) {
+    assert(invariant(node, function.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
-            element, node, builder.elements);
-
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
-      params.orderedForEachParameter((Element parameterElement) {
-        HInstruction parameter = new HParameterValue(parameterElement);
-        builder.add(parameter);
-        builder.parameters[parameterElement] = parameter;
-        directLocals[parameterElement] = parameter;
-        parameter.guaranteedType =
-            builder.mapInferredType(
-                typesTask.getGuaranteedTypeOfElement(parameterElement));
-      });
-    }
+            node, builder.elements);
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.orderedForEachParameter((Element element) {
+      HInstruction parameter = new HParameterValue(element);
+      builder.add(parameter);
+      builder.parameters[element] = parameter;
+      directLocals[element] = parameter;
+      parameter.guaranteedType =
+        builder.mapInferredType(typesTask.getGuaranteedTypeOfElement(element));
+    });
 
     enterScope(node);
 
@@ -400,12 +396,12 @@ class LocalsHandler {
       HInstruction thisInstruction = new HThis();
       builder.add(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
-    } else if (element.isInstanceMember()
-               || element.isGenerativeConstructor()) {
+    } else if (function.isInstanceMember()
+               || function.isGenerativeConstructor()) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      ClassElement cls = element.getEnclosingClass();
+      ClassElement cls = function.getEnclosingClass();
       DartType type = cls.computeType(builder.compiler);
       HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
@@ -934,15 +930,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
+    HBasicBlock block = graph.addNewBlock();
+    open(graph.entry);
+    close(new HGoto()).addSuccessor(block);
+    open(block);
     SendSet node = variable.parseNode(compiler);
-    openFunction(variable, node);
     Link<Node> link = node.arguments;
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
     HInstruction value = pop();
     value = potentiallyCheckType(value, variable);
     close(new HReturn(value)).addSuccessor(graph.exit);
-    return closeFunction();
+    graph.finalize();
+    return graph;
   }
 
   /**
@@ -1320,8 +1320,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Create the runtime type information, if needed.
     InterfaceType type = classElement.computeType(compiler);
-      List<HInstruction> inputs = <HInstruction>[];
-      if (compiler.world.needsRti(classElement)) {
+    List<HInstruction> inputs = <HInstruction>[];
+    if (compiler.world.needsRti(classElement)) {
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         inputs.add(localsHandler.directLocals[typeVariable.element]);
       });
@@ -1411,43 +1411,38 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(Element element, Expression node) {
-    assert(invariant(element, element.isImplementation));
+  void openFunction(FunctionElement functionElement,
+                    FunctionExpression node) {
+    assert(invariant(functionElement, functionElement.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(element, node);
+    localsHandler.startFunction(functionElement, node);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
 
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      FunctionSignature params = functionElement.computeSignature(compiler);
-      params.orderedForEachParameter((Element parameterElement) {
-        if (elements.isParameterChecked(parameterElement)) {
-          addParameterCheckInstruction(parameterElement);
-        }
-      });
+    FunctionSignature params = functionElement.computeSignature(compiler);
+    params.orderedForEachParameter((Element element) {
+      if (elements.isParameterChecked(element)) {
+        addParameterCheckInstruction(element);
+      }
+    });
 
-      // Put the type checks in the first successor of the entry,
-      // because that is where the type guards will also be inserted.
-      // This way we ensure that a type guard will dominate the type
-      // check.
-      params.orderedForEachParameter((Element element) {
-        HInstruction newParameter = potentiallyCheckType(
-            localsHandler.directLocals[element], element);
-        localsHandler.directLocals[element] = newParameter;
-      });
-    } else {
-      // Otherwise it is a lazy initializer which does not have parameters.
-      assert(element is VariableElement);
-    }
+    // Put the type checks in the first successor of the entry,
+    // because that is where the type guards will also be inserted.
+    // This way we ensure that a type guard will dominate the type
+    // check.
+    params.orderedForEachParameter((Element element) {
+      HInstruction newParameter = potentiallyCheckType(
+          localsHandler.directLocals[element], element);
+      localsHandler.directLocals[element] = newParameter;
+    });
 
     // Add the type parameters of the class as parameters of this
     // method.
-    var enclosing = element.enclosingElement;
-    if (element.isConstructor() && compiler.world.needsRti(enclosing)) {
+    var enclosing = functionElement.enclosingElement;
+    if (functionElement.isConstructor() && compiler.world.needsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = new HParameterValue(typeVariable.element);
         add(param);
@@ -2737,39 +2732,95 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction analyzeTypeArgument(DartType argument, Node currentNode) {
-    if (argument.element.isTypeVariable()) {
+    // These variables are shared between invocations of the helper methods.
+    HInstruction typeInfo;
+    StringBuffer template = new StringBuffer();
+    List<HInstruction> inputs = <HInstruction>[];
+
+    /**
+     * Helper to create an instruction that gets the value of a type variable.
+     */
+    void addTypeVariableReference(TypeVariableType type) {
       Element member = work.element;
       if (member.enclosingElement.isClosure()) {
-        member = (member.enclosingElement as ClosureClassElement).methodElement;
+        ClosureClassElement closureClass = member.enclosingElement;
+        member = closureClass.methodElement;
         member = member.getOutermostEnclosingMemberOrTopLevel();
       }
       if (member.isFactoryConstructor()) {
-        // The type variable is stored in a parameter of the
-        // factory.
-        return localsHandler.readLocal(argument.element);
+        // The type variable is stored in a parameter of the factory.
+        inputs.add(localsHandler.readLocal(type.element));
       } else if (member.isInstanceMember()
                  || member.isGenerativeConstructor()) {
         // The type variable is stored in [this].
-        pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
-                          localsHandler.readThis());
-        HInstruction typeInfo = pop();
+        if (typeInfo == null) {
+          pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
+                            localsHandler.readThis());
+          typeInfo = pop();
+        }
         HInstruction foreign = new HForeign(
-            new LiteralDartString('#.$argument'),
+            new LiteralDartString('#.${type.name.slowToString()}'),
             new LiteralDartString('String'),
             <HInstruction>[typeInfo]);
         add(foreign);
-        return foreign;
+        inputs.add(foreign);
       } else {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
         compiler.cancel('Unimplemented unresolved type variable',
                         node: currentNode);
       }
-    } else {
-      // The type variable is a type (e.g. int).
-      return graph.addConstantString(
-          new LiteralDartString('$argument'), currentNode, constantSystem);
     }
+
+    /**
+     * Helper to build an instruction that builds the string representation for
+     * this type, where type variables are substituted by their runtime value.
+     *
+     * Examples:
+     *   Type            Template                Inputs
+     *   int             'int'                   []
+     *   C<int, int>     'C<int, int>'           []
+     *   Var             #                       [getRuntimeType(this).Var]
+     *   C<int, D<Var>>  'C<int, D<' + # + '>>'  [getRuntimeType(this).Var]
+     */
+    void buildTypeString(DartType type, {isInQuotes: false}) {
+      if (type is TypeVariableType) {
+        addTypeVariableReference(type);
+        template.add(isInQuotes ? "' + # +'" : "#");
+      } else if (type is InterfaceType) {
+        bool isFirstVariable = true;
+        InterfaceType interfaceType = type;
+        bool hasTypeArguments = !interfaceType.arguments.isEmpty();
+        if (!isInQuotes) template.add("'");
+        template.add("${type.element.name.slowToString()}");
+        if (hasTypeArguments) {
+          template.add("<");
+          for (DartType argument in interfaceType.arguments) {
+            if (!isFirstVariable) {
+              template.add(", ");
+            } else {
+              isFirstVariable = false;
+            }
+            buildTypeString(argument, isInQuotes: true);
+          }
+          template.add(">");
+        }
+        if (!isInQuotes) template.add("'");
+      } else {
+        assert(type is TypedefType);
+        if (!isInQuotes) template.add("'");
+        template.add(argument.toString());
+        if (!isInQuotes) template.add("'");
+      }
+    }
+
+    buildTypeString(argument, isInQuotes: false);
+    HInstruction result =
+        new HForeign(new LiteralDartString("$template"),
+            new LiteralDartString('String'),
+            inputs);
+    add(result);
+    return result;
   }
 
   void handleListConstructor(InterfaceType type,

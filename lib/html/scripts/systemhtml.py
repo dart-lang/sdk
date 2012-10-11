@@ -31,6 +31,8 @@ _js_custom_members = set([
     'LocalWindow.open',
     'LocalWindow.webkitCancelAnimationFrame',
     'LocalWindow.webkitRequestAnimationFrame',
+    'WheelEvent.wheelDeltaX',
+    'WheelEvent.wheelDeltaY',
     ])
 
 # This map controls merging of interfaces in dart:html library.

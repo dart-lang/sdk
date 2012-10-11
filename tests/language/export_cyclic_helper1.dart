@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-$!COMMENT
-abstract class $ID$EXTENDS {
-$!MEMBERS
+library export_cyclic_helper1;
 
-  /** @domName WheelEvent.deltaMode */
-  int get deltaMode;
+import 'export_cyclic_helper2.dart';
+export 'export_cyclic_helper2.dart';
+
+class B {
+  A a;
+  B b;
+  C c;
+  D d;
 }

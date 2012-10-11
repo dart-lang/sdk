@@ -9,7 +9,7 @@ apply(Function function, ArgumentDescriptor args) {
 
 class ArgumentDescriptor {
   final List positionalArguments;
-  final Map<String, Dynamic> namedArguments;
+  final Map<String, dynamic> namedArguments;
 
   ArgumentDescriptor(this.positionalArguments, this.namedArguments);
 }

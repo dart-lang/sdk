@@ -14,9 +14,14 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_intrinsified_natives);
+
 DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
   ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   const Integer& value = Integer::CheckedHandle(arguments->At(1));
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_doubleFromInteger %s\n", value.ToCString());
+  }
   return Double::New(value.AsDoubleValue());
 }
 
@@ -25,6 +30,9 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
   double right = right_object.value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_add %f + %f\n", left, right);
+  }
   return Double::New(left + right);
 }
 
@@ -33,6 +41,9 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
   double right = right_object.value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_sub %f - %f\n", left, right);
+  }
   return Double::New(left - right);
 }
 
@@ -41,6 +52,9 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
   double right = right_object.value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_mul %f * %f\n", left, right);
+  }
   return Double::New(left * right);
 }
 
@@ -49,6 +63,9 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
   double right = right_object.value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_div %f / %f\n", left, right);
+  }
   return Double::New(left / right);
 }
 
@@ -57,6 +74,9 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->At(0)).value();
   GET_NATIVE_ARGUMENT(Double, right_object, arguments->At(1));
   double right = right_object.value();
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_trunc_div %f ~/ %f\n", left, right);
+  }
   return Double::New(trunc(left / right));
 }
 
@@ -92,6 +112,10 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   const Double& left = Double::CheckedHandle(arguments->At(0));
   GET_NATIVE_ARGUMENT(Double, right, arguments->At(1));
   bool result = right.IsNull() ? false : (left.value() > right.value());
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_greaterThan %s > %s\n",
+        left.ToCString(), right.ToCString());
+  }
   return Bool::Get(result);
 }
 
@@ -107,6 +131,10 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   const Double& left = Double::CheckedHandle(arguments->At(0));
   GET_NATIVE_ARGUMENT(Double, right, arguments->At(1));
   bool result = right.IsNull() ? false : (left.value() == right.value());
+  if (FLAG_trace_intrinsified_natives) {
+    OS::Print("Double_equal %s == %s\n",
+        left.ToCString(), right.ToCString());
+  }
   return Bool::Get(result);
 }
 

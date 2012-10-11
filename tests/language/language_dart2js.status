@@ -153,6 +153,7 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
+lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
@@ -332,7 +333,6 @@ call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instan
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 
-
 [ $compiler == dart2js && $runtime == ie ]
 call_through_getter_test: Fail
 call_through_null_getter_test: Fail
@@ -356,7 +356,9 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-typed_message_test: Fail # http://dartbug.com/5383
 first_class_types_test: Fail # http://dartbug.com/5523
 part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
+export_test: Fail # Issue 5785
+export_cyclic_test: Fail # Issue 5785
+generic_creation_test: Fail # Issue 5785l

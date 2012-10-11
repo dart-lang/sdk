@@ -9,4 +9,5 @@
 /**
  * Tagging interface for classes from which source spans can be generated.
  */
+// TODO(johnniwinther): Find a better name.
 abstract class Spannable {}

@@ -4,7 +4,19 @@
 
 library http_server;
 import 'dart:io';
-import '../../pkg/args/lib/args.dart';
+import 'package:args/args.dart';
+
+/** An options parser for the server. */
+ArgParser getOptionParser() {
+  var parser = new ArgParser();
+  parser.addOption('port', abbr: 'p',
+      help: 'Set the server listening port.',
+      defaultsTo: '80');
+
+  parser.addOption('root', abbr: 'r',
+      help: 'Set the directory for static files.');
+  return parser;
+}
 
 /** A simple HTTP server. Currently handles serving static files. */
 class HttpTestServer {
@@ -39,9 +51,15 @@ class HttpTestServer {
       'vc1'  : 'video/vc1'
   };
 
-  HttpTestServer(port, this.staticFileDirectory) {
+  HttpTestServer(int port, this.staticFileDirectory) {
     server = new HttpServer();
-    server.listen("127.0.0.1", port);
+    try {
+      server.listen("127.0.0.1", port);
+      print('Server listening on port $port');
+    } catch (e) {
+      print('Server listen on port $port failed');
+      throw e;
+    }
     server.onError = (e) {
     };
     server.defaultRequestHandler =
@@ -86,31 +104,5 @@ class HttpTestServer {
 
   void close() {
     server.close();
-  }
-}
-
-ArgParser getOptionParser() {
-  var parser = new ArgParser();
-  parser.addOption('port', abbr: 'p',
-      help: 'Set the server listening port.',
-      defaultsTo: '80');
-
-  parser.addOption('root', abbr: 'r',
-      help: 'Set the directory for static files.',
-      defaultsTo: '/tmp');
-  return parser;
-}
-
-main() {
-  var optionsParser = getOptionParser();
-  try {
-    var argResults = optionsParser.parse(new Options().arguments);
-    var server = new HttpTestServer(
-        int.parse(argResults['port']),
-        argResults['root']);
-  } catch (e) {
-    print(e);
-    print('Usage: http_server_test_runner.dart <options>');
-    print(optionsParser.getUsage());
   }
 }

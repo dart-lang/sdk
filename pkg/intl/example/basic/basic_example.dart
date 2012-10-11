@@ -56,6 +56,9 @@ runProgram(List<Future> _) {
   printForLocale(aDate, new Intl(), runAt);
   printForLocale(aDate, de, runAt);
   printForLocale(aDate, th, runAt);
+  // Example making use of the return value from withLocale;
+  var useReturnValue = Intl.withLocale(th.locale, () => runAt('now', 'today'));
+  doThisWithTheOutput(useReturnValue);
 }
 
 printForLocale(aDate, intl, operation) {

@@ -75,7 +75,7 @@ class MessageCollector implements DiagnosticListener {
     throw message;
   }
   void internalError(String message,
-                     [Node node, Token token, Dynamic instruction,
+                     [Node node, Token token, dynamic instruction,
                       Element element]) {
     throw message;
   }

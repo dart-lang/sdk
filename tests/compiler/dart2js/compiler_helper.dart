@@ -47,7 +47,7 @@ String compileAll(String code) {
   return compiler.assembledCode;
 }
 
-Dynamic compileAndCheck(String code,
+dynamic compileAndCheck(String code,
                         String name,
                         check(MockCompiler compiler, lego.Element element)) {
   Uri uri = new Uri.fromComponents(scheme: 'source');

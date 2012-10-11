@@ -358,7 +358,11 @@ class Parser {
     if (kind === KEYWORD_TOKEN) {
       Keyword keyword = token.value;
       String value = keyword.stringValue;
-      return keyword.isPseudo || (value === 'Dynamic') || (value === 'void');
+      // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
+      return keyword.isPseudo
+          || (value === 'dynamic')
+          || (value === 'Dynamic')
+          || (value === 'void');
     }
     return false;
   }

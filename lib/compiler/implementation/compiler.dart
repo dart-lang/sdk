@@ -162,6 +162,7 @@ abstract class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   PatchParserTask patchParser;
+  LibraryLoader libraryLoader;
   TreeValidatorTask validator;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
@@ -207,6 +208,7 @@ abstract class Compiler implements DiagnosticListener {
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     patchParser = new PatchParserTask(this);
+    libraryLoader = new LibraryLoaderTask(this);
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     closureToClassMapper = new closureMapping.ClosureTask(this);
@@ -327,7 +329,11 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasIsolateSupport() => isolateLibrary !== null;
 
-  void onLibraryLoaded(LibraryElement library, Uri uri) {
+  /**
+   * This method is called before [library] import and export scopes have been
+   * set up.
+   */
+  void onLibraryScanned(LibraryElement library, Uri uri) {
     if (dynamicClass !== null) {
       // When loading the built-in libraries, dynamicClass is null. We
       // take advantage of this as core and coreimpl import js_helper
@@ -394,31 +400,12 @@ abstract class Compiler implements DiagnosticListener {
 
   void loadCoreImplLibrary() {
     Uri coreImplUri = new Uri.fromComponents(scheme: 'dart', path: 'coreimpl');
-    coreImplLibrary = scanner.loadLibrary(coreImplUri, null, coreImplUri);
+    coreImplLibrary = libraryLoader.loadLibrary(coreImplUri, null, coreImplUri);
   }
 
   void importHelperLibrary(LibraryElement library) {
     if (jsHelperLibrary !== null) {
-      scanner.importLibrary(library, jsHelperLibrary, null);
-    }
-  }
-
-  void importCoreLibrary(LibraryElement library) {
-    if (coreLibrary === null) {
-      Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
-      coreLibrary = scanner.loadLibrary(coreUri, null, coreUri);
-    }
-    scanner.importLibrary(library,
-                          coreLibrary,
-                          null,
-                          library.entryCompilationUnit);
-  }
-
-  void patchDartLibrary(LibraryElement library, String dartLibraryPath) {
-    if (library.isPatched) return;
-    Uri patchUri = resolvePatchUri(dartLibraryPath);
-    if (patchUri !== null) {
-      patchParser.patchLibrary(patchUri, library);
+      libraryLoader.importLibrary(library, jsHelperLibrary, null);
     }
   }
 
@@ -465,7 +452,7 @@ abstract class Compiler implements DiagnosticListener {
   void runCompiler(Uri uri) {
     log('compiling $uri ($BUILD_ID)');
     scanBuiltinLibraries();
-    mainApp = scanner.loadLibrary(uri, null, uri);
+    mainApp = libraryLoader.loadLibrary(uri, null, uri);
     libraries.forEach((_, library) {
       maybeEnableJSHelper(library);
     });
@@ -860,6 +847,9 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
   // information on assertion errors.
   if (condition is Function){
     condition = condition();
+  }
+  if (!condition && message != null) {
+    print('assertion failed: $message');
   }
   return spannable != null && condition;
 }

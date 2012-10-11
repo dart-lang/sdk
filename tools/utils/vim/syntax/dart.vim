@@ -15,6 +15,9 @@ if !exists("main_syntax")
   syn region dartFold start="{" end="}" transparent fold
 endif
 
+" Ensure long multiline strings are highlighted.
+syn sync fromstart
+
 " keyword definitions
 syn keyword dartConditional    if else switch
 syn keyword dartRepeat         do while for
@@ -23,14 +26,16 @@ syn keyword dartConstant       null
 syn keyword dartTypedef        this super class typedef
 syn keyword dartOperator       new is in factory const
 syn match   dartOperator       "+=\=\|-=\=\|*=\=\|/=\=\|%=\=\|\~/=\=\|<<=\=\|>>=\=\|[<>]=\=\|===\=\|\!==\=\|&=\=\|\^=\=\||=\=\|||\|&&\|\[\]=\=\|=>\|!\|\~"
-syn keyword dartType           void var final bool int double num
+syn keyword dartType           void var final bool int double num dynamic
 syn keyword dartCommonInterfaces String Object Math RegExp Date
-syn keyword dartInterfaces       Collection Comparable Completer Duration Dynamic Function Future HashMap HashSet Iterable Iterator LinkedHashMap List Map Match Options Pattern Queue Set Stopwatch StringBuffer TimeZone
+syn keyword dartInterfaces       Collection Comparable Completer Duration Function Future HashMap HashSet Iterable Iterator LinkedHashMap List Map Match Options Pattern Queue Set Stopwatch StringBuffer TimeZone
+syn keyword dartInterfaces_DEPRECATED       Dynamic
 syn keyword dartErrors         AssertionError TypeError FallThroughError
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static abstract
 syn keyword dartExceptions     throw try catch finally
-syn keyword dartExceptions     BadNumberFormatException ClosureArgumentMismatchException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException ArgumentError IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException ObjectNotClosureException OutOfMemoryException StackOverflowException UnsupportedOperationException WrongArgumentCountException
+syn keyword dartExceptions     FormatException ClosureArgumentMismatchException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException ArgumentError IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException ObjectNotClosureException OutOfMemoryException StackOverflowException UnsupportedOperationException WrongArgumentCountException
+syn keyword dartExceptions_DEPRECATED     BadNumberFormatException
 syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
 " TODO(antonm): check if labels on break and continue are supported.
@@ -52,15 +57,19 @@ syn match   dartLineDocComment "///.*" contains=dartTodo,dartDocLink,@Spell
 syn region  dartDocLink       contained start=+\[+ end=+\]+
 
 " Strings
-syn region  dartString        start=+\z(["']\)+hs=s+1 end=+\z1+he=e-1 contains=@Spell,dartInterpolation,dartSpecialChar
-syn region  dartRawString     start=+@\z(["']\)+hs=s+2 end=+\z1+he=e-1 contains=@Spell
+syn region  dartString        start=+\z(["']\)+ end=+\z1+ contains=@Spell,dartInterpolation,dartSpecialChar
+syn region  dartRawString_DEPRECATED     start=+@\z(["']\)+ end=+\z1+ contains=@Spell
+syn region  dartRawString     start=+r\z(["']\)+ end=+\z1+ contains=@Spell
+syn region  dartMultilineString     start=+\z("\{3\}\|'\{3\}\)+ end=+\z1+ contains=@Spell,dartInterpolation,dartSpecialChar
+syn region  dartRawMultilineString     start=+r\z("\{3\}\|'\{3\}\)+ end=+\z1+ contains=@Spell
 syn match   dartInterpolation contained "\$\(\w\+\|{[^}]\+}\)"
 syn match   dartSpecialChar   contained "\\\(u\x\{4\}\|u{\x\+}\|x\x\x\|x{\x\+}\|.\)"
 
 " Numbers
 syn match dartNumber         "\<\d\+\(\.\d\+\)\=\>"
 
-syn match dartInclude        "^#\(import\|include\|source\|library\)(\(\"[^\"]\+\"\|'[^']\+'\));"
+syn match dartInclude_DEPRECATED        "^#\(import\|include\|source\|library\)(\(\"[^\"]\+\"\|'[^']\+'\));"
+syn match dartInclude        "^\(import\|include\|source\|library\)\s"
 
 " The default highlighting.
 command! -nargs=+ HiLink hi def link <args>
@@ -72,12 +81,16 @@ HiLink dartUserLabel       Label
 HiLink dartConditional     Conditional
 HiLink dartRepeat          Repeat
 HiLink dartExceptions      Exception
+HiLink dartExceptions_DEPRECATED      Todo
 HiLink dartAssert          Statement
 HiLink dartStorageClass    StorageClass
 HiLink dartClassDecl       dartStorageClass
 HiLink dartBoolean         Boolean
 HiLink dartString          String
+HiLink dartRawString_DEPRECATED       Todo
 HiLink dartRawString       String
+HiLink dartMultilineString String
+HiLink dartRawMultilineString String
 HiLink dartNumber          Number
 HiLink dartStatement       Statement
 HiLink dartOperator        Operator
@@ -92,10 +105,12 @@ HiLink dartType            Type
 HiLink dartInterpolation   PreProc
 HiLink dartDocLink         SpecialComment
 HiLink dartSpecialChar     SpecialChar
+HiLink dartInclude_DEPRECATED         Todo
 HiLink dartInclude         Include
 HiLink dartErrors          Error
 HiLink dartCommonInterfaces Type
 HiLink dartInterfaces       Type
+HiLink dartInterfaces_DEPRECATED       Todo
 delcommand HiLink
 
 let b:current_syntax = "dart"

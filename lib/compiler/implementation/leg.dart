@@ -32,6 +32,7 @@
 #source('constant_system_dart.dart');
 #source('diagnostic_listener.dart');
 #source('enqueue.dart');
+#source('library_loader.dart');
 #source('resolved_visitor.dart');
 #source('resolver.dart');
 #source('script.dart');

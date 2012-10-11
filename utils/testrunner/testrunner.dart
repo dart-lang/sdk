@@ -74,7 +74,7 @@ library testrunner;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
-import '../../pkg/args/lib/args.dart';
+import 'package:args/args.dart';
 
 part 'options.dart';
 part 'utils.dart';
@@ -279,5 +279,3 @@ main() {
     }
   }
 }
-
-

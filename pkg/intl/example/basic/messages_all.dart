@@ -11,4 +11,4 @@
 #library('messages_all.dart');
 
 #import('messages_th_th.dart', prefix: 'th_TH');
-#import('messages_de_de.dart', prefix: 'de_DE');
+#import('messages_de.dart', prefix: 'de');

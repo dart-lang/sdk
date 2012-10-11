@@ -313,4 +313,3 @@ void runTextLayoutTests() {
   init();
   runTextLayoutTest(0);
 }
-

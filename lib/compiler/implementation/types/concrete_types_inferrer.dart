@@ -17,7 +17,7 @@ class CancelTypeInferenceException {
  *   - the null base type
  *   - the unknown base type
  */
-abstract class BaseType extends Hashable {
+abstract class BaseType {
   bool isUnknown();
   bool isNull();
 }
@@ -68,7 +68,7 @@ class NullBaseType implements BaseType {
  * An immutable set of base types, like [: {int, bool} :] or the unknown
  * concrete type.
  */
-abstract class ConcreteType extends Hashable {
+abstract class ConcreteType {
   factory ConcreteType.empty() => new UnionType(new Set<BaseType>());
 
   /**
@@ -243,7 +243,7 @@ class BaseTypes {
  * A method-local immutable mapping from variables to their inferred
  * [ConcreteTypes]. Each visitor owns one.
  */
-class ConcreteTypesEnvironment implements Hashable {
+class ConcreteTypesEnvironment {
   final Map<Element, ConcreteType> environment;
   final BaseType typeOfThis;
   ConcreteTypesEnvironment([this.typeOfThis]) :

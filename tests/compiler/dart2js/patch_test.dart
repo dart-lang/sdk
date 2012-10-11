@@ -15,7 +15,9 @@ Compiler applyPatch(String script, String patch) {
   MockCompiler compiler = new MockCompiler(coreSource: core);
   var uri = new Uri("core.dartp");
   compiler.sourceFiles[uri.toString()] = new MockFile(patch);
-  compiler.patchParser.patchLibrary(uri, compiler.coreLibrary);
+  var handler = new LibraryDependencyHandler(compiler);
+  compiler.patchParser.patchLibrary(handler, uri, compiler.coreLibrary);
+  handler.computeExports();
   return compiler;
 }
 

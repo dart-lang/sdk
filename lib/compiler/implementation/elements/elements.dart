@@ -104,6 +104,9 @@ class ElementKind {
   static const ElementKind VOID =
     const ElementKind('void', ElementCategory.NONE);
 
+  static const ElementKind ERROR =
+      const ElementKind('error', ElementCategory.NONE);
+
   toString() => id;
 }
 
@@ -358,7 +361,8 @@ class ErroneousElement extends Element {
 
   ErroneousElement(this.messageKind, this.messageArguments,
                    this.targetName, Element enclosing)
-      : super(const SourceString('erroneous element'), null, enclosing);
+      : super(const SourceString('erroneous element'),
+              ElementKind.ERROR, enclosing);
 
   isErroneous() => true;
 
@@ -367,7 +371,6 @@ class ErroneousElement extends Element {
   }
 
   SourceString get name => unsupported();
-  ElementKind get kind => unsupported();
   Link<MetadataAnnotation> get metadata => unsupported();
 
   getLibrary() => enclosingElement.getLibrary();
@@ -585,6 +588,16 @@ class LibraryElement extends ScopeContainerElement {
    */
   final Map<SourceString, Element> importScope;
 
+  /**
+   * Link for elements exported either through export declarations or through
+   * declaration. This field should not be accessed directly but instead through
+   * the [exports] getter.
+   *
+   * [LibraryDependencyHandler] sets this field through [setExports] when the
+   * library is loaded.
+   */
+  Link<Element> slotForExports;
+
   LibraryElement(Script script, [Uri uri, LibraryElement this.origin])
     : this.uri = ((uri === null) ? script.uri : uri),
       importScope = new Map<SourceString, Element>(),
@@ -617,8 +630,8 @@ class LibraryElement extends ScopeContainerElement {
    * detection of ambiguous uses of imported names.
    */
   void addImport(Element element, DiagnosticListener listener) {
-    Element existing = importScope.putIfAbsent(element.name, () => element);
-    if (existing !== element && existing !== null) {
+    Element existing = importScope[element.name];
+    if (existing !== null) {
       if (!existing.isErroneous()) {
         // TODO(johnniwinther): Provide access to both the new and existing
         // elements.
@@ -626,7 +639,35 @@ class LibraryElement extends ScopeContainerElement {
             MessageKind.DUPLICATE_IMPORT,
             [element.name], element.name, this);
       }
+    } else {
+      importScope[element.name] = element;
     }
+  }
+
+  /**
+   * Returns [:true:] if the export scope has already been computed for this
+   * library.
+   */
+  bool get exportsHandled => slotForExports !== null;
+
+  Link<Element> get exports {
+    assert(invariant(this, exportsHandled,
+                     message: 'Exports not handled on $this'));
+    return slotForExports;
+  }
+
+  /**
+   * Sets the export scope of this library. This method can only be called once.
+   */
+  void setExports(Iterable<Element> exportedElements) {
+    assert(invariant(this, !exportsHandled,
+        message: 'Exports already set to $slotForExports on $this'));
+    assert(invariant(this, exportedElements !== null));
+    var builder = new LinkBuilder<Element>();
+    for (Element export in exportedElements) {
+      builder.addLast(export);
+    }
+    slotForExports = builder.toLink();
   }
 
   LibraryElement getLibrary() => isPatch ? origin : this;
@@ -656,14 +697,7 @@ class LibraryElement extends ScopeContainerElement {
   }
 
   void forEachExport(f(Element element)) {
-    localScope.forEach((_, Element e) {
-      if (this === e.getLibrary()
-          && e.kind !== ElementKind.PREFIX
-          && e.kind !== ElementKind.FOREIGN
-          && !e.name.isPrivate()) {
-        f(e);
-      }
-    });
+    exports.forEach((Element e) => f(e));
   }
 
   void forEachLocalMember(f(Element element)) {

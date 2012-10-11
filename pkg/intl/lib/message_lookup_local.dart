@@ -58,6 +58,15 @@ class MessageLookupLocal {
   }
 
   /**
+   * Return true if the locale exists, or if it is null. The null case
+   * is interpreted to mean that we use the default locale.
+   */
+  bool localeExists(localeName) {
+    if (localeName == null) return false;
+    return _libraries['$_sourcePrefix$localeName'] != null;
+  }
+
+  /**
    * Return the localized version of a message. We are passed the original
    * version of the message, which consists of a
    * [message_str] that will be translated, and which may be interpolated
@@ -89,10 +98,16 @@ class MessageLookupLocal {
     _lookupInProgress = true;
     var result;
     try {
-      // TODO(alanknight): Look up alternate forms, e.g. en for en_US
       var actualLocale = (locale == null) ? Intl.getCurrentLocale() : locale;
+      // For this usage, if the locale doesn't exist for messages, just return
+      // it and we'll fall back to the original version.
+      var verifiedLocale =
+          Intl.verifiedLocale(
+              actualLocale,
+              localeExists,
+              onFailure: (locale)=>locale);
       LibraryMirror messagesForThisLocale =
-          _libraries['$_sourcePrefix$actualLocale'];
+          _libraries['$_sourcePrefix$verifiedLocale'];
       if (messagesForThisLocale == null) return message_str;
       MethodMirror localized = messagesForThisLocale.functions[name];
       if (localized == null) return message_str;

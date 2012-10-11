@@ -18,8 +18,7 @@ class ClosureTask extends CompilerTask {
 
   String get name => "Closure Simplifier";
 
-  ClosureClassMap computeClosureToClassMapping(Element element,
-                                               Expression node,
+  ClosureClassMap computeClosureToClassMapping(FunctionExpression node,
                                                TreeElements elements) {
     return measure(() {
       ClosureClassMap cached = closureMappingCache[node];
@@ -27,16 +26,9 @@ class ClosureTask extends CompilerTask {
 
       ClosureTranslator translator =
           new ClosureTranslator(compiler, elements, closureMappingCache);
-
       // The translator will store the computed closure-mappings inside the
-      // cache. One for given node and one for each nested closure.
-      if (node is FunctionExpression) {
-        translator.translateFunction(element, node);
-      } else {
-        // Must be the lazy initializer of a static.
-        assert(node is SendSet);
-        translator.translateLazyInitializer(element, node);
-      }
+      // cache. One for given method and one for each nested closure.
+      translator.translate(node);
       assert(closureMappingCache[node] != null);
       return closureMappingCache[node];
     });
@@ -121,7 +113,7 @@ class ClosureScope {
 
 class ClosureClassMap {
   // The closure's element before any translation. Will be null for methods.
-  final Element closureElement;
+  final FunctionElement closureElement;
   // The closureClassElement will be null for methods that are not local
   // closures.
   final ClassElement closureClassElement;
@@ -178,7 +170,7 @@ class ClosureTranslator extends Visitor {
   // will update this mapping.
   Map<Element, Element> capturedVariableMapping;
   // List of encountered closures.
-  List<Expression> closures;
+  List<FunctionExpression> closures;
 
   // The variables that have been declared in the current scope.
   List<Element> scopeVariables;
@@ -187,8 +179,8 @@ class ClosureTranslator extends Visitor {
   // non-mutated variables.
   Set<Element> mutatedVariables;
 
-  Element outermostElement;
-  Element currentElement;
+  FunctionElement outermostFunctionElement;
+  FunctionElement currentFunctionElement;
 
   // The closureData of the currentFunctionElement.
   ClosureClassMap closureData;
@@ -197,25 +189,15 @@ class ClosureTranslator extends Visitor {
 
   ClosureTranslator(this.compiler, this.elements, this.closureMappingCache)
       : capturedVariableMapping = new Map<Element, Element>(),
-        closures = <Expression>[],
+        closures = <FunctionExpression>[],
         mutatedVariables = new Set<Element>();
 
-  void translateFunction(Element element, FunctionExpression node) {
-    // For constructors the [element] and the [:elements[node]:] may differ.
-    // The [:elements[node]:] always points to the generative-constructor
-    // element, whereas the [element] might be the constructor-body element.
-    visit(node);  // [visitFunctionExpression] will call [visitInvokable].
+  void translate(Node node) {
+    visit(node);
     // When variables need to be boxed their [capturedVariableMapping] is
     // updated, but we delay updating the similar freeVariableMapping in the
     // closure datas that capture these variables.
     // The closures don't have their fields (in the closure class) set, either.
-    updateClosures();
-  }
-
-  void translateLazyInitializer(Element element, SendSet node) {
-    assert(node.assignmentOperator.source == const SourceString("="));
-    Expression initialValue = node.argumentsNode.nodes.head;
-    visitInvokable(element, node, () { visit(initialValue); });
     updateClosures();
   }
 
@@ -224,7 +206,7 @@ class ClosureTranslator extends Visitor {
   // class representing the closure. At the same time it fills the
   // [capturedFieldMapping].
   void updateClosures() {
-    for (Expression closure in closures) {
+    for (FunctionExpression closure in closures) {
       // The captured variables that need to be stored in a field of the closure
       // class.
       Set<Element> fieldCaptures = new Set<Element>();
@@ -278,8 +260,8 @@ class ClosureTranslator extends Visitor {
     // parameters, and type parameters are declared in the class, not
     // the factory.
     if (insideClosure &&
-        element.enclosingElement != currentElement &&
-        element != currentElement) {
+        element.enclosingElement != currentFunctionElement &&
+        element != currentFunctionElement) {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
@@ -391,12 +373,12 @@ class ClosureTranslator extends Visitor {
         }
       }
     }
-    if (outermostElement.isMember() &&
-        compiler.world.needsRti(outermostElement.getEnclosingClass())) {
-      if (outermostElement.isInstanceMember()
-          || outermostElement.isGenerativeConstructor()) {
+    if (outermostFunctionElement.isMember() &&
+        compiler.world.needsRti(outermostFunctionElement.getEnclosingClass())) {
+      if (outermostFunctionElement.isInstanceMember()
+          || outermostFunctionElement.isGenerativeConstructor()) {
         if (hasTypeVariable(type)) useLocal(closureData.thisElement);
-      } else if (outermostElement.isFactoryConstructor()) {
+      } else if (outermostFunctionElement.isFactoryConstructor()) {
         analyzeTypeVariables(type);
       }
     }
@@ -420,7 +402,7 @@ class ClosureTranslator extends Visitor {
           // TODO(floitsch): construct better box names.
           SourceString boxName =
               new SourceString("box_${closureFieldCounter++}");
-          box = new BoxElement(boxName, currentElement);
+          box = new BoxElement(boxName, currentFunctionElement);
         }
         // TODO(floitsch): construct better boxed names.
         String elementName = element.name.slowToString();
@@ -527,18 +509,25 @@ class ClosureTranslator extends Visitor {
                                callElement, thisElement);
   }
 
-  void visitInvokable(Element element, Expression node, void visitChildren()) {
+  visitFunctionExpression(FunctionExpression node) {
+    Element element = elements[node];
+    if (element.isParameter()) {
+      // TODO(ahe): This is a hack. This method should *not* call
+      // visitChildren.
+      return node.name.accept(this);
+    }
+
     bool oldInsideClosure = insideClosure;
-    Element oldFunctionElement = currentElement;
+    FunctionElement oldFunctionElement = currentFunctionElement;
     ClosureClassMap oldClosureData = closureData;
 
-    insideClosure = outermostElement != null;
-    currentElement = element;
+    insideClosure = outermostFunctionElement != null;
+    currentFunctionElement = element;
     if (insideClosure) {
       closures.add(node);
       closureData = globalizeClosure(node, element);
     } else {
-      outermostElement = element;
+      outermostFunctionElement = element;
       Element thisElement = null;
       if (element.isInstanceMember() || element.isGenerativeConstructor()) {
         thisElement = new ThisElement(element);
@@ -560,17 +549,23 @@ class ClosureTranslator extends Visitor {
         declareLocal(element);
       }
 
-      if (currentElement.isFactoryConstructor()
-          && compiler.world.needsRti(currentElement.enclosingElement)) {
+      if (currentFunctionElement.isFactoryConstructor()
+          && compiler.world.needsRti(currentFunctionElement.enclosingElement)) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.
-        ClassElement cls = currentElement.enclosingElement;
+        ClassElement cls = currentFunctionElement.enclosingElement;
         cls.typeVariables.forEach((TypeVariableType typeVariable) {
           declareLocal(typeVariable.element);
         });
       }
 
-      visitChildren();
+      // TODO(ahe): This is problematic. The backend should not repeat
+      // the work of the resolver. It is the resolver's job to create
+      // parameters, etc. Other phases should only visit statements.
+      // TODO(floitsch): we avoid visiting the initializers on purpose so that
+      // we get an error-message later in the builder.
+      if (node.parameters !== null) node.parameters.accept(this);
+      if (node.body !== null) node.body.accept(this);
     });
 
 
@@ -580,7 +575,7 @@ class ClosureTranslator extends Visitor {
     // Restore old values.
     insideClosure = oldInsideClosure;
     closureData = oldClosureData;
-    currentElement = oldFunctionElement;
+    currentFunctionElement = oldFunctionElement;
 
     // Mark all free variables as captured and use them in the outer function.
     List<Element> freeVariables =
@@ -594,26 +589,6 @@ class ClosureTranslator extends Visitor {
       capturedVariableMapping[freeElement] = freeElement;
       useLocal(freeElement);
     }
-  }
-
-  visitFunctionExpression(FunctionExpression node) {
-    Element element = elements[node];
-
-    if (element.isParameter()) {
-      // TODO(ahe): This is a hack. This method should *not* call
-      // visitChildren.
-      return node.name.accept(this);
-    }
-
-    visitInvokable(element, node, () {
-      // TODO(ahe): This is problematic. The backend should not repeat
-      // the work of the resolver. It is the resolver's job to create
-      // parameters, etc. Other phases should only visit statements.
-      // TODO(floitsch): we avoid visiting the initializers on purpose so that
-      // we get an error-message later in the builder.
-      if (node.parameters !== null) node.parameters.accept(this);
-      if (node.body !== null) node.body.accept(this);
-    });
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {

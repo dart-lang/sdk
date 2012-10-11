@@ -219,6 +219,15 @@ const ERROR = 'error';
 TestCase _soloTest;
 
 /**
+ * A map that can be used to communicate state between a test driver
+ * or main() function and the tests, particularly when these two
+ * are otherwise independent. For example, a test driver that starts
+ * an HTTP server and then runs tests that access that server could use
+ * this as a way of communicating the server port to the tests.
+ */
+Map testState = {};
+
+/**
  * (Deprecated) Evaluates the [function] and validates that it throws an
  * exception. If [callback] is provided, then it will be invoked with the
  * thrown exception. The callback may do any validation it wants. In addition,
