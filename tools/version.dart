@@ -1,11 +1,14 @@
+#!/usr/bin/env dart
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("testing/dart/version.dart");
+import "dart:io";
+import "testing/dart/version.dart";
 
 void main() {
-  Version version = new Version("tools/VERSION");
+  Path scriptPath = new Path(new Options().script).directoryPath;
+  Version version = new Version(scriptPath.append("VERSION"));
   Future f = version.getVersion();
   f.then((currentVersion) {
     print(currentVersion);

@@ -35,7 +35,9 @@ class Version {
   int BUILD;
   int PATCH;
 
-  Version(String this._versionFileName);
+  Version(Path versionFile) {
+    _versionFileName = versionFile.toNativePath();
+  }
 
   /**
    * Get the version number for this specific build using the version info
