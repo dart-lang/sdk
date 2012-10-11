@@ -107,9 +107,15 @@ void testSubArray() {
   testThrowsIndex(() => array.subByteArray(11));
   testThrowsIndex(() => array.subByteArray(11, null));
   testThrowsIndex(() => array.subByteArray(6, 5));
-  Expect.throws(() => array.subByteArray(0, "5"), (e) => e is ArgumentError);
-  Expect.throws(() => array.subByteArray("0", 5), (e) => e is ArgumentError);
-  Expect.throws(() => array.subByteArray("0"), (e) => e is ArgumentError);
+
+  bool checkedMode = false;
+  assert(checkedMode = true);
+  if (!checkedMode) {
+    // In checked mode these will necessarily throw a TypeError.
+    Expect.throws(() => array.subByteArray(0, "5"), (e) => e is ArgumentError);
+    Expect.throws(() => array.subByteArray("0", 5), (e) => e is ArgumentError);
+    Expect.throws(() => array.subByteArray("0"), (e) => e is ArgumentError);
+  }
   Expect.throws(() => array.subByteArray(null), (e) => e is ArgumentError);
 }
 
