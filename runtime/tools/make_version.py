@@ -8,6 +8,7 @@ import os
 import pwd
 import sys
 import subprocess
+import getpass
 from os.path import join
 import time
 from optparse import OptionParser
@@ -35,7 +36,7 @@ def makeVersionString(version_file):
   build = getVersionPart(version_file, 'BUILD')
   patch = getVersionPart(version_file, 'PATCH')
   revision = getRevision()
-  user = pwd.getpwuid(os.getuid())[0]
+  user = getpass.getuser()
   return '%s.%s.%s.%s_%s_%s' % (major, minor, build, patch, revision, user)
 
 def makeFile(output_file, input_file, version_file):
