@@ -457,7 +457,7 @@ class LibraryDependencyNode {
    * A linked list of the export tags the dependent upon this node library.
    * This is used to propagate exports during the computation of export scopes.
    */
-  Link<ExportLink> dependencies = const EmptyLink<ExportLink>();
+  Link<ExportLink> dependencies = const Link<ExportLink>();
 
   /**
    * The export scope for [library] which is gradually computed by the work-list
