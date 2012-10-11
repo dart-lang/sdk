@@ -87,23 +87,15 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  bool isNamedConstructor(Send node) => node.receiver !== null;
-
   SourceString getConstructorName(Send node) {
-    return node.selector.asIdentifier().source;
+    if (node.receiver !== null) {
+      return node.selector.asIdentifier().source;
+    } else {
+      return const SourceString('');
+    }
   }
 
-  String constructorNameForDiagnostics(SourceString className,
-                                   SourceString constructorName) {
-    String classNameString = className.slowToString();
-    String constructorNameString = constructorName.slowToString();
-    return (constructorName === const SourceString(''))
-        ? classNameString
-        : "$classNameString.$constructorNameString";
-   }
-
-  FunctionElement resolveConstructorRedirection(InitializerResolver resolver,
-                                                FunctionElement constructor) {
+  FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
     if (constructor.isPatched) {
       checkMatchingPatchSignatures(constructor, constructor.patch);
       constructor = constructor.patch;
@@ -117,17 +109,10 @@ class ResolverTask extends CompilerTask {
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
       final ClassElement classElement = constructor.getEnclosingClass();
-      Selector selector;
-      if (isNamedConstructor(initializers.head)) {
-        SourceString constructorName = getConstructorName(initializers.head);
-        selector = new Selector.callConstructor(
-            constructorName,
-            resolver.visitor.enclosingElement.getLibrary());
-      } else {
-        selector = new Selector.callDefaultConstructor(
-            resolver.visitor.enclosingElement.getLibrary());
-      }
-      return classElement.lookupConstructor(selector);
+      final SourceString constructorName =
+          getConstructorName(initializers.head);
+      final SourceString className = classElement.name;
+      return classElement.lookupConstructor(className, constructorName);
     }
     return null;
   }
@@ -144,7 +129,7 @@ class ResolverTask extends CompilerTask {
         return;
       }
       seen.add(redirection);
-      redirection = resolveConstructorRedirection(resolver, redirection);
+      redirection = resolveConstructorRedirection(redirection);
     }
   }
 
@@ -305,42 +290,26 @@ class ResolverTask extends CompilerTask {
     // [intrface] is an interface, let's say "MyInterface".
     // [defaultClass] is a class, let's say "MyClass".
 
-    Selector selector;
     // If the default class implements the interface then we must use the
     // default class' name. Otherwise we look for a factory with the name
     // of the interface.
+    SourceString name;
     if (defaultClass.implementsInterface(intrface)) {
-      var constructorNameString = constructor.name.slowToString();
-      // Create selector based on constructor.name but where interface
-      // is replaced with default class name.
-      // TODO(ahe): Don't use string manipulations here.
-      int classNameSeparatorIndex = constructorNameString.indexOf('\$');
-      if (classNameSeparatorIndex < 0) {
-        selector = new Selector.callDefaultConstructor(
-            defaultClass.getLibrary());
-      } else {
-        selector = new Selector.callConstructor(
-            new SourceString(
-                constructorNameString.substring(classNameSeparatorIndex + 1)),
-            defaultClass.getLibrary());
-      }
-      constructor.defaultImplementation =
-          defaultClass.lookupConstructor(selector);
+      // TODO(ahe): Don't use string replacement here.
+      name = new SourceString(constructor.name.slowToString().replaceFirst(
+                 intrface.name.slowToString(),
+                 defaultClass.name.slowToString()));
     } else {
-      selector =
-          new Selector.callConstructor(constructor.name,
-                                       defaultClass.getLibrary());
-      constructor.defaultImplementation =
-          defaultClass.lookupFactoryConstructor(selector);
+      name = constructor.name;
     }
+    constructor.defaultImplementation = defaultClass.lookupConstructor(name);
+
     if (constructor.defaultImplementation === null) {
       // We failed to find a constructor named either
       // "MyInterface.name" or "MyClass.name".
-      // TODO(aprelev@gmail.com): Use constructorNameForDiagnostics in
-      // the error message below.
       error(node,
             MessageKind.CANNOT_FIND_CONSTRUCTOR2,
-            [selector.name, defaultClass.name]);
+            [name, defaultClass.name]);
     }
   }
 
@@ -713,21 +682,6 @@ class InitializerResolver {
     visitor.visitInStaticContext(init.arguments.head);
   }
 
-  ClassElement getSuperOrThisLookupTarget(FunctionElement constructor,
-                                          bool isSuperCall,
-                                          Node diagnosticNode) {
-    ClassElement lookupTarget = constructor.getEnclosingClass();
-    if (isSuperCall) {
-      // Calculate correct lookup target and constructor name.
-      if (lookupTarget === visitor.compiler.objectClass) {
-        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
-      } else {
-        return lookupTarget.supertype.element;
-      }
-    }
-    return lookupTarget;
-  }
-
   Element resolveSuperOrThisForSend(FunctionElement constructor,
                                     FunctionExpression functionNode,
                                     Send call) {
@@ -739,39 +693,12 @@ class InitializerResolver {
     });
     Selector selector = visitor.mapping.getSelector(call);
     bool isSuperCall = Initializers.isSuperConstructorCall(call);
-
-    ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
-                                                           isSuperCall,
-                                                           call);
-    final SourceString className = lookupTarget.name;
-
-    SourceString constructorName;
-    Selector lookupSelector;
-    if (resolver.isNamedConstructor(call)) {
-      constructorName = resolver.getConstructorName(call);
-      lookupSelector = new Selector.callConstructor(
-          constructorName,
-          visitor.enclosingElement.getLibrary());
-    } else {
-      constructorName = const SourceString('');
-      lookupSelector = new Selector.callDefaultConstructor(
-          visitor.enclosingElement.getLibrary());
-    }
-
-    FunctionElement lookedupConstructor =
-        lookupTarget.lookupConstructor(lookupSelector);
-
-    final bool isImplicitSuperCall = false;
-    verifyThatConstructorMatchesCall(lookedupConstructor,
-                                     selector,
-                                     isImplicitSuperCall,
-                                     call,
-                                     constructorName,
-                                     className);
-
-    visitor.useElement(call, lookedupConstructor);
-    visitor.world.registerStaticUse(lookedupConstructor);
-    return lookedupConstructor;
+    SourceString constructorName = resolver.getConstructorName(call);
+    Element result = resolveSuperOrThis(
+        constructor, isSuperCall, false, constructorName, selector, call);
+    visitor.useElement(call, result);
+    visitor.world.registerStaticUse(result);
+    return result;
   }
 
   void resolveImplicitSuperConstructorSend(FunctionElement constructor,
@@ -782,57 +709,55 @@ class InitializerResolver {
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
       assert(superClass.resolutionState == STATE_DONE);
-      SourceString constructorName = const SourceString('');
-      Selector callToMatch = new Selector.call(
-          constructorName,
-          classElement.getLibrary(),
-          0);
-
-      final bool isSuperCall = true;
-      ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
-                                                             isSuperCall,
-                                                             functionNode);
-      final SourceString className = lookupTarget.name;
-      Element calledConstructor = lookupTarget.lookupConstructor(
-          new Selector.callDefaultConstructor(
-              visitor.enclosingElement.getLibrary()));
-
-      final bool isImplicitSuperCall = true;
-      verifyThatConstructorMatchesCall(calledConstructor,
-                                       callToMatch,
-                                       isImplicitSuperCall,
-                                       functionNode,
-                                       className,
-                                       const SourceString(''));
-
-      visitor.world.registerStaticUse(calledConstructor);
+      SourceString name = const SourceString('');
+      Selector call = new Selector.call(name, classElement.getLibrary(), 0);
+      var element = resolveSuperOrThis(constructor, true, true,
+                                       name, call, functionNode);
+      visitor.world.registerStaticUse(element);
     }
   }
 
-  void verifyThatConstructorMatchesCall(
-      FunctionElement lookedupConstructor,
-      Selector call,
-      bool isImplicitSuperCall,
-      Node diagnosticNode,
-      SourceString className,
-      SourceString constructorName) {
-    if (lookedupConstructor === null
-        || !lookedupConstructor.isGenerativeConstructor()) {
-      var fullConstructorName =
-          visitor.compiler.resolver.constructorNameForDiagnostics(className,
-                                                              constructorName);
+  Element resolveSuperOrThis(FunctionElement constructor,
+                             bool isSuperCall,
+                             bool isImplicitSuperCall,
+                             SourceString constructorName,
+                             Selector selector,
+                             Node diagnosticNode) {
+    ClassElement lookupTarget = constructor.getEnclosingClass();
+    bool validTarget = true;
+    FunctionElement result;
+    if (isSuperCall) {
+      // Calculate correct lookup target and constructor name.
+      if (lookupTarget === visitor.compiler.objectClass) {
+        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+      } else {
+        lookupTarget = lookupTarget.supertype.element;
+      }
+    }
+
+    // Lookup constructor and try to match it to the selector.
+    ResolverTask resolver = visitor.compiler.resolver;
+    final SourceString className = lookupTarget.name;
+    result = lookupTarget.lookupConstructor(className, constructorName);
+    if (result === null || !result.isGenerativeConstructor()) {
+      String classNameString = className.slowToString();
+      String constructorNameString = constructorName.slowToString();
+      String name = (constructorName === const SourceString(''))
+                        ? classNameString
+                        : "$classNameString.$constructorNameString";
       MessageKind kind = isImplicitSuperCall
-          ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
-          : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      error(diagnosticNode, kind, [fullConstructorName]);
+                         ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
+                         : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
+      error(diagnosticNode, kind, [name]);
     } else {
-      if (!call.applies(lookedupConstructor, visitor.compiler)) {
+      if (!selector.applies(result, visitor.compiler)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
         error(diagnosticNode, kind);
       }
     }
+    return result;
   }
 
   FunctionElement resolveRedirection(FunctionElement constructor,
@@ -2884,33 +2809,22 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     }
   }
 
-  Selector createConstructorSelector(SourceString constructorName) {
-    return constructorName == const SourceString('')
-        ? new Selector.callDefaultConstructor(
-            resolver.enclosingElement.getLibrary())
-        : new Selector.callConstructor(
-            constructorName,
-            resolver.enclosingElement.getLibrary());
-  }
-
   // TODO(ngeoffray): method named lookup should not report errors.
   FunctionElement lookupConstructor(ClassElement cls,
                                     Node diagnosticNode,
                                     SourceString constructorName) {
     cls.ensureResolved(compiler);
-    Selector selector = createConstructorSelector(constructorName);
-    Element result = cls.lookupConstructor(selector);
+    Element result = cls.lookupConstructor(cls.name, constructorName);
     if (result === null) {
-      String fullConstructorName =
-          resolver.compiler.resolver.constructorNameForDiagnostics(
-              cls.name,
-              constructorName);
-      return failOrReturnErroneousElement(
-          cls,
-          diagnosticNode,
-          new SourceString(fullConstructorName),
-          MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          [fullConstructorName]);
+      String fullConstructorName = cls.name.slowToString();
+      if (constructorName !== const SourceString('')) {
+        fullConstructorName = '$fullConstructorName'
+                              '.${constructorName.slowToString()}';
+      }
+      return failOrReturnErroneousElement(cls, diagnosticNode,
+                                          new SourceString(fullConstructorName),
+                                          MessageKind.CANNOT_FIND_CONSTRUCTOR,
+                                          [fullConstructorName]);
     } else if (inConstContext && !result.modifiers.isConst()) {
       error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }

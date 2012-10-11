@@ -8,7 +8,6 @@
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
-#import("../../../lib/compiler/implementation/universe/universe.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 #import("compiler_helper.dart");
 #import("mock_compiler.dart");
@@ -564,9 +563,7 @@ resolveConstructor(String script, String statement, String className,
   ClassElement classElement =
       compiler.mainApp.find(buildSourceString(className));
   Element element =
-      classElement.lookupConstructor(
-          new Selector.callConstructor(buildSourceString(constructor),
-                                       statement.getLibrary()));
+      classElement.lookupConstructor(buildSourceString(constructor));
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor = new ResolverVisitor(compiler, element);
   new InitializerResolver(visitor).resolveInitializers(element, tree);

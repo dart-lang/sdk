@@ -1213,9 +1213,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         assert(superClass !== null);
         assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
-            new Selector.callDefaultConstructor(enclosingClass.getLibrary());
+            new Selector.call(superClass.name, enclosingClass.getLibrary(), 0);
         // TODO(johnniwinther): Should we find injected constructors as well?
-        FunctionElement target = superClass.lookupConstructor(selector);
+        FunctionElement target = superClass.lookupConstructor(superClass.name);
         if (target === null) {
           compiler.internalError("no default constructor available");
         }

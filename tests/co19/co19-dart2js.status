@@ -247,8 +247,6 @@ LibTest/core/Math/atan_A01_t01: Fail, OK
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # Redirecting constructors can not use initializing formals. This bug was previously masked - compilation failed, but for different, wrong reason.
-
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
@@ -395,6 +393,8 @@ Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # co19 issue 1
 
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t19: Fail, OK # co19 issue 198
+Language/03_Overview/2_Privacy_A01_t20: Fail, OK # co19 issue 198
 
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail, OK # co19 issue 236
 
