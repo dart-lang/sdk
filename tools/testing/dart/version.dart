@@ -95,19 +95,26 @@ class Version {
         if (!c.future.isComplete) {
           getRevision().then((revision) {
             REVISION = revision;
-            getUserName().then((username) {
-              USERNAME = username;
-              if (username != '') username = "_$username";
-              var revisionString = "";
-              if (revision != 0) revisionString = "_r$revision";
-              c.complete("$MAJOR.$MINOR.$BUILD.$PATCH$revisionString$username");
-              return;
-            });
+            USERNAME = getUserName();
+            var userNameString = "";
+            if (USERNAME != '') userNameString = "_$USERNAME";
+            var revisionString = "";
+            if (revision != 0) revisionString = "_r$revision";
+            c.complete(
+                "$MAJOR.$MINOR.$BUILD.$PATCH$revisionString$userNameString");
+            return;
           });
         }
       };
     });
     return c.future;
+  }
+
+  String getExecutableSuffix() {
+    if (Platform.operatingSystem == 'windows') {
+      return '.exe';
+    }
+    return '';
   }
 
   Future<int> getRevision() {
@@ -116,6 +123,7 @@ class Version {
     }
     var isSvn = repositoryType == RepositoryType.SVN;
     var command = isSvn ? "svn" : "git";
+    command = "$command${getExecutableSuffix()}";
     var arguments = isSvn ? ["info"] : ["svn", "info"];
     return Process.run(command, arguments).transform((result) {
       if (result.exitCode != 0) {
@@ -133,17 +141,10 @@ class Version {
     });
   }
 
-  Future<String> getUserName() {
+  String getUserName() {
     // TODO(ricow): Don't add this on the buildbot.
-    // If we can't get the username simple return "" (e.g. on windows).
-    return Process.run("whoami", []).transform((result) {
-      if (result.exitCode != 0) {
-        return "";
-      }
-      return result.stdout;
-    }).transformException((e) {
-      return "";
-    });
+    if (!Platform.environment.containsKey("USER")) return "";
+    return Platform.environment["USER"];
   }
 
   RepositoryType get repositoryType {
