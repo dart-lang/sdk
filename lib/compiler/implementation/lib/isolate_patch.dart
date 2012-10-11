@@ -85,13 +85,15 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the change to break the isolate abstraction.
-_Manager get _globalState() native "return \$globalState;";
-set _globalState(_Manager val) native "\$globalState = val;";
+_Manager get _globalState() => JS("Object", r"$globalState");
+set _globalState(_Manager val) {
+  JS("void", r"$globalState = #", val);
+}
 
-void _fillStatics(context) native r"""
-  $globals = context.isolateStatics;
-  $static_init();
-""";
+void _fillStatics(context) {
+  JS("void", r"$globals = #.isolateStatics", context);
+  JS("void", r"$static_init()");
+}
 
 ReceivePort _lazyPort;
 patch ReceivePort get port() {
@@ -185,17 +187,18 @@ class _Manager {
     }
   }
 
-  void _nativeDetectEnvironment() native r"""
-    this.isWorker = $isWorker;
-    this.supportsWorkers = $supportsWorkers;
-    this.fromCommandLine = typeof(window) == 'undefined';
-  """;
+  void _nativeDetectEnvironment() {
+    JS("void", r"#.isWorker = $isWorker", this);
+    JS("void", r"#.supportsWorkers = $supportsWorkers", this);
+    JS("void", r"#.fromCommandLine = typeof(window) == 'undefined'", this);
+  }
 
-  void _nativeInitWorkerMessageHandler() native r"""
-    $globalThis.onmessage = function (e) {
-      _IsolateNatives._processWorkerMessage(this.mainManager, e);
-    }
-  """;
+  void _nativeInitWorkerMessageHandler() {
+    JS("void", r"""
+$globalThis.onmessage = function (e) {
+  _IsolateNatives._processWorkerMessage(this.mainManager, e);
+}""");
+  }
   /*: TODO: check that _processWorkerMessage is not discarded while treeshaking.
   """ {
     _IsolateNatives._processWorkerMessage(null, null);
@@ -229,7 +232,7 @@ class _IsolateContext {
   }
 
   // these are filled lazily the first time the isolate starts running.
-  void initGlobals() native r'$initGlobals(this);';
+  void initGlobals() { JS("void", r'$initGlobals(#)', this); }
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -249,7 +252,7 @@ class _IsolateContext {
     return result;
   }
 
-  void _setGlobals() native r'$setGlobals(this);';
+  void _setGlobals() { JS("void", r'$setGlobals(#)', this); }
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int portId) => ports[portId];
@@ -379,7 +382,7 @@ class _MainManagerStub implements _ManagerStub {
   void set onmessage(f) {
     throw new Exception("onmessage should not be set on MainManagerStub");
   }
-  void postMessage(msg) native r"$globalThis.postMessage(msg);";
+  void postMessage(msg) { JS("void", r"$globalThis.postMessage(#)", msg); }
   void terminate() {}  // Nothing useful to do here.
 }
 
@@ -390,10 +393,10 @@ class _MainManagerStub implements _ManagerStub {
  * are actually available.
  */
 class _WorkerStub implements _ManagerStub native "*Worker" {
-  get id() native "return this.id;";
-  void set id(i) native "this.id = i;";
-  void set onmessage(f) native "this.onmessage = f;";
-  void postMessage(msg) native "return this.postMessage(msg);";
+  get id() => JS("Object", "#.id", this);
+  void set id(i) { JS("void", "#.id = #", this, i); }
+  void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
+  void postMessage(msg) => JS("Object", "#.postMessage(#)", this, msg);
   // terminate() is implemented by Worker.
   abstract void terminate();
 }
@@ -406,17 +409,17 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() native r"return $thisScriptUrl";
+  static String get _thisScript() => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
-  static _WorkerStub _newWorker(url) native "return new Worker(url);";
+  static _WorkerStub _newWorker(url) => JS("Object", r"new Worker(#)", url);
 
   /**
    * Assume that [e] is a browser message event and extract its message data.
    * We don't import the dom explicitly so, when workers are disabled, this
    * library can also run on top of nodejs.
    */
-  static _getEventData(e) native "return e.data";
+  static _getEventData(e) => JS("Object", "#.data", e);
 
   /**
    * Process messages on a worker, either to control the worker instance or to
@@ -477,41 +480,48 @@ class _IsolateNatives {
     }
   }
 
-  static void _consoleLog(msg) native "\$globalThis.console.log(msg);";
+  static void _consoleLog(msg) {
+    JS("void", r"$globalThis.console.log(#)", msg);
+  }
 
   /**
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
    */
-  static Dynamic _getJSConstructor(Isolate runnable) native """
-    return runnable.constructor;
-  """;
+  static Dynamic _getJSConstructor(Isolate runnable) {
+    return JS("Object", "#.constructor", runnable);
+  }
 
   /** Extract the constructor name of a runnable */
   // TODO(sigmund): find a browser-generic way to support this.
-  static Dynamic _getJSConstructorName(Isolate runnable) native """
-    return runnable.constructor.name;
-  """;
+  // TODO(floitsch): is this function still used? If yes, should we use
+  // Primitives.objectTypeName instead?
+  static Dynamic _getJSConstructorName(Isolate runnable) {
+    return JS("Object", "#.constructor.name", runnable);
+  }
 
   /** Find a constructor given its name. */
-  static Dynamic _getJSConstructorFromName(String factoryName) native """
-    return \$globalThis[factoryName];
-  """;
+  static Dynamic _getJSConstructorFromName(String factoryName) {
+    return JS("Object", r"$globalThis[#]", factoryName);
+  }
 
-  static Dynamic _getJSFunctionFromName(String functionName) native """
-    return \$globalThis[functionName];
-  """;
+  static Dynamic _getJSFunctionFromName(String functionName) {
+    return JS("Object", r"$globalThis[#]", functionName);
+  }
 
   /**
    * Get a string name for the function, if possible.  The result for
    * anonymous functions is browser-dependent -- it may be "" or "anonymous"
    * but you should probably not count on this.
    */
-  static String _getJSFunctionName(Function f)
-    native r"return f.$name || (void 0);";
+  static String _getJSFunctionName(Function f) {
+    return JS("Object", r"(#.$name || #)", f, null);
+  }
 
   /** Create a new JavaScript object instance given its constructor. */
-  static Dynamic _allocate(var ctor) native "return new ctor();";
+  static Dynamic _allocate(var ctor) {
+    return JS("Object", "new #()", ctor);
+  }
 
   // TODO(sigmund): clean up above, after we make the new API the default:
 
@@ -989,21 +999,24 @@ class _JsVisitedMap implements _MessageTraverserVisitedMap {
   }
 
   /** Remove all information injected in the native objects. */
-  cleanup() {
+  void cleanup() {
     for (int i = 0, length = tagged.length; i < length; i++) {
       _clearAttachedInfo(tagged[i]);
     }
     tagged = null;
   }
 
-  _clearAttachedInfo(var o) native
-      "o['__MessageTraverser__attached_info__'] = (void 0);";
+  void _clearAttachedInfo(var o) {
+    JS("void", "#['__MessageTraverser__attached_info__'] = #", o, null);
+  }
 
-  _setAttachedInfo(var o, var info) native
-      "o['__MessageTraverser__attached_info__'] = info;";
+  void _setAttachedInfo(var o, var info) {
+    JS("void", "#['__MessageTraverser__attached_info__'] = #", o, info);
+  }
 
-  _getAttachedInfo(var o) native
-      "return o['__MessageTraverser__attached_info__'];";
+  _getAttachedInfo(var o) {
+    return JS("Object", "#['__MessageTraverser__attached_info__']", o);
+  }
 }
 
 // only visible for testing purposes
