@@ -472,10 +472,10 @@ Note: currently only implemented for dart2js.''',
 
     String runtime = configuration['runtime'];
     if (runtime == 'firefox') {
-      // We accept the user string "firefox" or "ff" to denote the Firefox
-      // browser.
       configuration['runtime'] == 'ff';
     }
+
+    configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
 
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
