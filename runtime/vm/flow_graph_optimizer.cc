@@ -2164,21 +2164,6 @@ void FlowGraphTypePropagator::PropagateTypes() {
 }
 
 
-void FlowGraphAnalyzer::Analyze() {
-  is_leaf_ = true;
-  for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* entry = blocks_[i];
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      LocationSummary* locs = it.Current()->locs();
-      if ((locs != NULL) && locs->can_call()) {
-        is_leaf_ = false;
-        return;
-      }
-    }
-  }
-}
-
-
 static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
   for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
     BlockEntryInstr* candidate = header->PredecessorAt(j);

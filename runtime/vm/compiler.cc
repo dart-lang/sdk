@@ -239,17 +239,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
     }
 
-    bool is_leaf = false;
-    if (optimized) {
-      FlowGraphAnalyzer analyzer(*flow_graph);
-      analyzer.Analyze();
-      is_leaf = analyzer.is_leaf();
-    }
     Assembler assembler;
     FlowGraphCompiler graph_compiler(&assembler,
                                      *flow_graph,
-                                     optimized,
-                                     is_leaf);
+                                     optimized);
     {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphcompiler_timer,

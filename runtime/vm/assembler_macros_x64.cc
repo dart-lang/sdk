@@ -67,20 +67,6 @@ void AssemblerMacros::EnterDartFrame(Assembler* assembler,
 }
 
 
-void AssemblerMacros::EnterDartLeafFrame(Assembler* assembler,
-                                         intptr_t frame_size) {
-  __ EnterFrame(0);
-  Label dart_entry;
-  // Leave room for the saved PC, it will be filled in lazily, leave
-  // uninitialized.
-  __ subq(RSP, Immediate(frame_size + kWordSize));
-#if defined(DEBUG)
-  // Store an invalid object in saved PC slot.
-  __ movq(Address(RBP, -kWordSize), Immediate(kHeapObjectTag));
-#endif
-}
-
-
 void AssemblerMacros::EnterStubFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.

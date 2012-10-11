@@ -44,18 +44,6 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deoptimization_env() != NULL);
 
-  if (compiler->IsLeaf()) {
-    Label L;
-    __ pushl(EAX);  // Preserve EAX.
-    __ call(&L);
-    const intptr_t offset = assem->CodeSize();
-    __ Bind(&L);
-    __ popl(EAX);
-    __ subl(EAX,
-        Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
-    __ movl(Address(EBP, -kWordSize), EAX);
-    __ popl(EAX);
-  }
   __ call(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
 #undef __
@@ -825,7 +813,6 @@ void FlowGraphCompiler::CopyParameters() {
                          Isolate::kNoDeoptId,
                          0);  // No token position.
   } else {
-    ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
     const int kNumArgsChecked = 1;
     ICData& ic_data = ICData::ZoneHandle();
@@ -933,11 +920,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
   __ Comment("Enter frame");
-  if (IsLeaf()) {
-    AssemblerMacros::EnterDartLeafFrame(assembler(), (StackSize() * kWordSize));
-  } else {
-    AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
-  }
+  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
 
   // For optimized code, keep a bitmap of the frame in order to build
   // stackmaps for GC safepoints in the prologue.
@@ -1041,7 +1024,6 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   __ call(label);
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -1053,7 +1035,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   __ call(label);
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
@@ -1074,7 +1055,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -1088,7 +1068,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
   GenerateDartCall(deopt_id,
@@ -1106,7 +1085,6 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
   if (function.HasCode()) {
