@@ -8,6 +8,7 @@ import os
 import pwd
 import sys
 import subprocess
+import platform
 import getpass
 from os.path import join
 import time
@@ -31,6 +32,9 @@ def getRevision():
   return proc.communicate()[0].split('\n')[4].split(' ')[1]
   
 def makeVersionString(version_file):
+  id = platform.system()
+  if id == 'Windows' or id == 'Microsoft':
+    return '0.0.0.0'
   major = getVersionPart(version_file, 'MAJOR')
   minor = getVersionPart(version_file, 'MINOR')
   build = getVersionPart(version_file, 'BUILD')
