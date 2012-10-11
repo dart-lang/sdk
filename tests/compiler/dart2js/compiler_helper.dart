@@ -18,9 +18,11 @@
 #import("parser_helper.dart");
 
 String compile(String code, [String entry = 'main',
-                             bool enableTypeAssertions = false]) {
+                             bool enableTypeAssertions = false,
+                             bool minify = false]) {
   MockCompiler compiler =
-      new MockCompiler(enableTypeAssertions: enableTypeAssertions);
+      new MockCompiler(enableTypeAssertions: enableTypeAssertions,
+                       enableMinification: minify);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;

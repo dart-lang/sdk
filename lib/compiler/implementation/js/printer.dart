@@ -17,9 +17,9 @@ class Printer implements NodeVisitor {
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
-        namer = DetermineRenamer(compiler.enableMinification);
+        namer = determineRenamer(compiler.enableMinification);
   
-  static Namer DetermineRenamer(bool shouldCompressOutput) {
+  static Namer determineRenamer(bool shouldCompressOutput) {
     return shouldCompressOutput ? new MinifyRenamer() : new IdentityNamer();
   }
 
@@ -852,11 +852,11 @@ class IdentityNamer implements Namer {
 
 
 class MinifyRenamer implements Namer {
-  final List<Map<String, String>> maps;
-  final List<int> nameNumberStack;
-  int nameNumber;
+  final List<Map<String, String>> maps = [];
+  final List<int> nameNumberStack = [];
+  int nameNumber = 0;
 
-  MinifyRenamer() : maps = [], nameNumberStack = [], nameNumber = 0;
+  MinifyRenamer();
 
   void enterScope() {
     maps.add(new Map<String, String>());
@@ -877,11 +877,46 @@ class MinifyRenamer implements Namer {
     return oldName;
   }
 
+  static int nthLetter(int n) {
+    return (n < 26) ? charCodes.$a + n : charCodes.$A + n - 26;
+  }
+
   String declareName(String oldName) {
-    if (maps.length == 0) return oldName;
-    var newName = "z${nameNumber++}";
+    const LETTERS = 52;
+    const DIGITS = 10;
+    if (maps.isEmpty()) return oldName;
+    String newName;
+    int n = nameNumber;
+    if (n < LETTERS) {
+      // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
+      newName = new String.fromCharCodes([nthLetter(n)]);
+    } else {
+      // Then name variables a0, a1, a2, ..., a9, b0, b1, ..., Z9, aa0, aa1, ...
+      // For all functions with fewer than 500 locals this is just as compact
+      // as using aa, ab, etc. but avoids clashes with keywords.
+      n -= LETTERS;
+      int digit = n % DIGITS;
+      n ~/= DIGITS;
+      int alphaChars = 1;
+      int nameSpaceSize = LETTERS;
+      // Find out whether we should use the 1-character namespace (size 52), the
+      // 2-character namespace (size 52*52), etc.
+      while (n >= nameSpaceSize) {
+        n -= nameSpaceSize;
+        alphaChars++;
+        nameSpaceSize *= LETTERS;
+      }
+      var codes = <int>[];
+      for (var i = 0; i < alphaChars; i++) {
+        nameSpaceSize ~/= LETTERS;
+        codes.add(nthLetter((n ~/ nameSpaceSize) % LETTERS));
+      }
+      codes.add(charCodes.$0 + digit);
+      newName = new String.fromCharCodes(codes);
+    }
+    assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+    nameNumber++;
     maps.last()[oldName] = newName;
     return newName;
   }
-
 }
