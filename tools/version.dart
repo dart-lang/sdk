@@ -4,7 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-import "testing/dart/version.dart";
+import "release/version.dart";
 
 void main() {
   Path scriptPath = new Path(new Options().script).directoryPath;
