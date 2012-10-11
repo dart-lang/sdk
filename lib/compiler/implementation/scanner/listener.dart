@@ -1137,8 +1137,10 @@ class NodeListener extends ElementListener {
     TypeAnnotation supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushNode(new ClassNode(name, typeParameters, supertype, interfaces, null,
-                           beginToken, extendsKeyword, body, endToken));
+    Modifiers modifiers = popNode();
+    pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
+                           interfaces, null, beginToken, extendsKeyword, body,
+                           endToken));
   }
 
   void endCompilationUnit(int count, Token token) {
@@ -1162,9 +1164,9 @@ class NodeListener extends ElementListener {
                                        null, ',');
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushNode(new ClassNode(name, typeParameters, null, supertypes,
-                           defaultClause, interfaceKeyword, null, body,
-                           endToken));
+    pushNode(new ClassNode(Modifiers.EMPTY, name, typeParameters, null,
+                           supertypes, defaultClause, interfaceKeyword, null,
+                           body, endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

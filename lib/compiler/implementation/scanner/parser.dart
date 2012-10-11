@@ -433,10 +433,13 @@ class Parser {
   Token parseClass(Token token) {
     Token begin = token;
     listener.beginClassDeclaration(token);
+    int modifierCount = 0;
     if (optional('abstract', token)) {
-      // TODO(ahe): Notify listener about abstract modifier.
+      listener.handleModifier(token);
+      modifierCount++;
       token = token.next;
     }
+    listener.handleModifiers(modifierCount);
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     Token extendsKeyword;

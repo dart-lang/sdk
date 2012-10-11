@@ -202,6 +202,7 @@ abstract class Node implements Spannable {
 }
 
 class ClassNode extends Node {
+  final Modifiers modifiers;
   final Identifier name;
   final TypeAnnotation superclass;
   final NodeList interfaces;
@@ -215,9 +216,9 @@ class ClassNode extends Node {
   final Token extendsKeyword;
   final Token endToken;
 
-  ClassNode(this.name, this.typeParameters, this.superclass, this.interfaces,
-            this.defaultClause, this.beginToken, this.extendsKeyword,
-            this.body, this.endToken);
+  ClassNode(this.modifiers, this.name, this.typeParameters, this.superclass,
+            this.interfaces, this.defaultClause, this.beginToken,
+            this.extendsKeyword, this.body, this.endToken);
 
   ClassNode asClassNode() => this;
 

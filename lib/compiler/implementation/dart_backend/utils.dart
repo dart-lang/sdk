@@ -44,7 +44,7 @@ class CloningVisitor implements Visitor<Node> {
       node.onKeyword, node.catchKeyword);
 
   visitClassNode(ClassNode node) => new ClassNode(
-      visit(node.name), visit(node.typeParameters),
+      visit(node.modifiers), visit(node.name), visit(node.typeParameters),
       visit(node.superclass), visit(node.interfaces), visit(node.defaultClause),
       node.beginToken, node.extendsKeyword, visit(node.body), node.endToken);
 

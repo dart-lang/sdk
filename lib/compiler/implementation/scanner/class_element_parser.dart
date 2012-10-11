@@ -11,7 +11,7 @@ class ClassElementParser extends PartialParser {
 class PartialClassElement extends ClassElement {
   final Token beginToken;
   final Token endToken;
-  Node cachedNode;
+  ClassNode cachedNode;
 
   PartialClassElement(SourceString name,
                       Token this.beginToken,
@@ -56,37 +56,11 @@ class PartialClassElement extends ClassElement {
 
   Token position() => beginToken;
 
+  // TODO(johnniwinther): Ensure that modifiers are always available.
+  Modifiers get modifiers =>
+      cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
+
   bool isInterface() => beginToken.stringValue === "interface";
-
-  PartialClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
-    parseNode(listener);
-    // TODO(lrn): Is copying id acceptable?
-    // TODO(ahe): No.
-    PartialClassElement result =
-        new PartialClassElement(name, beginToken, endToken, enclosing, id);
-
-    assert(this.supertypeLoadState == STATE_NOT_STARTED);
-    assert(this.resolutionState == STATE_NOT_STARTED);
-    assert(this.type === null);
-    assert(this.supertype === null);
-    assert(this.defaultClass === null);
-    assert(this.interfaces === null);
-    assert(this.allSupertypes === null);
-    assert(this.backendMembers.isEmpty());
-
-    // Native is only used in DOM/HTML library for which we don't
-    // support patching.
-    assert(this.nativeName === null);
-
-    Link<Element> elementList = this.localMembers;
-    while (!elementList.isEmpty()) {
-      result.addMember(elementList.head.cloneTo(result, listener), listener);
-      elementList = elementList.tail;
-    }
-
-    result.cachedNode = cachedNode;
-    return result;
-  }
 }
 
 class MemberListener extends NodeListener {

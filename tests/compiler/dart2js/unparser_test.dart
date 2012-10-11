@@ -243,6 +243,11 @@ testRedirectingFactoryConstructors() {
   testUnparseMember("external const factory Foo() = prefix.Bar<T>.baz;");
 }
 
+testClassDeclarations() {
+  testUnparseTopLevelWithMetadata('class Foo{}');
+  testUnparseTopLevelWithMetadata('abstract class Foo{}');
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -261,4 +266,5 @@ main() {
   testPartOf();
   testCombinators();
   testRedirectingFactoryConstructors();
+  testClassDeclarations();
 }
