@@ -112,7 +112,7 @@ class Version {
 
   String getExecutableSuffix() {
     if (Platform.operatingSystem == 'windows') {
-      return '.exe';
+      return '.bat';
     }
     return '';
   }
@@ -143,8 +143,12 @@ class Version {
 
   String getUserName() {
     // TODO(ricow): Don't add this on the buildbot.
-    if (!Platform.environment.containsKey("USER")) return "";
-    return Platform.environment["USER"];
+    var key = "USER";
+    if (Platform.operatingSystem == 'windows') {
+      key = "USERNAME";
+    }
+    if (!Platform.environment.containsKey(key)) return "";
+    return Platform.environment[key];
   }
 
   RepositoryType get repositoryType {
