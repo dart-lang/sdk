@@ -565,7 +565,7 @@ resolveConstructor(String script, String statement, String className,
   Element element =
       classElement.lookupConstructor(
           new Selector.callConstructor(buildSourceString(constructor),
-                                       statement.getLibrary());
+                                       statement.getLibrary()));
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor = new ResolverVisitor(compiler, element);
   new InitializerResolver(visitor).resolveInitializers(element, tree);
