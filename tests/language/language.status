@@ -224,7 +224,7 @@ first_class_types_libraries_test: Fail # Issue 2264
 import_combinators_test: Fail
 
 
-[ $compiler == none && ($runtime == vm || $runtime == drt) ]
+[ $runtime == vm || ($runtime == drt && $compiler == none) ]
 call_test: Fail # Issue 1604
 
 [ $runtime == chrome ]
