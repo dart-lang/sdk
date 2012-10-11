@@ -1427,8 +1427,6 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
     __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
 
-    __ movl(Address(EAX, Closure::smrck_offset()), raw_null);
-
     // Done allocating and initializing the instance.
     // EAX: new object.
     __ addl(EAX, Immediate(kHeapObjectTag));

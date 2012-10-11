@@ -5475,13 +5475,6 @@ class Closure : public Instance {
     return OFFSET_OF(RawClosure, type_arguments_);
   }
 
-  // TODO(iposva): Remove smrck support once mapping to arbitrary is available.
-  RawInteger* smrck() const { return raw_ptr()->smrck_; }
-  void set_smrck(const Integer& smrck) const {
-    StorePointer(&raw_ptr()->smrck_, smrck.raw());
-  }
-  static intptr_t smrck_offset() { return OFFSET_OF(RawClosure, smrck_); }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
   }

@@ -1979,12 +1979,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments);
 
-// DEPRECATED: The API below is a temporary hack.
-DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
-
-// DEPRECATED: The API below is a temporary hack.
-DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
-
 // --- Classes and Interfaces ---
 
 /**

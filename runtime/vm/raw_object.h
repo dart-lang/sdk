@@ -1442,9 +1442,7 @@ class RawClosure : public RawInstance {
   RawAbstractTypeArguments* type_arguments_;
   RawFunction* function_;
   RawContext* context_;
-  // TODO(iposva): Remove this temporary hack.
-  RawInteger* smrck_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->smrck_); }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->context_); }
 };
 
 

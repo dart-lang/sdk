@@ -2436,26 +2436,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 }
 
 
-DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Closure& obj =
-      Closure::CheckedHandle(isolate, Api::UnwrapHandle(object));
-  const Integer& smrck = Integer::Handle(isolate, obj.smrck());
-  return smrck.IsNull() ? 0 : smrck.AsInt64Value();
-}
-
-
-DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Closure& obj =
-      Closure::CheckedHandle(isolate, Api::UnwrapHandle(object));
-  const Integer& smrck = Integer::Handle(isolate, Integer::New(value));
-  obj.set_smrck(smrck);
-}
-
-
 // --- Classes and Interfaces ---
 
 

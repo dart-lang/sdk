@@ -1410,8 +1410,6 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ movq(R10, Address(RSP, kTypeArgumentsOffset));
     __ movq(Address(RAX, Closure::type_arguments_offset()), R10);
 
-    __ movq(Address(RAX, Closure::smrck_offset()), raw_null);
-
     // Done allocating and initializing the instance.
     // RAX: new object.
     __ addq(RAX, Immediate(kHeapObjectTag));
