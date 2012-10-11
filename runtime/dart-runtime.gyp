@@ -11,6 +11,10 @@
     'tools/gyp/runtime-configurations.gypi',
     '../tools/gyp/source_filter.gypi',
   ],
+  'variables': {
+    'version_in_cc_file': 'vm/version_in.cc',
+    'version_cc_file': '<(SHARED_INTERMEDIATE_DIR)/version.cc',
+  },
   'targets': [
     {
       'target_name': 'libdart',
@@ -20,6 +24,7 @@
         'libdart_vm',
         'libjscre',
         'libdouble_conversion',
+        'generate_version_cc_file',
       ],
       'include_dirs': [
         '.',
@@ -29,6 +34,8 @@
         'include/dart_debugger_api.h',
         'vm/dart_api_impl.cc',
         'vm/debugger_api_impl.cc',
+        'vm/version.h',
+        '<(version_cc_file)',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
@@ -46,6 +53,7 @@
         'libdart_vm',
         'libjscre',
         'libdouble_conversion',
+        'generate_version_cc_file',
       ],
       'include_dirs': [
         '.',
@@ -55,6 +63,8 @@
         'include/dart_debugger_api.h',
         'vm/dart_api_impl.cc',
         'vm/debugger_api_impl.cc',
+        'vm/version.h',
+        '<(version_cc_file)',
       ],
       'defines': [
         'DART_SHARED_LIB',
@@ -64,6 +74,30 @@
           'include',
         ],
       },
+    },
+    {
+      'target_name': 'generate_version_cc_file',
+      'type': 'none',
+      'actions': [
+        {
+          'action_name': 'generate_version_cc',
+          'inputs': [
+            'tools/make_version.py',
+            '../tools/VERSION',
+            '<(version_in_cc_file)',
+          ],
+          'outputs': [
+            '<(version_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/make_version.py',
+            '--output', '<(version_cc_file)',
+            '--input', '<(version_in_cc_file)',
+            '--version', '../tools/VERSION',
+          ],
+        },
+      ],
     },
   ],
 }

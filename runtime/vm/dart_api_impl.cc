@@ -28,6 +28,7 @@
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -729,6 +730,9 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
 
 // --- Initialization and Globals ---
 
+DART_EXPORT const char* Dart_VersionString() {
+  return Version::String();
+}
 
 DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
                                  Dart_IsolateInterruptCallback interrupt,

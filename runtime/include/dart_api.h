@@ -557,6 +557,15 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
 // --- Initialization and Globals ---
 
 /**
+ * Gets the version string for the Dart VM.
+ *
+ * The version of the Dart VM can be accessed without initializing the VM.
+ *
+ * \return The version string for the embedded Dart VM.
+ */
+DART_EXPORT const char* Dart_VersionString();
+
+/**
  * An isolate creation and initialization callback function.
  *
  * This callback, provided by the embedder, is called when the vm

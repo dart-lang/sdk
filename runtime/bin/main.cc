@@ -80,6 +80,16 @@ static bool IsValidFlag(const char* name,
 }
 
 
+static bool has_version_option = false;
+static bool ProcessVersionOption(const char* arg) {
+  if (*arg != '\0') {
+    return false;
+  }
+  has_version_option = true;
+  return true;
+}
+
+
 static bool has_help_option = false;
 static bool ProcessHelpOption(const char* arg) {
   if (*arg != '\0') {
@@ -196,6 +206,7 @@ static struct {
   bool (*process)(const char* option);
 } main_options[] = {
   // Standard options shared with dart2js.
+  { "--version", ProcessVersionOption },
   { "--help", ProcessHelpOption },
   { "-h", ProcessHelpOption },
   { "--verbose", ProcessVerboseOption },
@@ -508,6 +519,11 @@ static bool CreateIsolateAndSetup(const char* script_uri,
 }
 
 
+static void PrintVersion() {
+  fprintf(stderr, "Dart VM version: %s\n", Dart_VersionString());
+}
+
+
 static void PrintUsage() {
   fprintf(stderr,
       "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
@@ -518,13 +534,17 @@ static void PrintUsage() {
     fprintf(stderr,
 "Common options:\n"
 "--checked Insert runtime type checks and enable assertions (checked mode).\n"
+"--version Print the VM version.\n"
 "--help    Display this message (add --verbose for information about all\n"
 "          VM options).\n");
   } else {
     fprintf(stderr,
 "Supported options:\n"
-"--checked \n"
+"--checked\n"
 "  Insert runtime type checks and enable assertions (checked mode).\n"
+"\n"
+"--version\n"
+"  Print the VM version.\n"
 "\n"
 "--help\n"
 "  Display this message (add --verbose for information about all VM options).\n"
@@ -648,7 +668,13 @@ int main(int argc, char** argv) {
                      &script_name,
                      &dart_options,
                      &print_flags_seen) < 0) {
-    if (print_flags_seen) {
+    if (has_help_option) {
+      PrintUsage();
+      return 0;
+    } else if (has_version_option) {
+      PrintVersion();
+      return 0;
+    } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
       // script was specified on the command line.
       Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
@@ -657,11 +683,6 @@ int main(int argc, char** argv) {
       PrintUsage();
       return kErrorExitCode;
     }
-  }
-
-  if (has_help_option) {
-    PrintUsage();
-    return 0;
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
