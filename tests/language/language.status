@@ -218,9 +218,9 @@ prefix_new_test: Fail
 import_combinators_test: Fail
 export_test: Fail # Issue 5785
 export_cyclic_test: Fail # Issue 5785
+first_class_types_libraries_test: Fail # Issue 2264
 
 [ $runtime == dartium ]
-first_class_types_libraries_test.dart: Fail
 import_combinators_test: Fail
 
 
