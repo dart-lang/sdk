@@ -857,6 +857,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
   Map<Element, HParameterValue> parameters;
+  final RuntimeTypeInformation rti;
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
@@ -898,6 +899,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       parameters = new Map<Element, HParameterValue>(),
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
+      rti = builder.compiler.codegenWorld.rti,
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
@@ -2797,7 +2799,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         InterfaceType interfaceType = type;
         bool hasTypeArguments = !interfaceType.arguments.isEmpty();
         if (!isInQuotes) template.add("'");
-        template.add("${type.element.name.slowToString()}");
+        template.add(rti.getName(type.element));
         if (hasTypeArguments) {
           template.add("<");
           for (DartType argument in interfaceType.arguments) {
@@ -2814,7 +2816,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         assert(type is TypedefType);
         if (!isInQuotes) template.add("'");
-        template.add(argument.toString());
+        template.add(rti.getName(argument.element));
         if (!isInQuotes) template.add("'");
       }
     }
@@ -2859,8 +2861,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> runtimeCodeInputs = <HInstruction>[];
     if (runtimeTypeIsUsed) {
       String runtimeTypeString =
-          RuntimeTypeInformation.generateRuntimeTypeString(element,
-                                                           rtiInputs.length);
+          rti.generateRuntimeTypeString(element, rtiInputs.length);
       HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
       add(runtimeType);
       runtimeCodeInputs.add(runtimeType);
