@@ -5307,11 +5307,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   
   /**
    * Developers unfamiliar with Dart frequently write (x/y).toInt() instead of x ~/ y. The editor
-   * should recognize that pattern
+   * should recognize that pattern.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5652
    */
-  public void test_useEffectiveIntegerDivision() throws Exception {
+  public void test_useEffectiveIntegerDivision_int() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int x = 7;",
+        "  int y = 2;",
+        "  print( (x / y).toInt() );",
+        "}",
+        "");
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.USE_INTEGER_DIVISION, 5, 10, 15));
+  }
+  
+  /**
+   * We need to report warning only when arguments are integers.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5652
+   */
+  public void test_useEffectiveIntegerDivision_num() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -5320,6 +5337,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  print( (x / y).toInt() );",
         "}",
         "");
-    assertErrors(result.getErrors(), errEx(TypeErrorCode.USE_INTEGER_DIVISION, 5, 10, 15));
+    assertErrors(result.getErrors());
   }
 }

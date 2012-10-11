@@ -1482,7 +1482,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         if (target instanceof DartBinaryExpression) {
           DartBinaryExpression binary = (DartBinaryExpression) target;
-          if (binary.getOperator() == Token.DIV) {
+          if (binary.getOperator() == Token.DIV && intType.equals(binary.getArg1().getType())
+              && intType.equals(binary.getArg2().getType())) {
             typeError(node, TypeErrorCode.USE_INTEGER_DIVISION);
           }
         }
