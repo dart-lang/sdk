@@ -60,28 +60,6 @@ class FlowGraphPrinter : public ValueObject {
   const bool print_locations_;
 };
 
-
-class FlowGraphVisualizer : public ValueObject {
- public:
-  explicit FlowGraphVisualizer(const FlowGraph& flow_graph)
-      : function_(flow_graph.parsed_function().function()),
-        block_order_(flow_graph.reverse_postorder()),
-        indent_(0) { }
-
-  void PrintFunction();
-
- private:
-  // Helpers for printing.
-  void PrintInstruction(Instruction* instr);
-  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-
-  const Function& function_;
-  const GrowableArray<BlockEntryInstr*>& block_order_;
-  intptr_t indent_;
-
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphVisualizer);
-};
-
 }  // namespace dart
 
 #endif  // VM_IL_PRINTER_H_

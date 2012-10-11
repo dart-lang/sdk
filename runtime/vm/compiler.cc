@@ -165,11 +165,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphPrinter printer(*flow_graph);
         printer.PrintBlocks();
       }
-      if (Dart::flow_graph_writer() != NULL) {
-        // Write flow graph to file.
-        FlowGraphVisualizer printer(*flow_graph);
-        printer.PrintFunction();
-      }
 
       if (optimized) {
         flow_graph->ComputeUseLists();

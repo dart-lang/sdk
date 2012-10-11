@@ -2735,9 +2735,6 @@ typedef void (*Dart_FileWriterFunction)(const char* buffer, int64_t num_bytes);
 // Support for generating symbol maps for use by the Linux perf tool.
 DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function);
 
-// Support for generating flow graph compiler debugging output into a file.
-DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function);
-
 // --- Peers ---
 
 /**

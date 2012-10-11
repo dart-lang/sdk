@@ -4461,11 +4461,6 @@ DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
 }
 
 
-DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function) {
-  Dart::set_flow_graph_writer(function);
-}
-
-
 // --- Peer support ---
 
 

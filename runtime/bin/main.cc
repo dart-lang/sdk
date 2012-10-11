@@ -40,11 +40,6 @@ static const char* generate_pprof_symbols_filename = NULL;
 static bool use_script_snapshot = false;
 static File* snapshot_file = NULL;
 
-
-// Global state that stores a file name for flow graph debugging output.
-// NULL if no output is generated.
-static File* flow_graph_file = NULL;
-
 // Global state that indicates whether there is a debug breakpoint.
 // This pointer points into an argv buffer and does not need to be
 // free'd.
@@ -193,14 +188,6 @@ static bool ProcessScriptSnapshotOption(const char* filename) {
 }
 
 
-static bool ProcessFlowGraphOption(const char* flowgraph_option) {
-  ASSERT(flowgraph_option != NULL);
-  flow_graph_file = File::Open("flowgraph.cfg", File::kWriteTruncate);
-  ASSERT(flow_graph_file != NULL);
-  return true;
-}
-
-
 static struct {
   const char* option_name;
   bool (*process)(const char* option);
@@ -217,7 +204,6 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--generate_flow_graph", ProcessFlowGraphOption },
   { "--generate_perf_events_symbols", ProcessPerfEventsOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--use_script_snapshot=", ProcessScriptSnapshotOption },
@@ -243,12 +229,6 @@ static bool ProcessMainOptions(const char* option) {
 static void WriteToPerfEventsFile(const char* buffer, int64_t num_bytes) {
   ASSERT(perf_events_symbols_file != NULL);
   perf_events_symbols_file->WriteFully(buffer, num_bytes);
-}
-
-
-static void WriteToFlowGraphFile(const char* buffer, int64_t num_bytes) {
-  ASSERT(flow_graph_file != NULL);
-  flow_graph_file->WriteFully(buffer, num_bytes);
 }
 
 
@@ -296,10 +276,6 @@ static int ParseArguments(int argc,
 
   if (generate_pprof_symbols_filename != NULL) {
     Dart_InitPprofSupport();
-  }
-
-  if (flow_graph_file != NULL) {
-    Dart_InitFlowGraphPrinting(&WriteToFlowGraphFile);
   }
 
   // Get the script name.
