@@ -9,6 +9,7 @@
 #import('../elements/elements.dart');
 #import('../util/util.dart');
 #import('../scanner/scannerlib.dart');
+#import('../universe/universe.dart');
 
 #source('concrete_types_inferrer.dart');
 
