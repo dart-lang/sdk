@@ -4059,13 +4059,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError('SsaBuilder.visitTypeVariable');
   }
 
-  HType mapInferredType(Element element) {
-    if (element === builder.compiler.boolClass) return HType.BOOLEAN;
-    if (element === builder.compiler.doubleClass) return HType.DOUBLE;
-    if (element === builder.compiler.intClass) return HType.INTEGER;
-    if (element === builder.compiler.listClass) return HType.READABLE_ARRAY;
-    if (element === builder.compiler.nullClass) return HType.NULL;
-    if (element === builder.compiler.stringClass) return HType.STRING;
+  HType mapInferredType(ConcreteType concreteType) {
+    if (concreteType == null) return HType.UNKNOWN;
+    ClassElement element = concreteType.getUniqueType();
+    if (element == null) return HType.UNKNOWN;
+    if (element == builder.compiler.boolClass) return HType.BOOLEAN;
+    if (element == builder.compiler.doubleClass) return HType.DOUBLE;
+    if (element == builder.compiler.intClass) return HType.INTEGER;
+    if (element == builder.compiler.listClass) return HType.READABLE_ARRAY;
+    if (element == builder.compiler.nullClass) return HType.NULL;
+    if (element == builder.compiler.stringClass) return HType.STRING;
     return HType.UNKNOWN;
   }
 

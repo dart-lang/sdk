@@ -147,10 +147,13 @@ void compile(List<String> argv) {
     new OptionHandler('--minify', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     // TODO(ahe): Remove the --no-colors option.
-    new OptionHandler('--disable-diagnostic-colors', (_) => enableColors = false),
+    new OptionHandler('--disable-diagnostic-colors',
+                      (_) => enableColors = false),
     new OptionHandler('--enable-diagnostic-colors', (_) => enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
+    new OptionHandler('--enable-concrete-type-inference',
+                      (_) => passThrough('--enable-concrete-type-inference')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler(r'--package-root=.+|-p.+', setPackageRoot),
     // The following two options must come last.
@@ -386,7 +389,10 @@ be removed in a future version:
 
   --allow-mock-compilation
     Do not generate a call to main if either of the following
-    libraries are used: dart:dom, dart:html dart:io.''');
+    libraries are used: dart:dom, dart:html dart:io.
+
+  --enable-concrete-type-inference
+    Enable experimental concrete type inference.''');
 }
 
 void helpAndExit(bool verbose) {

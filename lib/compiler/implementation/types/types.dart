@@ -19,10 +19,13 @@ class TypesTask extends CompilerTask {
   final String name = 'Type inference';
   final Set<Element> untypedElements;
   final Map<Element, Link<Element>> typedSends;
+  final ConcreteTypesInferrer concreteTypesInferrer;
 
-  TypesTask(Compiler compiler)
+  TypesTask(Compiler compiler, bool enableConcreteTypeInference)
     : untypedElements = new Set<Element>(),
       typedSends = new Map<Element, Link<Element>>(),
+      concreteTypesInferrer = enableConcreteTypeInference
+          ? new ConcreteTypesInferrer(compiler) : null,
       super(compiler);
 
   /**
@@ -38,18 +41,25 @@ class TypesTask extends CompilerTask {
   /**
    * Called when resolution is complete.
    */
-  void onResolutionComplete() {
+  void onResolutionComplete(Element mainElement) {
     measure(() {
-      // TODO(ahe): Do something here.
+      if (concreteTypesInferrer != null) {
+        concreteTypesInferrer.analyzeMain(mainElement);
+      }
     });
   }
 
   /**
-   * Return the (inferred) guaranteed type of [element].
+   * Return the (inferred) guaranteed concrete type of [element] or null.
    */
-  Element getGuaranteedTypeOfElement(Element element) {
+  ConcreteType getGuaranteedTypeOfElement(Element element) {
     return measure(() {
       if (!element.isParameter()) return null;
+      if (concreteTypesInferrer != null) {
+        ConcreteType guaranteedType = concreteTypesInferrer
+            .getConcreteTypeOfParameter(element);
+        if (guaranteedType != null) return guaranteedType;
+      }
       Element holder = element.enclosingElement;
       Link<Element> types = typedSends[holder];
       if (types === null) return null;
@@ -59,7 +69,9 @@ class TypesTask extends CompilerTask {
       FunctionSignature signature = function.computeSignature(compiler);
       for (Element parameter in signature.requiredParameters) {
         if (types.isEmpty()) return null;
-        if (element === parameter) return types.head;
+        if (element == parameter) {
+          return new ConcreteType.singleton(new ClassBaseType(types.head));
+        }
         types = types.tail;
       }
       return null;
@@ -67,12 +79,14 @@ class TypesTask extends CompilerTask {
   }
 
   /**
-   * Return the (inferred) guaranteed type of [node].
+   * Return the (inferred) guaranteed concrete type of [node] or null.
    * [node] must be an AST node of [owner].
    */
-  Element getGuaranteedTypeOfNode(Node node, Element owner) {
+  ConcreteType getGuaranteedTypeOfNode(Node node, Element owner) {
     return measure(() {
-      // TODO(ahe): Do something real here.
+      if (concreteTypesInferrer != null) {
+        return concreteTypesInferrer.getConcreteTypeOfNode(node);
+      }
       return null;
     });
   }

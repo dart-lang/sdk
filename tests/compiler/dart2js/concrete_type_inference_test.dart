@@ -50,22 +50,22 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
-    Expect.identical(compiler.boolClass, type);
+    Expect.identical(compiler.boolClass, type.getUniqueType());
   });
   checkPrintType('1.0', (compiler, type) {
-    Expect.identical(compiler.doubleClass, type);
+    Expect.identical(compiler.doubleClass, type.getUniqueType());
   });
   checkPrintType('1', (compiler, type) {
-    Expect.identical(compiler.intClass, type);
+    Expect.identical(compiler.intClass, type.getUniqueType());
   });
   checkPrintType('[]', (compiler, type) {
-    Expect.identical(compiler.listClass, type);
+    Expect.identical(compiler.listClass, type.getUniqueType());
   });
   checkPrintType('null', (compiler, type) {
-    Expect.identical(compiler.nullClass, type);
+    Expect.identical(compiler.nullClass, type.getUniqueType());
   });
   checkPrintType('"foo"', (compiler, type) {
-    Expect.identical(compiler.stringClass, type);
+    Expect.identical(compiler.stringClass, type.getUniqueType());
   });
 }
 
@@ -82,7 +82,8 @@ void testOptionalParameters() {
           fiskElement.computeSignature(compiler).optionalParameters.tail.head;
         Expect.identical(
             compiler.intClass,
-            compiler.typesTask.getGuaranteedTypeOfElement(firstParameter));
+            compiler.typesTask.getGuaranteedTypeOfElement(firstParameter)
+                .getUniqueType());
         Expect.isNull(
             compiler.typesTask.getGuaranteedTypeOfElement(secondParameter));
         Expect.isNull(

@@ -15,6 +15,7 @@
 #import('../runtime_types.dart');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
+#import('../types/types.dart');
 #import('../universe/universe.dart');
 #import('../util/util.dart');
 #import('../util/characters.dart');

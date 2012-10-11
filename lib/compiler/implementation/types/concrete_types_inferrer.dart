@@ -18,6 +18,7 @@ class CancelTypeInferenceException {
  *   - the unknown base type
  */
 abstract class BaseType {
+  bool isClass();
   bool isUnknown();
   bool isNull();
 }
@@ -36,6 +37,7 @@ class ClassBaseType implements BaseType {
   }
   int hashCode() => element.hashCode();
   String toString() => element.name.slowToString();
+  bool isClass() => true;
   bool isUnknown() => false;
   bool isNull() => false;
 }
@@ -47,6 +49,7 @@ class UnknownBaseType implements BaseType {
   const UnknownBaseType();
   bool operator ==(BaseType other) => other is UnknownBaseType;
   int hashCode() => 0;
+  bool isClass() => false;
   bool isUnknown() => true;
   bool isNull() => false;
   toString() => "unknown";
@@ -59,6 +62,7 @@ class NullBaseType implements BaseType {
   const NullBaseType();
   bool operator ==(BaseType other) => other is NullBaseType;
   int hashCode() => 1;
+  bool isClass() => false;
   bool isUnknown() => false;
   bool isNull() => true;
   toString() => "null";
@@ -89,6 +93,12 @@ abstract class ConcreteType {
   abstract ConcreteType union(ConcreteType other);
   abstract bool isUnkown();
   abstract Set<BaseType> get baseTypes();
+
+  /**
+   * Returns the unique element of [: this :] if [: this :] is a singleton,
+   * null otherwise.
+   */
+  abstract ClassElement getUniqueType();
 }
 
 /**
@@ -102,6 +112,7 @@ class UnknownConcreteType implements ConcreteType {
       new Set<BaseType>.from([const UnknownBaseType()]);
   int hashCode() => 0;
   ConcreteType union(ConcreteType other) => this;
+  ClassElement getUniqueType() => null;
   toString() => "unknown";
 }
 
@@ -141,6 +152,17 @@ class UnionType implements ConcreteType {
     Set<BaseType> newBaseTypes = new Set<BaseType>.from(baseTypes);
     newBaseTypes.addAll(otherUnion.baseTypes);
     return new UnionType(newBaseTypes);
+  }
+
+  ClassElement getUniqueType() {
+    if (baseTypes.length == 1) {
+      BaseType uniqueBaseType = baseTypes.iterator().next();
+      if (uniqueBaseType.isClass()) {
+        ClassBaseType uniqueClassType = uniqueBaseType;
+        return uniqueClassType.element;
+      }
+    }
+    return null;
   }
 
   String toString() => baseTypes.toString();
@@ -323,7 +345,6 @@ class InferenceWorkItem {
  * of the program. The entry point is [analyzeMain].
  */
 class ConcreteTypesInferrer {
-
   static final bool LOG_FAILURES = true;
 
   final String name = "Type inferrer";
