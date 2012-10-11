@@ -8,6 +8,7 @@
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
+#import("../../../lib/compiler/implementation/universe/universe.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 #import("compiler_helper.dart");
 #import("mock_compiler.dart");
