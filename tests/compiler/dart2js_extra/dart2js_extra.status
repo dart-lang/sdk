@@ -9,6 +9,9 @@ typed_locals_test: Fail
 inline_position_crash_test: Fail # http://www.dartbug.com/3905
 constant_javascript_semantics3_test: Fail # http://www.dartbug.com/5581
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+regress/4740_test: Fail
+
 [ $compiler == dart2js && $checked ]
 parameter_bailout_test: Fail, OK
 variable_type_test/03: Fail, OK
