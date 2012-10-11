@@ -78,11 +78,48 @@ void testIndexOf() {
   Expect.equals(-1, list.indexOf(20.0));
 }
 
+void testSubArray() {
+  var list = new Uint8List(10);
+  var array = list.asByteArray();
+  Expect.equals(0, array.subByteArray(0, 0).lengthInBytes());
+  Expect.equals(0, array.subByteArray(5, 0).lengthInBytes());
+  Expect.equals(0, array.subByteArray(10, 0).lengthInBytes());
+  Expect.equals(0, array.subByteArray(10).lengthInBytes());
+  Expect.equals(0, array.subByteArray(10, null).lengthInBytes());
+  Expect.equals(5, array.subByteArray(0, 5).lengthInBytes());
+  Expect.equals(5, array.subByteArray(5, 5).lengthInBytes());
+  Expect.equals(5, array.subByteArray(5).lengthInBytes());
+  Expect.equals(5, array.subByteArray(5, null).lengthInBytes());
+  Expect.equals(10, array.subByteArray(0, 10).lengthInBytes());
+  Expect.equals(10, array.subByteArray(0).lengthInBytes());
+  Expect.equals(10, array.subByteArray(0, null).lengthInBytes());
+  Expect.equals(10, array.subByteArray().lengthInBytes());
+  testThrowsIndex(function) {
+    Expect.throws(function, (e) => e is IndexOutOfRangeException);
+  }
+  testThrowsIndex(() => array.subByteArray(0, -1));
+  testThrowsIndex(() => array.subByteArray(1, -1));
+  testThrowsIndex(() => array.subByteArray(10, -1));
+  testThrowsIndex(() => array.subByteArray(-1, 0));
+  testThrowsIndex(() => array.subByteArray(-1));
+  testThrowsIndex(() => array.subByteArray(-1, null));
+  testThrowsIndex(() => array.subByteArray(11, 0));
+  testThrowsIndex(() => array.subByteArray(11));
+  testThrowsIndex(() => array.subByteArray(11, null));
+  testThrowsIndex(() => array.subByteArray(6, 5));
+  Expect.throws(() => array.subByteArray(0, "5"), (e) => e is ArgumentError);
+  Expect.throws(() => array.subByteArray("0", 5), (e) => e is ArgumentError);
+  Expect.throws(() => array.subByteArray("0"), (e) => e is ArgumentError);
+  Expect.throws(() => array.subByteArray(null), (e) => e is ArgumentError);
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateByteArray();
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
+    testSubArray();
   }
 }
+

@@ -1513,8 +1513,11 @@ class _ByteArrayView implements ByteArray {
   }
 
   ByteArray subByteArray([int start = 0, int length]) {
+    if (start is! int) throw new ArgumentError("start is not an int");
     if (length === null) {
-      length = this.lengthInBytes();
+      length = this.lengthInBytes() - start;
+    } else if (length is! int) {
+      throw new ArgumentError("length is not an int");
     }
     return new _ByteArrayView(_array, _offset + start, length);
   }
