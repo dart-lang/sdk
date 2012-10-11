@@ -5,76 +5,6 @@
 [ $compiler == dart2dart ]
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
-Language/10_Expressions/01_Constants_A05_t03: Fail # TRIAGE
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # TRIAGE
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # TRIAGE
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A13_t02: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # TRIAGE
-Language/10_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # TRIAGE
-Language/10_Expressions/13_Property_Extraction_A01_t01: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t10: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t11: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t12: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t13: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t14: Fail # TRIAGE
-Language/10_Expressions/19_Conditional_A01_t15: Fail # TRIAGE
-Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t11: Fail # TRIAGE
-Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # TRIAGE
-Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TRIAGE
-Language/10_Expressions/21_Bitwise_Expressions_A01_t13: Fail # TRIAGE
-Language/10_Expressions/21_Bitwise_Expressions_A01_t15: Fail # TRIAGE
-Language/10_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TRIAGE
-Language/10_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TRIAGE
-Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # TRIAGE
-Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail # TRIAGE
-Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail # TRIAGE
-Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail # TRIAGE
-Language/10_Expressions/22_Equality_A01_t23: Fail # TRIAGE
-Language/10_Expressions/22_Equality_A01_t24: Fail # TRIAGE
-Language/10_Expressions/22_Equality_A03_t02: Fail # TRIAGE
-Language/10_Expressions/22_Shift_A01_t10: Fail # TRIAGE
-Language/10_Expressions/22_Shift_A01_t12: Fail # TRIAGE
-Language/10_Expressions/22_Shift_A01_t13: Fail # TRIAGE
-Language/10_Expressions/22_Shift_A01_t14: Fail # TRIAGE
-Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail # TRIAGE
-Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # TRIAGE
-Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # TRIAGE
-Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail # TRIAGE
-Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail # TRIAGE
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # TRIAGE
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # TRIAGE
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # TRIAGE
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail # TRIAGE
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t19: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail # TRIAGE
-Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail # TRIAGE
-Language/10_Expressions/26_Postfix_Expressions_A01_t02: Fail # TRIAGE
-Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # TRIAGE
-Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail # TRIAGE
-Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail # TRIAGE
-Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail # TRIAGE
-Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # TRIAGE
-Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # TRIAGE
-Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # TRIAGE
-Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # TRIAGE
-Language/10_Expressions/29_Type_Test_A01_t04: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TRIAGE
-
-Language/10_Expressions/05_Strings_A12_t01: Fail # TRIAGE
-
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
@@ -253,6 +183,7 @@ Language/10_Expressions/01_Constants_A03_t04: Fail # http://dartbug.com/5519
 Language/10_Expressions/01_Constants_A03_t05: Fail # http://dartbug.com/5519
 Language/10_Expressions/01_Constants_A05_t01: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A05_t02: Fail # http://dartbug.com/5519
+Language/10_Expressions/01_Constants_A05_t03: Fail # http://dartbug.com/5810
 Language/10_Expressions/01_Constants_A05_t04: Fail # http://dartbug.com/5519
 Language/10_Expressions/01_Constants_A06_t01: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A08_t02: Fail # http://dartbug.com/5519
@@ -297,6 +228,9 @@ Language/10_Expressions/01_Constants_A17_t03: Fail # http://dartbug.com/5519
 Language/10_Expressions/01_Constants_A19_t02: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A19_t03: Fail # inherited from VM
 Language/10_Expressions/01_Constants_A19_t04: Fail # http://dartbug.com/5519
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # Inherited from dart2js
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # Inherited from dart2js
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Inherited from dart2js
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co19 issue 210
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # inherited from VM
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # inherited from VM
@@ -310,6 +244,7 @@ Language/10_Expressions/05_Strings_A02_t46: Fail # inherited from VM
 Language/10_Expressions/05_Strings_A02_t47: Fail # inherited from VM
 Language/10_Expressions/05_Strings_A02_t48: Fail # inherited from VM
 Language/10_Expressions/05_Strings_A02_t49: Fail # inherited from VM
+Language/10_Expressions/05_Strings_A12_t01: Fail # Inherited from dart2js
 Language/10_Expressions/05_Strings_A20_t01: Fail # inherited from VM
 Language/10_Expressions/06_Lists_A03_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/06_Lists_A03_t02: Fail # http://dartbug.com/5519
@@ -331,11 +266,19 @@ Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # inherited fro
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited from dart2js
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # inherited from dart2js
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # inherited from dart2js
+Language/10_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # Inherited from dart2js
+Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # Inherited from dart2js
 Language/10_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # inherited from VM
+Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # Inherited from VM
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # co19 issue 255: unmatched bracket (same behavior in dart2js)
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # Inherited from VM
+Language/10_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # Inherited from VM
+Language/10_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # Inherited from dart2js
 Language/10_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/2_Const_A06_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/2_Const_A06_t02: Fail # http://dartbug.com/5519
 Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # inherited from VM
+Language/10_Expressions/13_Property_Extraction_A01_t01: Fail # co19 issue 255: unmatched bracket (same behavior in dart2js)
 Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A04_t01: Fail # http://dartbug.com/5519
 Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # inherited from VM
 Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t04: Fail  # co19 issue 166
@@ -361,12 +304,12 @@ Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail #
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
-Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
-Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # inherited from VM
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # inherited from VM
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # inherited from VM
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # inherited from VM
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # inherited from VM
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
 Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # inherited from VM
@@ -374,34 +317,86 @@ Language/10_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
 Language/10_Expressions/18_Assignment_A05_t04: Fail # inherited from VM
 Language/10_Expressions/18_Assignment_A05_t05: Fail # inherited from VM
 Language/10_Expressions/18_Assignment_A08_t04: Fail # inherited from VM
+Language/10_Expressions/19_Conditional_A01_t10: Fail # Inherited from dart2js
+Language/10_Expressions/19_Conditional_A01_t11: Fail # Inherited from dart2js
+Language/10_Expressions/19_Conditional_A01_t12: Fail # Inherited from dart2js
+Language/10_Expressions/19_Conditional_A01_t13: Fail # Inherited from dart2js
+Language/10_Expressions/19_Conditional_A01_t14: Fail # Inherited from dart2js
+Language/10_Expressions/19_Conditional_A01_t15: Fail # Inherited from dart2js
 Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t11: Fail # Inherited from dart2js
 Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail # http://dartbug.com/5519
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail # Inherited from dart2js
+Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # Inherited from dart2js
 Language/10_Expressions/21_Bitwise_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/21_Bitwise_Expressions_A01_t13: Fail # Inherited from dart2js
 Language/10_Expressions/21_Bitwise_Expressions_A01_t14: Fail # http://dartbug.com/5519
-Language/10_Expressions/22_Equality_A01_t01: Fail # inherited from VM
-Language/10_Expressions/22_Equality_A01_t15: Fail # http://dartbug.com/5519
-Language/10_Expressions/22_Equality_A01_t16: Fail # http://dartbug.com/5519
-Language/10_Expressions/22_Equality_A01_t19: Fail # http://dartbug.com/5519
-Language/10_Expressions/22_Equality_A02_t03: Fail # inherited from VM
-Language/10_Expressions/22_Equality_A03_t01: Fail # inherited from VM
-Language/10_Expressions/22_Equality_A03_t03: Fail # inherited from VM
-Language/10_Expressions/22_Equality_A05_t01: Fail # inherited from VM
+Language/10_Expressions/21_Bitwise_Expressions_A01_t15: Fail # Inherited from dart2js
+Language/10_Expressions/21_Bitwise_Expressions_A01_t16: Fail # Inherited from dart2js
+Language/10_Expressions/21_Bitwise_Expressions_A01_t17: Fail # Inherited from dart2js
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # inherited from VM
 Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail # http://dartbug.com/5519
 Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail # http://dartbug.com/5519
 Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail # http://dartbug.com/5519
 Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # http://dartbug.com/5519
+Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # Inherited from dart2js
 Language/10_Expressions/21_Relational_Expressions_A01_t20: Fail # http://dartbug.com/5519
+Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail # Inherited from dart2js
+Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail # Inherited from dart2js
+Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail # Inherited from dart2js
+Language/10_Expressions/22_Equality_A01_t01: Fail # inherited from VM
+Language/10_Expressions/22_Equality_A01_t15: Fail # http://dartbug.com/5519
+Language/10_Expressions/22_Equality_A01_t16: Fail # http://dartbug.com/5519
+Language/10_Expressions/22_Equality_A01_t19: Fail # http://dartbug.com/5519
+Language/10_Expressions/22_Equality_A01_t23: Fail # Inherited from dart2js
+Language/10_Expressions/22_Equality_A01_t24: Fail # Inherited from dart2js
+Language/10_Expressions/22_Equality_A02_t03: Fail # inherited from VM
+Language/10_Expressions/22_Equality_A03_t01: Fail # inherited from VM
+Language/10_Expressions/22_Equality_A03_t02: Fail # Inherited from dart2js
+Language/10_Expressions/22_Equality_A03_t03: Fail # inherited from VM
+Language/10_Expressions/22_Equality_A05_t01: Fail # inherited from VM
 Language/10_Expressions/22_Shift_A01_t01: Fail # inherited from VM
+Language/10_Expressions/22_Shift_A01_t10: Fail # Inherited from dart2js
 Language/10_Expressions/22_Shift_A01_t11: Fail # http://dartbug.com/5519
+Language/10_Expressions/22_Shift_A01_t12: Fail # Inherited from dart2js
+Language/10_Expressions/22_Shift_A01_t13: Fail # Inherited from dart2js
+Language/10_Expressions/22_Shift_A01_t14: Fail # Inherited from dart2js
+Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail # Inherited from dart2js
+Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # Inherited from dart2js
+Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # Inherited from dart2js
+Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail # Inherited from dart2js
+Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail # Inherited from dart2js
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # Inherited from dart2js
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # Inherited from dart2js
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # Inherited from dart2js
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail # Inherited from dart2js
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail # Inherited from dart2js
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail # Inherited from dart2js
 Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # inherited from VM
+Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t19: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail # Inherited from dart2js
+Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail # Inherited from dart2js
 Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # inherited from VM
 Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # inherited from VM
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # inherited from VM
+Language/10_Expressions/26_Postfix_Expressions_A01_t02: Fail # Inherited from dart2js
+Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # Inherited from dart2js
+Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail # Inherited from dart2js
+Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail # Inherited from dart2js
+Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail # Inherited from dart2js
+Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # Inherited from dart2js
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # inherited from VM
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
+Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # Inherited from dart2js
+Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # Inherited from dart2js
+Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Inherited from dart2js
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # inherited from VM
@@ -417,6 +412,7 @@ Language/10_Expressions/28_Identifier_Reference_A08_t05: Fail, Pass # co19 issue
 Language/10_Expressions/28_Identifier_Reference_A08_t32: Fail # inherited from dart2js
 Language/10_Expressions/28_Identifier_Reference_A08_t38: Fail, Pass # co19 issue 218
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # http://dartbug.com/5519
+Language/10_Expressions/29_Type_Test_A01_t04: Fail # Inherited from dart2js
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # inherited from dart2js
 Language/10_Expressions/30_Type_Cast_A01_t04: Fail # http://dartbug.com/5519
 Language/10_Expressions/30_Type_Cast_A03_t01: Fail # http://dartbug.com/5029
@@ -478,6 +474,7 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # inherited from VM
+Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # Inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t28: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # inherited from dart2js
