@@ -80,7 +80,6 @@ optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
-import_combinators_test: Fail
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984

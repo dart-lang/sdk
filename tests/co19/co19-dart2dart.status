@@ -71,10 +71,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # TRIAGE
 Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # TRIAGE
 Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # TRIAGE
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A01_t49: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A02_t12: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A02_t13: Fail # TRIAGE
-Language/13_Libraries_and_Scripts/2_Imports_A02_t15: Fail # TRIAGE
 Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TRIAGE
 
 Language/10_Expressions/05_Strings_A12_t01: Fail # TRIAGE
@@ -477,23 +473,17 @@ Language/11_Statements/15_Assert_A01_t04: Fail # http://dartbug.com/5519
 Language/11_Statements/15_Assert_A01_t05: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t28: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t06: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t16: Fail # co19 issue 226
 Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # inherited from VM
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A03_t26: Fail # co19 issue 226
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail # inherited from dart2js
 Language/13_Libraries_and_Scripts/3_Includes_A01_t01: Fail # inherited from dart2js

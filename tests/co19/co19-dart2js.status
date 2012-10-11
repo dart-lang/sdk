@@ -123,10 +123,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # TODO(ahe): Pleas
 Language/10_Expressions/29_Type_Test_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/29_Type_Test_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t49: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t12: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t13: Fail # TODO(ahe): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t15: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # TODO(ahe): Please triage this failure.
@@ -420,6 +416,7 @@ Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # co19 issue 249
 
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail, OK # co19 issue 250
 
+Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # co19 issue 253: Show combinators are intersections.
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -721,14 +718,7 @@ Language/14_Types/5_Function_Types_A01_t21: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t22: Fail # http://dartbug.com/5022
 Language/14_Types/5_Function_Types_A01_t23: Fail # http://dartbug.com/5022
 
-Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A01_t40: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t11: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t14: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t04: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t14: Fail # http://dartbug.com/4050. Combinators not implemented yet.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t24: Fail # http://dartbug.com/4050. Combinators not implemented yet.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # http://dartbug.com/3970. Redirecting factory constructors not implemented yet.
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683

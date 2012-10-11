@@ -37,6 +37,87 @@ abstract class LibraryLoader extends CompilerTask {
 }
 
 /**
+ * [CombinatorFilter] is a succinct representation of a list of combinators from
+ * a library dependency tag.
+ */
+class CombinatorFilter {
+  const CombinatorFilter();
+
+  /**
+   * Returns [:true:] if [element] is excluded by this filter.
+   */
+  bool exclude(Element element) => false;
+
+  /**
+   * Creates a filter based on the combinators of [tag].
+   */
+  factory CombinatorFilter.fromTag(LibraryDependency tag) {
+    if (tag == null || tag.combinators == null) {
+      return const CombinatorFilter();
+    }
+
+    // If the list of combinators contain at least one [:show:] we can create
+    // a positive list of elements to include, otherwise we create a negative
+    // list of elements to exclude.
+    bool show = false;
+    Set<SourceString> nameSet;
+    for (Combinator combinator in tag.combinators) {
+      if (combinator.isShow) {
+        show = true;
+        var set = new Set<SourceString>();
+        for (Identifier identifier in combinator.identifiers) {
+          set.add(identifier.source);
+        }
+        if (nameSet == null) {
+          nameSet = set;
+        } else {
+          nameSet = nameSet.intersection(set);
+        }
+      }
+    }
+    if (nameSet == null) {
+      nameSet = new Set<SourceString>();
+    }
+    for (Combinator combinator in tag.combinators) {
+      if (combinator.isHide) {
+        for (Identifier identifier in combinator.identifiers) {
+          if (show) {
+            // We have a positive list => Remove hidden elements.
+            nameSet.remove(identifier.source);
+          } else {
+            // We have no positive list => Accumulate hidden elements.
+            nameSet.add(identifier.source);
+          }
+        }
+      }
+    }
+    return show ? new ShowFilter(nameSet) : new HideFilter(nameSet);
+  }
+}
+
+/**
+ * A list of combinators represented as a list of element names to include.
+ */
+class ShowFilter extends CombinatorFilter {
+  final Set<SourceString> includedNames;
+
+  ShowFilter(this.includedNames);
+
+  bool exclude(Element element) => !includedNames.contains(element.name);
+}
+
+/**
+ * A list of combinators represented as a list of element names to exclude.
+ */
+class HideFilter extends CombinatorFilter {
+  final Set<SourceString> excludedNames;
+
+  HideFilter(this.excludedNames);
+
+  bool exclude(Element element) => excludedNames.contains(element.name);
+}
+
+/**
  * Implementation class for [LibraryLoader]. The distinction between
  * [LibraryLoader] and [LibraryLoaderTask] is made to hide internal members from
  * the [LibraryLoader] interface.
@@ -91,9 +172,6 @@ class LibraryLoaderTask extends LibraryLoader {
     for (LibraryTag tag in library.tags.reverse()) {
       if (tag.isImport) {
         tagState = checkTag(TagState.IMPORT_OR_EXPORT, tag);
-        if (tag.combinators != null) {
-          compiler.unimplemented('combinators', node: tag.combinators);
-        }
         if (tag.uri.dartString.slowToString() == 'dart:core') {
           importsDartCore = true;
         }
@@ -291,6 +369,7 @@ class ImportLink {
     assert(invariant(importingLibrary,
                      importedLibrary.exportsHandled,
                      message: 'Exports not handled on $importedLibrary'));
+    var combinatorFilter = new CombinatorFilter.fromTag(import);
     if (import !== null && import.prefix !== null) {
       SourceString prefix = import.prefix.source;
       Element e = importingLibrary.find(prefix);
@@ -308,7 +387,7 @@ class ImportLink {
       }
       PrefixElement prefixElement = e;
       importedLibrary.forEachExport((Element element) {
-        // TODO(johnniwinther): Handle show and hide combinators.
+        if (combinatorFilter.exclude(element)) return;
         // TODO(johnniwinther): Clean-up like [checkDuplicateLibraryName].
         Element existing =
             prefixElement.imported.putIfAbsent(element.name, () => element);
@@ -326,11 +405,34 @@ class ImportLink {
     } else {
       importedLibrary.forEachExport((Element element) {
         compiler.withCurrentElement(element, () {
-          // TODO(johnniwinther): Handle show and hide combinators.
+          if (combinatorFilter.exclude(element)) return;
           importingLibrary.addImport(element, compiler);
         });
       });
     }
+  }
+}
+
+/**
+ * The combinator filter computed from an export tag and the library dependency
+ * node for the library that declared the export tag. This represents an edge in
+ * the library dependency graph.
+ */
+class ExportLink {
+  final CombinatorFilter combinatorFilter;
+  final LibraryDependencyNode exportNode;
+
+  ExportLink(Export export, LibraryDependencyNode this.exportNode)
+      : this.combinatorFilter = new CombinatorFilter.fromTag(export);
+
+  /**
+   * Exports [element] to the dependent library unless [element] is filtered by
+   * the export combinators. Returns [:true:] if the set pending exports of the
+   * dependent library was modified.
+   */
+  bool exportElement(Element element) {
+    if (combinatorFilter.exclude(element)) return false;
+    return exportNode.addElementToPendingExports(element);
   }
 }
 
@@ -352,12 +454,10 @@ class LibraryDependencyNode {
   Link<ImportLink> imports = const Link<ImportLink>();
 
   /**
-   * The export tags that export [library] mapped to the nodes for the libraries
-   * that declared each export tag. This is used to propagete exports during the
-   * computation of export scopes.
+   * A linked list of the export tags the dependent upon this node library.
+   * This is used to propagate exports during the computation of export scopes.
    */
-  Map<Export, LibraryDependencyNode> dependencyMap =
-      new Map<Export, LibraryDependencyNode>();
+  Link<ExportLink> dependencies = const EmptyLink<ExportLink>();
 
   /**
    * The export scope for [library] which is gradually computed by the work-list
@@ -389,7 +489,8 @@ class LibraryDependencyNode {
    */
   void registerExportDependency(Export export,
                                 LibraryDependencyNode exportingLibraryNode) {
-    dependencyMap[export] = exportingLibraryNode;
+    dependencies =
+        dependencies.prepend(new ExportLink(export, exportingLibraryNode));
   }
 
   /**
@@ -433,7 +534,7 @@ class LibraryDependencyNode {
 
   /**
    * Adds [element] to the export scope for this node. If the [element] name
-   * is a duplicate, an error element is inserted into the exscope.
+   * is a duplicate, an error element is inserted into the export scope.
    */
   Element addElementToExportScope(Compiler compiler, Element element) {
     SourceString name = element.name;
@@ -457,11 +558,11 @@ class LibraryDependencyNode {
    */
   bool propagateElement(Element element) {
     bool change = false;
-    dependencyMap.forEach((Export export, LibraryDependencyNode exportNode) {
-      if (exportNode.addElementToPendingExports(export, element)) {
+    for (ExportLink link in dependencies) {
+      if (link.exportElement(element)) {
         change = true;
       }
-    });
+    }
     return change;
   }
 
@@ -470,8 +571,7 @@ class LibraryDependencyNode {
    * the pending export set was modified. The combinators of [export] are used
    * to filter the element.
    */
-  bool addElementToPendingExports(Export export, Element element) {
-    // TODO(johnniwinther): Use [export] to handle show and hide combinators.
+  bool addElementToPendingExports(Element element) {
     if (exportScope[element.name] !== element) {
       if (!pendingExportSet.contains(element)) {
         pendingExportSet.add(element);

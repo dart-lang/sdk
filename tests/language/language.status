@@ -307,7 +307,6 @@ static_field3_test/02: Fail # http://dartbug.com/5519
 static_field3_test/03: Fail # http://dartbug.com/5519
 static_field3_test/04: Fail # http://dartbug.com/5519
 
-import_combinators_test: Fail
 throw_expr_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
