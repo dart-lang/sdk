@@ -1334,7 +1334,7 @@ void SminessPropagator::ProcessPhis() {
     for (Value* use = phi->input_use_list();
          use != NULL;
          use = use->next_use()) {
-      PhiInstr* phi_use = use->definition()->AsPhi();
+      PhiInstr* phi_use = use->instruction()->AsPhi();
       if ((phi_use != NULL) &&
           (phi_use->GetPropagatedCid() == kDynamicCid) &&
           IsPossiblySmiPhi(phi_use)) {
@@ -1353,7 +1353,7 @@ void SminessPropagator::ProcessPhis() {
       for (Value* use = phi->input_use_list();
            use != NULL;
            use = use->next_use()) {
-        PhiInstr* phi_use = use->definition()->AsPhi();
+        PhiInstr* phi_use = use->instruction()->AsPhi();
         if ((phi_use != NULL) && (phi_use->GetPropagatedCid() == kSmiCid)) {
           AddToWorklist(phi_use);
         }
