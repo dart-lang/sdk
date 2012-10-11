@@ -119,6 +119,23 @@ class Version {
     return '';
   }
 
+  int getRevisionFromSvnInfo(String info) {
+    if (info == null || info == '') return 0;
+    var lines = info.split("\n");
+    RegExp exp = const RegExp(r"Revision: (\d*)");
+    for (var line in lines) {
+      if (exp.hasMatch(line)) {
+        String revisionString = (exp.firstMatch(line).group(1));
+        try {
+          return int.parse(revisionString);
+        } catch(e) {
+          return 0;
+        }
+      }
+    }
+    return 0;
+  }
+
   Future<int> getRevision() {
     if (repositoryType == RepositoryType.UNKNOWN) {
       return new Future.immediate(0);
@@ -131,15 +148,7 @@ class Version {
       if (result.exitCode != 0) {
         return 0;
       }
-      // If anything goes wrong parsing the revision we simply return 0.
-      try {
-        // Extract the revision. It's located at the 8th line,
-        // 18 characters in.
-        String revisionString = result.stdout.split("\n")[8].substring(18);
-        return int.parse(revisionString);
-      } catch (e) {
-        return 0;
-      }
+      return getRevisionFromSvnInfo(result.stdout);
     });
   }
 
