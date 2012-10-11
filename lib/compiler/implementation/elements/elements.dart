@@ -247,11 +247,7 @@ class Element implements Spannable {
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
-    while (element !== null && !element.isCompilationUnit()) {
-      if (element.isLibrary()) {
-        LibraryElement library = element;
-        return library.entryCompilationUnit;
-      }
+    while (!element.isCompilationUnit()) {
       element = element.enclosingElement;
     }
     return element;
@@ -613,6 +609,8 @@ class LibraryElement extends ScopeContainerElement {
 
   LibraryElement get declaration => super.declaration;
   LibraryElement get implementation => super.implementation;
+
+  CompilationUnitElement getCompilationUnit() => entryCompilationUnit;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);

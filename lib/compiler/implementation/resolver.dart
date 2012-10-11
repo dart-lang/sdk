@@ -1375,9 +1375,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
+    // TODO(ahe): we shouldn't use the scope to get the enclosing element. This
+    // is currently needed so that nested functions get their correct enclosing
+    // element.
+    Element functionEnclosing = scope.element;
+    if (functionEnclosing.kind == ElementKind.VARIABLE_LIST) {
+      compiler.internalError("Bad enclosing element", node: node);
+    }
+    if (functionEnclosing.isLibrary()) {
+      // We are in a static initializers.
+      functionEnclosing = enclosingElement;
+    }
     FunctionElement enclosing = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
-        scope.element);
+        functionEnclosing);
     setupFunction(node, enclosing);
     defineElement(node, enclosing, doAddToScope: node.name !== null);
 
