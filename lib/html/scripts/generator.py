@@ -636,6 +636,12 @@ class IDLTypeInfo(object):
   def has_generated_interface(self):
     raise NotImplementedError()
 
+  def merged_interface(self):
+    return None
+
+  def merged_into(self):
+    return None
+
   def native_type(self):
     return self._data.native_type or self._idl_type
 
@@ -741,6 +747,26 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def has_generated_interface(self):
     return True
+
+  def merged_interface(self):
+    # All constants, attributes, and operations of merged interface should be
+    # added to this interface. Merged idl interface does not have corresponding
+    # Dart generated interface, and all references to merged idl interface
+    # (e.g. parameter types, return types, parent interfaces) should be replaced
+    # with this interface. There are two important restrictions:
+    # 1) Merged and target interfaces shouldn't have common members, otherwise
+    # there would be duplicated declarations in generated Dart code.
+    # 2) Merged interface should be direct child of target interface, so the
+    # children of merged interface are not affected by the merge.
+    # As a consequence, target interface implementation and its direct children
+    # interface implementations should implement merged attribute accessors and
+    # operations. For example, SVGElement and Element implementation classes
+    # should implement HTMLElement.insertAdjacentElement(),
+    # HTMLElement.innerHTML, etc.
+    return self._data.merged_interface
+
+  def merged_into(self):
+    return self._data.merged_into
 
 
 class CallbackIDLTypeInfo(IDLTypeInfo):
@@ -904,6 +930,7 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
 
 class TypeData(object):
   def __init__(self, clazz, dart_type=None, native_type=None,
+               merged_interface=None, merged_into=None,
                custom_to_dart=None, custom_to_native=None,
                conversion_includes=None,
                webcore_getter_name='getAttribute',
@@ -913,6 +940,8 @@ class TypeData(object):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
+    self.merged_interface = merged_interface
+    self.merged_into = merged_into
     self.custom_to_dart = custom_to_dart
     self.custom_to_native = custom_to_native
     self.conversion_includes = conversion_includes
@@ -978,10 +1007,14 @@ _idl_type_registry = {
     'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
-    'Element': TypeData(clazz='Interface', custom_to_dart=True),
+    'Document': TypeData(clazz='Interface', merged_interface='HTMLDocument'),
+    'Element': TypeData(clazz='Interface', merged_interface='HTMLElement',
+        custom_to_dart=True),
     'EventListener': TypeData(clazz='Interface', custom_to_native=True),
     'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
-    'HTMLElement': TypeData(clazz='Interface', custom_to_dart=True),
+    'HTMLDocument': TypeData(clazz='Interface', merged_into='Document'),
+    'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
+        custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
     'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
