@@ -27,9 +27,15 @@ def getRevision():
     cmd = ['svn', 'info']
   else:
     cmd = ['git', 'svn', 'info']
-  proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-  return proc.communicate()[0].split('\n')[4].split(' ')[1]
-  
+  try:
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    return proc.communicate()[0].split('\n')[4].split(' ')[1]
+  except Exception:
+    # If we can't get any revision info (due to lack of tooling) return ''.
+    return ''
+
+
 def makeVersionString(version_file):
   id = platform.system()
   if id == 'Windows' or id == 'Microsoft':
