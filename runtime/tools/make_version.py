@@ -5,7 +5,6 @@
 # This python script creates a version string in a C++ file.
 
 import os
-import pwd
 import sys
 import subprocess
 import platform
