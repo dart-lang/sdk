@@ -186,6 +186,17 @@ class Selector {
       : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
              selector.argumentCount, selector.namedArguments);
 
+  Selector.callConstructor(SourceString constructorName,
+                           LibraryElement library)
+      : this(SelectorKind.CALL,
+             constructorName,
+             library,
+             0,
+             const []);
+
+  Selector.callDefaultConstructor(LibraryElement library)
+      : this(SelectorKind.CALL, const SourceString(""), library, 0, const []);
+
   // TODO(kasperl): This belongs somewhere else.
   Selector.noSuchMethod()
       : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null, 2);
