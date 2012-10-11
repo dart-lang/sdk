@@ -779,7 +779,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                                               0);
         evaluateSuperOrRedirectSend(functionNode,
                                     selector,
-                                    const EmptyLink<Node>(),
+                                    const Link<Node>(),
                                     targetConstructor);
       }
     }

@@ -18,7 +18,7 @@ class PrettyPrinter implements Visitor {
 
   PrettyPrinter() :
       sb = new StringBuffer(),
-      tagStack = new EmptyLink<String>();
+      tagStack = const Link<String>();
 
   void pushTag(String tag) {
     tagStack = tagStack.prepend(tag);

@@ -567,7 +567,7 @@ class Listener {
 
   Link<Token> expectedDeclaration(Token token) {
     error("expected a declaration, but got '${token.slowToString()}'", token);
-    return const EmptyLink<Token>();
+    return const Link<Token>();
   }
 
   Token unmatched(Token token) {
@@ -613,9 +613,9 @@ class ElementListener extends Listener {
   final StringValidator stringValidator;
   Link<StringQuoting> interpolationScope;
 
-  Link<Node> nodes = const EmptyLink<Node>();
+  Link<Node> nodes = const Link<Node>();
 
-  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
+  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   ElementListener(DiagnosticListener listener,
                   CompilationUnitElement this.compilationUnitElement,
@@ -623,7 +623,7 @@ class ElementListener extends Listener {
       : this.listener = listener,
         this.idGenerator = idGenerator,
         stringValidator = new StringValidator(listener),
-        interpolationScope = const EmptyLink<StringQuoting>();
+        interpolationScope = const Link<StringQuoting>();
 
   void pushQuoting(StringQuoting quoting) {
     interpolationScope = interpolationScope.prepend(quoting);
@@ -974,7 +974,7 @@ class ElementListener extends Listener {
   Link<Token> expectedDeclaration(Token token) {
     listener.cancel("expected a declaration, but got '${token.slowToString()}'",
                     token: token);
-    return const EmptyLink<Token>();
+    return const Link<Token>();
   }
 
   Token unmatched(Token token) {
@@ -990,7 +990,7 @@ class ElementListener extends Listener {
     for (Link link = metadata; !link.isEmpty(); link = link.tail) {
       element.addMetadata(link.head);
     }
-    metadata = const EmptyLink<MetadataAnnotation>();
+    metadata = const Link<MetadataAnnotation>();
     compilationUnitElement.addMember(element, listener);
   }
 
@@ -1036,7 +1036,7 @@ class ElementListener extends Listener {
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
-    Link<Node> poppedNodes = const EmptyLink<Node>();
+    Link<Node> poppedNodes = const Link<Node>();
     for (; count > 0; --count) {
       // This effectively reverses the order of nodes so they end up
       // in correct (source) order.
@@ -1066,7 +1066,7 @@ class ElementListener extends Listener {
     StringQuoting quoting = popQuoting();
 
     Link<StringInterpolationPart> parts =
-        const EmptyLink<StringInterpolationPart>();
+        const Link<StringInterpolationPart>();
     // Parts of the string interpolation are popped in reverse order,
     // starting with the last literal string part.
     bool isLast = true;
@@ -1331,7 +1331,7 @@ class NodeListener extends ElementListener {
     if (send.asSendSet() !== null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
-      Link<Node> link = new Link<Node>(arg);
+      Link<Node> link = const Link<Node>().prepend(arg);
       link = link.prepend(send.arguments.head);
       arguments = new NodeList(null, link);
     } else {
@@ -1615,7 +1615,7 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
-    Link<Node> caseNodes = const EmptyLink<Node>();
+    Link<Node> caseNodes = const Link<Node>();
     while (caseCount > 0) {
       SwitchCase switchCase = popNode();
       caseNodes = caseNodes.prepend(switchCase);

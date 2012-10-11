@@ -151,7 +151,7 @@ class ConcreteTypeInferencer extends Visitor {
 
   Link<Element> computeConcreteSendArguments(Send node) {
     if (node.argumentsNode === null) return null;
-    if (node.arguments.isEmpty()) return const EmptyLink<Element>();
+    if (node.arguments.isEmpty()) return const Link<Element>();
     if (node.receiver !== null && concreteTypes[node.receiver] === null) {
       return null;
     }

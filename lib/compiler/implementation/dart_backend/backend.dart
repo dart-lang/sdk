@@ -351,14 +351,14 @@ class DartBackend extends Backend {
       SynthesizedConstructorElement constructor =
           new SynthesizedConstructorElement(classElement);
       constructor.type = new FunctionType(
-          compiler.types.voidType, const EmptyLink<DartType>(),
+          compiler.types.voidType, const Link<DartType>(),
           constructor);
       constructor.cachedNode = new FunctionExpression(
           new Send(receiver: classElement.parseNode(compiler).name,
                    selector: synthesizedIdentifier),
           new NodeList(beginToken: new StringToken(OPEN_PAREN_INFO, '(', -1),
                        endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
-                       nodes: const EmptyLink<Node>()),
+                       nodes: const Link<Node>()),
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 

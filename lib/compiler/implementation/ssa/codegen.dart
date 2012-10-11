@@ -952,7 +952,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
     preLabeledBlock(labeledBlockInfo);
-    Link<Element> continueOverrides = const EmptyLink<Element>();
+    Link<Element> continueOverrides = const Link<Element>();
 
     js.Block oldContainer = currentContainer;
     js.Block body = new js.Block.empty();

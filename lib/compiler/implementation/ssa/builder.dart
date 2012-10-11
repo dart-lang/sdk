@@ -1219,7 +1219,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         inlineSuperOrRedirect(target.implementation,
                               selector,
-                              const EmptyLink<Node>(),
+                              const Link<Node>(),
                               constructors,
                               fieldValues);
       }
@@ -2182,7 +2182,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'get'),
-                                const EmptyLink<Node>());
+                                const Link<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }

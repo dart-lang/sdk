@@ -13,82 +13,17 @@ class LinkIterator<T> implements Iterator<T> {
   }
 }
 
-class LinkFactory<T> {
-  factory Link(T head, [Link<T> tail]) {
-    if (tail === null) {
-      tail = new LinkTail<T>();
-    }
-    return new LinkEntry<T>(head, tail);
-  }
-
-  factory Link.fromList(List<T> list) {
-    switch (list.length) {
-      case 0:
-        return new LinkTail<T>();
-      case 1:
-        return new Link<T>(list[0]);
-      case 2:
-        return new Link<T>(list[0], new Link<T>(list[1]));
-      case 3:
-        return new Link<T>(list[0], new Link<T>(list[1], new Link<T>(list[2])));
-    }
-    Link link = new Link<T>(list.last());
-    for (int i = list.length - 1; i > 0; i--) {
-      link = link.prepend(list[i - 1]);
-    }
-    return link;
-  }
-}
-
-class LinkTail<T> implements EmptyLink<T> {
-  T get head => null;
-  Link<T> get tail => null;
-
-  const LinkTail();
-
-  Link<T> prepend(T element) {
-    // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
-    return new LinkEntry<T>(element, this);
-  }
-
-  Iterator<T> iterator() => new LinkIterator<T>(this);
-
-  void printOn(StringBuffer buffer, [separatedBy]) {
-  }
-
-  String toString() => "[]";
-
-  Link<T> reverse() => this;
-
-  Link<T> reversePrependAll(Link<T> from) {
-    if (from.isEmpty()) return this;
-    return this.prepend(from.head).reversePrependAll(from.tail);
-  }
-
-  List toList() => const [];
-
-  bool isEmpty() => true;
-
-  void forEach(void f(T element)) {}
-
-  bool operator ==(other) {
-    if (other is !Link<T>) return false;
-    return other.isEmpty();
-  }
-}
-
-class LinkEntry<T> implements Link<T> {
+class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
 
-  LinkEntry(T this.head, Link<T> this.tail);
+  LinkEntry(T this.head, [Link<T> tail])
+    : this.tail = ((tail == null) ? new Link<T>() : tail);
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
     return new LinkEntry<T>(element, this);
   }
-
-  Iterator<T> iterator() => new LinkIterator<T>(this);
 
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.add(head);
@@ -108,7 +43,7 @@ class LinkEntry<T> implements Link<T> {
   }
 
   Link<T> reverse() {
-    Link<T> result = const LinkTail();
+    Link<T> result = const Link();
     for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
       result = result.prepend(link.head);
     }
@@ -162,8 +97,8 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   LinkBuilderImplementation();
 
   Link<T> toLink() {
-    if (head === null) return const LinkTail();
-    lastLink.tail = const LinkTail();
+    if (head === null) return const Link();
+    lastLink.tail = const Link();
     Link<T> link = head;
     lastLink = null;
     head = null;

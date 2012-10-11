@@ -349,7 +349,7 @@ class LibraryDependencyNode {
    * corresponding libraries. This is used to propagate exports into imports
    * after the export scopes have been computed.
    */
-  Link<ImportLink> imports = const EmptyLink<ImportLink>();
+  Link<ImportLink> imports = const Link<ImportLink>();
 
   /**
    * The export tags that export [library] mapped to the nodes for the libraries

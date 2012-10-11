@@ -365,7 +365,7 @@ class ResolverTask extends CompilerTask {
           MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
           api.Diagnostic.ERROR);
         cls.supertypeLoadState = STATE_DONE;
-        cls.allSupertypes = const EmptyLink<DartType>().prepend(
+        cls.allSupertypes = const Link<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
         // TODO(ahe): We should also set cls.supertype here to avoid
         // creating a malformed class hierarchy.
@@ -788,7 +788,7 @@ class InitializerResolver {
     });
 
     if (functionNode.initializers === null) {
-      initializers = const EmptyLink<Node>();
+      initializers = const Link<Node>();
     } else {
       initializers = functionNode.initializers.nodes;
     }
@@ -918,8 +918,8 @@ class StatementScope {
 
   StatementScope()
       : labels = const EmptyLabelScope(),
-        breakTargetStack = const EmptyLink<TargetElement>(),
-        continueTargetStack = const EmptyLink<TargetElement>();
+        breakTargetStack = const Link<TargetElement>(),
+        continueTargetStack = const Link<TargetElement>();
 
   LabelElement lookupLabel(String label) {
     return labels.lookup(label);
@@ -1086,7 +1086,7 @@ class TypeResolver {
                                       Link<DartType> typeVariables,
                                       Scope scope, onFailure, whenResolved) {
     if (node.typeArguments == null) {
-      return const EmptyLink<DartType>();
+      return const Link<DartType>();
     }
     var arguments = new LinkBuilder<DartType>();
     for (Link<Node> typeArguments = node.typeArguments.nodes;
@@ -1279,7 +1279,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
     Link<Node> parameterNodes = (node.parameters === null)
-        ? const EmptyLink<Node>() : node.parameters.nodes;
+        ? const Link<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
         NodeList nodes = parameterNodes.head;
@@ -1847,7 +1847,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // Resolve the type arguments. We cannot create a type and check the
       // number of type arguments for this annotation, because we do not know
       // the element.
-      Link arguments = const EmptyLink<Node>();
+      Link arguments = const Link<Node>();
       if (annotation.typeArguments != null) {
         arguments = annotation.typeArguments.nodes;
       }
@@ -2338,7 +2338,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       element.supertype = new InterfaceType(objectElement);
     }
     assert(element.interfaces === null);
-    Link<DartType> interfaces = const EmptyLink<DartType>();
+    Link<DartType> interfaces = const Link<DartType>();
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
@@ -2419,8 +2419,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       ClassElement superElement = supertype.element;
       Link<DartType> superSupertypes = superElement.allSupertypes;
       assert(superSupertypes !== null);
-      Link<DartType> supertypes =
-          new Link<DartType>(supertype, superSupertypes);
+      Link<DartType> supertypes = superSupertypes.prepend(supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
@@ -2433,7 +2432,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       cls.allSupertypes = supertypes;
     } else {
       assert(cls === compiler.objectClass);
-      cls.allSupertypes = const EmptyLink<DartType>();
+      cls.allSupertypes = const Link<DartType>();
     }
   }
 
@@ -2447,7 +2446,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       new SynthesizedConstructorElement(element);
     element.addToScope(constructor, compiler);
     DartType returnType = compiler.types.voidType;
-    constructor.type = new FunctionType(returnType, const EmptyLink<DartType>(),
+    constructor.type = new FunctionType(returnType, const Link<DartType>(),
                                         constructor);
     constructor.cachedNode =
       new FunctionExpression(new Identifier(element.position()),
@@ -2582,7 +2581,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
  */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
-  Link<Element> optionalParameters = const EmptyLink<Element>();
+  Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool optionalParametersAreNamed = false;
   VariableDefinitions currentDefinitions;
@@ -2725,7 +2724,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                    Node returnNode,
                                    Element element) {
     SignatureResolver visitor = new SignatureResolver(compiler, element);
-    Link<Element> parameters = const EmptyLink<Element>();
+    Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters === null) {
       if (!element.isGetter()) {

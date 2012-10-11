@@ -2,28 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Link<T> extends Iterable<T> default LinkFactory<T> {
-  final T head;
-  final Link<T> tail;
+class Link<T> implements Iterable<T> {
+  T get head => null;
+  Link<T> get tail => null;
 
-  Link(T head, [Link<T> tail]);
-  Link.fromList(List<T> list);
+  factory Link.fromList(List<T> list) {
+    switch (list.length) {
+      case 0:
+        return new Link<T>();
+      case 1:
+        return new LinkEntry<T>(list[0]);
+      case 2:
+        return new LinkEntry<T>(list[0], new LinkEntry<T>(list[1]));
+      case 3:
+        return new LinkEntry<T>(
+            list[0], new LinkEntry<T>(list[1], new LinkEntry<T>(list[2])));
+    }
+    Link link = new Link<T>();
+    for (int i = list.length ; i > 0; i--) {
+      link = link.prepend(list[i - 1]);
+    }
+    return link;
+  }
 
-  Link<T> prepend(T element);
-  List<T> toList();
-  bool isEmpty();
-  Link<T> reverse();
-  Link<T> reversePrependAll(Link<T> from);
+  const Link();
 
-  void printOn(StringBuffer buffer, [separatedBy]);
+  Link<T> prepend(T element) {
+    // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
+    return new LinkEntry<T>(element, this);
+  }
 
-  void forEach(void f(T element));
+  Iterator<T> iterator() => new LinkIterator<T>(this);
 
-  bool operator ==(other);
-}
+  void printOn(StringBuffer buffer, [separatedBy]) {
+  }
 
-interface EmptyLink<T> extends Link<T> default LinkTail<T> {
-  const EmptyLink();
+  List toList() => new List<T>(0);
+
+  bool isEmpty() => true;
+
+  Link<T> reverse() => this;
+
+  Link<T> reversePrependAll(Link<T> from) {
+    if (from.isEmpty()) return this;
+    return this.prepend(from.head).reversePrependAll(from.tail);
+  }
+
+  void forEach(void f(T element)) {}
+
+  bool operator ==(other) {
+    if (other is !Link<T>) return false;
+    return other.isEmpty();
+  }
+
+  String toString() => "[]";
 }
 
 interface LinkBuilder<T> default LinkBuilderImplementation<T> {

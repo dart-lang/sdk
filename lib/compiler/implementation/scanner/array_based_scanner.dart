@@ -14,7 +14,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   /** Since the input is UTF8, some characters are represented by more
    * than one byte. [extraCharOffset] tracks the difference. */
   int extraCharOffset;
-  Link<BeginGroupToken> groupingStack = const EmptyLink<BeginGroupToken>();
+  Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
 
   ArrayBasedScanner(this.includeComments)
     : this.extraCharOffset = 0,

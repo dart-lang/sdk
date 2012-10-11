@@ -652,7 +652,7 @@ class Parser {
 
   Link<Token> findMemberName(Token token) {
     Token start = token;
-    Link<Token> identifiers = const EmptyLink<Token>();
+    Link<Token> identifiers = const Link<Token>();
     while (token.kind !== EOF_TOKEN) {
       String value = token.stringValue;
       if ((value === '(') || (value === '{') || (value === '=>')) {

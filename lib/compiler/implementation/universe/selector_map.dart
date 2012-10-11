@@ -28,7 +28,8 @@ class SelectorMap<T> extends PartialTypeTree {
       // No existing selectors with the given name. Create a new
       // linked list.
       SelectorValue<T> head = new SelectorValue<T>(selector, value);
-      node.selectorsByName[selector.name] = new Link<SelectorValue<T>>(head);
+      node.selectorsByName[selector.name] =
+          new Link<SelectorValue<T>>().prepend(head);
     } else {
       // Run through the linked list of selectors with the same name. If
       // we find one that matches, we update the value in the mapping.

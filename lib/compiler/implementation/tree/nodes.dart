@@ -357,12 +357,12 @@ class Send extends Expression {
 }
 
 class Postfix extends NodeList {
-  Postfix() : super(nodes: const EmptyLink<Node>());
+  Postfix() : super(nodes: const Link<Node>());
   Postfix.singleton(Node argument) : super.singleton(argument);
 }
 
 class Prefix extends NodeList {
-  Prefix() : super(nodes: const EmptyLink<Node>());
+  Prefix() : super(nodes: const Link<Node>());
   Prefix.singleton(Node argument) : super.singleton(argument);
 }
 
@@ -440,8 +440,8 @@ class NodeList extends Node implements Iterable<Node> {
 
   Iterator<Node> iterator() => nodes.iterator();
 
-  NodeList.singleton(Node node) : this(null, new Link<Node>(node));
-  NodeList.empty() : this(null, const EmptyLink<Node>());
+  NodeList.singleton(Node node) : this(null, const Link<Node>().prepend(node));
+  NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
 

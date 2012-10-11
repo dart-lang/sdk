@@ -71,8 +71,8 @@ class ClosureClassElement extends ClassElement {
               STATE_DONE) {
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
-    interfaces = const EmptyLink<DartType>();
-    allSupertypes = new Link<DartType>(supertype);
+    interfaces = const Link<DartType>();
+    allSupertypes = const Link<DartType>().prepend(supertype);
   }
 
   bool isClosure() => true;
@@ -501,7 +501,7 @@ class ClosureTranslator extends Visitor {
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =
-        const EmptyLink<Element>().prepend(callElement);
+        const Link<Element>().prepend(callElement);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;

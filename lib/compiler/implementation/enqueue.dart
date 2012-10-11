@@ -167,7 +167,7 @@ class Enqueuer {
 
     String memberName = member.name.slowToString();
     Link<Element> members = instanceMembersByName.putIfAbsent(
-        memberName, () => const EmptyLink<Element>());
+        memberName, () => const Link<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
 
     if (member.kind == ElementKind.FUNCTION) {

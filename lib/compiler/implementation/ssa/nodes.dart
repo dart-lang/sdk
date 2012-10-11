@@ -616,7 +616,7 @@ class HBasicBlock extends HInstructionList {
    * information on [to], and that dominates the user.
    */
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
-    Link<HCheck> better = const EmptyLink<HCheck>();
+    Link<HCheck> better = const Link<HCheck>();
     for (HInstruction user in to.usedBy) {
       if (user is HCheck && (user as HCheck).checkedInput === to) {
         better = better.prepend(user);
