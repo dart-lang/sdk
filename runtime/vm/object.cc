@@ -6980,7 +6980,9 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 }
 
 
-RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
+RawCode* Code::FinalizeCode(const char* name,
+                            Assembler* assembler,
+                            bool optimized) {
   ASSERT(assembler != NULL);
 
   // Allocate the Instructions object.
@@ -6994,12 +6996,13 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   assembler->FinalizeInstructions(region);
   Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
   if (perf_events_writer != NULL) {
-    const char* format = "%"Px" %"Px" %s\n";
+    const char* format = "%"Px" %"Px" %s%s\n";
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
-    intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
+    const char* marker = optimized ? "*" : "";
+    intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(buffer, len + 1, format, addr, size, name);
+    OS::SNPrint(buffer, len + 1, format, addr, size, marker, name);
     (*perf_events_writer)(buffer, len);
   }
   DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
@@ -7058,12 +7061,16 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
 }
 
 
-RawCode* Code::FinalizeCode(const Function& function, Assembler* assembler) {
+RawCode* Code::FinalizeCode(const Function& function,
+                            Assembler* assembler,
+                            bool optimized) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
   if (FLAG_generate_gdb_symbols ||
       Dart::perf_events_writer() != NULL ||
       Dart::pprof_symbol_generator() != NULL) {
-    return FinalizeCode(function.ToFullyQualifiedCString(), assembler);
+    return FinalizeCode(function.ToFullyQualifiedCString(),
+                        assembler,
+                        optimized);
   } else {
     return FinalizeCode("", assembler);
   }

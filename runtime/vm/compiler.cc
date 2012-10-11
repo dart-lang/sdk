@@ -261,7 +261,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        &CompilerStats::codefinalizer_timer,
                        isolate);
       const Function& function = parsed_function.function();
-      const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
+      const Code& code = Code::Handle(
+          Code::FinalizeCode(function, &assembler, optimized));
       code.set_is_optimized(optimized);
       graph_compiler.FinalizePcDescriptors(code);
       graph_compiler.FinalizeDeoptInfo(code);

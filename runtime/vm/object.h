@@ -2495,8 +2495,12 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
-  static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
-  static RawCode* FinalizeCode(const char* name, Assembler* assembler);
+  static RawCode* FinalizeCode(const Function& function,
+                               Assembler* assembler,
+                               bool optimized = false);
+  static RawCode* FinalizeCode(const char* name,
+                               Assembler* assembler,
+                               bool optimized = false);
   static RawCode* LookupCode(uword pc);
 
   int32_t GetPointerOffsetAt(int index) const {
