@@ -39,21 +39,16 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
     intptr_t class_id = reader->ReadIntptrValue();
-    bool is_signature_class = reader->Read<bool>();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
-      cls = reader->NewClass(class_id, is_signature_class);
+      cls = reader->NewClass(class_id);
     } else {
       if (class_id < kNumPredefinedCids) {
         ASSERT((class_id >= kInstanceCid) && (class_id <= kDartFunctionCid));
         cls = reader->isolate()->class_table()->At(class_id);
       } else {
-        if (is_signature_class) {
-          cls = New<Closure>(kIllegalCid);
-        } else {
-          cls = New<Instance>(kIllegalCid);
-        }
+        cls = New<Instance>(kIllegalCid);
       }
     }
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
@@ -101,7 +96,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
     writer->WriteIntptrValue(ptr()->id_);
-    writer->Write<bool>(Class::IsSignatureClass(this) ? true : false);
     writer->WriteIntptrValue(ptr()->instance_size_);
     writer->WriteIntptrValue(ptr()->type_arguments_instance_field_offset_);
     writer->WriteIntptrValue(ptr()->next_field_offset_);
@@ -2203,22 +2197,6 @@ void RawDartFunction::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind) {
   UNREACHABLE();  // DartFunction is an abstract class.
-}
-
-
-RawClosure* Closure::ReadFrom(SnapshotReader* reader,
-                              intptr_t object_id,
-                              intptr_t tags,
-                              Snapshot::Kind kind) {
-  UNIMPLEMENTED();
-  return Closure::null();
-}
-
-
-void RawClosure::WriteTo(SnapshotWriter* writer,
-                         intptr_t object_id,
-                         Snapshot::Kind kind) {
-  UNIMPLEMENTED();
 }
 
 

@@ -92,7 +92,6 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(DartFunction)                                                            \
-    V(Closure)                                                                 \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -1430,19 +1429,6 @@ class RawExternalFloat64Array : public RawByteArray {
 
 class RawDartFunction : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DartFunction);
-};
-
-
-class RawClosure : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
-  }
-  RawAbstractTypeArguments* type_arguments_;
-  RawFunction* function_;
-  RawContext* context_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->context_); }
 };
 
 

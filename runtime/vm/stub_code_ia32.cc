@@ -1376,7 +1376,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
+    __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
     // EAX: new closure object.

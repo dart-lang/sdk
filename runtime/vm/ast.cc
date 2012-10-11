@@ -286,8 +286,8 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
 
 const Instance* ClosureNode::EvalConstExpr() const {
   if (function().IsImplicitStaticClosureFunction()) {
-    // Return a value that represents a closure. Only the type is relevant.
-    return &Closure::Handle();
+    // Return a value that represents an instance. Only the type is relevant.
+    return &Instance::Handle();
   }
   return NULL;
 }

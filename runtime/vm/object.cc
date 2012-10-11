@@ -1345,8 +1345,7 @@ RawClass* Class::New() {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
-  ASSERT((FakeObject::kClassId != kInstanceCid) &&
-         (FakeObject::kClassId != kClosureCid));
+  ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.raw_ptr()->state_bits_ = 0;
   // VM backed classes are almost ready: run checks and resolve class
@@ -1778,10 +1777,6 @@ RawClass* Class::New(intptr_t index) {
 }
 
 
-// Force instantiation of template version to work around ld problems.
-template RawClass* Class::New<Closure>(intptr_t index);
-
-
 template <class FakeInstance>
 RawClass* Class::New(const String& name,
                      const Script& script,
@@ -1827,10 +1822,12 @@ RawClass* Class::NewSignatureClass(const String& name,
     type_parameters = owner_class.type_parameters();
   }
   const intptr_t token_pos = signature_function.token_pos();
-  Class& result = Class::Handle(New<Closure>(name, script, token_pos));
+  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
   const Array& empty_array = Array::Handle(Object::empty_array());
   ASSERT(!super_type.IsNull());
+  result.set_instance_size(Closure::InstanceSize());
+  result.set_next_field_offset(Closure::InstanceSize());
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
@@ -3142,7 +3139,7 @@ bool Function::IsRedirectingFactory() const {
   if (!IsFactory() || (raw_ptr()->data_ == Object::null())) {
     return false;
   }
-  ASSERT(!IsClosure());  // A factory cannot also be a closure.
+  ASSERT(!IsClosureFunction());  // A factory cannot also be a closure.
   return true;
 }
 
@@ -8120,6 +8117,12 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+bool Instance::IsClosure() const {
+  const Class& cls = Class::Handle(clazz());
+  return cls.IsSignatureClass();
+}
+
+
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   Instance& result = Instance::Handle();
   {
@@ -8158,8 +8161,11 @@ const char* Instance::ToCString() const {
     // Can occur when running disassembler.
     return "Instance";
   } else {
+    if (IsClosure()) {
+      return Closure::ToCString(*this);
+    }
     const char* kFormat = "Instance of '%s'";
-    Class& cls = Class::Handle(clazz());
+    const Class& cls = Class::Handle(clazz());
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
     const intptr_t num_type_arguments = cls.NumTypeArguments();
     if (num_type_arguments > 0) {
@@ -11894,43 +11900,8 @@ const char* ExternalFloat64Array::ToCString() const {
 }
 
 
-
-RawClosure* Closure::New(const Function& function,
-                         const Context& context,
-                         Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(context.isolate() == isolate);
-
-  const Class& cls = Class::Handle(function.signature_class());
-  Closure& result = Closure::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls.id(), Closure::InstanceSize(), space);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  result.set_function(function);
-  result.set_context(context);
-  return result.raw();
-}
-
-
-void Closure::set_context(const Context& value) const {
-  StorePointer(&raw_ptr()->context_, value.raw());
-}
-
-
-void Closure::set_function(const Function& value) const {
-  StorePointer(&raw_ptr()->function_, value.raw());
-}
-
-
-const char* DartFunction::ToCString() const {
-  return "Function type class";
-}
-
-
-const char* Closure::ToCString() const {
-  const Function& fun = Function::Handle(function());
+const char* Closure::ToCString(const Instance& closure) {
+  const Function& fun = Function::Handle(Closure::function(closure));
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
   const char* fun_sig = String::Handle(fun.Signature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
@@ -11940,6 +11911,31 @@ const char* Closure::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
   return chars;
+}
+
+
+RawInstance* Closure::New(const Function& function,
+                          const Context& context,
+                          Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(context.isolate() == isolate);
+
+  const Class& cls = Class::Handle(function.signature_class());
+  ASSERT(cls.instance_size() == Closure::InstanceSize());
+  Instance& result = Instance::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls.id(), Closure::InstanceSize(), space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  Closure::set_function(result, function);
+  Closure::set_context(result, context);
+  return result.raw();
+}
+
+
+const char* DartFunction::ToCString() const {
+  return "Function type class";
 }
 
 

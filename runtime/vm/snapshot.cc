@@ -434,7 +434,7 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
 }
 
 
-RawClass* SnapshotReader::NewClass(intptr_t class_id, bool is_signature_class) {
+RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
@@ -444,13 +444,8 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id, bool is_signature_class) {
   cls_ = Object::class_class();
   RawClass* obj = reinterpret_cast<RawClass*>(
       AllocateUninitialized(cls_, Class::InstanceSize()));
-  if (is_signature_class) {
-    Closure fake;
-    obj->ptr()->handle_vtable_ = fake.vtable();
-  } else {
-    Instance fake;
-    obj->ptr()->handle_vtable_ = fake.vtable();
-  }
+  Instance fake;
+  obj->ptr()->handle_vtable_ = fake.vtable();
   cls_ = obj;
   cls_.set_id(kIllegalCid);
   isolate()->class_table()->Register(cls_);

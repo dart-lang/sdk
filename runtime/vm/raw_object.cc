@@ -286,14 +286,8 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         break;
     }
   } else {
-    RawClass* raw_class = visitor->isolate()->class_table()->At(class_id);
-    if (Class::IsSignatureClass(raw_class)) {
-      RawClosure* raw_obj = reinterpret_cast<RawClosure*>(this);
-      size = RawClosure::VisitClosurePointers(raw_obj, visitor);
-    } else {
-      RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
-      size = RawInstance::VisitInstancePointers(raw_obj, visitor);
-    }
+    RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
+    size = RawInstance::VisitInstancePointers(raw_obj, visitor);
   }
 
   ASSERT(size != 0);
@@ -961,15 +955,6 @@ intptr_t RawDartFunction::VisitDartFunctionPointers(
   // Function (defined in core library) is an abstract class.
   UNREACHABLE();
   return 0;
-}
-
-
-intptr_t RawClosure::VisitClosurePointers(RawClosure* raw_obj,
-                                          ObjectPointerVisitor* visitor) {
-  // Make sure that we got here with the tagged pointer as this.
-  ASSERT(raw_obj->IsHeapObject());
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return Closure::InstanceSize();
 }
 
 

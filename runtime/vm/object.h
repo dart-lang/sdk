@@ -27,6 +27,7 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class Api;
 class Assembler;
+class Closure;
 class Code;
 class LocalScope;
 class Symbols;
@@ -421,6 +422,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
+  friend class Closure;
   friend class SnapshotReader;
 
   // Disallow allocation.
@@ -3009,6 +3011,9 @@ class Instance : public Object {
     *NativeFieldAddr(index) = value;
   }
 
+  // Returns true if the instance is a closure object.
+  bool IsClosure() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -3037,6 +3042,7 @@ class Instance : public Object {
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class Class;
+  friend class Closure;
 };
 
 
@@ -5455,39 +5461,75 @@ class DartFunction : public Instance {
 };
 
 
-class Closure : public Instance {
+class Closure : public AllStatic {
  public:
-  RawFunction* function() const { return raw_ptr()->function_; }
+  static RawFunction* function(const Instance& closure) {
+    return *FunctionAddr(closure);
+  }
   static intptr_t function_offset() {
-    return OFFSET_OF(RawClosure, function_);
+    return static_cast<intptr_t>(kFunctionOffset * kWordSize);
   }
 
-  RawContext* context() const { return raw_ptr()->context_; }
-  static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
-
-  virtual RawAbstractTypeArguments* GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
+  static RawContext* context(const Instance& closure) {
+    return *ContextAddr(closure);
   }
-  virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+  static intptr_t context_offset() {
+    return static_cast<intptr_t>(kContextOffset * kWordSize);
+  }
+
+  static RawAbstractTypeArguments* GetTypeArguments(const Instance& closure) {
+    return *TypeArgumentsAddr(closure);
+  }
+  static void SetTypeArguments(const Instance& closure,
+                               const AbstractTypeArguments& value) {
+    closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
   }
   static intptr_t type_arguments_offset() {
-    return OFFSET_OF(RawClosure, type_arguments_);
+    return static_cast<intptr_t>(kTypeArgumentsOffset * kWordSize);
   }
+
+  static const char* ToCString(const Instance& closure);
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawClosure));
+    intptr_t size = sizeof(RawInstance) + (kNumFields * kWordSize);
+    ASSERT(size == Object::RoundedAllocationSize(size));
+    return size;
   }
 
-  static RawClosure* New(const Function& function,
-                         const Context& context,
-                         Heap::Space space = Heap::kNew);
+  static RawInstance* New(const Function& function,
+                          const Context& context,
+                          Heap::Space space = Heap::kNew);
 
  private:
-  void set_function(const Function& value) const;
-  void set_context(const Context& value) const;
+  static const int kTypeArgumentsOffset = 1;
+  static const int kFunctionOffset = 2;
+  static const int kContextOffset = 3;
+  static const int kNumFields = 3;
 
-  HEAP_OBJECT_IMPLEMENTATION(Closure, Instance);
+  static RawAbstractTypeArguments** TypeArgumentsAddr(const Instance& obj) {
+    ASSERT(obj.IsClosure());
+    return reinterpret_cast<RawAbstractTypeArguments**>(
+        reinterpret_cast<intptr_t>(obj.raw_ptr()) + type_arguments_offset());
+  }
+  static RawFunction** FunctionAddr(const Instance& obj) {
+    ASSERT(obj.IsClosure());
+    return reinterpret_cast<RawFunction**>(
+        reinterpret_cast<intptr_t>(obj.raw_ptr()) + function_offset());
+  }
+  static RawContext** ContextAddr(const Instance& obj) {
+    ASSERT(obj.IsClosure());
+    return reinterpret_cast<RawContext**>(
+        reinterpret_cast<intptr_t>(obj.raw_ptr()) + context_offset());
+  }
+  static void set_function(const Instance& closure,
+                           const Function& value) {
+    closure.StorePointer(FunctionAddr(closure), value.raw());
+  }
+  static void set_context(const Instance& closure,
+                          const Context& value) {
+    closure.StorePointer(ContextAddr(closure), value.raw());
+  }
+
   friend class Class;
 };
 
@@ -5678,11 +5720,7 @@ void Object::SetRaw(RawObject* value) {
 #endif
     set_vtable(builtin_vtables_[cid]);
   } else {
-#if !defined(DEBUG)
-    Isolate* isolate = Isolate::Current();
-#endif
-    RawClass* raw_class = isolate->class_table()->At(cid);
-    set_vtable(raw_class->ptr()->handle_vtable_);
+    set_vtable(builtin_vtables_[kInstanceCid]);
   }
 }
 

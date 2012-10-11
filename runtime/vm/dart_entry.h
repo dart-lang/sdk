@@ -51,7 +51,7 @@ class DartEntry : public AllStatic {
   // Invoke the specified closure object.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeClosure(
-      const Closure& closure,
+      const Instance& closure,
       const GrowableArray<const Object*>& arguments,
       const Array& optional_arguments_names);
 

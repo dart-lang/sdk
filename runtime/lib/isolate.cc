@@ -398,10 +398,19 @@ static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
 
 
 DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
-  GET_NATIVE_ARGUMENT(Closure, closure, arguments->At(0));
-  const Function& func = Function::Handle(closure.function());
-  const Class& cls = Class::Handle(func.Owner());
-  if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
+  GET_NATIVE_ARGUMENT(Instance, closure, arguments->At(0));
+  bool throw_exception = false;
+  Function& func = Function::Handle();
+  if (closure.IsClosure()) {
+    func ^= Closure::function(closure);
+    const Class& cls = Class::Handle(func.Owner());
+    if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
+      throw_exception = true;
+    }
+  } else {
+    throw_exception = true;
+  }
+  if (throw_exception) {
     const String& msg = String::Handle(String::New(
         "spawnFunction expects to be passed a closure to a top-level static "
         "function"));
@@ -409,7 +418,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
   }
 
 #if defined(DEBUG)
-  const Context& ctx = Context::Handle(closure.context());
+  const Context& ctx = Context::Handle(Closure::context(closure));
   ASSERT(ctx.num_variables() == 0);
 #endif
 

@@ -1358,7 +1358,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ movq(Address(RAX, Closure::tags_offset()), Immediate(tags));
+    __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
     // RAX: new closure object.
