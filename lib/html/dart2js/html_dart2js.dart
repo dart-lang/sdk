@@ -36918,18 +36918,24 @@ abstract class WheelEvent implements MouseEvent {
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   abstract bool get webkitDirectionInvertedFromDevice;
 
-  /** @domName WheelEvent.deltaX */
-  abstract int get deltaX;
+  /** @domName WheelEvent.wheelDeltaX */
+  abstract int get $dom_wheelDeltaX;
 
-  /** @domName WheelEvent.deltaY */
-  abstract int get deltaY;
+  /** @domName WheelEvent.wheelDeltaY */
+  abstract int get $dom_wheelDeltaY;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 
 
+  /** @domName WheelEvent.deltaX */
+  abstract num get deltaX;
+
+  /** @domName WheelEvent.deltaY */
+  abstract num get deltaY;
+
   /** @domName WheelEvent.deltaMode */
-  int get deltaMode;
+  abstract int get deltaMode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

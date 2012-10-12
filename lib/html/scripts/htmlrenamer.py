@@ -36,14 +36,14 @@ _private_html_members = set([
   'Document.createEvent',
   'Document.createTextNode',
   'Document.createTouchList',
+  'DocumentFragment.querySelector',
+  'DocumentFragment.querySelectorAll',
   'Document.getElementById',
   'Document.getElementsByClassName',
   'Document.getElementsByName',
   'Document.getElementsByTagName',
   'Document.querySelector',
   'Document.querySelectorAll',
-  'DocumentFragment.querySelector',
-  'DocumentFragment.querySelectorAll',
   'Element.childElementCount',
   'Element.children',
   'Element.className',
@@ -61,6 +61,7 @@ _private_html_members = set([
   'EventTarget.addEventListener',
   'EventTarget.dispatchEvent',
   'EventTarget.removeEventListener',
+  'LocalWindow.getComputedStyle',
   'MouseEvent.initMouseEvent',
   'Node.appendChild',
   'Node.attributes',
@@ -73,13 +74,14 @@ _private_html_members = set([
   'ShadowRoot.getElementById',
   'ShadowRoot.getElementsByClassName',
   'ShadowRoot.getElementsByTagName',
-  'Storage.length',
   'Storage.clear',
   'Storage.getItem',
   'Storage.key',
+  'Storage.length',
   'Storage.removeItem',
   'Storage.setItem',
-  'LocalWindow.getComputedStyle',
+  'WheelEvent.wheelDeltaX',
+  'WheelEvent.wheelDeltaY',
 ])
 
 # Members from the standard dom that exist in the dart:html library with
@@ -268,6 +270,7 @@ _removed_html_members = set([
     "LocalWindow.get:frames",
     "LocalWindow.get:length",
     "LocalWindow.webkitCancelRequestAnimationFrame",
+    "WheelEvent.wheelDelta",
     ])
 
 class HtmlRenamer(object):
