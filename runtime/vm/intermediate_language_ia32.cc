@@ -1207,7 +1207,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
   // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
+  // instantiated from null becomes a vector of dynamic, then use null as
   // the type arguments.
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
@@ -1270,7 +1270,7 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
   // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
+  // instantiated from null becomes a vector of dynamic, then use null as
   // the type arguments.
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
@@ -1326,7 +1326,7 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
   // (or null).  If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of Dynamic, then use null as
+  // instantiated from null becomes a vector of dynamic, then use null as
   // the type arguments and do not pass the instantiator.
   Label done;
   const intptr_t len = type_arguments().Length();

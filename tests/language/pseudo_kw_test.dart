@@ -13,7 +13,7 @@ class PseudoKWTest {
     var abstract = 0;
     var as = 0;
     var call = 0;
-    var Dynamic = 0;
+    var dynamic = 0;
     var factory = 0;
     var get = 0;
     var implements = 0;

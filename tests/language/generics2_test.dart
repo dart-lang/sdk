@@ -7,7 +7,7 @@
 
 class A<E> { }
 
-class Pair<P, Q> extends A /* i.e. extends A<Dynamic> */ {
+class Pair<P, Q> extends A /* i.e. extends A<dynamic> */ {
   final P fst;
   final Q snd;
   Pair(this.fst, this.snd);

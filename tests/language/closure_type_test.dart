@@ -27,7 +27,7 @@ void test(int func(int value), int value) {
   try {
     // Because of function subtyping rules, the static return type of a closure
     // call cannot be relied upon for static type analysis. For example, a
-    // function returning Dynamic (function 'root') can be assigned to a closure
+    // function returning dynamic (function 'root') can be assigned to a closure
     // variable declared to return int (closure 'func') and may actually return
     // a double at run-time.
     // Therefore, eliminating the run-time type check would be wrong.

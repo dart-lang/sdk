@@ -541,7 +541,7 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
 // Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the compile type of the value is a subtype
+// destination type is dynamic or if the compile type of the value is a subtype
 // of the destination type.
 bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
                                           Value* value,
@@ -556,7 +556,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
     return false;
   }
 
-  // Any type is more specific than the Dynamic type and than the Object type.
+  // Any type is more specific than the dynamic type and than the Object type.
   if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
     return true;
   }
@@ -829,7 +829,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     const Class& cls = Class::Handle(literal_value.clazz());
     ConstantInstr* result = NULL;
     if (cls.IsNullClass()) {
-      // A null object is only an instance of Object and Dynamic, which has
+      // A null object is only an instance of Object and dynamic, which has
       // already been checked above (if the type is instantiated). So we can
       // return false here if the instance is null (and if the type is
       // instantiated).

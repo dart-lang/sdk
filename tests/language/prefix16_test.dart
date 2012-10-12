@@ -37,7 +37,7 @@ main() {
   {
     bool got_type_error = false;
     try {
-      // In production mode, malformed myFunc is mapped to (Dynamic) => Dynamic.
+      // In production mode, malformed myFunc is mapped to (dynamic) => dynamic.
       Expect.isTrue(((int x) => x) is myFunc);
     } on TypeError catch (error) {
       got_type_error = true;

@@ -339,7 +339,8 @@ class _LazyTypeMirror {
 
   TypeMirror resolve(MirrorSystem mirrors) {
     if (libraryName == null) {
-      if (typeName == 'Dynamic') {
+      // TODO(turnidge): Remove support for 'Dynamic'.
+      if ((typeName == 'dynamic') || (typeName == 'Dynamic')) {
         return mirrors.dynamicType;
       } else if (typeName == 'void') {
         return mirrors.voidType;

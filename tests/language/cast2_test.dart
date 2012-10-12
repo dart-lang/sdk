@@ -17,7 +17,7 @@ main() {
   Object oc = new C();
   Object od = new D();
 
-  (oc as Dynamic).bar;  /// 01: runtime error
+  (oc as dynamic).bar;  /// 01: runtime error
 }
 
 

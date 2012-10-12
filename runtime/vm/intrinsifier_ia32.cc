@@ -208,7 +208,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     // EBX: Type arguments of array.
     __ cmpl(EBX, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-    // Check if it's Dynamic.
+    // Check if it's dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
     __ CompareClassId(EBX, kTypeArgumentsCid, EAX);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);

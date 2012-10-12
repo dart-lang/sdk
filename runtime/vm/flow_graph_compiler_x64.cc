@@ -133,7 +133,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       type_arguments.IsRaw(type_arguments.Length());
   if (is_raw_type) {
     const Register kClassIdReg = R10;
-    // Dynamic type argument, check only classes.
+    // dynamic type argument, check only classes.
     // List is a very common case.
     __ LoadClassId(kClassIdReg, kInstanceReg);
     if (!type_class.is_interface()) {
@@ -146,7 +146,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     return GenerateSubtype1TestCacheLookup(
         token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
   }
-  // If one type argument only, check if type argument is Object or Dynamic.
+  // If one type argument only, check if type argument is Object or dynamic.
   if (type_arguments.Length() == 1) {
     const AbstractType& tp_argument = AbstractType::ZoneHandle(
         type_arguments.TypeAt(0));
@@ -307,7 +307,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
-    // Check if type argument is Dynamic.
+    // Check if type argument is dynamic.
     __ cmpq(RDX, raw_null);
     __ j(EQUAL, is_instance_lbl);
     // Can handle only type arguments that are instances of TypeArguments.
@@ -453,13 +453,13 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
-    // A null object is only an instance of Object and Dynamic, which has
+    // A null object is only an instance of Object and dynamic, which has
     // already been checked above (if the type is instantiated). So we can
     // return false here if the instance is null (and if the type is
     // instantiated).
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
-    // Dynamic at run time.
+    // dynamic at run time.
     __ cmpq(RAX, raw_null);
     __ j(EQUAL, &is_not_instance);
   }

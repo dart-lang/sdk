@@ -4675,7 +4675,7 @@ TEST_CASE(TypeReflection) {
   if (FLAG_enable_type_checks) {
     EXPECT_STREQ("int", cls_name_cstr);
   } else {
-    EXPECT_STREQ("Dynamic", cls_name_cstr);
+    EXPECT_STREQ("dynamic", cls_name_cstr);
   }
 }
 

@@ -117,7 +117,7 @@ CLASS_LIST(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instance (Null, Dynamic and Void).
+  // are class indexes for pre-allocated instance (Null, dynamic and Void).
   kNullCid,
   kDynamicCid,
   kVoidCid,

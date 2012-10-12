@@ -38,7 +38,7 @@ testAll () {
   var foo_raw = new Foo();
   Expect.isTrue(foo_raw is Foo<int, num>);
   Expect.isTrue(foo_raw is Foo<int, String>);
-  // foo_raw.FooString() returns a Foo<Dynamic, String>
+  // foo_raw.FooString() returns a Foo<dynamic, String>
   Expect.isTrue(foo_raw.FooString() is !Foo<int, num>);
   Expect.isTrue(foo_raw.FooString() is Foo<int, String>);
 
@@ -52,7 +52,7 @@ testAll () {
   var moo_raw = new Moo();
   Expect.isTrue(moo_raw is Moo<int, num>);
   Expect.isTrue(moo_raw is Moo<int, String>);
-  // moo_raw.MooString() returns a Moo<Dynamic, String>
+  // moo_raw.MooString() returns a Moo<dynamic, String>
   Expect.isTrue(moo_raw.MooString() is !Moo<int, num>);
   Expect.isTrue(moo_raw.MooString() is Moo<int, String>);
 }

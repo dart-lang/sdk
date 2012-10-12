@@ -2661,7 +2661,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     const Class& cls = Class::Cast(obj);
     const Array& func_array = Array::Handle(cls.functions());
 
-    // Some special types like 'Dynamic' have a null functions list.
+    // Some special types like 'dynamic' have a null functions list.
     if (!func_array.IsNull()) {
       for (intptr_t i = 0; i < func_array.Length(); ++i) {
         func ^= func_array.At(i);
@@ -2916,7 +2916,7 @@ DART_EXPORT Dart_Handle Dart_FunctionReturnType(Dart_Handle function) {
 
   if (func.kind() == RawFunction::kConstructor) {
     // Special case the return type for constructors.  Inside the vm
-    // we mark them as returning Dynamic, but for the purposes of
+    // we mark them as returning dynamic, but for the purposes of
     // reflection, they return the type of the class being
     // constructed.
     return Api::NewHandle(isolate, func.Owner());
@@ -3001,9 +3001,9 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
     const Class& cls = Class::Cast(obj);
     const Array& field_array = Array::Handle(cls.fields());
 
-    // Some special types like 'Dynamic' have a null fields list.
+    // Some special types like 'dynamic' have a null fields list.
     //
-    // TODO(turnidge): Fix 'Dynamic' so that it does not have a null
+    // TODO(turnidge): Fix 'dynamic' so that it does not have a null
     // fields list.  This will have to wait until the empty array is
     // allocated in the vm isolate.
     if (!field_array.IsNull()) {
