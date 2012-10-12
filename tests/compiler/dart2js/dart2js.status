@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-link_test: Fail # TODO(ahe): I'm fixing this.
-
 constant_folding_string_test: Fail
 redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting loops.
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
