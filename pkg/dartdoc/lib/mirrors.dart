@@ -353,6 +353,11 @@ abstract class FieldMirror implements MemberMirror {
   bool get isFinal;
 
   /**
+   * Returns true if this field is const.
+   */
+  bool get isConst;
+
+  /**
    * Returns the type of this field.
    */
   TypeMirror get type;

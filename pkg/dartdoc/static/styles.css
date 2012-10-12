@@ -361,9 +361,9 @@ ul.icon ul {
 /* Only show the "code" link for the highlighted member. */
 .show-code, .show-inherited {
   float: right;
-  font: 600 11px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+  font: 600 11px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
-  padding: 0 0 6px 0; /* In case it gets too close to the member. */
+  padding: 0 0 0 6px; /* In case it gets too close to the member. */
   border: none;
   background: transparent;
   margin: 0;
@@ -395,7 +395,7 @@ pre.source.expanded {
 
 /* Links that don't cause a page refresh. */
 .anchor-link, .anchor-link:visited,
-.show-code, .show-code:visited, 
+.show-code, .show-code:visited,
 .show-inherited, .show-inherited:visited {
   color: hsl(40, 100%, 40%);
   cursor: pointer;
@@ -407,7 +407,7 @@ pre.source.expanded {
 }
 
 .anchor-link:hover,
-.show-code:hover, 
+.show-code:hover,
 .show-inherited:hover {
   color: hsl(40, 100%, 60%);
 }
