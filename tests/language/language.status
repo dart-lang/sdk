@@ -87,6 +87,8 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
+language/black_listed_test/13: Fail # Illegal use of 'dynamic'
+language/black_listed_test/14: Fail # Illegal use of 'dynamic'
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
