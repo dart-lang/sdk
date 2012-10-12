@@ -58,6 +58,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+abstract_runtime_error_test: Fail # http://dartbug.com/4737
 bad_constructor_test/04: Fail # http://dartbug.com/5519
 bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
@@ -79,7 +80,6 @@ optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
-import_combinators_test: Fail
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
@@ -153,7 +153,6 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
-lazy_static2_test: Fail # Issue 3559:  No support for closures in lazy initializers.
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
@@ -362,3 +361,5 @@ part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 export_test: Fail # Issue 5785
 export_cyclic_test: Fail # Issue 5785
 generic_creation_test: Fail # Issue 5785l
+import_combinators_test: Fail # Issue 3454
+first_class_types_libraries_test: Fail

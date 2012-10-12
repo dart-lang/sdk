@@ -50,8 +50,6 @@ class AssemblerMacros : public AllStatic {
   //   L: <code to adjust saved pc if there is any intrinsification code>
   //   .....
   static void EnterDartFrame(Assembler* assembler, intptr_t frame_size);
-  // Populates pc local slot lazily.
-  static void EnterDartLeafFrame(Assembler* assembler, intptr_t frame_size);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.

@@ -279,8 +279,8 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   // runtime.
   const Context& context = Context::Handle(isolate->top_context());
   ASSERT(!context.IsNull());
-  const Closure& closure = Closure::Handle(Closure::New(function, context));
-  closure.SetTypeArguments(type_arguments);
+  const Instance& closure = Instance::Handle(Closure::New(function, context));
+  Closure::SetTypeArguments(closure, type_arguments);
   arguments.SetReturn(closure);
 }
 
@@ -297,7 +297,7 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ASSERT(!function.IsNull());
   ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
-  arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
+  arguments.SetReturn(Instance::Handle(Closure::New(function, context)));
 }
 
 
@@ -318,8 +318,8 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   Context& context = Context::Handle();
   context = Context::New(1);
   context.SetAt(0, receiver);
-  const Closure& closure = Closure::Handle(Closure::New(function, context));
-  closure.SetTypeArguments(type_arguments);
+  const Instance& closure = Instance::Handle(Closure::New(function, context));
+  Closure::SetTypeArguments(closure, type_arguments);
   arguments.SetReturn(closure);
 }
 
@@ -1057,7 +1057,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
-  Closure& closure = Closure::Handle();
+  Instance& closure = Instance::Handle();
   if (!Field::IsGetterName(original_function_name)) {
     // This is not a getter so can't be the case where we are trying to
     // create an implicit closure of an instance function.
@@ -1155,10 +1155,10 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
 DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   ASSERT(arguments.Count() ==
          kInvokeImplicitClosureFunctionRuntimeEntry.argument_count());
-  const Closure& closure = Closure::CheckedHandle(arguments.At(0));
+  const Instance& closure = Instance::CheckedHandle(arguments.At(0));
   const Array& arg_descriptor = Array::CheckedHandle(arguments.At(1));
   const Array& func_arguments = Array::CheckedHandle(arguments.At(2));
-  const Function& function = Function::Handle(closure.function());
+  const Function& function = Function::Handle(Closure::function(closure));
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
@@ -1166,7 +1166,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
       Exceptions::PropagateError(error);
     }
   }
-  const Context& context = Context::Handle(closure.context());
+  const Context& context = Context::Handle(Closure::context(closure));
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   const Instructions& instrs = Instructions::Handle(code.instructions());

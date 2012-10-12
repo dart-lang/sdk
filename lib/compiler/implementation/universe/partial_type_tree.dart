@@ -85,7 +85,7 @@ class PartialTypeTree {
       // the subtypes so we can move them from being children of the
       // current node to being children of a new node if we need
       // to insert that.
-      Link<PartialTypeTreeNode> subtypes = const EmptyLink();
+      Link<PartialTypeTreeNode> subtypes = const Link();
       for (Link link = current.children; !link.isEmpty(); link = link.tail) {
         PartialTypeTreeNode child = link.head;
         ClassElement childType = child.type;
@@ -107,7 +107,7 @@ class PartialTypeTree {
       PartialTypeTreeNode newNode = newNode(type);
       if (!subtypes.isEmpty()) {
         newNode.children = subtypes;
-        Link<PartialTypeTreeNode> remaining = const EmptyLink();
+        Link<PartialTypeTreeNode> remaining = const Link();
         for (Link link = current.children; !link.isEmpty(); link = link.tail) {
           PartialTypeTreeNode child = link.head;
           if (!child.type.isSubclassOf(type)) {
@@ -159,7 +159,7 @@ class PartialTypeTreeNode {
   final ClassElement type;
   Link<PartialTypeTreeNode> children;
 
-  PartialTypeTreeNode(this.type) : children = const EmptyLink();
+  PartialTypeTreeNode(this.type) : children = const Link();
 
   /**
    * Visits this node and its children recursively. If the visit

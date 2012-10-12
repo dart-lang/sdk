@@ -28,6 +28,7 @@
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -729,6 +730,9 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
 
 // --- Initialization and Globals ---
 
+DART_EXPORT const char* Dart_VersionString() {
+  return Version::String();
+}
 
 DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
                                  Dart_IsolateInterruptCallback interrupt,
@@ -2380,21 +2384,22 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   // different signature classes for closures.
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  return obj.IsClosure();
+  const Instance& closure_obj = Api::UnwrapInstanceHandle(isolate, object);
+  return (!closure_obj.IsNull() && closure_obj.IsClosure());
 }
 
 
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Closure& closure_obj = Api::UnwrapClosureHandle(isolate, closure);
-  if (closure_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, closure, Closure);
+  const Instance& closure_obj = Api::UnwrapInstanceHandle(isolate, closure);
+  if (closure_obj.IsNull() || !closure_obj.IsClosure()) {
+    RETURN_TYPE_ERROR(isolate, closure, Instance);
   }
+
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
-  RawFunction* rf = closure_obj.function();
+  RawFunction* rf = Closure::function(closure_obj);
   return Api::NewHandle(isolate, rf);
 }
 
@@ -2404,9 +2409,9 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            Dart_Handle* arguments) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Closure& closure_obj = Api::UnwrapClosureHandle(isolate, closure);
-  if (closure_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, closure, Closure);
+  const Instance& closure_obj = Api::UnwrapInstanceHandle(isolate, closure);
+  if (closure_obj.IsNull() || !closure_obj.IsClosure()) {
+    RETURN_TYPE_ERROR(isolate, closure, Instance);
   }
   if (number_of_arguments < 0) {
     return Api::NewError(
@@ -2429,26 +2434,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
   return Api::NewHandle(
       isolate,
       DartEntry::InvokeClosure(closure_obj, dart_arguments, kNoArgumentNames));
-}
-
-
-DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Closure& obj =
-      Closure::CheckedHandle(isolate, Api::UnwrapHandle(object));
-  const Integer& smrck = Integer::Handle(isolate, obj.smrck());
-  return smrck.IsNull() ? 0 : smrck.AsInt64Value();
-}
-
-
-DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Closure& obj =
-      Closure::CheckedHandle(isolate, Api::UnwrapHandle(object));
-  const Integer& smrck = Integer::Handle(isolate, Integer::New(value));
-  obj.set_smrck(smrck);
 }
 
 
@@ -4454,11 +4439,6 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 
 DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
   Dart::set_perf_events_writer(function);
-}
-
-
-DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function) {
-  Dart::set_flow_graph_writer(function);
 }
 
 

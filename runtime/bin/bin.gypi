@@ -275,6 +275,7 @@
         'libdart_vm',
         'libjscre',
         'libdouble_conversion',
+        'generate_version_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -284,6 +285,7 @@
         '../include/dart_debugger_api.h',
         '../vm/dart_api_impl.cc',
         '../vm/debugger_api_impl.cc',
+        '<(version_cc_file)',
       ],
     },
     {

@@ -27,8 +27,7 @@ class FlowGraphCompiler : public ValueObject {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const FlowGraph& flow_graph,
-                    bool is_optimizing,
-                    bool is_leaf);
+                    bool is_optimizing);
 
   ~FlowGraphCompiler();
 
@@ -207,10 +206,6 @@ class FlowGraphCompiler : public ValueObject {
     return current_block_->try_index();
   }
 
-  // Returns true if the generated code does not call other Dart code or
-  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
-  bool IsLeaf() const;
-
   static Condition FlipCondition(Condition condition);
 
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
@@ -311,7 +306,6 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<SlowPathCode*> slow_path_code_;
   const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
-  const bool is_dart_leaf_;
 
   const Bool& bool_true_;
   const Bool& bool_false_;

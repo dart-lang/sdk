@@ -2338,7 +2338,7 @@ TEST_CASE(Closure) {
   function = Function::NewClosureFunction(function_name, parent, 0);
   const Class& signature_class = Class::Handle(
       Class::NewSignatureClass(function_name, function, script));
-  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  const Instance& closure = Instance::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT(closure_class.IsSignatureClass());
   EXPECT(closure_class.IsCanonicalSignatureClass());
@@ -2346,7 +2346,7 @@ TEST_CASE(Closure) {
   const Function& signature_function =
     Function::Handle(signature_class.signature_function());
   EXPECT_EQ(signature_function.raw(), function.raw());
-  const Context& closure_context = Context::Handle(closure.context());
+  const Context& closure_context = Context::Handle(Closure::context(closure));
   EXPECT_EQ(closure_context.raw(), closure_context.raw());
 }
 

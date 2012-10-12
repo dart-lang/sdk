@@ -1376,7 +1376,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     uword tags = 0;
     tags = RawObject::SizeTag::update(closure_size, tags);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
-    __ movl(Address(EAX, Closure::tags_offset()), Immediate(tags));
+    __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the function field in the object.
     // EAX: new closure object.
@@ -1426,8 +1426,6 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Set the type arguments field in the newly allocated closure.
     __ movl(EDX, Address(ESP, kTypeArgumentsOffset));
     __ movl(Address(EAX, Closure::type_arguments_offset()), EDX);
-
-    __ movl(Address(EAX, Closure::smrck_offset()), raw_null);
 
     // Done allocating and initializing the instance.
     // EAX: new object.

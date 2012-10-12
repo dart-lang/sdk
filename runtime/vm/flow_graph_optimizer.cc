@@ -1334,7 +1334,7 @@ void SminessPropagator::ProcessPhis() {
     for (Value* use = phi->input_use_list();
          use != NULL;
          use = use->next_use()) {
-      PhiInstr* phi_use = use->definition()->AsPhi();
+      PhiInstr* phi_use = use->instruction()->AsPhi();
       if ((phi_use != NULL) &&
           (phi_use->GetPropagatedCid() == kDynamicCid) &&
           IsPossiblySmiPhi(phi_use)) {
@@ -1353,7 +1353,7 @@ void SminessPropagator::ProcessPhis() {
       for (Value* use = phi->input_use_list();
            use != NULL;
            use = use->next_use()) {
-        PhiInstr* phi_use = use->definition()->AsPhi();
+        PhiInstr* phi_use = use->instruction()->AsPhi();
         if ((phi_use != NULL) && (phi_use->GetPropagatedCid() == kSmiCid)) {
           AddToWorklist(phi_use);
         }
@@ -2161,21 +2161,6 @@ void FlowGraphTypePropagator::PropagateTypes() {
     still_changing_ = false;
     VisitBlocks();
   } while (still_changing_);
-}
-
-
-void FlowGraphAnalyzer::Analyze() {
-  is_leaf_ = true;
-  for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* entry = blocks_[i];
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      LocationSummary* locs = it.Current()->locs();
-      if ((locs != NULL) && locs->can_call()) {
-        is_leaf_ = false;
-        return;
-      }
-    }
-  }
 }
 
 

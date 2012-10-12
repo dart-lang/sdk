@@ -139,8 +139,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler) {
 
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
                                      const FlowGraph& flow_graph,
-                                     bool is_optimizing,
-                                     bool is_leaf)
+                                     bool is_optimizing)
     : assembler_(assembler),
       parsed_function_(flow_graph.parsed_function()),
       block_order_(flow_graph.reverse_postorder()),
@@ -153,7 +152,6 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       deopt_infos_(),
       object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
-      is_dart_leaf_(is_leaf),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
@@ -170,13 +168,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
     ASSERT(!block_info_[i]->label.IsLinked());
     ASSERT(!block_info_[i]->label.HasNear());
   }
-}
-
-
-bool FlowGraphCompiler::IsLeaf() const {
-  return is_dart_leaf_ &&
-         !parsed_function_.function().IsClosureFunction() &&
-         (parsed_function().num_copied_params() == 0);
 }
 
 
@@ -482,7 +473,6 @@ const ICData& FlowGraphCompiler::GenerateInstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     LocationSummary* locs) {
-  ASSERT(!IsLeaf());
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
                                      function_name,

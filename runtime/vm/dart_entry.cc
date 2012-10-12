@@ -83,15 +83,15 @@ RawObject* DartEntry::InvokeStatic(
 
 
 RawObject* DartEntry::InvokeClosure(
-    const Closure& closure,
+    const Instance& closure,
     const GrowableArray<const Object*>& arguments,
     const Array& optional_arguments_names) {
   // Get the entrypoint corresponding to the closure specified, this
   // will result in a compilation of the closure if it is not already
   // compiled.
   ASSERT(Class::Handle(closure.clazz()).signature_function() != Object::null());
-  const Function& function = Function::Handle(closure.function());
-  const Context& context = Context::Handle(closure.context());
+  const Function& function = Function::Handle(Closure::function(closure));
+  const Context& context = Context::Handle(Closure::context(closure));
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));

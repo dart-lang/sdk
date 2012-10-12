@@ -409,7 +409,6 @@ class Instruction : public ZoneAllocated {
   // Printing support.
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   bool Is##type() { return (As##type() != NULL); }                             \
@@ -651,7 +650,6 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
   intptr_t NumMoves() const { return moves_.length(); }
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
@@ -885,7 +883,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   virtual void ClearPredecessors() { UNREACHABLE(); }
@@ -928,7 +925,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   intptr_t phi_count() const { return phi_count_; }
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   friend class FlowGraph;  // Access to predecessors_ when inlining.
@@ -1004,7 +1000,6 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   virtual void ClearPredecessors() { predecessor_ = NULL; }
@@ -1107,7 +1102,6 @@ class Definition : public Instruction {
   // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
   // A value in the constant propagation lattice.
   //    - non-constant sentinel
@@ -1210,7 +1204,6 @@ class PhiInstr : public Definition {
   DECLARE_INSTRUCTION(Phi)
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
   virtual bool InferRange(RangeOperator op);
 
@@ -1272,7 +1265,6 @@ class ParameterInstr : public Definition {
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   const intptr_t index_;
@@ -1329,7 +1321,6 @@ class PushArgumentInstr : public Definition {
   virtual bool HasSideEffect() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   Value* value_;
@@ -1442,7 +1433,6 @@ class GotoInstr : public TemplateInstruction<0> {
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   JoinEntryInstr* successor_;
@@ -1520,7 +1510,6 @@ class BranchInstr : public ControlInstruction {
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
 
  private:
   ComparisonInstr* comparison_;

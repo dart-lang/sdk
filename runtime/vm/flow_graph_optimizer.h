@@ -85,26 +85,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 };
 
 
-// Analyze the generated flow graph. Currently only if it is a leaf
-// method, i.e., does not contain any calls to runtime or other Dart code.
-class FlowGraphAnalyzer : public ValueObject {
- public:
-  explicit FlowGraphAnalyzer(const FlowGraph& flow_graph)
-      : blocks_(flow_graph.reverse_postorder()), is_leaf_(false) {}
-  virtual ~FlowGraphAnalyzer() {}
-
-  void Analyze();
-
-  bool is_leaf() const { return is_leaf_; }
-
- private:
-  const GrowableArray<BlockEntryInstr*>& blocks_;
-  bool is_leaf_;
-
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphAnalyzer);
-};
-
-
 class ParsedFunction;
 
 

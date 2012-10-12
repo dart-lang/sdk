@@ -77,10 +77,12 @@ class MockCompiler extends Compiler {
   MockCompiler([String coreSource = DEFAULT_CORELIB,
                 String helperSource = DEFAULT_HELPERLIB,
                 String interceptorsSource = DEFAULT_INTERCEPTORSLIB,
-                bool enableTypeAssertions = false])
+                bool enableTypeAssertions = false,
+                bool enableMinification = false])
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
-        super(enableTypeAssertions: enableTypeAssertions) {
+        super(enableTypeAssertions: enableTypeAssertions,
+              enableMinification: enableMinification) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.

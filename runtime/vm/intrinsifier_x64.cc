@@ -585,6 +585,54 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  // After TestByteArrayIndex:
+  // * RAX has the base address of the byte array.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted left by 1.
+  // This shift means we only multiply the index by 4 not 8 (sizeof double).
+  // Load double precision float into XMM7.
+  __ movsd(XMM7, FieldAddress(RAX, R12, TIMES_4,
+                              Float64Array::data_offset()));
+  // Allocate a double instance.
+  const Class& double_class = Class::Handle(
+    Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               Assembler::kNearJump, RAX);
+  // Store XMM7 into double instance.
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM7);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArraySetIndex(assembler, &fall_through);
+  // After TestByteArraySetIndex:
+  // * RAX has the base address of the byte array.
+  // * R12 has the index into the array.
+  // R12 contains the SMI index which is shifted by 1.
+  // This shift means we only multiply the index by 4 not 8 (sizeof double).
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
+  // If RDX is not an instance of double, jump to fall through.
+  __ CompareClassId(RDX, kDoubleCid);
+  __ j(NOT_EQUAL, &fall_through);
+  // Load double value into XMM7.
+  __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
+  // Store into array.
+  __ movsd(FieldAddress(RAX, R12, TIMES_4, Float64Array::data_offset()), XMM7);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in RAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

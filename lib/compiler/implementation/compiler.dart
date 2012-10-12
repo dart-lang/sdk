@@ -100,6 +100,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
+  final bool enableConcreteTypeInference;
 
   bool disableInlining = false;
 
@@ -196,6 +197,7 @@ abstract class Compiler implements DiagnosticListener {
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
+            this.enableConcreteTypeInference = false,
             this.enableMinification = false,
             bool emitJavaScript = true,
             bool generateSourceMap = true,
@@ -213,7 +215,7 @@ abstract class Compiler implements DiagnosticListener {
     resolver = new ResolverTask(this);
     closureToClassMapper = new closureMapping.ClosureTask(this);
     checker = new TypeCheckerTask(this);
-    typesTask = new ti.TypesTask(this);
+    typesTask = new ti.TypesTask(this, enableConcreteTypeInference);
     backend = emitJavaScript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, strips);
@@ -477,7 +479,7 @@ abstract class Compiler implements DiagnosticListener {
     if (compilationFailed) return;
 
     log('Inferring types...');
-    typesTask.onResolutionComplete();
+    typesTask.onResolutionComplete(main);
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.

@@ -25,6 +25,7 @@ abstract class ByteArray {
    */
   int lengthInBytes();
 
+  // TODO(lrn): Change the signature to match String.substring.
   /**
    * Returns a [ByteArray] _view_ of a portion of this byte array.
    * The returned byte array consists of [length] bytes starting
@@ -33,8 +34,8 @@ abstract class ByteArray {
    * changes to the returned byte array are visible in this byte array
    * and vice-versa.
    *
-   * Throws [IndexOutOfRangeException] if [start] is negative, or if
-   * `start + length` is greater than the length of this byte array.
+   * Throws [IndexOutOfRangeException] if [start] or [length] are negative, or
+   * if `start + length` is greater than the length of this byte array.
    *
    * Throws [ArgumentError] if [length] is negative.
    */

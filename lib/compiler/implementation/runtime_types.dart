@@ -11,6 +11,25 @@
 #import('util/util.dart');
 
 class RuntimeTypeInformation {
+  /**
+   * Names used for elements in runtime type information. This map is kept to
+   * detect elements with the same name and use a different name instead.
+   */
+  final Map<String, Element> usedNames = new Map<String, Element>();
+
+  /** Get a unique name for the element. */
+  String getName(Element element) {
+    String guess = element.name.slowToString();
+    String name = guess;
+    int id = 0;
+    while (usedNames.containsKey(name) && usedNames[name] != element) {
+      name = '$guess@$id';
+      id++;
+    }
+    usedNames[name] = element;
+    return name;
+  }
+
   bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
@@ -48,9 +67,8 @@ class RuntimeTypeInformation {
    * variables than [numberOfInputs], 'Dynamic' is used as the value for these
    * arguments.
    */
-  static String generateRuntimeTypeString(ClassElement element,
-                                          int numberOfInputs) {
-    String elementName = element.name.slowToString();
+  String generateRuntimeTypeString(ClassElement element, int numberOfInputs) {
+    String elementName = getName(element);
     if (element.typeVariables.isEmpty()) return "'$elementName'";
     String stringify(_, bool hasValue) => hasValue ? "' + # + '" : "Dynamic";
     String arguments = stringifyTypeVariables(element.typeVariables,

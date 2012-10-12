@@ -165,11 +165,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphPrinter printer(*flow_graph);
         printer.PrintBlocks();
       }
-      if (Dart::flow_graph_writer() != NULL) {
-        // Write flow graph to file.
-        FlowGraphVisualizer printer(*flow_graph);
-        printer.PrintFunction();
-      }
 
       if (optimized) {
         flow_graph->ComputeUseLists();
@@ -244,17 +239,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
     }
 
-    bool is_leaf = false;
-    if (optimized) {
-      FlowGraphAnalyzer analyzer(*flow_graph);
-      analyzer.Analyze();
-      is_leaf = analyzer.is_leaf();
-    }
     Assembler assembler;
     FlowGraphCompiler graph_compiler(&assembler,
                                      *flow_graph,
-                                     optimized,
-                                     is_leaf);
+                                     optimized);
     {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphcompiler_timer,
@@ -266,7 +254,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        &CompilerStats::codefinalizer_timer,
                        isolate);
       const Function& function = parsed_function.function();
-      const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
+      const Code& code = Code::Handle(
+          Code::FinalizeCode(function, &assembler, optimized));
       code.set_is_optimized(optimized);
       graph_compiler.FinalizePcDescriptors(code);
       graph_compiler.FinalizeDeoptInfo(code);

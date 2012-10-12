@@ -123,7 +123,7 @@ class InterfaceType implements DartType {
   final Link<DartType> arguments;
 
   const InterfaceType(this.element,
-                      [this.arguments = const EmptyLink<DartType>()]);
+                      [this.arguments = const Link<DartType>()]);
 
   SourceString get name => element.name;
 
@@ -216,7 +216,7 @@ class TypedefType implements DartType {
   final Link<DartType> typeArguments;
 
   const TypedefType(this.element,
-      [this.typeArguments = const EmptyLink<DartType>()]);
+      [this.typeArguments = const Link<DartType>()]);
 
   SourceString get name => element.name;
 
@@ -331,7 +331,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   DartType expectedReturnType;
   ClassElement currentClass;
 
-  Link<DartType> cascadeTypes = const EmptyLink<DartType>();
+  Link<DartType> cascadeTypes = const Link<DartType>();
 
   DartType intType;
   DartType doubleType;

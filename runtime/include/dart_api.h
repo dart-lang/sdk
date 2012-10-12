@@ -557,6 +557,15 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
 // --- Initialization and Globals ---
 
 /**
+ * Gets the version string for the Dart VM.
+ *
+ * The version of the Dart VM can be accessed without initializing the VM.
+ *
+ * \return The version string for the embedded Dart VM.
+ */
+DART_EXPORT const char* Dart_VersionString();
+
+/**
  * An isolate creation and initialization callback function.
  *
  * This callback, provided by the embedder, is called when the vm
@@ -1970,12 +1979,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments);
 
-// DEPRECATED: The API below is a temporary hack.
-DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
-
-// DEPRECATED: The API below is a temporary hack.
-DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
-
 // --- Classes and Interfaces ---
 
 /**
@@ -2725,9 +2728,6 @@ typedef void (*Dart_FileWriterFunction)(const char* buffer, int64_t num_bytes);
 
 // Support for generating symbol maps for use by the Linux perf tool.
 DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function);
-
-// Support for generating flow graph compiler debugging output into a file.
-DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function);
 
 // --- Peers ---
 

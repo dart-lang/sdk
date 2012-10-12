@@ -35,7 +35,9 @@ class Version {
   int BUILD;
   int PATCH;
 
-  Version(String this._versionFileName);
+  Version(Path versionFile) {
+    _versionFileName = versionFile.toNativePath();
+  }
 
   /**
    * Get the version number for this specific build using the version info
@@ -95,19 +97,43 @@ class Version {
         if (!c.future.isComplete) {
           getRevision().then((revision) {
             REVISION = revision;
-            getUserName().then((username) {
-              USERNAME = username;
-              if (username != '') username = "_$username";
-              var revisionString = "";
-              if (revision != 0) revisionString = "_r$revision";
-              c.complete("$MAJOR.$MINOR.$BUILD.$PATCH$revisionString$username");
-              return;
-            });
+            USERNAME = getUserName();
+            var userNameString = "";
+            if (USERNAME != '') userNameString = "_$USERNAME";
+            var revisionString = "";
+            if (revision != 0) revisionString = "_r$revision";
+            c.complete(
+                "$MAJOR.$MINOR.$BUILD.$PATCH$revisionString$userNameString");
+            return;
           });
         }
       };
     });
     return c.future;
+  }
+
+  String getExecutableSuffix() {
+    if (Platform.operatingSystem == 'windows') {
+      return '.bat';
+    }
+    return '';
+  }
+
+  int getRevisionFromSvnInfo(String info) {
+    if (info == null || info == '') return 0;
+    var lines = info.split("\n");
+    RegExp exp = const RegExp(r"Revision: (\d*)");
+    for (var line in lines) {
+      if (exp.hasMatch(line)) {
+        String revisionString = (exp.firstMatch(line).group(1));
+        try {
+          return int.parse(revisionString);
+        } catch(e) {
+          return 0;
+        }
+      }
+    }
+    return 0;
   }
 
   Future<int> getRevision() {
@@ -116,34 +142,32 @@ class Version {
     }
     var isSvn = repositoryType == RepositoryType.SVN;
     var command = isSvn ? "svn" : "git";
+    command = "$command${getExecutableSuffix()}";
     var arguments = isSvn ? ["info"] : ["svn", "info"];
     return Process.run(command, arguments).transform((result) {
       if (result.exitCode != 0) {
         return 0;
       }
-      // If anything goes wrong parsing the revision we simply return 0.
-      try {
-        // Extract the revision. It's located at the 8th line,
-        // 18 characters in.
-        String revisionString = result.stdout.split("\n")[8].substring(18);
-        return int.parse(revisionString);
-      } catch (e) {
-        return 0;
-      }
+      return getRevisionFromSvnInfo(result.stdout);
     });
   }
 
-  Future<String> getUserName() {
+  bool isProductionBuild(String username) {
+    return username == "chrome-bot";
+  }
+
+  String getUserName() {
     // TODO(ricow): Don't add this on the buildbot.
-    // If we can't get the username simple return "" (e.g. on windows).
-    return Process.run("whoami", []).transform((result) {
-      if (result.exitCode != 0) {
-        return "";
-      }
-      return result.stdout;
-    }).transformException((e) {
-      return "";
-    });
+    var key = "USER";
+    if (Platform.operatingSystem == 'windows') {
+      key = "USERNAME";
+    }
+    if (!Platform.environment.containsKey(key)) return "";
+    var username = Platform.environment[key];
+    // If this is a production build, i.e., this is something we are shipping,
+    // don't suffix  the version with the username.
+    if (isProductionBuild(username)) return "";
+    return username;
   }
 
   RepositoryType get repositoryType {

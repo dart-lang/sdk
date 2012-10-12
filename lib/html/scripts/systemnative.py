@@ -22,9 +22,6 @@ class DartiumBackend(object):
     self._type_registry = options.type_registry
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
-  def HasImplementation(self):
-    return not IsPureInterface(self._interface.id)
-
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
 
@@ -114,7 +111,7 @@ class DartiumBackend(object):
 
   def StartInterface(self, memebers_emitter):
     # Create emitters for c++ implementation.
-    if self.HasImplementation():
+    if not IsPureInterface(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(self._interface.id)
       self._cpp_impl_emitter = self._cpp_library_emitter.CreateSourceEmitter(self._interface.id)
     else:

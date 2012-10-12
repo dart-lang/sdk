@@ -114,7 +114,7 @@ class Element implements Spannable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
-  Link<MetadataAnnotation> metadata = const EmptyLink<MetadataAnnotation>();
+  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
     assert(isErroneous() || getImplementationLibrary() !== null);
@@ -247,11 +247,7 @@ class Element implements Spannable {
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
-    while (element !== null && !element.isCompilationUnit()) {
-      if (element.isLibrary()) {
-        LibraryElement library = element;
-        return library.entryCompilationUnit;
-      }
+    while (!element.isCompilationUnit()) {
       element = element.enclosingElement;
     }
     return element;
@@ -398,7 +394,7 @@ class ErroneousFunctionElement extends ErroneousElement
 }
 
 class ContainerElement extends Element {
-  Link<Element> localMembers = const EmptyLink<Element>();
+  Link<Element> localMembers = const Link<Element>();
 
   ContainerElement(name, kind, enclosingElement)
     : super(name, kind, enclosingElement);
@@ -561,8 +557,8 @@ class LibraryElement extends ScopeContainerElement {
   final Uri uri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
-      const EmptyLink<CompilationUnitElement>();
-  Link<LibraryTag> tags = const EmptyLink<LibraryTag>();
+      const Link<CompilationUnitElement>();
+  Link<LibraryTag> tags = const Link<LibraryTag>();
   LibraryName libraryTag;
   bool canUseNative = false;
 
@@ -613,6 +609,8 @@ class LibraryElement extends ScopeContainerElement {
 
   LibraryElement get declaration => super.declaration;
   LibraryElement get implementation => super.implementation;
+
+  CompilationUnitElement getCompilationUnit() => entryCompilationUnit;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -1278,7 +1276,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   static Link<DartType> createTypeVariables(TypeDeclarationElement element,
                                         NodeList parameters) {
-    if (parameters === null) return const EmptyLink<DartType>();
+    if (parameters === null) return const Link<DartType>();
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<DartType>();
@@ -1308,7 +1306,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers = const EmptyLink<Element>();
+  Link<Element> backendMembers = const Link<Element>();
 
   Link<DartType> allSupertypes;
 
@@ -1507,7 +1505,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   Link<Element> get constructors {
     // TODO(ajohnsen): See if we can avoid this method at some point.
-    Link<Element> result = const EmptyLink<Element>();
+    Link<Element> result = const Link<Element>();
     // TODO(johnniwinther): Should we include injected constructors?
     forEachMember((_, Element member) {
       if (member.isConstructor()) result = result.prepend(member);
@@ -1867,7 +1865,7 @@ class LabelElement extends Element {
 class TargetElement extends Element {
   final Node statement;
   final int nestingLevel;
-  Link<LabelElement> labels = const EmptyLink<LabelElement>();
+  Link<LabelElement> labels = const Link<LabelElement>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 

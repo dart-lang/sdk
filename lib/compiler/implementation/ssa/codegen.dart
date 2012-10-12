@@ -78,7 +78,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       // the declaration.
       FunctionElement function = work.element;
       function.computeSignature(compiler).forEachParameter((element) {
-        compiler.enqueuer.codegen.addToWorkList(element);
+        compiler.enqueuer.codegen.addToWorkList(element, work.resolutionTree);
       });
       List<js.Parameter> parameters = <js.Parameter>[];
       parameterNames.forEach((element, name) {
@@ -952,7 +952,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
     preLabeledBlock(labeledBlockInfo);
-    Link<Element> continueOverrides = const EmptyLink<Element>();
+    Link<Element> continueOverrides = const Link<Element>();
 
     js.Block oldContainer = currentContainer;
     js.Block body = new js.Block.empty();

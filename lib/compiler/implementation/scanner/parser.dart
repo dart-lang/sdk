@@ -433,10 +433,13 @@ class Parser {
   Token parseClass(Token token) {
     Token begin = token;
     listener.beginClassDeclaration(token);
+    int modifierCount = 0;
     if (optional('abstract', token)) {
-      // TODO(ahe): Notify listener about abstract modifier.
+      listener.handleModifier(token);
+      modifierCount++;
       token = token.next;
     }
+    listener.handleModifiers(modifierCount);
     token = parseIdentifier(token.next);
     token = parseTypeVariablesOpt(token);
     Token extendsKeyword;
@@ -649,7 +652,7 @@ class Parser {
 
   Link<Token> findMemberName(Token token) {
     Token start = token;
-    Link<Token> identifiers = const EmptyLink<Token>();
+    Link<Token> identifiers = const Link<Token>();
     while (token.kind !== EOF_TOKEN) {
       String value = token.stringValue;
       if ((value === '(') || (value === '{') || (value === '=>')) {

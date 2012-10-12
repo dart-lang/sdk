@@ -35,23 +35,6 @@ _js_custom_members = set([
     'WheelEvent.wheelDeltaY',
     ])
 
-# This map controls merging of interfaces in dart:html library.
-# All constants, attributes, and operations of merged interface (key) are
-# added to target interface (value). All references to the merged interface
-# (e.g. parameter types, return types, parent interfaces) are replaced with
-# target interface. There are two important restrictions:
-# 1) Merged and target interfaces shouldn't have common members, otherwise there
-# would be duplicated declarations in generated Dart code.
-# 2) Merged interface should be direct child of target interface, so the
-# children of merged interface are not affected by the merge.
-# As a consequence, target interface implementation and its direct children
-# interface implementations should implement merged attribute accessors and
-# operations. For example, SVGElement and Element implementation classes should
-# implement HTMLElement.insertAdjacentElement(), HTMLElement.innerHTML, etc.
-_merged_html_interfaces = {
-   'HTMLDocument': 'Document',
-   'HTMLElement': 'Element'
-}
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., Window) provides restricted access
@@ -221,6 +204,7 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator = event_generator
     self._interface = interface
     self._backend = backend
+    self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def Generate(self):
@@ -243,9 +227,8 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
-    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    if (not self._interface.id in _merged_html_interfaces and
-        interface_type_info.has_generated_interface()):
+    if (self._interface_type_info.has_generated_interface() and
+        not self._interface_type_info.merged_into()):
       interface_emitter = self._library_emitter.FileEmitter(
           self._html_interface_name)
     else:
@@ -330,16 +313,7 @@ class HtmlDartInterfaceGenerator(object):
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
 
-    if self._backend.HasImplementation():
-      if not self._interface.id in _merged_html_interfaces:
-        name = self._html_interface_name
-        basename = '%sImpl' % name
-      else:
-        basename = '%sImpl_Merged' % self._html_interface_name
-      implementation_emitter = self._library_emitter.FileEmitter(basename)
-    else:
-      implementation_emitter = emitter.Emitter()
-
+    implementation_emitter = self._ImplementationEmitter()
     base_class = self._backend.BaseClassName()
     interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     implemented_interfaces = [interface_type_info.interface_name()] +\
@@ -383,10 +357,9 @@ class HtmlDartInterfaceGenerator(object):
     old_backend = self._backend
     if not self._backend.ImplementsMergedMembers():
       self._backend = HtmlGeneratorDummyBackend()
-    for merged_interface in _merged_html_interfaces:
-      if _merged_html_interfaces[merged_interface] == self._interface.id:
-        merged_interface = self._database.GetInterface(merged_interface)
-        self.AddMembers(merged_interface)
+    merged_interface = self._interface_type_info.merged_interface()
+    if merged_interface:
+      self.AddMembers(self._database.GetInterface(merged_interface))
     self._backend = old_backend
 
     self.AddMembers(self._interface)
@@ -534,6 +507,20 @@ class HtmlDartInterfaceGenerator(object):
                                TYPE=type,
                                VALUE=constant.value)
 
+  def _ImplementationEmitter(self):
+    if IsPureInterface(self._interface.id):
+      return emitter.Emitter()
+
+    if not self._interface_type_info.merged_into():
+      name = self._html_interface_name
+      basename = '%sImpl' % name
+    else:
+      if self._backend.ImplementsMergedMembers():
+        # Merged members are implemented in target interface implementation.
+        return emitter.Emitter()
+      basename = '%sImpl_Merged' % self._html_interface_name
+    return self._library_emitter.FileEmitter(basename)
+
   def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
         '\n  /**'
@@ -599,12 +586,9 @@ class Dart2JSBackend(object):
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
+    self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._html_interface_name = options.renamer.RenameInterface(self._interface)
     self._current_secondary_parent = None
-
-  def HasImplementation(self):
-    return not (IsPureInterface(self._interface.id) or
-                self._interface.id in _merged_html_interfaces)
 
   def ImplementationClassName(self):
     return self._ImplClassName(self._html_interface_name)
@@ -737,7 +721,7 @@ class Dart2JSBackend(object):
     #  html_name.  Two attributes with the same IDL name might not match if one
     #  is renamed.
     (super_attribute, super_attribute_interface) = self._FindShadowedAttribute(
-        attribute, _merged_html_interfaces)
+        attribute)
     if super_attribute:
       if read_only:
         if attribute.type.id == super_attribute.type.id:
@@ -1059,7 +1043,7 @@ class Dart2JSBackend(object):
     secure_name = SecureOutputType(self, type_name, True)
     return self._NarrowToImplementationType(secure_name)
 
-  def _FindShadowedAttribute(self, attr, merged_interfaces={}):
+  def _FindShadowedAttribute(self, attr):
     """Returns (attribute, superinterface) or (None, None)."""
     def FindInParent(interface):
       """Returns matching attribute in parent, or None."""
@@ -1071,20 +1055,18 @@ class Dart2JSBackend(object):
           return (None, None)
         if self._database.HasInterface(parent.type.id):
           interfaces_to_search_in = []
-          if parent.type.id in merged_interfaces:
+          parent_interface_name = parent.type.id
+          interfaces_to_search_in.append(parent_interface_name)
+          parent_type_info = self._type_registry.TypeInfo(parent_interface_name)
+          if parent_type_info.merged_into():
             # IDL parent was merged into another interface, which became a
             # parent interface in Dart.
-            interfaces_to_search_in.append(parent.type.id)
-            parent_interface_name = merged_interfaces[parent.type.id]
-          else:
-            parent_interface_name = parent.type.id
+            parent_interface_name = parent_type_info.merged_into()
+            interfaces_to_search_in.append(parent_interface_name)
+          elif parent_type_info.merged_interface():
+            # IDL parent has another interface that was merged into it.
+            interfaces_to_search_in.append(parent_type_info.merged_interface())
 
-          for interface_name in merged_interfaces:
-            if merged_interfaces[interface_name] == parent_interface_name:
-              # IDL parent has another interface that was merged into it.
-              interfaces_to_search_in.append(interface_name)
-
-          interfaces_to_search_in.append(parent_interface_name)
           for interface_name in interfaces_to_search_in:
             interface = self._database.GetInterface(interface_name)
             attr2 = FindMatchingAttribute(interface, attr)

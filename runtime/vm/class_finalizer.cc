@@ -57,12 +57,14 @@ bool ClassFinalizer::FinalizePendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       if (FLAG_trace_class_finalization) {
-        OS::Print("Resolving super and default: %s\n", cls.ToCString());
+        OS::Print("Resolving super and interfaces: %s\n", cls.ToCString());
       }
       ResolveSuperType(cls);
       if (cls.is_interface()) {
         ResolveFactoryClass(cls);
       }
+      GrowableArray<intptr_t> visited_interfaces;
+      ResolveInterfaces(cls, &visited_interfaces);
     }
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -621,8 +623,6 @@ void ClassFinalizer::FinalizeTypeArguments(
     FinalizationKind finalization) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_finalized()) {
-    GrowableArray<intptr_t> visited_interfaces;
-    ResolveInterfaces(cls, &visited_interfaces);
     FinalizeTypeParameters(cls);
   }
   Type& super_type = Type::Handle(cls.super_type());
@@ -730,8 +730,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // parameters of the type class must be finalized.
   Class& type_class = Class::Handle(parameterized_type.type_class());
   if (!type_class.is_finalized()) {
-    GrowableArray<intptr_t> visited_interfaces;
-    ResolveInterfaces(type_class, &visited_interfaces);
     FinalizeTypeParameters(type_class);
   }
 
@@ -1186,8 +1184,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
                 "class '%s' has a cycle in its superclass relationship",
                 name.ToCString());
   }
-  GrowableArray<intptr_t> visited_interfaces;
-  ResolveInterfaces(cls, &visited_interfaces);
   // Finalize super class.
   const Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {

@@ -202,6 +202,7 @@ abstract class Node implements Spannable {
 }
 
 class ClassNode extends Node {
+  final Modifiers modifiers;
   final Identifier name;
   final TypeAnnotation superclass;
   final NodeList interfaces;
@@ -215,9 +216,9 @@ class ClassNode extends Node {
   final Token extendsKeyword;
   final Token endToken;
 
-  ClassNode(this.name, this.typeParameters, this.superclass, this.interfaces,
-            this.defaultClause, this.beginToken, this.extendsKeyword,
-            this.body, this.endToken);
+  ClassNode(this.modifiers, this.name, this.typeParameters, this.superclass,
+            this.interfaces, this.defaultClause, this.beginToken,
+            this.extendsKeyword, this.body, this.endToken);
 
   ClassNode asClassNode() => this;
 
@@ -356,12 +357,12 @@ class Send extends Expression {
 }
 
 class Postfix extends NodeList {
-  Postfix() : super(nodes: const EmptyLink<Node>());
+  Postfix() : super(nodes: const Link<Node>());
   Postfix.singleton(Node argument) : super.singleton(argument);
 }
 
 class Prefix extends NodeList {
-  Prefix() : super(nodes: const EmptyLink<Node>());
+  Prefix() : super(nodes: const Link<Node>());
   Prefix.singleton(Node argument) : super.singleton(argument);
 }
 
@@ -439,8 +440,8 @@ class NodeList extends Node implements Iterable<Node> {
 
   Iterator<Node> iterator() => nodes.iterator();
 
-  NodeList.singleton(Node node) : this(null, new Link<Node>(node));
-  NodeList.empty() : this(null, const EmptyLink<Node>());
+  NodeList.singleton(Node node) : this(null, const Link<Node>().prepend(node));
+  NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
 

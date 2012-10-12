@@ -31,7 +31,9 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
-            strips: getStrips(options));
+            strips: getStrips(options),
+            enableConcreteTypeInference:
+              hasOption(options, '--enable-concrete-type-inference'));
 
   static List<String> getStrips(List<String> options) {
     for (String option in options) {

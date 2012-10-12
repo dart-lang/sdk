@@ -367,21 +367,25 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(FunctionElement function,
-                     FunctionExpression node) {
-    assert(invariant(node, function.isImplementation));
+  void startFunction(Element element, Expression node) {
+    assert(invariant(node, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
-            node, builder.elements);
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.orderedForEachParameter((Element element) {
-      HInstruction parameter = new HParameterValue(element);
-      builder.add(parameter);
-      builder.parameters[element] = parameter;
-      directLocals[element] = parameter;
-      parameter.guaranteedType =
-        builder.mapInferredType(typesTask.getGuaranteedTypeOfElement(element));
-    });
+            element, node, builder.elements);
+
+    if (element is FunctionElement) {
+      FunctionElement functionElement = element;
+      FunctionSignature params = functionElement.computeSignature(compiler);
+      params.orderedForEachParameter((Element parameterElement) {
+        HInstruction parameter = new HParameterValue(parameterElement);
+        builder.add(parameter);
+        builder.parameters[parameterElement] = parameter;
+        directLocals[parameterElement] = parameter;
+        parameter.guaranteedType =
+            builder.mapInferredType(
+                typesTask.getGuaranteedTypeOfElement(parameterElement));
+      });
+    }
 
     enterScope(node);
 
@@ -396,12 +400,12 @@ class LocalsHandler {
       HInstruction thisInstruction = new HThis();
       builder.add(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
-    } else if (function.isInstanceMember()
-               || function.isGenerativeConstructor()) {
+    } else if (element.isInstanceMember()
+               || element.isGenerativeConstructor()) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      ClassElement cls = function.getEnclosingClass();
+      ClassElement cls = element.getEnclosingClass();
       DartType type = cls.computeType(builder.compiler);
       HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
@@ -853,6 +857,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
   Map<Element, HParameterValue> parameters;
+  final RuntimeTypeInformation rti;
 
   Map<TargetElement, JumpHandler> jumpTargets;
 
@@ -894,6 +899,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       parameters = new Map<Element, HParameterValue>(),
       sourceElementStack = <Element>[work.element],
       inliningStack = <InliningState>[],
+      rti = builder.compiler.codegenWorld.rti,
       super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this);
   }
@@ -930,19 +936,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
-    HBasicBlock block = graph.addNewBlock();
-    open(graph.entry);
-    close(new HGoto()).addSuccessor(block);
-    open(block);
     SendSet node = variable.parseNode(compiler);
+    openFunction(variable, node);
     Link<Node> link = node.arguments;
     assert(!link.isEmpty() && link.tail.isEmpty());
     visit(link.head);
     HInstruction value = pop();
     value = potentiallyCheckType(value, variable);
     close(new HReturn(value)).addSuccessor(graph.exit);
-    graph.finalize();
-    return graph;
+    return closeFunction();
   }
 
   /**
@@ -1219,7 +1221,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         inlineSuperOrRedirect(target.implementation,
                               selector,
-                              const EmptyLink<Node>(),
+                              const Link<Node>(),
                               constructors,
                               fieldValues);
       }
@@ -1411,38 +1413,43 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [functionElement] must be the implementation element.
    */
-  void openFunction(FunctionElement functionElement,
-                    FunctionExpression node) {
-    assert(invariant(functionElement, functionElement.isImplementation));
+  void openFunction(Element element, Expression node) {
+    assert(invariant(element, element.isImplementation));
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
 
-    localsHandler.startFunction(functionElement, node);
+    localsHandler.startFunction(element, node);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
 
-    FunctionSignature params = functionElement.computeSignature(compiler);
-    params.orderedForEachParameter((Element element) {
-      if (elements.isParameterChecked(element)) {
-        addParameterCheckInstruction(element);
-      }
-    });
+    if (element is FunctionElement) {
+      FunctionElement functionElement = element;
+      FunctionSignature params = functionElement.computeSignature(compiler);
+      params.orderedForEachParameter((Element parameterElement) {
+        if (elements.isParameterChecked(parameterElement)) {
+          addParameterCheckInstruction(parameterElement);
+        }
+      });
 
-    // Put the type checks in the first successor of the entry,
-    // because that is where the type guards will also be inserted.
-    // This way we ensure that a type guard will dominate the type
-    // check.
-    params.orderedForEachParameter((Element element) {
-      HInstruction newParameter = potentiallyCheckType(
-          localsHandler.directLocals[element], element);
-      localsHandler.directLocals[element] = newParameter;
-    });
+      // Put the type checks in the first successor of the entry,
+      // because that is where the type guards will also be inserted.
+      // This way we ensure that a type guard will dominate the type
+      // check.
+      params.orderedForEachParameter((Element element) {
+        HInstruction newParameter = potentiallyCheckType(
+            localsHandler.directLocals[element], element);
+        localsHandler.directLocals[element] = newParameter;
+      });
+    } else {
+      // Otherwise it is a lazy initializer which does not have parameters.
+      assert(element is VariableElement);
+    }
 
     // Add the type parameters of the class as parameters of this
     // method.
-    var enclosing = functionElement.enclosingElement;
-    if (functionElement.isConstructor() && compiler.world.needsRti(enclosing)) {
+    var enclosing = element.enclosingElement;
+    if (element.isConstructor() && compiler.world.needsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = new HParameterValue(typeVariable.element);
         add(param);
@@ -2182,7 +2189,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'get'),
-                                const EmptyLink<Node>());
+                                const Link<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }
@@ -2792,7 +2799,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         InterfaceType interfaceType = type;
         bool hasTypeArguments = !interfaceType.arguments.isEmpty();
         if (!isInQuotes) template.add("'");
-        template.add("${type.element.name.slowToString()}");
+        template.add(rti.getName(type.element));
         if (hasTypeArguments) {
           template.add("<");
           for (DartType argument in interfaceType.arguments) {
@@ -2809,7 +2816,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         assert(type is TypedefType);
         if (!isInQuotes) template.add("'");
-        template.add(argument.toString());
+        template.add(rti.getName(argument.element));
         if (!isInQuotes) template.add("'");
       }
     }
@@ -2854,8 +2861,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> runtimeCodeInputs = <HInstruction>[];
     if (runtimeTypeIsUsed) {
       String runtimeTypeString =
-          RuntimeTypeInformation.generateRuntimeTypeString(element,
-                                                           rtiInputs.length);
+          rti.generateRuntimeTypeString(element, rtiInputs.length);
       HInstruction runtimeType = createForeign(runtimeTypeString, rtiInputs);
       add(runtimeType);
       runtimeCodeInputs.add(runtimeType);
@@ -4059,13 +4065,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError('SsaBuilder.visitTypeVariable');
   }
 
-  HType mapInferredType(Element element) {
-    if (element === builder.compiler.boolClass) return HType.BOOLEAN;
-    if (element === builder.compiler.doubleClass) return HType.DOUBLE;
-    if (element === builder.compiler.intClass) return HType.INTEGER;
-    if (element === builder.compiler.listClass) return HType.READABLE_ARRAY;
-    if (element === builder.compiler.nullClass) return HType.NULL;
-    if (element === builder.compiler.stringClass) return HType.STRING;
+  HType mapInferredType(ConcreteType concreteType) {
+    if (concreteType == null) return HType.UNKNOWN;
+    ClassElement element = concreteType.getUniqueType();
+    if (element == null) return HType.UNKNOWN;
+    if (element == builder.compiler.boolClass) return HType.BOOLEAN;
+    if (element == builder.compiler.doubleClass) return HType.DOUBLE;
+    if (element == builder.compiler.intClass) return HType.INTEGER;
+    if (element == builder.compiler.listClass) return HType.READABLE_ARRAY;
+    if (element == builder.compiler.nullClass) return HType.NULL;
+    if (element == builder.compiler.stringClass) return HType.STRING;
     return HType.UNKNOWN;
   }
 
