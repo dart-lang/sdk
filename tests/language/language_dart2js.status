@@ -58,7 +58,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
-abstract_runtime_error_test: Fail # http://dartbug.com/4737
 bad_constructor_test/04: Fail # http://dartbug.com/5519
 bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
@@ -162,8 +161,6 @@ method_override2_test/00: Fail # accepts illegal override
 method_override2_test/01: Fail # accepts illegal override
 method_override2_test/02: Fail # accepts illegal override
 method_override2_test/03: Fail # accepts illegal override
-implicit_this_test/02: Fail # instantiation of abstract class
-implicit_this_test/03: Fail # instantiation of abstract class
 abstract_getter_test/01: Fail # instantiation of abstract class
 abstract_factory_constructor_test/01: Fail # instantiation of abstract class
 parameter_initializer6_negative_test: Fail # Issue 3502

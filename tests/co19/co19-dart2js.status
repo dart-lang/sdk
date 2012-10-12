@@ -37,8 +37,6 @@ Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(ahe): Pl
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t07: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A06_t01: Fail # TODO(ahe): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(ahe): Please triage this failure.

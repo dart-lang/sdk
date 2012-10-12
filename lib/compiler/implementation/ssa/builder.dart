@@ -119,6 +119,11 @@ class Interceptors {
     return compiler.findHelper(const SourceString('throwRuntimeError'));
   }
 
+  Element getThrowAbstractClassInstantiationError() {
+    return compiler.findHelper(
+        const SourceString('throwAbstractClassInstantiationError'));
+  }
+
   Element getClosureConverter() {
     return compiler.findHelper(const SourceString('convertDartClosureToJS'));
   }
@@ -2937,6 +2942,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.internalError("malformed send in new expression");
     }
     InterfaceType type = elements.getType(annotation);
+    if (type.element.modifiers.isAbstract() &&
+        constructor.isGenerativeConstructor()) {
+      generateAbstractClassInstantiationError(node, type.name.slowToString());
+      return;
+    }
     if (compiler.world.needsRti(constructor.enclosingElement)) {
       type.arguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument, node));
@@ -3011,13 +3021,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError(reason, node: node);
   }
 
-  void generateRuntimeError(Node node, String message) {
+  void generateError(Node node, String message, Element helper) {
     DartString messageObject = new DartString.literal(message);
     Constant messageConstant =
         constantSystem.createString(messageObject, node);
     HInstruction errorMessage = graph.addConstant(messageConstant);
-    Element helper = interceptors.getThrowRuntimeError();
     pushInvokeHelper1(helper, errorMessage);
+  }
+
+  void generateRuntimeError(Node node, String message) {
+    generateError(node, message, interceptors.getThrowRuntimeError());
+  }
+
+  void generateAbstractClassInstantiationError(Node node, String message) {
+    generateError(node,
+                  message,
+                  interceptors.getThrowAbstractClassInstantiationError());
   }
 
   void generateThrowNoSuchMethod(Node diagnosticNode,

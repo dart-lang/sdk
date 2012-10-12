@@ -46,7 +46,10 @@ class FallThroughError implements Error {
   const FallThroughError();
 }
 
-class AbstractClassInstantiationError {
+class AbstractClassInstantiationError implements Error {
+  final String _className;
+  const AbstractClassInstantiationError(String this._className);
+  String toString() => "Cannot instantiate abstract class: '$_className'";
 }
 
 /**
