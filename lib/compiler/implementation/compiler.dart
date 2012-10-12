@@ -435,13 +435,16 @@ abstract class Compiler implements DiagnosticListener {
 
   // TODO(karlklose,floitsch): move this to the javascript backend.
   /** Enable the 'JS' helper for a library if needed. */
-  void maybeEnableJSHelper(library) {
+  void maybeEnableJSHelper(LibraryElement library) {
     String libraryName = library.uri.toString();
     if (library.entryCompilationUnit.script.name.contains(
             'dart/tests/compiler/dart2js_native')
         || libraryName == 'dart:isolate'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
+      if (libraryName == 'dart:html') {
+        importHelperLibrary(library);
+      }
       library.addToScope(findHelper(const SourceString('JS')), this);
       Element jsIndexingBehaviorInterface =
           findHelper(const SourceString('JavaScriptIndexingBehavior'));
