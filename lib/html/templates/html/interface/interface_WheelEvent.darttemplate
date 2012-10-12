@@ -6,6 +6,12 @@ $!COMMENT
 abstract class $ID$EXTENDS {
 $!MEMBERS
 
+  /** @domName WheelEvent.deltaX */
+  abstract num get deltaX;
+
+  /** @domName WheelEvent.deltaY */
+  abstract num get deltaY;
+
   /** @domName WheelEvent.deltaMode */
-  int get deltaMode;
+  abstract int get deltaMode;
 }

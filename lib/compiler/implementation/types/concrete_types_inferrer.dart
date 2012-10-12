@@ -682,7 +682,8 @@ class ConcreteTypesInferrer {
     if (!foundSuperOrRedirect) {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
-        FunctionElement target = superClass.lookupConstructor(superClass.name);
+        FunctionElement target = superClass.lookupConstructor(
+          new Selector.callDefaultConstructor(enclosingClass.getLibrary()));
         final superClassConcreteType = new ConcreteType.singleton(
             new ClassBaseType(enclosingClass));
         getSendReturnType(target, new ClassBaseType(enclosingClass),

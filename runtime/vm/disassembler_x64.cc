@@ -426,12 +426,19 @@ class DisassemblerX64 : public ValueObject {
 
 // Append the str to the output buffer.
 void DisassemblerX64::AppendToBuffer(const char* format, ...) {
+  intptr_t available = buffer_size_ - buffer_pos_;
+  if (available <= 1) {
+    ASSERT(buffer_[buffer_pos_] == '\0');
+    return;
+  }
   char* buf = buffer_ + buffer_pos_;
   va_list args;
   va_start(args, format);
-  int retval = OS::VSNPrint(buf, buffer_size_, format, args);
+  int length = OS::VSNPrint(buf, available, format, args);
   va_end(args);
-  buffer_pos_ += retval;
+  buffer_pos_ =
+      (length >= available) ? (buffer_size_ - 1) : (buffer_pos_ + length);
+  ASSERT(buffer_pos_ < buffer_size_);
 }
 
 
@@ -1801,9 +1808,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
     }
   }  // !processed
 
-  if (buffer_pos_ < buffer_size_) {
-    buffer_[buffer_pos_] = '\0';
-  }
+  ASSERT(buffer_[buffer_pos_] == '\0');
 
   int instr_len = data - reinterpret_cast<uint8_t*>(pc);
   ASSERT(instr_len > 0);  // Ensure progress.

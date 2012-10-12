@@ -390,7 +390,7 @@ abstract class Compiler implements DiagnosticListener {
     addForeignFunctions(jsHelperLibrary);
     addForeignFunctions(interceptorsLibrary);
 
-    assertMethod = jsHelperLibrary.find(const SourceString('assert'));
+    assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
 
     initializeSpecialClasses();

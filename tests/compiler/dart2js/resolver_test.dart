@@ -8,6 +8,7 @@
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
+#import("../../../lib/compiler/implementation/universe/universe.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 #import("compiler_helper.dart");
 #import("mock_compiler.dart");
@@ -563,7 +564,9 @@ resolveConstructor(String script, String statement, String className,
   ClassElement classElement =
       compiler.mainApp.find(buildSourceString(className));
   Element element =
-      classElement.lookupConstructor(buildSourceString(constructor));
+      classElement.lookupConstructor(
+          new Selector.callConstructor(buildSourceString(constructor),
+                                       classElement.getLibrary()));
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor = new ResolverVisitor(compiler, element);
   new InitializerResolver(visitor).resolveInitializers(element, tree);
@@ -663,7 +666,7 @@ testInitializers() {
                 A.a() : this.b(0);
                 A.b(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", r"A$a", 1,
+  resolveConstructor(script, "A a = new A.a();", "A", "a", 1,
                      [], []);
 
   script = """class A {
@@ -671,7 +674,7 @@ testInitializers() {
                 A.a() : i = 42, this(0);
                 A(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", r"A$a", 2,
+  resolveConstructor(script, "A a = new A.a();", "A", "a", 2,
                      [], [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
 
   script = """class A {

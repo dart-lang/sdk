@@ -716,6 +716,42 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=5735
+   */
+  public void test_importConflict_hideNoPrefix_importAgainWithPrefix() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_a;",
+            "var E = 2.7;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib_b;",
+            "export 'A.dart' show E;",
+            "var E = 'E';",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart';",
+            "import 'A.dart' as M show E;",
+            "main() {",
+            "  print(E);",
+            "  print(M.E);",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
   public void test_reportMissingSource() throws Exception {
     appSource.setContent(
         APP,
@@ -1041,7 +1077,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
   }
 
-  public void test_newLibrarySyntax_export() throws Exception {
+  public void test_newLibrarySyntax_export_show() throws Exception {
     appSource.setContent(
         "A.dart",
         makeCode(
@@ -1056,8 +1092,53 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "library test.B;",
-            "import 'A.dart' as libA hide TypeAC;",
             "export 'A.dart' show TypeAA, TypeAB;",
+            "class TypeBA {}",
+            "class TypeBB {}",
+            "class TypeBC {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart' as libB hide TypeAA, TypeBB;",
+            "main() {",
+            "  libB.TypeAA aa;",
+            "  libB.TypeAB ab;",
+            "  libB.TypeAC ac;",
+            "  libB.TypeBA ba;",
+            "  libB.TypeBB bb;",
+            "  libB.TypeBC bc;",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 5, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 9, 3, 11));
+    assertTrue(errors.toString().contains("libB.TypeAA"));
+    assertTrue(errors.toString().contains("libB.TypeAC"));
+    assertTrue(errors.toString().contains("libB.TypeBB"));
+  }
+  
+  public void test_newLibrarySyntax_export_hide() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "class TypeAA {}",
+            "class TypeAB {}",
+            "class TypeAC {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.B;",
+            "export 'A.dart' hide TypeAC;",
             "class TypeBA {}",
             "class TypeBB {}",
             "class TypeBC {}",

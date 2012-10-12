@@ -20,7 +20,8 @@ class Printer implements NodeVisitor {
         namer = determineRenamer(compiler.enableMinification);
   
   static Namer determineRenamer(bool shouldCompressOutput) {
-    return shouldCompressOutput ? new MinifyRenamer() : new IdentityNamer();
+    // TODO(erikcorry): Re-enable the MinifyRenamer after M1.
+    return new IdentityNamer();
   }
 
   void spaceOut() {

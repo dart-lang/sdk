@@ -2696,12 +2696,15 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     return labels.last();
   }
 
+  js.VariableUse generateStateUse()
+      => new js.VariableUse(variableNames.stateName);
+
   HBasicBlock beginGraph(HGraph graph) {
     propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
     propagator.visitGraph(graph);
     // TODO(ngeoffray): We could avoid generating the state at the
     // call site for non-complex bailout methods.
-    newParameters.add(new js.Parameter('state'));
+    newParameters.add(new js.Parameter(variableNames.stateName));
 
     if (propagator.hasComplexBailoutTargets) {
       // Use generic parameters that will be assigned to
@@ -2717,7 +2720,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       // The setup phase of a bailout function sets up the environment for
       // each bailout target. Each bailout target will populate this
       // setup phase. It is put at the beginning of the function.
-      setup = new js.Switch(new js.VariableUse('state'), <js.SwitchClause>[]);
+      setup = new js.Switch(generateStateUse(), <js.SwitchClause>[]);
       return graph.entry;
     } else {
       // We have a simple bailout target, so we can reuse the names that
@@ -2788,7 +2791,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
                                  nextBlock);
     currentBailoutSwitch.cases.add(clause);
     currentContainer = nextBlock;
-    pushExpressionAsStatement(new js.Assignment(new js.VariableUse('state'),
+    pushExpressionAsStatement(new js.Assignment(generateStateUse(),
                                                 new js.LiteralNumber('0')));
     js.Block setupBlock = new js.Block.empty();
     int i = 0;
@@ -2845,7 +2848,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     List<js.SwitchClause> cases = <js.SwitchClause>[];
     js.Block firstBlock = new js.Block.empty();
     cases.add(new js.Case(new js.LiteralNumber("0"), firstBlock));
-    currentBailoutSwitch = new js.Switch(new js.VariableUse('state'), cases);
+    currentBailoutSwitch = new js.Switch(generateStateUse(), cases);
     pushStatement(currentBailoutSwitch);
     oldContainerStack.add(currentContainer);
     currentContainer = firstBlock;
@@ -2922,14 +2925,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
     use(node.inputs[0]);
     js.Binary stateEquals0 =
-        new js.Binary('===',
-                      new js.VariableUse('state'), new js.LiteralNumber('0'));
+        new js.Binary('===', generateStateUse(), new js.LiteralNumber('0'));
     js.Expression condition = new js.Binary('&&', stateEquals0, pop());
     // TODO(ngeoffray): Put the condition initialization in the
     // [setup] buffer.
     List<HBailoutTarget> targets = node.thenBlock.bailoutTargets;
     for (int i = 0, len = targets.length; i < len; i++) {
-      js.VariableUse stateRef = new js.VariableUse('state');
+      js.VariableUse stateRef = generateStateUse();
       js.Expression targetState = new js.LiteralNumber('${targets[i].state}');
       js.Binary stateTest = new js.Binary('===', stateRef, targetState);
       condition = new js.Binary('||', stateTest, condition);

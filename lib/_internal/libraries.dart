@@ -57,8 +57,7 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
-      documented: false,
-      platforms: VM_PLATFORM),
+      dart2jsPath: "compiler/implementation/lib/mirrors.dart"),
 
   "nativewrappers": const LibraryInfo(
       "html/dartium/nativewrappers.dart",

@@ -391,12 +391,3 @@ module core {
     [Custom] void handleEvent(in DOMTimeStamp time);
   };
 }
-
-module events {
-  [Supplemental]
-  interface WheelEvent {
-    [Suppressed] readonly attribute long wheelDelta;
-    [DartName=deltaX] readonly attribute long wheelDeltaX;
-    [DartName=deltaY] readonly attribute long wheelDeltaY;
-  };
-}

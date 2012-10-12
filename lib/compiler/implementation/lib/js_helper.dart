@@ -849,6 +849,10 @@ throwRuntimeError(message) {
   throw new RuntimeError(message);
 }
 
+throwAbstractClassInstantiationError(className) {
+  throw new AbstractClassInstantiationError(className);
+}
+
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
@@ -1361,7 +1365,7 @@ class FallThroughErrorImplementation implements FallThroughError {
 /**
  * Helper function for implementing asserts. The compiler treats this specially.
  */
-void assert(condition) {
+void assertHelper(condition) {
   if (condition is Function) condition = condition();
   if (condition is !bool) {
     throw new TypeErrorImplementation(condition, 'bool');

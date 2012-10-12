@@ -8,16 +8,21 @@
 class Server {
   HttpServer server;
   int proxyHops;
+  List<String> directRequestPaths;
   int requestCount = 0;
 
-  Server(this.proxyHops) : server = new HttpServer();
+  Server(this.proxyHops, this.directRequestPaths) : server = new HttpServer();
 
   void start() {
     server.listen("127.0.0.1", 0);
     server.defaultRequestHandler =
         (HttpRequest request, HttpResponse response) {
           requestCount++;
-          if (proxyHops > 0) {
+          // Check whether a proxy or direct connection is expected.
+          bool direct = directRequestPaths.reduce(
+              false,
+              (prev, path) => prev ? prev : path == request.path);
+          if (!direct && proxyHops > 0) {
             Expect.isNotNull(request.headers[HttpHeaders.VIA]);
             Expect.equals(1, request.headers[HttpHeaders.VIA].length);
             Expect.equals(
@@ -46,8 +51,9 @@ class Server {
   int get port => server.port;
 }
 
-Server setupServer(int proxyHops) {
-  Server server = new Server(proxyHops);
+Server setupServer(int proxyHops,
+                   [List<String> directRequestPaths = const <String>[]]) {
+  Server server = new Server(proxyHops, directRequestPaths);
   server.start();
   return server;
 }
@@ -165,12 +171,15 @@ void testDirectProxy() {
 int testProxyDoneCount = 0;
 void testProxy() {
   ProxyServer proxyServer = setupProxyServer();
-  Server server = setupServer(1);
+  Server server = setupServer(1, ["/4"]);
   HttpClient client = new HttpClient();
 
   List<String> proxy =
       ["PROXY localhost:${proxyServer.port}",
        "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
+       "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer.port}",
+       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer.port}",
+       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
        "PROXY localhost:${proxyServer.port}; DIRECT"];
 
   client.findProxy = (Uri uri) {
@@ -210,12 +219,15 @@ void testProxyChain() {
   ProxyServer proxyServer2 = setupProxyServer();
   proxyServer1.client.findProxy = (_) => "PROXY 127.0.0.1:${proxyServer2.port}";
 
-  Server server = setupServer(2);
+  Server server = setupServer(2, ["/4"]);
   HttpClient client = new HttpClient();
 
   List<String> proxy =
       ["PROXY localhost:${proxyServer1.port}",
        "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
+       "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer1.port}",
+       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer1.port}",
+       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
        "PROXY localhost:${proxyServer1.port}; DIRECT"];
 
   client.findProxy = (Uri uri) {
@@ -257,6 +269,7 @@ void testRealProxy() {
   List<String> proxy =
       ["PROXY localhost:8080",
        "PROXY localhost:8080; PROXY hede.hule.hest:8080",
+       "PROXY hede.hule.hest:8080; PROXY localhost:8080",
        "PROXY localhost:8080; DIRECT"];
 
   client.findProxy = (Uri uri) {

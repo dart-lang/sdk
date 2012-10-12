@@ -436,6 +436,9 @@ class Listener {
   void handleEmptyStatement(Token token) {
   }
 
+  void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+  }
+
   /** Called with either the token containing a double literal, or
     * an immediately preceding "unary plus" token.
     */
@@ -1695,6 +1698,13 @@ class NodeListener extends ElementListener {
     Node declaredIdentifier = popNode();
     pushNode(new ForIn(declaredIdentifier, expression, body,
                                 beginToken, inKeyword));
+  }
+
+  void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+    NodeList arguments = popNode();
+    Node selector = new Identifier(assertKeyword);
+    Node send = new Send(null, selector, arguments);
+    pushNode(new ExpressionStatement(send, semicolonToken));
   }
 
   void endUnamedFunction(Token token) {

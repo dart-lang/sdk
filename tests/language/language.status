@@ -87,10 +87,8 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
-import_combinators_test: Fail # Issue 5735
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
-call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -328,8 +326,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/08: Fail
-pseudo_kw_illegal_test/10: Fail
 pseudo_kw_illegal_test/11: Fail
 pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail

@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('../../../lib/compiler/implementation/util/util.dart');
-#import('../../../lib/compiler/implementation/util/util_implementation.dart');
+import '../../../lib/compiler/implementation/util/util.dart';
+import '../../../lib/compiler/implementation/util/util_implementation.dart';
 
 main() {
-  test(new Link<Comparable>('three').prepend(2).prepend('one'),
+  test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),
        ['one', 2, 'three']);
-  test(new Link<Comparable>(3).prepend('two').prepend(1), [1, 'two', 3]);
-  test(new Link<String>('single'), ['single']);
-  test(new LinkTail(), []);
+  test(const Link<Comparable>().prepend(3).prepend('two').prepend(1),
+       [1, 'two', 3]);
+  test(const Link<String>().prepend('single'), ['single']);
+  test(const Link(), []);
   testFromList([]);
   testFromList([0]);
   testFromList([0, 1]);

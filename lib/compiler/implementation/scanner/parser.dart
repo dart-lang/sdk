@@ -1149,6 +1149,8 @@ class Parser {
       return parseBreakStatement(token);
     } else if (value === 'continue') {
       return parseContinueStatement(token);
+    } else if (value === 'assert') {
+      return parseAssertStatement(token);
     } else if (value === ';') {
       return parseEmptyStatement(token);
     } else if (value === 'const') {
@@ -2127,6 +2129,14 @@ class Parser {
       hasTarget = true;
     }
     listener.handleBreakStatement(hasTarget, breakKeyword, token);
+    return expectSemicolon(token);
+  }
+
+  Token parseAssertStatement(Token token) {
+    Token assertKeyword = token;
+    token = expect('assert', token);
+    token = parseArguments(token);
+    listener.handleAssertStatement(assertKeyword, token);
     return expectSemicolon(token);
   }
 

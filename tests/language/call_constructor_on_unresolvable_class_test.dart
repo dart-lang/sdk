@@ -20,12 +20,12 @@ main() {
     // These should not produce errors because the calls are never executed.
     new A();         /// 01: static type warning
     new A.foo();     /// 02: static type warning
-    new library.A(); /// 03: static type warning
+    new lib.A();     /// 03: static type warning
   }
 
   new A();         /// 04: runtime error
   new A.foo();     /// 05: runtime error
-  new library.A(); /// 06: runtime error
+  new lib.A();     /// 06: runtime error
 
   var ex;                    /// 07: static type warning
   try {                      /// 07: continued

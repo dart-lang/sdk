@@ -38,18 +38,20 @@ enableCodeBlocks() {
     // disabled.
     if (showCode == null) continue;
 
-    var pre = elem.query('pre.source');
+    var preList = elem.queryAll('pre.source');
 
     showCode.on.click.add((e) {
-      if (pre.classes.contains('expanded')) {
-        pre.classes.remove('expanded');
-      } else {
-        // Syntax highlight.
-        if (!pre.classes.contains('formatted')) {
-          pre.innerHTML = classifySource(pre.text);
-          pre.classes.add('formatted');
-        };
-        pre.classes.add('expanded');
+      for (final pre in preList) {
+        if (pre.classes.contains('expanded')) {
+          pre.classes.remove('expanded');
+        } else {
+          // Syntax highlight.
+          if (!pre.classes.contains('formatted')) {
+            pre.innerHTML = classifySource(pre.text);
+            pre.classes.add('formatted');
+          };
+          pre.classes.add('expanded');
+        }
       }
     });
   }

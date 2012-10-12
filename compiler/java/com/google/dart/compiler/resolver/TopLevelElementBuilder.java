@@ -144,8 +144,14 @@ public class TopLevelElementBuilder {
     // Fill "library" export scope with re-exports.
     for (LibraryExport export : library.getExports()) {
       LibraryUnit lib = export.getLibrary();
+      fillInLibraryScope(lib, listener);
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
+        // re-export only in not defined locally
+        if (scope.findLocalElement(name) != null) {
+          continue;
+        }
+        // check if show/hide combinators of "export" are satisfied
         if (export.isVisible(name)) {
           Elements.addExportedElement(library.getElement(), element);
         }

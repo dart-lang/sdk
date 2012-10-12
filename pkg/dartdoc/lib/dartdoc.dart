@@ -819,7 +819,11 @@ class Dartdoc {
     writeln('<button id="show-inherited" class="show-inherited">'
             'Hide inherited</button>');
 
-    docCode(type, type.location, getTypeComment(type));
+    writeln('<div class="doc">');
+    docComment(type, getTypeComment(type));
+    docCode(type.location);
+    writeln('</div>');
+
     docInheritance(type);
     docTypedef(type);
 
@@ -964,7 +968,9 @@ class Dartdoc {
               title="Permalink to ${type.simpleName}">#</a>''');
     writeln('</h4>');
 
-    docCode(type, type.location, null, showCode: true);
+    writeln('<div class="doc">');
+    docCode(type.location);
+    writeln('</div>');
 
     writeln('</div>');
   }
@@ -991,21 +997,48 @@ class Dartdoc {
     }
   }
 
+  static const operatorOrder = const <String>[
+      '[]', '[]=', // Indexing.
+      '+', Mirror.UNARY_MINUS, '-', '*', '/', '~/', '%', // Arithmetic.
+      '&', '|', '^', '~', // Bitwise.
+      '<<', '>>', // Shift.
+      '<', '<=', '>', '>=', // Relational.
+      '==', // Equality.
+  ];
+
+  static final Map<String, int> operatorOrderMap = (){
+    var map = new Map<String, int>();
+    var index = 0;
+    for (String operator in operatorOrder) {
+      map[operator] = index++;
+    }
+    return map;
+  }();
+
   void docMembers(ObjectMirror host) {
     // Collect the different kinds of members.
     final staticMethods = [];
-    final staticFields = [];
+    final staticGetters = new Map<String,MemberMirror>();
+    final staticSetters = new Map<String,MemberMirror>();
     final memberMap = new Map<String,MemberMirror>();
     final instanceMethods = [];
-    final instanceFields = [];
+    final instanceOperators = [];
+    final instanceGetters = new Map<String,MemberMirror>();
+    final instanceSetters = new Map<String,MemberMirror>();
 
     host.declaredMembers.forEach((_, MemberMirror member) {
       if (member.isPrivate) return;
       if (host is LibraryMirror || member.isStatic) {
-        if (member.isMethod) {
-          staticMethods.add(member);
-        } else  if (member.isField) {
-          staticFields.add(member);
+        if (member is MethodMirror) {
+          if (member.isGetter) {
+            staticGetters[member.displayName] = member;
+          } else if (member.isSetter) {
+            staticSetters[member.displayName] = member;
+          } else {
+            staticMethods.add(member);
+          }
+        } else if (member is FieldMirror) {
+          staticGetters[member.displayName] = member;
         }
       }
     });
@@ -1016,53 +1049,117 @@ class Dartdoc {
         type.declaredMembers.forEach((_, MemberMirror member) {
           if (member.isPrivate) return;
           if (!member.isStatic) {
-            memberMap.putIfAbsent(member.simpleName, () => member);
+            if (member.isField) {
+              // Fields override both getters and setters.
+              memberMap.putIfAbsent(member.simpleName, () => member);
+              memberMap.putIfAbsent('${member.simpleName}=', () => member);
+            } else {
+              memberMap.putIfAbsent(member.simpleName, () => member);
+            }
           }
         });
       }
     }
 
     memberMap.forEach((_, MemberMirror member) {
-      if (member.isMethod) {
-        instanceMethods.add(member);
-      } else  if (member.isField) {
-        instanceFields.add(member);
+      if (member is MethodMirror) {
+        if (member.isGetter) {
+          instanceGetters[member.displayName] = member;
+        } else if (member.isSetter) {
+          instanceSetters[member.displayName] = member;
+        } else if (member.isOperator) {
+          instanceOperators.add(member);
+        } else {
+          instanceMethods.add(member);
+        }
+      } else if (member is FieldMirror) {
+        instanceGetters[member.displayName] = member;
       }
     });
 
-    if (staticFields.length > 0) {
-      final title = host is LibraryMirror ? 'Variables' : 'Static Fields';
+    instanceOperators.sort((MethodMirror a, MethodMirror b) {
+      return operatorOrderMap[a.simpleName].compareTo(
+          operatorOrderMap[b.simpleName]);
+    });
+
+    docProperties(host,
+                  host is LibraryMirror ? 'Properties' : 'Static Properties',
+                  staticGetters, staticSetters);
+    docMethods(host,
+               host is LibraryMirror ? 'Functions' : 'Static Methods',
+               staticMethods);
+
+    docProperties(host, 'Properties', instanceGetters, instanceSetters);
+    docMethods(host, 'Operators', instanceOperators);
+    docMethods(host, 'Methods', orderByName(instanceMethods));
+  }
+
+  /**
+   * Documents fields, getters, and setters as properties.
+   */
+  void docProperties(ObjectMirror host, String title,
+                     Map<String,MemberMirror> getters,
+                     Map<String,MemberMirror> setters) {
+    if (getters.isEmpty() && setters.isEmpty()) return;
+
+    var nameSet = new Set<String>.from(getters.getKeys());
+    nameSet.addAll(setters.getKeys());
+    var nameList = new List<String>.from(nameSet);
+    nameList.sort((String a, String b) {
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
+
+    writeln('<div>');
+    writeln('<h3>$title</h3>');
+    for (String name in nameList) {
+      MemberMirror getter = getters[name];
+      MemberMirror setter = setters[name];
+      if (setter == null) {
+        if (getter is FieldMirror) {
+          // We have a field.
+          docField(host, getter);
+        } else {
+          // We only have a getter.
+          assert(getter is MethodMirror);
+          docProperty(host, getter, null);
+        }
+      } else if (getter == null) {
+        // We only have a setter => Document as a method.
+        assert(setter is MethodMirror);
+        docMethod(host, setter);
+      } else {
+        DocComment getterComment = getMemberComment(getter);
+        DocComment setterComment = getMemberComment(setter);
+        if (getter.surroundingDeclaration !== setter.surroundingDeclaration ||
+            getterComment != null && setterComment != null) {
+          // Both have comments or are not declared in the same class
+          // => Documents separately.
+          if (getter is FieldMirror) {
+            // Document field as a getter (setter is inherited).
+            docField(host, getter, asGetter: true);
+          } else {
+            docMethod(host, getter);
+          }
+          if (setter is FieldMirror) {
+            // Document field as a setter (getter is inherited).
+            docField(host, setter, asSetter: true);
+          } else {
+            docMethod(host, setter);
+          }
+        } else {
+          // Document as field.
+          docProperty(host, getter, setter);
+        }
+      }
+    }
+    writeln('</div>');
+  }
+
+  void docMethods(ObjectMirror host, String title, List<MethodMirror> methods) {
+    if (methods.length > 0) {
       writeln('<div>');
       writeln('<h3>$title</h3>');
-      for (final field in orderByName(staticFields)) {
-        docField(host, field);
-      }
-      writeln('</div>');
-    }
-
-    if (staticMethods.length > 0) {
-      final title = host is LibraryMirror ? 'Functions' : 'Static Methods';
-      writeln('<div>');
-      writeln('<h3>$title</h3>');
-      for (final method in orderByName(staticMethods)) {
-        docMethod(host, method);
-      }
-      writeln('</div>');
-    }
-
-    if (instanceFields.length > 0) {
-      writeln('<div>');
-      writeln('<h3>Fields</h3>');
-      for (final field in orderByName(instanceFields)) {
-        docField(host, field);
-      }
-      writeln('</div>');
-    }
-
-    if (instanceMethods.length > 0) {
-      writeln('<div>');
-      writeln('<h3>Methods</h3>');
-      for (final method in orderByName(instanceMethods)) {
+      for (final method in methods) {
         docMethod(host, method);
       }
       writeln('</div>');
@@ -1070,104 +1167,188 @@ class Dartdoc {
   }
 
   /**
-   * Documents the [method] in type [type]. Handles all kinds of methods
-   * including getters, setters, and constructors.
+   * Documents the [member] declared in [host]. Handles all kinds of members
+   * including getters, setters, and constructors. If [member] is a
+   * [FieldMirror] it is documented as a getter or setter depending upon the
+   * value of [asGetter].
    */
-  void docMethod(ObjectMirror host, MethodMirror method) {
+  void docMethod(ObjectMirror host, MemberMirror member,
+                 {bool asGetter: false}) {
     _totalMembers++;
-    _currentMember = method;
+    _currentMember = member;
 
-    bool showCode = includeSource && !method.isAbstract;
-    bool inherited = host != method.surroundingDeclaration;
+    bool isAbstract = false;
+    String name = member.displayName;
+    if (member is FieldMirror) {
+      if (asGetter) {
+        // Getter.
+        name = 'get $name';
+      } else {
+        // Setter.
+        name = 'set $name';
+      }
+    } else {
+      assert(member is MethodMirror);
+      isAbstract = member.isAbstract;
+      if (member.isGetter) {
+        // Getter.
+        name = 'get $name';
+      } else if (member.isSetter) {
+        // Setter.
+        name = 'set $name';
+      }
+    }
+
+    bool showCode = includeSource && !isAbstract;
+    bool inherited = host != member.surroundingDeclaration;
 
     writeln('<div class="method${inherited ? ' inherited': ''}">'
-            '<h4 id="${memberAnchor(method)}">');
+            '<h4 id="${memberAnchor(member)}">');
 
     if (showCode) {
       writeln('<button class="show-code">Code</button>');
     }
 
-    if (method.isConstructor) {
-      if (method.isFactory) {
-        write('factory ');
-      } else {
-        write(method.isConst ? 'const ' : 'new ');
+    if (member is MethodMirror) {
+      if (member.isConstructor) {
+        if (member.isFactory) {
+          write('factory ');
+        } else {
+          write(member.isConst ? 'const ' : 'new ');
+        }
+      } else if (member.isAbstract) {
+        write('abstract ');
       }
-    } else if (method.isAbstract) {
-      write('abstract ');
-    }
 
-    if (!method.isConstructor) {
-      annotateType(host, method.returnType);
-    }
-
-    var name = method.displayName;
-    // Translate specially-named methods: getters, setters, operators.
-    if (method.isGetter) {
-      // Getter.
-      name = 'get $name';
-    } else if (method.isSetter) {
-      // Setter.
-      name = 'set $name';
+      if (!member.isConstructor) {
+        annotateType(host, member.returnType);
+      }
+    } else {
+      assert(member is FieldMirror);
+      if (asGetter) {
+        annotateType(host, member.type);
+      } else {
+        write('void ');
+      }
     }
 
     write('<strong>$name</strong>');
 
-    docParamList(host, method.parameters);
+    if (member is MethodMirror) {
+      if (!member.isGetter) {
+        docParamList(host, member.parameters);
+      }
+    } else {
+      assert(member is FieldMirror);
+      if (!asGetter) {
+        write('(');
+        annotateType(host, member.type);
+        write(' value)');
+      }
+    }
 
     var prefix = host is LibraryMirror ? '' : '${typeName(host)}.';
-    write(''' <a class="anchor-link" href="#${memberAnchor(method)}"
+    write(''' <a class="anchor-link" href="#${memberAnchor(member)}"
               title="Permalink to $prefix$name">#</a>''');
     writeln('</h4>');
 
     if (inherited) {
       write('<div class="inherited-from">inherited from ');
-      annotateType(host, method.surroundingDeclaration);
+      annotateType(host, member.surroundingDeclaration);
       write('</div>');
     }
 
-    docCode(host, method.location, getMemberComment(method), showCode: showCode);
+    writeln('<div class="doc">');
+    docComment(host, getMemberComment(member));
+    if (showCode) {
+      docCode(member.location);
+    }
+    writeln('</div>');
 
     writeln('</div>');
   }
 
-  /** Documents the field [field] of type [type]. */
-  void docField(ObjectMirror host, FieldMirror field) {
-    _totalMembers++;
-    _currentMember = field;
+  void docField(ObjectMirror host, FieldMirror field,
+                {bool asGetter: false, bool asSetter: false}) {
+    if (asGetter) {
+      docMethod(host, field, asGetter: true);
+    } else if (asSetter) {
+      docMethod(host, field, asGetter: false);
+    } else {
+      docProperty(host, field, null);
+    }
+  }
 
-    bool inherited = host != field.surroundingDeclaration;
+  /**
+   * Documents the property defined by [getter] and [setter] of declared in
+   * [host]. If [getter] is a [FieldMirror], [setter] must be [:null:].
+   * Otherwise, if [getter] is a [MethodMirror], the property is considered
+   * final if [setter] is [:null:].
+   */
+  void docProperty(ObjectMirror host,
+                   MemberMirror getter, MemberMirror setter) {
+    assert(getter != null);
+    _totalMembers++;
+    _currentMember = getter;
+
+    bool inherited = host != getter.surroundingDeclaration;
 
     writeln('<div class="field${inherited ? ' inherited' : ''}">'
-            '<h4 id="${memberAnchor(field)}">');
+            '<h4 id="${memberAnchor(getter)}">');
 
     if (includeSource) {
       writeln('<button class="show-code">Code</button>');
     }
 
-    if (field.isFinal) {
+    bool isConst = false;
+    bool isFinal;
+    TypeMirror type;
+    if (getter is FieldMirror) {
+      assert(setter == null);
+      isConst = getter.isConst;
+      isFinal = getter.isFinal;
+      type = getter.type;
+    } else {
+      assert(getter is MethodMirror);
+      isFinal = setter == null;
+      type = getter.returnType;
+    }
+
+    if (isConst) {
+      write('const ');
+    } else if (isFinal) {
       write('final ');
-    } else if (field.type.isDynamic) {
+    } else if (type.isDynamic) {
       write('var ');
     }
 
-    annotateType(host, field.type);
+    annotateType(host, type);
     var prefix = host is LibraryMirror ? '' : '${typeName(host)}.';
     write(
         '''
-        <strong>${field.simpleName}</strong> <a class="anchor-link"
-            href="#${memberAnchor(field)}"
-            title="Permalink to $prefix${field.simpleName}">#</a>
+        <strong>${getter.simpleName}</strong> <a class="anchor-link"
+            href="#${memberAnchor(getter)}"
+            title="Permalink to $prefix${getter.simpleName}">#</a>
         </h4>
         ''');
 
     if (inherited) {
       write('<div class="inherited-from">inherited from ');
-      annotateType(host, field.surroundingDeclaration);
+      annotateType(host, getter.surroundingDeclaration);
       write('</div>');
     }
 
-    docCode(host, field.location, getMemberComment(field), showCode: true);
+    DocComment comment = getMemberComment(getter);
+    if (comment == null && setter != null) {
+      comment = getMemberComment(setter);
+    }
+    writeln('<div class="doc">');
+    docComment(host, comment);
+    docCode(getter.location);
+    if (setter != null) {
+      docCode(setter.location);
+    }
+    writeln('</div>');
 
     writeln('</div>');
   }
@@ -1200,13 +1381,7 @@ class Dartdoc {
     write(')');
   }
 
-  /**
-   * Documents the code contained within [span] with [comment]. If [showCode]
-   * is `true` (and [includeSource] is set), also includes the source code.
-   */
-  void docCode(ObjectMirror host, Location location, DocComment comment,
-               [bool showCode = false]) {
-    writeln('<div class="doc">');
+  void docComment(ObjectMirror host, DocComment comment) {
     if (comment != null) {
       if (comment.inheritedFrom !== null) {
         writeln('<div class="inherited">');
@@ -1219,14 +1394,17 @@ class Dartdoc {
         writeln(comment.html);
       }
     }
+  }
 
-    if (includeSource && showCode) {
+  /**
+   * Documents the source code contained within [location].
+   */
+  void docCode(Location location) {
+    if (includeSource) {
       writeln('<pre class="source">');
       writeln(md.escapeHtml(unindentCode(location)));
       writeln('</pre>');
     }
-
-    writeln('</div>');
   }
 
   DocComment createDocComment(String text, [InterfaceMirror inheritedFrom]) =>

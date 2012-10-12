@@ -113,7 +113,12 @@ class Compiler extends leg.Compiler {
   Uri translateDartUri(Uri uri, tree.Node node) {
     String path = lookupLibraryPath(uri.path);
     if (path === null || LIBRARIES[uri.path].category == "Internal") {
-      reportError(node, 'library not found ${uri}');
+      if (node != null) {
+        reportError(node, 'library not found ${uri}');
+      } else {
+        reportDiagnostic(null, 'library not found ${uri}',
+                         api.Diagnostic.ERROR);
+      }
       return null;
     }
     if (uri.path == 'html' ||

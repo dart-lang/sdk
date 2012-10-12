@@ -77,6 +77,8 @@ $if DART2JS
   int get _deltaMode() native 'return this.deltaMode';
 
 $else
+  num get deltaX => $dom_wheelDeltaX;
+  num get deltaY => $dom_wheelDeltaY;
   int get deltaMode => 0;
 
 $endif

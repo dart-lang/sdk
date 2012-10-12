@@ -41,7 +41,7 @@ const String DEFAULT_HELPERLIB = r'''
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   S() {}
-  assert(a){}''';
+  assertHelper(a){}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
   add$1(receiver, value) {}
