@@ -394,7 +394,10 @@ class PlaceholderCollector extends Visitor {
       if (send.receiver !== null) tryMakeMemberPlaceholder(send.selector);
     } else if (!element.isErroneous()) {
       if (Elements.isStaticOrTopLevel(element)) {
-        assert(element is VariableElement || element.isAccessor());
+        // TODO(smok): Worth investigating why sometimes we get getter/setter
+        // here and sometimes abstract field.
+        assert(element is VariableElement || element.isAccessor()
+            || element.isAbstractField() || element.isFunction());
         makeElementPlaceholder(send.selector, element);
       } else {
         assert(send.selector is Identifier);
