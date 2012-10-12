@@ -8,10 +8,10 @@ abstract class Timer {
    * [milliSeconds] milliseconds.
    */
   factory Timer(int milliSeconds, void callback(Timer timer)) {
-    if (_factory == null) {
+    if (_TimerFactory._factory == null) {
       throw new UnsupportedOperationException("Timer interface not supported.");
     }
-    return _factory(milliSeconds, callback, false);
+    return _TimerFactory._factory(milliSeconds, callback, false);
   }
 
   /**
@@ -19,18 +19,16 @@ abstract class Timer {
    * [milliSeconds] millisecond until cancelled.
    */
   factory Timer.repeating(int milliSeconds, void callback(Timer timer)) {
-    if (_factory == null) {
+    if (_TimerFactory._factory == null) {
       throw new UnsupportedOperationException("Timer interface not supported.");
     }
-    return _factory(milliSeconds, callback, true);
+    return _TimerFactory._factory(milliSeconds, callback, true);
   }
 
   /**
    * Cancels the timer.
    */
   void cancel();
-
-  static _TimerFactoryClosure _factory;
 }
 
 // TODO(ajohnsen): Patch timer once we have support for patching named
@@ -40,6 +38,10 @@ typedef Timer _TimerFactoryClosure(int milliSeconds,
                                    void callback(Timer timer),
                                    bool repeating);
 
+class _TimerFactory {
+  static _TimerFactoryClosure _factory;
+}
+
 void _setTimerFactoryClosure(_TimerFactoryClosure closure) {
-  Timer._factory = closure;
+  _TimerFactory._factory = closure;
 }
