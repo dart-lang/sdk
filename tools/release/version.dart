@@ -152,6 +152,10 @@ class Version {
     });
   }
 
+  bool isProductionBuild(String username) {
+    return username == "chrome-bot";
+  }
+
   String getUserName() {
     // TODO(ricow): Don't add this on the buildbot.
     var key = "USER";
@@ -159,7 +163,11 @@ class Version {
       key = "USERNAME";
     }
     if (!Platform.environment.containsKey(key)) return "";
-    return Platform.environment[key];
+    var username = Platform.environment[key];
+    // If this is a production build, i.e., this is something we are shipping,
+    // don't suffix  the version with the username.
+    if (isProductionBuild(username)) return "";
+    return username;
   }
 
   RepositoryType get repositoryType {
