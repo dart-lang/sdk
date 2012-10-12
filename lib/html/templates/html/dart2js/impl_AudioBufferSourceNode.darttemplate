@@ -8,9 +8,21 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   // instead of noteOn.
   void start(num when, [num grainOffset, num grainDuration]) {
     if (JS('bool', '!!#.start', this)) {
-      JS('void', '#.start(#, #, #)', this, when, grainOffset, grainDuration);
+      if (?grainDuration) {
+        JS('void', '#.start(#, #, #)', this, when, grainOffset, grainDuration);
+      } else if (?grainOffset) {
+        JS('void', '#.start(#, #)', this, when, grainOffset);
+      } else {
+        JS('void', '#.start(#)', this, when);
+      }
     } else {
-      JS('void', '#.noteOn(#, #, #)', this, when, grainOffset, grainDuration);
+      if (?grainDuration) {
+        JS('void', '#.noteOn(#, #, #)', this, when, grainOffset, grainDuration);
+      } else if (?grainOffset) {
+        JS('void', '#.noteOn(#, #)', this, when, grainOffset);
+      } else {
+        JS('void', '#.noteOn(#)', this, when);
+      }
     }
   }
 
