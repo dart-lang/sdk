@@ -87,7 +87,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dartc ]
-import_combinators_test: Fail # Issue 5735
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 get_set_syntax_test/none: Fail # does not accept getter/setter with no method body

@@ -188,9 +188,7 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # c
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A01_t18: Fail, OK # contains semantic error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t20: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail, OK # contains syntax error
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/2_Imports_A02_t24: Fail, OK # co19 issue 243
 Language/13_Libraries_and_Scripts/2_Imports_A05_t02: Fail, OK # invalid directive syntax
 Language/06_Functions/06_Functions_A01_t06: Fail, OK # expecting error that doesn't exist
