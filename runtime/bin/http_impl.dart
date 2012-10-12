@@ -2105,29 +2105,92 @@ class _HttpClient implements HttpClient {
   }
 
   HttpClientConnection _prepareHttpClientConnection(
-    String method,
-    Uri url,
-    [_HttpClientConnection connection]) {
+      String method,
+      Uri url,
+      [_HttpClientConnection connection]) {
 
-    String host = url.domain;
-    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
+    void _establishConnection(String host,
+                              int port,
+                              _ProxyConfiguration proxyConfiguration,
+                              int proxyIndex) {
 
-    void _connectionOpened(_SocketConnection socketConn,
-                           _HttpClientConnection connection,
-                           bool usingProxy) {
-      connection._usingProxy = usingProxy;
-      connection._connectionEstablished(socketConn);
-      HttpClientRequest request = connection.open(method, url);
-      request.headers.host = host;
-      request.headers.port = port;
-      if (connection._onRequest != null) {
-        connection._onRequest(request);
+      void _connectionOpened(_SocketConnection socketConn,
+                             _HttpClientConnection connection,
+                             bool usingProxy) {
+        connection._usingProxy = usingProxy;
+        connection._connectionEstablished(socketConn);
+        HttpClientRequest request = connection.open(method, url);
+        request.headers.host = host;
+        request.headers.port = port;
+        if (connection._onRequest != null) {
+          connection._onRequest(request);
+        } else {
+          request.outputStream.close();
+        }
+      }
+
+      assert(proxyIndex < proxyConfiguration.proxies.length);
+
+      // Determine the actual host to connect to.
+      String connectHost;
+      int connectPort;
+      _Proxy proxy = proxyConfiguration.proxies[proxyIndex];
+      if (proxy.isDirect) {
+        connectHost = host;
+        connectPort = port;
       } else {
-        request.outputStream.close();
+        connectHost = proxy.host;
+        connectPort = proxy.port;
+      }
+
+      // If there are active connections for this key get the first one
+      // otherwise create a new one.
+      String key = _connectionKey(connectHost, connectPort);
+      Queue socketConnections = _openSockets[key];
+      if (socketConnections == null || socketConnections.isEmpty()) {
+        Socket socket = new Socket(connectHost, connectPort);
+        // Until the connection is established handle connection errors
+        // here as the HttpClientConnection object is not yet associated
+        // with the socket.
+        socket.onError = (e) {
+          proxyIndex++;
+          if (proxyIndex < proxyConfiguration.proxies.length) {
+            // Try the next proxy in the list.
+            _establishConnection(host, port, proxyConfiguration, proxyIndex);
+          } else {
+            // Report the error through the HttpClientConnection object to
+            // the client.
+            connection._onError(e);
+          }
+        };
+        socket.onConnect = () {
+          // When the connection is established, clear the error
+          // callback as it will now be handled by the
+          // HttpClientConnection object which will be associated with
+          // the connected socket.
+          socket.onError = null;
+          _SocketConnection socketConn =
+          new _SocketConnection(connectHost, connectPort, socket);
+          _activeSockets.add(socketConn);
+          _connectionOpened(socketConn, connection, !proxy.isDirect);
+        };
+      } else {
+        _SocketConnection socketConn = socketConnections.removeFirst();
+        _activeSockets.add(socketConn);
+        new Timer(0, (ignored) =>
+                  _connectionOpened(socketConn, connection, !proxy.isDirect));
+
+        // Get rid of eviction timer if there are no more active connections.
+        if (socketConnections.isEmpty()) _openSockets.remove(key);
+        if (_openSockets.isEmpty()) _cancelEvictionTimer();
       }
     }
 
-    // Create a new connection if we are not re-using an existing one.
+    // Find the TCP host and port.
+    String host = url.domain;
+    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
+
+    // Create a new connection object if we are not re-using an existing one.
     if (connection == null) {
       connection = new _HttpClientConnection(this);
     }
@@ -2141,53 +2204,8 @@ class _HttpClient implements HttpClient {
       proxyConfiguration = new _ProxyConfiguration(_findProxy(url));
     }
 
-    // Determine the actual host to connect to.
-    String connectHost;
-    int connectPort;
-    _Proxy proxy = proxyConfiguration.proxies[0];
-    if (proxy.isDirect) {
-      connectHost = host;
-      connectPort = port;
-    } else {
-      connectHost = proxy.host;
-      connectPort = proxy.port;
-    }
-
-    // If there are active connections for this key get the first one
-    // otherwise create a new one.
-    String key = _connectionKey(connectHost, connectPort);
-    Queue socketConnections = _openSockets[key];
-    if (socketConnections == null || socketConnections.isEmpty()) {
-      Socket socket = new Socket(connectHost, connectPort);
-      // Until the connection is established handle connection errors
-      // here as the HttpClientConnection object is not yet associated
-      // with the socket.
-      socket.onError = (e) {
-        // Report the error through the HttpClientConnection object to
-        // the client.
-        connection._onError(e);
-      };
-      socket.onConnect = () {
-        // When the connection is established, clear the error
-        // callback as it will now be handled by the
-        // HttpClientConnection object which will be associated with
-        // the connected socket.
-        socket.onError = null;
-        _SocketConnection socketConn =
-            new _SocketConnection(connectHost, connectPort, socket);
-        _activeSockets.add(socketConn);
-        _connectionOpened(socketConn, connection, !proxy.isDirect);
-      };
-    } else {
-      _SocketConnection socketConn = socketConnections.removeFirst();
-      _activeSockets.add(socketConn);
-      new Timer(0, (ignored) =>
-                _connectionOpened(socketConn, connection, !proxy.isDirect));
-
-      // Get rid of eviction timer if there are no more active connections.
-      if (socketConnections.isEmpty()) _openSockets.remove(key);
-      if (_openSockets.isEmpty()) _cancelEvictionTimer();
-    }
+    // Establish the connection starting with the first proxy configured.
+    _establishConnection(host, port, proxyConfiguration, 0);
 
     return connection;
   }
