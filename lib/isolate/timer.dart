@@ -42,6 +42,8 @@ class _TimerFactory {
   static _TimerFactoryClosure _factory;
 }
 
+// TODO(ahe): Warning: this is NOT called by Dartium. Instead, it sets
+// [_TimerFactory._factory] directly.
 void _setTimerFactoryClosure(_TimerFactoryClosure closure) {
   _TimerFactory._factory = closure;
 }
