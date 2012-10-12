@@ -369,22 +369,30 @@ class VariableNames {
   final Map<HInstruction, String> ownName;
   final Map<HBasicBlock, CopyHandler> copyHandlers;
   /**
-   * Name that is being used as a temporary to break cycles in
+   * Name that is used as a temporary to break cycles in
    * parallel copies. We make sure this name is not being used
    * anywhere by reserving it when we allocate names for instructions.
    */
   final String swapTemp;
+  /**
+   * Name that is used in bailout code. We make sure this name is not being used
+   * anywhere by reserving it when we allocate names for instructions.
+   */
+  final String stateName;
 
   VariableNames(Map<Element, String> parameterNames)
     : ownName = new Map<HInstruction, String>(),
       copyHandlers = new Map<HBasicBlock, CopyHandler>(),
-      swapTemp = computeSwapTemp(parameterNames);
+      swapTemp = computeFreshWithPrefix("t", parameterNames),
+      stateName = computeFreshWithPrefix("state", parameterNames);
 
-  static String computeSwapTemp(Map<Element, String> parameterNames) {
+  /** Returns a fresh variable with the given prefix. */
+  static String computeFreshWithPrefix(String prefix,
+                                       Map<Element, String> parameterNames) {
     Set<String> parameters = new Set<String>.from(parameterNames.getValues());
-    String name = 't0';
+    String name = '${prefix}0';
     int i = 1;
-    while (parameters.contains(name)) name = 't${i++}';
+    while (parameters.contains(name)) name = '$prefix${i++}';
     return name;
   }
 
@@ -424,9 +432,11 @@ class VariableNamer {
   VariableNamer(LiveEnvironment environment, this.names, this.parameterNames)
     : usedNames = new Set<String>(),
       freeTemporaryNames = new List<String>() {
-    // [VariableNames.swapTemp] is being used when there is a cycle
-    // in a copy handler. Therefore we make sure no one will use it.
+    // [VariableNames.swapTemp] and [VariableNames.stateName] are being used
+    // throughout the function. Therefore we make sure no one uses it at any
+    // time.
     usedNames.add(names.swapTemp);
+    usedNames.add(names.stateName);
 
     // All liveIns instructions must have a name at this point, so we
     // add them to the list of used names.
