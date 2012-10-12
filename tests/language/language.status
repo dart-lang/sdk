@@ -250,6 +250,8 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+call_constructor_on_unresolvable_class_test/03: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
+call_constructor_on_unresolvable_class_test/06: Fail, OK # 'library' cannot be used as a prefix because it is a built-in identifier
 class_literal_test/05: Fail # http://dartbug.com/5519
 class_literal_test/10: Fail # http://dartbug.com/5519
 class_literal_test/11: Fail # http://dartbug.com/5519
@@ -328,8 +330,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/08: Fail
-pseudo_kw_illegal_test/10: Fail
 pseudo_kw_illegal_test/11: Fail
 pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
