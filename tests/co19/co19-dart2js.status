@@ -125,7 +125,6 @@ Language/10_Expressions/29_Type_Test_A01_t04: Fail # TODO(ahe): Please triage th
 Language/11_Statements/09_Try_A01_t18: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t28: Fail # TODO(ahe): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -348,12 +347,12 @@ Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function d
 Language/10_Expressions/22_Shift_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail, OK # A map literal cannot start an expression statement.
+Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail # assert is a reserved word, which can not be used as a variable name.
 Language/11_Statements/07_Do_A02_t02: Fail, OK # co19 issue 145.
 LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
-Language/06_Functions/06_Functions_A01_t23: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
@@ -362,16 +361,12 @@ Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t09: Fail, OK # co
 Language/11_Statements/03_Variable_Declaration_A01_t10: Fail, OK # co19 issue 210
 Language/11_Statements/03_Variable_Declaration_A02_t04: Fail, OK # co19 issue 210
 Language/11_Statements/08_Switch_A07_t02: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t03: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t04: Fail, OK # co19 issue 210
-Language/11_Statements/15_Assert_A01_t05: Fail, OK # co19 issue 210
 
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
 Language/03_Overview/1_Scoping_A01_t40: Fail, OK # co19 issue 188
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # co19 issue 188
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # co19 issue 188
 Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail, OK # co19 issue 254
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # co19 issue 188
 
@@ -656,7 +651,6 @@ Language/11_Statements/10_Return_A04_t03: Fail # Checks that a compile-time erro
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # Checks that self-referencing typedef is not allowed (return value type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # Checks that self-referencing typedef is not allowed (positional formal parameter type annotation has the same name as a type alias).
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # Checks that self-referencing typedef is not allowed (optional formal parameter type annotation has the same name as a type alias).
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # Checks that other Unicode whitespaces are not allowed:  check NO-BREAK SPACE (U+00A0)
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
 

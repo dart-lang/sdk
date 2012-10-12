@@ -1412,33 +1412,22 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return (str === '&&' || str == '||' || str == '!');
   }
 
-  /**
-   * Check the lexical scope chain for a declaration with the name "assert".
-   *
-   * This is used to detect whether "assert(x)" is actually an assertion or
-   * just a call expression.
-   * It does not check fields inherited from a superclass.
-   */
-  bool isAssertInLexicalScope() {
-    return scope.lexicalLookup(const SourceString("assert")) !== null;
-  }
-
-  /** Check if [node] is the expression of the current expression statement. */
-  bool isExpressionStatementExpression(Node node) {
-    return currentExpressionStatement !== null &&
-        currentExpressionStatement.expression === node;
-  }
-
   Element resolveSend(Send node) {
     Selector selector = resolveSelector(node);
 
     if (node.receiver === null) {
-      // If this send is the expression of an expression statement, and is on
-      // the form "assert(expr);", and there is no declaration with name
-      // "assert" in the lexical scope, then this is actually an assertion.
-      if (isExpressionStatementExpression(node) &&
-          selector.isAssertSyntax() &&
-          !isAssertInLexicalScope()) {
+      // If this send is of the form "assert(expr);", then
+      // this is an assertion.
+      if (selector.isAssert()) {
+        if (selector.argumentCount != 1) {
+          error(node.selector,
+                MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
+                [selector.argumentCount]);
+        } else if (selector.namedArgumentCount != 0) {
+          error(node.selector,
+                MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
+                [selector.namedArgumentCount]);
+        }
         return compiler.assertMethod;
       }
       return node.selector.accept(this);

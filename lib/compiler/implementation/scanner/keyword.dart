@@ -7,6 +7,7 @@
  */
 class Keyword implements SourceString {
   static const List<Keyword> values = const <Keyword> [
+      const Keyword("assert"),
       const Keyword("break"),
       const Keyword("case"),
       const Keyword("catch"),
@@ -42,7 +43,6 @@ class Keyword implements SourceString {
 
       const Keyword("abstract", isBuiltIn: true),
       const Keyword("as", info: AS_INFO, isBuiltIn: true),
-      const Keyword("assert", isBuiltIn: true),
       const Keyword("dynamic", isBuiltIn: true),
       const Keyword("export", isBuiltIn: true),
       const Keyword("external", isBuiltIn: true),

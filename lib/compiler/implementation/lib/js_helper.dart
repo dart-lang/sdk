@@ -1361,7 +1361,7 @@ class FallThroughErrorImplementation implements FallThroughError {
 /**
  * Helper function for implementing asserts. The compiler treats this specially.
  */
-void assert(condition) {
+void assertHelper(condition) {
   if (condition is Function) condition = condition();
   if (condition is !bool) {
     throw new TypeErrorImplementation(condition, 'bool');

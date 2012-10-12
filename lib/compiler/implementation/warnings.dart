@@ -303,6 +303,13 @@ Length: #{3}''');
   static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
       "Top-level variable cannot be declared static.");
 
+  static const WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT = const MessageKind(
+      "Wrong number of arguments to assert. Should be 1, but given #{1}.");
+
+  static const ASSERT_IS_GIVEN_NAMED_ARGUMENTS = const MessageKind(
+      "assert takes no named arguments, but given #{1}.");
+
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

@@ -45,7 +45,6 @@ Language/05_Variables/05_Variables_A05_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t02: Fail # http://dartbug.com/5519
 Language/06_Functions/06_Functions_A01_t06: Fail # inherited from VM
 Language/06_Functions/06_Functions_A01_t22: Fail # inherited from VM
-Language/06_Functions/06_Functions_A01_t23: Fail # http://dartbug.com/5519
 Language/06_Functions/06_Functions_A01_t31: Fail # http://dartbug.com/5519
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # http://dartbug.com/5519
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail # http://dartbug.com/5519
@@ -401,7 +400,6 @@ Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # Inherited from d
 Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Inherited from dart2js
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK # co19 issue 184
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # inherited from VM
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail, OK # co19 issue 254
 Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # inherited from VM
 Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519
@@ -466,9 +464,6 @@ Language/11_Statements/11_Labels_A01_t03: Fail # inherited from VM
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
-Language/11_Statements/15_Assert_A01_t03: Fail # http://dartbug.com/5519
-Language/11_Statements/15_Assert_A01_t04: Fail # http://dartbug.com/5519
-Language/11_Statements/15_Assert_A01_t05: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # inherited from VM
@@ -501,8 +496,6 @@ Language/14_Types/4_Interface_Types_A01_t01: Fail # Looks like dart2js issue, le
 Language/14_Types/4_Interface_Types_A02_t01: Fail # Looks like dart2js issue, let's wait when interfaces are phased away
 Language/14_Types/5_Function_Types_A01_t05: Fail # inherited from dart2js
 Language/14_Types/5_Function_Types_A02_t01: Fail # inherited from VM
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # inherited from dart2js
-Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t05: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
