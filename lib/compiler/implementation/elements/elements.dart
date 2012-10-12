@@ -1475,24 +1475,42 @@ abstract class ClassElement extends ScopeContainerElement
     }
   }
 
-  Element lookupConstructor(SourceString className,
-                            [SourceString constructorName =
-                                 const SourceString(''),
-                            Element noMatch(Element)]) {
-    // TODO(karlklose): have a map from class names to a map of constructors
-    //                  instead of creating the name here?
+  Element validateConstructorLookupResults(Selector selector,
+                                           Element result,
+                                           Element noMatch(Element)) {
+    if (result === null
+        || !result.isConstructor()
+        || (selector.name.isPrivate()
+            && result.getLibrary() != selector.library)) {
+      result = noMatch !== null ? noMatch(result) : null;
+    }
+    return result;
+  }
+
+  // TODO(aprelev@gmail.com): Peter believes that it would be great to
+  // make noMatch a required argument. Peter's suspicion is that most
+  // callers of this method would benefit from using the noMatch method.
+  Element lookupConstructor(Selector selector, [Element noMatch(Element)]) {
     SourceString normalizedName;
-    if (constructorName !== const SourceString('')) {
+    SourceString className = this.name;
+    SourceString constructorName = selector.name;
+    if (constructorName !== const SourceString('') &&
+        ((className === null) ||
+         (constructorName.slowToString() != className.slowToString()))) {
       normalizedName = Elements.constructConstructorName(className,
                                                          constructorName);
     } else {
       normalizedName = className;
     }
     Element result = localLookup(normalizedName);
-    if (result === null || !result.isConstructor()) {
-      result = noMatch !== null ? noMatch(result) : null;
-    }
-    return result;
+    return validateConstructorLookupResults(selector, result, noMatch);
+  }
+
+  Element lookupFactoryConstructor(Selector selector,
+                                   [Element noMatch(Element)]) {
+    SourceString constructorName = selector.name;
+    Element result = localLookup(constructorName);
+    return validateConstructorLookupResults(selector, result, noMatch);
   }
 
   bool get hasConstructor {

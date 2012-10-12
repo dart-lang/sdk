@@ -767,16 +767,17 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
         assert(superClass.resolutionState == STATE_DONE);
+
+        Selector selector =
+            new Selector.callDefaultConstructor(enclosingClass.getLibrary());
+
         FunctionElement targetConstructor =
-            superClass.lookupConstructor(superClass.name);
+            superClass.lookupConstructor(selector);
         if (targetConstructor === null) {
           compiler.internalError("no default constructor available",
                                  node: functionNode);
         }
 
-        Selector selector = new Selector.call(superClass.name,
-                                              enclosingClass.getLibrary(),
-                                              0);
         evaluateSuperOrRedirectSend(functionNode,
                                     selector,
                                     const Link<Node>(),
