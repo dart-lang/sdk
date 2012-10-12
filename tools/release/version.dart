@@ -122,7 +122,7 @@ class Version {
   int getRevisionFromSvnInfo(String info) {
     if (info == null || info == '') return 0;
     var lines = info.split("\n");
-    RegExp exp = const RegExp(r"Revision: (\d*)");
+    RegExp exp = const RegExp(r"Last Changed Rev: (\d*)");
     for (var line in lines) {
       if (exp.hasMatch(line)) {
         String revisionString = (exp.firstMatch(line).group(1));
@@ -144,7 +144,15 @@ class Version {
     var command = isSvn ? "svn" : "git";
     command = "$command${getExecutableSuffix()}";
     var arguments = isSvn ? ["info"] : ["svn", "info"];
-    return Process.run(command, arguments).transform((result) {
+    ProcessOptions options = new ProcessOptions();
+    // Run the command from the root to get the last changed revision for this
+    // "branch". Since we have both trunk and bleeding edge in the same
+    // repository and since we always build TOT we need this to get the
+    // right version number.
+    Path root =
+        new Path.fromNative(_versionFileName).directoryPath.directoryPath;
+    options.workingDirectory = root.toNativePath();
+    return Process.run(command, arguments, options).transform((result) {
       if (result.exitCode != 0) {
         return 0;
       }
