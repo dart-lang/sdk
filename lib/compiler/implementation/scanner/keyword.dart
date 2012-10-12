@@ -23,9 +23,6 @@ class Keyword implements SourceString {
       const Keyword("for"),
       const Keyword("if"),
       const Keyword("in"),
-      // TODO(ahe): Don't think this is a reserved word.
-      // See: http://dartbug.com/5579
-      const Keyword("is", info: IS_INFO),
       const Keyword("new"),
       const Keyword("null"),
       const Keyword("return"),
@@ -39,28 +36,32 @@ class Keyword implements SourceString {
       const Keyword("void"),
       const Keyword("while"),
 
+      // TODO(ahe): Don't think this is a reserved word.
+      // See: http://dartbug.com/5579
+      const Keyword("is", info: IS_INFO),
+
       const Keyword("abstract", isBuiltIn: true),
       const Keyword("as", info: AS_INFO, isBuiltIn: true),
       const Keyword("assert", isBuiltIn: true),
       const Keyword("dynamic", isBuiltIn: true),
+      const Keyword("export", isBuiltIn: true),
       const Keyword("external", isBuiltIn: true),
       const Keyword("factory", isBuiltIn: true),
       const Keyword("get", isBuiltIn: true),
       const Keyword("implements", isBuiltIn: true),
+      const Keyword("import", isBuiltIn: true),
       const Keyword("interface", isBuiltIn: true),
+      const Keyword("library", isBuiltIn: true),
       const Keyword("operator", isBuiltIn: true),
+      const Keyword("part", isBuiltIn: true),
       const Keyword("set", isBuiltIn: true),
       const Keyword("static", isBuiltIn: true),
       const Keyword("typedef", isBuiltIn: true),
 
-      const Keyword("export", isPseudo: true),
       const Keyword("hide", isPseudo: true),
-      const Keyword("import", isPseudo: true),
-      const Keyword("library", isPseudo: true),
       const Keyword("native", isPseudo: true),
       const Keyword("of", isPseudo: true),
       const Keyword("on", isPseudo: true),
-      const Keyword("part", isPseudo: true),
       const Keyword("show", isPseudo: true),
       const Keyword("source", isPseudo: true) ];
 
