@@ -7,5 +7,8 @@ redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting lo
 pretty_parameter_test: Fail # TODO(floitsch): investigate.
 tree_shaking_test: Fail # Issue 4811
 
+# Minification of locals temporarily disabled due to issue 5808
+minify_many_locals_test: Fail
+
 [ $runtime == d8 || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
