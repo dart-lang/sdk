@@ -149,8 +149,8 @@ class Version {
     // "branch". Since we have both trunk and bleeding edge in the same
     // repository and since we always build TOT we need this to get the
     // right version number.
-    Path root =
-        new Path.fromNative(_versionFileName).directoryPath.directoryPath;
+    Path toolsDirectory = new Path.fromNative(_versionFileName).directoryPath;
+    Path root = toolsDirectory.join(new Path(".."));
     options.workingDirectory = root.toNativePath();
     return Process.run(command, arguments, options).transform((result) {
       if (result.exitCode != 0) {
