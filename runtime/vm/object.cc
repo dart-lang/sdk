@@ -882,7 +882,7 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
 
-  // The class 'Dynamic' is registered in the class dictionary because its name
+  // The class 'dynamic' is registered in the class dictionary because its name
   // is a built-in identifier, rather than a reserved keyword. Its name is not
   // heap allocated, because the class resides in the VM isolate.
   // The corresponding type, the "unknown type", is stored in the object store.
@@ -2010,7 +2010,7 @@ bool Class::TypeTest(
     Error* malformed_error) const {
   ASSERT(!IsVoidClass());
   // Check for DynamicType.
-  // Each occurrence of DynamicType in type T is interpreted as the Dynamic
+  // Each occurrence of DynamicType in type T is interpreted as the dynamic
   // type, a supertype of all types.
   if (other.IsDynamicClass()) {
     return true;
@@ -2588,7 +2588,7 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
-        // An uninstantiated type parameter is equivalent to Dynamic.
+        // An uninstantiated type parameter is equivalent to dynamic.
         continue;
       }
       ASSERT((!raw_instantiated && type.IsTypeParameter()) ||
@@ -8045,12 +8045,12 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     if (other.IsVoidType()) {
       return true;
     }
-    // Otherwise, null is only an instance of Object and of Dynamic.
+    // Otherwise, null is only an instance of Object and of dynamic.
     // It is not necessary to fully instantiate the other type for this test.
     Class& other_class = Class::Handle();
     if (other.IsTypeParameter()) {
       if (other_instantiator.IsNull()) {
-        return true;  // Other type is uninstantiated, i.e. Dynamic.
+        return true;  // Other type is uninstantiated, i.e. dynamic.
       }
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
       const AbstractType& instantiated_other = AbstractType::Handle(
@@ -8091,7 +8091,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   // allocation of a new AbstractType by inlining the code.
   if (other.IsTypeParameter()) {
     if (other_instantiator.IsNull()) {
-      // An uninstantiated type parameter is equivalent to Dynamic.
+      // An uninstantiated type parameter is equivalent to dynamic.
       return true;
     }
     const TypeParameter& other_type_param = TypeParameter::Cast(other);
@@ -8321,12 +8321,12 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     if (num_type_params > num_args) {
       first_type_param_index = 0;
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
-        // Most probably a malformed type. Do not fill up with "Dynamic",
+        // Most probably a malformed type. Do not fill up with "dynamic",
         // but use actual vector.
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // No need to fill up with "Dynamic".
+        // No need to fill up with "dynamic".
         num_type_params = 0;
       }
     } else {

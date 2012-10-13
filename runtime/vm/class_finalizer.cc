@@ -632,19 +632,19 @@ void ClassFinalizer::FinalizeTypeArguments(
     if (super_type.IsBeingFinalized()) {
       // This type references itself via its type arguments. This is legal, but
       // we must avoid endless recursion. We therefore map the innermost
-      // super type to Dynamic.
+      // super type to dynamic.
       // Note that a direct self-reference via the super class chain is illegal
       // and reported as an error earlier.
       // Such legal self-references occur with F-bounded quantification.
       // Example 1: class Derived extends Base<Derived>.
       // The type 'Derived' forms a cycle by pointing to itself via its
       // flattened type argument vector: Derived[Base[Derived[Base[...]]]]
-      // We break the cycle as follows: Derived[Base[Derived[Dynamic]]]
+      // We break the cycle as follows: Derived[Base[Derived[dynamic]]]
       // Example 2: class Derived extends Base<Middle<Derived>> results in
-      // Derived[Base[Middle[Derived[Dynamic]]]]
+      // Derived[Base[Middle[Derived[dynamic]]]]
       // Example 3: class Derived<T> extends Base<Derived<T>> results in
-      // Derived[Base[Derived[Dynamic]], T].
-      ASSERT(super_type_args.IsNull());  // Same as a vector of Dynamic.
+      // Derived[Base[Derived[dynamic]], T].
+      ASSERT(super_type_args.IsNull());  // Same as a vector of dynamic.
     } else {
       super_type ^= FinalizeType(cls, super_type, finalization);
       cls.set_super_type(super_type);
@@ -754,7 +754,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                       "type '%s' has malformed type argument",
                       type_name.ToCString());
         }
-        // In production mode, malformed type arguments are mapped to Dynamic.
+        // In production mode, malformed type arguments are mapped to dynamic.
         // In checked mode, a type with malformed type arguments is malformed.
         if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
           const Error& error = Error::Handle(type_argument.malformed_error());
@@ -925,7 +925,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   // interface.
   ResolveType(cls, type, kCanonicalize);
   type = FinalizeType(cls, type, kCanonicalize);
-  // In production mode, a malformed result type is mapped to Dynamic.
+  // In production mode, a malformed result type is mapped to dynamic.
   if (!FLAG_enable_type_checks && type.IsMalformed()) {
     type = Type::DynamicType();
   }
@@ -936,7 +936,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
     type = FinalizeType(cls, type, kCanonicalize);
-    // In production mode, a malformed parameter type is mapped to Dynamic.
+    // In production mode, a malformed parameter type is mapped to dynamic.
     if (!FLAG_enable_type_checks && type.IsMalformed()) {
       type = Type::DynamicType();
     }
@@ -1384,7 +1384,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                   String::Handle(interface_class.Name()).ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend or implement
-    // any of bool, num, int, double, String, Function, Dynamic.
+    // any of bool, num, int, double, String, Function, dynamic.
     // The exception is signature classes, which are compiler generated and
     // represent a function type, therefore implementing the Function interface.
     if (!cls_belongs_to_core_lib) {

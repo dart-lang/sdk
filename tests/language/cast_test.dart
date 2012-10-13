@@ -42,12 +42,12 @@ main() {
   (on as Object).toString();
   (oc as Object).toString();
   (od as Object).toString();
-  (on as Dynamic).toString();
-  (on as Dynamic).foo;  /// 07: runtime error
-  (oc as Dynamic).foo;
-  (od as Dynamic).foo;
-  (oc as Dynamic).bar;  /// 08: runtime error
-  (od as Dynamic).bar;
+  (on as dynamic).toString();
+  (on as dynamic).foo;  /// 07: runtime error
+  (oc as dynamic).foo;
+  (od as dynamic).foo;
+  (oc as dynamic).bar;  /// 08: runtime error
+  (od as dynamic).bar;
   C c = oc as C;
   c = od as C;
   c = oc;
@@ -57,13 +57,13 @@ main() {
 
   (ol as List)[0];
   (ol as List<int>)[0];
-  (ol as Dynamic)[0];
+  (ol as dynamic)[0];
   (ol as String).length;  /// 12: runtime error
   int x = (ol as List<int>)[0];
   (ol as List<int>)[0] = (oi as int);
 
   (os as String).length;
-  (os as Dynamic).length;
+  (os as dynamic).length;
   (oi as String).length;  /// 13: runtime error
   (os as List).length;  /// 14: runtime error
 

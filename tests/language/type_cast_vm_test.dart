@@ -132,7 +132,7 @@ class TypeTest {
     } on TypeError catch (error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("() => Dynamic", error.srcType);
+      Expect.equals("() => dynamic", error.srcType);
       Expect.equals("type cast", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {

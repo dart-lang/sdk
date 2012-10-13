@@ -13,7 +13,7 @@ class A<T> {
 
   factory A.test01() = T;  /// 01: runtime error
 
-  factory A.test02() = Dynamic;  /// 02: runtime error
+  factory A.test02() = dynamic;  /// 02: runtime error
 
   factory A.test03() = Undefined;  /// 03: runtime error
 

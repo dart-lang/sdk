@@ -61,7 +61,7 @@ class ObjectPointerVisitor;
   V(Source, "source")                                                          \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
-  V(Dynamic, "Dynamic")                                                        \
+  V(Dynamic, "dynamic")                                                        \
   V(Void, "void")                                                              \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \

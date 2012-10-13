@@ -6,7 +6,7 @@
 // Pseudo keywords are not allowed to be used as class names.
 class abstract { }    /// 01: compile-time error
 class assert { }      /// 02: compile-time error
-class Dynamic { }     /// 04: compile-time error
+class dynamic { }     /// 04: compile-time error
 class factory { }     /// 05: compile-time error
 class get { }         /// 06: compile-time error
 class implements { }  /// 07: compile-time error

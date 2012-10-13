@@ -42,9 +42,9 @@ interface MyFunctionInterface extends Function default F {  /// 12: compile-time
   MyFunctionInterface();                                    /// 12: continued
 }                                                           /// 12: continued
 
-// Dynamic.
-class MyDynamic implements Dynamic {}                      /// 13: compile-time error
-interface MyDynamicInterface extends Dynamic default F {   /// 14: compile-time error
+// dynamic.
+class MyDynamic implements dynamic {}                      /// 13: compile-time error
+interface MyDynamicInterface extends dynamic default F {   /// 14: compile-time error
   MyDynamicInterface();                                    /// 14: continued
 }                                                          /// 14: continued
 

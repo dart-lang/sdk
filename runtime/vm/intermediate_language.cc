@@ -377,7 +377,7 @@ bool Value::CanComputeIsInstanceOf(const AbstractType& type,
     return true;
   }
 
-  // The Null type is only a subtype of Object and of Dynamic.
+  // The Null type is only a subtype of Object and of dynamic.
   // Functions that do not explicitly return a value, implicitly return null,
   // except generative constructors, which return the object being constructed.
   // It is therefore acceptable for void functions to return null.
@@ -965,14 +965,14 @@ RawAbstractType* StoreContextInstr::CompileType() const {
 RawAbstractType* ClosureCallInstr::CompileType() const {
   // Because of function subtyping rules, the declared return type of a closure
   // call cannot be relied upon for compile type analysis. For example, a
-  // function returning Dynamic can be assigned to a closure variable declared
+  // function returning dynamic can be assigned to a closure variable declared
   // to return int and may actually return a double at run-time.
   return Type::DynamicType();
 }
 
 
 RawAbstractType* InstanceCallInstr::CompileType() const {
-  // TODO(regis): Return a more specific type than Dynamic for recognized
+  // TODO(regis): Return a more specific type than dynamic for recognized
   // combinations of receiver type and method name.
   return Type::DynamicType();
 }
@@ -1125,7 +1125,7 @@ RawAbstractType* AllocateObjectWithBoundsCheckInstr::CompileType() const {
 
 RawAbstractType* LoadFieldInstr::CompileType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
-  // Keep it as null for debug purposes and do not return Dynamic in production
+  // Keep it as null for debug purposes and do not return dynamic in production
   // mode, since misuse of the type would remain undetected.
   if (type().IsNull()) {
     return AbstractType::null();

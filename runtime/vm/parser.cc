@@ -31,6 +31,8 @@ DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
+DEFINE_FLAG(bool, warn_legacy_dynamic, false,
+            "Warning on legacy type Dynamic)");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -1014,7 +1016,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   } else if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     var_seen = true;
-    // The parameter type is the 'Dynamic' type.
+    // The parameter type is the 'dynamic' type.
     parameter.type = &Type::ZoneHandle(Type::DynamicType());
   }
   if (CurrentToken() == Token::kTHIS) {
@@ -2872,7 +2874,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     ConsumeToken();
     member.has_var = true;
-    // The member type is the 'Dynamic' type.
+    // The member type is the 'dynamic' type.
     member.type = &Type::ZoneHandle(Type::DynamicType());
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
@@ -2996,7 +2998,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       ErrorMsg("'(' expected");
     }
     // The grammar allows a return type, so member.type is not always NULL here.
-    // If no return type is specified, the return type of the setter is Dynamic.
+    // If no return type is specified, the return type of the setter is dynamic.
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
@@ -3673,7 +3675,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
       if (malformed_error->IsNull() && type.IsMalformed()) {
         *malformed_error = type.malformed_error();
       }
-      // Map a malformed type argument to Dynamic, so that malformed types with
+      // Map a malformed type argument to dynamic, so that malformed types with
       // a resolved type class are handled properly in production mode.
       if (type.IsMalformed()) {
         ASSERT(finalization != ClassFinalizer::kCanonicalizeWellFormed);
@@ -5163,7 +5165,7 @@ bool Parser::IsVariableDeclaration() {
   bool have_type = false;
   if (CurrentToken() == Token::kCONST) {
     ConsumeToken();
-    have_type = true;  // Type is Dynamic.
+    have_type = true;  // Type is dynamic.
   }
   if (IsIdentifier()) {  // Type or variable name.
     Token::Kind follower = LookaheadToken(1);
@@ -6078,7 +6080,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       exception_param.var = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
-        // TODO(hausner): Make implicit type be StackTrace, not Dynamic.
+        // TODO(hausner): Make implicit type be StackTrace, not dynamic.
         stack_trace_param.type =
             &AbstractType::ZoneHandle(Type::DynamicType());
         stack_trace_param.token_pos = TokenPos();
@@ -6587,7 +6589,9 @@ String* Parser::ExpectClassIdentifier(const char* msg) {
     ErrorMsg("%s", msg);
   }
   String* ident = CurrentLiteral();
-  if (ident->Equals("Dynamic")) {
+  // TODO(hausner): Remove check for 'Dynamic' once support for upper-case
+  // type dynamic is gone.
+  if (ident->Equals("Dynamic") || ident->Equals("dynamic")) {
     ErrorMsg("%s", msg);
   }
   ConsumeToken();
@@ -8372,6 +8376,16 @@ RawAbstractType* Parser::ParseType(
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);
+    // TODO(hausner): Remove this once support for legacy type 'Dynamic'
+    // is removed.
+    if ((type_name.lib_prefix == NULL) && type_name.ident->Equals("Dynamic")) {
+      if (FLAG_warn_legacy_dynamic) {
+        Warning(type_name.ident_pos,
+                "legacy type 'Dynamic' found; auto-converting to 'dynamic'");
+      }
+      // Replace with lower-case 'dynamic'.
+      *type_name.ident ^= Symbols::Dynamic();
+    }
     // An identifier cannot be resolved in a local scope when top level parsing.
     if (!is_top_level_ &&
         (type_name.lib_prefix == NULL) &&
@@ -8400,7 +8414,7 @@ RawAbstractType* Parser::ParseType(
   }
   AbstractType& type = AbstractType::Handle(
       Type::New(type_class, type_arguments, type_name.ident_pos));
-  // In production mode, malformed type arguments are mapped to Dynamic.
+  // In production mode, malformed type arguments are mapped to dynamic.
   // In checked mode, a type with malformed type arguments is malformed.
   if (FLAG_enable_type_checks && !malformed_error.IsNull()) {
     Type& parameterized_type = Type::Handle();
@@ -8451,7 +8465,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
   AbstractType& element_type = Type::ZoneHandle(Type::DynamicType());
   // If no type argument vector is provided, leave it as null, which is
-  // equivalent to using Dynamic as the type argument for the element type.
+  // equivalent to using dynamic as the type argument for the element type.
   if (!type_arguments.IsNull()) {
     ASSERT(type_arguments.Length() > 0);
     // List literals take a single type argument.
@@ -8621,7 +8635,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   AbstractTypeArguments& map_type_arguments =
       AbstractTypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
-  // equivalent to using Dynamic as the type argument for the value type.
+  // equivalent to using dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
     ASSERT(map_type_arguments.Length() > 0);
     // Map literals take two type arguments.
@@ -8658,7 +8672,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
-  // The kv_pair array is temporary and of element type Dynamic. It is passed
+  // The kv_pair array is temporary and of element type dynamic. It is passed
   // to the factory to initialize a properly typed map.
   ArrayNode* kv_pairs =
       new ArrayNode(TokenPos(), Type::ZoneHandle(Type::ListInterface()));

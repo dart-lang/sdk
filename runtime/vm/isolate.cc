@@ -339,7 +339,7 @@ static int MostUsedFunctionFirst(const Function* const* a,
 static void AddFunctionsFromClass(const Class& cls,
                                   GrowableArray<const Function*>* functions) {
   const Array& class_functions = Array::Handle(cls.functions());
-  // Class 'Dynamic' is allocated/initialized in a special way, leaving
+  // Class 'dynamic' is allocated/initialized in a special way, leaving
   // the functions field NULL instead of empty.
   const int func_len = class_functions.IsNull() ? 0 : class_functions.Length();
   for (int j = 0; j < func_len; j++) {

@@ -296,7 +296,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
 
   return 0
 
-def _DeleteFirefoxProfiles(directory):
+def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
   for f in os.listdir(directory):
     item = os.path.join(directory, f)
@@ -324,12 +324,12 @@ def CleanUpTemporaryFiles(system, browser):
   if system == 'win7':
     shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
         ignore_errors=True)
-  elif browser == 'ff':
+  elif browser == 'ff' or 'opera':
     # Note: the buildbots run as root, so we can do this without requiring a
     # password. The command won't actually work on regular machines without
     # root permissions.
-    _DeleteFirefoxProfiles('/tmp')
-    _DeleteFirefoxProfiles('/var/tmp')
+    _DeleteTempWebdriverProfiles('/tmp')
+    _DeleteTempWebdriverProfiles('/var/tmp')
 
 def ClobberBuilder(mode):
   """ Clobber the builder before we do the build.

@@ -65,7 +65,7 @@ testAll() {
     bool got_type_error = false;
     var x = new List();
     try {
-      Expect.isTrue(x is List<UndeclaredType>);  // x is a List<Dynamic>.
+      Expect.isTrue(x is List<UndeclaredType>);  // x is a List<dynamic>.
     } on TypeError catch (error) {
       got_type_error = true;
     }

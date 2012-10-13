@@ -387,7 +387,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static RawClass* class_class_;  // Class of the Class vm object.
   static RawClass* null_class_;  // Class of the null object.
-  static RawClass* dynamic_class_;  // Class of the 'Dynamic' type.
+  static RawClass* dynamic_class_;  // Class of the 'dynamic' type.
   static RawClass* void_class_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   // Class of the TypeArguments vm object.
@@ -575,7 +575,7 @@ class Class : public Object {
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
 
-  // Check if this class represents the 'Dynamic' class.
+  // Check if this class represents the 'dynamic' class.
   bool IsDynamicClass() const { return id() == kDynamicCid; }
 
   // Check if this class represents the 'void' class.
@@ -846,12 +846,12 @@ class AbstractTypeArguments : public Object {
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
 
-  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, Smi>".
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   virtual RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
   }
 
-  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, int>".
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
   // Names of internal classes are mapped to their public interfaces.
   virtual RawString* UserVisibleName() const {
     return SubvectorName(0, Length(), kUserVisibleName);
@@ -917,7 +917,7 @@ class AbstractTypeArguments : public Object {
                 Error* malformed_error) const;
 
   // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, Dynamic, List<T>, int>".
+  // vector, e.g. "<T, dynamic, List<T>, int>".
   RawString* SubvectorName(intptr_t from_index,
                            intptr_t len,
                            NameVisibility name_visibility) const;
@@ -3089,7 +3089,7 @@ class AbstractType : public Instance {
   // type.
   RawString* ClassName() const;
 
-  // Check if this type represents the 'Dynamic' type.
+  // Check if this type represents the 'dynamic' type.
   bool IsDynamicType() const {
     return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
   }
@@ -3218,7 +3218,7 @@ class Type : public AbstractType {
   // The type of the literal 'null'.
   static RawType* NullType();
 
-  // The 'Dynamic' type.
+  // The 'dynamic' type.
   static RawType* DynamicType();
 
   // The 'void' type.

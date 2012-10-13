@@ -29,7 +29,7 @@ class ClassFinalizer : public AllStatic {
  public:
   // Modes for type resolution and finalization. The ordering is relevant.
   enum FinalizationKind {
-    kIgnore,                   // Type is ignored and replaced by Dynamic.
+    kIgnore,                   // Type is ignored and replaced by dynamic.
     kDoNotResolve,             // Type resolution is postponed.
     kTryResolve,               // Type resolution is attempted.
     kFinalize,                 // Type resolution and type finalization are
