@@ -54,7 +54,7 @@ class Version {
       }
       StringInputStream input = new StringInputStream(f.openInputStream());
       input.onLine = () {
-        var line = input.readLine();
+        var line = input.readLine().trim();
         if (line == null) {
           c.completeException(
               "VERSION input file seems to be in the wrong format");
