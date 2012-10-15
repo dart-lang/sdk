@@ -85,7 +85,17 @@ class HostedSource extends Source {
       // Now that the install has succeeded, move it to the real location in
       // the cache. This ensures that we don't leave half-busted ghost
       // directories in the user's pub cache if an install fails.
-      return renameDir(tempDir, destPath);
+      var rename = renameDir(tempDir, destPath);
+
+      // TODO(rnystrom): Awful hack. On Windows, we see cases where the extract
+      // has not finished by the time we get here, so the rename fails with a
+      // "directory in use" error. So, we will just wait a couple of seconds
+      // before we start.
+      if (Platform.operatingSystem == "windows") {
+        rename = sleep(2000).chain((_) => rename);
+      }
+
+      return rename;
     }).transform((_) => true);
   }
 
