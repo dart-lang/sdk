@@ -13,6 +13,5 @@ sum(param0, param1) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'sum');
-  Expect.isTrue(generated.contains('++i'));
+  compileAndMatchFuzzy(TEST_ONE, 'sum', r"\+\+x");
 }

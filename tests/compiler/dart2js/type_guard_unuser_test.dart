@@ -6,9 +6,9 @@
 
 const String TEST_ONE = r"""
 foo(a) {
-  int c = foo(true);
-  if (a) c = foo(2);
-  return c;
+  int b = foo(true);
+  if (a) b = foo(2);
+  return b;
 }
 """;
 
@@ -24,16 +24,16 @@ foo(d) {
 """;
 
 const String TEST_THREE = r"""
-foo(int param1, int param2) {
-  return 0 + param1 + param2;
+foo(int a, int b) {
+  return 0 + a + b;
 }
 """;
 
 const String TEST_THREE_WITH_BAILOUT = r"""
-foo(int param1, int param2) {
+foo(int a, int b) {
   var t;
   for (int i = 0; i < 1; i++) {
-    t = 0 + param1 + param2;
+    t = 0 + a + b;
   }
   return t;
 }
@@ -44,7 +44,7 @@ main() {
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 0);
-  Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : c;'));
+  Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
 
   generated = compile(TEST_TWO, 'foo');
   regexp = const RegExp("foo\\(1\\)");
@@ -52,14 +52,14 @@ main() {
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
-  regexp = new RegExp(getNumberTypeCheck('param1'));
+  regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(getNumberTypeCheck('param2'));
+  regexp = new RegExp(getNumberTypeCheck('b'));
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE_WITH_BAILOUT, 'foo');
-  regexp = new RegExp(getNumberTypeCheck('param1'));
+  regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(getNumberTypeCheck('param2'));
+  regexp = new RegExp(getNumberTypeCheck('b'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

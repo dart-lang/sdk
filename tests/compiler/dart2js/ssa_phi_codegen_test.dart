@@ -42,49 +42,33 @@ foo(b, c, d) {
 
 const String TEST_FOUR = r"""
 foo() {
-  var cond1 = true;
-  var cond2 = false;
-  for (var i = 0; cond1; i = i + 1) {
-    if (i == 9) cond1 = false;
-    for (var j = 0; cond2; j = j + 1) {
-      if (j == 9) cond2 = false;
+  var a = true;
+  var b = false;
+  for (var i = 0; a; i = i + 1) {
+    if (i == 9) a = false;
+    for (var j = 0; b; j = j + 1) {
+      if (j == 9) b = false;
     }
   }
-  print(cond1);
-  print(cond2);
+  print(a);
+  print(b);
 }
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains('var a = bar === true ? 2 : 3;'));
-  Expect.isTrue(generated.contains('print(a);'));
+  compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;");
+  compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);");
 
-  generated = compile(TEST_TWO, 'main');
-  RegExp regexp = new RegExp("t \\+= 10");
-  Expect.isTrue(regexp.hasMatch(generated));
+  compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10");
+  compileAndMatchFuzzy(TEST_TWO, 'main', "\\+\\+x");
 
-  regexp = new RegExp("\\+\\+i");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  generated = compile(TEST_THREE, 'foo');
-
-  // Check that we don't have 'val = val'.
-  regexp = const RegExp("val = val;");
-  Expect.isTrue(!regexp.hasMatch(generated));
-
-  regexp = const RegExp("return val");
-  Expect.isTrue(regexp.hasMatch(generated));
+  // Check that we don't have 'd = d' (using regexp back references).
+  compileAndDoNotMatchFuzzy(TEST_THREE, 'foo', '(x) = \1');
+  compileAndMatchFuzzy(TEST_THREE, 'foo', 'return x');
   // Check that a store just after the declaration of the local
   // only generates one instruction.
-  regexp = const RegExp(r"val = 42");
-  Expect.isTrue(regexp.hasMatch(generated));
+  compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42');
 
-  generated = compile(TEST_FOUR, 'foo');
-
-  regexp = const RegExp("cond1 = cond1;");
-  Expect.isTrue(!regexp.hasMatch(generated));
-
-  regexp = const RegExp("cond2 = cond2;");
-  Expect.isTrue(!regexp.hasMatch(generated));
+  var generated = compile(TEST_FOUR, 'foo');
+  compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
 }

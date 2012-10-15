@@ -14,8 +14,8 @@ sum(param0, param1) {
 
 main() {
   String generated = compile(TEST_ONE, 'sum');
-  RegExp regexp = new RegExp(getNumberTypeCheck('param0'));
+  RegExp regexp = new RegExp(getNumberTypeCheck('(param0|a)'));
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(getNumberTypeCheck('param1'));
+  regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

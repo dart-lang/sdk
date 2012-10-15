@@ -21,6 +21,9 @@ main() {
   Expect.isFalse(generated.contains('iae'));
   // Also make sure that we are not just in bailout mode without speculative
   // types by grepping for the integer-bailout check on argument j.
-  RegExp regexp = new RegExp(getIntTypeCheck('j'));
+  var argname =
+      const RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)').firstMatch(generated)[1];
+  print(argname);
+  RegExp regexp = new RegExp(getIntTypeCheck(argname));
   Expect.isTrue(regexp.hasMatch(generated));
 }

@@ -53,8 +53,8 @@ main() {
 
 const String TEST_FIVE = r"""
 class A {
-  var x;
-  A(x) : this.x = x {}
+  var a;
+  A(a) : this.a = a {}
 }
 
 main() {
@@ -90,7 +90,7 @@ $.B = {"":
 
 constructor1() {
   String generated = compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains(r"new $.A(x);"));
+  Expect.isTrue(generated.contains(r"new $.A(a);"));
 }
 
 main() {

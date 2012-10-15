@@ -5,38 +5,38 @@
 #import("compiler_helper.dart");
 
 const String TEST_ONE = r"""
-sum(param0, param1) {
-  var sum = 0;
-  for (var i = param0; i < param1; i += 1) sum = sum + i;
-  return sum;
+sum(a, b) {
+  var c = 0;
+  for (var d = a; d < b; d += 1) c = c + d;
+  return c;
 }
 """;
 
 const String TEST_TWO = r"""
-foo(int param0) {
-  return -param0;
+foo(int a) {
+  return -a;
 }
 """;
 
 const String TEST_TWO_WITH_BAILOUT = r"""
-foo(int param0) {
-  for (int i = 0; i < 1; i++) {
-    param0 = -param0;
+foo(int a) {
+  for (int b = 0; b < 1; b++) {
+    a = -a;
   }
-  return param0;
+  return a;
 }
 """;
 
 const String TEST_THREE = r"""
-foo(c) {
-  for (int i = 0; i < 10; i++) print(c[i]);
+foo(a) {
+  for (int b = 0; b < 10; b++) print(a[b]);
 }
 """;
 
 const String TEST_FOUR = r"""
-foo(String c) {
-  print(c[0]); // Force a type guard.
-  while (true) print(c.length);
+foo(String a) {
+  print(a[0]); // Force a type guard.
+  while (true) print(a.length);
 }
 """;
 
@@ -66,30 +66,29 @@ foo(a) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'sum');
-  Expect.isTrue(generated.contains('sum += i'));
-  Expect.isTrue(generated.contains("typeof param1 !== 'number'"));
+  compileAndMatchFuzzy(TEST_ONE, 'sum', "x \\+= x");
+  compileAndMatchFuzzy(TEST_ONE, 'sum', "typeof x !== 'number'");
 
-  generated = compile(TEST_TWO, 'foo');
-  RegExp regexp = new RegExp(getNumberTypeCheck('param0'));
+  var generated = compile(TEST_TWO, 'foo');
+  RegExp regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  regexp = const RegExp('-param0');
+  regexp = const RegExp('-a');
   Expect.isTrue(!regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO_WITH_BAILOUT, 'foo');
-  regexp = new RegExp(getNumberTypeCheck('param0'));
+  regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp('-param0');
+  regexp = const RegExp('-a');
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE, 'foo');
-  regexp = new RegExp("c[$anyIdentifier]");
+  regexp = new RegExp("a[$anyIdentifier]");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FOUR, 'foo');
-  regexp = new RegExp("c.length");
+  regexp = new RegExp("a.length");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FIVE, 'foo');

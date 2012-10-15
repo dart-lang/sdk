@@ -68,11 +68,11 @@ lego.Element findElement(compiler, String name) {
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {
-  return "\\($variable !== \\($variable \\| 0\\)\\)";
+  return "\\($variable ?!== ?\\($variable ?\\| ?0\\)\\)";
 }
 
 String getNumberTypeCheck(String variable) {
-  return "\\(typeof $variable !== 'number'\\)";
+  return "\\(typeof $variable ?!== ?'number'\\)";
 }
 
 bool checkNumberOfMatches(Iterator it, int nb) {
@@ -96,3 +96,28 @@ void compileAndDoNotMatch(String code, String entry, RegExp regexp) {
 }
 
 int length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
+
+// Does a compile and then a match where every 'x' is replaced by something
+// that matches any variable, and every space is optional.
+void compileAndMatchFuzzy(String code, String entry, String regexp) {
+  compileAndMatchFuzzyHelper(code, entry, regexp, true);
+}
+ 
+void compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
+  compileAndMatchFuzzyHelper(code, entry, regexp, false);
+}
+
+void compileAndMatchFuzzyHelper(
+    String code, String entry, String regexp, bool shouldMatch) {
+  String generated = compile(code, entry);
+  final xRe = new RegExp('\\bx\\b');
+  regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
+  final spaceRe = new RegExp('\\s+');
+  regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
+  if (shouldMatch) {
+    Expect.isTrue(new RegExp(regexp).hasMatch(generated));
+  } else {
+    Expect.isFalse(new RegExp(regexp).hasMatch(generated));
+  }
+}
+

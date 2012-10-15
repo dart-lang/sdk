@@ -351,7 +351,7 @@ class Printer implements NodeVisitor {
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
-  void functionOut(Fun fun, Node name) {
+  void functionOut(Fun fun, Node name, VarCollector vars) {
     out("function");
     if (name != null) {
       out(" ");
@@ -359,7 +359,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    namer.enterScope();
+    namer.enterScope(vars);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -371,8 +371,10 @@ class Printer implements NodeVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
+    VarCollector vars = new VarCollector();
+    vars.visitFunctionDeclaration(declaration);
     indent();
-    functionOut(declaration.function, declaration.name);
+    functionOut(declaration.function, declaration.name, vars);
     lineOut();
   }
 
@@ -613,11 +615,11 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclaration(VariableDeclaration decl) {
-    out(namer.declareName(decl.name));
+    out(namer.getName(decl.name));
   }
 
   visitParameter(Parameter param) {
-    out(namer.declareName(param.name));
+    out(namer.getName(param.name));
   }
 
   bool isDigit(int charCode) {
@@ -665,11 +667,15 @@ class Printer implements NodeVisitor {
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
-    functionOut(namedFunction.function, namedFunction.name);
+    VarCollector vars = new VarCollector();
+    vars.visitNamedFunction(namedFunction);
+    functionOut(namedFunction.function, namedFunction.name, vars);
   }
 
   visitFun(Fun fun) {
-    functionOut(fun, null);
+    VarCollector vars = new VarCollector();
+    vars.visitFun(fun);
+    functionOut(fun, null, vars);
   }
 
   visitLiteralBool(LiteralBool node) {
@@ -778,6 +784,58 @@ class Printer implements NodeVisitor {
   }
 }
 
+
+// Collects all the var declarations in the function.  We need to do this in a
+// separate pass because JS vars are lifted to the top of the function.
+class VarCollector extends BaseVisitor {
+  bool nested;
+  final Set<String> vars;
+  final List<String> ordered_vars;
+
+  VarCollector() : nested = false, vars = new Set<String>(), ordered_vars = [];
+
+  void forEach(void fn(String)) => ordered_vars.forEach(fn);
+
+  void collectVarsInFunction(Fun fun) {
+    if (!nested) {
+      nested = true;
+      if (fun.params != null) {
+        for (int i = 0; i < fun.params.length; i++) {
+          add(fun.params[i].name);
+        }
+      }
+      visitBlock(fun.body);
+      nested = false;
+    }
+  }
+
+  void add(String name) {
+    if (!vars.contains(name)) {
+      vars.add(name);
+      ordered_vars.add(name);
+    }
+  }
+
+  void visitFunctionDeclaration(FunctionDeclaration declaration) {
+    // Note that we don't bother collecting the name of the function.
+    collectVarsInFunction(declaration.function);
+  }
+
+  void visitNamedFunction(NamedFunction namedFunction) {
+    // Note that we don't bother collecting the name of the function.
+    collectVarsInFunction(namedFunction.function);
+  }
+
+  void visitFun(Fun fun) {
+    collectVarsInFunction(fun);
+  }
+
+  void visitVariableDeclaration(VariableDeclaration decl) {
+    add(decl.name);
+  }
+}
+
+
 /**
  * Returns true, if the given node must be wrapped into braces when used
  * as then-statement in an [If] that has an else branch.
@@ -839,7 +897,7 @@ leg.CodeBuffer prettyPrint(Node node,
 abstract class Namer {
   String getName(String oldName);
   String declareName(String oldName);
-  void enterScope();
+  void enterScope(VarCollector vars);
   void leaveScope();
 }
 
@@ -847,7 +905,7 @@ abstract class Namer {
 class IdentityNamer implements Namer {
   String getName(String oldName) => oldName;
   String declareName(String oldName) => oldName;
-  void enterScope() {}
+  void enterScope(VarCollector vars) {}
   void leaveScope() {}
 }
 
@@ -859,9 +917,10 @@ class MinifyRenamer implements Namer {
 
   MinifyRenamer();
 
-  void enterScope() {
+  void enterScope(VarCollector vars) {
     maps.add(new Map<String, String>());
     nameNumberStack.add(nameNumber);
+    vars.forEach(declareName);
   }
 
   void leaveScope() {
@@ -886,6 +945,7 @@ class MinifyRenamer implements Namer {
     const LETTERS = 52;
     const DIGITS = 10;
     if (maps.isEmpty()) return oldName;
+
     String newName;
     int n = nameNumber;
     if (n < LETTERS) {

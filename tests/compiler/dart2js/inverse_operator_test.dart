@@ -16,6 +16,5 @@ main() {
 
 main() {
   // Make sure we don't introduce a new variable.
-  RegExp regexp = new RegExp("1 >= x");
-  compileAndMatch(MAIN, 'main', regexp);
+  compileAndMatchFuzzy(MAIN, 'main', "1 >= x");
 }
