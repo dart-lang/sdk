@@ -212,6 +212,16 @@ class DbgMsgQueueList {
   // It returns kInvalidCommand otherwise.
   static int32_t LookupIsolateCommand(const char* buf, int32_t buflen);
 
+  // Queue debugger message targetted for the isolate.
+  static bool AddIsolateMessage(Dart_IsolateId isolate_id,
+                                int32_t cmd_idx,
+                                const char* start,
+                                const char* end,
+                                int debug_fd);
+
+  // Interrupt isolate.
+  static bool InterruptIsolate(Dart_IsolateId isolate_id);
+
   // Add Debugger Message Queue corresponding to the Isolate.
   static DbgMsgQueue* AddIsolateMsgQueue(Dart_IsolateId isolate_id);
 
@@ -237,6 +247,8 @@ class DbgMsgQueueList {
                                   Dart_IsolateEvent kind);
 
  private:
+  static DbgMsgQueue* GetIsolateMsgQueueLocked(Dart_IsolateId isolate_id);
+
   static DbgMsgQueue* list_;
   static dart::Mutex msg_queue_list_lock_;
 

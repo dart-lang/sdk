@@ -227,12 +227,14 @@ void DebuggerConnectionHandler::HandleMessages() {
         // Get debug message queue corresponding to isolate.
         // TODO(asiva): Once we have support for including the isolate id
         // in the debug wire protocol we need to read the isolate id and
-        // pass it down to GetIsolateMsgQueue to get the appropriate debug
-        // message queue.
-        DbgMsgQueue* queue =
-            DbgMsgQueueList::GetIsolateMsgQueue(ILLEGAL_ISOLATE_ID);
-        ASSERT(queue != NULL);
-        queue->AddMessage(cmd_idx, msgbuf_->buf(), r.EndOfObject(), debug_fd_);
+        // pass it down to AddIsolateMessage.
+        if (!DbgMsgQueueList::AddIsolateMessage(ILLEGAL_ISOLATE_ID,
+                                                cmd_idx,
+                                                msgbuf_->buf(),
+                                                r.EndOfObject(),
+                                                debug_fd_)) {
+          SendError(debug_fd_, MessageId(), "Invalid isolate specified");
+        }
         msgbuf_->PopMessage();
         continue;
       }
@@ -377,9 +379,10 @@ void DebuggerConnectionHandler::HandleInterruptCmd(DbgMessage* in_msg) {
     in_msg->SendErrorReply(msg_id, "Invalid isolate specified");
     return;
   }
-  DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueue(isolate_id);
-  ASSERT(queue != NULL);
-  queue->InterruptIsolate();
+  if (!DbgMsgQueueList::InterruptIsolate(isolate_id)) {
+    in_msg->SendErrorReply(msg_id, "Invalid isolate specified");
+    return;
+  }
   dart::TextBuffer msg(64);
   msg.Printf("{ \"id\": %d }", msg_id);
   in_msg->SendReply(&msg);

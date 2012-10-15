@@ -96,6 +96,10 @@ def ProcessTools(mode, name, version):
 
   toolsBuildScript = os.path.join('.', 'editor', 'build', 'build.py')
 
+  # TODO(devoncarew): should we move this into GetBuildInfo()?  
+  # get the latest changed revision from the current repository sub-tree
+  version = GetLatestChangedRevision()
+
   #TODO: debug statements to be removed in the future.
   print "mode = " + mode
   print "name = " + name
@@ -152,8 +156,36 @@ def ClobberBuilder():
 def GetShouldClobber():
   return os.environ.get(BUILDER_CLOBBER) == "1"
 
+def RunDart(scriptPath):
+  if sys.platform == 'darwin':
+    pipe = subprocess.Popen(
+          ['./tools/testing/bin/macos/dart', scriptPath], 
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  elif os.name == 'posix':
+    pipe = subprocess.Popen(
+          ['./tools/testing/bin/linux/dart', scriptPath], 
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  else:
+    pipe = subprocess.Popen(
+          ['tools\\testing\\bin\\windows\\dart.exe', scriptPath], 
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+  output = pipe.communicate()
+  return output[0]
+
+def GetLatestChangedRevision():
+  # 0.1.2.0_r13661
+  # 0.1.2.0_r13661_username
+  fullVersion = RunDart("tools/version.dart")
+
+  m = re.search('._r(\d+)', fullVersion)
+  svnRev = m.group(1)
+
+  return svnRev
+
 def main():
   print 'main'
+
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
