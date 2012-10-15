@@ -992,19 +992,21 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
   if (queue->isolate_id() == isolate_id) {
     list_ = queue->next();  // Remove from list.
     delete queue;  // Delete the message queue.
+    return;
   } else {
     DbgMsgQueue* iterator = queue;
     queue = queue->next();
     while (queue != NULL) {
-      if (queue->isolate_id() != isolate_id) {
+      if (queue->isolate_id() == isolate_id) {
         iterator->set_next(queue->next());  // Remove from list.
         delete queue;  // Delete the message queue.
-        break;
+        return;
       }
       iterator = queue;
       queue = queue->next();
     }
   }
+  UNREACHABLE();
 }
 
 
