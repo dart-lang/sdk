@@ -246,6 +246,7 @@ testRedirectingFactoryConstructors() {
 testClassDeclarations() {
   testUnparseTopLevelWithMetadata('class Foo{}');
   testUnparseTopLevelWithMetadata('abstract class Foo{}');
+  testUnparseTopLevelWithMetadata('class Fisk{operator-(x){}}');
 }
 
 main() {

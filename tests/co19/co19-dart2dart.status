@@ -159,7 +159,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # htt
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # http://dartbug.com/5519
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # inherited from VM
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # http://dartbug.com/5519
-Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # inherited from dart2js
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # inherited from VM
@@ -562,6 +561,8 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # Redirecting constructors can not use initializing formals. This bug was previously masked - compilation failed, but for different, wrong reason.
+
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Fail, OK # Uses deprecated factory syntax.
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN

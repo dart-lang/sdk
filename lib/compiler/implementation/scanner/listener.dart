@@ -1663,11 +1663,17 @@ class NodeListener extends ElementListener {
                         Token endToken) {
     Statement body = popNode();
     NodeList formals = popNode();
-    NodeList typeParameters = popNode(); // TODO(karlklose): don't throw away.
-    Node name = popNode();
+    // TODO(karlklose): don't throw type parameters away.
+    NodeList typeParameters;
+    Node name;
     if (periodBeforeName !== null) {
+      name = popNode();
+      typeParameters = popNode();
       // A library prefix was handled in [handleQualified].
       name = new Send(popNode(), name);
+    } else {
+      typeParameters = popNode();
+      name = popNode();
     }
     // TODO(ahe): Move this parsing to the parser.
     int modifierCount = 0;
