@@ -685,7 +685,13 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     // Write the archive to a temp file.
     tempDir = temp;
     return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
-  }).chain((tarGz) {
+  }).chain((_) {
+    // TODO(rnystrom): Hack. We get intermittent "file already in use" errors.
+    // It looks like the 7zip process is starting up before the file has
+    // finished being written. So we'll just sleep for a couple of seconds
+    // here. :(
+    return sleep(2000);
+  }).chain((_) {
     // 7zip can't unarchive from gzip -> tar -> destination all in one step
     // first we un-gzip it to a tar file.
     // Note: Setting the working directory instead of passing in a full file
@@ -697,7 +703,6 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
           '${Strings.join(result.stdout, "\n")}\n'
           '${Strings.join(result.stderr, "\n")}';
     }
-
     // Find the tar file we just created since we don't know its name.
     return listDir(tempDir);
   }).chain((files) {
@@ -717,6 +722,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).chain((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
+          '${Strings.join(result.stdout, "\n")}\n'
           '${Strings.join(result.stderr, "\n")}';
     }
 
