@@ -2,9 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == none || $compiler == dartc ]
+mirrors/dart2js_mirrors_test: Fail
+
 [ $compiler == dart2js || $compiler == dartc ]
 math/*: Skip
-mirrors/*: Skip
+mirrors/mirrors_test: Fail
 
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass

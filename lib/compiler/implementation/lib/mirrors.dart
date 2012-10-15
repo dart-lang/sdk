@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * The dart:mirrors library provides reflective access for Dart programs.
+ *
+ * Mirrors are currently only supported by the Dart VM.
+ */
 #library("dart:mirrors");
 
 #import("dart:isolate");

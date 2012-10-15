@@ -55,6 +55,7 @@ abstract class MirrorSystem {
 /**
  * Returns a [MirrorSystem] for the current isolate.
  */
+// TODO(johnniwinther): Implement this as an external function.
 MirrorSystem currentMirrorSystem() {
   return _Mirrors.currentMirrorSystem();
 }
@@ -63,6 +64,7 @@ MirrorSystem currentMirrorSystem() {
  * Creates a [MirrorSystem] for the isolate which is listening on
  * the [SendPort].
  */
+// TODO(johnniwinther): Implement this as an external function.
 Future<MirrorSystem> mirrorSystemOf(SendPort port) {
   return _Mirrors.mirrorSystemOf(port);
 }
@@ -73,6 +75,7 @@ Future<MirrorSystem> mirrorSystemOf(SendPort port) {
  * This only works if this mirror system is associated with the
  * current running isolate.
  */
+// TODO(johnniwinther): Implement this as an external function.
 InstanceMirror reflect(Object reflectee) {
   return _Mirrors.reflect(reflectee);
 }
