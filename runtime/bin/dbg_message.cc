@@ -845,7 +845,6 @@ void DbgMsgQueue::HandleMessages() {
 
 void DbgMsgQueue::InterruptIsolate() {
   Dart_Isolate isolate = Dart_GetIsolate(isolate_id_);
-  ASSERT(DbgMsgQueueList::GetIsolateMsgQueue(isolate_id_) == this);
   MonitorLocker ml(&msg_queue_lock_);
   if (is_running_ && !is_interrupted_) {
     is_interrupted_ = true;
@@ -950,6 +949,32 @@ int32_t DbgMsgQueueList::LookupIsolateCommand(const char* buf,
 }
 
 
+bool DbgMsgQueueList::AddIsolateMessage(Dart_IsolateId isolate_id,
+                                        int32_t cmd_idx,
+                                        const char* start,
+                                        const char* end,
+                                        int debug_fd) {
+  MutexLocker ml(&msg_queue_list_lock_);
+  DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
+  if (queue != NULL) {
+    queue->AddMessage(cmd_idx, start, end, debug_fd);
+    return true;
+  }
+  return false;
+}
+
+
+bool DbgMsgQueueList::InterruptIsolate(Dart_IsolateId isolate_id) {
+  MutexLocker ml(&msg_queue_list_lock_);
+  DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
+  if (queue != NULL) {
+    queue->InterruptIsolate();
+    return true;
+  }
+  return false;
+}
+
+
 DbgMsgQueue* DbgMsgQueueList::AddIsolateMsgQueue(Dart_IsolateId isolate_id) {
   MutexLocker ml(&msg_queue_list_lock_);
 
@@ -962,7 +987,12 @@ DbgMsgQueue* DbgMsgQueueList::AddIsolateMsgQueue(Dart_IsolateId isolate_id) {
 
 DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueue(Dart_IsolateId isolate_id) {
   MutexLocker ml(&msg_queue_list_lock_);
+  ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
+  return GetIsolateMsgQueueLocked(isolate_id);
+}
 
+
+DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueueLocked(Dart_IsolateId id) {
   if (list_ == NULL) {
     return NULL;  // No items in the list.
   }
@@ -970,13 +1000,13 @@ DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueue(Dart_IsolateId isolate_id) {
   // TODO(asiva): Remove once debug wire protocol has isolate id.
   // For now we return the first item in the list as we are only supporting
   // debugging of a single isolate.
-  if (isolate_id == ILLEGAL_ISOLATE_ID) {
+  if (id == ILLEGAL_ISOLATE_ID) {
     return list_;
   }
 
   // Find message queue corresponding to isolate id.
   DbgMsgQueue* iterator = list_;
-  while (iterator != NULL && iterator->isolate_id() != isolate_id) {
+  while (iterator != NULL && iterator->isolate_id() != id) {
     iterator = iterator->next();
   }
   return iterator;
@@ -1014,7 +1044,6 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
                                          intptr_t bp_id,
                                          Dart_Handle url,
                                          intptr_t line_number) {
-  ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
@@ -1031,7 +1060,6 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
 void DbgMsgQueueList::BreakpointHandler(Dart_IsolateId isolate_id,
                                         Dart_Breakpoint bpt,
                                         Dart_StackTrace trace) {
-  ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
   DebuggerConnectionHandler::WaitForConnection();
   Dart_EnterScope();
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
@@ -1046,7 +1074,6 @@ void DbgMsgQueueList::BreakpointHandler(Dart_IsolateId isolate_id,
 void DbgMsgQueueList::ExceptionThrownHandler(Dart_IsolateId isolate_id,
                                              Dart_Handle exception,
                                              Dart_StackTrace stack_trace) {
-  ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
   DebuggerConnectionHandler::WaitForConnection();
   Dart_EnterScope();
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
@@ -1066,7 +1093,6 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
     DbgMsgQueue* msg_queue = AddIsolateMsgQueue(isolate_id);
     msg_queue->SendIsolateEvent(isolate_id, kind);
   } else {
-    ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
     DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
     ASSERT(msg_queue != NULL);
     msg_queue->SendQueuedMsgs();
