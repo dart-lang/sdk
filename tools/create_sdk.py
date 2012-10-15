@@ -323,7 +323,7 @@ def Main(argv):
   # Copy dart2js.
   CopyDart2Js(build_dir, SDK_tmp, version)
 
-  revision = utils.GetRevision()
+  revision = utils.GetSVNRevision()
 
   # Write the 'revision' file
   if revision is not None:
