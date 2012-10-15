@@ -99,6 +99,10 @@ class MemberListener extends NodeListener {
       bool isUnary = operator.token.next.next.stringValue === ')';
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
+      if (receiver == null) {
+        listener.cancel('library prefix in named factory constructor not '
+                        'implemented', node: send.receiver);
+      }
       return Elements.constructConstructorName(receiver.source,
                                                selector.source);
     }

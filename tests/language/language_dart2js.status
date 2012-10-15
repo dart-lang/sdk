@@ -86,7 +86,6 @@ positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js
 
 getter_declaration_negative_test: Fail # This will be fixed when dart2js reject old getter syntax.
 
-function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
 

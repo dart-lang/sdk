@@ -6,8 +6,6 @@
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-Language/07_Classes/6_Constructors/2_Factories_A01_t01: Crash # http://dartbug.com/5017
-
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.
@@ -352,6 +350,8 @@ Language/11_Statements/07_Do_A02_t02: Fail, OK # co19 issue 145.
 LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Fail, OK # Uses deprecated factory syntax.
 
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail, OK # co19 issue 210
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail, OK # co19 issue 210

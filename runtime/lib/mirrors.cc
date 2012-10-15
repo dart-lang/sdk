@@ -1022,27 +1022,32 @@ static Dart_Handle CreateMirroredError(Dart_Handle error) {
 
 void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle mirrors = CreateMirrorSystem();
   if (Dart_IsError(mirrors)) {
     Dart_PropagateError(mirrors);
   }
   Dart_SetReturnValue(args, mirrors);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle reflectee = Dart_GetNativeArgument(args, 0);
   Dart_Handle mirror = CreateInstanceMirror(reflectee);
   if (Dart_IsError(mirror)) {
     Dart_PropagateError(mirror);
   }
   Dart_SetReturnValue(args, mirror);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle member = Dart_GetNativeArgument(args, 1);
   // The wrapped arguments are either simple values or instance mirrors.
@@ -1067,11 +1072,13 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_PropagateError(wrapped_result);
   }
   Dart_SetReturnValue(args, wrapped_result);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_getField)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
 
@@ -1088,11 +1095,13 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_getField)(
     Dart_PropagateError(wrapped_result);
   }
   Dart_SetReturnValue(args, wrapped_result);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
   // The wrapped argument is either a simple value or instance mirror.
@@ -1115,11 +1124,13 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
     Dart_PropagateError(wrapped_result);
   }
   Dart_SetReturnValue(args, wrapped_result);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   // The wrapped arguments are either simple values or instance mirrors.
   Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 1);
@@ -1143,11 +1154,13 @@ void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
     Dart_PropagateError(wrapped_result);
   }
   Dart_SetReturnValue(args, wrapped_result);
+  Dart_ExitScope();
 }
 
 
 void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
     Dart_NativeArguments args) {
+  Dart_EnterScope();
   Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);
   // The wrapped arguments are either simple values or instance mirrors.
@@ -1174,6 +1187,7 @@ void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
     Dart_PropagateError(wrapped_result);
   }
   Dart_SetReturnValue(args, wrapped_result);
+  Dart_ExitScope();
 }
 
 

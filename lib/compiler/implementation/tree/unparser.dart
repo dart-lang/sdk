@@ -270,7 +270,8 @@ class Unparser implements Visitor {
     if (!node.isPrefix && !node.isIndex) visit(node.selector);
     if (spacesNeeded) sb.add(' ');
     // Also add a space for sequences like x + +1 and y - -y.
-    if (opString === '-' || opString === '+') {
+    // TODO(ahe): remove case for '+' when we drop the support for it.
+    if (node.argumentsNode != null && (opString === '-' || opString === '+')) {
       Token beginToken = node.argumentsNode.getBeginToken();
       if (beginToken !== null && beginToken.stringValue === opString) {
         sb.add(' ');
