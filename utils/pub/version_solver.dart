@@ -59,6 +59,7 @@ import 'version.dart';
  */
 Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root,
     LockFile lockFile) {
+  print('Resolving dependencies...');
   return new VersionSolver(sources, root, lockFile).solve();
 }
 

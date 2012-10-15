@@ -73,19 +73,20 @@ class HostedSource extends Source {
 
     var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
 
-    return Futures.wait([httpGet(fullUrl), ensureDir(destPath)]).chain((args) {
-      return timeout(extractTarGz(args[0], args[1]), HTTP_TIMEOUT,
-          'Timed out while fetching URL "$fullUrl".');
-    }).transformException((ex) {
-      // If the install failed, delete the directory. Prevents leaving a ghost
-      // directory in the system cache which would later make pub think the
-      // install succeeded.
-      // TODO(rnystrom): Use deleteDir() here when transformException() supports
-      // returning a future. Also remove dart:io import then.
-      new io.Directory(destPath).deleteRecursivelySync();
+    print('Downloading $id...');
 
-      throw ex;
-    });
+    // Download and extract the archive to a temp directory.
+    var tempDir;
+    return Futures.wait([httpGet(fullUrl), createTempDir()]).chain((args) {
+      tempDir = args[1];
+      return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
+          'Timed out while fetching URL "$fullUrl".');
+    }).chain((_) {
+      // Now that the install has succeeded, move it to the real location in
+      // the cache. This ensures that we don't leave half-busted ghost
+      // directories in the user's pub cache if an install fails.
+      return renameDir(tempDir, destPath);
+    }).transform((_) => true);
   }
 
   /**

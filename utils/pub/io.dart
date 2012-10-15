@@ -283,6 +283,10 @@ Future<Directory> cleanDir(dir) {
   });
 }
 
+/// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
+/// the destination directory.
+Future<Directory> renameDir(from, String to) =>_getDirectory(from).rename(to);
+
 /**
  * Creates a new symlink that creates an alias from [from] to [to], both of
  * which can be a [String], [File], or [Directory]. Returns a [Future] which
@@ -690,6 +694,7 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
   }).chain((result) {
     if (result.exitCode != 0) {
       throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
+          '${Strings.join(result.stdout, "\n")}\n'
           '${Strings.join(result.stderr, "\n")}';
     }
 

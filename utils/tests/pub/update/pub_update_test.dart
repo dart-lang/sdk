@@ -88,9 +88,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],
-        output: '''
-        Dependencies updated!
-        ''');
+        output: const RegExp(r"Dependencies updated!$"));
 
     packagesDir({"foo": null}).scheduleValidate();
 
