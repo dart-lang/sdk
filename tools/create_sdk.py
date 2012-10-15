@@ -323,10 +323,12 @@ def Main(argv):
   # Copy dart2js.
   CopyDart2Js(build_dir, SDK_tmp, version)
 
-  # Write the 'version' file
-  if version is not None:
-    with open(os.path.join(SDK_tmp, 'version'), 'w') as f:
-      f.write(version + '\n')
+  revision = utils.GetRevision()
+
+  # Write the 'revision' file
+  if revision is not None:
+    with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
+      f.write(revision + '\n')
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
