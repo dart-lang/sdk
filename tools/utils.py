@@ -152,6 +152,14 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
 def GetBaseDir():
   return BASE_DIR
 
+def GetVersion():
+  dartbin = DartBinary()
+  version_script = VersionScript()
+  p = subprocess.Popen([dartbin, version_script], stdout = subprocess.PIPE,
+      stderr = subprocess.STDOUT, shell=IsWindows())
+  output, not_used = p.communicate()
+  return output.strip()
+
 def GetSVNRevision():
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
       stderr = subprocess.STDOUT, shell=IsWindows())
@@ -295,6 +303,11 @@ def DiagnoseExitCode(exit_code, command):
 def Touch(name):
   with file(name, 'a'):
     os.utime(name, None)
+
+
+def VersionScript():
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  return os.path.join(tools_dir, 'version.dart')
 
 
 def DartBinary():

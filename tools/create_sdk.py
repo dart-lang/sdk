@@ -103,12 +103,12 @@ def CopyShellScript(src_file, dest_dir):
   Copy(src, dest)
 
 
-def CopyDart2Js(build_dir, sdk_root, revision):
-  if revision:
+def CopyDart2Js(build_dir, sdk_root, version):
+  if version:
     ReplaceInFiles([os.path.join(sdk_root, 'pkg', 'compiler',
                                  'implementation', 'compiler.dart')],
                    [(r"BUILD_ID = 'build number could not be determined'",
-                     r"BUILD_ID = '%s'" % revision)])
+                     r"BUILD_ID = '%s'" % version)])
   if utils.GuessOS() == 'win32':
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js.bat')
     Copy(os.path.join(build_dir, 'dart2js.bat'), dart2js)
@@ -318,15 +318,15 @@ def Main(argv):
          "var pathTo7zip = '7zip/7za.exe';"),
       ])
 
-  revision = utils.GetSVNRevision()
+  version = utils.GetVersion()
 
   # Copy dart2js.
-  CopyDart2Js(build_dir, SDK_tmp, revision)
+  CopyDart2Js(build_dir, SDK_tmp, version)
 
-  # Write the 'revision' file
-  if revision is not None:
-    with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
-      f.write(revision + '\n')
+  # Write the 'version' file
+  if version is not None:
+    with open(os.path.join(SDK_tmp, 'version'), 'w') as f:
+      f.write(version + '\n')
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
