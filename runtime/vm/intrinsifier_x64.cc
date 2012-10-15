@@ -570,8 +570,10 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
   // This shift means we only multiply the index by 2 not 4 (sizeof float).
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   // If RDX is not an instance of double, jump to fall through.
+  __ testq(RDX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);
   __ CompareClassId(RDX, kDoubleCid);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
   // Convert from double precision float to single precision float.
@@ -621,8 +623,10 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
   // This shift means we only multiply the index by 4 not 8 (sizeof double).
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   // If RDX is not an instance of double, jump to fall through.
+  __ testq(RDX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);
   __ CompareClassId(RDX, kDoubleCid);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
   // Store into array.

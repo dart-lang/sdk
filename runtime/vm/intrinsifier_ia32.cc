@@ -606,8 +606,10 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
   // If EAX is not an instance of double, jump to fall through.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through);
   __ CompareClassId(EAX, kDoubleCid, EDI);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(EAX, Double::value_offset()));
   TestByteArraySetIndex(assembler, &fall_through);
@@ -657,8 +659,10 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
   // If EAX is not an instance of double, jump to fall through.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);
   __ CompareClassId(EAX, kDoubleCid, EDI);
-  __ j(NOT_EQUAL, &fall_through);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(EAX, Double::value_offset()));
   TestByteArraySetIndex(assembler, &fall_through);

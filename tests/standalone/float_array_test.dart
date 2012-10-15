@@ -82,6 +82,17 @@ void testIndexOf32() {
   Expect.equals(-1, list.indexOf(20.0));
 }
 
+void testBadValues32() {
+  var list = new Float32List(10);
+  list[0] = 2.0;
+  Expect.throws(() {
+    list[0] = 2;
+  });
+  Expect.throws(() {
+    list[0] = "hello";
+  });
+}
+
 void testCreateFloat64Array() {
   Float64List floatArray;
 
@@ -155,6 +166,17 @@ void testIndexOf64() {
   Expect.equals(-1, list.indexOf(20.0));
 }
 
+void testBadValues64() {
+  var list = new Float64List(10);
+  list[0] = 2.0;
+  Expect.throws(() {
+    list[0] = 2;
+  });
+  Expect.throws(() {
+    list[0] = "hello";
+  });
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateFloat32Array();
@@ -168,4 +190,7 @@ main() {
     testIndexOutOfRange64();
     testIndexOf64();
   }
+  // These two take a long time in checked mode.
+  testBadValues32();
+  testBadValues64();
 }
