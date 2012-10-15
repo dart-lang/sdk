@@ -312,9 +312,12 @@ class ClosureTranslator extends Visitor {
       // We still need to visit the right-hand sides of the init-assignments.
       // For SendSets don't visit the left again. Otherwise it would be marked
       // as mutated.
-      if (definition is SendSet) {
-        SendSet assignment = definition;
-        visit(assignment.argumentsNode);
+      if (definition is Send) {
+        Send assignment = definition;
+        Node arguments = assignment.argumentsNode;
+        if (arguments != null) {
+          visit(arguments);
+        }
       } else {
         visit(definition);
       }

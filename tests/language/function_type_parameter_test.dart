@@ -6,6 +6,8 @@
 // default value.
 
 class A {
+  final f;
+  A(int this.f());
 
   static Function func;
 
@@ -22,4 +24,6 @@ main() {
   Expect.equals("1234", A.func(1230 + 4));
   A.SetFunc();
   Expect.equals(null, A.func);
+
+  Expect.equals(42, new A(() => 42).f());
 }
