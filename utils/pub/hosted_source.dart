@@ -91,7 +91,7 @@ class HostedSource extends Source {
       // has not finished by the time we get here, so the rename fails with a
       // "directory in use" error. So, we will just wait a couple of seconds
       // before we start.
-      if (Platform.operatingSystem == "windows") {
+      if (io.Platform.operatingSystem == "windows") {
         rename = sleep(2000).chain((_) => rename);
       }
 
