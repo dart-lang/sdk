@@ -2135,6 +2135,7 @@ class Parser {
   Token parseAssertStatement(Token token) {
     Token assertKeyword = token;
     token = expect('assert', token);
+    expect('(', token);
     token = parseArguments(token);
     listener.handleAssertStatement(assertKeyword, token);
     return expectSemicolon(token);
