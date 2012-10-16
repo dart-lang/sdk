@@ -77,7 +77,8 @@ class HostedSource extends Source {
 
     // Download and extract the archive to a temp directory.
     var tempDir;
-    return Futures.wait([httpGet(fullUrl), createTempDir()]).chain((args) {
+    return Futures.wait([httpGet(fullUrl),
+                         systemCache.createTempDir()]).chain((args) {
       tempDir = args[1];
       return timeout(extractTarGz(args[0], tempDir), HTTP_TIMEOUT,
           'Timed out while fetching URL "$fullUrl".');
