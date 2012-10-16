@@ -2181,19 +2181,26 @@ void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   // i.e. the receiver argument or the constructor phase argument.
   AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
   param->SetPropagatedCid(kDynamicCid);
-  if (param->index() < 2) {
+  bool param_type_is_known = false;
+  if (param->index() == 0) {
     const Function& function = parsed_function().function();
-    if (((param->index() == 0) && function.IsDynamicFunction()) ||
-        ((param->index() == 1) && function.IsConstructor())) {
-      // Parameter is the receiver or the constructor phase.
-      LocalScope* scope = parsed_function().node_sequence()->scope();
-      param_type = scope->VariableAt(param->index())->type().raw();
-      if (FLAG_use_cha) {
-        const intptr_t cid = Class::Handle(param_type.type_class()).id();
-        if (!CHA::HasSubclasses(cid)) {
-          // Receiver's class has no subclasses.
-          param->SetPropagatedCid(cid);
-        }
+    if ((function.IsDynamicFunction() || function.IsConstructor())) {
+      // Parameter is the receiver .
+      param_type_is_known = true;
+    }
+  } else if ((param->index() == 1) &&
+      parsed_function().function().IsConstructor()) {
+    // Parameter is the constructor phase.
+    param_type_is_known = true;
+  }
+  if (param_type_is_known) {
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    param_type = scope->VariableAt(param->index())->type().raw();
+    if (FLAG_use_cha) {
+      const intptr_t cid = Class::Handle(param_type.type_class()).id();
+      if (!CHA::HasSubclasses(cid)) {
+        // Receiver's class has no subclasses.
+        param->SetPropagatedCid(cid);
       }
     }
   }
