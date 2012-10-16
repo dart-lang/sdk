@@ -406,13 +406,32 @@ class DiffProgressIndicator extends ColorProgressIndicator {
     configs.add(test.configurationString);
   }
 
+  String _extractRuntime(String configuration) {
+    // Extract runtime from a configuration, for example,
+    // 'none-vm-checked release_ia32'.
+    List<String> runtime = config.split(' ')[0].split('-');
+    return '${runtime[0]}-${runtime[1]}';
+  }
+
   void _printFailureSummary() {
     Map<String, List<String>> groupedStatuses = new Map<String, List<String>>();
     statusToConfigs.forEach((String status, List<String> configs) {
-      configs.sort((a, b) => a.compareTo(b));
-      List<String> statuses =
-          groupedStatuses.putIfAbsent('$configs', () => <String>[]);
-      statuses.add(status);
+      Map<String, List<String>> runtimeToConfiguration =
+          new Map<String, List<String>>();
+      for (String config in configs) {
+        String runtime = _extractRuntime(config);
+        List<String> runtimeConfigs =
+            runtimeToConfiguration.putIfAbsent(runtime, () => <String>[]);
+        runtimeConfigs.add(config);
+      }
+      runtimeToConfiguration.forEach((String runtime,
+                                      List<String> runtimeConfigs) {
+        runtimeConfigs.sort((a, b) => a.compareTo(b));
+        List<String> statuses =
+            groupedStatuses.putIfAbsent('$runtime: $runtimeConfigs',
+                                        () => <String>[]);
+        statuses.add(status);
+      });
     });
     groupedStatuses.forEach((String config, List<String> statuses) {
       print('');
