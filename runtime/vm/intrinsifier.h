@@ -85,6 +85,8 @@ namespace dart {
   V(_Uint16Array, [], Uint16Array_getIndexed)                                  \
   V(_Int32Array, [], Int32Array_getIndexed)                                    \
   V(_Uint32Array, [], Uint32Array_getIndexed)                                  \
+  V(_Int64Array, [], Int64Array_getIndexed)                                    \
+  V(_Uint64Array, [], Uint64Array_getIndexed)                                  \
   V(_Float32Array, [], Float32Array_getIndexed)                                \
   V(_Float32Array, []=, Float32Array_setIndexed)                               \
   V(_Float64Array, [], Float64Array_getIndexed)                                \

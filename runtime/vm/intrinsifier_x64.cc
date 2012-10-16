@@ -532,6 +532,47 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movq(RAX, FieldAddress(RAX,
+                            R12,
+                            TIMES_4,
+                            Int64Array::data_offset()));
+  // Copy RAX into R12.
+  // We destroy R12 while testing if RAX can fit inside a Smi.
+  __ movq(R12, RAX);
+  // Verify that the signed value in RAX can fit inside a Smi.
+  __ shlq(R12, Immediate(0x1));
+  // Jump to fall_through if it can not.
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movq(RAX, FieldAddress(RAX,
+                            R12,
+                            TIMES_4,
+                            Uint64Array::data_offset()));
+  // Copy RAX into R12.
+  // We destroy R12 while testing if RAX can fit inside a Smi.
+  __ movq(R12, RAX);
+  // Verify that the unsigned value in RAX can be stored in a Smi.
+  __ shrq(R12, Immediate(kSmiBits));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Won't fit Smi.
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
