@@ -345,6 +345,8 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
   __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -361,13 +363,19 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));
-  __ movq(RBX, Address(RSP, + 1 * kWordSize));
+  Label fall_through;
+  __ movq(RBX, Address(RSP, + 1 * kWordSize));  /// Data.
+  __ testq(RBX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Data is Smi.
+  __ CompareClassId(RBX, kArrayCid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ StoreIntoObject(RAX,
                      FieldAddress(RAX, GrowableObjectArray::data_offset()),
                      RBX);
   __ ret();
-  return true;
+  __ Bind(&fall_through);
+  return false;
 }
 
 

@@ -406,6 +406,8 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
   __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -422,13 +424,20 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Data.
+  // Check that data is an ObjectArray.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Data is Smi.
+  __ CompareClassId(EBX, kArrayCid, EAX);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
   __ StoreIntoObject(EAX,
                      FieldAddress(EAX, GrowableObjectArray::data_offset()),
                      EBX);
   __ ret();
-  return true;
+  __ Bind(&fall_through);
+  return false;
 }
 
 
