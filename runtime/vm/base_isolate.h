@@ -9,7 +9,7 @@ namespace dart {
 
 class HandleScope;
 class StackResource;
-class StackZone;
+class Zone;
 
 // A BaseIsolate contains just enough functionality to allocate
 // StackResources.  This allows us to inline the StackResource
@@ -19,8 +19,8 @@ class BaseIsolate {
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
 
-  StackZone* current_zone() const { return current_zone_; }
-  void set_current_zone(StackZone* zone) { current_zone_ = zone; }
+  Zone* current_zone() const { return current_zone_; }
+  void set_current_zone(Zone* zone) { current_zone_ = zone; }
 
   HandleScope* top_handle_scope() const {
 #if defined(DEBUG)
@@ -102,7 +102,7 @@ class BaseIsolate {
   }
 
   StackResource* top_resource_;
-  StackZone* current_zone_;
+  Zone* current_zone_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
   int32_t no_handle_scope_depth_;

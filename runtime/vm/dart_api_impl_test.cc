@@ -1279,6 +1279,7 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
+  DARTSCOPE(isolate);
 
   // Start with a known persistent handle.
   Dart_Handle obj1 = Dart_True();

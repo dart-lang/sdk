@@ -192,6 +192,7 @@ static void NativeFunc(Dart_NativeArguments args) {
   EXPECT_VALID(Dart_IntegerToInt64(k, &value));
   EXPECT_EQ(20, value);
   Isolate::Current()->heap()->CollectAllGarbage();
+  Dart_ExitScope();
 }
 
 

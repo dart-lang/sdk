@@ -36,7 +36,7 @@ void NativeMessageHandler::CheckAccess() {
 static uint8_t* zone_allocator(uint8_t* ptr,
                                intptr_t old_size,
                                intptr_t new_size) {
-  ApiZone* zone = ApiNativeScope::Current()->zone();
+  Zone* zone = ApiNativeScope::Current()->zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 

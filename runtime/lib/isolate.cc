@@ -168,7 +168,7 @@ static bool CanonicalizeUri(Isolate* isolate,
                             const String& uri,
                             char** canonical_uri,
                             char** error) {
-  StackZone* zone = isolate->current_zone();
+  Zone* zone = isolate->current_zone();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     *error = zone->PrintToString(

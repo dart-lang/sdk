@@ -200,7 +200,7 @@ Dart_Handle Api::NewError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = zone.Alloc<char>(len + 1);
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -410,7 +410,7 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = zone.Alloc<char>(len + 1);
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -432,7 +432,7 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = zone.Alloc<char>(len + 1);
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -457,7 +457,6 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
 
 DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
   if (!obj.IsError()) {
     return Api::NewError(
@@ -474,10 +473,19 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   // Unwind all the API scopes till the exit frame before propagating.
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->UnwindScopes(isolate->top_exit_frame_info());
-  Exceptions::PropagateError(Error::Cast(obj));
+  const Error* error;
+  {
+    // We need to preserve the error object across the destruction of zones
+    // when the ApiScopes are unwound.  By using NoGCScope, we can ensure
+    // that GC won't touch the raw error object before creating a valid
+    // handle for it in the surviving zone.
+    NoGCScope no_gc;
+    RawError* raw_error = static_cast<RawError*>(Api::UnwrapHandle(handle));
+    state->UnwindScopes(isolate->top_exit_frame_info());
+    error = &Error::Handle(isolate, raw_error);
+  }
+  Exceptions::PropagateError(*error);
   UNREACHABLE();
-
   return Api::NewError("Cannot reach here.  Internal error.");
 }
 
@@ -1142,7 +1150,7 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
-  ApiZone* zone;
+  Zone* zone;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
     ApiState* state = isolate->api_state();
@@ -3897,10 +3905,12 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 
 DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
-  if (excp.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  CHECK_ISOLATE(isolate);
+  {
+    const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
+    if (excp.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, exception, Instance);
+    }
   }
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
@@ -3911,8 +3921,15 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   // exception.
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->UnwindScopes(isolate->top_exit_frame_info());
-  Exceptions::Throw(excp);
+  const Instance* saved_exception;
+  {
+    NoGCScope no_gc;
+    RawInstance* raw_exception =
+        static_cast<RawInstance*>(Api::UnwrapHandle(exception));
+    state->UnwindScopes(isolate->top_exit_frame_info());
+    saved_exception = &Instance::Handle(raw_exception);
+  }
+  Exceptions::Throw(*saved_exception);
   return Api::NewError("Exception was not thrown, internal error");
 }
 
@@ -3921,14 +3938,15 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  DARTSCOPE(isolate);
-  const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
-  if (excp.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, exception, Instance);
-  }
-  const Instance& stk = Api::UnwrapInstanceHandle(isolate, stacktrace);
-  if (stk.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, stacktrace, Instance);
+  {
+    const Instance& excp = Api::UnwrapInstanceHandle(isolate, exception);
+    if (excp.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, exception, Instance);
+    }
+    const Instance& stk = Api::UnwrapInstanceHandle(isolate, stacktrace);
+    if (stk.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, stacktrace, Instance);
+    }
   }
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
@@ -3939,8 +3957,19 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   // exception.
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->UnwindScopes(isolate->top_exit_frame_info());
-  Exceptions::ReThrow(excp, stk);
+  const Instance* saved_exception;
+  const Instance* saved_stacktrace;
+  {
+    NoGCScope no_gc;
+    RawInstance* raw_exception =
+        static_cast<RawInstance*>(Api::UnwrapHandle(exception));
+    RawInstance* raw_stacktrace =
+        static_cast<RawInstance*>(Api::UnwrapHandle(stacktrace));
+    state->UnwindScopes(isolate->top_exit_frame_info());
+    saved_exception = &Instance::Handle(raw_exception);
+    saved_stacktrace = &Instance::Handle(raw_stacktrace);
+  }
+  Exceptions::ReThrow(*saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
 }
 
@@ -4423,7 +4452,7 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
     pprof_symbol_generator->WriteToMemory(debug_region);
     *buffer_size = debug_region->size();
     if (*buffer_size != 0) {
-      ApiZone* zone = Api::TopScope(isolate)->zone();
+      Zone* zone = Api::TopScope(isolate)->zone();
       *buffer = reinterpret_cast<void*>(zone->AllocUnsafe(*buffer_size));
       memmove(*buffer, debug_region->data(), *buffer_size);
     } else {

@@ -176,9 +176,6 @@ class Handles {
     void set_next_block(HandlesBlock* next) { next_block_ = next; }
 
    private:
-    // Zap value used to indicate uninitialized handle area (debug purposes).
-    static const uword kZapUninitializedWord = 0xabababab;
-
     uword data_[kHandleSizeInWords * kHandlesPerChunk];  // Handles area.
     intptr_t next_handle_slot_;  // Next slot for allocation in current block.
     HandlesBlock* next_block_;  // Link to next block of handles.

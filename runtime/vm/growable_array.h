@@ -123,10 +123,10 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
   explicit GrowableArray(int initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
           initial_capacity,
-          Isolate::Current()->current_zone()->GetBaseZone()) {}
+          Isolate::Current()->current_zone()) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject>(
-          Isolate::Current()->current_zone()->GetBaseZone()) {}
+          Isolate::Current()->current_zone()) {}
 };
 
 
@@ -136,10 +136,10 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
   explicit ZoneGrowableArray(int initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,
-          Isolate::Current()->current_zone()->GetBaseZone()) {}
+          Isolate::Current()->current_zone()) {}
   ZoneGrowableArray() :
       BaseGrowableArray<T, ZoneAllocated>(
-          Isolate::Current()->current_zone()->GetBaseZone()) {}
+          Isolate::Current()->current_zone()) {}
 };
 
 }  // namespace dart
