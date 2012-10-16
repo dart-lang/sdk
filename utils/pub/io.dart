@@ -21,6 +21,8 @@ String _gitCommandCache;
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
 
+const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
+
 /**
  * Prints the given string to `stderr` on its own line.
  */
@@ -503,7 +505,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   return future.transform((result) {
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
-      var lines = output.split("\n");
+      var lines = output.split(NEWLINE_PATTERN);
       if (!lines.isEmpty() && lines.last() == "") lines.removeLast();
       return lines;
     }
