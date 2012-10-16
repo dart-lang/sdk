@@ -501,7 +501,15 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 
   var future = Process.run(executable, args, options);
   return future.transform((result) {
-    return new PubProcessResult(result.stdout, result.stderr, result.exitCode);
+    // TODO(rnystrom): Remove this and change to returning one string.
+    List<String> toLines(String output) {
+      var lines = output.split("\n");
+      if (!lines.isEmpty() && lines.last() == "") lines.removeLast();
+      return lines;
+    }
+    return new PubProcessResult(toLines(result.stdout),
+                                toLines(result.stderr),
+                                result.exitCode);
   });
 }
 
