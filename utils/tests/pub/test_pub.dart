@@ -445,12 +445,6 @@ final String appPath = "myapp";
 final String packagesPath = "$appPath/packages";
 
 /**
- * The path to the build directory of the Dart repository. This is only set if
- * [ensureBuild] has been run for this test.
- */
-String _buildPath;
-
-/**
  * The type for callbacks that will be fired during [runPub]. Takes the sandbox
  * directory as a parameter.
  */
@@ -515,18 +509,12 @@ String get testDirectory {
   return new File(dir.toNativePath()).fullPathSync();
 }
 
-/// Whether the tests are running on a build bot.
-bool get onBuildBot => Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
-
 /**
  * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
  * validates that its results match [output], [error], and [exitCode].
- *
- * If [realSdk] is true, runs Pub against the real Dart SDK. [ensureBuild] must
- * be called before this method if [realSdk] is true.
  */
 void schedulePub({List<String> args, Pattern output, Pattern error,
-    int exitCode: 0, bool realSdk: false}) {
+    int exitCode: 0}) {
   _schedule((sandboxDir) {
     String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
@@ -550,14 +538,7 @@ void schedulePub({List<String> args, Pattern output, Pattern error,
 
       var environment = new Map.from(Platform.environment);
       environment['PUB_CACHE'] = pathInSandbox(cachePath);
-      if (realSdk) {
-        if (_buildPath == null) {
-          throw "Test error: expected a Dart build directory to exist.";
-        }
-        environment['DART_SDK'] = join(_buildPath, "dart-sdk");
-      } else {
-        environment['DART_SDK'] = pathInSandbox(sdkPath);
-      }
+      environment['DART_SDK'] = pathInSandbox(sdkPath);
 
       return runProcess(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
           environment: environment);
@@ -608,58 +589,12 @@ void runPub({List<String> args, Pattern output, Pattern error,
 void ensureGit() {
   _schedule((_) {
     return isGitInstalled.transform((installed) {
-      if (!installed && !onBuildBot) {
+      if (!installed &&
+          !Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
         _abortScheduled = true;
       }
       return null;
     });
-  });
-}
-
-/// Skips the current test if the Dart repository's build step has not been run.
-/// If we're running on a build bot, this will not skip the test.
-///
-/// This ensures that users don't need to have built Dart themselves to run the
-/// test, but that the test will always run on the build bot.
-void ensureBuild() {
-  _schedule((_) {
-    return _findBuildDirectory().transform((dir) {
-      if (dir == null && !onBuildBot) {
-        _abortScheduled = true;
-      }
-    });
-  });
-}
-
-/// All possible names for the output directory of the Dart build.
-final List<String> _buildNames = [
-  'ReleaseIA32', 'DebugIA32', 'ReleaseX64', 'DebugX64', 'ReleaseSIMARM',
-  'DebugSIMARM', 'ReleaseARM', 'DebugARM'
-];
-
-/// All possible names for the parent directory of the Dart build.
-final Map<String, String> _buildParentNames = {
-  'mac': 'xcodebuild', 'linux': 'out', 'windows': 'build'
-};
-
-/// Returns the path to the output directory of the Dart build, or null if none
-/// is found. This also sets [_buildPath] if a build directory is found.
-Future<String> _findBuildDirectory() {
-  if (_buildPath != null) return new Future.immediate(_buildPath);
-
-  var buildDirectories = flatten(_buildNames.map((name) {
-    var parent = _buildParentNames[Platform.operatingSystem];
-    return join(testDirectory, '../../..', parent, name);
-  }));
-
-  return Futures.wait(buildDirectories.map(dirExists)).transform((found) {
-    for (var i = 0; i < found.length; i++) {
-      if (found[i]) {
-        _buildPath = buildDirectories[i];
-        return _buildPath;
-      }
-    }
-    return null;
   });
 }
 

@@ -32,27 +32,4 @@ main() {
 
     run();
   });
-
-  // This is necessary to test that the "revision" file in the SDK remains in a
-  // format that Pub understands.
-  test('checks out a package from the real SDK', () {
-    ensureBuild();
-
-    dir(appPath, [
-      pubspec({
-        "name": "myapp",
-        "dependencies": {"unittest": {"sdk": "unittest"}}
-      })
-    ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: const RegExp(r"Dependencies installed!$"),
-        realSdk: true);
-
-    dir(packagesPath, [
-      dir("unittest")
-    ]);
-
-    run();
-  });
 }
