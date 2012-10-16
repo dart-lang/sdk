@@ -461,6 +461,20 @@ bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
