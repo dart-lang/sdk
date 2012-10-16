@@ -169,7 +169,6 @@ prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
-pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
 resource_test: Fail # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -328,7 +327,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/11: Fail
 pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.

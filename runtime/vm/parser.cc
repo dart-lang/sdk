@@ -487,6 +487,7 @@ struct MemberDesc {
     has_var = false;
     has_factory = false;
     has_operator = false;
+    operator_token = Token::kILLEGAL;
     type = NULL;
     name_pos = 0;
     name = NULL;
@@ -518,6 +519,7 @@ struct MemberDesc {
   bool has_var;
   bool has_factory;
   bool has_operator;
+  Token::Kind operator_token;
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
@@ -2445,12 +2447,15 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
 
   // Now that we know the parameter list, we can distinguish between the
   // unary and binary operator -.
-  if (method->has_operator &&
-      method->name->Equals("-") &&
-      (method->params.num_fixed_parameters == 1)) {
-    // Patch up name for unary operator - so it does not clash with the
-    // name for binary operator -.
-    *method->name = Symbols::New("unary-");
+  if (method->has_operator) {
+    if ((method->operator_token == Token::kSUB) &&
+       (method->params.num_fixed_parameters == 1)) {
+      // Patch up name for unary operator - so it does not clash with the
+      // name for binary operator -.
+      method->operator_token = Token::kNEGATE;
+      *method->name = Symbols::New(Token::Str(Token::kNEGATE));
+    }
+    CheckOperatorArity(*method);
   }
 
   if (members->FunctionNameExists(*method->name, method->kind)) {
@@ -2811,19 +2816,12 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 }
 
 
-void Parser::CheckOperatorArity(const MemberDesc& member,
-                                Token::Kind operator_token) {
+void Parser::CheckOperatorArity(const MemberDesc& member) {
   intptr_t expected_num_parameters;  // Includes receiver.
-  if (operator_token == Token::kASSIGN_INDEX) {
+  Token::Kind op = member.operator_token;
+  if (op == Token::kASSIGN_INDEX) {
     expected_num_parameters = 3;
-  } else if (operator_token == Token::kSUB) {
-    if (member.params.num_fixed_parameters == 1) {
-      // Unary operator minus (i.e. negate).
-      expected_num_parameters = 1;
-    } else {
-      expected_num_parameters = 2;
-    }
-  } else if (operator_token == Token::kBIT_NOT) {
+  } else if ((op == Token::kBIT_NOT) || (op == Token::kNEGATE)) {
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;
@@ -2917,7 +2915,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       }
     }
   }
-  Token::Kind operator_token = Token::kILLEGAL;
+
   // Optionally parse a (possibly named) constructor name or factory.
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
@@ -3014,12 +3012,12 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (member.has_static) {
       ErrorMsg("operator overloading functions cannot be static");
     }
-    operator_token = CurrentToken();
+    member.operator_token = CurrentToken();
     member.has_operator = true;
     member.kind = RawFunction::kRegularFunction;
     member.name_pos = this->TokenPos();
     member.name =
-        &String::ZoneHandle(Symbols::New(Token::Str(operator_token)));
+        &String::ZoneHandle(Symbols::New(Token::Str(member.operator_token)));
     ConsumeToken();
   } else if (IsIdentifier()) {
     member.name = CurrentLiteral();
@@ -3044,9 +3042,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     ASSERT(member.IsFactory() == member.has_factory);
     ParseMethodOrConstructor(members, &member);
-    if (member.has_operator) {
-      CheckOperatorArity(member, operator_token);
-    }
   } else if (CurrentToken() ==  Token::kSEMICOLON ||
              CurrentToken() == Token::kCOMMA ||
              CurrentToken() == Token::kASSIGN) {
@@ -6617,12 +6612,12 @@ bool Parser::IsLiteral(const char* literal) {
 }
 
 
-bool Parser::IsIncrementOperator(Token::Kind token) {
+static bool IsIncrementOperator(Token::Kind token) {
   return token == Token::kINCR || token == Token::kDECR;
 }
 
 
-bool Parser::IsPrefixOperator(Token::Kind token) {
+static bool IsPrefixOperator(Token::Kind token) {
   return (token == Token::kTIGHTADD) ||   // Valid for literals only!
          (token == Token::kSUB) ||
          (token == Token::kNOT) ||
@@ -7095,6 +7090,9 @@ AstNode* Parser::ParseUnaryExpr() {
   const intptr_t op_pos = TokenPos();
   if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
+    if (unary_op == Token::kSUB) {
+      unary_op = Token::kNEGATE;
+    }
     ConsumeToken();
     expr = ParseUnaryExpr();
     if (unary_op == Token::kTIGHTADD) {

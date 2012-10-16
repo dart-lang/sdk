@@ -37,7 +37,7 @@ const uint8_t Token::precedence_[] = {
 #undef TOKEN_ATTRIBUTE
 
 
-bool Token::IsBinaryToken(Token::Kind token) {
+bool Token::IsBinaryOperator(Token::Kind token) {
   switch (token) {
     case Token::kADD:
     case Token::kSUB:
@@ -59,8 +59,8 @@ bool Token::IsBinaryToken(Token::Kind token) {
 }
 
 
-bool Token::IsUnaryToken(Token::Kind token) {
-  return (token == Token::kNEGATE) || (token == kBIT_NOT);
+bool Token::IsPrefixOperator(Token::Kind token) {
+  return (token == kNOT) || (token == kBIT_NOT) || (token == kNEGATE);
 }
 
 }  // namespace dart

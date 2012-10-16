@@ -2071,8 +2071,8 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle());
-    ASSERT(Token::IsBinaryToken(token_kind) ||
-           Token::IsUnaryToken(token_kind) ||
+    ASSERT(Token::IsBinaryOperator(token_kind) ||
+           Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||

@@ -33,7 +33,7 @@ TEST_CASE(AstPrinter) {
                           Token::kADD,
                           new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))),
                           new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
-  AstPrinter::PrintNode(new UnaryOpNode(kPos, Token::kSUB, ll));
+  AstPrinter::PrintNode(new UnaryOpNode(kPos, Token::kNEGATE, ll));
 }
 
 }  // namespace dart

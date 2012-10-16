@@ -245,6 +245,8 @@ LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triag
 # Failures related to assert being a reserved word now. co19 issue 218.
 Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 
+# negate is no longer a built-in identifier, co19 issue 260
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # co19 issue 260
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(vm-team): Please triage this failure.

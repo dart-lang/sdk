@@ -1014,11 +1014,11 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
       return;
     }
-    if (Token::IsBinaryToken(op_kind) &&
+    if (Token::IsBinaryOperator(op_kind) &&
         TryReplaceWithBinaryOp(instr, op_kind)) {
       return;
     }
-    if (Token::IsUnaryToken(op_kind) &&
+    if (Token::IsPrefixOperator(op_kind) &&
         TryReplaceWithUnaryOp(instr, op_kind)) {
       return;
     }
