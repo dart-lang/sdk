@@ -42,7 +42,11 @@ def BuildOptions():
       default=str(HOST_CPUS))
   result.add_option("--devenv",
       help='Path containing devenv.com on Windows',
-      default='C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\Common7\\IDE')
+      default='C:\\Program Files (x86)\\Microsoft Visual Studio 10.0\\Common7'
+      '\\IDE')
+  result.add_option("--executable",
+      help='Name of the devenv.com/msbuild executable on Windows (varies for '
+      'different versions of Visual Studio)', default='devenv.com')
   return result
 
 
@@ -262,13 +266,13 @@ def Main():
           if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
             project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
           if target == 'all':
-            args = [options.devenv + os.sep + 'devenv.com',
+            args = [options.devenv + os.sep + options.executable,
                     '/build',
                     build_config,
                     project_file
                    ]
           else:
-            args = [options.devenv + os.sep + 'devenv.com',
+            args = [options.devenv + os.sep + options.executable,
                     '/build',
                     build_config,
                     '/project',
