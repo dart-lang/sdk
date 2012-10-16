@@ -896,4 +896,27 @@ bool FlowGraphCompiler::EvaluateCondition(Condition condition,
 }
 
 
+FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          Register array,
+                                                          intptr_t offset) {
+  switch (cid) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid: {
+      const intptr_t disp = offset * kWordSize + sizeof(RawArray);
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
+    case kFloat64ArrayCid: {
+      const intptr_t disp =
+          offset * kDoubleSize + Float64Array::data_offset();
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
+    default:
+      UNIMPLEMENTED();
+      return FieldAddress(SPREG, 0);
+  }
+}
+
 }  // namespace dart

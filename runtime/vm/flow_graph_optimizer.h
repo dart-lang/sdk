@@ -44,7 +44,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                     Definition::UseKind use_kind);
 
  private:
-  bool TryReplaceWithArrayOp(InstanceCallInstr* call, Token::Kind op_kind);
+  intptr_t PrepareIndexedOp(InstanceCallInstr* call,
+                            intptr_t class_id,
+                            Value** array,
+                            Value** index);
+  bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
+
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
 

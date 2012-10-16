@@ -2658,7 +2658,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
-  LoadIndexedInstr(Value* array, Value* index) {
+  LoadIndexedInstr(Value* array, Value* index, intptr_t class_id)
+      : class_id_(class_id) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -2670,14 +2671,19 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
+  intptr_t class_id() const { return class_id_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const;
+
+  virtual Representation representation() const;
 
  private:
+  const intptr_t class_id_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
 
@@ -2687,8 +2693,12 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   StoreIndexedInstr(Value* array,
                     Value* index,
                     Value* value,
-                    bool emit_store_barrier)
-      : emit_store_barrier_(emit_store_barrier) {
+                    bool emit_store_barrier,
+                    intptr_t class_id,
+                    intptr_t deopt_id)
+      : emit_store_barrier_(emit_store_barrier),
+        class_id_(class_id),
+        deopt_id_(deopt_id) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -2703,6 +2713,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
+  intptr_t class_id() const { return class_id_; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer() && emit_store_barrier_;
@@ -2714,8 +2725,18 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
  private:
   const bool emit_store_barrier_;
+  const intptr_t class_id_;
+  const intptr_t deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -3447,8 +3468,8 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instuction cannot deoptimize, and the deopt-id
-    // was inherited from another instuction that could deoptimize.
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
 
@@ -3503,8 +3524,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instuction cannot deoptimize, and the deopt-id
-    // was inherited from another instuction that could deoptimize.
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
 
@@ -3564,8 +3585,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instuction cannot deoptimize, and the deopt-id
-    // was inherited from another instuction that could deoptimize.
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
 
@@ -3623,8 +3644,8 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instuction cannot deoptimize, and the deopt-id
-    // was inherited from another instuction that could deoptimize.
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
 
@@ -3678,8 +3699,8 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
   }
 
   virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instuction cannot deoptimize, and the deopt-id
-    // was inherited from another instuction that could deoptimize.
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
 

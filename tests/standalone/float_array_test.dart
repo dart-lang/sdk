@@ -177,20 +177,39 @@ void testBadValues64() {
   });
 }
 
+storeIt32(Float32List a, int index, value) {
+  a[index] = value;
+}
+
+storeIt64(Float64List a, int index, value) {
+  a[index] = value;
+}
+
 main() {
+  var a32 = new Float32List(5);
   for (int i = 0; i < 2000; i++) {
     testCreateFloat32Array();
     testSetRange32();
     testIndexOutOfRange32();
     testIndexOf32();
+    storeIt32(a32, 1, 2.0);
   }
+  var a64 = new Float64List(5);
   for (int i = 0; i < 2000; i++) {
     testCreateFloat64Array();
     testSetRange64();
     testIndexOutOfRange64();
     testIndexOf64();
+    storeIt64(a64, 1, 2.0);
   }
   // These two take a long time in checked mode.
   testBadValues32();
   testBadValues64();
+  // Check optimized (inlined) version of []=
+  Expect.throws(() {
+    storeIt32(a32, 1, 2);
+  });
+  Expect.throws(() {
+    storeIt64(a64, 1, 2);
+  });
 }

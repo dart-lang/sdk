@@ -374,76 +374,123 @@ static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
-                                               Token::Kind op_kind) {
-  // TODO(fschneider): Optimize []= operator in checked mode as well.
-  if (op_kind == Token::kASSIGN_INDEX && FLAG_enable_type_checks) return false;
+// Returns array classid to load from, array and idnex value
 
+intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
+                                              intptr_t class_id,
+                                              Value** array,
+                                              Value** index) {
+  *array = call->ArgumentAt(0)->value();
+  *index = call->ArgumentAt(1)->value();
+  // Insert class check and index smi checks and attach a copy of the
+  // original environment because the operation can still deoptimize.
+  AddCheckClass(call, (*array)->Copy());
+  InsertBefore(call,
+               new CheckSmiInstr((*index)->Copy(), call->deopt_id()),
+               call->env(),
+               Definition::kEffect);
+  // If both index and array are constants, then the bound check always
+  // succeeded.
+  // TODO(srdjan): Remove once constant propagation lands.
+  if (!((*array)->BindsToConstant() && (*index)->BindsToConstant())) {
+    // Insert array bounds check.
+    InsertBefore(call,
+                 new CheckArrayBoundInstr((*array)->Copy(),
+                                          (*index)->Copy(),
+                                          class_id,
+                                          call),
+                 call->env(),
+                 Definition::kEffect);
+  }
+  if (class_id == kGrowableObjectArrayCid) {
+    // Insert data elements load.
+    LoadFieldInstr* elements =
+        new LoadFieldInstr((*array)->Copy(),
+                           GrowableObjectArray::data_offset(),
+                           Type::ZoneHandle(Type::DynamicType()));
+    elements->set_result_cid(kArrayCid);
+    InsertBefore(call, elements, NULL, Definition::kValue);
+    *array = new Value(elements);
+    return kArrayCid;
+  }
+  return class_id;
+}
+
+
+bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
+  // TODO(fschneider): Optimize []= operator in checked mode as well.
+  if (FLAG_enable_type_checks) return false;
   const intptr_t class_id = ReceiverClassId(call);
+  ICData& value_check = ICData::Handle();
   switch (class_id) {
-    case kImmutableArrayCid:
-      // Stores are only specialized for Array and GrowableObjectArray,
-      // not for ImmutableArray.
-      if (op_kind == Token::kASSIGN_INDEX) return false;
-      // Fall through.
     case kArrayCid:
-    case kGrowableObjectArrayCid: {
-      Value* array = call->ArgumentAt(0)->value();
-      Value* index = call->ArgumentAt(1)->value();
-      // Insert class check and index smi checks and attach a copy of the
-      // original environment because the operation can still deoptimize.
-      AddCheckClass(call, array->Copy());
-      InsertBefore(call,
-                   new CheckSmiInstr(index->Copy(), call->deopt_id()),
-                   call->env(),
-                   Definition::kEffect);
-      // If both index and array are constants, then the bound check always
-      // succeeded.
-      // TODO(srdjan): Remove once constant propagation lands.
-      if (!(array->BindsToConstant() && index->BindsToConstant())) {
-        // Insert array bounds check.
-        InsertBefore(call,
-                     new CheckArrayBoundInstr(array->Copy(),
-                                              index->Copy(),
-                                              class_id,
-                                              call),
-                     call->env(),
-                     Definition::kEffect);
+    case kGrowableObjectArrayCid:
+      // Acceptable store index classes.
+      break;
+    case kFloat64ArrayCid: {
+      // Check that value is always double.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kDoubleCid)) {
+        return false;
       }
-      if (class_id == kGrowableObjectArrayCid) {
-        // Insert data elements load.
-        LoadFieldInstr* elements =
-            new LoadFieldInstr(array->Copy(),
-                               GrowableObjectArray::data_offset(),
-                               Type::ZoneHandle(Type::DynamicType()));
-        elements->set_result_cid(kArrayCid);
-        InsertBefore(call, elements, NULL, Definition::kValue);
-        array = new Value(elements);
-      }
-      Definition* array_op = NULL;
-      if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedInstr(array, index);
-      } else {
-        bool needs_store_barrier = true;
-        if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
-          InsertBefore(call,
-                       new CheckSmiInstr(call->ArgumentAt(2)->value()->Copy(),
-                                         call->deopt_id()),
-                       call->env(),
-                       Definition::kEffect);
-          needs_store_barrier = false;
-        }
-        Value* value = call->ArgumentAt(2)->value();
-        array_op =
-            new StoreIndexedInstr(array, index, value, needs_store_barrier);
-      }
-      call->ReplaceWith(array_op, current_iterator());
-      RemovePushArguments(call);
-      return true;
+      break;
     }
     default:
       return false;
   }
+  Value* array = NULL;
+  Value* index = NULL;
+  intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  Value* value = call->ArgumentAt(2)->value();
+  // Check if store barrier is needed.
+  bool needs_store_barrier = true;
+  if (class_id == kFloat64ArrayCid) {
+    ASSERT(!value_check.IsNull());
+    InsertBefore(call,
+                 new CheckClassInstr(value->Copy(),
+                                     call->deopt_id(),
+                                     value_check),
+                 call->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  } else if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+    InsertBefore(call,
+                 new CheckSmiInstr(value->Copy(), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  }
+
+  Definition* array_op =
+      new StoreIndexedInstr(array, index, value,
+                            needs_store_barrier, array_cid, call->deopt_id());
+  call->ReplaceWith(array_op, current_iterator());
+  RemovePushArguments(call);
+  return true;
+}
+
+
+
+bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
+  const intptr_t class_id = ReceiverClassId(call);
+  switch (class_id) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kGrowableObjectArrayCid:
+    case kFloat64ArrayCid:
+      // Acceptable load index classes.
+      break;
+    default:
+      return false;
+  }
+  Value* array = NULL;
+  Value* index = NULL;
+  intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  Definition* array_op = new LoadIndexedInstr(array, index, array_cid);
+  call->ReplaceWith(array_op, current_iterator());
+  RemovePushArguments(call);
+  return true;
 }
 
 
@@ -960,8 +1007,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = instr->token_kind();
-    if (Token::IsIndexOperator(op_kind) &&
-        TryReplaceWithArrayOp(instr, op_kind)) {
+    if ((op_kind == Token::kASSIGN_INDEX) &&
+        TryReplaceWithStoreIndexed(instr)) {
+      return;
+    }
+    if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
       return;
     }
     if (Token::IsBinaryToken(op_kind) &&

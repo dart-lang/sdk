@@ -1062,12 +1062,74 @@ RawAbstractType* NativeCallInstr::CompileType() const {
 
 
 RawAbstractType* LoadIndexedInstr::CompileType() const {
-  return Type::DynamicType();
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return Type::DynamicType();
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return Type::Double();
+    default:
+      UNIMPLEMENTED();
+      return Type::IntType();
+  }
+}
+
+
+intptr_t LoadIndexedInstr::ResultCid() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kDynamicCid;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kDoubleCid;
+    default:
+      UNIMPLEMENTED();
+      return kSmiCid;
+  }
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
 RawAbstractType* StoreIndexedInstr::CompileType() const {
   return AbstractType::null();
+}
+
+
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if ((idx == 0) || (idx == 1)) return kTagged;
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
