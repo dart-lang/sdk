@@ -1953,6 +1953,8 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
+  virtual Definition* Canonicalize();
+
  private:
   const intptr_t token_pos_;
   bool is_eliminated_;

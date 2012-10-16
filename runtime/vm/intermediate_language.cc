@@ -1398,6 +1398,12 @@ Definition* Definition::Canonicalize() {
 }
 
 
+Definition* AssertBooleanInstr::Canonicalize() {
+  const intptr_t value_cid = value()->ResultCid();
+  return (value_cid == kBoolCid) ? value()->definition() : this;
+}
+
+
 Definition* StrictCompareInstr::Canonicalize() {
   if (!right()->BindsToConstant()) return this;
   const Object& right_constant = right()->BoundConstant();
@@ -1415,10 +1421,10 @@ Definition* StrictCompareInstr::Canonicalize() {
 
 
 Instruction* CheckClassInstr::Canonicalize() {
-  const intptr_t v_cid = value()->ResultCid();
+  const intptr_t value_cid = value()->ResultCid();
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
-      (v_cid == unary_checks().GetReceiverClassIdAt(0))) {
+      (value_cid == unary_checks().GetReceiverClassIdAt(0))) {
     // No checks needed.
     return NULL;
   }
