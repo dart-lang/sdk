@@ -1775,18 +1775,32 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
+  if (compiler->is_optimizing()) {
+    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     function_name(),
+                                     ArgumentCount(),
+                                     argument_names(),
+                                     checked_argument_count(),
+                                     locs());
+    } else {
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
+      __ jmp(deopt);
+    }
+  } else {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
                                    token_pos());
+    compiler->GenerateInstanceCall(deopt_id(),
+                                   token_pos(),
+                                   function_name(),
+                                   ArgumentCount(),
+                                   argument_names(),
+                                   checked_argument_count(),
+                                   locs());
   }
-  compiler->GenerateInstanceCall(deopt_id(),
-                                 token_pos(),
-                                 function_name(),
-                                 ArgumentCount(),
-                                 argument_names(),
-                                 checked_argument_count(),
-                                 locs());
 }
 
 

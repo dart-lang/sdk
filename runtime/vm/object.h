@@ -1269,7 +1269,7 @@ class Function : public Object {
   void set_is_abstract(bool value) const;
 
   bool is_inlinable() const {
-    return InlinableBit::decode(raw_ptr()->kind_tag_);
+    return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
   }
   void set_is_inlinable(bool value) const;
 
