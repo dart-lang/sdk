@@ -14,7 +14,7 @@
 #import("../../../lib/compiler/implementation/util/util.dart");
 
 class LoggerCanceler implements DiagnosticListener {
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     throw new CompilerCancelledException(reason);
   }
 

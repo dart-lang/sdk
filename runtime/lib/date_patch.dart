@@ -6,13 +6,13 @@
 // VM implementation of DateImplementation.
 patch class DateImplementation {
   /* patch */ DateImplementation(int year,
-                                 [int month = 1,
-                                  int day = 1,
-                                  int hour = 0,
-                                  int minute = 0,
-                                  int second = 0,
-                                  int millisecond = 0,
-                                  bool isUtc = false])
+                                 int month,
+                                 int day,
+                                 int hour,
+                                 int minute,
+                                 int second,
+                                 int millisecond,
+                                 bool isUtc)
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
             year, month, day, hour, minute, second, millisecond, isUtc) {

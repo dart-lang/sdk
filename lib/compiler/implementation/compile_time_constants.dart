@@ -75,7 +75,7 @@ class ConstantHandler extends CompilerTask {
    * Returns the a compile-time constant if the variable could be compiled
    * eagerly. Otherwise returns `null`.
    */
-  Constant compileVariable(VariableElement element, [bool isConst = false]) {
+  Constant compileVariable(VariableElement element, {bool isConst: false}) {
     return measure(() {
       if (initialVariableValues.containsKey(element)) {
         Constant result = initialVariableValues[element];
@@ -96,7 +96,7 @@ class ConstantHandler extends CompilerTask {
    */
   Constant compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
-                                          [bool isConst = false]) {
+                                          {bool isConst: false}) {
     return measure(() {
       // Initializers for parameters must be const.
       isConst = isConst || element.modifiers.isConst()
@@ -156,11 +156,11 @@ class ConstantHandler extends CompilerTask {
 
   Constant compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
-                                      [bool isConst]) {
+                                      {bool isConst}) {
     return measure(() {
       assert(node !== null);
       CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
-          constantSystem, definitions, compiler, isConst);
+          constantSystem, definitions, compiler, isConst: isConst);
       return evaluator.evaluate(node);
     });
   }
@@ -248,7 +248,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   CompileTimeConstantEvaluator(this.constantSystem,
                                this.elements,
                                this.compiler,
-                               [bool isConst])
+                               {bool isConst})
       : this.isEvaluatingConstant = isConst;
 
   Constant evaluate(Node node) {
@@ -801,16 +801,16 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   List<Constant> buildJsNewArguments(ClassElement classElement) {
     List<Constant> jsNewArguments = <Constant>[];
     classElement.implementation.forEachInstanceField(
+        (ClassElement enclosing, Element field) {
+          Constant fieldValue = fieldValues[field];
+          if (fieldValue === null) {
+            // Use the default value.
+            fieldValue = compiler.compileConstant(field);
+          }
+          jsNewArguments.add(fieldValue);
+        },
         includeBackendMembers: true,
-        includeSuperMembers: true,
-        f: (ClassElement enclosing, Element field) {
-      Constant fieldValue = fieldValues[field];
-      if (fieldValue === null) {
-        // Use the default value.
-        fieldValue = compiler.compileConstant(field);
-      }
-      jsNewArguments.add(fieldValue);
-    });
+        includeSuperMembers: true);
     return jsNewArguments;
   }
 }

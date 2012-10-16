@@ -73,7 +73,7 @@ class HtmlDiff {
     _mirrors = _compilation.mirrors;
   }
 
-  HtmlDiff([bool printWarnings = false]) :
+  HtmlDiff({bool printWarnings: false}) :
     _printWarnings = printWarnings,
     htmlToDom = new Map<String, Set<String>>(),
     htmlTypesToDom = new Map<String, Set<String>>(),

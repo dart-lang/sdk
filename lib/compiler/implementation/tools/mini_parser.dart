@@ -264,7 +264,7 @@ class MyCanceller implements DiagnosticListener {
 
   void log(String message) {}
 
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     Token beginToken;
     Token endToken;
     if (token !== null) {

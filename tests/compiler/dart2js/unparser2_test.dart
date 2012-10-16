@@ -64,7 +64,7 @@ class MessageCollector implements DiagnosticListener {
   MessageCollector() {
     messages = [];
   }
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     messages.add(reason);
     throw reason;
   }
@@ -75,8 +75,8 @@ class MessageCollector implements DiagnosticListener {
     throw message;
   }
   void internalError(String message,
-                     [Node node, Token token, dynamic instruction,
-                      Element element]) {
+                     {Node node, Token token, dynamic instruction,
+                      Element element}) {
     throw message;
   }
 }

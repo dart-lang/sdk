@@ -683,8 +683,8 @@ class HBoundedType extends HType {
   const HBoundedType(DartType this.type,
                      [bool canBeNull = false, isExact = false])
       : _canBeNull = canBeNull, _isExact = isExact;
-  const HBoundedType.exact(DartType type) : this(type, isExact: true);
-  const HBoundedType.withNull(DartType type) : this(type, canBeNull: true);
+  const HBoundedType.exact(DartType type) : this(type, false, true);
+  const HBoundedType.withNull(DartType type) : this(type, true, false);
   const HBoundedType.nonNull(DartType type) : this(type);
 
   DartType computeType(Compiler compiler) => type;

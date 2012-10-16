@@ -73,7 +73,7 @@ class Printer implements NodeVisitor {
   }
 
   visitCommaSeparated(List<Node> nodes, int hasRequiredType,
-                      [bool newInForInit, bool newAtStatementBegin]) {
+                      {bool newInForInit, bool newAtStatementBegin}) {
     for (int i = 0; i < nodes.length; i++) {
       if (i != 0) {
         atStatementBegin = false;
@@ -81,7 +81,8 @@ class Printer implements NodeVisitor {
         spaceOut();
       }
       visitNestedExpression(nodes[i], hasRequiredType,
-                            newInForInit, newAtStatementBegin);
+                            newInForInit: newInForInit,
+                            newAtStatementBegin: newAtStatementBegin);
     }
   }
 
@@ -93,7 +94,7 @@ class Printer implements NodeVisitor {
     visitAll(program.body);
   }
 
-  bool blockBody(Node body, [bool needsSeparation, bool needsNewline]) {
+  bool blockBody(Node body, {bool needsSeparation, bool needsNewline}) {
     if (body is Block) {
       spaceOut();
       blockOut(body, false, needsNewline);
@@ -379,7 +380,7 @@ class Printer implements NodeVisitor {
   }
 
   visitNestedExpression(Expression node, int requiredPrecedence,
-                        [bool newInForInit, bool newAtStatementBegin]) {
+                        {bool newInForInit, bool newAtStatementBegin}) {
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&

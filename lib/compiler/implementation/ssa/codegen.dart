@@ -2239,7 +2239,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                        new js.Binary('&&', objectTest, pop())));
   }
 
-  void checkType(HInstruction input, DartType type, [bool negative = false]) {
+  void checkType(HInstruction input, DartType type, {bool negative: false}) {
     world.registerIsCheck(type);
     Element element = type.element;
     use(input);

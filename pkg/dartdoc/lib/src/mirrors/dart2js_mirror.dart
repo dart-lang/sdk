@@ -162,7 +162,7 @@ DiagnosticListener get _diagnosticListener {
 class Dart2JsDiagnosticListener implements DiagnosticListener {
   const Dart2JsDiagnosticListener();
 
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     print(reason);
   }
 

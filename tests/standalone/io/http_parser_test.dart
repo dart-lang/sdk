@@ -18,14 +18,14 @@ class HttpParserTest {
   static void _testParseRequest(String request,
                                 String expectedMethod,
                                 String expectedUri,
-                                [int expectedContentLength = -1,
-                                 int expectedBytesReceived = 0,
-                                 Map expectedHeaders = null,
-                                 bool chunked = false,
-                                 bool upgrade = false,
-                                 int unparsedLength = 0,
-                                 bool connectionClose = false,
-                                 String expectedVersion = "1.1"]) {
+                                {int expectedContentLength: -1,
+                                 int expectedBytesReceived: 0,
+                                 Map expectedHeaders: null,
+                                 bool chunked: false,
+                                 bool upgrade: false,
+                                 int unparsedLength: 0,
+                                 bool connectionClose: false,
+                                 String expectedVersion: "1.1"}) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
@@ -152,16 +152,16 @@ class HttpParserTest {
   static void _testParseResponse(String response,
                                  int expectedStatusCode,
                                  String expectedReasonPhrase,
-                                 [int expectedContentLength = -1,
-                                  int expectedBytesReceived = 0,
-                                  Map expectedHeaders = null,
-                                  bool chunked = false,
-                                  bool close = false,
-                                  String responseToMethod = null,
-                                  bool connectionClose = false,
-                                  bool upgrade = false,
-                                  int unparsedLength = 0,
-                                  String expectedVersion = "1.1"]) {
+                                 {int expectedContentLength: -1,
+                                  int expectedBytesReceived: 0,
+                                  Map expectedHeaders: null,
+                                  bool chunked: false,
+                                  bool close: false,
+                                  String responseToMethod: null,
+                                  bool connectionClose: false,
+                                  bool upgrade: false,
+                                  int unparsedLength: 0,
+                                  String expectedVersion: "1.1"}) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;

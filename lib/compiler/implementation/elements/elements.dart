@@ -821,7 +821,7 @@ class VariableElement extends Element {
                   VariableListElement this.variables,
                   ElementKind kind,
                   Element enclosing,
-                  [Node node])
+                  {Node node})
     : super(name, kind, enclosing), cachedNode = node;
 
   Node parseNode(DiagnosticListener listener) {
@@ -867,7 +867,8 @@ class FieldParameterElement extends VariableElement {
                         VariableListElement variables,
                         Element enclosing,
                         Node node)
-      : super(name, variables, ElementKind.FIELD_PARAMETER, enclosing, node);
+      : super(name, variables, ElementKind.FIELD_PARAMETER, enclosing,
+              node: node);
 }
 
 // This element represents a list of variable or field declaration.
@@ -1551,9 +1552,9 @@ abstract class ClassElement extends ScopeContainerElement
    * and patch class are included.
    */
   // TODO(johnniwinther): Clean up lookup to get rid of the include predicates.
-  void forEachMember([void f(ClassElement enclosingClass, Element member),
-                      includeBackendMembers = false,
-                      includeSuperMembers = false]) {
+  void forEachMember(void f(ClassElement enclosingClass, Element member),
+                     {includeBackendMembers: false,
+                      includeSuperMembers: false}) {
     bool includeInjectedMembers = isPatch;
     Set<ClassElement> seen = new Set<ClassElement>();
     ClassElement classElement = declaration;
@@ -1599,9 +1600,9 @@ abstract class ClassElement extends ScopeContainerElement
    * When called on the implementation element both the fields declared in the
    * origin and in the patch are included.
    */
-  void forEachInstanceField([void f(ClassElement enclosingClass, Element field),
-                             includeBackendMembers = false,
-                             includeSuperMembers = false]) {
+  void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
+                            {includeBackendMembers: false,
+                             includeSuperMembers: false}) {
     // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
@@ -1609,7 +1610,9 @@ abstract class ClassElement extends ScopeContainerElement
       }
     }
 
-    forEachMember(fieldFilter, includeBackendMembers, includeSuperMembers);
+    forEachMember(fieldFilter,
+                  includeBackendMembers: includeBackendMembers,
+                  includeSuperMembers: includeSuperMembers);
   }
 
   bool implementsInterface(ClassElement intrface) {

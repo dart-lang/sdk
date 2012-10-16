@@ -1243,7 +1243,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         analyzeArguments(node.arguments));
   }
 
-  void internalError(String reason, [Node node]) {
+  void internalError(String reason, {Node node}) {
     inferrer.fail(node, reason);
   }
 }

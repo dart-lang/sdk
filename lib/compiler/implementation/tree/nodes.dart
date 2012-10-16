@@ -357,12 +357,12 @@ class Send extends Expression {
 }
 
 class Postfix extends NodeList {
-  Postfix() : super(nodes: const Link<Node>());
+  Postfix() : super(null, const Link<Node>());
   Postfix.singleton(Node argument) : super.singleton(argument);
 }
 
 class Prefix extends NodeList {
-  Prefix() : super(nodes: const Link<Node>());
+  Prefix() : super(null, const Link<Node>());
   Prefix.singleton(Node argument) : super.singleton(argument);
 }
 
@@ -804,7 +804,7 @@ class StringQuoting {
   final bool raw;
   final int leftQuoteCharCount;
   final int quote;
-  const StringQuoting(this.quote, [bool raw, int leftQuoteLength])
+  const StringQuoting(this.quote, {bool raw, int leftQuoteLength})
       : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
   String get quoteChar => quote === $DQ ? '"' : "'";
 

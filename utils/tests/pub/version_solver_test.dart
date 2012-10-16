@@ -337,7 +337,7 @@ main() {
 //   can keep track of server traffic.
 }
 
-testResolve(description, packages, [lockfile, result, error]) {
+testResolve(description, packages, {lockfile, result, error}) {
   test(description, () {
     var sources = new SourceRegistry();
     source1 = new MockSource('mock1');

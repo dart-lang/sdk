@@ -154,7 +154,7 @@ abstract class Source {
    * [fromLockFile] is true when the description comes from a [LockFile], to
    * allow the source to use lockfile-specific descriptions via [resolveId].
    */
-  void validateDescription(description, [bool fromLockFile=false]) {}
+  void validateDescription(description, {bool fromLockFile: false}) {}
 
   /**
    * Returns whether or not [description1] describes the same package as

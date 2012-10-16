@@ -17,7 +17,7 @@ class MockSource extends Source {
   final String name = 'mock';
   final bool shouldCache = false;
 
-  void validateDescription(String description, [bool fromLockFile=false]) {
+  void validateDescription(String description, {bool fromLockFile: false}) {
     if (!description.endsWith(' desc')) throw new FormatException();
   }
 

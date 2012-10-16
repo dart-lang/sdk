@@ -230,8 +230,8 @@ class ArgParser {
    * * There is already an option named [name].
    * * There is already an option using abbreviation [abbr].
    */
-  void addFlag(String name, [String abbr, String help, bool defaultsTo = false,
-      bool negatable = true, void callback(bool value)]) {
+  void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
+      bool negatable: true, void callback(bool value)}) {
     _addOption(name, abbr, help, null, null, defaultsTo, callback,
         isFlag: true, negatable: negatable);
   }
@@ -251,8 +251,8 @@ class ArgParser {
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, defaultsTo,
-      void callback(value), [bool isFlag, bool negatable = false,
-      bool allowMultiple = false]) {
+      void callback(value), {bool isFlag, bool negatable: false,
+      bool allowMultiple: false}) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
@@ -560,8 +560,8 @@ class _Option {
   final bool allowMultiple;
 
   _Option(this.name, this.abbreviation, this.help, this.allowed,
-      this.allowedHelp, this.defaultValue, this.callback, [this.isFlag,
-      this.negatable, this.allowMultiple = false]);
+      this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
+      this.negatable, this.allowMultiple: false});
 }
 
 /**

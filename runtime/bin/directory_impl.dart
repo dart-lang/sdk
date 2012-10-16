@@ -169,7 +169,7 @@ class _Directory implements Directory {
     return new Directory(newPath);
   }
 
-  DirectoryLister list([bool recursive = false]) {
+  DirectoryLister list({bool recursive: false}) {
     return new _DirectoryLister(_path, recursive);
   }
 

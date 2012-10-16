@@ -61,7 +61,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
     return write(
         buffer.getRange(offset, (len == null) ? buffer.length - offset : len),
-        copyBuffer: false);
+        false);
   }
 
   void flush() {

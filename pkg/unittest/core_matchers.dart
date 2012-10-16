@@ -610,7 +610,7 @@ class _In extends BaseMatcher {
  * Returns a matcher that uses an arbitrary function that returns
  * true or false for the actual value.
  */
-Matcher predicate(f, [description = 'satisfies function']) =>
+Matcher predicate(f, {description: 'satisfies function'}) =>
     new _Predicate(f, description);
 
 class _Predicate extends BaseMatcher {

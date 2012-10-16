@@ -366,7 +366,7 @@ class PlaceholderCollector extends Visitor {
     getLocalPlaceholder().nodes.add(identifier);
   }
 
-  void internalError(String reason, [Node node]) {
+  void internalError(String reason, {Node node}) {
     compiler.cancel(reason: reason, node: node);
   }
 

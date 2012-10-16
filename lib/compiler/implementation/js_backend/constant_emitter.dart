@@ -207,9 +207,7 @@ class ConstantEmitter implements ConstantVisitor {
       // are in the same order as the members of the class element.
       int emittedArgumentCount = 0;
       classElement.implementation.forEachInstanceField(
-          includeBackendMembers: true,
-          includeSuperMembers: true,
-          f: (ClassElement enclosing, Element field) {
+          (ClassElement enclosing, Element field) {
             if (emittedArgumentCount != 0) buffer.add(", ");
             if (field.name == MapConstant.LENGTH_NAME) {
               buffer.add(constant.keys.entries.length);
@@ -224,7 +222,9 @@ class ConstantEmitter implements ConstantVisitor {
               badFieldCountError();
             }
             emittedArgumentCount++;
-          });
+          },
+          includeBackendMembers: true,
+          includeSuperMembers: true);
       if ((constant.protoValue === null && emittedArgumentCount != 3) ||
           (constant.protoValue !== null && emittedArgumentCount != 4)) {
         badFieldCountError();

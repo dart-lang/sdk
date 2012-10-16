@@ -115,7 +115,7 @@ void inexactTest() {
  * If exact is true, the returned collections will not be, and will not contain
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
-Object randomCollection(int size, StringBuffer stringRep, [bool exact]) {
+Object randomCollection(int size, StringBuffer stringRep, {bool exact}) {
   return randomCollectionHelper(size, exact, stringRep, []);
 }
 

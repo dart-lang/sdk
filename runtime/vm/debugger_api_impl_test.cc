@@ -397,7 +397,7 @@ TEST_CASE(Debug_StepInto) {
       "f2() { return 2; }       \n"
       "                         \n"
       "class X {                \n"
-      "  kvmk(a, [b, c]) {      \n"
+      "  kvmk(a, {b, c}) {      \n"
       "    return c + f2();     \n"
       "  }                      \n"
       "}                        \n"

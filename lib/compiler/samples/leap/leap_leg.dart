@@ -256,7 +256,7 @@ class LeapCompiler extends Compiler {
     cancel(message.toString(), node);
   }
 
-  void cancel([String reason, Node node, token, instruction, element]) {
+  void cancel(String reason, {Node node, token, instruction, element}) {
     print(reason);
   }
 

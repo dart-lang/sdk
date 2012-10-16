@@ -242,8 +242,7 @@ class _HttpUtils {
       expect("GMT");
     }
     expectEnd();
-    return new Date(
-        year, month + 1, day, hours, minutes, seconds, 0, isUtc: true);
+    return new Date.utc(year, month + 1, day, hours, minutes, seconds, 0);
   }
 
   static Date parseCookieDate(String date) {
@@ -353,6 +352,6 @@ class _HttpUtils {
     if (minute > 59) error();
     if (second > 59) error();
 
-    return new Date(year, month, dayOfMonth, hour, minute, second, 0, true);
+    return new Date.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
 }

@@ -481,8 +481,8 @@ Future<List<int>> consumeInputStream(InputStream stream) {
  * piped streams won't be available in the result object.
  */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    [workingDir, Map<String, String> environment, bool pipeStdout = false,
-    bool pipeStderr = false]) {
+    {workingDir, Map<String, String> environment, bool pipeStdout: false,
+    bool pipeStderr: false}) {
   int exitCode;
 
   // TODO(rnystrom): Should dart:io just handle this?
@@ -556,8 +556,8 @@ Future<bool> get isGitInstalled {
 }
 
 /// Run a git process with [args] from [workingDir].
-Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
-    _gitCommand.chain((git) => runProcess(git, args, workingDir));
+Future<PubProcessResult> runGit(List<String> args, {String workingDir}) =>
+    _gitCommand.chain((git) => runProcess(git, args, workingDir: workingDir));
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.

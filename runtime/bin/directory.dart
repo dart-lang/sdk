@@ -126,7 +126,7 @@ abstract class Directory {
    * operation. Handlers for files and directories should be
    * registered on this DirectoryLister object.
    */
-  DirectoryLister list([bool recursive = false]);
+  DirectoryLister list({bool recursive: false});
 
   /**
    * Gets the path of this directory.

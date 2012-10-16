@@ -140,13 +140,13 @@ class LibraryInfo {
    */
   final bool implementation;
 
-  const LibraryInfo(this.path, [
-           this.category = "Shared",
-           this.dart2jsPath,
-           this.dart2jsPatchPath,
-           this.implementation = false,
-           this.documented = true,
-           this.platforms = DART2JS_PLATFORM | VM_PLATFORM]);
+  const LibraryInfo(this.path, {
+                    this.category: "Shared",
+                    this.dart2jsPath,
+                    this.dart2jsPatchPath,
+                    this.implementation: false,
+                    this.documented: true,
+                    this.platforms: DART2JS_PLATFORM | VM_PLATFORM});
 
   bool get isDart2jsLibrary => (platforms & DART2JS_PLATFORM) != 0;
   bool get isVmLibrary => (platforms & VM_PLATFORM) != 0;

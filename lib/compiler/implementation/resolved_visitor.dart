@@ -52,9 +52,9 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   abstract R visitForeignSend(Send node);
   abstract R visitStaticSend(Send node);
 
-  abstract void internalError(String reason, [Node node]);
+  abstract void internalError(String reason, {Node node});
 
   R visitNode(Node node) {
-    internalError("Unhandled node", node);
+    internalError("Unhandled node", node: node);
   }
 }

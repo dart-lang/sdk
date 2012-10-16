@@ -5,7 +5,7 @@
 // Make sure the year 0 is correctly printed.
 
 testUtc() {
-  var d = new Date(0, 1, 1, isUtc: true);
+  var d = new Date.utc(0, 1, 1);
   Expect.equals("0000-01-01 00:00:00.000Z", d.toString());
 }
 

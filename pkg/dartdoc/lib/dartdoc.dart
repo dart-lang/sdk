@@ -1605,7 +1605,7 @@ class Dartdoc {
   }
 
   /** Generates a human-friendly string representation for a type. */
-  typeName(TypeMirror type, [bool showBounds = false]) {
+  typeName(TypeMirror type, {bool showBounds: false}) {
     if (type.isVoid) {
       return 'void';
     }
@@ -1676,9 +1676,9 @@ class Dartdoc {
    * style it appropriately.
    */
   md.Node resolveNameReference(String name,
-                               [MemberMirror currentMember = null,
-                                ObjectMirror currentType = null,
-                                LibraryMirror currentLibrary = null]) {
+                               {MemberMirror currentMember,
+                                ObjectMirror currentType,
+                                LibraryMirror currentLibrary}) {
     makeLink(String href) {
       final anchor = new md.Element.text('a', name);
       anchor.attributes['href'] = relativePath(href);

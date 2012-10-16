@@ -1406,7 +1406,7 @@ class HInvokeStatic extends HInvoke {
 
 class HInvokeSuper extends HInvokeStatic {
   final bool isSetter;
-  HInvokeSuper(inputs, [this.isSetter = false]) : super(inputs);
+  HInvokeSuper(inputs, {this.isSetter: false}) : super(inputs);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
@@ -1504,7 +1504,7 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(Element element, HInstruction receiver, [bool isAssignable])
+  HFieldGet(Element element, HInstruction receiver, {bool isAssignable})
       : this.isAssignable = (isAssignable !== null)
             ? isAssignable
             : element.isAssignable(),
@@ -2399,7 +2399,7 @@ class HReturn extends HControlFlow {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
-  HThrow(value, [this.isRethrow = false]) : super(<HInstruction>[value]);
+  HThrow(value, {this.isRethrow: false}) : super(<HInstruction>[value]);
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
@@ -2821,12 +2821,12 @@ class HLabeledBlockInformation implements HStatementInformation {
 
   HLabeledBlockInformation(this.body,
                            List<LabelElement> labels,
-                           [this.isContinue = false]) :
+                           {this.isContinue: false}) :
       this.labels = labels, this.target = labels[0].target;
 
   HLabeledBlockInformation.implicit(this.body,
                                     this.target,
-                                    [this.isContinue = false])
+                                    {this.isContinue: false})
       : this.labels = const<LabelElement>[];
 
   HBasicBlock get start => body.start;

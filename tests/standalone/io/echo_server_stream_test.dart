@@ -95,7 +95,7 @@ class EchoServerGame {
           break;
         case 3:
           Expect.equals(0, _buffer.length % 2);
-          stream.writeFrom(_buffer, len: _buffer.length ~/ 2);
+          stream.writeFrom(_buffer, 0, _buffer.length ~/ 2);
           stream.writeFrom(_buffer, _buffer.length ~/ 2);
           break;
       }

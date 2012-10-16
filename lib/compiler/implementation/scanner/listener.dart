@@ -1824,7 +1824,7 @@ class PartialFieldListElement extends VariableListElement {
         cachedNode.type === null) {
       listener.cancel('A field declaration must start with var, final, '
                       'const, or a type annotation.',
-                      cachedNode);
+                      node: cachedNode);
     }
     return cachedNode;
   }

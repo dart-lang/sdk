@@ -233,6 +233,25 @@ LibTest/core/Set/containsAll_A01_t03: Fail, OK
 LibTest/core/Set/remove_A01_t04: Fail, OK
 LibTest/core/Set/removeAll_A01_t03: Fail, OK
 
+# These tests need to be updated to the new Date core lib API, co19 issue 256:
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: Fail # May be a different issue.
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # May be a different issue.
+LibTest/core/Date/Date_A01_t04: Fail
+LibTest/core/Date/Date_A01_t05: Fail
+LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail
+LibTest/core/Date/operator_GE_A01_t01: Fail
+LibTest/core/Date/operator_GT_A01_t01: Fail
+LibTest/core/Date/operator_LE_A01_t01: Fail
+LibTest/core/Date/operator_LT_A01_t01: Fail
+LibTest/core/Date/operator_equality_A01_t01: Fail
+LibTest/core/Date/timeZoneName_A01_t01: Fail
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail
+LibTest/core/Date/toLocal_A01_t01: Fail
+LibTest/core/Date/toUtc_A01_t01: Fail
+
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
@@ -322,9 +341,6 @@ LibTest/core/Match/pattern_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/Match/str_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 212
-
-[ $compiler == dart2js && $unchecked ]
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail
 
 [ $compiler == dart2js && $checked ]
 LibTest/core/Queue/addLast_A01_t01: Slow, Pass

@@ -126,7 +126,7 @@ class HostedSource extends Source {
    * given name from the default host, while a map with keys "name" and "url"
    * refers to a package with the given name from the host at the given URL.
    */
-  void validateDescription(description, [bool fromLockFile=false]) {
+  void validateDescription(description, {bool fromLockFile: false}) {
     _parseDescription(description);
   }
 

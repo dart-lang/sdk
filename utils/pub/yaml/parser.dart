@@ -915,7 +915,7 @@ class _Parser {
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
       var contents = nb_doubleText(indent, ctx);
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
-      return new _ScalarNode("!", contents);
+      return new _ScalarNode("!", content: contents);
     });
   });
 
@@ -1003,7 +1003,7 @@ class _Parser {
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
       var contents = nb_singleText(indent, ctx);
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
-      return new _ScalarNode("!", contents);
+      return new _ScalarNode("!", content: contents);
     });
   });
 
@@ -1535,7 +1535,7 @@ class _Parser {
     var content = l_literalContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new _ScalarNode("!", content);
+    return new _ScalarNode("!", content: content);
   });
 
   // 171
@@ -1572,7 +1572,7 @@ class _Parser {
     var content = l_foldedContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new _ScalarNode("!", content);
+    return new _ScalarNode("!", content: content);
   });
 
   // 175

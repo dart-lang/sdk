@@ -3,6 +3,23 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+# These tests need to be updated to the new Date core lib API, co19 issue 256:
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail
+LibTest/core/Date/Date_A01_t04: Fail
+LibTest/core/Date/Date_A01_t05: Fail
+LibTest/core/Date/isUtc_A01_t01: Fail
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail
+LibTest/core/Date/operator_GE_A01_t01: Fail
+LibTest/core/Date/operator_GT_A01_t01: Fail
+LibTest/core/Date/operator_LE_A01_t01: Fail
+LibTest/core/Date/operator_LT_A01_t01: Fail
+LibTest/core/Date/operator_equality_A01_t01: Fail
+LibTest/core/Date/timeZoneName_A01_t01: Fail
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail
+LibTest/core/Date/toLocal_A01_t01: Fail
+LibTest/core/Date/toUtc_A01_t01: Fail
+
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
 Language/10_Expressions/11_Instance_Creation/1_New_A13_t02: Fail # TRIAGE
@@ -498,7 +515,6 @@ Language/14_Types/5_Function_Types_A02_t01: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # inherited from VM
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # inherited from VM
 LibTest/core/Date/Date.fromString_A03_t01: Fail, OK # Issue co19 - 121
 LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
 LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM

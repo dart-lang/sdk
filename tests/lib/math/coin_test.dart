@@ -25,5 +25,5 @@ main() {
   print("Heads: $heads\n"
         "Tails: $tails\n"
         "Ratio: ${heads/tails}\n");
-  Expect.approxEquals(1.0, heads/tails, tolerance:0.1);
+  Expect.approxEquals(1.0, heads/tails, 0.1);
 }

@@ -11,7 +11,7 @@
 #import('../../../lib/compiler/implementation/leg.dart');
 
 void checkAnnotation(String name, String declaration,
-                     [bool isTopLevelOnly = false]) {
+                     {bool isTopLevelOnly: false}) {
   var source;
 
   // Ensure that a compile-time constant can be resolved from an

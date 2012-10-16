@@ -356,9 +356,9 @@ class DartBackend extends Backend {
       constructor.cachedNode = new FunctionExpression(
           new Send(receiver: classElement.parseNode(compiler).name,
                    selector: synthesizedIdentifier),
-          new NodeList(beginToken: new StringToken(OPEN_PAREN_INFO, '(', -1),
-                       endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
-                       nodes: const Link<Node>()),
+          new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),
+                       const Link<Node>(),
+                       new StringToken(CLOSE_PAREN_INFO, ')', -1)),
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 
@@ -469,10 +469,10 @@ class EmitterUnparser extends Unparser {
     }
   }
 
-  unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
+  unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
     // TODO(smok): Remove ugly hack for library prefices.
     if (node.receiver !== null && renames[node.receiver] == '') return;
-    super.unparseSendReceiver(node, spacesNeeded);
+    super.unparseSendReceiver(node, spacesNeeded: spacesNeeded);
   }
 }
 

@@ -224,8 +224,8 @@ class StandardTestSuite implements TestSuite {
                     this.suiteName,
                     Path suiteDirectory,
                     this.statusFilePaths,
-                    [this.isTestFilePredicate,
-                    bool recursive = false])
+                    {this.isTestFilePredicate,
+                    bool recursive: false})
   : dartDir = TestUtils.dartDir(), _listRecursive = recursive,
     suiteDir = TestUtils.dartDir().join(suiteDirectory);
 
@@ -263,7 +263,7 @@ class StandardTestSuite implements TestSuite {
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
-        (filename) => filename.endsWith('_test.dart'),
+        isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
 

@@ -517,9 +517,11 @@ void main() {
 
   group('Predicate Matchers', () {
     test('isInstanceOf', () {
-      shouldFail(0, predicate((x) => x is String, "an instance of String"),
-        "Expected: an instance of String but: was <0>.");
-      shouldPass('cow', predicate((x) => x is String, "an instance of String"));
+      shouldFail(0, predicate((x) => x is String,
+                              description: "an instance of String"),
+          "Expected: an instance of String but: was <0>.");
+      shouldPass('cow', predicate((x) => x is String,
+                                  description: "an instance of String"));
     });
   });
 }

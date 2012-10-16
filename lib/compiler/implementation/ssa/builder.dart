@@ -1243,25 +1243,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
+        (ClassElement enclosingClass, Element member) {
+          TreeElements definitions = compiler.analyzeElement(member);
+          Node node = member.parseNode(compiler);
+          SendSet assignment = node.asSendSet();
+          HInstruction value;
+          if (assignment === null) {
+            value = graph.addConstantNull(constantSystem);
+          } else {
+            Node right = assignment.arguments.head;
+            TreeElements savedElements = elements;
+            elements = definitions;
+            right.accept(this);
+            elements = savedElements;
+            value = pop();
+          }
+          fieldValues[member] = value;
+        },
         includeBackendMembers: true,
-        includeSuperMembers: false,
-        f: (ClassElement enclosingClass, Element member) {
-      TreeElements definitions = compiler.analyzeElement(member);
-      Node node = member.parseNode(compiler);
-      SendSet assignment = node.asSendSet();
-      HInstruction value;
-      if (assignment === null) {
-        value = graph.addConstantNull(constantSystem);
-      } else {
-        Node right = assignment.arguments.head;
-        TreeElements savedElements = elements;
-        elements = definitions;
-        right.accept(this);
-        elements = savedElements;
-        value = pop();
-      }
-      fieldValues[member] = value;
-    });
+        includeSuperMembers: false);
   }
 
 
@@ -1315,12 +1315,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
     classElement.forEachInstanceField(
+        (ClassElement enclosingClass, Element member) {
+          constructorArguments.add(
+              potentiallyCheckType(fieldValues[member], member));
+        },
         includeBackendMembers: true,
-        includeSuperMembers: true,
-        f: (ClassElement enclosingClass, Element member) {
-      constructorArguments.add(
-          potentiallyCheckType(fieldValues[member], member));
-    });
+        includeSuperMembers: true);
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
@@ -3017,7 +3017,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   // TODO(antonm): migrate rest of SsaBuilder to internalError.
-  internalError(String reason, [Node node]) {
+  internalError(String reason, {Node node}) {
     compiler.internalError(reason, node: node);
   }
 
@@ -3337,8 +3337,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    SsaBranchBuilder brancher =
-        new SsaBranchBuilder(this, diagnosticNode: node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() => visit(node.condition),
                                () => visit(node.thenExpression),
                                () => visit(node.elseExpression));
@@ -4308,7 +4307,7 @@ class SsaBranchBuilder {
    * return value implies that [mayReuseFromLocals] was set to [:true:].
    */
   bool mergeLocals(SsaBranch fromBranch, SsaBranch toBranch,
-                   [bool mayReuseFromLocals]) {
+                   {bool mayReuseFromLocals}) {
     LocalsHandler fromLocals = fromBranch.exitLocals;
     if (toBranch.startLocals == null) {
       if (mayReuseFromLocals) {
@@ -4367,7 +4366,7 @@ class SsaBranchBuilder {
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
   }
 
-  void handleLogicalAndOr(void left(), void right(), [bool isAnd]) {
+  void handleLogicalAndOr(void left(), void right(), {bool isAnd}) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) {
@@ -4409,7 +4408,7 @@ class SsaBranchBuilder {
 
   void handleLogicalAndOrWithLeftNode(Node left,
                                       void visitRight(),
-                                      [bool isAnd]) {
+                                      {bool isAnd}) {
     // This method is similar to [handleLogicalAndOr] but optimizes the case
     // where left is a logical "and" or logical "or".
     //
@@ -4433,10 +4432,11 @@ class SsaBranchBuilder {
       Node middle = link.head;
       handleLogicalAndOrWithLeftNode(
           newLeft,
-          () => handleLogicalAndOrWithLeftNode(middle, visitRight, isAnd),
+          () => handleLogicalAndOrWithLeftNode(middle, visitRight,
+                                               isAnd: isAnd),
           isAnd: isAnd);
     } else {
-      handleLogicalAndOr(() => builder.visit(left), visitRight, isAnd);
+      handleLogicalAndOr(() => builder.visit(left), visitRight, isAnd: isAnd);
     }
   }
 

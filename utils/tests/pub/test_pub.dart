@@ -513,8 +513,8 @@ String get testDirectory {
  * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
  * validates that its results match [output], [error], and [exitCode].
  */
-void schedulePub([List<String> args, Pattern output, Pattern error,
-    int exitCode = 0]) {
+void schedulePub({List<String> args, Pattern output, Pattern error,
+    int exitCode: 0}) {
   _schedule((sandboxDir) {
     String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
@@ -572,9 +572,9 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
  * A shorthand for [schedulePub] and [run] when no validation needs to be done
  * after Pub has been run.
  */
-void runPub([List<String> args, Pattern output, Pattern error,
-    int exitCode = 0]) {
-  schedulePub(args, output, error, exitCode);
+void runPub({List<String> args, Pattern output, Pattern error,
+    int exitCode: 0}) {
+  schedulePub(args: args, output: output, error: error, exitCode: exitCode);
   run();
 }
 

@@ -194,14 +194,14 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasCrashed = false;
 
-  Compiler([this.tracer = const Tracer(),
-            this.enableTypeAssertions = false,
-            this.enableUserAssertions = false,
-            this.enableConcreteTypeInference = false,
-            this.enableMinification = false,
-            bool emitJavaScript = true,
-            bool generateSourceMap = true,
-            List<String> strips = const []])
+  Compiler({this.tracer: const Tracer(),
+            this.enableTypeAssertions: false,
+            this.enableUserAssertions: false,
+            this.enableConcreteTypeInference: false,
+            this.enableMinification: false,
+            bool emitJavaScript: true,
+            bool generateSourceMap: true,
+            List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
     progress.start();
@@ -236,16 +236,19 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void unimplemented(String methodName,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
     internalError("$methodName not implemented",
-                  node, token, instruction, element);
+                  node: node, token: token,
+                  instruction: instruction, element: element);
   }
 
   void internalError(String message,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
-    cancel('Internal error: $message', node, token, instruction, element);
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
+    cancel('Internal error: $message',
+           node: node, token: token,
+           instruction: instruction, element: element);
   }
 
   void internalErrorOnElement(Element element, String message) {
@@ -261,8 +264,8 @@ abstract class Compiler implements DiagnosticListener {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
   }
 
-  void cancel([String reason, Node node, Token token,
-               HInstruction instruction, Element element]) {
+  void cancel(String reason, {Node node, Token token,
+               HInstruction instruction, Element element}) {
     assembledCode = null; // Compilation failed. Make sure that we
                           // don't return a bogus result.
     SourceSpan span = null;
@@ -282,9 +285,10 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void reportFatalError(String reason, Element element,
-                        [Node node, Token token, HInstruction instruction]) {
+                        {Node node, Token token, HInstruction instruction}) {
     withCurrentElement(element, () {
-      cancel(reason, node, token, instruction, element);
+      cancel(reason, node: node, token: token, instruction: instruction,
+             element: element);
     });
   }
 

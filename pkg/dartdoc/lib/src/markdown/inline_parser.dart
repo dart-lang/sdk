@@ -174,7 +174,7 @@ class InlineSyntax {
 /// Matches stuff that should just be passed through as straight text.
 class TextSyntax extends InlineSyntax {
   String substitute;
-  TextSyntax(String pattern, [String sub])
+  TextSyntax(String pattern, {String sub})
     : super(pattern),
       substitute = sub;
 
@@ -214,7 +214,7 @@ class TagSyntax extends InlineSyntax {
   final RegExp endPattern;
   final String tag;
 
-  TagSyntax(String pattern, [String tag, String end = null])
+  TagSyntax(String pattern, {String tag, String end})
     : super(pattern),
       endPattern = new RegExp((end != null) ? end : pattern, multiLine: true),
       tag = tag;

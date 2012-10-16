@@ -30,8 +30,8 @@ class StringValidator {
   }
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
-                                       [bool isFirst = false,
-                                        bool isLast = false]) {
+                                       {bool isFirst: false,
+                                        bool isLast: false}) {
     SourceString source = token.value;
     int leftQuote = 0;
     int rightQuote = 0;

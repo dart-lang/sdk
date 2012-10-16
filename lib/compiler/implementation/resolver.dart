@@ -1086,9 +1086,9 @@ class TypeResolver {
   // TODO(johnniwinther): Should never return [null] but instead an erroneous
   // type.
   DartType resolveTypeAnnotation(TypeAnnotation node,
-                                 [Scope inScope, ClassElement inClass,
+                                 {Scope inScope, ClassElement inClass,
                                  onFailure(Node, MessageKind, [List arguments]),
-                                 whenResolved(Node, Type)]) {
+                                 whenResolved(Node, Type)}) {
     if (onFailure === null) {
       onFailure = (n, k, [arguments]) {};
     }
@@ -1320,7 +1320,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element defineElement(Node node, Element element,
-                        [bool doAddToScope = true]) {
+                        {bool doAddToScope: true}) {
     compiler.ensure(element !== null);
     mapping[node] = element;
     if (doAddToScope) {
@@ -1898,11 +1898,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // [cls] might be the declaration element and we want to include injected
     // members.
     cls.implementation.forEachInstanceField(
-        includeBackendMembers: false,
-        includeSuperMembers: true,
-        f: (ClassElement enclosingClass, Element member) {
+        (ClassElement enclosingClass, Element member) {
           world.addToWorkList(member);
-        });
+        },
+        includeBackendMembers: false,
+        includeSuperMembers: true);
     return null;
   }
 

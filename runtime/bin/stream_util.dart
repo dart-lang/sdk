@@ -31,7 +31,7 @@ class _BaseDataInputStream {
     return _readInto(buffer, offset, bytesToRead);
   }
 
-  void pipe(OutputStream output, [bool close = true]) {
+  void pipe(OutputStream output, {bool close: true}) {
     _pipe(this, output, close: close);
   }
 
@@ -145,7 +145,7 @@ class _BaseDataInputStream {
 }
 
 
-void _pipe(InputStream input, OutputStream output, [bool close]) {
+void _pipe(InputStream input, OutputStream output, {bool close}) {
   Function pipeDataHandler;
   Function pipeCloseHandler;
   Function pipeNoPendingWriteHandler;
@@ -188,7 +188,7 @@ class _BaseOutputStream {
       // Encode and write data.
       _StringEncoder encoder = _StringEncoders.encoder(encoding);
       List<int> data = encoder.encodeString(string);
-      return write(data, copyBuffer: false);
+      return write(data, false);
     }
     return true;
   }

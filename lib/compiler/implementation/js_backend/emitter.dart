@@ -68,7 +68,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void writeConstantToBuffer(Constant value, CodeBuffer buffer,
-                             [emitCanonicalVersion = true]) {
+                             {emitCanonicalVersion: true}) {
     if (emitCanonicalVersion) {
       constantEmitter.emitCanonicalVersionOfConstant(value, buffer);
     } else {
@@ -739,13 +739,14 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       buffer.add(memberBuffer);
     }
 
-    classElement.implementation.forEachMember(includeBackendMembers: true,
-        f: (ClassElement enclosing, Element member) {
-      assert(invariant(classElement, member.isDeclaration));
-      if (member.isInstanceMember()) {
-        addInstanceMember(member, defineInstanceMember);
-      }
-    });
+    classElement.implementation.forEachMember(
+        (ClassElement enclosing, Element member) {
+          assert(invariant(classElement, member.isDeclaration));
+          if (member.isInstanceMember()) {
+            addInstanceMember(member, defineInstanceMember);
+          }
+        },
+        includeBackendMembers: true);
 
     generateIsTestsOn(classElement, (ClassElement other) {
       String code;

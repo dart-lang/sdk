@@ -53,7 +53,8 @@ class DateImplementation implements Date {
         throw new ArgumentError(formattedString);
       }
       if (addOneMillisecond) millisecondsSinceEpoch++;
-      return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, isUtc);
+      return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
+                                                 isUtc: isUtc);
     } else {
       throw new ArgumentError(formattedString);
     }
@@ -93,14 +94,16 @@ class DateImplementation implements Date {
 
   Date toLocal() {
     if (isUtc) {
-      return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, false);
+      return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
+                                                 isUtc: false);
     }
     return this;
   }
 
   Date toUtc() {
     if (isUtc) return this;
-    return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, true);
+    return new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
+                                               isUtc: true);
   }
 
   String toString() {
@@ -142,14 +145,14 @@ class DateImplementation implements Date {
   Date add(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new Date.fromMillisecondsSinceEpoch(
-        ms + duration.inMilliseconds, isUtc);
+        ms + duration.inMilliseconds, isUtc: isUtc);
   }
 
   /** Returns a new [Date] with the [duration] subtracted from [this]. */
   Date subtract(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new Date.fromMillisecondsSinceEpoch(
-        ms - duration.inMilliseconds, isUtc);
+        ms - duration.inMilliseconds, isUtc: isUtc);
   }
 
   /** Returns a [Duration] with the difference of [this] and [other]. */
@@ -159,15 +162,14 @@ class DateImplementation implements Date {
     return new Duration(milliseconds: ms - otherMs);
   }
 
-  // TODO(lrn): Make parameters not optional for the implementation class.
   external DateImplementation(int year,
-                              [int month = 1,
-                               int day = 1,
-                               int hour = 0,
-                               int minute = 0,
-                               int second = 0,
-                               int millisecond = 0,
-                               bool isUtc = false]);
+                              int month,
+                              int day,
+                              int hour,
+                              int minute,
+                              int second,
+                              int millisecond,
+                              bool isUtc);
   external DateImplementation.now();
   external static int _brokenDownDateToMillisecondsSinceEpoch(
       int year, int month, int day, int hour, int minute, int second,

@@ -187,9 +187,9 @@ class DateTest {
     Expect.equals(59, dt.minute);
     Expect.equals(59, dt.second);
     Expect.equals(999, dt.millisecond);
-    dt = new Date(2035, 1, 1, 0, 0, 0, 1, isUtc: true);
+    dt = new Date.utc(2035, 1, 1, 0, 0, 0, 1);
     Expect.equals(SECONDS_YEAR_2035 * 1000 + 1, dt.millisecondsSinceEpoch);
-    dt = new Date(2034, 12, 31, 23, 59, 59, 999, isUtc: true);
+    dt = new Date.utc(2034, 12, 31, 23, 59, 59, 999);
     Expect.equals(SECONDS_YEAR_2035 * 1000 - 1, dt.millisecondsSinceEpoch);
     dt = new Date.fromMillisecondsSinceEpoch(SECONDS_YEAR_2035 * 1000 + 1);
     Expect.equals(true, (2035 == dt.year && 1 == dt.month && 1 == dt.day) ||
@@ -264,14 +264,14 @@ class DateTest {
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
                                  dt.hour, dt.minute, 0, 1));
     dt = new Date.fromMillisecondsSinceEpoch(8640000000000000, isUtc: true);
-    Expect.throws(() => new Date(dt.year, dt.month, dt.day,
-                                 dt.hour, dt.minute, 0, 1, isUtc: true));
+    Expect.throws(() => new Date.utc(dt.year, dt.month, dt.day,
+                                     dt.hour, dt.minute, 0, 1));
     dt = new Date.fromMillisecondsSinceEpoch(-8640000000000000);
     Expect.throws(() => new Date(dt.year, dt.month, dt.day,
                                  dt.hour, dt.minute, 0, -1));
     dt = new Date.fromMillisecondsSinceEpoch(-8640000000000000, isUtc: true);
-    Expect.throws(() => new Date(dt.year, dt.month, dt.day,
-                                 dt.hour, dt.minute, 0, -1, isUtc: true));
+    Expect.throws(() => new Date.utc(dt.year, dt.month, dt.day,
+                                     dt.hour, dt.minute, 0, -1));
   }
 
   static void testUTCGetters() {
@@ -297,10 +297,8 @@ class DateTest {
 
   static void testLocalGetters() {
     var dt1 = new Date.fromMillisecondsSinceEpoch(1305140315000);
-    var dt2 = new Date(dt1.year, dt1.month, dt1.day,
-                       dt1.hour, dt1.minute, dt1.second,
-                       dt1.millisecond,
-                       isUtc: true);
+    var dt2 = new Date.utc(dt1.year, dt1.month, dt1.day,
+                           dt1.hour, dt1.minute, dt1.second, dt1.millisecond);
     Duration zoneOffset = dt1.difference(dt2);
     Expect.equals(true, zoneOffset.inDays == 0);
     Expect.equals(true, zoneOffset.inHours.abs() <= 12);
@@ -318,7 +316,7 @@ class DateTest {
   }
 
   static void testConstructors() {
-    var dt0 = new Date(2011, 5, 11, 18, 58, 35, 0, isUtc: true);
+    var dt0 = new Date.utc(2011, 5, 11, 18, 58, 35, 0);
     Expect.equals(1305140315000, dt0.millisecondsSinceEpoch);
     var dt1 = new Date.fromMillisecondsSinceEpoch(1305140315000);
     Expect.equals(dt1.millisecondsSinceEpoch, dt0.millisecondsSinceEpoch);
@@ -337,11 +335,10 @@ class DateTest {
     Expect.equals(dt2.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
     Expect.equals(true, dt2 == dt3);
     dt1 = new Date.fromMillisecondsSinceEpoch(-9999999, isUtc: true);
-    dt3 = new Date(
-        dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
-        dt1.second, dt1.millisecond, isUtc: true);
+    dt3 = new Date.utc(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
+                       dt1.second, dt1.millisecond);
     Expect.equals(dt1.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
-    dt3 = new Date(99, 1, 2, 10, 11, 12, 0, isUtc: true);
+    dt3 = new Date.utc(99, 1, 2, 10, 11, 12, 0);
     Expect.equals(99, dt3.year);
     Expect.equals(1, dt3.month);
     Expect.equals(2, dt3.day);
@@ -359,7 +356,7 @@ class DateTest {
     Expect.equals(0, dt4.second);
     Expect.equals(0, dt4.millisecond);
     Expect.isFalse(dt4.isUtc);
-    var dt5 = new Date(99, 1, 2, isUtc: true);
+    var dt5 = new Date.utc(99, 1, 2);
     Expect.equals(99, dt5.year);
     Expect.equals(1, dt5.month);
     Expect.equals(2, dt5.day);
@@ -377,7 +374,7 @@ class DateTest {
     Expect.equals(0, dt6.second);
     Expect.equals(0, dt6.millisecond);
     Expect.isFalse(dt6.isUtc);
-    var dt7 = new Date(2012, 2, 27, 13, 27, 0, isUtc: true);
+    var dt7 = new Date.utc(2012, 2, 27, 13, 27, 0);
     Expect.equals(2012, dt7.year);
     Expect.equals(2, dt7.month);
     Expect.equals(27, dt7.day);
@@ -781,18 +778,18 @@ class DateTest {
     // 2011-10-06 is Summertime.
     var d = new Date(2011, 10, 6, 0, 45, 37, 0);
     Expect.equals(Date.THU, d.weekday);
-    d = new Date(2011, 10, 6, 0, 45, 37, 0, isUtc: true);
+    d = new Date.utc(2011, 10, 6, 0, 45, 37, 0);
     Expect.equals(Date.THU, d.weekday);
     d = new Date(2011, 10, 5, 23, 45, 37, 0);
     Expect.equals(Date.WED, d.weekday);
-    d = new Date(2011, 10, 5, 23, 45, 37, 0, isUtc: true);
+    d = new Date.utc(2011, 10, 5, 23, 45, 37, 0);
     Expect.equals(Date.WED, d.weekday);
     // 1970-01-01 is Wintertime.
     d = new Date(1970, 1, 1, 0, 0, 0, 1);
     Expect.equals(Date.THU, d.weekday);
-    d = new Date(1970, 1, 1, 0, 0, 0, 1, isUtc: true);
+    d = new Date.utc(1970, 1, 1, 0, 0, 0, 1);
     Expect.equals(Date.THU, d.weekday);
-    d = new Date(1969, 12, 31, 23, 59, 59, 999, isUtc: true);
+    d = new Date.utc(1969, 12, 31, 23, 59, 59, 999);
     Expect.equals(Date.WED, d.weekday);
     d = new Date(1969, 12, 31, 23, 59, 59, 999);
     Expect.equals(Date.WED, d.weekday);

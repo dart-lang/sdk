@@ -1302,12 +1302,12 @@ class SsaConstructionFieldTypes
     // type will not be used if the field is in any of these.
     int j = 0;
     node.element.forEachInstanceField(
-      includeBackendMembers: false,
-      includeSuperMembers: true,
-      f: (ClassElement enclosingClass, Element element) {
-        backend.registerFieldInitializer(element, types[node.inputs[j]]);
-        j++;
-      });
+        (ClassElement enclosingClass, Element element) {
+          backend.registerFieldInitializer(element, types[node.inputs[j]]);
+          j++;
+        },
+        includeBackendMembers: false,
+        includeSuperMembers: true);
   }
 
   visitFieldSet(HFieldSet node) {
