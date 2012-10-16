@@ -80,6 +80,13 @@ public class SyntaxTest extends AbstractParserTest {
         "  int as = 0;",
         "}"));
   }
+  
+  public void test_patch() {
+    DartUnit unit = parseUnit("patch.dart", Joiner.on("\n").join(
+        "patch class A {",
+        "}"));
+    assertEquals(1, unit.getTopLevelNodes().size());
+  }
 
   public void test_index_literalMap() {
     parseUnit("test.dart", Joiner.on('\n').join(

@@ -167,6 +167,8 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String SHOW_KEYWORD = "show";
   private static final String STATIC_KEYWORD = "static";
   private static final String TYPEDEF_KEYWORD = "typedef";
+  // does not exist in specification
+  private static final String PATCH_KEYWORD = "patch";
 
 
   public static final String[] PSEUDO_KEYWORDS = {
@@ -323,6 +325,9 @@ public class DartParser extends CompletionHooksParserBase {
         if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
           isTopLevelAbstract = true;
           topLevelAbstractModifierPosition = position();
+        }
+        // skip "patch" before "class"
+        if (peek(1) == Token.CLASS && optionalPseudoKeyword(PATCH_KEYWORD)) {
         }
         // Parse top level element.
         if (optional(Token.CLASS)) {
