@@ -390,4 +390,7 @@ module core {
     [Suppressed] boolean handleEvent(in DOMTimeStamp time);
     [Custom] void handleEvent(in DOMTimeStamp time);
   };
+
+  [Suppressed]
+  interface Entity {};
 }
