@@ -21,6 +21,8 @@ String _gitCommandCache;
 /** Gets the current working directory. */
 String get workingDir => new File('.').fullPathSync();
 
+const Pattern NEWLINE_PATTERN = const RegExp("\r\n?|\n\r?");
+
 /**
  * Prints the given string to `stderr` on its own line.
  */
@@ -499,50 +501,18 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   }
   options.environment = environment;
 
-  final process = Process.start(executable, args, options);
-
-  final outStream = new StringInputStream(process.stdout);
-  final processStdout = <String>[];
-
-  final errStream = new StringInputStream(process.stderr);
-  final processStderr = <String>[];
-
-  final completer = new Completer<PubProcessResult>();
-
-  checkComplete() {
-    // Wait until the process is done and its output streams are closed.
-    if (!pipeStdout && !outStream.closed) return;
-    if (!pipeStderr && !errStream.closed) return;
-    if (exitCode == null) return;
-
-    completer.complete(new PubProcessResult(
-        processStdout, processStderr, exitCode));
-  }
-
-  if (pipeStdout) {
-    process.stdout.pipe(stdout, close: false);
-  } else {
-    outStream.onLine   = () => processStdout.add(outStream.readLine());
-    outStream.onClosed = checkComplete;
-    outStream.onError  = (error) => completer.completeException(error);
-  }
-
-  if (pipeStderr) {
-    process.stderr.pipe(stderr, close: false);
-  } else {
-    errStream.onLine   = () => processStderr.add(errStream.readLine());
-    errStream.onClosed = checkComplete;
-    errStream.onError  = (error) => completer.completeException(error);
-  }
-
-  process.onExit = (actualExitCode) {
-    exitCode = actualExitCode;
-    checkComplete();
-  };
-
-  process.onError = (error) => completer.completeException(error);
-
-  return completer.future;
+  var future = Process.run(executable, args, options);
+  return future.transform((result) {
+    // TODO(rnystrom): Remove this and change to returning one string.
+    List<String> toLines(String output) {
+      var lines = output.split(NEWLINE_PATTERN);
+      if (!lines.isEmpty() && lines.last() == "") lines.removeLast();
+      return lines;
+    }
+    return new PubProcessResult(toLines(result.stdout),
+                                toLines(result.stderr),
+                                result.exitCode);
+  });
 }
 
 /**

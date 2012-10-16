@@ -102,7 +102,7 @@ main() {
   }
 
   var commandArgs =
-    globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+      globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
   command.run(cache, globalOptions, commandArgs);
 }
 
@@ -221,6 +221,8 @@ abstract class PubCommand {
       }
     });
 
+    future = future.chain((_) => cache_.deleteTempDir());
+
     future.handleException((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
@@ -232,6 +234,7 @@ abstract class PubCommand {
 
       handleError(e, future.stackTrace);
     });
+
     // Explicitly exit on success to ensure that any dangling dart:io handles
     // don't cause the process to never terminate.
     future.then((_) => exit(0));
