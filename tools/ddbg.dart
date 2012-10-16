@@ -17,6 +17,7 @@ Socket vmSock;
 String vmData;
 OutputStream vmStream;
 int seqNum = 0;
+int isolate_id = -1;
 
 bool verbose = false;
 
@@ -83,14 +84,20 @@ void processCommand(String cmdLine) {
   var simple_commands =
       { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
   if (simple_commands[command] != null) {
-    var cmd = { "id": seqNum, "command": simple_commands[command]};
+    var cmd = { "id": seqNum,
+                "command": simple_commands[command],
+                "params": { "isolateId" : isolate_id } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
     stackTrace = curFrame = null;
   } else if (command == "bt") {
-    var cmd = { "id": seqNum, "command": "getStackTrace" };
+    var cmd = { "id": seqNum,
+                "command": "getStackTrace",
+                "params": { "isolateId" : isolate_id } };
     sendCmd(cmd).then((result) => handleStackTraceResponse(result));
   } else if (command == "ll") {
-    var cmd = { "id": seqNum, "command": "getLibraries" };
+    var cmd = { "id": seqNum,
+                "command": "getLibraries",
+                "params": { "isolateId" : isolate_id } };
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
@@ -103,64 +110,87 @@ void processCommand(String cmdLine) {
     }
     var cmd = { "id": seqNum,
                 "command": "setBreakpoint",
-                "params": { "url": url, "line": line }};
+                "params": { "isolateId" : isolate_id,
+                            "url": url,
+                            "line": line }};
     sendCmd(cmd).then((result) => handleSetBpResponse(result));
   } else if (command == "rbp" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
-                "params": { "breakpointId": Math.parseInt(args[1]) }};
+                "params": { "isolateId" : isolate_id,
+                            "breakpointId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
-                "params": { "libraryId": Math.parseInt(args[1]) }};
+                "params": { "isolateId" : isolate_id,
+                            "libraryId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
   } else if (command == "po" && args.length == 2) {
-    var cmd = { "id": seqNum, "command": "getObjectProperties",
-                "params": {"objectId": Math.parseInt(args[1]) }};
+    var cmd = { "id": seqNum,
+                "command": "getObjectProperties",
+                "params": { "isolateId" : isolate_id,
+                            "objectId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
   } else if (command == "pl" && args.length >= 3) {
      var cmd;
      if (args.length == 3) {
-       cmd = { "id": seqNum, "command": "getListElements",
-                "params": {"objectId": Math.parseInt(args[1]),
-                            "index": Math.parseInt(args[2]) }};
+       cmd = { "id": seqNum,
+               "command": "getListElements",
+               "params": { "isolateId" : isolate_id,
+                           "objectId": Math.parseInt(args[1]),
+                           "index": Math.parseInt(args[2]) } };
     } else {
-       cmd = { "id": seqNum, "command": "getListElements",
-                "params": {"objectId": Math.parseInt(args[1]),
-                            "index": Math.parseInt(args[2]),
-                            "length": Math.parseInt(args[3]) }};
+       cmd = { "id": seqNum,
+               "command": "getListElements",
+               "params": { "isolateId" : isolate_id,
+                           "objectId": Math.parseInt(args[1]),
+                           "index": Math.parseInt(args[2]),
+                           "length": Math.parseInt(args[3]) } };
     }
     sendCmd(cmd).then((result) => handleGetListResponse(result));
   } else if (command == "pc" && args.length == 2) {
-    var cmd = { "id": seqNum, "command": "getClassProperties",
-                "params": {"classId": Math.parseInt(args[1]) }};
+    var cmd = { "id": seqNum,
+                "command": "getClassProperties",
+                "params": { "isolateId" : isolate_id,
+                            "classId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
   } else if (command == "plib" && args.length == 2) {
-    var cmd = { "id": seqNum, "command": "getLibraryProperties",
-                "params": {"libraryId": Math.parseInt(args[1]) }};
+    var cmd = { "id": seqNum,
+                "command": "getLibraryProperties",
+                "params": {"isolateId" : isolate_id,
+                           "libraryId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
   } else if (command == "slib" && args.length == 3) {
-    var cmd = { "id": seqNum, "command": "setLibraryProperties",
-                "params": {"libraryId": Math.parseInt(args[1]),
-                           "debuggingEnabled": args[2] }};
+    var cmd = { "id": seqNum,
+                "command": "setLibraryProperties",
+                "params": {"isolateId" : isolate_id,
+                           "libraryId": Math.parseInt(args[1]),
+                           "debuggingEnabled": args[2] } };
     sendCmd(cmd).then((result) => handleSetLibraryPropsResponse(result));
   } else if (command == "pg" && args.length == 2) {
-    var cmd = { "id": seqNum, "command": "getGlobalVariables",
-                "params": {"libraryId": Math.parseInt(args[1]) }};
+    var cmd = { "id": seqNum,
+                "command": "getGlobalVariables",
+                "params": { "isolateId" : isolate_id,
+                            "libraryId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGetGlobalVarsResponse(result));
   } else if (command == "gs" && args.length == 3) {
-    var cmd = { "id": seqNum, "command":  "getScriptSource",
-                "params": { "libraryId": Math.parseInt(args[1]),
-                            "url": args[2] }};
+    var cmd = { "id": seqNum,
+                "command":  "getScriptSource",
+                "params": { "isolateId" : isolate_id,
+                            "libraryId": Math.parseInt(args[1]),
+                            "url": args[2] } };
     sendCmd(cmd).then((result) => handleGetSourceResponse(result));
   } else if (command == "epi" && args.length == 2) {
-    var cmd = { "id": seqNum, "command":  "setPauseOnException",
-                "params": { "exceptions": args[1] }};
+    var cmd = { "id": seqNum,
+                "command":  "setPauseOnException",
+                "params": { "isolateId" : isolate_id,
+                            "exceptions": args[1] } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "i" && args.length == 2) {
-    var cmd = { "id": seqNum, "command": "interrupt",
-                "params": {"isolateId": Math.parseInt(args[1]) }};
+    var cmd = { "id": seqNum,
+                "command": "interrupt",
+                "params": { "isolateId": Math.parseInt(args[1]) } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
   } else if (command == "q") {
     quitShell();
@@ -361,19 +391,19 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  var id = msg["params"]["id"];
+  isolate_id = msg["params"]["id"];
   stackTrace = msg["params"]["callFrames"];
   assert(stackTrace != null);
   assert(stackTrace.length >= 1);
   curFrame = stackTrace[0];
   if (reason == "breakpoint") {
-    print("Isolate $id paused on breakpoint");
+    print("Isolate $isolate_id paused on breakpoint");
   } else if (reason == "interrupted") {
-    print("Isolate $id paused due to an interrupt");
+    print("Isolate $isolate_id paused due to an interrupt");
   } else {
     assert(reason == "exception");
     var excObj = msg["params"]["exception"];
-    print("Isolate $id paused on exception");
+    print("Isolate $isolate_id paused on exception");
     print(remoteObject(excObj));
   }
   print("Stack trace:");

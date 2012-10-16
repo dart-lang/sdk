@@ -224,11 +224,13 @@ void DebuggerConnectionHandler::HandleMessages() {
       int32_t cmd_idx = DbgMsgQueueList::LookupIsolateCommand(r.ValueChars(),
                                                               r.ValueLen());
       if (cmd_idx != DbgMsgQueueList::kInvalidCommand) {
+        const char* start = msgbuf_->buf();
+        const char* end = r.EndOfObject();
         // Get debug message queue corresponding to isolate.
-        // TODO(asiva): Once we have support for including the isolate id
-        // in the debug wire protocol we need to read the isolate id and
-        // pass it down to AddIsolateMessage.
-        if (!DbgMsgQueueList::AddIsolateMessage(ILLEGAL_ISOLATE_ID,
+        MessageParser msg_parser(start, (end - start));
+        Dart_IsolateId isolate_id =
+            static_cast<Dart_IsolateId>(msg_parser.GetIntParam("isolateId"));
+        if (!DbgMsgQueueList::AddIsolateMessage(isolate_id,
                                                 cmd_idx,
                                                 msgbuf_->buf(),
                                                 r.EndOfObject(),

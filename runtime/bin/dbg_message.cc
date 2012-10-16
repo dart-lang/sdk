@@ -997,13 +997,6 @@ DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueueLocked(Dart_IsolateId id) {
     return NULL;  // No items in the list.
   }
 
-  // TODO(asiva): Remove once debug wire protocol has isolate id.
-  // For now we return the first item in the list as we are only supporting
-  // debugging of a single isolate.
-  if (id == ILLEGAL_ISOLATE_ID) {
-    return list_;
-  }
-
   // Find message queue corresponding to isolate id.
   DbgMsgQueue* iterator = list_;
   while (iterator != NULL && iterator->isolate_id() != id) {
