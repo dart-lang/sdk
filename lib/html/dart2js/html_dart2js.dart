@@ -9169,26 +9169,8 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
   String value;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-/// @domName DOMStringList
-abstract class DOMStringList implements List<String> {
-
-  /** @domName DOMStringList.length */
-  abstract int get length;
-
-  /** @domName DOMStringList.contains */
-  bool contains(String string);
-
-  /** @domName DOMStringList.item */
-  String item(int index);
-}
-
-class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior native "*DOMStringList" {
+class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior native "*DOMStringList" {
 
   final int length;
 
@@ -15547,8 +15529,8 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
       throw new ArgumentError(mode);
     }
 
-    // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
-    // DOMStringList, and copy to JavaScript array if necessary.
+    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
+    // and copy to JavaScript array if necessary.
 
     if (_transaction_fn != null) {
       return _transaction_fn(this, storeName_OR_storeNames, mode);
@@ -15589,7 +15571,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final String name;
 
-  final List<String> objectStoreNames;
+  final _DOMStringListImpl objectStoreNames;
 
   final Dynamic version;
 
@@ -16056,7 +16038,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final bool autoIncrement;
 
-  final List<String> indexNames;
+  final _DOMStringListImpl indexNames;
 
   final Dynamic keyPath;
 
@@ -17935,7 +17917,7 @@ abstract class LocalLocation implements Location {
 
 class _LocalLocationImpl implements LocalLocation native "*Location" {
 
-  final List<String> ancestorOrigins;
+  final _DOMStringListImpl ancestorOrigins;
 
   String hash;
 

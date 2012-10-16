@@ -10216,25 +10216,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMStringList
-abstract class DOMStringList implements List<String> {
-
-  /** @domName DOMStringList.length */
-  abstract int get length;
-
-  /** @domName DOMStringList.contains */
-  bool contains(String string);
-
-  /** @domName DOMStringList.item */
-  String item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringList {
+class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String> {
 
   int get length native "DOMStringList_length_Getter";
 

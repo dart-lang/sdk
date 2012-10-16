@@ -1004,7 +1004,6 @@ _idl_type_registry = {
 
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
     'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
-    'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
     'Document': TypeData(clazz='Interface', merged_interface='HTMLDocument'),
@@ -1025,6 +1024,8 @@ _idl_type_registry = {
     'ClientRectList': TypeData(clazz='ListLike', item_type='ClientRect'),
     'CSSRuleList': TypeData(clazz='ListLike', item_type='CSSRule'),
     'CSSValueList': TypeData(clazz='ListLike', item_type='CSSValue'),
+    'DOMStringList': TypeData(clazz='ListLike', item_type='DOMString',
+        custom_to_native=True),
     'EntryArray': TypeData(clazz='ListLike', item_type='Entry'),
     'EntryArraySync': TypeData(clazz='ListLike', item_type='EntrySync'),
     'FileList': TypeData(clazz='ListLike', item_type='File'),

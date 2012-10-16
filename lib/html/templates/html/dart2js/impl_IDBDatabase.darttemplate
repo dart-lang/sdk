@@ -9,8 +9,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       throw new ArgumentError(mode);
     }
 
-    // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
-    // DOMStringList, and copy to JavaScript array if necessary.
+    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
+    // and copy to JavaScript array if necessary.
 
     if (_transaction_fn != null) {
       return _transaction_fn(this, storeName_OR_storeNames, mode);
