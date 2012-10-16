@@ -54,20 +54,15 @@ class _LocationWrapper implements LocalLocation {
   void set search(String value) => _set(_ptr, 'search', value);
 
 
-  void assign(String url) => _assign(_ptr, url);
+  void assign(String url) => JS('void', '#.assign(#)', _ptr, url);
 
-  void reload() => _reload(_ptr);
+  void reload() => JS('void', '#.reload()', _ptr);
 
-  void replace(String url) => _replace(_ptr, url);
+  void replace(String url) => JS('void', '#.replace(#)', _ptr, url);
 
-  String toString() => _toString(_ptr);
+  String toString() => JS('String', '#.toString()', _ptr);
 
 
-  static _get(p, m) native 'return p[m];';
-  static _set(p, m, v) native 'p[m] = v;';
-
-  static _assign(p, url) native 'p.assign(url);';
-  static _reload(p) native 'p.reload()';
-  static _replace(p, url) native 'p.replace(url);';
-  static _toString(p) native 'return p.toString();';
+  static _get(p, m) => JS('var', '#[#]', p, m);
+  static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
 }

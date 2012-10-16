@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  static HttpRequest createHttpRequest() native 'return new XMLHttpRequest();';
+  static HttpRequest createHttpRequest() =>
+      JS('HttpRequest', 'new XMLHttpRequest();');
 
   static HttpRequest createHttpRequest_get(String url,
       onSuccess(HttpRequest request)) =>

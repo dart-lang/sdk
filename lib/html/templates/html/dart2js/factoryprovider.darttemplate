@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  static $CONSTRUCTOR create$(CONSTRUCTOR)($PARAMETERS) native
-      '''return new $NAMED_CONSTRUCTOR($ARGUMENTS);''';
+  static $CONSTRUCTOR create$(CONSTRUCTOR)($PARAMETERS) =>
+      JS('$CONSTRUCTOR', 'new $NAMED_CONSTRUCTOR($ARGUMENTS_PATTERN)'$PRE_ARGUMENTS_COMMA $ARGUMENTS);
 }

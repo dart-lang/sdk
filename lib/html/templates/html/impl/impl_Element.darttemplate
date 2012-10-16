@@ -743,7 +743,7 @@ $endif
 $if DART2JS
   /** @domName Element.insertAdjacentText */
   void insertAdjacentText(String where, String text) {
-    if (JS('bool', '!!this.insertAdjacentText')) {
+    if (JS('bool', '!!#.insertAdjacentText', this)) {
       _insertAdjacentText(where, text);
     } else {
       _insertAdjacentNode(where, new Text(text));
@@ -755,7 +755,7 @@ $if DART2JS
 
   /** @domName Element.insertAdjacentHTML */
   void insertAdjacentHTML(String where, String text) {
-    if (JS('bool', '!!this.insertAdjacentHTML')) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
       _insertAdjacentHTML(where, text);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(text));
@@ -767,7 +767,7 @@ $if DART2JS
 
   /** @domName Element.insertAdjacentHTML */
   Element insertAdjacentElement(String where, Element element) {
-    if (JS('bool', '!!this.insertAdjacentElement')) {
+    if (JS('bool', '!!#.insertAdjacentElement', this)) {
       _insertAdjacentElement(where, element);
     } else {
       _insertAdjacentNode(where, element);
@@ -862,8 +862,8 @@ class _ElementFactoryProvider {
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static Element createElement_tag(String tag)
-      native "return document.createElement(tag)";
+  static Element createElement_tag(String tag) =>
+      JS('Element', 'document.createElement(#)', tag);
 $else
   static Element createElement_tag(String tag) =>
       _document.$dom_createElement(tag);

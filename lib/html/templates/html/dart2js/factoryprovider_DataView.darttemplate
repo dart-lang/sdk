@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  static DataView createDataView(ArrayBuffer buffer,
-      [int byteOffset = null, int byteLength = null])
-      native '''
-          if (byteOffset == null) return new DataView(buffer);
-          if (byteLength == null) return new DataView(buffer, byteOffset);
-          return new DataView(buffer, byteOffset, byteLength);
-      ''';
+  static DataView createDataView(
+      ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
+    if (byteOffset == null) {
+      return JS('DataView', 'new DataView(#)', buffer);
+    }
+    if (byteLength == null) {
+      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
+    }
+    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
+  }
 }

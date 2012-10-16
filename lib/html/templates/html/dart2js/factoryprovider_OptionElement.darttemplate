@@ -4,12 +4,21 @@
 
 class $FACTORYPROVIDER {
   static OptionElement createOptionElement(
-      [String data, String value, bool defaultSelected, bool selected])
-      native '''
-          if (data == null) return new Option();
-          if (value == null) return new Option(data);
-          if (defaultSelected == null) return new Option(data, value);
-          if (selected == null) return new Option(data, value, defaultSelected);
-          return new Option(data, value, defaultSelected, selected);
-      ''';
+      [String data, String value, bool defaultSelected, bool selected]) {
+    if (data == null) {
+      return JS('OptionElement', 'new Option()');
+    }
+    if (value == null) {
+      return JS('OptionElement', 'new Option(#)', data);
+    }
+    if (defaultSelected == null) {
+      return JS('OptionElement', 'new Option(#,#)', data, value);
+    }
+    if (selected == null) {
+      return JS('OptionElement', 'new Option(#,#,#)',
+                data, value, defaultSelected);
+    }
+    return JS('OptionElement', 'new Option(#,#,#,#)',
+              data, value, defaultSelected, selected);
+  }
 }

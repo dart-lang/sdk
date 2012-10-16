@@ -42,7 +42,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   _IDBTransactionImpl _transaction(stores, mode) native 'transaction';
 
-  static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
+  static bool _hasNumericMode(txn) =>
+      JS('bool', 'typeof(#.mode) === "number"', txn);
 
 $!MEMBERS}
 

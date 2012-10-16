@@ -645,13 +645,17 @@ class Dart2JSBackend(object):
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
 
+    arguments = constructor_info.ParametersAsArgumentList()
+    comma = ',' if arguments else ''
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=self._html_interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
-        ARGUMENTS=constructor_info.ParametersAsArgumentList())
+        ARGUMENTS=arguments,
+        PRE_ARGUMENTS_COMMA=comma,
+        ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
@@ -679,13 +683,14 @@ class Dart2JSBackend(object):
     #
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE operator[](int index) native "return this[index];";\n',
+        '  $TYPE operator[](int index) => JS("$TYPE", "#[#]", this, index);\n',
         TYPE=self._NarrowOutputType(element_type))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
-          '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
+          '  void operator[]=(int index, $TYPE value) =>'
+          ' JS("void", "#[#] = #", this, index, value);\n',
           TYPE=self._NarrowInputType(element_type))
     else:
       # The HTML library implementation of NodeList has a custom indexed setter
@@ -750,12 +755,14 @@ class Dart2JSBackend(object):
     input_type = self._NarrowInputType(attribute.type.id)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $TYPE $NAME;\n',
+          '\n  $TYPE $NAME;'
+          '\n',
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
     else:
       self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;\n',
+          '\n  final $TYPE $NAME;'
+          '\n',
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
 
@@ -770,7 +777,9 @@ class Dart2JSBackend(object):
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
-        '\n  $TYPE get $HTML_NAME() native "return this.$NAME;";\n',
+        # TODO(sra): Use metadata to provide native name.
+        '\n  $TYPE get $HTML_NAME() => JS("$TYPE", "#.$NAME", this);'
+        '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=return_type)
@@ -780,16 +789,21 @@ class Dart2JSBackend(object):
     if conversion:
       return self._AddConvertingSetter(attr, html_name, conversion)
     self._members_emitter.Emit(
-        '\n  void set $HTML_NAME($TYPE value)'
-        ' native "this.$NAME = value;";\n',
+        # TODO(sra): Use metadata to provide native name.
+        '\n  void set $HTML_NAME($TYPE value) {'
+        '\n    JS("void", "#.$NAME = #", this, value);'
+        '\n  }'
+        '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=self._NarrowInputType(attr.type.id))
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
+        # TODO(sra): Use metadata to provide native name.
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME() native "return this.$NAME;";'
+        '\n  $NATIVE_TYPE get _$HTML_NAME() =>'
+        ' JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
@@ -799,10 +813,13 @@ class Dart2JSBackend(object):
 
   def _AddConvertingSetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
+        # TODO(sra): Use metadata to provide native name.
         '\n  void set $HTML_NAME($INPUT_TYPE value) {'
-        ' this._$HTML_NAME = $CONVERT(value); }'
-        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value)'
-        ' native "this.$NAME = value;";'
+        '\n    this._$HTML_NAME = $CONVERT(value);'
+        '\n  }'
+        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n    JS("void", "#.$NAME = #", this, value);'
+        '\n  }'
         '\n',
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
