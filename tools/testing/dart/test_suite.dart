@@ -667,12 +667,14 @@ class StandardTestSuite implements TestSuite {
         expectedOutput = txtPath;
         content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
       } else {
+        final htmlLocation = new Path.fromNative(htmlPath);
         content = getHtmlContents(
           filename,
-          '$filePrefix${dartDir.append("pkg/unittest/test_controller.js")}',
-          '$filePrefix${dartDir.append("client/dart.js")}',
+          dartDir.append('pkg/unittest/test_controller.js')
+              .relativeTo(htmlLocation),
+          dartDir.append('client/dart.js').relativeTo(htmlLocation),
           scriptType,
-          '$filePrefix$scriptPath');
+          new Path.fromNative(scriptPath).relativeTo(htmlLocation));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
