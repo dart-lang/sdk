@@ -238,9 +238,8 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       return tokenizeSlashOrComment(next);
     }
 
-    // TODO(aprelev@gmail.com) Remove deprecated raw string literals
     if (next === $AT) {
-      return tokenizeAtOrRawString(next);
+      return tokenizeAt(next);
     }
 
     if (next === $DQ || next === $SQ) {
@@ -717,15 +716,11 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
   }
 
-  int tokenizeAtOrRawString(int next) {
+  int tokenizeAt(int next) {
     int start = byteOffset;
     next = advance();
-    if (next === $DQ || next === $SQ) {
-      return tokenizeString(next, start, true);
-    } else {
-      appendPrecedenceToken(AT_INFO);
-      return next;
-    }
+    appendPrecedenceToken(AT_INFO);
+    return next;
   }
 
   int tokenizeString(int next, int start, bool raw) {

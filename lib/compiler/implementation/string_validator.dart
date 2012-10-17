@@ -49,8 +49,7 @@ class StringValidator {
     bool raw = false;
     int quoteLength = 1;
     int quoteChar = source.next();
-    // TODO(aprelev@gmail.com): Remove deprecated "quoteChar === $AT ||" below.
-    if (quoteChar === $AT || quoteChar === $r) {
+    if (quoteChar === $r) {
       raw = true;
       quoteChar = source.next();
     }
