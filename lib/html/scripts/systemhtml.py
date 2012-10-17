@@ -82,7 +82,7 @@ class ElementConstructorInfo(object):
     info.constructor_name = self.name
     info.js_name = None
     info.type_name = interface_name
-    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], 'null'),
+    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
                            self.opt_params)
     return info
 
