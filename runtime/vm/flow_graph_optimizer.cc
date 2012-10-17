@@ -653,6 +653,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
           new BinarySmiOpInstr(Token::kBIT_AND, call, left, new Value(c));
       call->ReplaceWith(bin_op, current_iterator());
       RemovePushArguments(call);
+    } else {
+      // Did not replace.
+      return false;
     }
   } else {
     ASSERT(operands_type == kSmiCid);
