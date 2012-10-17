@@ -99,7 +99,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -227,7 +227,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('');
   }
 

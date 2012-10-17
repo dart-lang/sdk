@@ -2833,7 +2833,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
 
   // From List<CSSRule>:
 
-  void sort(int compare(CSSRule a, CSSRule b)) {
+  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7847,7 +7847,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 
   // From List<CSSValue>:
 
-  void sort(int compare(CSSValue a, CSSValue b)) {
+  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -8836,7 +8836,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
 
   // From List<ClientRect>:
 
-  void sort(int compare(ClientRect a, ClientRect b)) {
+  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9788,7 +9788,7 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
 
   // From List<DOMMimeType>:
 
-  void sort(int compare(DOMMimeType a, DOMMimeType b)) {
+  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9974,7 +9974,7 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
 
   // From List<DOMPlugin>:
 
-  void sort(int compare(DOMPlugin a, DOMPlugin b)) {
+  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -10266,7 +10266,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -11537,7 +11537,7 @@ class _FilteredElementList implements List {
     add(value);
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -12750,7 +12750,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -12878,7 +12878,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('');
   }
 
@@ -13954,7 +13954,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
 
   // From List<Entry>:
 
-  void sort(int compare(Entry a, Entry b)) {
+  void sort([Comparator<Entry> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14048,7 +14048,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
 
   // From List<EntrySync>:
 
-  void sort(int compare(EntrySync a, EntrySync b)) {
+  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14971,7 +14971,7 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
 
   // From List<File>:
 
-  void sort(int compare(File a, File b)) {
+  void sort([Comparator<File> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -15446,7 +15446,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -15578,7 +15578,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16099,7 +16099,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
 
   // From List<Gamepad>:
 
-  void sort(int compare(Gamepad a, Gamepad b)) {
+  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16323,7 +16323,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16439,7 +16439,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19032,7 +19032,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19164,7 +19164,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19296,7 +19296,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -22001,7 +22001,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
 
   // From List<MediaStream>:
 
-  void sort(int compare(MediaStream a, MediaStream b)) {
+  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23060,7 +23060,7 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23514,7 +23514,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23749,7 +23749,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -23853,7 +23853,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -26467,7 +26467,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
   // From List<Map>:
 
-  void sort(int compare(Map a, Map b)) {
+  void sort([Comparator<Map> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27074,7 +27074,7 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
 
   // From List<SVGAnimatedLength>:
 
-  void sort(int compare(SVGAnimatedLength a, SVGAnimatedLength b)) {
+  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27213,7 +27213,7 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
 
   // From List<SVGAnimatedNumber>:
 
-  void sort(int compare(SVGAnimatedNumber a, SVGAnimatedNumber b)) {
+  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27408,7 +27408,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
 
   // From List<SVGAnimateTransformElement>:
 
-  void sort(int compare(SVGAnimateTransformElement a, SVGAnimateTransformElement b)) {
+  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -28287,7 +28287,7 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
 
   // From List<SVGElementInstance>:
 
-  void sort(int compare(SVGElementInstance a, SVGElementInstance b)) {
+  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30441,7 +30441,7 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
 
   // From List<SVGLength>:
 
-  void sort(int compare(SVGLength a, SVGLength b)) {
+  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31086,7 +31086,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
 
   // From List<SVGNumber>:
 
-  void sort(int compare(SVGNumber a, SVGNumber b)) {
+  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32226,7 +32226,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
 
   // From List<SVGPathSeg>:
 
-  void sort(int compare(SVGPathSeg a, SVGPathSeg b)) {
+  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33339,7 +33339,7 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34043,7 +34043,7 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
 
   // From List<SVGTransform>:
 
-  void sort(int compare(SVGTransform a, SVGTransform b)) {
+  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35097,7 +35097,7 @@ class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBu
 
   // From List<SourceBuffer>:
 
-  void sort(int compare(SourceBuffer a, SourceBuffer b)) {
+  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35315,7 +35315,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   // From List<SpeechGrammar>:
 
-  void sort(int compare(SpeechGrammar a, SpeechGrammar b)) {
+  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35484,7 +35484,7 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
 
   // From List<SpeechInputResult>:
 
-  void sort(int compare(SpeechInputResult a, SpeechInputResult b)) {
+  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35864,7 +35864,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
 
   // From List<SpeechRecognitionResult>:
 
-  void sort(int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)) {
+  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -36294,7 +36294,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
 
   // From List<StyleSheet>:
 
-  void sort(int compare(StyleSheet a, StyleSheet b)) {
+  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37391,7 +37391,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
 
   // From List<TextTrackCue>:
 
-  void sort(int compare(TextTrackCue a, TextTrackCue b)) {
+  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37566,7 +37566,7 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
 
   // From List<TextTrack>:
 
-  void sort(int compare(TextTrack a, TextTrack b)) {
+  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37883,7 +37883,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 
   // From List<Touch>:
 
-  void sort(int compare(Touch a, Touch b)) {
+  void sort([Comparator<Touch> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38310,7 +38310,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38442,7 +38442,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38574,7 +38574,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -40769,7 +40769,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
 
   // From List<Animation>:
 
-  void sort(int compare(Animation a, Animation b)) {
+  void sort([Comparator<Animation> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 

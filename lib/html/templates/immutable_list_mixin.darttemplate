@@ -39,7 +39,7 @@
 
   // From List<$E>:
 
-  void sort(int compare($E a, $E b)) {
+  void sort([Comparator<$E> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 

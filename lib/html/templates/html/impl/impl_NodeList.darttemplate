@@ -37,7 +37,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -141,7 +141,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 

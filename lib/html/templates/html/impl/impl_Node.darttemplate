@@ -73,7 +73,7 @@ $endif
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 

@@ -2257,7 +2257,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
   // From List<CSSRule>:
 
-  void sort(int compare(CSSRule a, CSSRule b)) {
+  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7225,7 +7225,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 
   // From List<CSSValue>:
 
-  void sort(int compare(CSSValue a, CSSValue b)) {
+  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7953,7 +7953,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
 
   // From List<ClientRect>:
 
-  void sort(int compare(ClientRect a, ClientRect b)) {
+  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -8786,7 +8786,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
 
   // From List<DOMMimeType>:
 
-  void sort(int compare(DOMMimeType a, DOMMimeType b)) {
+  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -8954,7 +8954,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
 
   // From List<DOMPlugin>:
 
-  void sort(int compare(DOMPlugin a, DOMPlugin b)) {
+  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9220,7 +9220,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -10268,7 +10268,7 @@ class _FilteredElementList implements List {
     add(value);
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -11450,7 +11450,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -11578,7 +11578,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('');
   }
 
@@ -12638,7 +12638,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
 
   // From List<Entry>:
 
-  void sort(int compare(Entry a, Entry b)) {
+  void sort([Comparator<Entry> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -12726,7 +12726,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
   // From List<EntrySync>:
 
-  void sort(int compare(EntrySync a, EntrySync b)) {
+  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -13546,7 +13546,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
 
   // From List<File>:
 
-  void sort(int compare(File a, File b)) {
+  void sort([Comparator<File> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -13972,7 +13972,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14089,7 +14089,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14518,7 +14518,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
 
   // From List<Gamepad>:
 
-  void sort(int compare(Gamepad a, Gamepad b)) {
+  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14710,7 +14710,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14820,7 +14820,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17118,7 +17118,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17235,7 +17235,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17352,7 +17352,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19863,7 +19863,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
 
   // From List<MediaStream>:
 
-  void sort(int compare(MediaStream a, MediaStream b)) {
+  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -20849,7 +20849,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -21295,7 +21295,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -21526,7 +21526,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -21630,7 +21630,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23874,7 +23874,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
   // From List<Map>:
 
-  void sort(int compare(Map a, Map b)) {
+  void sort([Comparator<Map> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24379,7 +24379,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 
   // From List<SVGAnimatedLength>:
 
-  void sort(int compare(SVGAnimatedLength a, SVGAnimatedLength b)) {
+  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24504,7 +24504,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 
   // From List<SVGAnimatedNumber>:
 
-  void sort(int compare(SVGAnimatedNumber a, SVGAnimatedNumber b)) {
+  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24673,7 +24673,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 
   // From List<SVGAnimateTransformElement>:
 
-  void sort(int compare(SVGAnimateTransformElement a, SVGAnimateTransformElement b)) {
+  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -25527,7 +25527,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 
   // From List<SVGElementInstance>:
 
-  void sort(int compare(SVGElementInstance a, SVGElementInstance b)) {
+  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27547,7 +27547,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 
   // From List<SVGLength>:
 
-  void sort(int compare(SVGLength a, SVGLength b)) {
+  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -28141,7 +28141,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
 
   // From List<SVGNumber>:
 
-  void sort(int compare(SVGNumber a, SVGNumber b)) {
+  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -29056,7 +29056,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
 
   // From List<SVGPathSeg>:
 
-  void sort(int compare(SVGPathSeg a, SVGPathSeg b)) {
+  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30087,7 +30087,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30742,7 +30742,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 
   // From List<SVGTransform>:
 
-  void sort(int compare(SVGTransform a, SVGTransform b)) {
+  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31681,7 +31681,7 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
 
   // From List<SourceBuffer>:
 
-  void sort(int compare(SourceBuffer a, SourceBuffer b)) {
+  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31865,7 +31865,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 
   // From List<SpeechGrammar>:
 
-  void sort(int compare(SpeechGrammar a, SpeechGrammar b)) {
+  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31996,7 +31996,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
 
   // From List<SpeechInputResult>:
 
-  void sort(int compare(SpeechInputResult a, SpeechInputResult b)) {
+  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32332,7 +32332,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 
   // From List<SpeechRecognitionResult>:
 
-  void sort(int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)) {
+  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32716,7 +32716,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
 
   // From List<StyleSheet>:
 
-  void sort(int compare(StyleSheet a, StyleSheet b)) {
+  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33608,7 +33608,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
 
   // From List<TextTrackCue>:
 
-  void sort(int compare(TextTrackCue a, TextTrackCue b)) {
+  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33769,7 +33769,7 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
 
   // From List<TextTrack>:
 
-  void sort(int compare(TextTrack a, TextTrack b)) {
+  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34057,7 +34057,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
 
   // From List<Touch>:
 
-  void sort(int compare(Touch a, Touch b)) {
+  void sort([Comparator<Touch> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34431,7 +34431,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34548,7 +34548,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34665,7 +34665,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -36652,7 +36652,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   // From List<Animation>:
 
-  void sort(int compare(Animation a, Animation b)) {
+  void sort([Comparator<Animation> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
