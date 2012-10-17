@@ -20,7 +20,7 @@ class DartiumBackend(object):
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
+    self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
 
   def ImplementationClassName(self):
     return self._ImplClassName(self._interface.id)
@@ -96,8 +96,9 @@ class DartiumBackend(object):
 
   def ImplementationTemplate(self):
     template = None
-    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
-      template_file = 'impl_%s.darttemplate' % self._html_interface_name
+    interface_name = self._interface_type_info.interface_name()
+    if interface_name == self._interface.id or not self._database.HasInterface(interface_name):
+      template_file = 'impl_%s.darttemplate' % interface_name
       template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('dart_implementation.darttemplate')
@@ -217,7 +218,8 @@ class DartiumBackend(object):
     return False
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
-    template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name
+    interface_name = self._interface_type_info.interface_name()
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
@@ -226,7 +228,7 @@ class DartiumBackend(object):
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        INTERFACE=self._html_interface_name,
+        INTERFACE=interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_binding)

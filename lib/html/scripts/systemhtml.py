@@ -205,7 +205,6 @@ class HtmlDartInterfaceGenerator(object):
     self._interface = interface
     self._backend = backend
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def Generate(self):
     if 'Callback' in self._interface.ext_attrs:
@@ -227,18 +226,17 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
+    interface_name = self._interface_type_info.interface_name()
+
     if (self._interface_type_info.has_generated_interface() and
         not self._interface_type_info.merged_into()):
-      interface_emitter = self._library_emitter.FileEmitter(
-          self._html_interface_name)
+      interface_emitter = self._library_emitter.FileEmitter(interface_name)
     else:
       interface_emitter = emitter.Emitter()
 
-    template_file = 'interface_%s.darttemplate' % self._html_interface_name
+    template_file = 'interface_%s.darttemplate' % interface_name
     interface_template = (self._template_loader.TryLoad(template_file) or
                           self._template_loader.Load('interface.darttemplate'))
-
-    typename = self._html_interface_name
 
     implements = []
     suppressed_implements = []
@@ -258,8 +256,8 @@ class HtmlDartInterfaceGenerator(object):
         suppressed_implements.append('%s.%s' %
             (self._common_prefix, parent_interface_name))
 
-    if typename in _secure_base_types:
-      implements.append(_secure_base_types[typename])
+    if interface_name in _secure_base_types:
+      implements.append(_secure_base_types[interface_name])
 
     comment = ' extends'
     implements_str = ''
@@ -271,20 +269,20 @@ class HtmlDartInterfaceGenerator(object):
           ', '.join(suppressed_implements))
 
     factory_provider = None
-    if typename in interface_factories:
-      factory_provider = interface_factories[typename]
+    if interface_name in interface_factories:
+      factory_provider = interface_factories[interface_name]
 
     constructors = []
     constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
       constructors.append(constructor_info)
-      factory_provider = '_' + typename + 'FactoryProvider'
+      factory_provider = '_' + interface_name + 'FactoryProvider'
       factory_provider_emitter = self._library_emitter.FileEmitter(
-          '_%sFactoryProvider' % self._html_interface_name)
+          '_%sFactoryProvider' % interface_name)
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
-    infos = HtmlElementConstructorInfos(typename)
+    infos = HtmlElementConstructorInfos(interface_name)
     if infos:
       template = self._template_loader.Load(
           'factoryprovider_Elements.darttemplate')
@@ -307,7 +305,7 @@ class HtmlDartInterfaceGenerator(object):
      self._members_emitter,
      self._top_level_emitter) = interface_emitter.Emit(
          interface_template + '$!TOP_LEVEL',
-         ID=typename,
+         ID=interface_name,
          EXTENDS=implements_str)
 
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
@@ -348,7 +346,7 @@ class HtmlDartInterfaceGenerator(object):
         FACTORY=factory_provider)
 
     events_interface = self._event_generator.ProcessInterface(
-        self._interface, self._html_interface_name,
+        self._interface, interface_name,
         self._backend.CustomJSMembers(),
         interface_emitter, implementation_emitter)
     if events_interface:
@@ -511,15 +509,13 @@ class HtmlDartInterfaceGenerator(object):
     if IsPureInterface(self._interface.id):
       return emitter.Emitter()
 
-    if not self._interface_type_info.merged_into():
-      name = self._html_interface_name
-      basename = '%sImpl' % name
-    else:
+    basename = self._interface_type_info.implementation_name()
+    if self._interface_type_info.merged_into():
       if self._backend.ImplementsMergedMembers():
         # Merged members are implemented in target interface implementation.
         return emitter.Emitter()
-      basename = '%sImpl_Merged' % self._html_interface_name
-    return self._library_emitter.FileEmitter(basename)
+      basename = '%s_Merged' % basename
+    return self._library_emitter.FileEmitter(basename.lstrip('_'))
 
   def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
@@ -587,17 +583,13 @@ class Dart2JSBackend(object):
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
     self._current_secondary_parent = None
 
   def ImplementationClassName(self):
-    return self._ImplClassName(self._html_interface_name)
+    return self._interface_type_info.implementation_name()
 
   def ImplementsMergedMembers(self):
     return True
-
-  def _ImplClassName(self, type_name):
-    return '_%sImpl' % type_name
 
   def GenerateCallback(self, info):
     pass
@@ -628,7 +620,8 @@ class Dart2JSBackend(object):
     return ' native "%s"' % native_spec
 
   def ImplementationTemplate(self):
-    template_file = 'impl_%s.darttemplate' % self._html_interface_name
+    template_file = ('impl_%s.darttemplate' %
+                     self._interface_type_info.interface_name())
     return (self._template_loader.TryLoad(template_file) or
             self._template_loader.Load('dart2js_impl.darttemplate'))
 
@@ -640,19 +633,20 @@ class Dart2JSBackend(object):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
-                     self._html_interface_name)
+                     self._interface_type_info.interface_name())
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
 
+    interface_name = self._interface_type_info.interface_name()
     arguments = constructor_info.ParametersAsArgumentList()
     comma = ',' if arguments else ''
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        CONSTRUCTOR=self._html_interface_name,
+        CONSTRUCTOR=interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
-        NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
+        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=arguments,
         PRE_ARGUMENTS_COMMA=comma,
         ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))
@@ -1035,7 +1029,8 @@ class Dart2JSBackend(object):
     return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def _HasCustomImplementation(self, member_name):
-    member_name = '%s.%s' % (self._html_interface_name, member_name)
+    member_name = '%s.%s' % (self._interface_type_info.interface_name(),
+                             member_name)
     return member_name in _js_custom_members
 
   def CustomJSMembers(self):
