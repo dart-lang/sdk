@@ -341,10 +341,7 @@ class OperationInfo(object):
 
   def ParametersInterfaceDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the interface."""
-    def type_function(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
-      return TypeOrNothing(dart_type, param.type_id)
-    return self._FormatParams(self.param_infos, type_function)
+    return self._FormatParams(self.param_infos, rename_type, True)
 
   def ParametersImplementationDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the
@@ -354,10 +351,7 @@ class OperationInfo(object):
       rename_type: A function that allows the types to be renamed.
         The function is applied to the parameter's dart_type.
     """
-    def type_function(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
-      return TypeOrNothing(dart_type)
-    return self._FormatParams(self.param_infos, type_function)
+    return self._FormatParams(self.param_infos, rename_type, False)
 
   def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
@@ -369,10 +363,11 @@ class OperationInfo(object):
         lambda param_info: param_info.name,
         self.param_infos[:parameter_count]))
 
-  def _FormatParams(self, params, type_fn):
+  def _FormatParams(self, params, rename_type, provide_comments):
     def FormatParam(param):
-      """Returns a parameter declaration fragment for an ParamInfo."""
-      return '%s%s' % (type_fn(param), param.name)
+      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
+      type = TypeOrNothing(dart_type, param.type_id if provide_comments else None)
+      return '%s%s' % (type, param.name)
 
     required = []
     optional = []
