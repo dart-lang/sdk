@@ -198,7 +198,7 @@ abstract class AnchorElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
+class _AnchorElementImpl extends _ElementImpl_Merged implements AnchorElement {
 
   String get charset native "HTMLAnchorElement_charset_Getter";
 
@@ -356,7 +356,7 @@ abstract class AnimationEvent implements Event {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
+class _AnimationEventImpl extends _EventImpl implements AnimationEvent {
 
   String get animationName native "WebKitAnimationEvent_animationName_Getter";
 
@@ -369,7 +369,7 @@ class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation {
+class _AnimationImpl extends NativeFieldWrapperClass1 implements Animation {
 
   num get delay native "WebKitAnimation_delay_Getter";
 
@@ -444,7 +444,7 @@ abstract class AppletElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
+class _AppletElementImpl extends _ElementImpl_Merged implements AppletElement {
 
   String get align native "HTMLAppletElement_align_Getter";
 
@@ -550,7 +550,7 @@ abstract class AreaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
+class _AreaElementImpl extends _ElementImpl_Merged implements AreaElement {
 
   String get alt native "HTMLAreaElement_alt_Getter";
 
@@ -1147,7 +1147,7 @@ abstract class AudioElement implements MediaElement {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAudioElementImpl extends _HTMLMediaElementImpl implements AudioElement {
+class _AudioElementImpl extends _MediaElementImpl implements AudioElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1552,7 +1552,7 @@ abstract class BRElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
+class _BRElementImpl extends _ElementImpl_Merged implements BRElement {
 
   String get clear native "HTMLBRElement_clear_Getter";
 
@@ -1605,7 +1605,7 @@ abstract class BaseElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
+class _BaseElementImpl extends _ElementImpl_Merged implements BaseElement {
 
   String get href native "HTMLBaseElement_href_Getter";
 
@@ -1640,7 +1640,7 @@ abstract class BaseFontElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontElement {
+class _BaseFontElementImpl extends _ElementImpl_Merged implements BaseFontElement {
 
   String get color native "HTMLBaseFontElement_color_Getter";
 
@@ -1951,7 +1951,7 @@ abstract class BodyElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
+class _BodyElementImpl extends _ElementImpl_Merged implements BodyElement {
 
   _BodyElementEventsImpl get on =>
     new _BodyElementEventsImpl(this);
@@ -2075,7 +2075,7 @@ abstract class ButtonElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
+class _ButtonElementImpl extends _ElementImpl_Merged implements ButtonElement {
 
   bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
@@ -2252,7 +2252,7 @@ abstract class CSSKeyframeRule implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule {
+class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule {
 
   String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
@@ -2291,7 +2291,7 @@ abstract class CSSKeyframesRule implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
+class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
 
   List<CSSRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
@@ -2424,7 +2424,7 @@ abstract class CSSMatrix {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
+class _CSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
 
   num get a native "WebKitCSSMatrix_a_Getter";
 
@@ -7730,7 +7730,7 @@ abstract class CSSTransformValue implements List<CSSValue> {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
+class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
 
   int get operationType native "WebKitCSSTransformValue_operationType_Getter";
 
@@ -7922,7 +7922,7 @@ abstract class CanvasElement implements Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
+class _CanvasElementImpl extends _ElementImpl_Merged implements CanvasElement {
 
   int get height native "HTMLCanvasElement_height_Getter";
 
@@ -9163,7 +9163,7 @@ abstract class ContentElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement {
+class _ContentElementImpl extends _ElementImpl_Merged implements ContentElement {
 
   String get select native "HTMLContentElement_select_Getter";
 
@@ -9364,7 +9364,7 @@ abstract class DListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
+class _DListElementImpl extends _ElementImpl_Merged implements DListElement {
 
   bool get compact native "HTMLDListElement_compact_Getter";
 
@@ -9583,7 +9583,7 @@ abstract class DOMException {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMCoreExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
+class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
   int get code native "DOMCoreException_code_Getter";
 
@@ -10425,7 +10425,7 @@ abstract class DataListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListElement {
+class _DataListElementImpl extends _ElementImpl_Merged implements DataListElement {
 
   HTMLCollection get options native "HTMLDataListElement_options_Getter";
 
@@ -10920,7 +10920,7 @@ abstract class DetailsElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement {
+class _DetailsElementImpl extends _ElementImpl_Merged implements DetailsElement {
 
   bool get open native "HTMLDetailsElement_open_Getter";
 
@@ -11011,7 +11011,7 @@ abstract class DirectoryElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryElement {
+class _DirectoryElementImpl extends _ElementImpl_Merged implements DirectoryElement {
 
   bool get compact native "HTMLDirectoryElement_compact_Getter";
 
@@ -11180,7 +11180,7 @@ abstract class DivElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
+class _DivElementImpl extends _ElementImpl_Merged implements DivElement {
 
   String get align native "HTMLDivElement_align_Getter";
 
@@ -12116,7 +12116,7 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDocumentImpl extends _DocumentImpl implements Document {
+class _DocumentImpl_Merged extends _DocumentImpl implements Document {
 
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
@@ -13659,7 +13659,7 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLElementImpl extends _ElementImpl implements Element {
+class _ElementImpl_Merged extends _ElementImpl implements Element {
 
   HTMLCollection get $dom_children native "HTMLElement_children_Getter";
 
@@ -13804,7 +13804,7 @@ abstract class EmbedElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
+class _EmbedElementImpl extends _ElementImpl_Merged implements EmbedElement {
 
   String get align native "HTMLEmbedElement_align_Getter";
 
@@ -14683,7 +14683,7 @@ abstract class FieldSetElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetElement {
+class _FieldSetElementImpl extends _ElementImpl_Merged implements FieldSetElement {
 
   bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
@@ -15651,7 +15651,7 @@ abstract class FontElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
+class _FontElementImpl extends _ElementImpl_Merged implements FontElement {
 
   String get color native "HTMLFontElement_color_Getter";
 
@@ -15691,7 +15691,7 @@ abstract class FormData {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements FormData {
+class _FormDataImpl extends NativeFieldWrapperClass1 implements FormData {
 
   void append(String name, String value, String filename) native "DOMFormData_append_Callback";
 
@@ -15752,7 +15752,7 @@ abstract class FormElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
+class _FormElementImpl extends _ElementImpl_Merged implements FormElement {
 
   String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
@@ -15856,7 +15856,7 @@ abstract class FrameElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFrameElementImpl extends _HTMLElementImpl implements FrameElement {
+class _FrameElementImpl extends _ElementImpl_Merged implements FrameElement {
 
   Window get contentWindow native "HTMLFrameElement_contentWindow_Getter";
 
@@ -15956,7 +15956,7 @@ abstract class FrameSetElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
+class _FrameSetElementImpl extends _ElementImpl_Merged implements FrameSetElement {
 
   _FrameSetElementEventsImpl get on =>
     new _FrameSetElementEventsImpl(this);
@@ -16227,7 +16227,7 @@ abstract class HRElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
+class _HRElementImpl extends _ElementImpl_Merged implements HRElement {
 
   String get align native "HTMLHRElement_align_Getter";
 
@@ -16571,7 +16571,7 @@ abstract class HeadElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
+class _HeadElementImpl extends _ElementImpl_Merged implements HeadElement {
 
   String get profile native "HTMLHeadElement_profile_Getter";
 
@@ -16608,7 +16608,7 @@ abstract class HeadingElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement {
+class _HeadingElementImpl extends _ElementImpl_Merged implements HeadingElement {
 
   String get align native "HTMLHeadingElement_align_Getter";
 
@@ -16632,7 +16632,7 @@ abstract class HtmlElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHtmlElementImpl extends _HTMLElementImpl implements HtmlElement {
+class _HtmlElementImpl extends _ElementImpl_Merged implements HtmlElement {
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -16771,7 +16771,7 @@ abstract class HttpRequestException {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements HttpRequestException {
+class _HttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements HttpRequestException {
 
   int get code native "XMLHttpRequestException_code_Getter";
 
@@ -16788,7 +16788,7 @@ class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements H
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
+class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   _HttpRequestEventsImpl get on =>
     new _HttpRequestEventsImpl(this);
@@ -16875,7 +16875,7 @@ abstract class HttpRequestProgressEvent implements ProgressEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent {
+class _HttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent {
 
   int get position native "XMLHttpRequestProgressEvent_position_Getter";
 
@@ -16926,7 +16926,7 @@ abstract class HttpRequestUploadEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload {
+class _HttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload {
 
   _HttpRequestUploadEventsImpl get on =>
     new _HttpRequestUploadEventsImpl(this);
@@ -18249,7 +18249,7 @@ abstract class IFrameElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
+class _IFrameElementImpl extends _ElementImpl_Merged implements IFrameElement {
 
   String get align native "HTMLIFrameElement_align_Getter";
 
@@ -18457,7 +18457,7 @@ abstract class ImageElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
+class _ImageElementImpl extends _ElementImpl_Merged implements ImageElement {
 
   String get align native "HTMLImageElement_align_Getter";
 
@@ -18723,7 +18723,7 @@ abstract class InputElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
+class _InputElementImpl extends _ElementImpl_Merged implements InputElement {
 
   _InputElementEventsImpl get on =>
     new _InputElementEventsImpl(this);
@@ -19590,7 +19590,7 @@ abstract class KeygenElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
+class _KeygenElementImpl extends _ElementImpl_Merged implements KeygenElement {
 
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
@@ -19652,7 +19652,7 @@ abstract class LIElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
+class _LIElementImpl extends _ElementImpl_Merged implements LIElement {
 
   String get type native "HTMLLIElement_type_Getter";
 
@@ -19689,7 +19689,7 @@ abstract class LabelElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
+class _LabelElementImpl extends _ElementImpl_Merged implements LabelElement {
 
   Element get control native "HTMLLabelElement_control_Getter";
 
@@ -19723,7 +19723,7 @@ abstract class LegendElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
+class _LegendElementImpl extends _ElementImpl_Merged implements LegendElement {
 
   String get align native "HTMLLegendElement_align_Getter";
 
@@ -19782,7 +19782,7 @@ abstract class LinkElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
+class _LinkElementImpl extends _ElementImpl_Merged implements LinkElement {
 
   String get charset native "HTMLLinkElement_charset_Getter";
 
@@ -19863,7 +19863,7 @@ abstract class LocalHistory implements History {
 
 // WARNING: Do not edit - generated code.
 
-class _HistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory {
+class _LocalHistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory {
 
   int get length native "History_length_Getter";
 
@@ -19937,7 +19937,7 @@ abstract class LocalLocation implements Location {
 
 // WARNING: Do not edit - generated code.
 
-class _LocationImpl extends NativeFieldWrapperClass1 implements LocalLocation {
+class _LocalLocationImpl extends NativeFieldWrapperClass1 implements LocalLocation {
 
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
@@ -20486,7 +20486,7 @@ abstract class LocalWindowEvents implements Events {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
+class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
@@ -20876,7 +20876,7 @@ abstract class MapElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
+class _MapElementImpl extends _ElementImpl_Merged implements MapElement {
 
   HTMLCollection get areas native "HTMLMapElement_areas_Getter";
 
@@ -20939,7 +20939,7 @@ abstract class MarqueeElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement {
+class _MarqueeElementImpl extends _ElementImpl_Merged implements MarqueeElement {
 
   String get behavior native "HTMLMarqueeElement_behavior_Getter";
 
@@ -21329,7 +21329,7 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
+class _MediaElementImpl extends _ElementImpl_Merged implements MediaElement {
 
   _MediaElementEventsImpl get on =>
     new _MediaElementEventsImpl(this);
@@ -22279,7 +22279,7 @@ abstract class MenuElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
+class _MenuElementImpl extends _ElementImpl_Merged implements MenuElement {
 
   bool get compact native "HTMLMenuElement_compact_Getter";
 
@@ -22463,7 +22463,7 @@ abstract class MetaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
+class _MetaElementImpl extends _ElementImpl_Merged implements MetaElement {
 
   String get content native "HTMLMetaElement_content_Getter";
 
@@ -22555,7 +22555,7 @@ abstract class MeterElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
+class _MeterElementImpl extends _ElementImpl_Merged implements MeterElement {
 
   num get high native "HTMLMeterElement_high_Getter";
 
@@ -22605,7 +22605,7 @@ abstract class ModElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
+class _ModElementImpl extends _ElementImpl_Merged implements ModElement {
 
   String get cite native "HTMLModElement_cite_Getter";
 
@@ -24190,7 +24190,7 @@ abstract class OListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
+class _OListElementImpl extends _ElementImpl_Merged implements OListElement {
 
   bool get compact native "HTMLOListElement_compact_Getter";
 
@@ -24295,7 +24295,7 @@ abstract class ObjectElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
+class _ObjectElementImpl extends _ElementImpl_Merged implements ObjectElement {
 
   String get align native "HTMLObjectElement_align_Getter";
 
@@ -24420,7 +24420,7 @@ abstract class OptGroupElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupElement {
+class _OptGroupElementImpl extends _ElementImpl_Merged implements OptGroupElement {
 
   bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
@@ -24483,7 +24483,7 @@ abstract class OptionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
+class _OptionElementImpl extends _ElementImpl_Merged implements OptionElement {
 
   bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
@@ -24636,7 +24636,7 @@ abstract class OutputElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
+class _OutputElementImpl extends _ElementImpl_Merged implements OutputElement {
 
   String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
@@ -24781,7 +24781,7 @@ abstract class ParagraphElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphElement {
+class _ParagraphElementImpl extends _ElementImpl_Merged implements ParagraphElement {
 
   String get align native "HTMLParagraphElement_align_Getter";
 
@@ -24817,7 +24817,7 @@ abstract class ParamElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
+class _ParamElementImpl extends _ElementImpl_Merged implements ParamElement {
 
   String get name native "HTMLParamElement_name_Getter";
 
@@ -25267,7 +25267,7 @@ abstract class Point {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
+class _PointImpl extends NativeFieldWrapperClass1 implements Point {
 
   num get x native "WebKitPoint_x_Getter";
 
@@ -25372,7 +25372,7 @@ abstract class PreElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
+class _PreElementImpl extends _ElementImpl_Merged implements PreElement {
 
   int get width native "HTMLPreElement_width_Getter";
 
@@ -25447,7 +25447,7 @@ abstract class ProgressElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressElement {
+class _ProgressElementImpl extends _ElementImpl_Merged implements ProgressElement {
 
   List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
@@ -25513,7 +25513,7 @@ abstract class QuoteElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
+class _QuoteElementImpl extends _ElementImpl_Merged implements QuoteElement {
 
   String get cite native "HTMLQuoteElement_cite_Getter";
 
@@ -34509,7 +34509,7 @@ abstract class ScriptElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
+class _ScriptElementImpl extends _ElementImpl_Merged implements ScriptElement {
 
   bool get async native "HTMLScriptElement_async_Getter";
 
@@ -34720,7 +34720,7 @@ abstract class SelectElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
+class _SelectElementImpl extends _ElementImpl_Merged implements SelectElement {
 
   bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
@@ -34828,7 +34828,7 @@ abstract class ShadowElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLShadowElementImpl extends _HTMLElementImpl implements ShadowElement {
+class _ShadowElementImpl extends _ElementImpl_Merged implements ShadowElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35167,7 +35167,7 @@ abstract class SourceElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSourceElementImpl extends _HTMLElementImpl implements SourceElement {
+class _SourceElementImpl extends _ElementImpl_Merged implements SourceElement {
 
   String get media native "HTMLSourceElement_media_Getter";
 
@@ -35199,7 +35199,7 @@ abstract class SpanElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSpanElementImpl extends _HTMLElementImpl implements SpanElement {
+class _SpanElementImpl extends _ElementImpl_Merged implements SpanElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36134,7 +36134,7 @@ abstract class StyleElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
+class _StyleElementImpl extends _ElementImpl_Merged implements StyleElement {
 
   bool get disabled native "HTMLStyleElement_disabled_Getter";
 
@@ -36352,7 +36352,7 @@ abstract class TableCaptionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCaptionElement {
+class _TableCaptionElementImpl extends _ElementImpl_Merged implements TableCaptionElement {
 
   String get align native "HTMLTableCaptionElement_align_Getter";
 
@@ -36421,7 +36421,7 @@ abstract class TableCellElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellElement {
+class _TableCellElementImpl extends _ElementImpl_Merged implements TableCellElement {
 
   String get abbr native "HTMLTableCellElement_abbr_Getter";
 
@@ -36517,7 +36517,7 @@ abstract class TableColElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColElement {
+class _TableColElementImpl extends _ElementImpl_Merged implements TableColElement {
 
   String get align native "HTMLTableColElement_align_Getter";
 
@@ -36630,7 +36630,7 @@ abstract class TableElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
+class _TableElementImpl extends _ElementImpl_Merged implements TableElement {
 
   String get align native "HTMLTableElement_align_Getter";
 
@@ -36750,7 +36750,7 @@ abstract class TableRowElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowElement {
+class _TableRowElementImpl extends _ElementImpl_Merged implements TableRowElement {
 
   String get align native "HTMLTableRowElement_align_Getter";
 
@@ -36819,7 +36819,7 @@ abstract class TableSectionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSectionElement {
+class _TableSectionElementImpl extends _ElementImpl_Merged implements TableSectionElement {
 
   String get align native "HTMLTableSectionElement_align_Getter";
 
@@ -36959,7 +36959,7 @@ abstract class TextAreaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaElement {
+class _TextAreaElementImpl extends _ElementImpl_Merged implements TextAreaElement {
 
   bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
@@ -37673,7 +37673,7 @@ abstract class TitleElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTitleElementImpl extends _HTMLElementImpl implements TitleElement {
+class _TitleElementImpl extends _ElementImpl_Merged implements TitleElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37967,7 +37967,7 @@ abstract class TrackElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
+class _TrackElementImpl extends _ElementImpl_Merged implements TrackElement {
 
   bool get defaultValue native "HTMLTrackElement_default_Getter";
 
@@ -38038,7 +38038,7 @@ abstract class TransitionEvent implements Event {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitTransitionEventImpl extends _EventImpl implements TransitionEvent {
+class _TransitionEventImpl extends _EventImpl implements TransitionEvent {
 
   num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
 
@@ -38216,7 +38216,7 @@ abstract class UListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
+class _UListElementImpl extends _ElementImpl_Merged implements UListElement {
 
   bool get compact native "HTMLUListElement_compact_Getter";
 
@@ -38693,7 +38693,7 @@ abstract class UnknownElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement {
+class _UnknownElementImpl extends _ElementImpl_Merged implements UnknownElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38815,7 +38815,7 @@ abstract class VideoElement implements MediaElement {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElement {
+class _VideoElementImpl extends _MediaElementImpl implements VideoElement {
 
   int get height native "HTMLVideoElement_height_Getter";
 
@@ -41759,135 +41759,135 @@ class _Elements {
 
 
   static AnchorElement createAnchorElement([String href]) {
-    _HTMLAnchorElementImpl _e = _document.$dom_createElement("a");
+    _AnchorElementImpl _e = _document.$dom_createElement("a");
     if (href != null) _e.href = href;
     return _e;
   }
 
   static AreaElement createAreaElement() {
-    _HTMLAreaElementImpl _e = _document.$dom_createElement("area");
+    _AreaElementImpl _e = _document.$dom_createElement("area");
     return _e;
   }
 
   static BRElement createBRElement() {
-    _HTMLBRElementImpl _e = _document.$dom_createElement("br");
+    _BRElementImpl _e = _document.$dom_createElement("br");
     return _e;
   }
 
   static BaseElement createBaseElement() {
-    _HTMLBaseElementImpl _e = _document.$dom_createElement("base");
+    _BaseElementImpl _e = _document.$dom_createElement("base");
     return _e;
   }
 
   static BodyElement createBodyElement() {
-    _HTMLBodyElementImpl _e = _document.$dom_createElement("body");
+    _BodyElementImpl _e = _document.$dom_createElement("body");
     return _e;
   }
 
   static ButtonElement createButtonElement() {
-    _HTMLButtonElementImpl _e = _document.$dom_createElement("button");
+    _ButtonElementImpl _e = _document.$dom_createElement("button");
     return _e;
   }
 
   static CanvasElement createCanvasElement([int width, int height]) {
-    _HTMLCanvasElementImpl _e = _document.$dom_createElement("canvas");
+    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
     return _e;
   }
 
   static ContentElement createContentElement() {
-    _HTMLContentElementImpl _e = _document.$dom_createElement("content");
+    _ContentElementImpl _e = _document.$dom_createElement("content");
     return _e;
   }
 
   static DListElement createDListElement() {
-    _HTMLDListElementImpl _e = _document.$dom_createElement("dl");
+    _DListElementImpl _e = _document.$dom_createElement("dl");
     return _e;
   }
 
   static DataListElement createDataListElement() {
-    _HTMLDataListElementImpl _e = _document.$dom_createElement("datalist");
+    _DataListElementImpl _e = _document.$dom_createElement("datalist");
     return _e;
   }
 
   static DetailsElement createDetailsElement() {
-    _HTMLDetailsElementImpl _e = _document.$dom_createElement("details");
+    _DetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
   }
 
   static DivElement createDivElement() {
-    _HTMLDivElementImpl _e = _document.$dom_createElement("div");
+    _DivElementImpl _e = _document.$dom_createElement("div");
     return _e;
   }
 
   static EmbedElement createEmbedElement() {
-    _HTMLEmbedElementImpl _e = _document.$dom_createElement("embed");
+    _EmbedElementImpl _e = _document.$dom_createElement("embed");
     return _e;
   }
 
   static FieldSetElement createFieldSetElement() {
-    _HTMLFieldSetElementImpl _e = _document.$dom_createElement("fieldset");
+    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
     return _e;
   }
 
   static FormElement createFormElement() {
-    _HTMLFormElementImpl _e = _document.$dom_createElement("form");
+    _FormElementImpl _e = _document.$dom_createElement("form");
     return _e;
   }
 
   static HRElement createHRElement() {
-    _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
+    _HRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
   }
 
   static HeadElement createHeadElement() {
-    _HTMLHeadElementImpl _e = _document.$dom_createElement("head");
+    _HeadElementImpl _e = _document.$dom_createElement("head");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h1() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h1");
+    _HeadingElementImpl _e = _document.$dom_createElement("h1");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h2() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h2");
+    _HeadingElementImpl _e = _document.$dom_createElement("h2");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h3() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h3");
+    _HeadingElementImpl _e = _document.$dom_createElement("h3");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h4() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h4");
+    _HeadingElementImpl _e = _document.$dom_createElement("h4");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h5() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h5");
+    _HeadingElementImpl _e = _document.$dom_createElement("h5");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h6() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h6");
+    _HeadingElementImpl _e = _document.$dom_createElement("h6");
     return _e;
   }
 
   static HtmlElement createHtmlElement() {
-    _HTMLHtmlElementImpl _e = _document.$dom_createElement("html");
+    _HtmlElementImpl _e = _document.$dom_createElement("html");
     return _e;
   }
 
   static IFrameElement createIFrameElement() {
-    _HTMLIFrameElementImpl _e = _document.$dom_createElement("iframe");
+    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
     return _e;
   }
 
   static ImageElement createImageElement([String src, int width, int height]) {
-    _HTMLImageElementImpl _e = _document.$dom_createElement("img");
+    _ImageElementImpl _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
@@ -41895,163 +41895,163 @@ class _Elements {
   }
 
   static InputElement createInputElement([String type]) {
-    _HTMLInputElementImpl _e = _document.$dom_createElement("input");
+    _InputElementImpl _e = _document.$dom_createElement("input");
     if (type != null) _e.type = type;
     return _e;
   }
 
   static KeygenElement createKeygenElement() {
-    _HTMLKeygenElementImpl _e = _document.$dom_createElement("keygen");
+    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
     return _e;
   }
 
   static LIElement createLIElement() {
-    _HTMLLIElementImpl _e = _document.$dom_createElement("li");
+    _LIElementImpl _e = _document.$dom_createElement("li");
     return _e;
   }
 
   static LabelElement createLabelElement() {
-    _HTMLLabelElementImpl _e = _document.$dom_createElement("label");
+    _LabelElementImpl _e = _document.$dom_createElement("label");
     return _e;
   }
 
   static LegendElement createLegendElement() {
-    _HTMLLegendElementImpl _e = _document.$dom_createElement("legend");
+    _LegendElementImpl _e = _document.$dom_createElement("legend");
     return _e;
   }
 
   static LinkElement createLinkElement() {
-    _HTMLLinkElementImpl _e = _document.$dom_createElement("link");
+    _LinkElementImpl _e = _document.$dom_createElement("link");
     return _e;
   }
 
   static MapElement createMapElement() {
-    _HTMLMapElementImpl _e = _document.$dom_createElement("map");
+    _MapElementImpl _e = _document.$dom_createElement("map");
     return _e;
   }
 
   static MenuElement createMenuElement() {
-    _HTMLMenuElementImpl _e = _document.$dom_createElement("menu");
+    _MenuElementImpl _e = _document.$dom_createElement("menu");
     return _e;
   }
 
   static MeterElement createMeterElement() {
-    _HTMLMeterElementImpl _e = _document.$dom_createElement("meter");
+    _MeterElementImpl _e = _document.$dom_createElement("meter");
     return _e;
   }
 
   static OListElement createOListElement() {
-    _HTMLOListElementImpl _e = _document.$dom_createElement("ol");
+    _OListElementImpl _e = _document.$dom_createElement("ol");
     return _e;
   }
 
   static ObjectElement createObjectElement() {
-    _HTMLObjectElementImpl _e = _document.$dom_createElement("object");
+    _ObjectElementImpl _e = _document.$dom_createElement("object");
     return _e;
   }
 
   static OptGroupElement createOptGroupElement() {
-    _HTMLOptGroupElementImpl _e = _document.$dom_createElement("optgroup");
+    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
     return _e;
   }
 
   static OutputElement createOutputElement() {
-    _HTMLOutputElementImpl _e = _document.$dom_createElement("output");
+    _OutputElementImpl _e = _document.$dom_createElement("output");
     return _e;
   }
 
   static ParagraphElement createParagraphElement() {
-    _HTMLParagraphElementImpl _e = _document.$dom_createElement("p");
+    _ParagraphElementImpl _e = _document.$dom_createElement("p");
     return _e;
   }
 
   static ParamElement createParamElement() {
-    _HTMLParamElementImpl _e = _document.$dom_createElement("param");
+    _ParamElementImpl _e = _document.$dom_createElement("param");
     return _e;
   }
 
   static PreElement createPreElement() {
-    _HTMLPreElementImpl _e = _document.$dom_createElement("pre");
+    _PreElementImpl _e = _document.$dom_createElement("pre");
     return _e;
   }
 
   static ProgressElement createProgressElement() {
-    _HTMLProgressElementImpl _e = _document.$dom_createElement("progress");
+    _ProgressElementImpl _e = _document.$dom_createElement("progress");
     return _e;
   }
 
   static ScriptElement createScriptElement() {
-    _HTMLScriptElementImpl _e = _document.$dom_createElement("script");
+    _ScriptElementImpl _e = _document.$dom_createElement("script");
     return _e;
   }
 
   static SelectElement createSelectElement() {
-    _HTMLSelectElementImpl _e = _document.$dom_createElement("select");
+    _SelectElementImpl _e = _document.$dom_createElement("select");
     return _e;
   }
 
   static SourceElement createSourceElement() {
-    _HTMLSourceElementImpl _e = _document.$dom_createElement("source");
+    _SourceElementImpl _e = _document.$dom_createElement("source");
     return _e;
   }
 
   static SpanElement createSpanElement() {
-    _HTMLSpanElementImpl _e = _document.$dom_createElement("span");
+    _SpanElementImpl _e = _document.$dom_createElement("span");
     return _e;
   }
 
   static StyleElement createStyleElement() {
-    _HTMLStyleElementImpl _e = _document.$dom_createElement("style");
+    _StyleElementImpl _e = _document.$dom_createElement("style");
     return _e;
   }
 
   static TableCaptionElement createTableCaptionElement() {
-    _HTMLTableCaptionElementImpl _e = _document.$dom_createElement("caption");
+    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
     return _e;
   }
 
   static TableCellElement createTableCellElement() {
-    _HTMLTableCellElementImpl _e = _document.$dom_createElement("td");
+    _TableCellElementImpl _e = _document.$dom_createElement("td");
     return _e;
   }
 
   static TableColElement createTableColElement() {
-    _HTMLTableColElementImpl _e = _document.$dom_createElement("col");
+    _TableColElementImpl _e = _document.$dom_createElement("col");
     return _e;
   }
 
   static TableElement createTableElement() {
-    _HTMLTableElementImpl _e = _document.$dom_createElement("table");
+    _TableElementImpl _e = _document.$dom_createElement("table");
     return _e;
   }
 
   static TableRowElement createTableRowElement() {
-    _HTMLTableRowElementImpl _e = _document.$dom_createElement("tr");
+    _TableRowElementImpl _e = _document.$dom_createElement("tr");
     return _e;
   }
 
   static TextAreaElement createTextAreaElement() {
-    _HTMLTextAreaElementImpl _e = _document.$dom_createElement("textarea");
+    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
     return _e;
   }
 
   static TitleElement createTitleElement() {
-    _HTMLTitleElementImpl _e = _document.$dom_createElement("title");
+    _TitleElementImpl _e = _document.$dom_createElement("title");
     return _e;
   }
 
   static TrackElement createTrackElement() {
-    _HTMLTrackElementImpl _e = _document.$dom_createElement("track");
+    _TrackElementImpl _e = _document.$dom_createElement("track");
     return _e;
   }
 
   static UListElement createUListElement() {
-    _HTMLUListElementImpl _e = _document.$dom_createElement("ul");
+    _UListElementImpl _e = _document.$dom_createElement("ul");
     return _e;
   }
 
   static VideoElement createVideoElement() {
-    _HTMLVideoElementImpl _e = _document.$dom_createElement("video");
+    _VideoElementImpl _e = _document.$dom_createElement("video");
     return _e;
   }
 }

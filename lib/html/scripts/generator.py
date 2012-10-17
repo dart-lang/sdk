@@ -718,13 +718,17 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
       return self.dart_type()
     if IsPureInterface(self.idl_type()):
       return self.idl_type()
-    return self.implementation_name()
+    return ImplementationClassNameForInterfaceName(self.interface_name())
 
   def interface_name(self):
     return self._dart_interface_name
 
   def implementation_name(self):
-    return ImplementationClassNameForInterfaceName(self._dart_interface_name)
+    implementation_name = ImplementationClassNameForInterfaceName(
+        self.interface_name())
+    if self.merged_into():
+      implementation_name = '%s_Merged' % implementation_name
+    return implementation_name
 
   def has_generated_interface(self):
     return True

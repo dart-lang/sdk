@@ -22,9 +22,6 @@ class DartiumBackend(object):
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
 
-  def ImplementationClassName(self):
-    return self._ImplClassName(self._interface.id)
-
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
     # underlying c++ object doesn't implement them. Merged functions are
@@ -175,9 +172,6 @@ class DartiumBackend(object):
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
 
-  def _ImplClassName(self, interface_name):
-    return '_%sImpl' % interface_name
-
   def BaseClassName(self):
     root_class = 'NativeFieldWrapperClass1'
 
@@ -197,7 +191,7 @@ class DartiumBackend(object):
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
       return root_class
 
-    return self._ImplClassName(supertype)
+    return self._type_registry.TypeInfo(supertype).implementation_name()
 
   ATTRIBUTES_OF_CONSTRUCTABLE = set([
     'CustomConstructor',
@@ -242,7 +236,7 @@ class DartiumBackend(object):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=self.ImplementationClassName())
+        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name())
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
