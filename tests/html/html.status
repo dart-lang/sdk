@@ -46,18 +46,18 @@ audiobuffersourcenode_test: Pass, Fail
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
 
-[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[ $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
 
-[ $runtime == ie ]
-contentelement_test: Fail   # ie does not support content element.
+[ $runtime == ie9 ]
+contentelement_test: Fail   # ie9 does not support content element.
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
@@ -174,7 +174,7 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
-[ $runtime == ie && ($system == linux || $system == macos) ]
+[ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]

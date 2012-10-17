@@ -155,7 +155,8 @@ class CCTestSuite implements TestSuite {
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
-                          expectations));
+                          expectations,
+                          usesWebDriver: TestUtils.usesWebDriver));
     }
   }
 
@@ -457,7 +458,8 @@ class StandardTestSuite implements TestSuite {
                           completeHandler,
                           expectations,
                           isNegative: isNegative,
-                          info: info));
+                          info: info,
+                          usesWebDriver: TestUtils.usesWebDriver));
     }
   }
 
@@ -702,8 +704,7 @@ class StandardTestSuite implements TestSuite {
 
       // Construct the command that executes the browser test
       List<String> args;
-      if (runtime == 'ie' || runtime == 'ff' || runtime == 'chrome' ||
-          runtime == 'safari' || runtime == 'opera' || runtime == 'dartium') {
+      if (TestUtils.usesWebDriver(runtime)) {
         args = [dartDir.append('tools/testing/run_selenium.py').toNativePath(),
             '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
@@ -1209,7 +1210,8 @@ class JUnitTestSuite implements TestSuite {
                         [new Command('java', args)],
                         updatedConfiguration,
                         completeHandler,
-                        new Set<String>.from([PASS])));
+                        new Set<String>.from([PASS]),
+                        usesWebDriver: TestUtils.usesWebDriver));
     doDone();
   }
 
@@ -1415,15 +1417,16 @@ class TestUtils {
     return '$jsshellDir/$executable';
   }
 
-  static bool isBrowserRuntime(String runtime) => Contains(
-      runtime,
-      const <String>['drt',
-                     'dartium',
-                     'ie',
-                     'safari',
-                     'opera',
-                     'chrome',
-                     'ff']);
+  static bool usesWebDriver(String runtime) => Contains(
+      runtime, const <String>['dartium',
+                              'ie9',
+                              'safari',
+                              'opera',
+                              'chrome',
+                              'ff']);
+
+  static bool isBrowserRuntime(String runtime) =>
+      runtime == 'drt' || TestUtils.usesWebDriver(runtime);
 
   static bool isJsCommandLineRuntime(String runtime) =>
       Contains(runtime, const <String>['d8', 'jsshell']);

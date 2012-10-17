@@ -167,6 +167,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
   user_test = os.environ.get('USER_TEST', 'no')
 
+  if runtime == 'ie':
+    runtime = 'ie9' # TODO(efortuna): Fix with issue 6003.
   cmd.extend([sys.executable,
               os.path.join(os.curdir, 'tools', 'test.py'),
               '--step_name=' + step_name,

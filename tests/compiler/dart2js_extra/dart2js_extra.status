@@ -21,7 +21,7 @@ variable_type_test/01: Fail, OK
 operator_test: Skip
 string_interpolation_test: Skip
 
-[ $compiler == dart2js && $runtime == ie ]
+[ $compiler == dart2js && $runtime == ie9 ]
 class_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]

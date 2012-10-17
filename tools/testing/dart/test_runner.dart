@@ -77,6 +77,7 @@ class TestCase {
   String displayName;
   TestOutput output;
   bool isNegative;
+  bool usesWebDriver;
   Set<String> expectedOutcomes;
   TestCaseEvent completedHandler;
   TestInformation info;
@@ -87,7 +88,8 @@ class TestCase {
            this.completedHandler,
            this.expectedOutcomes,
            {this.isNegative: false,
-            this.info: null}) {
+            this.info: null,
+            this.usesWebDriver: false}) {
     if (!isNegative) {
       this.isNegative = displayName.contains("negative_test");
     }
@@ -165,10 +167,6 @@ class TestCase {
   List<String> get batchTestArguments => commands.last().arguments;
 
   void completed() { completedHandler(this); }
-
-  bool get usesWebDriver => Contains(
-      configuration['runtime'],
-      const ['chrome', 'dartium', 'ff', 'safari', 'ie', 'opera']);
 }
 
 
@@ -629,7 +627,7 @@ class RunningProcess {
       stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
-        // Note: processQueue will always be non-null for runtime == ie, ff,
+        // Note: processQueue will always be non-null for runtime == ie9, ff,
         // safari, chrome, opera. (It is only null for runtime == vm)
         // This RunningProcess object is done, and hands over control to
         // BatchRunner.startTest(), which handles reporting, etc.

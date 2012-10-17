@@ -325,7 +325,7 @@ call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instan
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 
-[ $compiler == dart2js && $runtime == ie ]
+[ $compiler == dart2js && $runtime == ie9 ]
 call_through_getter_test: Fail
 call_through_null_getter_test: Fail
 div_by_zero_test: Fail

@@ -234,7 +234,7 @@ string_escape1_negative_test: Skip
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ie && ($system == linux || $system == macos) ]
+[ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
