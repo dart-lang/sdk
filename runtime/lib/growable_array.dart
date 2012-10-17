@@ -207,7 +207,7 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = 0;
   }
 
-  void sort(int compare(T a, T b)) {
+  void sort([Comparator<T> compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 

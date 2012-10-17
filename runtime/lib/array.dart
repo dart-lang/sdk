@@ -92,7 +92,7 @@ class _ObjectArray<E> implements List<E> {
     return this.length === 0;
   }
 
-  void sort(int compare(E a, E b)) {
+  void sort([Comparator<E> compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 
@@ -234,7 +234,7 @@ class _ImmutableArray<E> implements List<E> {
     return this.length === 0;
   }
 
-  void sort(int compare(E a, E b)) {
+  void sort([Comparator<E> compare]) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }

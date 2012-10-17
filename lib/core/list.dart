@@ -69,7 +69,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
   /**
    * Sorts the list according to the order specified by the [Comparator].
    */
-  void sort(Comparator<E> compare);
+  void sort([Comparator<E> compare = Comparable.compare]);
 
   /**
    * Returns the first index of [element] in the list.

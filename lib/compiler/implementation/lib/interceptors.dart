@@ -358,9 +358,17 @@ every(receiver, f) {
   }
 }
 
-sort(receiver, compare) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
+// TODO(ngeoffray): Make it possible to have just one "sort" function ends
+// an optional parameter.
 
+sort$0(receiver) {
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort());
+  checkMutable(receiver, 'sort');
+  DualPivotQuicksort.sort(receiver, Comparable.compare);
+}
+
+sort$1(receiver, compare) {
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
   checkMutable(receiver, 'sort');
   DualPivotQuicksort.sort(receiver, compare);
 }

@@ -7,9 +7,11 @@
 
 class ListSortTest {
   static void testMain() {
-    var compare = (a, b) => a.compareTo(b);
+    var compare = Comparable.compare;
     var sort = (list) => list.sort(compare);
     new SortHelper(sort, compare).run();
+
+    new SortHelper((list) => list.sort(), compare).run();
 
     compare = (a, b) => -a.compareTo(b);
     new SortHelper(sort, compare).run();
