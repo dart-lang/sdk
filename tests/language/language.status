@@ -133,6 +133,7 @@ class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+compile_time_constant_test/02: Fail # issue 5987.
 compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -270,7 +271,6 @@ compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/04: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
-compile_time_constant_test/02: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/05: Fail # http://dartbug.com/5519
 const_syntax_test/01: Fail # http://dartbug.com/5519
