@@ -15,7 +15,7 @@ foo(j) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
 
   // Test for absence of an illegal argument exception. This means that the
   // arguments are known to be integers.

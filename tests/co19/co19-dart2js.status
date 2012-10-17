@@ -6,6 +6,7 @@
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+Language/11_Statements/05_For_A01_t07: Crash
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
 Language/06_Functions/06_Functions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(ahe): Please triage this failure.

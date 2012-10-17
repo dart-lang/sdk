@@ -242,9 +242,9 @@ class ArgParser {
    * * There is already an option with name [name].
    * * There is already an option using abbreviation [abbr].
    */
-  void addOption(String name, [String abbr, String help, List<String> allowed,
+  void addOption(String name, {String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
-      void callback(value), bool allowMultiple = false]) {
+      void callback(value), bool allowMultiple: false}) {
     _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
         callback, isFlag: false, allowMultiple: allowMultiple);
   }

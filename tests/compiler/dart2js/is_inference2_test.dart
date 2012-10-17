@@ -12,7 +12,7 @@ negate(x) {
 """;
 
 main() {
-  String generated = compile(TEST_IF_BOOL_FIRST_INSTRUCTION, 'negate');
+  String generated = compile(TEST_IF_BOOL_FIRST_INSTRUCTION, entry: 'negate');
   Expect.isTrue(generated.contains("!"));  // We want to see !x.
   Expect.isFalse(generated.contains("!="));  // And not !== true.
   Expect.isFalse(generated.contains("true"));

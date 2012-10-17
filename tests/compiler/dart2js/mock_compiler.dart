@@ -74,11 +74,11 @@ class MockCompiler extends Compiler {
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
-  MockCompiler([String coreSource = DEFAULT_CORELIB,
-                String helperSource = DEFAULT_HELPERLIB,
-                String interceptorsSource = DEFAULT_INTERCEPTORSLIB,
-                bool enableTypeAssertions = false,
-                bool enableMinification = false])
+  MockCompiler({String coreSource: DEFAULT_CORELIB,
+                String helperSource: DEFAULT_HELPERLIB,
+                String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+                bool enableTypeAssertions: false,
+                bool enableMinification: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,

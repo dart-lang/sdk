@@ -31,10 +31,10 @@ _defer(void fn()) {
 
 String buildStatusString(int passed, int failed, int errors,
                          var results,
-                         [int count = 0,
-                         String setup = '', String teardown = '',
-                         String uncaughtError = null,
-                         String message = '']) {
+                         {int count: 0,
+                         String setup: '', String teardown: '',
+                         String uncaughtError: null,
+                         String message: ''}) {
   var totalTests = 0;
   String testDetails = '';
   if (results is String) {
@@ -66,8 +66,9 @@ class TestConfiguration extends Configuration {
 
   void onDone(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
-    var result = buildStatusString(passed, failed, errors, results, count,
-        setup, teardown, uncaughtError);
+    var result = buildStatusString(passed, failed, errors, results,
+        count: count, setup: setup, teardown: teardown,
+        uncaughtError: uncaughtError);
     _port.send(result);
   }
 }
@@ -190,14 +191,15 @@ main() {
         message: 'Expected: <5> but: was <4>.'),
     buildStatusString(0, 1, 0, tests[2], message: 'Caught Exception: Fail.'),
     buildStatusString(2, 0, 0, 'a a::a b b'),
-    buildStatusString(1, 0, 0, 'a ${tests[4]}', 0, 'setup'),
-    buildStatusString(1, 0, 0, 'a ${tests[5]}', 0, '', 'teardown'),
-    buildStatusString(1, 0, 0, 'a ${tests[6]}', 0,
-        'setup', 'teardown'),
-    buildStatusString(1, 0, 0, tests[7], 1),
-    buildStatusString(0, 0, 1, tests[8], 1,
+    buildStatusString(1, 0, 0, 'a ${tests[4]}', count: 0, setup: 'setup'),
+    buildStatusString(1, 0, 0, 'a ${tests[5]}', count: 0, setup: '',
+        teardown: 'teardown'),
+    buildStatusString(1, 0, 0, 'a ${tests[6]}', count: 0,
+        setup: 'setup', teardown: 'teardown'),
+    buildStatusString(1, 0, 0, tests[7], count: 1),
+    buildStatusString(0, 0, 1, tests[8], count: 1,
         message: 'Callback called more times than expected (2 > 1).'),
-    buildStatusString(1, 0, 0, tests[9], 10),
+    buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
     buildStatusString(1, 0, 1, 'testOne', message: 'Callback called after already being marked as done (1).:testTwo:'),
     buildStatusString(2, 1, 0, 'testOne::testTwo:Expected: false but: was <true>.:testThree')

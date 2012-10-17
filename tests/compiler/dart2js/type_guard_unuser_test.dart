@@ -40,24 +40,24 @@ foo(int a, int b) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 0);
   Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
 
-  generated = compile(TEST_TWO, 'foo');
+  generated = compile(TEST_TWO, entry: 'foo');
   regexp = const RegExp("foo\\(1\\)");
   matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 
-  generated = compile(TEST_THREE, 'foo');
+  generated = compile(TEST_THREE, entry: 'foo');
   regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = new RegExp(getNumberTypeCheck('b'));
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(TEST_THREE_WITH_BAILOUT, 'foo');
+  generated = compile(TEST_THREE_WITH_BAILOUT, entry: 'foo');
   regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = new RegExp(getNumberTypeCheck('b'));

@@ -555,10 +555,10 @@ testTopLevelFields() {
 
 resolveConstructor(String script, String statement, String className,
                    String constructor, int expectedElementCount,
-                   [List expectedWarnings = const [],
-                    List expectedErrors = const [],
-                    String corelib = DEFAULT_CORELIB]) {
-  MockCompiler compiler = new MockCompiler(corelib);
+                   {List expectedWarnings: const [],
+                    List expectedErrors: const [],
+                    String corelib: DEFAULT_CORELIB}) {
+  MockCompiler compiler = new MockCompiler(coreSource: corelib);
   compiler.parseScript(script);
   compiler.resolveStatement(statement);
   ClassElement classElement =
@@ -630,21 +630,24 @@ testInitializers() {
                 A() : a.foo = 1;
                 }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 0,
-                     [], [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
+                     expectedWarnings: [],
+                     expectedErrors:
+                         [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
 
   script = """class A {
                 int foo;
                 A() : this.foo = 1, this.foo = 2;
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 2,
-                     [MessageKind.ALREADY_INITIALIZED],
-                     [MessageKind.DUPLICATE_INITIALIZER]);
+                     expectedWarnings: [MessageKind.ALREADY_INITIALIZED],
+                     expectedErrors: [MessageKind.DUPLICATE_INITIALIZER]);
 
   script = """class A {
                 A() : this.foo = 1;
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 0,
-                     [], [MessageKind.CANNOT_RESOLVE]);
+                     expectedWarnings: [],
+                     expectedErrors: [MessageKind.CANNOT_RESOLVE]);
 
   script = """class A {
                 int foo;
@@ -652,22 +655,23 @@ testInitializers() {
                 A() : this.foo = bar;
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 3,
-                     [], [MessageKind.NO_INSTANCE_AVAILABLE]);
+                     expectedWarnings: [],
+                     expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
 
   script = """class A {
                 int foo() => 42;
                 A() : foo();
               }""";
   resolveConstructor(script, "A a = new A();", "A", "A", 0,
-                     [], [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
+                     expectedWarnings: [],
+                     expectedErrors: [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
 
   script = """class A {
                 int i;
                 A.a() : this.b(0);
                 A.b(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", "a", 1,
-                     [], []);
+  resolveConstructor(script, "A a = new A.a();", "A", "a", 1);
 
   script = """class A {
                 int i;
@@ -675,7 +679,9 @@ testInitializers() {
                 A(int i);
               }""";
   resolveConstructor(script, "A a = new A.a();", "A", "a", 2,
-                     [], [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
+                     expectedWarnings: [],
+                     expectedErrors:
+                         [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
 
   script = """class A {
                 int i;
@@ -684,8 +690,7 @@ testInitializers() {
               class B extends A {
                 B() : super(0);
               }""";
-  resolveConstructor(script, "B a = new B();", "B", "B", 1,
-                     [], []);
+  resolveConstructor(script, "B a = new B();", "B", "B", 1);
 
   script = """class A {
                 int i;
@@ -695,7 +700,8 @@ testInitializers() {
                 B() : super(0), super(1);
               }""";
   resolveConstructor(script, "B b = new B();", "B", "B", 2,
-                     [], [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
+                     expectedWarnings: [],
+                     expectedErrors: [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
 
   script = "";
   final String CORELIB_WITH_INVALID_OBJECT =
@@ -712,7 +718,8 @@ testInitializers() {
          class Dynamic_ {}
          class Object { Object() : super(); }''';
   resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
-                     [], [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
+                     expectedWarnings: [],
+                     expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
                      corelib: CORELIB_WITH_INVALID_OBJECT);
 }
 

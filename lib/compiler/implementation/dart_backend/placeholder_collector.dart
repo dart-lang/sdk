@@ -133,7 +133,7 @@ class SendVisitor extends ResolvedVisitor {
     }
   }
 
-  internalError(String reason, [Node node]) {
+  internalError(String reason, {Node node}) {
     collector.internalError(reason, node);
   }
 }

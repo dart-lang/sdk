@@ -33,7 +33,7 @@ void checkExpectedConnectionHeaders(HttpHeaders headers,
 void test(int totalConnections, bool clientPersistentConnection) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, totalConnections);
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     // Check expected request.
     Expect.equals(clientPersistentConnection, request.persistentConnection);

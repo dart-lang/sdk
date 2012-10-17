@@ -13,7 +13,7 @@ foo(a) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isTrue(generated.contains(r'.add$1('));
   Expect.isTrue(generated.contains(r'.removeLast('));
   Expect.isTrue(generated.contains(r'.get$length('));

@@ -1448,7 +1448,7 @@ class _HttpServer implements HttpServer {
   _HttpServer() : _connections = new Set<_HttpConnection>(),
                   _handlers = new List<_RequestHandlerRegistration>();
 
-  void listen(String host, int port, [int backlog = 128]) {
+  void listen(String host, int port, {int backlog: 128}) {
     listenOn(new ServerSocket(host, port, backlog));
     _closeServer = true;
   }

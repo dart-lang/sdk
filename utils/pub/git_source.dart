@@ -147,7 +147,7 @@ class GitSource extends Source {
    * the working tree, but instead makes the repository a local mirror of the
    * remote repository. See the manpage for `git clone` for more information.
    */
-  Future _clone(String from, String to, [bool mirror=false]) {
+  Future _clone(String from, String to, {bool mirror: false}) {
     // Git on Windows does not seem to automatically create the destination
     // directory.
     return ensureDir(to).chain((_) {

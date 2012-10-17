@@ -69,41 +69,41 @@ main() {
   compileAndMatchFuzzy(TEST_ONE, 'sum', "x \\+= x");
   compileAndMatchFuzzy(TEST_ONE, 'sum', "typeof x !== 'number'");
 
-  var generated = compile(TEST_TWO, 'foo');
+  var generated = compile(TEST_TWO, entry: 'foo');
   RegExp regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(!regexp.hasMatch(generated));
 
   regexp = const RegExp('-a');
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  generated = compile(TEST_TWO_WITH_BAILOUT, 'foo');
+  generated = compile(TEST_TWO_WITH_BAILOUT, entry: 'foo');
   regexp = new RegExp(getNumberTypeCheck('a'));
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-a');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(TEST_THREE, 'foo');
+  generated = compile(TEST_THREE, entry: 'foo');
   regexp = new RegExp("a[$anyIdentifier]");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(TEST_FOUR, 'foo');
+  generated = compile(TEST_FOUR, entry: 'foo');
   regexp = new RegExp("a.length");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(TEST_FIVE, 'foo');
+  generated = compile(TEST_FIVE, entry: 'foo');
   regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(!regexp.hasMatch(generated));
   Expect.isTrue(generated.contains('index'));
   Expect.isTrue(generated.contains('indexSet'));
 
-  generated = compile(TEST_FIVE_WITH_BAILOUT, 'foo');
+  generated = compile(TEST_FIVE_WITH_BAILOUT, entry: 'foo');
   regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));
 
-  generated = compile(TEST_SIX, 'foo');
+  generated = compile(TEST_SIX, entry: 'foo');
   regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));

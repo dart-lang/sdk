@@ -23,7 +23,7 @@ Future<bool> get isInstalled {
 
 /// Run a git process with [args] from [workingDir]. Returns the stdout as a
 /// list of strings if it succeeded. Completes to an exception if it failed.
-Future<List<String>> run(List<String> args, [String workingDir]) {
+Future<List<String>> run(List<String> args, {String workingDir}) {
   return _gitCommand.chain((git) {
     return runProcess(git, args, workingDir: workingDir);
   }).transform((result) {

@@ -13,7 +13,7 @@ sum(param0, param1) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'sum');
+  String generated = compile(TEST_ONE, entry: 'sum');
   RegExp regexp = new RegExp(getNumberTypeCheck('(param0|a)'));
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = new RegExp(getNumberTypeCheck('(param1|b)'));

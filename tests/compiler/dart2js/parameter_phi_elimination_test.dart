@@ -19,5 +19,5 @@ bool baz(int a, int b) {
 
 
 main() {
-  compile(SOURCE, "baz");
+  compile(SOURCE, entry: "baz");
 }

@@ -471,12 +471,12 @@ main() {
         distance:3, includeKeys:true);
     expect(result.logs, orderedEquals([e1, e2, e3]));
 
-    result = logList.preceding(keyList, equals('a'), callsTo(startsWith('bar')),
-      distance:3);
+    result = logList.preceding(keyList, mockNameFilter: equals('a'),
+        logFilter: callsTo(startsWith('bar')), distance:3);
     expect(result.logs, orderedEquals([e1]));
 
-    result = logList.preceding(keyList, equals('a'), callsTo(startsWith('bar')),
-        distance:3, includeKeys:true);
+    result = logList.preceding(keyList, mockNameFilter: equals('a'),
+        logFilter: callsTo(startsWith('bar')), distance:3, includeKeys:true);
     expect(result.logs, orderedEquals([e1, e3]));
 
     keyList.logs.clear();

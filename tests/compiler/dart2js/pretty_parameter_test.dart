@@ -68,23 +68,23 @@ int foo(var start, bool test) {
 """;
 
 main() {
-  String generated = compile(FOO, 'foo');
+  String generated = compile(FOO, entry: 'foo');
   // TODO(ngeoffray): Use 'contains' when frog supports it.
   RegExp regexp = const RegExp(r"function\(a, b\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(BAR, 'bar');
+  generated = compile(BAR, entry: 'bar');
   regexp = const RegExp(r"function\(eval\$, \$\$eval\) {");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(PARAMETER_AND_TEMP, 'bar');
+  generated = compile(PARAMETER_AND_TEMP, entry: 'bar');
   regexp = const RegExp(r"print\(t0\)");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
   regexp = const RegExp(r"print\(t0_0\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(NO_LOCAL, 'foo');
+  generated = compile(NO_LOCAL, entry: 'foo');
   regexp = const RegExp("return baz");
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp(r"baz = 2");
@@ -94,7 +94,7 @@ main() {
   regexp = const RegExp("bar === true");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  generated = compile(MULTIPLE_PHIS_ONE_LOCAL, 'foo');
+  generated = compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo');
   regexp = const RegExp(r"var a = 2;");
   Expect.isTrue(regexp.hasMatch(generated));
 
@@ -104,7 +104,7 @@ main() {
   matches.next();
   Expect.isFalse(matches.hasNext());
 
-  generated = compile(PARAMETER_INIT, 'foo');
+  generated = compile(PARAMETER_INIT, entry: 'foo');
   regexp = const RegExp("var result = start;");
   Expect.isTrue(regexp.hasMatch(generated));
 }

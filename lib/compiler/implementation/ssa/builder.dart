@@ -3446,7 +3446,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (variable.isErroneous()) {
         generateThrowNoSuchMethod(node,
                                   getTargetName(variable, 'set'),
-                                  argumentValues: <HInstruction>[oldVariable]);
+                                  <HInstruction>[oldVariable]);
         pop();
       } else {
         localsHandler.updateLocal(variable, oldVariable);

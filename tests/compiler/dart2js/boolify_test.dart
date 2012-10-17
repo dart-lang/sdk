@@ -14,6 +14,6 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST, 'foo');
+  String generated = compile(TEST, entry: 'foo');
   Expect.isTrue(generated.contains('foo() !== true)'));
 }

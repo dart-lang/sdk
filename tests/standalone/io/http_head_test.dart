@@ -7,7 +7,7 @@
 void testHEAD(int totalConnections) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, totalConnections);
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.addRequestHandler(
       (request) => request.path == "/test100",
       (HttpRequest request, HttpResponse response) {

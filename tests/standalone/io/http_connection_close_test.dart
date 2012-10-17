@@ -8,7 +8,7 @@
 
 void testHttp10Close() {
   HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, 5);
+  server.listen("127.0.0.1", 0, backlog: 5);
 
   Socket socket = new Socket("127.0.0.1", server.port);
   socket.onConnect = () {
@@ -24,7 +24,7 @@ void testHttp10Close() {
 
 void testHttp11Close() {
   HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, 5);
+  server.listen("127.0.0.1", 0, backlog: 5);
 
   Socket socket = new Socket("127.0.0.1", server.port);
   socket.onConnect = () {

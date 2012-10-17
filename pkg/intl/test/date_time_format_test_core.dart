@@ -338,7 +338,7 @@ runDateTests([List<String> subset]) {
 
   test('Test default format', () {
     var someDate = new Date(2012, 1, 27, 20, 58, 59, 1);
-    var emptyFormat = new DateFormat(locale: "en_US");
+    var emptyFormat = new DateFormat(null, "en_US");
     var knownDefault = new DateFormat.yMMMMd("en_US").add_jms();
     var result = emptyFormat.format(someDate);
     var knownResult = knownDefault.format(someDate);

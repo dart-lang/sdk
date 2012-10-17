@@ -17,9 +17,9 @@
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
-String compile(String code, [String entry = 'main',
-                             bool enableTypeAssertions = false,
-                             bool minify = false]) {
+String compile(String code, {String entry: 'main',
+                             bool enableTypeAssertions: false,
+                             bool minify: false}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        enableMinification: minify);
@@ -84,13 +84,13 @@ bool checkNumberOfMatches(Iterator it, int nb) {
 }
 
 void compileAndMatch(String code, String entry, RegExp regexp) {
-  String generated = compile(code, entry);
+  String generated = compile(code, entry: entry);
   Expect.isTrue(regexp.hasMatch(generated),
                 '"$generated" does not match /$regexp/');
 }
 
 void compileAndDoNotMatch(String code, String entry, RegExp regexp) {
-  String generated = compile(code, entry);
+  String generated = compile(code, entry: entry);
   Expect.isFalse(regexp.hasMatch(generated),
                  '"$generated" has a match in /$regexp/');
 }
@@ -109,7 +109,7 @@ void compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
 
 void compileAndMatchFuzzyHelper(
     String code, String entry, String regexp, bool shouldMatch) {
-  String generated = compile(code, entry);
+  String generated = compile(code, entry: entry);
   final xRe = new RegExp('\\bx\\b');
   regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
   final spaceRe = new RegExp('\\s+');

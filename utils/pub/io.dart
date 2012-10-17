@@ -331,7 +331,7 @@ Future<File> createSymlink(from, to) {
 // TODO(rnystrom): Remove this when old style packages are no longer supported.
 // See: http://code.google.com/p/dart/issues/detail?id=4964.
 Future<File> createPackageSymlink(String name, from, to,
-    [bool isSelfLink = false]) {
+    {bool isSelfLink: false}) {
   // If from contains any Dart files at the top level (aside from build.dart)
   // we assume that means it's an old style package.
   return listDir(from).chain((contents) {

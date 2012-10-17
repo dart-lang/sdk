@@ -9,7 +9,7 @@
 void testNoBody(int totalConnections) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, totalConnections);
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     response.contentLength = 0;
     OutputStream stream = response.outputStream;
@@ -42,7 +42,7 @@ void testNoBody(int totalConnections) {
 void testBody(int totalConnections) {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, totalConnections);
+  server.listen("127.0.0.1", 0, backlog: totalConnections);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     response.contentLength = 2;
     OutputStream stream = response.outputStream;
@@ -82,7 +82,7 @@ void testBody(int totalConnections) {
 void testHttp10() {
   HttpServer server = new HttpServer();
   server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, 5);
+  server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     OutputStream stream = response.outputStream;
     Expect.equals("1.0", request.protocolVersion);

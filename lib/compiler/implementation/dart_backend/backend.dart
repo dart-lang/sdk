@@ -354,8 +354,8 @@ class DartBackend extends Backend {
           compiler.types.voidType, const Link<DartType>(),
           constructor);
       constructor.cachedNode = new FunctionExpression(
-          new Send(receiver: classElement.parseNode(compiler).name,
-                   selector: synthesizedIdentifier),
+          new Send(classElement.parseNode(compiler).name,
+                   synthesizedIdentifier),
           new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),
                        const Link<Node>(),
                        new StringToken(CLOSE_PAREN_INFO, ')', -1)),

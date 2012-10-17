@@ -54,13 +54,14 @@ const helperLib = r'''
 #library('js_helper');
 ''';
 
-testDart2Dart(String src, [void continuation(String s), bool minify = false,
-    bool stripTypes = false]) {
+testDart2Dart(String src, {void continuation(String s), bool minify: false,
+    bool stripTypes: false}) {
   // If continuation is not provided, check that source string remains the same.
   if (continuation === null) {
     continuation = (s) { Expect.equals(src, s); };
   }
-  testDart2DartWithLibrary(src, '', continuation, minify, stripTypes);
+  testDart2DartWithLibrary(src, '', continuation: continuation, minify: minify,
+      stripTypes: stripTypes);
 }
 
 /**
@@ -68,8 +69,8 @@ testDart2Dart(String src, [void continuation(String s), bool minify = false,
  */
 testDart2DartWithLibrary(
     String srcMain, String srcLibrary,
-    [void continuation(String s), bool minify = false,
-    bool stripTypes = false]) {
+    {void continuation(String s), bool minify: false,
+    bool stripTypes: false}) {
   fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -119,7 +120,7 @@ main() {
   should_be_kept();
 }
 ''';
-  testDart2Dart(src, (String s) {
+  testDart2Dart(src, continuation: (String s) {
     Expect.equals('should_be_kept(){}main(){should_be_kept();}', s);
   });
 }
@@ -260,7 +261,7 @@ main() {
          'A.field;A.staticfoo();'
          'new A();new A.fromFoo();new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testNoConflictSendsRename() {
@@ -319,7 +320,7 @@ main() {
           'new MyA.myfromFoo();new MyA().myfoo();globalfoo();A.field;'
           'A.staticfoo();new A();new A.fromFoo();new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testConflictLibraryClassRename() {
@@ -368,7 +369,7 @@ main() {
     'main(){var a=new A();a.foo();var b=new p_A.fromFoo();b.foo();'
         'var GREATVAR=b.myliba;b.mylist;a=getA();p_topfoo();topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testDefaultClassWithArgs() {
@@ -415,7 +416,7 @@ main() {
     'set p_topgetset(arg){}'
     'main(){p_topgetset;p_topgetset=6;topgetset;topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testFieldTypeOutput() {
@@ -514,7 +515,7 @@ main() {
     'class p_B{factory p_I(){}}'
     'main(){new p_I();new p_A();new I();new A();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testTypeVariablesAreRenamed() {
@@ -558,7 +559,7 @@ main() {
     'main(){p_MyFunction myf1;MyFunction myf2;new p_A<int>().f;'
         'new p_T();new A<int>().f;new T();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testClassTypeArgumentBound() {
@@ -587,7 +588,7 @@ main() {
     'class p_A<p_T extends p_I>{}'
     'main(){new p_A();new A();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testDoubleMains() {
@@ -605,7 +606,7 @@ main() {
     'p_main(){}'
     'main(){p_main();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testInterfaceDefaultAnotherLib() {
@@ -631,7 +632,7 @@ main() {
     'interface I<T> default C<T>{I();}'
     'main(){new I();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testStaticAccessIoLib() {
@@ -645,7 +646,7 @@ main() {
   var expectedResult = 'import "dart:io" as p;'
       'main(){p.Platform.operatingSystem;}';
   testDart2Dart(src,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testMinification() {
@@ -658,7 +659,7 @@ main() {
   var expectedResult =
       'class A{}'
       'main(){new A();}';
-  testDart2Dart(src,
+  testDart2Dart(src, continuation:
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
@@ -677,7 +678,7 @@ main() {
 ''';
   var expectedResult =
       'main(){var A=7; B(A,C){ D(E,F){var G=A;}D(C,A);}B(A,8);}';
-  testDart2Dart(src,
+  testDart2Dart(src, continuation:
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
@@ -704,7 +705,7 @@ main() {
   var expectedResult =
       'class B{var E;static C(A){A=5;}}D(A,[optionalarg=7]){A=6;}'
       'main(){new B().E;B.C(8);D(8);}';
-  testDart2Dart(src,
+  testDart2Dart(src, continuation:
       (String result) { Expect.equals(expectedResult, result); }, minify: true);
 }
 
@@ -738,7 +739,7 @@ main() {
     'class LinkFactory<T>{factory Link(){}}'
     'main(){new Link<int>();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testDeclarationTypePlaceholders() {
@@ -756,7 +757,7 @@ main() {
   var expectedResult =
       ' foo( arg){}main(){var localvar;foo("5");}';
   testDart2Dart(src,
-      (String result) { Expect.equals(expectedResult, result); },
+      continuation: (String result) { Expect.equals(expectedResult, result); },
       stripTypes: true);
 }
 
@@ -776,7 +777,7 @@ main() {
       'class A{static String get userAgent=>p.window.navigator.userAgent;}'
       'main(){A.userAgent;}';
   testDart2Dart(src,
-      (String result) { Expect.equals(expectedResult, result); });
+      continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 main() {

@@ -585,7 +585,7 @@ class Listener {
     return token;
   }
 
-  void recoverableError(String message, [Token token, Node node]) {
+  void recoverableError(String message, {Token token, Node node}) {
     if (token == null && node != null) {
       token = node.getBeginToken();
     }
@@ -984,7 +984,7 @@ class ElementListener extends Listener {
     return skipToEof(token);
   }
 
-  void recoverableError(String message, [Token token, Node node]) {
+  void recoverableError(String message, {Token token, Node node}) {
     listener.cancel(message, token: token, node: node);
   }
 
@@ -1748,7 +1748,7 @@ class NodeListener extends ElementListener {
     listener.log(message);
   }
 
-  void internalError([Token token, Node node]) {
+  void internalError({Token token, Node node}) {
     listener.cancel('internal error', token: token, node: node);
     throw 'internal error';
   }

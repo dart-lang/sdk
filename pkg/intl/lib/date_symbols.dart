@@ -24,34 +24,34 @@ class DateSymbols {
   List<int> WEEKENDRANGE;
   int FIRSTWEEKCUTOFFDAY;
 
-  DateSymbols([this.NAME,
-                     this.ERAS,
-                     this.ERANAMES,
-                     this.NARROWMONTHS,
-                     this.STANDALONENARROWMONTHS,
-                     this.MONTHS,
-                     this.STANDALONEMONTHS,
-                     this.SHORTMONTHS,
-                     this.STANDALONESHORTMONTHS,
-                     this.WEEKDAYS,
-                     this.STANDALONEWEEKDAYS,
-                     this.SHORTWEEKDAYS,
-                     this.STANDALONESHORTWEEKDAYS,
-                     this.NARROWWEEKDAYS,
-                     this.STANDALONENARROWWEEKDAYS,
-                     this.SHORTQUARTERS,
-                     this.QUARTERS,
-                     this.AMPMS,
-                     // TODO(alanknight): These formats are taken from Closure,
-                     // where there's only a fixed set of available formats.
-                     // Here we have the patterns separately. These should
-                     // either be used, or removed.
-                     this.DATEFORMATS,
-                     this.TIMEFORMATS,
-                     this.AVAILABLEFORMATS,
-                     this.FIRSTDAYOFWEEK,
-                     this.WEEKENDRANGE,
-                     this.FIRSTWEEKCUTOFFDAY]);
+  DateSymbols({this.NAME,
+               this.ERAS,
+               this.ERANAMES,
+               this.NARROWMONTHS,
+               this.STANDALONENARROWMONTHS,
+               this.MONTHS,
+               this.STANDALONEMONTHS,
+               this.SHORTMONTHS,
+               this.STANDALONESHORTMONTHS,
+               this.WEEKDAYS,
+               this.STANDALONEWEEKDAYS,
+               this.SHORTWEEKDAYS,
+               this.STANDALONESHORTWEEKDAYS,
+               this.NARROWWEEKDAYS,
+               this.STANDALONENARROWWEEKDAYS,
+               this.SHORTQUARTERS,
+               this.QUARTERS,
+               this.AMPMS,
+               // TODO(alanknight): These formats are taken from Closure,
+               // where there's only a fixed set of available formats.
+               // Here we have the patterns separately. These should
+               // either be used, or removed.
+               this.DATEFORMATS,
+               this.TIMEFORMATS,
+               this.AVAILABLEFORMATS,
+               this.FIRSTDAYOFWEEK,
+               this.WEEKENDRANGE,
+               this.FIRSTWEEKCUTOFFDAY});
 
   // TODO(alanknight): Replace this with use of a more general serialization
   // facility once one is available. Issue 4926.

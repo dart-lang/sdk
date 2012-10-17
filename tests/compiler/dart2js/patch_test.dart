@@ -44,11 +44,11 @@ void expectHasNoBody(compiler, Element element) {
 Element ensure(compiler,
                String name,
                Element lookup(name),
-               [bool isPatched = false,
-                bool isPatch = false,
-                bool isMethod = true,
-                bool isGetter = false,
-                bool isFound = true]) {
+               {bool isPatched: false,
+                bool isPatch: false,
+                bool isMethod: true,
+                bool isGetter: false,
+                bool isFound: true}) {
   var element = lookup(buildSourceString(name));
   if (!isFound) {
     Expect.isNull(element);

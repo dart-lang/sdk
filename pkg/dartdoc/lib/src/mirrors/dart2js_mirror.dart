@@ -171,8 +171,8 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
   }
 
   void internalError(String message,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
     cancel('Internal error: $message', node, token, instruction, element);
   }
 

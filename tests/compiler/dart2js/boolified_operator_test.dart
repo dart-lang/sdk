@@ -49,27 +49,27 @@ foo(param0, param1) {
 main() {
   RegExp regexp = const RegExp('=== true');
 
-  String generated = compile(TEST_EQUAL, 'foo');
+  String generated = compile(TEST_EQUAL, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('eqB'));
 
-  generated = compile(TEST_EQUAL_NULL, 'foo');
+  generated = compile(TEST_EQUAL_NULL, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('== null'));
 
-  generated = compile(TEST_LESS, 'foo');
+  generated = compile(TEST_LESS, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('ltB'));
 
-  generated = compile(TEST_LESS_EQUAL, 'foo');
+  generated = compile(TEST_LESS_EQUAL, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('leB'));
   
-  generated = compile(TEST_GREATER, 'foo');
+  generated = compile(TEST_GREATER, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('gtB'));
   
-  generated = compile(TEST_GREATER_EQUAL, 'foo');
+  generated = compile(TEST_GREATER_EQUAL, entry: 'foo');
   Expect.isFalse(generated.contains('=== true'));
   Expect.isTrue(generated.contains('geB'));
 }
