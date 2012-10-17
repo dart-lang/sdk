@@ -20621,14 +20621,14 @@ abstract class MutationObserver {
   List<MutationRecord> takeRecords();
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]);
+                List<String> attributeFilter});
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20648,14 +20648,14 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
   List<MutationRecord> takeRecords() native;
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]) {
+                List<String> attributeFilter}) {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
@@ -39223,7 +39223,7 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
     _dummy = new DivElement();
-    _observer.observe(_dummy, {}, attributes: true);
+    _observer.observe(_dummy, attributes: true);
   }
 
   void _schedule() {

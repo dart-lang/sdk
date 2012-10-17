@@ -8,12 +8,12 @@ $!COMMENT
 abstract class $ID$EXTENDS {
 $!MEMBERS
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]);
+                List<String> attributeFilter});
 }

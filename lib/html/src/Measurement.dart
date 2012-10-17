@@ -99,8 +99,7 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
     _dummy = new DivElement();
-    // OPTIONALS _observer.observe(_dummy, attributes: true);
-    _observer.observe(_dummy, {}, null, true);
+    _observer.observe(_dummy, attributes: true);
   }
 
   void _schedule() {
