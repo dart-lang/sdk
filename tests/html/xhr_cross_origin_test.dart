@@ -12,8 +12,8 @@ main() {
   useHtmlConfiguration();
 
   test('XHR Cross-domain', () {
+    var url = "http://localhost:9876/tests/html/xhr_cross_origin_data.txt";
     var xhr = new HttpRequest();
-    var url = "https://code.google.com/feeds/issues/p/dart/issues/full?alt=json";
     xhr.open('GET', url, true);
     var validate = expectAsync1((data) {
       expect(data, contains('feed'));
@@ -31,7 +31,7 @@ main() {
   });
 
   test('XHR.get Cross-domain', () {
-    var url = "https://code.google.com/feeds/issues/p/dart/issues/full?alt=json";
+    var url = "http://localhost:9876/tests/html/xhr_cross_origin_data.txt";
     new HttpRequest.get(url, expectAsync1((xhr) {
       var data = JSON.parse(xhr.response);
       expect(data, contains('feed'));
