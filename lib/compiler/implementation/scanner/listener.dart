@@ -820,8 +820,7 @@ class ElementListener extends Listener {
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     void buildFieldElement(SourceString name, Element fields) {
-      pushElement(new VariableElement(
-          name, fields, ElementKind.FIELD, compilationUnitElement));
+      pushElement(new VariableElement(name, fields, ElementKind.FIELD, null));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();

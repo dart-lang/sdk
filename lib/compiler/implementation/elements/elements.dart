@@ -819,11 +819,11 @@ class VariableElement extends Element {
   Modifiers get modifiers => variables.modifiers;
 
   VariableElement(SourceString name,
-                  VariableListElement this.variables,
+                  VariableListElement variables,
                   ElementKind kind,
-                  Element enclosing,
-                  {Node node})
-    : super(name, kind, enclosing), cachedNode = node;
+                  this.cachedNode)
+    : this.variables = variables,
+      super(name, kind, variables.enclosingElement);
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -866,10 +866,8 @@ class FieldParameterElement extends VariableElement {
   FieldParameterElement(SourceString name,
                         this.fieldElement,
                         VariableListElement variables,
-                        Element enclosing,
                         Node node)
-      : super(name, variables, ElementKind.FIELD_PARAMETER, enclosing,
-              node: node);
+      : super(name, variables, ElementKind.FIELD_PARAMETER, node);
 }
 
 // This element represents a list of variable or field declaration.

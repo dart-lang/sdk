@@ -149,8 +149,8 @@ class MemberListener extends NodeListener {
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
     void buildFieldElement(SourceString name, Element fields) {
-      Element element = new VariableElement(
-          name, fields, ElementKind.FIELD, enclosingElement);
+      Element element =
+          new VariableElement(name, fields, ElementKind.FIELD, null);
       addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,

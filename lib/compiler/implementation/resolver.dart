@@ -1189,7 +1189,7 @@ class TypeResolver {
 
 class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TreeElementMapping mapping;
-  final Element enclosingElement;
+  Element enclosingElement;
   final TypeResolver typeResolver;
   bool inInstanceContext;
   bool inCheckContext;
@@ -1451,23 +1451,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    // TODO(ahe): we shouldn't use the scope to get the enclosing element. This
-    // is currently needed so that nested functions get their correct enclosing
-    // element.
-    Element functionEnclosing = scope.element;
-    if (functionEnclosing.kind == ElementKind.VARIABLE_LIST) {
-      compiler.internalError("Bad enclosing element", node: node);
-    }
-    if (functionEnclosing.isLibrary()) {
-      // We are in a static initializers.
-      functionEnclosing = enclosingElement;
-    }
-    FunctionElement enclosing = new FunctionElement.node(
-        name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
-        functionEnclosing);
-    setupFunction(node, enclosing);
-    defineElement(node, enclosing, doAddToScope: node.name != null);
 
+    FunctionElement function = new FunctionElement.node(
+        name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
+        enclosingElement);
+    setupFunction(node, function);
+    defineElement(node, function, doAddToScope: node.name !== null);
+
+    Element previousEnclosingElement = enclosingElement;
+    enclosingElement = function;
     // Run the body in a fresh statement scope.
     StatementScope oldScope = statementScope;
     statementScope = new StatementScope();
@@ -1475,6 +1467,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     statementScope = oldScope;
 
     scope = scope.parent;
+    enclosingElement = previousEnclosingElement;
   }
 
   visitIf(If node) {
@@ -2646,8 +2639,8 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      VariableElement element = new VariableElement(
-          name, variables, kind, resolver.scope.element, node: link.head);
+      VariableElement element =
+          new VariableElement(name, variables, kind, link.head);
       resolver.defineElement(link.head, element);
     }
   }
@@ -2708,7 +2701,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     // Ensure a parameter is not typed 'void'.
     variables.computeType(compiler);
     return new VariableElement(node.source, variables,
-        ElementKind.PARAMETER, enclosingElement, node: node);
+        ElementKind.PARAMETER, node);
   }
 
   SourceString getParameterName(Send node) {
@@ -2748,8 +2741,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       }
       Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new FieldParameterElement(name,
-          fieldElement, variables, enclosingElement, node);
+      element = new FieldParameterElement(name, fieldElement, variables, node);
     }
     return element;
   }
@@ -2762,7 +2754,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
       element = new VariableElement(node.selector.asIdentifier().source,
-          variables, ElementKind.PARAMETER, enclosingElement, node: node);
+          variables, ElementKind.PARAMETER, node);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
