@@ -12532,33 +12532,6 @@ class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HT
 
 // WARNING: Do not edit - generated code.
 
-/// @domName Entity
-abstract class Entity implements Node {
-
-  /** @domName Entity.notationName */
-  abstract String get notationName;
-
-  /** @domName Entity.publicId */
-  abstract String get publicId;
-
-  /** @domName Entity.systemId */
-  abstract String get systemId;
-}
-
-class _EntityImpl extends _NodeImpl implements Entity native "*Entity" {
-
-  final String notationName;
-
-  final String publicId;
-
-  final String systemId;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName EntityReference
 abstract class EntityReference implements Node {
 }
