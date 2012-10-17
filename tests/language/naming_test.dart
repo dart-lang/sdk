@@ -488,18 +488,6 @@ class DartQuery {
 $add(Object first, Object second) => second;
 DartQuery $(Object obj) => new DartQuery(obj);
 
-// Ensure we don't have false positive. named constructor and methods
-// are in different namespaces, therefore it is ok to have a method
-// called foo and a named constructor CLASS.foo
-class Naming1Test {
-  Naming1Test.foo() { }
-  foo() { }
-
-  static void main(args) {
-    var a = new Naming1Test.foo();
-    a.foo();
-  }
-}
 
 // Ensure we don't have false positive.
 class Naming2Test {
@@ -521,6 +509,5 @@ class Naming2Test {
 
 main() {
   NamingTest.testMain();
-  Naming1Test.main(null);
   Naming2Test.main(null);
 }

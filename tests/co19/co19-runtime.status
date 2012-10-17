@@ -65,7 +65,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # TODO(
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/6_Constructors_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.

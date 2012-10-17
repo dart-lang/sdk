@@ -190,9 +190,6 @@ type_parameter_test/03: Fail, OK
 type_parameter_test/04: Fail, OK
 type_variable_scope2_test: Fail, OK
 
-# test issue 5333
-named_constructor_test: Fail, OK
-naming_test: Fail, OK
 
 # test issue 5337
 bad_constructor_test/05: Fail, OK

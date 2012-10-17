@@ -22,8 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, constructor_name_check, false,
-            "Named constructors may not clash with other members");
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -3253,7 +3251,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
 
-    if (FLAG_constructor_name_check && member->constructor_name != NULL) {
+    if (member->constructor_name != NULL) {
+      // Check whether constructor name conflicts with a member name.
       if (class_desc->FunctionNameExists(
           *member->constructor_name, member->kind)) {
         ErrorMsg(member->name_pos,
