@@ -270,7 +270,6 @@ compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/04: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
-compile_time_constant_test/02: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/05: Fail # http://dartbug.com/5519
 const_syntax_test/01: Fail # http://dartbug.com/5519
