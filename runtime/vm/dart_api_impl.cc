@@ -804,6 +804,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   Isolate* isolate = Dart::CreateIsolate(isolate_name);
   free(isolate_name);
   {
+    StackZone zone(isolate);
     DARTSCOPE_NOCHECKS(isolate);
     const Error& error_obj =
         Error::Handle(isolate,
