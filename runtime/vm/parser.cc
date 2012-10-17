@@ -33,6 +33,8 @@ DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
 DEFINE_FLAG(bool, warn_legacy_dynamic, false,
             "Warning on legacy type Dynamic)");
+DEFINE_FLAG(bool, warn_legacy_getters, false,
+            "Warning on legacy getter syntax");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -2440,6 +2442,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     // TODO(hausner): Remove this once the old getter syntax with
     // empty parameter list is no longer supported.
     if (CurrentToken() == Token::kLPAREN) {
+      if (FLAG_warn_legacy_getters) {
+        Warning("legacy getter syntax, remove parenthesis");
+      }
       ConsumeToken();
       ExpectToken(Token::kRPAREN);
     }
@@ -3998,7 +4003,11 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 
   const intptr_t accessor_pos = TokenPos();
   ParamList params;
-  // TODO(hausner): Remove the ( check once we remove old getter syntax.
+  if (FLAG_warn_legacy_getters &&
+      is_getter && (CurrentToken() == Token::kLPAREN)) {
+    Warning("legacy getter syntax, remove parenthesis");
+  }
+  // TODO(hausner): Remove the kLPAREN check once we remove old getter syntax.
   if (!is_getter || (CurrentToken() == Token::kLPAREN)) {
     const bool allow_explicit_default_values = true;
     ParseFormalParameterList(allow_explicit_default_values, &params);
@@ -5875,8 +5884,6 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
-// TODO(hausner): This structure can be simplified once the old catch
-// syntax is removed. All catch parameters in the new syntax are final.
 struct CatchParamDesc {
   CatchParamDesc()
       : token_pos(0), type(NULL), var(NULL) { }
