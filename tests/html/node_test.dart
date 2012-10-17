@@ -27,12 +27,11 @@ main() {
     Expect.isTrue(node.nodes[2] is Comment);
   });
 
-  if (false) // TODO(antonm): fix it.
   test('remove', () {
     final node = makeNodeWithChildren();
     final subnode = node.nodes[1];
     final out = subnode.remove();
-    Expect.equals(subnode, out, '#remove should be chainable');
+    Expect.isNull(out);
     Expect.equals(2, node.nodes.length);
     Expect.isTrue(node.nodes[0] is Text);
     Expect.isTrue(node.nodes[1] is Comment);
