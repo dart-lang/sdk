@@ -108,6 +108,7 @@ window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
+xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
 performance_api_test: Fail # window.performance.timing not in Safari 6.
