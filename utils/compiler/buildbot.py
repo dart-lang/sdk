@@ -300,7 +300,7 @@ def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
   for f in os.listdir(directory):
     item = os.path.join(directory, f)
-    if os.path.isdir(item) and f.startswith('tmp'):
+    if os.path.isdir(item) and (f.startswith('tmp') or f.startswith('opera')):
       subprocess.Popen('rm -rf %s' % item, shell=True)
 
 def CleanUpTemporaryFiles(system, browser):
