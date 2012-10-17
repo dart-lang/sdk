@@ -181,7 +181,7 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort(int compare(a, b)) {
+  void sort([Comparator compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 
@@ -1659,7 +1659,7 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort(int compare(a, b)) {
+  void sort([Comparator compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 
