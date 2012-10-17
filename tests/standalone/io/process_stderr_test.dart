@@ -14,9 +14,12 @@
 
 #source('process_test_util.dart');
 
-void test(Process process, int expectedExitCode) {
-  // Wait for the process to start and then interact with it.
-  process.onStart = () {
+void test(Future<Process> future, int expectedExitCode) {
+  future.then((process) {
+    process.onExit = (exitCode) {
+      Expect.equals(expectedExitCode, exitCode);
+    };
+
     List<int> data = "ABCDEFGHI\n".charCodes();
     final int dataSize = data.length;
 
@@ -50,11 +53,8 @@ void test(Process process, int expectedExitCode) {
     output.write(data);
     output.close();
     input.onData = readData;
-  };
 
-  process.onExit = (exitCode) {
-    Expect.equals(expectedExitCode, exitCode);
-  };
+  });
 }
 
 main() {

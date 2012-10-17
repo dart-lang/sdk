@@ -154,9 +154,9 @@ void _exit(int exitCode) {
 }
 
 class _Process {
-  static Process start(String executable,
-                       List<String> arguments,
-                       [ProcessOptions options]) {
+  static Future<Process> start(String executable,
+                               List<String> arguments,
+                               [ProcessOptions options]) {
     var msg = 'Process.start($executable, $arguments, $options)';
     throw new UnsupportedOperationException(msg);
   }

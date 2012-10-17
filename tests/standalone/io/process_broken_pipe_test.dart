@@ -10,15 +10,16 @@
 
 main() {
   // Running dart without arguments makes it close right away.
-  Process process = Process.start(new Options().executable, []);
+  var future = Process.start(new Options().executable, []);
+  future.then((process) {
+    // Ignore error on stdin.
+    process.stdin.onError = (e) => null;
 
-  // Ignore error on stdin.
-  process.stdin.onError = (e) => null;
-
-  // Write to the stdin after the process is terminated to test
-  // writing to a broken pipe.
-  process.onExit = (code) {
-    Expect.isFalse(process.stdin.write([0]));
-    process.close();
-  };
+    // Write to the stdin after the process is terminated to test
+    // writing to a broken pipe.
+    process.onExit = (code) {
+      Expect.isFalse(process.stdin.write([0]));
+      process.close();
+    };
+  });
 }

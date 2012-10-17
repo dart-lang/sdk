@@ -59,11 +59,8 @@ void main() {
   var listTests = firstConfiguration['list'];
 
   var configurationIterator = configurations.iterator();
-  bool enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) {
-      return false;
-    }
-
+  void enqueueConfiguration(ProcessQueue queue) {
+    if (!configurationIterator.hasNext()) return;
     var configuration = configurationIterator.next();
     for (String selector in selectors.getKeys()) {
       if (selector == 'co19') {
@@ -72,7 +69,6 @@ void main() {
         throw 'Error: unexpected selector: "$selector".';
       }
     }
-    return true;
   }
 
   // Start process queue.

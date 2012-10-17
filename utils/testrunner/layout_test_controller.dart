@@ -128,167 +128,170 @@ runTextLayoutTest(testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
   start = new Date.now();
-  var process = Process.start(drt, [url]);
-  StringInputStream stdoutStringStream = new StringInputStream(process.stdout);
-  stdoutStringStream.onLine = () {
-    if (stdoutStringStream.closed) return;
-    var line = stdoutStringStream.readLine();
-    while (null != line) {
-      stdout.add(line);
-      line = stdoutStringStream.readLine();
-    }
-  };
-  process.onExit = (exitCode) {
-    process.close();
-    if (stdout.length > 0 && stdout[stdout.length-1].startsWith('#EOF')) {
-      stdout.removeLast();
-    }
-    var done = false;
-    var i = 0;
-    var label = null;
-    var labelMarker = 'CONSOLE MESSAGE: #TEST ';
-    var contentMarker = 'layer at ';
-    while (i < stdout.length) {
-      if (label == null && stdout[i].startsWith(labelMarker)) {
-        label = stdout[i].substring(labelMarker.length);
-        if (label == 'NONEXISTENT') {
-          complete();
-        }
-      } else if (stdout[i].startsWith(contentMarker)) {
-        if (label == null) {
-          complete();
-        }
-        var expectedFileName =
-            '$sourceDir${Platform.pathSeparator}'
-            '${label.replaceAll("###", "_")
-                     .replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.txt';
-        var expected = new File(expectedFileName);
-        if (regenerate) {
-          var ostream = expected.openOutputStream(FileMode.WRITE);
-          while (i < stdout.length) {
-            ostream.writeString(stdout[i]);
-            ostream.writeString('\n');
-            i++;
-          }
-          ostream.close();
-          pass(start, label);
-        } else if (!expected.existsSync()) {
-          fail(start, label, 'No expectation file');
-        } else {
-          var lines = expected.readAsLinesSync();
-          var actualLength = stdout.length - i;
-          var compareCount = min(lines.length, actualLength);
-          var match = true;
-          for (var j = 0; j < compareCount; j++) {
-            if (lines[j] != stdout[i + j]) {
-              fail(start, label, 'Expectation differs at line ${j + 1}');
-              match = false;
-              break;
-            }
-          }
-          if (match) {
-            if (lines.length != actualLength) {
-              fail(start, label, 'Expectation file has wrong length');
-            } else {
-              pass(start, label);
-            }
-          }
-        }
-        done = true;
-        break;
+  Process.start(drt, [url]).then((process) {
+    StringInputStream stdoutStringStream =
+        new StringInputStream(process.stdout);
+    stdoutStringStream.onLine = () {
+      if (stdoutStringStream.closed) return;
+      var line = stdoutStringStream.readLine();
+      while (null != line) {
+        stdout.add(line);
+        line = stdoutStringStream.readLine();
       }
-      i++;
-    }
-    if (label != null) {
-      if (!done) error(start, label, 'Failed to parse output');
-      runTextLayoutTest(testNum + 1);
-    }
-  };
+    };
+    process.onExit = (exitCode) {
+      process.close();
+      if (stdout.length > 0 && stdout[stdout.length-1].startsWith('#EOF')) {
+        stdout.removeLast();
+      }
+      var done = false;
+      var i = 0;
+      var label = null;
+      var labelMarker = 'CONSOLE MESSAGE: #TEST ';
+      var contentMarker = 'layer at ';
+      while (i < stdout.length) {
+        if (label == null && stdout[i].startsWith(labelMarker)) {
+          label = stdout[i].substring(labelMarker.length);
+          if (label == 'NONEXISTENT') {
+            complete();
+          }
+        } else if (stdout[i].startsWith(contentMarker)) {
+          if (label == null) {
+            complete();
+          }
+          var expectedFileName =
+              '$sourceDir${Platform.pathSeparator}'
+              '${label.replaceAll("###", "_")
+                      .replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.txt';
+          var expected = new File(expectedFileName);
+          if (regenerate) {
+            var ostream = expected.openOutputStream(FileMode.WRITE);
+            while (i < stdout.length) {
+              ostream.writeString(stdout[i]);
+              ostream.writeString('\n');
+              i++;
+            }
+            ostream.close();
+            pass(start, label);
+          } else if (!expected.existsSync()) {
+            fail(start, label, 'No expectation file');
+          } else {
+            var lines = expected.readAsLinesSync();
+            var actualLength = stdout.length - i;
+            var compareCount = min(lines.length, actualLength);
+            var match = true;
+            for (var j = 0; j < compareCount; j++) {
+              if (lines[j] != stdout[i + j]) {
+                fail(start, label, 'Expectation differs at line ${j + 1}');
+                match = false;
+                break;
+              }
+            }
+            if (match) {
+              if (lines.length != actualLength) {
+                fail(start, label, 'Expectation file has wrong length');
+              } else {
+                pass(start, label);
+              }
+            }
+          }
+          done = true;
+          break;
+        }
+        i++;
+      }
+      if (label != null) {
+        if (!done) error(start, label, 'Failed to parse output');
+        runTextLayoutTest(testNum + 1);
+      }
+    };
+  });
 }
 
 runPixelLayoutTest(int testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
   start = new Date.now();
-  var process = Process.start(drt, ["$url'-p"]);
-  ListInputStream stdoutStream = process.stdout;
-  stdoutStream.onData = () {
-    if (!stdoutStream.closed) {
-      var data = stdoutStream.read();
-      stdout.addAll(data);
-    }
-  };
-  stdoutStream.onError = (e) {
-    print(e);
-  };
-  process.onExit = (exitCode) {
-    stdout.addAll(process.stdout.read());
-    process.close();
-    var labelMarker = 'CONSOLE MESSAGE: #TEST ';
-    var contentMarker = 'Content-Length: ';
-    var eol = '\n'.charCodeAt(0);
-    var pos = -1;
-    var label = null;
-    var done = false;
-
-    while(pos < stdout.length) {
-      var idx = stdout.indexOf(eol, ++pos);
-      if (idx < 0) break;
-      StringBuffer sb = new StringBuffer();
-      for (var i = pos; i < idx; i++) {
-        sb.addCharCode(stdout[i]);
+  Process.start(drt, ["$url'-p"]).then((process) {
+    ListInputStream stdoutStream = process.stdout;
+    stdoutStream.onData = () {
+      if (!stdoutStream.closed) {
+        var data = stdoutStream.read();
+        stdout.addAll(data);
       }
-      var line = sb.toString();
+    };
+    stdoutStream.onError = (e) {
+      print(e);
+    };
+    process.onExit = (exitCode) {
+      stdout.addAll(process.stdout.read());
+      process.close();
+      var labelMarker = 'CONSOLE MESSAGE: #TEST ';
+      var contentMarker = 'Content-Length: ';
+      var eol = '\n'.charCodeAt(0);
+      var pos = -1;
+      var label = null;
+      var done = false;
 
-      if (label == null && line.startsWith(labelMarker)) {
-        label = line.substring(labelMarker.length);
-        if (label == 'NONEXISTENT') {
-          complete();
+      while(pos < stdout.length) {
+        var idx = stdout.indexOf(eol, ++pos);
+        if (idx < 0) break;
+        StringBuffer sb = new StringBuffer();
+        for (var i = pos; i < idx; i++) {
+          sb.addCharCode(stdout[i]);
         }
-      } else if (line.startsWith(contentMarker)) {
-        if (label == null) {
-          complete();
-        }
-        var len = int.parse(line.substring(contentMarker.length));
-        pos = idx + 1;
-        var expectedFileName =
-            '$sourceDir${Platform.pathSeparator}'
-            '${label.replaceAll("###","_").
-                     replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.png';
-        var expected = new File(expectedFileName);
-        if (regenerate) {
-          var ostream = expected.openOutputStream(FileMode.WRITE);
-          ostream.writeFrom(stdout, pos, len);
-          ostream.close();
-          pass(start, label);
-        } else if (!expected.existsSync()) {
-          fail(start, label, 'No expectation file');
-        } else {
-          var bytes = expected.readAsBytesSync();
-          if (bytes.length != len) {
-            fail(start, label, 'Expectation file has wrong length');
-          } else {
-            var match = true;
-            for (var j = 0; j < len; j++) {
-              if (bytes[j] != stdout[pos + j]) {
-                fail(start, label, 'Expectation differs at byte ${j + 1}');
-                match = false;
-                break;
-              }
-            }
-            if (match) pass(start, label);
+        var line = sb.toString();
+
+        if (label == null && line.startsWith(labelMarker)) {
+          label = line.substring(labelMarker.length);
+          if (label == 'NONEXISTENT') {
+            complete();
           }
+        } else if (line.startsWith(contentMarker)) {
+          if (label == null) {
+            complete();
+          }
+          var len = int.parse(line.substring(contentMarker.length));
+          pos = idx + 1;
+          var expectedFileName =
+              '$sourceDir${Platform.pathSeparator}'
+              '${label.replaceAll("###","_").
+                       replaceAll(const RegExp("[^A-Za-z0-9]"),"_")}.png';
+          var expected = new File(expectedFileName);
+          if (regenerate) {
+            var ostream = expected.openOutputStream(FileMode.WRITE);
+            ostream.writeFrom(stdout, pos, len);
+            ostream.close();
+            pass(start, label);
+          } else if (!expected.existsSync()) {
+            fail(start, label, 'No expectation file');
+          } else {
+            var bytes = expected.readAsBytesSync();
+            if (bytes.length != len) {
+              fail(start, label, 'Expectation file has wrong length');
+            } else {
+              var match = true;
+              for (var j = 0; j < len; j++) {
+                if (bytes[j] != stdout[pos + j]) {
+                  fail(start, label, 'Expectation differs at byte ${j + 1}');
+                  match = false;
+                  break;
+                }
+              }
+              if (match) pass(start, label);
+            }
+          }
+          done = true;
+          break;
         }
-        done = true;
-        break;
+        pos = idx;
       }
-      pos = idx;
-    }
-    if (label != null) {
-      if (!done) error(start, label, 'Failed to parse output');
-      runPixelLayoutTest(testNum + 1);
-    }
-  };
+      if (label != null) {
+        if (!done) error(start, label, 'Failed to parse output');
+        runPixelLayoutTest(testNum + 1);
+      }
+    };
+  });
 }
 
 void init() {

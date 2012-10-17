@@ -40,39 +40,39 @@ void test(String shellScript, String dartScript, String type) {
   String executable = new Options().executable;
   List args =
       [executable, dartScript, type, pipeOutFile, redirectOutFile];
-  Process process = Process.start(shellScript, args);
+  var future = Process.start(shellScript, args);
+  future.then((process) {
+    process.onExit = (exitCode) {
+      Expect.equals(0, exitCode);
+      process.close();
 
-  // Wait for the process to exit and then check result.
-  process.onExit = (exitCode) {
-    Expect.equals(0, exitCode);
-    process.close();
+      // Check the expected file contents.
+      if (type == "0") {
+        checkFileContent("${pipeOutFile}", "Hello\n");
+        checkFileEmpty("${redirectOutFile}.stderr");
+        checkFileContent("${redirectOutFile}.stdout", "Hello\nHello\n");
+      }
+      if (type == "1") {
+        checkFileContent("${pipeOutFile}", "Hello\n");
+        checkFileEmpty("${redirectOutFile}.stdout");
+        checkFileContent("${redirectOutFile}.stderr", "Hello\nHello\n");
+      }
+      if (type == "2") {
+        checkFileContent("${pipeOutFile}", "Hello\nHello\n");
+        checkFileContent("${redirectOutFile}.stdout",
+                         "Hello\nHello\nHello\nHello\n");
+        checkFileContent("${redirectOutFile}.stderr",
+                         "Hello\nHello\nHello\nHello\n");
+      }
 
-    // Check the expected file contents.
-    if (type == "0") {
-      checkFileContent("${pipeOutFile}", "Hello\n");
-      checkFileEmpty("${redirectOutFile}.stderr");
-      checkFileContent("${redirectOutFile}.stdout", "Hello\nHello\n");
-    }
-    if (type == "1") {
-      checkFileContent("${pipeOutFile}", "Hello\n");
-      checkFileEmpty("${redirectOutFile}.stdout");
-      checkFileContent("${redirectOutFile}.stderr", "Hello\nHello\n");
-    }
-    if (type == "2") {
-      checkFileContent("${pipeOutFile}", "Hello\nHello\n");
-      checkFileContent("${redirectOutFile}.stdout",
-                       "Hello\nHello\nHello\nHello\n");
-      checkFileContent("${redirectOutFile}.stderr",
-                       "Hello\nHello\nHello\nHello\n");
-    }
-
-    // Cleanup test directory.
+      // Cleanup test directory.
+      dir.deleteRecursivelySync();
+    };
+  });
+  future.handleException((ProcessException error) {
     dir.deleteRecursivelySync();
-  };
-
-  process.onError = (ProcessException error) {
     Expect.fail(error.toString());
-  };
+  });
 }
 
 // This tests that the Dart standalone VM can handle piping to stdin

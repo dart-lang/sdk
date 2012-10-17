@@ -6,12 +6,13 @@
 #source("process_test_util.dart");
 
 test(args) {
-  Process process = Process.start(new Options().executable, args);
-  // Wait for the process to exit and then check result.
-  process.onExit = (exitCode) {
-    Expect.equals(0, exitCode);
-    process.close();
-  };
+  var future = Process.start(new Options().executable, args);
+  future.then((process) {
+    process.onExit = (exitCode) {
+      Expect.equals(0, exitCode);
+      process.close();
+    };
+  });
 }
 
 main() {

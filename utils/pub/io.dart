@@ -614,20 +614,19 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     return _extractTarGzWindows(stream, destination);
   }
 
-  var process = Process.start("tar",
-      ["--extract", "--gunzip", "--directory", destination]);
   var completer = new Completer<int>();
-
-  process.onExit = completer.complete;
-  process.onError = completer.completeException;
-
-  // Wait for the process to be fully started before writing to its
-  // stdin stream.
-  process.onStart = () {
+  var processFuture = Process.start("tar",
+      ["--extract", "--gunzip", "--directory", destination]);
+  processFuture.then((process) {
+    process.onExit = completer.complete;
     stream.pipe(process.stdin);
     process.stdout.pipe(stdout, close: false);
     process.stderr.pipe(stderr, close: false);
-  };
+  });
+  processFuture.handleException((error) {
+    completer.completeException(error);
+    return true;
+  });
 
   return completer.future.transform((exitCode) => exitCode == 0);
 }

@@ -22,7 +22,7 @@ const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
-typedef bool EnqueueMoreWork(ProcessQueue queue);
+typedef void EnqueueMoreWork(ProcessQueue queue);
 
 /** A command executed as a step in a test case. */
 class Command {
@@ -609,14 +609,22 @@ class RunningProcess {
    */
   void stepExitHandler(int exitCode) {
     process.close();
+    process = null;
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
-    if (currentStep == totalSteps) { // done with test command
+    if (timedOut) {
+      // Test timed out before it could complete.
+      testComplete(0, true);
+    } else if (currentStep == totalSteps) {
+      // Done with all test commands.
       testComplete(exitCode, false);
     } else if (exitCode != 0) {
+      // One of the steps failed.
       stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
       testComplete(exitCode, true);
     } else {
+      // One compilation step successfully completed, move on to the
+      // next step.
       stderr.add('test.dart: Compilation finished $suffix\n');
       stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
@@ -656,31 +664,36 @@ class RunningProcess {
   }
 
   void runCommand(Command command, void exitHandler(int exitCode)) {
-    process = Process.start(command.executable, command.arguments);
-    process.onExit = exitHandler;
-    process.onError = (e) {
-      print("Error starting process:");
+    Future processFuture = Process.start(command.executable, command.arguments);
+    processFuture.then((Process p) {
+      process = p;
+      process.onExit = exitHandler;
+      var stdoutStringStream = new StringInputStream(process.stdout);
+      var stderrStringStream = new StringInputStream(process.stderr);
+      stdoutStringStream.onLine =
+          makeReadHandler(stdoutStringStream, stdout);
+      stderrStringStream.onLine =
+          makeReadHandler(stderrStringStream, stderr);
+      if (timeoutTimer == null) {
+        // Create one timeout timer when starting test case, remove it at end.
+        timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+      }
+      // If the timeout fired in between two commands, kill the just
+      // started process immediately.
+      if (timedOut) process.kill();
+    });
+    processFuture.handleException((e) {
+      print("Process error:");
       print("  Command: $command");
       print("  Error: $e");
       testComplete(-1, false);
-    };
-    InputStream stdoutStream = process.stdout;
-    InputStream stderrStream = process.stderr;
-    StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
-    StringInputStream stderrStringStream = new StringInputStream(stderrStream);
-    stdoutStringStream.onLine =
-        makeReadHandler(stdoutStringStream, stdout);
-    stderrStringStream.onLine =
-        makeReadHandler(stderrStringStream, stderr);
-    if (timeoutTimer == null) {
-      // Create one timeout timer when starting test case, remove it at end.
-      timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
-    }
+      return true;
+    });
   }
 
   void timeoutHandler(Timer unusedTimer) {
     timedOut = true;
-    process.kill();
+    if (process != null) process.kill();
   }
 }
 
@@ -901,7 +914,7 @@ class BatchRunnerProcess {
         _stderrDrained = true;
         _stdoutDrained = true;
         _process.close();
-        _startProcess(() { _reportResult(); });
+        _startProcess(_reportResult);
       } else {  // No active test case running.
         _process.close();
         _process = null;
@@ -915,21 +928,25 @@ class BatchRunnerProcess {
     _process.kill();
   }
 
-  void _startProcess(then) {
-    _process = Process.start(_executable, _batchArguments);
-    _stdoutStream = new StringInputStream(_process.stdout);
-    _stderrStream = new StringInputStream(_process.stderr);
-    _process.onExit = makeExitHandler(">>> TEST CRASH");
-    _process.onError = (e) {
-      print("Error starting process:");
+  _startProcess(callback) {
+    Future processFuture = Process.start(_executable, _batchArguments);
+    processFuture.then((Process p) {
+      _process = p;
+      _stdoutStream = new StringInputStream(_process.stdout);
+      _stderrStream = new StringInputStream(_process.stderr);
+      _process.onExit = makeExitHandler(">>> TEST CRASH");
+      callback();
+    });
+    processFuture.handleException((e) {
+      print("Process error:");
       print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
       print("  Error: $e");
       // If there is an error starting a batch process, chances are that
       // it will always fail. So rather than re-trying a 1000+ times, we
       // exit.
       exit(1);
-    };
-    _process.onStart = then;
+      return true;
+    });
   }
 }
 
@@ -1078,29 +1095,34 @@ class ProcessQueue {
         cmd = 'tasklist';
         arg.add('/v');
       }
-      Process p = Process.start(cmd, arg);
-      final StringInputStream stdoutStringStream =
-          new StringInputStream(p.stdout);
-      p.onError = (e) {
+
+      Future processFuture = Process.start(cmd, arg);
+      processFuture.then((Process p) {
+        final StringInputStream stdoutStringStream =
+            new StringInputStream(p.stdout);
+        stdoutStringStream.onLine = () {
+          var line = stdoutStringStream.readLine();
+          while (null != line) {
+            var regexp = const RegExp(r".*selenium-server-standalone.*");
+            if (regexp.hasMatch(line)) {
+              _seleniumAlreadyRunning = true;
+              resumeTesting();
+            }
+            line = stdoutStringStream.readLine();
+          }
+          if (!_isSeleniumAvailable) {
+            _startSeleniumServer();
+          }
+        };
+      });
+      processFuture.handleException((e) {
         print("Error starting process:");
         print("  Command: $cmd ${Strings.join(arg, ' ')}");
         print("  Error: $e");
         // TODO(ahe): How to report this as a test failure?
         exit(1);
-      };
-      stdoutStringStream.onLine = () {
-        var line = stdoutStringStream.readLine();
-        while (null != line) {
-          if (const RegExp(r".*selenium-server-standalone.*").hasMatch(line)) {
-            _seleniumAlreadyRunning = true;
-            resumeTesting();
-          }
-          line = stdoutStringStream.readLine();
-        }
-        if (!_isSeleniumAvailable) {
-          _startSeleniumServer();
-        }
-      };
+        return true;
+      });
     }
   }
 
@@ -1149,26 +1171,30 @@ class ProcessQueue {
     lister.onFile = (String file) {
       if (const RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
-        _seleniumServer = Process.start('java', ['-jar', file]);
-        _seleniumServer.onError = (e) {
-          print("Error starting process:");
+        Future processFuture = Process.start('java', ['-jar', file]);
+        processFuture.then((Process server) {
+          _seleniumServer = server;
+          // Heads up: there seems to an obscure data race of some form in
+          // the VM between launching the server process and launching the test
+          // tasks that disappears when you read IO (which is convenient, since
+          // that is our condition for knowing that the server is ready).
+          StringInputStream stdoutStringStream =
+              new StringInputStream(_seleniumServer.stdout);
+          StringInputStream stderrStringStream =
+              new StringInputStream(_seleniumServer.stderr);
+          stdoutStringStream.onLine =
+              makeSeleniumServerHandler(stdoutStringStream);
+          stderrStringStream.onLine =
+              makeSeleniumServerHandler(stderrStringStream);
+        });
+        processFuture.handleException((e) {
+          print("Process error:");
           print("  Command: java -jar $file");
           print("  Error: $e");
           // TODO(ahe): How to report this as a test failure?
           exit(1);
-        };
-        // Heads up: there seems to an obscure data race of some form in
-        // the VM between launching the server process and launching the test
-        // tasks that disappears when you read IO (which is convenient, since
-        // that is our condition for knowing that the server is ready).
-        StringInputStream stdoutStringStream =
-            new StringInputStream(_seleniumServer.stdout);
-        StringInputStream stderrStringStream =
-            new StringInputStream(_seleniumServer.stderr);
-        stdoutStringStream.onLine =
-            makeSeleniumServerHandler(stdoutStringStream);
-        stderrStringStream.onLine =
-            makeSeleniumServerHandler(stderrStringStream);
+          return true;
+        });
       }
     };
   }

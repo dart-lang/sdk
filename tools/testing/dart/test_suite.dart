@@ -65,31 +65,36 @@ bool Contains(element, collection) => collection.indexOf(element) >= 0;
 
 void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
-    var p = Process.start(runnerPath, ["--list"]);
-    StringInputStream stdoutStream = new StringInputStream(p.stdout);
-    List<String> tests = new List<String>();
-    stdoutStream.onLine = () {
-      String line = stdoutStream.readLine();
-      while (line != null) {
-        tests.add(line);
-        line = stdoutStream.readLine();
-      }
-    };
-    p.onError = (error) {
+    void processErrorHandler(error) {
+    }
+    Future processFuture = Process.start(runnerPath, ["--list"]);
+    processFuture.then((p) {
+      StringInputStream stdoutStream = new StringInputStream(p.stdout);
+      List<String> tests = new List<String>();
+      stdoutStream.onLine = () {
+        String line = stdoutStream.readLine();
+        while (line != null) {
+          tests.add(line);
+          line = stdoutStream.readLine();
+        }
+      };
+      p.onExit = (code) {
+        if (code < 0) {
+          print("Failed to list tests: $runnerPath --list");
+          replyTo.send("");
+        }
+        for (String test in tests) {
+          replyTo.send(test);
+        }
+        replyTo.send("");
+      };
+      port.close();
+    });
+    processFuture.handleException((e) {
       print("Failed to list tests: $runnerPath --list");
       replyTo.send("");
-    };
-    p.onExit = (code) {
-      if (code < 0) {
-        print("Failed to list tests: $runnerPath --list");
-        replyTo.send("");
-      }
-      for (String test in tests) {
-        replyTo.send(test);
-      }
-      replyTo.send("");
-    };
-    port.close();
+      return true;
+    });
   });
 }
 
