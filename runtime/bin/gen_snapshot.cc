@@ -357,7 +357,6 @@ int main(int argc, char** argv) {
                                                 snapshot_buffer,
                                                 NULL,
                                                 &error);
-      free(snapshot_buffer);
       if (isolate == NULL) {
         fprintf(stderr, "%s", error);
         free(error);
@@ -384,6 +383,8 @@ int main(int argc, char** argv) {
 
       // Now create and write snapshot of script.
       CreateAndWriteSnapshot(true);
+
+      free(snapshot_buffer);
     }
   } else {
     SetupForGenericSnapshotCreation();
