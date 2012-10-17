@@ -82,7 +82,7 @@ class ElementConstructorInfo(object):
     info.constructor_name = self.name
     info.js_name = None
     info.type_name = interface_name
-    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], None, tXn[0], 'null'),
+    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], 'null'),
                            self.opt_params)
     return info
 
@@ -889,7 +889,7 @@ class Dart2JSBackend(object):
       if conversion:
         return conversion.input_type
       else:
-        return self._NarrowInputType(type_name)
+        return self._NarrowInputType(type_name) if type_name else 'Dynamic'
 
     body = self._members_emitter.Emit(
         '\n'
@@ -902,7 +902,7 @@ class Dart2JSBackend(object):
         PARAMS=info.ParametersImplementationDeclaration(InputType))
 
     parameter_names = [param_info.name for param_info in info.param_infos]
-    parameter_types = [InputType(param_info.dart_type)
+    parameter_types = [InputType(param_info.type_id)
                        for param_info in info.param_infos]
     operations = info.operations
 
@@ -943,7 +943,7 @@ class Dart2JSBackend(object):
           arguments.append(parameter_names[position])
           param_type = self._NarrowInputType(arg.type.id)
           # Verified by argument checking on entry to the dispatcher.
-          verified_type = InputType(info.param_infos[position].dart_type)
+          verified_type = InputType(info.param_infos[position].type_id)
 
         # The native method does not need an argument type if we know the type.
         # But we do need the native methods to have correct function types, so
@@ -1049,8 +1049,6 @@ class Dart2JSBackend(object):
     return False
 
   def _NarrowToImplementationType(self, type_name):
-    if type_name == 'Dynamic':
-      return type_name
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()
 
   def _NarrowInputType(self, type_name):

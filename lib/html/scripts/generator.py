@@ -148,21 +148,19 @@ class ParamInfo(object):
   Attributes:
     name: Name of parameter.
     type_id: Original type id.  None for merged types.
-    dart_type: DartType of parameter.
     is_optional: Parameter optionality.
   """
-  def __init__(self, name, type_id, dart_type, is_optional):
+  def __init__(self, name, type_id, is_optional):
     self.name = name
     self.type_id = type_id
-    self.dart_type = dart_type
     self.is_optional = is_optional
 
   def Copy(self):
-    return ParamInfo(self.name, self.type_id, self.dart_type, self.is_optional)
+    return ParamInfo(self.name, self.type_id, self.is_optional)
 
   def __repr__(self):
-    content = 'name = %s, type_id = %s, dart_type = %s, is_optional = %s' % (
-        self.name, self.type_id, self.dart_type, self.is_optional)
+    content = 'name = %s, type_id = %s, is_optional = %s' % (
+        self.name, self.type_id, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
 
@@ -191,12 +189,9 @@ def _BuildArguments(args, interface, constructor=False):
   def OverloadedType(args):
     type_ids = sorted(set(arg.type.id for arg in args))
     if len(set(DartType(arg.type.id) for arg in args)) == 1:
-      if len(type_ids) == 1:
-        return (type_ids[0], type_ids[0])
-      else:
-        return (None, type_ids[0])
+      return type_ids[0]
     else:
-      return (None, TypeName(type_ids, interface))
+      return None
 
   result = []
 
@@ -205,9 +200,9 @@ def _BuildArguments(args, interface, constructor=False):
     is_optional = is_optional or any(arg is None or IsOptional(arg) for arg in arg_tuple)
 
     filtered = filter(None, arg_tuple)
-    (type_id, dart_type) = OverloadedType(filtered)
+    type_id = OverloadedType(filtered)
     name = OverloadedName(filtered)
-    result.append(ParamInfo(name, type_id, dart_type, is_optional))
+    result.append(ParamInfo(name, type_id, is_optional))
 
   return result
 
@@ -347,10 +342,7 @@ class OperationInfo(object):
   def ParametersInterfaceDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the interface."""
     def type_function(param):
-      # TODO(podivilov): replace param.dart_type field with param.is_optional
-      dart_type = param.dart_type
-      if dart_type != 'Dynamic':
-        dart_type = rename_type(dart_type)
+      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
       return TypeOrNothing(dart_type, param.type_id)
     return self._FormatParams(self.param_infos, type_function)
 
@@ -363,10 +355,7 @@ class OperationInfo(object):
         The function is applied to the parameter's dart_type.
     """
     def type_function(param):
-      # TODO(podivilov): replace param.dart_type field with param.is_optional
-      dart_type = param.dart_type
-      if dart_type != 'Dynamic':
-        dart_type = rename_type(dart_type)
+      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
       return TypeOrNothing(dart_type)
     return self._FormatParams(self.param_infos, type_function)
 
@@ -466,7 +455,7 @@ class OperationInfo(object):
     info.param_infos = [param.Copy() for param in self.param_infos]
     for param in info.param_infos:
       if param.is_optional:
-        param.dart_type = 'Dynamic'
+        param.type_id = None
     return info
 
 
