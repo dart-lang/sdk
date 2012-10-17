@@ -66,6 +66,7 @@ main() {
   // TODO(johnniwinther): Add tests of type argument substitution, which
   // is not currently implemented in dart2js.
   // TODO(johnniwinther): Add tests of Location and Source.
+  testPrivate(mirrors, helperLibrary, types);
 }
 
 // Testing class Foo:
@@ -74,7 +75,7 @@ main() {
 //
 // }
 void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<Object,TypeMirror> types) {
+             Map<String,TypeMirror> types) {
   var fooClass = types["Foo"];
   Expect.isNotNull(fooClass, "Type 'Foo' not found");
   Expect.isTrue(fooClass is InterfaceMirror,
@@ -147,7 +148,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 //
 // }
 void testBar(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<Object,TypeMirror> types) {
+             Map<String,TypeMirror> types) {
   var barInterface = types["Bar"];
   Expect.isNotNull(barInterface, "Type 'Bar' not found");
   Expect.isTrue(barInterface is InterfaceMirror,
@@ -237,7 +238,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 //   int operator -() => 0;
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
-             Map<Object,TypeMirror> types) {
+             Map<String,TypeMirror> types) {
   var bazClass = types["Baz"];
   Expect.isNotNull(bazClass, "Type 'Baz' not found");
   Expect.isTrue(bazClass is InterfaceMirror,
@@ -684,4 +685,57 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   // TODO(johnniwinther): Add more tests of constructors.
   // TODO(johnniwinther): Add a test for unnamed factory methods.
+}
+
+// class _PrivateClass {
+//   var _privateField;
+//   get _privateGetter => _privateField;
+//   void set _privateSetter(value) => _privateField = value;
+//   void _privateMethod() {}
+//   _PrivateClass._privateConstructor();
+//   factory _PrivateClass._privateFactoryConstructor() => new _PrivateClass();
+// }
+void testPrivate(MirrorSystem system, LibraryMirror helperLibrary,
+                 Map<String,TypeMirror> types) {
+  var privateClass = types['_PrivateClass'];
+  Expect.isNotNull(privateClass);
+  Expect.isTrue(privateClass is InterfaceMirror);
+  Expect.isTrue(privateClass.isClass);
+  Expect.isTrue(privateClass.isPrivate);
+
+  var privateField = privateClass.declaredMembers['_privateField'];
+  Expect.isNotNull(privateField);
+  Expect.isTrue(privateField is FieldMirror);
+  Expect.isTrue(privateField.isPrivate);
+
+  var privateGetter = privateClass.declaredMembers['_privateGetter'];
+  Expect.isNotNull(privateGetter);
+  Expect.isTrue(privateGetter is MethodMirror);
+  Expect.isTrue(privateGetter.isGetter);
+  Expect.isTrue(privateGetter.isPrivate);
+
+  var privateSetter = privateClass.declaredMembers['_privateSetter='];
+  Expect.isNotNull(privateSetter);
+  Expect.isTrue(privateSetter is MethodMirror);
+  Expect.isTrue(privateSetter.isSetter);
+  Expect.isTrue(privateSetter.isPrivate);
+
+  var privateMethod = privateClass.declaredMembers['_privateMethod'];
+  Expect.isNotNull(privateMethod);
+  Expect.isTrue(privateMethod is MethodMirror);
+  Expect.isTrue(privateMethod.isPrivate);
+
+  var privateConstructor =
+      privateClass.declaredMembers['_PrivateClass._privateConstructor'];
+  Expect.isNotNull(privateConstructor);
+  Expect.isTrue(privateConstructor is MethodMirror);
+  Expect.isTrue(privateConstructor.isConstructor);
+  Expect.isTrue(privateConstructor.isPrivate);
+
+  var privateFactoryConstructor =
+      privateClass.declaredMembers['_PrivateClass._privateFactoryConstructor'];
+  Expect.isNotNull(privateFactoryConstructor);
+  Expect.isTrue(privateFactoryConstructor is MethodMirror);
+  Expect.isTrue(privateFactoryConstructor.isFactory);
+  Expect.isTrue(privateFactoryConstructor.isPrivate);
 }

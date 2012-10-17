@@ -46,3 +46,11 @@ class Boz extends Foo {
   }
 }
 
+class _PrivateClass {
+  var _privateField;
+  get _privateGetter => _privateField;
+  void set _privateSetter(value) => _privateField = value;
+  void _privateMethod() {}
+  _PrivateClass._privateConstructor();
+  factory _PrivateClass._privateFactoryConstructor() => new _PrivateClass();
+}

@@ -508,23 +508,21 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   void _ensureTypes() {
     if (_types == null) {
       _types = <String, InterfaceMirror>{};
-      _library.forEachExport((Element e) {
-        if (e.getLibrary() == _library) {
-          if (e.isClass()) {
-            e.ensureResolved(system.compiler);
-            var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
-            assert(invariant(_library, !_types.containsKey(type.simpleName),
-                message: "Type name '${type.simpleName}' "
-                         "is not unique in $_library."));
-            _types[type.simpleName] = type;
-          } else if (e.isTypedef()) {
-            var type = new Dart2JsTypedefMirror.fromLibrary(this,
-                e.computeType(system.compiler));
-            assert(invariant(_library, !_types.containsKey(type.simpleName),
-                message: "Type name '${type.simpleName}' "
-                         "is not unique in $_library."));
-            _types[type.simpleName] = type;
-          }
+      _library.forEachLocalMember((Element e) {
+        if (e.isClass()) {
+          e.ensureResolved(system.compiler);
+          var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
+          assert(invariant(_library, !_types.containsKey(type.simpleName),
+              message: "Type name '${type.simpleName}' "
+                       "is not unique in $_library."));
+          _types[type.simpleName] = type;
+        } else if (e.isTypedef()) {
+          var type = new Dart2JsTypedefMirror.fromLibrary(this,
+              e.computeType(system.compiler));
+          assert(invariant(_library, !_types.containsKey(type.simpleName),
+              message: "Type name '${type.simpleName}' "
+                       "is not unique in $_library."));
+          _types[type.simpleName] = type;
         }
       });
     }
@@ -533,7 +531,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   void _ensureMembers() {
     if (_members == null) {
       _members = <String, MemberMirror>{};
-      _library.forEachExport((Element e) {
+      _library.forEachLocalMember((Element e) {
         if (!e.isClass() && !e.isTypedef()) {
           for (var member in _convertElementMemberToMemberMirrors(this, e)) {
             assert(!_members.containsKey(member.simpleName));
@@ -1305,7 +1303,8 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
   bool get isMethod => !isConstructor;
 
-  bool get isPrivate => _isPrivate(simpleName);
+  bool get isPrivate =>
+      isConstructor ? _isPrivate(constructorName) : _isPrivate(simpleName);
 
   bool get isStatic => _function.modifiers.isStatic();
 
