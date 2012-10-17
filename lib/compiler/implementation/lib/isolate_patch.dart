@@ -96,7 +96,7 @@ void _fillStatics(context) {
 }
 
 ReceivePort _lazyPort;
-patch ReceivePort get port() {
+patch ReceivePort get port {
   if (_lazyPort === null) {
     _lazyPort = new ReceivePort();
   }
@@ -393,7 +393,7 @@ class _MainManagerStub implements _ManagerStub {
  * are actually available.
  */
 class _WorkerStub implements _ManagerStub native "*Worker" {
-  get id() => JS("Object", "#.id", this);
+  get id => JS("Object", "#.id", this);
   void set id(i) { JS("void", "#.id = #", this, i); }
   void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
   void postMessage(msg) => JS("Object", "#.postMessage(#)", this, msg);
@@ -573,7 +573,7 @@ class _IsolateNatives {
     _fillStatics(_globalState.currentContext);
     _lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
-    
+
     if (_window != null)  {
       _globalState.currentContext.eval(
           () => _setTimerFactoryClosure(_timerFactory));
