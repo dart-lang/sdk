@@ -127,11 +127,11 @@ function(cls, fields, methods) {
   }
 
   bool isNativeLiteral(String quotedName) {
-    return quotedName[1] === '=';
+    return identical(quotedName[1], '=');
   }
 
   bool isNativeGlobal(String quotedName) {
-    return quotedName[1] === '@';
+    return identical(quotedName[1], '@');
   }
 
   String toNativeName(ClassElement cls) {
@@ -181,7 +181,7 @@ function(cls, fields, methods) {
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
     List<ClassElement> result = directSubtypes[cls];
-    return result === null ? const<ClassElement>[] : result;
+    return result == null ? const<ClassElement>[] : result;
   }
 
   void potentiallyConvertDartClosuresToJs(CodeBuffer code,
@@ -239,7 +239,7 @@ function(cls, fields, methods) {
     } else {
       // When calling a JS method, we call it with the native name.
       String name = redirectingMethods[member];
-      if (name === null) name = member.name.slowToString();
+      if (name == null) name = member.name.slowToString();
       code.add('  return this.$name($nativeArguments);');
     }
 
@@ -384,7 +384,7 @@ function(cls, fields, methods) {
       return false;
     }
 
-    return subtypes[element] !== null;
+    return subtypes[element] != null;
   }
 
   bool requiresNativeIsCheck(Element element) {

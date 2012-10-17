@@ -39,7 +39,7 @@ class PartialClassElement extends ClassElement {
         MemberListener listener = new MemberListener(compiler, this);
         Parser parser = new ClassElementParser(listener);
         Token token = parser.parseTopLevelDeclaration(beginToken);
-        assert(token === endToken.next);
+        assert(identical(token, endToken.next));
         cachedNode = listener.popNode();
         assert(listener.nodes.isEmpty());
       });
@@ -60,7 +60,7 @@ class PartialClassElement extends ClassElement {
   Modifiers get modifiers =>
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
 
-  bool isInterface() => beginToken.stringValue === "interface";
+  bool isInterface() => identical(beginToken.stringValue, "interface");
 }
 
 class MemberListener extends NodeListener {
@@ -72,12 +72,12 @@ class MemberListener extends NodeListener {
         super(listener, enclosingElement.getCompilationUnit());
 
   bool isConstructorName(Node nameNode) {
-    if (enclosingElement === null ||
+    if (enclosingElement == null ||
         enclosingElement.kind != ElementKind.CLASS) {
       return false;
     }
     SourceString name;
-    if (nameNode.asIdentifier() !== null) {
+    if (nameNode.asIdentifier() != null) {
       name = nameNode.asIdentifier().source;
     } else {
       Send send = nameNode.asSend();
@@ -88,15 +88,15 @@ class MemberListener extends NodeListener {
 
   SourceString getMethodNameHack(Node methodName) {
     Send send = methodName.asSend();
-    if (send === null) return methodName.asIdentifier().source;
+    if (send == null) return methodName.asIdentifier().source;
     Identifier receiver = send.receiver.asIdentifier();
     Identifier selector = send.selector.asIdentifier();
     Operator operator = selector.asOperator();
-    if (operator !== null) {
-      assert(receiver.source.stringValue === 'operator');
+    if (operator != null) {
+      assert(identical(receiver.source.stringValue, 'operator'));
       // TODO(ahe): It is a hack to compare to ')', but it beats
       // parsing the node.
-      bool isUnary = operator.token.next.next.stringValue === ')';
+      bool isUnary = identical(operator.token.next.next.stringValue, ')');
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
       if (receiver == null) {
@@ -116,12 +116,12 @@ class MemberListener extends NodeListener {
     SourceString name = getMethodNameHack(method.name);
     ElementKind kind = ElementKind.FUNCTION;
     if (isConstructor) {
-      if (getOrSet !== null) {
+      if (getOrSet != null) {
         recoverableError('illegal modifier', token: getOrSet);
       }
       kind = ElementKind.GENERATIVE_CONSTRUCTOR;
-    } else if (getOrSet !== null) {
-      kind = (getOrSet.stringValue === 'get')
+    } else if (getOrSet != null) {
+      kind = (identical(getOrSet.stringValue, 'get'))
              ? ElementKind.GETTER : ElementKind.SETTER;
     }
     Element memberElement =

@@ -47,7 +47,7 @@ void toolMain(List<String> arguments) {
     } else {
       print('Parsed $stats.');
     }
-    if (filesWithCrashes.length !== 0) {
+    if (filesWithCrashes.length != 0) {
       print('The following ${filesWithCrashes.length} files caused a crash:');
       for (String file in filesWithCrashes) {
         print(file);
@@ -151,7 +151,7 @@ void forEachLine(InputStream input,
   StringInputStream stringStream = new StringInputStream(input);
   stringStream.onLine = () {
     String line;
-    while ((line = stringStream.readLine()) !== null) {
+    while ((line = stringStream.readLine()) != null) {
       lineHandler(line);
     }
   };
@@ -201,7 +201,7 @@ class MyListener extends Listener {
 String formatError(String message, Token beginToken, Token endToken,
                    SourceFile file) {
   ++errorCount;
-  if (beginToken === null) return '${file.filename}: $message';
+  if (beginToken == null) return '${file.filename}: $message';
   String tokenString = endToken.toString();
   int begin = beginToken.charOffset;
   int end = endToken.charOffset + tokenString.length;
@@ -267,10 +267,10 @@ class MyCanceller implements DiagnosticListener {
   void cancel(String reason, {node, token, instruction, element}) {
     Token beginToken;
     Token endToken;
-    if (token !== null) {
+    if (token != null) {
       beginToken = token;
       endToken = token;
-    } else if (node !== null) {
+    } else if (node != null) {
       beginToken = node.getBeginToken();
       endToken = node.getEndToken();
     }
@@ -298,7 +298,7 @@ class MySourceFile extends SourceFile {
     if (rawText is String) {
       return rawText;
     } else {
-      if (stringText === null) {
+      if (stringText == null) {
         stringText = new String.fromCharCodes(rawText);
         if (stringText.endsWith('\u0000')) {
           // Strip trailing NUL used by ByteArrayScanner to signal EOF.

@@ -68,17 +68,17 @@ class ResolverTask extends CompilerTask {
   TreeElements resolve(Element element) {
     return measure(() {
       ElementKind kind = element.kind;
-      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
-          kind === ElementKind.FUNCTION ||
-          kind === ElementKind.GETTER ||
-          kind === ElementKind.SETTER) {
+      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
+          identical(kind, ElementKind.FUNCTION) ||
+          identical(kind, ElementKind.GETTER) ||
+          identical(kind, ElementKind.SETTER)) {
         return resolveMethodElement(element);
       }
 
-      if (kind === ElementKind.FIELD) return resolveField(element);
+      if (identical(kind, ElementKind.FIELD)) return resolveField(element);
 
-      if (kind === ElementKind.PARAMETER ||
-          kind === ElementKind.FIELD_PARAMETER) {
+      if (identical(kind, ElementKind.PARAMETER) ||
+          identical(kind, ElementKind.FIELD_PARAMETER)) {
         return resolveParameter(element);
       }
 
@@ -87,7 +87,7 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  bool isNamedConstructor(Send node) => node.receiver !== null;
+  bool isNamedConstructor(Send node) => node.receiver != null;
 
   SourceString getConstructorName(Send node) {
     return node.selector.asIdentifier().source;
@@ -97,7 +97,7 @@ class ResolverTask extends CompilerTask {
                                    SourceString constructorName) {
     String classNameString = className.slowToString();
     String constructorNameString = constructorName.slowToString();
-    return (constructorName === const SourceString(''))
+    return (identical(constructorName, const SourceString('')))
         ? classNameString
         : "$classNameString.$constructorNameString";
    }
@@ -111,8 +111,8 @@ class ResolverTask extends CompilerTask {
     FunctionExpression node = constructor.parseNode(compiler);
 
     // A synthetic constructor does not have a node.
-    if (node === null) return null;
-    if (node.initializers === null) return null;
+    if (node == null) return null;
+    if (node.initializers == null) return null;
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
@@ -138,7 +138,7 @@ class ResolverTask extends CompilerTask {
                                      FunctionElement redirection) {
     Set<FunctionElement> seen = new Set<FunctionElement>();
     seen.add(constructor);
-    while (redirection !== null) {
+    while (redirection != null) {
       if (seen.contains(redirection)) {
         resolver.visitor.error(node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
         return;
@@ -191,7 +191,7 @@ class ResolverTask extends CompilerTask {
     if (originSignature.returnType != patchSignature.returnType) {
       compiler.withCurrentElement(patch, () {
         Node errorNode =
-            patchTree.returnType !== null ? patchTree.returnType : patchTree;
+            patchTree.returnType != null ? patchTree.returnType : patchTree;
         error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH, [origin.name,
               originSignature.returnType, patchSignature.returnType]);
       });
@@ -238,10 +238,11 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveMethodElement(FunctionElement element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
-      bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
+      bool isConstructor =
+          identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR);
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(element);
-      if (elements !== null) {
+      if (elements != null) {
         assert(isConstructor);
         return elements;
       }
@@ -252,7 +253,7 @@ class ResolverTask extends CompilerTask {
       return compiler.withCurrentElement(element, () {
         FunctionExpression tree = element.parseNode(compiler);
         if (isConstructor) {
-          if (tree.returnType !== null) {
+          if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
           }
           resolveConstructorImplementation(element, tree);
@@ -267,7 +268,7 @@ class ResolverTask extends CompilerTask {
           InitializerResolver resolver = new InitializerResolver(visitor);
           FunctionElement redirection =
               resolver.resolveInitializers(element, tree);
-          if (redirection !== null) {
+          if (redirection != null) {
             resolveRedirectingConstructor(resolver, tree, element, redirection);
           }
         } else if (tree.initializers != null) {
@@ -286,11 +287,11 @@ class ResolverTask extends CompilerTask {
 
   void resolveConstructorImplementation(FunctionElement constructor,
                                         FunctionExpression node) {
-    if (constructor.defaultImplementation !== constructor) return;
+    if (!identical(constructor.defaultImplementation, constructor)) return;
     ClassElement intrface = constructor.getEnclosingClass();
     if (!intrface.isInterface()) return;
     DartType defaultType = intrface.defaultClass;
-    if (defaultType === null) {
+    if (defaultType == null) {
       error(node, MessageKind.NO_DEFAULT_CLASS, [intrface.name]);
     }
     ClassElement defaultClass = defaultType.element;
@@ -333,7 +334,7 @@ class ResolverTask extends CompilerTask {
       constructor.defaultImplementation =
           defaultClass.lookupFactoryConstructor(selector);
     }
-    if (constructor.defaultImplementation === null) {
+    if (constructor.defaultImplementation == null) {
       // We failed to find a constructor named either
       // "MyInterface.name" or "MyClass.name".
       // TODO(aprelev@gmail.com): Use constructorNameForDiagnostics in
@@ -371,10 +372,10 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveReturnType(Element element, TypeAnnotation annotation) {
-    if (annotation === null) return compiler.types.dynamicType;
+    if (annotation == null) return compiler.types.dynamicType;
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     DartType result = visitor.resolveTypeAnnotation(annotation);
-    if (result === null) {
+    if (result == null) {
       // TODO(karklose): warning.
       return compiler.types.dynamicType;
     }
@@ -505,20 +506,20 @@ class ResolverTask extends CompilerTask {
     // Find the associated abstract field.
     ClassElement classElement = member.getEnclosingClass();
     Element lookupElement = classElement.lookupLocalMember(member.name);
-    if (lookupElement === null) {
+    if (lookupElement == null) {
       compiler.internalErrorOnElement(member,
                                       "No abstract field for accessor");
-    } else if (lookupElement.kind !== ElementKind.ABSTRACT_FIELD) {
+    } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
        compiler.internalErrorOnElement(
            member, "Inaccessible abstract field for accessor");
     }
     AbstractFieldElement field = lookupElement;
 
-    if (field.getter === null) return;
-    if (field.setter === null) return;
+    if (field.getter == null) return;
+    if (field.setter == null) return;
     int getterFlags = field.getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = field.setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    if (getterFlags !== setterFlags) {
+    if (!identical(getterFlags, setterFlags)) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
       compiler.reportMessage(
@@ -548,7 +549,7 @@ class ResolverTask extends CompilerTask {
   }
 
   void checkValidOverride(Element member, Element superMember) {
-    if (superMember === null) return;
+    if (superMember == null) return;
     if (member.modifiers.isStatic()) {
       reportErrorWithContext(
           member, MessageKind.NO_STATIC_OVERRIDE,
@@ -556,9 +557,9 @@ class ResolverTask extends CompilerTask {
     } else {
       FunctionElement superFunction = superMember.asFunctionElement();
       FunctionElement function = member.asFunctionElement();
-      if (superFunction === null || superFunction.isAccessor()) {
+      if (superFunction == null || superFunction.isAccessor()) {
         // Field or accessor in super.
-        if (function !== null && !function.isAccessor()) {
+        if (function != null && !function.isAccessor()) {
           // But a plain method in this class.
           reportErrorWithContext(
               member, MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
@@ -566,7 +567,7 @@ class ResolverTask extends CompilerTask {
         }
       } else {
         // Instance method in super.
-        if (function === null || function.isAccessor()) {
+        if (function == null || function.isAccessor()) {
           // But a field (or accessor) in this class.
           reportErrorWithContext(
               member, MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
@@ -696,7 +697,7 @@ class InitializerResolver {
     if (isFieldInitializer(init)) {
       Scope localScope = constructor.getEnclosingClass().buildLocalScope();
       target = localScope.lookup(name);
-      if (target === null) {
+      if (target == null) {
         error(selector, MessageKind.CANNOT_RESOLVE, [name]);
       } else if (target.kind != ElementKind.FIELD) {
         error(selector, MessageKind.NOT_A_FIELD, [name]);
@@ -719,7 +720,7 @@ class InitializerResolver {
     ClassElement lookupTarget = constructor.getEnclosingClass();
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
-      if (lookupTarget === visitor.compiler.objectClass) {
+      if (identical(lookupTarget, visitor.compiler.objectClass)) {
         error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
       } else {
         return lookupTarget.supertype.element;
@@ -780,7 +781,7 @@ class InitializerResolver {
     ClassElement classElement = constructor.getEnclosingClass();
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
-      assert(superClass !== null);
+      assert(superClass != null);
       assert(superClass.resolutionState == STATE_DONE);
       SourceString constructorName = const SourceString('');
       Selector callToMatch = new Selector.call(
@@ -816,7 +817,7 @@ class InitializerResolver {
       Node diagnosticNode,
       SourceString className,
       SourceString constructorName) {
-    if (lookedupConstructor === null
+    if (lookedupConstructor == null
         || !lookedupConstructor.isGenerativeConstructor()) {
       var fullConstructorName =
           visitor.compiler.resolver.constructorNameForDiagnostics(className,
@@ -837,7 +838,7 @@ class InitializerResolver {
 
   FunctionElement resolveRedirection(FunctionElement constructor,
                                      FunctionExpression functionNode) {
-    if (functionNode.initializers === null) return null;
+    if (functionNode.initializers == null) return null;
     Link<Node> link = functionNode.initializers.nodes;
     if (!link.isEmpty() && Initializers.isConstructorRedirect(link.head)) {
       return resolveSuperOrThisForSend(constructor, functionNode, link.head);
@@ -856,13 +857,13 @@ class InitializerResolver {
     FunctionSignature functionParameters =
         constructor.computeSignature(visitor.compiler);
     functionParameters.forEachParameter((Element element) {
-      if (element.kind === ElementKind.FIELD_PARAMETER) {
+      if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
         checkForDuplicateInitializers(element.name,
                                       element.parseNode(visitor.compiler));
       }
     });
 
-    if (functionNode.initializers === null) {
+    if (functionNode.initializers == null) {
       initializers = const Link<Node>();
     } else {
       initializers = functionNode.initializers.nodes;
@@ -875,7 +876,7 @@ class InitializerResolver {
       if (link.head.asSendSet() != null) {
         final SendSet init = link.head.asSendSet();
         resolveFieldInitializer(constructor, init);
-      } else if (link.head.asSend() !== null) {
+      } else if (link.head.asSend() != null) {
         final Send call = link.head.asSend();
         if (Initializers.isSuperConstructorCall(call)) {
           if (resolvedSuper) {
@@ -957,7 +958,7 @@ class LabeledStatementLabelScope implements LabelScope {
   LabeledStatementLabelScope(this.outer, this.labels);
   LabelElement lookup(String labelName) {
     LabelElement label = labels[labelName];
-    if (label !== null) return label;
+    if (label != null) return label;
     return outer.lookup(labelName);
   }
 }
@@ -970,7 +971,7 @@ class SwitchLabelScope implements LabelScope {
 
   LabelElement lookup(String labelName) {
     LabelElement result = caseLabels[labelName];
-    if (result !== null) return result;
+    if (result != null) return result;
     return outer.lookup(labelName);
   }
 }
@@ -1054,23 +1055,23 @@ class TypeResolver {
   }
 
   Element resolveTypeNameInternal(Scope scope, Identifier typeName, Send send) {
-    if (send !== null) {
+    if (send != null) {
       typeName = send.selector;
     }
-    if (typeName.source.stringValue === 'void') {
+    if (identical(typeName.source.stringValue, 'void')) {
       return compiler.types.voidType.element;
     } else if (
         // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-        typeName.source.stringValue === 'Dynamic'
-        || typeName.source.stringValue === 'dynamic') {
+        identical(typeName.source.stringValue, 'Dynamic')
+        || identical(typeName.source.stringValue, 'dynamic')) {
       return compiler.dynamicClass;
-    } else if (send !== null) {
+    } else if (send != null) {
       Element e = scope.lookup(send.receiver.asIdentifier().source);
-      if (e !== null && e.kind === ElementKind.PREFIX) {
+      if (e != null && identical(e.kind, ElementKind.PREFIX)) {
         // The receiver is a prefix. Lookup in the imported members.
         PrefixElement prefix = e;
         return prefix.lookupLocalMember(typeName.source);
-      } else if (e !== null && e.kind === ElementKind.CLASS) {
+      } else if (e != null && identical(e.kind, ElementKind.CLASS)) {
         // The receiver is the class part of a named constructor.
         return e;
       } else {
@@ -1089,16 +1090,16 @@ class TypeResolver {
                                  {Scope inScope, ClassElement inClass,
                                  onFailure(Node, MessageKind, [List arguments]),
                                  whenResolved(Node, Type)}) {
-    if (onFailure === null) {
+    if (onFailure == null) {
       onFailure = (n, k, [arguments]) {};
     }
-    if (whenResolved === null) {
+    if (whenResolved == null) {
       whenResolved = (n, t) {};
     }
-    if (inClass !== null) {
+    if (inClass != null) {
       inScope = inClass.buildScope();
     }
-    if (inScope === null) {
+    if (inScope == null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
     return resolveTypeAnnotationInContext(inScope, node, onFailure,
@@ -1109,7 +1110,7 @@ class TypeResolver {
                                           onFailure, whenResolved) {
     Element element = resolveTypeName(scope, node);
     DartType type;
-    if (element === null) {
+    if (element == null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
     } else if (element.isErroneous()) {
       ErroneousElement error = element;
@@ -1117,8 +1118,8 @@ class TypeResolver {
     } else if (!element.impliesType()) {
       onFailure(node, MessageKind.NOT_A_TYPE, [node.typeName]);
     } else {
-      if (element === compiler.types.voidType.element ||
-          element === compiler.types.dynamicType.element) {
+      if (identical(element, compiler.types.voidType.element) ||
+          identical(element, compiler.types.dynamicType.element)) {
         type = element.computeType(compiler);
       } else if (element.isClass()) {
         ClassElement cls = element;
@@ -1230,7 +1231,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   // Create, or reuse an already created, statement element for a statement.
   TargetElement getOrCreateTargetElement(Node statement) {
     TargetElement element = mapping[statement];
-    if (element === null) {
+    if (element == null) {
       element = new TargetElement(statement,
                                   statementScope.nestingLevel,
                                   enclosingElement);
@@ -1290,7 +1291,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       return null;
     } else {
       Element element = lookup(node, node.source);
-      if (element === null) {
+      if (element == null) {
         if (!inInstanceContext) {
           element = warnAndCreateErroneousElement(node, node.source,
                                                   MessageKind.CANNOT_RESOLVE,
@@ -1310,7 +1311,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element visitTypeAnnotation(TypeAnnotation node) {
     DartType type = resolveTypeAnnotation(node);
-    if (type !== null) {
+    if (type != null) {
       if (inCheckContext) {
         compiler.enqueuer.resolution.registerIsCheck(type);
       }
@@ -1321,7 +1322,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element defineElement(Node node, Element element,
                         {bool doAddToScope: true}) {
-    compiler.ensure(element !== null);
+    compiler.ensure(element != null);
     mapping[node] = element;
     if (doAddToScope) {
       Element existing = scope.add(element);
@@ -1333,12 +1334,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element useElement(Node node, Element element) {
-    if (element === null) return null;
+    if (element == null) return null;
     return mapping[node] = element;
   }
 
   DartType useType(TypeAnnotation annotation, DartType type) {
-    if (type !== null) {
+    if (type != null) {
       mapping.setType(annotation, type);
       useElement(annotation, type.element);
     }
@@ -1353,7 +1354,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
-    Link<Node> parameterNodes = (node.parameters === null)
+    Link<Node> parameterNodes = (node.parameters == null)
         ? const Link<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
@@ -1434,7 +1435,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    assert(node.function.name !== null);
+    assert(node.function.name != null);
     visit(node.function);
     FunctionElement functionElement = mapping[node.function];
     // TODO(floitsch): this might lead to two errors complaining about
@@ -1445,7 +1446,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
     SourceString name;
-    if (node.name === null) {
+    if (node.name == null) {
       name = const SourceString("");
     } else {
       name = node.name.asIdentifier().source;
@@ -1465,7 +1466,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         functionEnclosing);
     setupFunction(node, enclosing);
-    defineElement(node, enclosing, doAddToScope: node.name !== null);
+    defineElement(node, enclosing, doAddToScope: node.name != null);
 
     // Run the body in a fresh statement scope.
     StatementScope oldScope = statementScope;
@@ -1484,13 +1485,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   static bool isLogicalOperator(Identifier op) {
     String str = op.source.stringValue;
-    return (str === '&&' || str == '||' || str == '!');
+    return (identical(str, '&&') || str == '||' || str == '!');
   }
 
   Element resolveSend(Send node) {
     Selector selector = resolveSelector(node);
 
-    if (node.receiver === null) {
+    if (node.receiver == null) {
       // If this send is of the form "assert(expr);", then
       // this is an assertion.
       if (selector.isAssert()) {
@@ -1516,7 +1517,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     Element target;
     SourceString name = node.selector.asIdentifier().source;
-    if (name.stringValue === 'this') {
+    if (identical(name.stringValue, 'this')) {
       error(node.selector, MessageKind.GENERIC, ["expected an identifier"]);
     } else if (node.isSuperCall) {
       if (node.isOperator) {
@@ -1530,7 +1531,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, [name]);
         return null;
       }
-      if (currentClass.supertype === null) {
+      if (currentClass.supertype == null) {
         // This is just to guard against internal errors, so no need
         // for a real error message.
         error(node.receiver, MessageKind.GENERIC, ["Object has no superclass"]);
@@ -1542,11 +1543,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // super.
     } else if (Elements.isUnresolved(resolvedReceiver)) {
       return null;
-    } else if (resolvedReceiver.kind === ElementKind.CLASS) {
+    } else if (identical(resolvedReceiver.kind, ElementKind.CLASS)) {
       ClassElement receiverClass = resolvedReceiver;
       receiverClass.ensureResolved(compiler);
       target = receiverClass.buildLocalScope().lookup(name);
-      if (target === null) {
+      if (target == null) {
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
         // try to resolve injected elements if [currentClass] is in the patch
         // library of [receiverClass].
@@ -1560,7 +1561,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else if (target.isInstanceMember()) {
         error(node, MessageKind.MEMBER_NOT_STATIC, [receiverClass.name, name]);
       }
-    } else if (resolvedReceiver.kind === ElementKind.PREFIX) {
+    } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = resolvedReceiver;
       target = prefix.lookupLocalMember(name);
       if (target == null) {
@@ -1572,17 +1573,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   DartType resolveTypeTest(Node argument) {
     TypeAnnotation node = argument.asTypeAnnotation();
-    if (node === null) {
+    if (node == null) {
       // node is of the form !Type.
       node = argument.asSend().receiver.asTypeAnnotation();
-      if (node === null) compiler.cancel("malformed send");
+      if (node == null) compiler.cancel("malformed send");
     }
     return resolveTypeRequired(node);
   }
 
   static Selector computeSendSelector(Send node, LibraryElement library) {
     // First determine if this is part of an assignment.
-    bool isSet = node.asSendSet() !== null;
+    bool isSet = node.asSendSet() != null;
 
     if (node.isIndex) {
       return isSet ? new Selector.indexSet() : new Selector.index();
@@ -1591,10 +1592,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (node.isOperator) {
       SourceString source = node.selector.asOperator().source;
       String string = source.stringValue;
-      if (string === '!'   || string === '&&'  || string == '||' ||
-          string === 'is'  || string === 'as'  ||
-          string === '===' || string === '!==' ||
-          string === '>>>') {
+      if (identical(string, '!')   || identical(string, '&&')  || string == '||' ||
+          identical(string, 'is')  || identical(string, 'as')  ||
+          identical(string, '===') || identical(string, '!==') ||
+          identical(string, '>>>')) {
         return null;
       }
       return node.arguments.isEmpty()
@@ -1618,14 +1619,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         link = link.tail) {
       Expression argument = link.head;
       NamedArgument namedArgument = argument.asNamedArgument();
-      if (namedArgument !== null) {
+      if (namedArgument != null) {
         named.add(namedArgument.name.source);
       }
       arity++;
     }
 
     // If we're invoking a closure, we do not have an identifier.
-    return (identifier === null)
+    return (identifier == null)
         ? new Selector.callClosure(arity, named)
         : new Selector.call(identifier.source, library, arity, named);
   }
@@ -1638,7 +1639,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void resolveArguments(NodeList list) {
-    if (list === null) return;
+    if (list == null) return;
     bool seenNamedArgument = false;
     for (Link<Node> link = list.nodes; !link.isEmpty(); link = link.tail) {
       Expression argument = link.head;
@@ -1668,16 +1669,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (operatorString === 'is' || operatorString === 'as') {
+      if (identical(operatorString, 'is') || identical(operatorString, 'as')) {
         assert(node.arguments.tail.isEmpty());
         DartType type = resolveTypeTest(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type);
         }
         resolvedArguments = true;
-      } else if (operatorString === '?') {
+      } else if (identical(operatorString, '?')) {
         Element parameter = mapping[node.receiver];
-        if (parameter === null || parameter.kind !== ElementKind.PARAMETER) {
+        if (parameter == null
+            || !identical(parameter.kind, ElementKind.PARAMETER)) {
           error(node.receiver, MessageKind.PARAMETER_NAME_EXPECTED);
         } else {
           mapping.checkedParameters.add(parameter);
@@ -1692,7 +1694,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // If the selector is null, it means that we will not be generating
     // code for this as a send.
     Selector selector = mapping.getSelector(node);
-    if (selector === null) return;
+    if (selector == null) return;
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1718,7 +1720,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element getter = target;
     SourceString operatorName = node.assignmentOperator.source;
     String source = operatorName.stringValue;
-    bool isComplex = source !== '=';
+    bool isComplex = !identical(source, '=');
     if (!Elements.isUnresolved(target)
         && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
@@ -1771,8 +1773,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         Selector binop = new Selector.binaryOperator(name);
         world.registerDynamicInvocation(binop.name, binop);
       }
-      if (source === '++') registerBinaryOperator(const SourceString('+'));
-      if (source === '--') registerBinaryOperator(const SourceString('-'));
+      if (identical(source, '++')) registerBinaryOperator(const SourceString('+'));
+      if (identical(source, '--')) registerBinaryOperator(const SourceString('-'));
       if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }
@@ -1783,7 +1785,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void registerSend(Selector selector, Element target) {
-    if (target === null || target.isInstanceMember()) {
+    if (target == null || target.isInstanceMember()) {
       if (selector.isGetter()) {
         world.registerDynamicGetter(selector.name, selector);
       } else if (selector.isSetter()) {
@@ -1845,7 +1847,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitThrow(Throw node) {
-    if (!inCatchBlock && node.expression === null) {
+    if (!inCatchBlock && node.expression == null) {
       error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
     visit(node.expression);
@@ -1995,7 +1997,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitLiteralList(LiteralList node) {
     NodeList arguments = node.typeArguments;
-    if (arguments !== null) {
+    if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty()) {
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT, []);
@@ -2025,9 +2027,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitBreakStatement(BreakStatement node) {
     TargetElement target;
-    if (node.target === null) {
+    if (node.target == null) {
       target = statementScope.currentBreakTarget();
-      if (target === null) {
+      if (target == null) {
         error(node, MessageKind.NO_BREAK_TARGET);
         return;
       }
@@ -2035,7 +2037,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       String labelName = node.target.source.slowToString();
       LabelElement label = statementScope.lookupLabel(labelName);
-      if (label === null) {
+      if (label == null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
         return;
       }
@@ -2052,9 +2054,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitContinueStatement(ContinueStatement node) {
     TargetElement target;
-    if (node.target === null) {
+    if (node.target == null) {
       target = statementScope.currentContinueTarget();
-      if (target === null) {
+      if (target == null) {
         error(node, MessageKind.NO_CONTINUE_TARGET);
         return;
       }
@@ -2062,7 +2064,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       String labelName = node.target.source.slowToString();
       LabelElement label = statementScope.lookupLabel(labelName);
-      if (label === null) {
+      if (label == null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
         return;
       }
@@ -2134,7 +2136,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         warning(element.label, MessageKind.UNUSED_LABEL, [labelName]);
       }
     });
-    if (!targetElement.isTarget && mapping[body] === targetElement) {
+    if (!targetElement.isTarget && identical(mapping[body], targetElement)) {
       // If the body is itself a break or continue for another target, it
       // might have updated its mapping to the target it actually does target.
       mapping.remove(body);
@@ -2167,14 +2169,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         String labelName = label.slowToString();
 
         LabelElement existingElement = continueLabels[labelName];
-        if (existingElement !== null) {
+        if (existingElement != null) {
           // It's an error if the same label occurs twice in the same switch.
           warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
           error(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
         } else {
           // It's only a warning if it shadows another label.
           existingElement = statementScope.lookupLabel(labelName);
-          if (existingElement !== null) {
+          if (existingElement != null) {
             warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
             warning(existingElement.label,
                     MessageKind.EXISTING_LABEL, [labelName]);
@@ -2195,7 +2197,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       cases = cases.tail;
       // Test that only the last case, if any, is a default case.
-      if (switchCase.defaultKeyword !== null && !cases.isEmpty()) {
+      if (switchCase.defaultKeyword != null && !cases.isEmpty()) {
         error(switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
     }
@@ -2238,7 +2240,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitCatchBlock(CatchBlock node) {
     // Check that if catch part is present, then
     // it has one or two formal parameters.
-    if (node.formals !== null) {
+    if (node.formals != null) {
       if (node.formals.isEmpty()) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
       }
@@ -2257,7 +2259,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // If the formal parameter is a node list, it means that it is a
         // sequence of optional parameters.
         NodeList nodeList = link.head.asNodeList();
-        if (nodeList !== null) {
+        if (nodeList != null) {
           error(nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
         } else {
         VariableDefinitions declaration = link.head;
@@ -2265,7 +2267,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             error(modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
           }
           TypeAnnotation type = declaration.type;
-          if (type !== null) {
+          if (type != null) {
             error(type, MessageKind.PARAMETER_WITH_TYPE_IN_CATCH);
           }
         }
@@ -2301,7 +2303,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
         super(compiler);
 
   void resolveTypeVariableBounds(NodeList node) {
-    if (node === null) return;
+    if (node == null) return;
 
     var nameSet = new Set<SourceString>();
     // Resolve the bounds of type variables.
@@ -2317,15 +2319,15 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       nameSet.add(typeName);
 
       TypeVariableElement variableElement = typeVariable.element;
-      if (typeNode.bound !== null) {
+      if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
             typeNode.bound, inScope: scope, onFailure: warning);
-        if (boundType !== null && boundType.element == variableElement) {
+        if (boundType != null && boundType.element == variableElement) {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].
           warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
                   [variableElement.name]);
-        } else if (boundType !== null) {
+        } else if (boundType != null) {
           variableElement.bound = boundType;
         } else {
           // TODO(johnniwinther): Should be an erroneous type.
@@ -2381,7 +2383,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     : super(compiler, classElement);
 
   DartType visitClassNode(ClassNode node) {
-    compiler.ensure(element !== null);
+    compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
     InterfaceType type = element.computeType(compiler);
@@ -2393,17 +2395,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     // Find super type.
     DartType supertype = visit(node.superclass);
-    if (supertype !== null && supertype.element.isExtendable()) {
+    if (supertype != null && supertype.element.isExtendable()) {
       element.supertype = supertype;
       if (isBlackListed(supertype)) {
         error(node.superclass, MessageKind.CANNOT_EXTEND, [supertype]);
       }
-    } else if (supertype !== null) {
+    } else if (supertype != null) {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
     final objectElement = compiler.objectClass;
-    if (element !== objectElement && element.supertype === null) {
-      if (objectElement === null) {
+    if (!identical(element, objectElement) && element.supertype == null) {
+      if (objectElement == null) {
         compiler.internalError("Internal error: cannot resolve Object",
                                node: node);
       } else {
@@ -2412,13 +2414,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       // TODO(ahe): This should be objectElement.computeType(...).
       element.supertype = new InterfaceType(objectElement);
     }
-    assert(element.interfaces === null);
+    assert(element.interfaces == null);
     Link<DartType> interfaces = const Link<DartType>();
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
       DartType interfaceType = visit(link.head);
-      if (interfaceType !== null && interfaceType.element.isExtendable()) {
+      if (interfaceType != null && interfaceType.element.isExtendable()) {
         interfaces = interfaces.prepend(interfaceType);
         if (isBlackListed(interfaceType)) {
           error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
@@ -2430,7 +2432,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     element.interfaces = interfaces;
     calculateAllSupertypes(element);
 
-    if (node.defaultClause !== null) {
+    if (node.defaultClause != null) {
       element.defaultClass = visit(node.defaultClause);
     }
     addDefaultConstructorIfNeeded(element);
@@ -2443,7 +2445,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   DartType visitIdentifier(Identifier node) {
     Element element = scope.lookup(node.source);
-    if (element === null) {
+    if (element == null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
       return null;
     } else if (!element.impliesType() && !element.isTypeVariable()) {
@@ -2465,19 +2467,19 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   DartType visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
-    if (prefix === null) {
+    if (prefix == null) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
     }
     Element element = scope.lookup(prefix.source);
-    if (element === null || element.kind !== ElementKind.PREFIX) {
+    if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
     }
     PrefixElement prefixElement = element;
     Identifier selector = node.selector.asIdentifier();
     var e = prefixElement.lookupLocalMember(selector.source);
-    if (e === null || !e.impliesType()) {
+    if (e == null || !e.impliesType()) {
       error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
       return null;
     }
@@ -2488,25 +2490,25 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // TODO(karlklose): substitute type variables.
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
-    if (cls.allSupertypes !== null) return;
+    if (cls.allSupertypes != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
       ClassElement superElement = supertype.element;
       Link<DartType> superSupertypes = superElement.allSupertypes;
-      assert(superSupertypes !== null);
+      assert(superSupertypes != null);
       Link<DartType> supertypes = superSupertypes.prepend(supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
         ClassElement element = interfaces.head.element;
         Link<DartType> interfaceSupertypes = element.allSupertypes;
-        assert(interfaceSupertypes !== null);
+        assert(interfaceSupertypes != null);
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
         supertypes = supertypes.prepend(interfaces.head);
       }
       cls.allSupertypes = supertypes;
     } else {
-      assert(cls === compiler.objectClass);
+      assert(identical(cls, compiler.objectClass));
       cls.allSupertypes = const Link<DartType>();
     }
   }
@@ -2533,17 +2535,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   isBlackListed(DartType type) {
     LibraryElement lib = element.getLibrary();
     return
-      lib !== compiler.coreLibrary &&
-      lib !== compiler.coreImplLibrary &&
-      lib !== compiler.jsHelperLibrary &&
-      (type.element === compiler.dynamicClass ||
-       type.element === compiler.boolClass ||
-       type.element === compiler.numClass ||
-       type.element === compiler.intClass ||
-       type.element === compiler.doubleClass ||
-       type.element === compiler.stringClass ||
-       type.element === compiler.nullClass ||
-       type.element === compiler.functionClass);
+      !identical(lib, compiler.coreLibrary) &&
+      !identical(lib, compiler.coreImplLibrary) &&
+      !identical(lib, compiler.jsHelperLibrary) &&
+      (identical(type.element, compiler.dynamicClass) ||
+       identical(type.element, compiler.boolClass) ||
+       identical(type.element, compiler.numClass) ||
+       identical(type.element, compiler.intClass) ||
+       identical(type.element, compiler.doubleClass) ||
+       identical(type.element, compiler.stringClass) ||
+       identical(type.element, compiler.nullClass) ||
+       identical(type.element, compiler.functionClass));
   }
 }
 
@@ -2562,8 +2564,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitClassNode(ClassNode node) {
-    if (node.superclass === null) {
-      if (classElement !== compiler.objectClass) {
+    if (node.superclass == null) {
+      if (!identical(classElement, compiler.objectClass)) {
         loadSupertype(compiler.objectClass, node);
       }
     } else {
@@ -2582,7 +2584,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
-    if (element === null) {
+    if (element == null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
     } else if (!element.impliesType()) {
       error(node, MessageKind.NOT_A_TYPE, [node]);
@@ -2600,19 +2602,19 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
-    if (prefix === null) {
+    if (prefix == null) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return;
     }
     Element element = context.lookup(prefix.source);
-    if (element === null || element.kind !== ElementKind.PREFIX) {
+    if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return;
     }
     PrefixElement prefixElement = element;
     Identifier selector = node.selector.asIdentifier();
     var e = prefixElement.lookupLocalMember(selector.source);
-    if (e === null || !e.impliesType()) {
+    if (e == null || !e.impliesType()) {
       error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
       return;
     }
@@ -2666,10 +2668,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
     String value = node.beginToken.stringValue;
-    if ((value !== '[') && (value !== '{')) {
+    if ((!identical(value, '[')) && (!identical(value, '{'))) {
       internalError(node, "expected optional parameters");
     }
-    optionalParametersAreNamed = (value === '{');
+    optionalParametersAreNamed = (identical(value, '{'));
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
     optionalParameters = elements.toLink();
@@ -2711,14 +2713,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   SourceString getParameterName(Send node) {
     var identifier = node.selector.asIdentifier();
-    if (identifier !== null) {
+    if (identifier != null) {
       // Normal parameter: [:Type name:].
       return identifier.source;
     } else {
       // Function type parameter: [:void name(DartType arg):].
       var functionExpression = node.selector.asFunctionExpression();
-      if (functionExpression !== null &&
-          functionExpression.name.asIdentifier() !== null) {
+      if (functionExpression != null &&
+          functionExpression.name.asIdentifier() != null) {
         return functionExpression.name.asIdentifier().source;
       } else {
         cancel(node,
@@ -2731,15 +2733,15 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // [:this.x:] (where [:x:] represents an instance field).
   FieldParameterElement visitSend(Send node) {
     FieldParameterElement element;
-    if (node.receiver.asIdentifier() === null ||
+    if (node.receiver.asIdentifier() == null ||
         !node.receiver.asIdentifier().isThis()) {
       error(node, MessageKind.INVALID_PARAMETER, []);
-    } else if (enclosingElement.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
+    } else if (!identical(enclosingElement.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
       error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
     } else {
       SourceString name = getParameterName(node);
       Element fieldElement = currentClass.lookupLocalMember(name);
-      if (fieldElement === null || fieldElement.kind !== ElementKind.FIELD) {
+      if (fieldElement == null || !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, [name]);
       } else if (!fieldElement.isInstanceMember()) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
@@ -2801,7 +2803,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     SignatureResolver visitor = new SignatureResolver(compiler, element);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
-    if (formalParameters === null) {
+    if (formalParameters == null) {
       if (!element.isGetter()) {
         compiler.reportMessage(compiler.spanFromElement(element),
                                MessageKind.MISSING_FORMALS.error([]),
@@ -2811,7 +2813,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       if (element.isGetter()) {
         if (!element.getLibrary().isPlatformLibrary) {
           // TODO(ahe): Remove the isPlatformLibrary check.
-          if (formalParameters.getEndToken().next.stringValue !== 'native') {
+          if (!identical(formalParameters.getEndToken().next.stringValue, 'native')) {
             // TODO(ahe): Remove the check for native keyword.
             compiler.reportMessage(compiler.spanFromNode(formalParameters),
                                    MessageKind.EXTRA_FORMALS.error([]),
@@ -2889,7 +2891,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     cls.ensureResolved(compiler);
     Selector selector = createConstructorSelector(constructorName);
     Element result = cls.lookupConstructor(selector);
-    if (result === null) {
+    if (result == null) {
       String fullConstructorName =
           resolver.compiler.resolver.constructorNameForDiagnostics(
               cls.name,
@@ -2909,10 +2911,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     Element e = visit(selector);
-    if (!Elements.isUnresolved(e) && e.kind === ElementKind.CLASS) {
+    if (!Elements.isUnresolved(e) && identical(e.kind, ElementKind.CLASS)) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      if (cls.isInterface() && (cls.defaultClass === null)) {
+      if (cls.isInterface() && (cls.defaultClass == null)) {
         error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
       }
       e = lookupConstructor(cls, selector, const SourceString(''));
@@ -2928,25 +2930,25 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     Element e = visit(node.receiver);
     if (Elements.isUnresolved(e)) return e;
     Identifier name = node.selector.asIdentifier();
-    if (name === null) internalError(node.selector, 'unexpected node');
+    if (name == null) internalError(node.selector, 'unexpected node');
 
-    if (e.kind === ElementKind.CLASS) {
+    if (identical(e.kind, ElementKind.CLASS)) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      if (cls.isInterface() && (cls.defaultClass === null)) {
+      if (cls.isInterface() && (cls.defaultClass == null)) {
         error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
               [cls.name]);
       }
       return lookupConstructor(cls, name, name.source);
-    } else if (e.kind === ElementKind.PREFIX) {
+    } else if (identical(e.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = e;
       e = prefix.lookupLocalMember(name.source);
-      if (e === null) {
+      if (e == null) {
         return failOrReturnErroneousElement(resolver.enclosingElement, name,
                                             name.source,
                                             MessageKind.CANNOT_RESOLVE,
                                             [name]);
-      } else if (e.kind !== ElementKind.CLASS) {
+      } else if (!identical(e.kind, ElementKind.CLASS)) {
         error(node, MessageKind.NOT_A_TYPE, [name]);
       }
     } else {
@@ -2958,12 +2960,13 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
     Element e = resolver.lookup(node, name);
-    if (e === null) {
+    if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE, [name]);
-    } else if (e.kind === ElementKind.TYPEDEF) {
+    } else if (identical(e.kind, ElementKind.TYPEDEF)) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
-    } else if (e.kind !== ElementKind.CLASS && e.kind !== ElementKind.PREFIX) {
+    } else if (!identical(e.kind, ElementKind.CLASS)
+        && !identical(e.kind, ElementKind.PREFIX)) {
       error(node, MessageKind.NOT_A_TYPE, [name]);
     }
     return e;
@@ -3016,7 +3019,7 @@ class TypeDeclarationScope extends Scope {
 
   TypeDeclarationScope(parent, TypeDeclarationElement element)
       : super(parent, element) {
-    assert(parent !== null);
+    assert(parent != null);
   }
 
   Element add(Element newElement) {
@@ -3045,7 +3048,7 @@ class MethodScope extends Scope {
   MethodScope(Scope parent, Element element)
       : super(parent, element),
         this.elements = new Map<SourceString, Element>() {
-    assert(parent !== null);
+    assert(parent != null);
   }
 
   Element localLookup(SourceString name) => elements[name];
@@ -3077,13 +3080,13 @@ class ClassScope extends TypeDeclarationScope {
 
   ClassScope(Scope parentScope, ClassElement element)
       : super(parentScope, element)  {
-    assert(parent !== null);
+    assert(parent != null);
   }
 
   Element localLookup(SourceString name) {
     ClassElement cls = element;
     Element result = cls.lookupLocalMember(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     if (!inStaticContext) {
       // If not in a static context, we can lookup in the
       // TypeDeclaration scope, which contains the type variables of
@@ -3095,9 +3098,9 @@ class ClassScope extends TypeDeclarationScope {
 
   Element lookup(SourceString name) {
     Element result = localLookup(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     result = parent.lookup(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     ClassElement cls = element;
     return cls.lookupSuperMember(name);
   }
@@ -3118,29 +3121,29 @@ class PatchClassScope extends TypeDeclarationScope {
   PatchClassScope(Scope parentScope,
                   ClassElement origin, ClassElement this.patch)
       : super(parentScope, origin) {
-    assert(parent !== null);
+    assert(parent != null);
   }
 
   Element localLookup(SourceString name) {
     Element result = patch.lookupLocalMember(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     result = origin.lookupLocalMember(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     if (!inStaticContext) {
       // If not in a static context, we can lookup in the
       // TypeDeclaration scope, which contains the type variables of
       // the class.
       result = super.localLookup(name);
-      if (result !== null) return result;
+      if (result != null) return result;
     }
     result = parent.lookup(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     return result;
   }
 
   Element lookup(SourceString name) {
     Element result = localLookup(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     // TODO(johnniwinther): Should we support patch lookup on supertypes?
     return origin.lookupSuperMember(name);
   }
@@ -3181,7 +3184,7 @@ class LocalPatchClassScope extends Scope {
 
   Element localLookup(SourceString name) {
     Element result = patch.lookupLocalMember(name);
-    if (result !== null) return result;
+    if (result != null) return result;
     return origin.lookupLocalMember(name);
   }
 
@@ -3217,11 +3220,11 @@ class PatchLibraryScope extends Scope {
 
   Element localLookup(SourceString name) {
     Element result = patch.find(name);
-    if (result !== null) {
+    if (result != null) {
       return result;
     }
     result = origin.find(name);
-    if (result !== null) {
+    if (result != null) {
       return result;
     }
     return result;

@@ -10,16 +10,16 @@ class CloningVisitor implements Visitor<Node> {
       : cloneTreeElements = new TreeElementMapping();
 
   visit(Node node) {
-    if (node === null) return null;
+    if (node == null) return null;
     final clone = node.accept(this);
     final originalElement = originalTreeElements[node];
-    if (originalElement !== null) {
+    if (originalElement != null) {
       cloneTreeElements[clone] = originalElement;
     }
     TypeAnnotation asTypeAnnotation = node.asTypeAnnotation();
-    if (asTypeAnnotation !== null) {
+    if (asTypeAnnotation != null) {
       final originalType = originalTreeElements.getType(asTypeAnnotation);
-      if (originalType !== null) {
+      if (originalType != null) {
         cloneTreeElements.setType(clone.asTypeAnnotation(), originalType);
       }
     }

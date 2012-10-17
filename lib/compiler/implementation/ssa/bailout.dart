@@ -92,7 +92,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     block.forEachPhi(visitInstruction);
 
     HInstruction instruction = block.first;
-    while (instruction !== null) {
+    while (instruction != null) {
       // Note that visitInstruction (from the phis and here) might insert an
       // HTypeGuard instruction. We have to skip those.
       if (instruction is !HTypeGuard) visitInstruction(instruction);
@@ -116,10 +116,10 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     // Do not insert a type guard if the instruction has a type
     // annotation that disagrees with the speculated type.
     Element source = instruction.sourceElement;
-    if (source !== null) {
+    if (source != null) {
       DartType sourceType = source.computeType(compiler);
       DartType speculatedType = speculativeType.computeType(compiler);
-      if (speculatedType !== null
+      if (speculatedType != null
           && !compiler.types.isAssignable(speculatedType, sourceType)) {
         return false;
       }
@@ -130,10 +130,10 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
     // Insert type guards if there are uses in loops.
     bool isNested(HBasicBlock inner, HBasicBlock outer) {
-      if (inner === outer) return false;
-      if (outer === null) return true;
-      while (inner !== null) {
-        if (inner === outer) return true;
+      if (identical(inner, outer)) return false;
+      if (outer == null) return true;
+      while (inner != null) {
+        if (identical(inner, outer)) return true;
         inner = inner.parentLoopHeader;
       }
       return false;
@@ -302,7 +302,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
     for (int i = 0; i < block.successors.length; i++) {
       HBasicBlock successor = block.successors[i];
       Environment successorEnv = liveInstructions[successor];
-      if (successorEnv !== null) {
+      if (successorEnv != null) {
         environment.addAll(successorEnv);
       } else {
         // If we haven't computed the liveInstructions of that successor, we
@@ -430,7 +430,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block.isLoopHeader()) {
       blocks.addLast(block);
     } else if (block.isLabeledBlock()
-               && (blocks.isEmpty() || blocks.last() !== block)) {
+               && (blocks.isEmpty() || !identical(blocks.last(), block))) {
       HLabeledBlockInformation info = block.blockFlow.body;
       visitStatements(info.body);
       return;
@@ -460,7 +460,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
     if (start.isLabeledBlock()) {
       HBasicBlock continuation = start.blockFlow.continuation;
-      if (continuation !== null) {
+      if (continuation != null) {
         visitBasicBlock(continuation);
       }
     }
@@ -475,8 +475,8 @@ class SsaBailoutPropagator extends HBaseVisitor {
     preVisitedBlocks++;
 
     HBasicBlock joinBlock = instruction.joinBlock;
-    if (joinBlock !== null
-        && joinBlock.dominator !== instruction.block) {
+    if (joinBlock != null
+        && !identical(joinBlock.dominator, instruction.block)) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
@@ -498,7 +498,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
   void visitGoto(HGoto goto) {
     HBasicBlock block = goto.block;
     HBasicBlock successor = block.successors[0];
-    if (successor.dominator === block) {
+    if (identical(successor.dominator, block)) {
       visitBasicBlock(block.successors[0]);
     }
   }
@@ -514,7 +514,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
     // If the branch does not dominate the code after the loop, the
     // dominator will visit it.
-    if (branchBlock.successors[1].dominator !== branchBlock) return;
+    if (!identical(branchBlock.successors[1].dominator, branchBlock)) return;
 
     visitBasicBlock(branchBlock.successors[1]);
     // With labeled breaks we can have more dominated blocks.
@@ -531,7 +531,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
       maxBailoutParameters = inputLength;
     }
     if (blocks.isEmpty()) {
-      if (firstBailoutTarget === null) {
+      if (firstBailoutTarget == null) {
         firstBailoutTarget = target;
       } else {
         hasComplexBailoutTargets = true;

@@ -16,7 +16,7 @@ bool regExpTest(JSSyntaxRegExp regExp, String str) {
 
 regExpGetNative(JSSyntaxRegExp regExp) {
   var r = JS('var', r'#._re', regExp);
-  if (r === null) {
+  if (r == null) {
     r = JS('var', r'#._re = #', regExp, regExpMakeNative(regExp));
   }
   return r;

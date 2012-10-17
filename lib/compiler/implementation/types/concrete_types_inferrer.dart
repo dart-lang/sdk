@@ -31,7 +31,7 @@ class ClassBaseType implements BaseType {
 
   ClassBaseType(this.element);
   bool operator ==(BaseType other) {
-    if (this === other) return true;
+    if (identical(this, other)) return true;
     if (other is! ClassBaseType) return false;
     return element == other.element;
   }
@@ -107,7 +107,7 @@ abstract class ConcreteType {
 class UnknownConcreteType implements ConcreteType {
   const UnknownConcreteType();
   bool isUnkown() => true;
-  bool operator ==(ConcreteType other) => this === other;
+  bool operator ==(ConcreteType other) => identical(this, other);
   Set<BaseType> get baseTypes() =>
       new Set<BaseType>.from([const UnknownBaseType()]);
   int hashCode() => 0;
@@ -274,7 +274,7 @@ class ConcreteTypesEnvironment {
 
   ConcreteType lookupType(Element element) => environment[element];
   ConcreteType lookupTypeOfThis() {
-    return (typeOfThis === null)
+    return (typeOfThis == null)
         ? null
         : new ConcreteType.singleton(typeOfThis);
   }
@@ -317,7 +317,7 @@ class ConcreteTypesEnvironment {
   }
 
   int hashCode() {
-    int result = (typeOfThis !== null) ? typeOfThis.hashCode() : 1;
+    int result = (typeOfThis != null) ? typeOfThis.hashCode() : 1;
     environment.forEach((element, concreteType) {
       result = 31 * (31 * result + element.hashCode()) +
           concreteType.hashCode();
@@ -409,7 +409,7 @@ class ConcreteTypesInferrer {
     var result = new List<FunctionElement>();
     for (final cls in compiler.enqueuer.resolution.seenClasses) {
       Element elem = cls.lookupLocalMember(methodName);
-      if (elem !== null) {
+      if (elem != null) {
         result.add(elem);
       }
     }
@@ -441,7 +441,7 @@ class ConcreteTypesInferrer {
    */
   void augmentFieldType(Element field, ConcreteType type) {
     ConcreteType oldType = inferredFieldTypes[field];
-    ConcreteType newType = (oldType !== null)
+    ConcreteType newType = (oldType != null)
         ? oldType.union(type)
         : type;
     if (oldType != newType) {
@@ -450,7 +450,7 @@ class ConcreteTypesInferrer {
       if (fieldReaders != null) {
         for (final reader in fieldReaders) {
           final readerInstances = cache[reader];
-          if (readerInstances !== null) {
+          if (readerInstances != null) {
             readerInstances.forEach((environment, _) {
               workQueue.addLast(new InferenceWorkItem(reader, environment));
             });
@@ -467,7 +467,7 @@ class ConcreteTypesInferrer {
   void augmentParameterType(VariableElement parameter, ConcreteType type) {
     ConcreteType oldType = inferredParameterTypes[parameter];
     inferredParameterTypes[parameter] =
-        (oldType === null) ? type : oldType.union(type);
+        (oldType == null) ? type : oldType.union(type);
   }
 
   /**
@@ -595,7 +595,7 @@ class ConcreteTypesInferrer {
       SourceString source = identifier.source;
       final Element namedParameter = leftOverNamedParameters[source];
       // unexisting or already used named parameter
-      if (namedParameter === null) return null;
+      if (namedParameter == null) return null;
       result[namedParameter] = concreteType;
       leftOverNamedParameters.remove(source);
     };
@@ -615,7 +615,7 @@ class ConcreteTypesInferrer {
       ConcreteTypesEnvironment environment) {
 
     Map<ConcreteTypesEnvironment, ConcreteType> template = cache[function];
-    if (template === null) {
+    if (template == null) {
       template = new Map<ConcreteTypesEnvironment, ConcreteType>();
       cache[function] = template;
     }
@@ -711,7 +711,7 @@ class ConcreteTypesInferrer {
         if (methodCallers == null) continue;
         for (final caller in methodCallers) {
           final callerInstances = cache[caller];
-          if (callerInstances !== null) {
+          if (callerInstances != null) {
             callerInstances.forEach((environment, _) {
               workQueue.addLast(
                   new InferenceWorkItem(caller, environment));
@@ -762,7 +762,7 @@ class ConcreteTypesInferrer {
   void fail(node, [reason]) {
     throw "fail: ${node.toDebugString()}";
     String message = 'cannot infer types';
-    if (reason !== null) {
+    if (reason != null) {
       message = '$message: $reason';
     }
     throw new CancelTypeInferenceException(node, message);
@@ -803,7 +803,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         iterator = iterator.tail) {
       Node node = iterator.head;
       NamedArgument namedArgument = node.asNamedArgument();
-      if (namedArgument !== null) {
+      if (namedArgument != null) {
         named[namedArgument.name] = analyze(namedArgument.expression);
       } else {
         positional.add(analyze(node));
@@ -818,14 +818,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
    * otherwise.
    */
   ConcreteType analyze(Node node) {
-    if (node === null) {
+    if (node == null) {
       final String error = 'internal error: unexpected node: null';
       inferrer.fail(lastSeenNode, error);
     } else {
       lastSeenNode = node;
     }
     ConcreteType result = node.accept(this);
-    if (result === null) {
+    if (result == null) {
       inferrer.fail(node, 'internal error: inferred type is null');
     }
     inferrer.augmentInferredType(node, result);
@@ -872,7 +872,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitIdentifier(Identifier node) {
     if (node.isThis()) {
       ConcreteType result = environment.lookupTypeOfThis();
-      if (result === null) {
+      if (result == null) {
         inferrer.fail(node, '"this" has no type');
       }
       return result;
@@ -898,11 +898,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitSendSet(SendSet node) {
     Identifier selector = node.selector;
     final name = node.assignmentOperator.source.stringValue;
-    if (name === '++' || name === '--') {
+    if (identical(name, '++') || identical(name, '--')) {
       inferrer.fail(node, 'not yet implemented');
     } else {
       Element element = elements[node];
-      if (element !== null) {
+      if (element != null) {
         ConcreteType type = analyze(node.argumentsNode);
         environment = environment.put(elements[node], type);
         if (element.isField()) {
@@ -935,7 +935,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         } else {
           for (ClassBaseType baseReceiverType in receiverType.baseTypes) {
             Element member = baseReceiverType.element.lookupMember(source);
-            if (member !== null) {
+            if (member != null) {
               augmentField(baseReceiverType, member);
             }
           }
@@ -1000,13 +1000,13 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   /** Dart Programming Language Specification: 11.10 Return */
   ConcreteType visitReturn(Return node) {
     final expression = node.expression;
-    return (expression === null)
+    return (expression == null)
         ? new ConcreteType.empty()
         : analyze(expression);
   }
 
   ConcreteType visitThrow(Throw node) {
-    if (node.expression !== null) analyze(node.expression);
+    if (node.expression != null) analyze(node.expression);
     return new ConcreteType.empty();
   }
 
@@ -1138,10 +1138,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitGetterSend(Send node) {
     Element element = elements[node];
-    if (element !== null) {
+    if (element != null) {
       // node is a local variable or a field of this
       ConcreteType result = environment.lookupType(element);
-      if (result !== null) {
+      if (result != null) {
         // node is a local variable
         return result;
       } else {
@@ -1151,7 +1151,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       }
     } else {
       // node is a field of not(this)
-      assert(node.receiver !== null);
+      assert(node.receiver != null);
 
       ConcreteType result = new ConcreteType.empty();
       void augmentResult(BaseType baseReceiverType, Element getterOrField) {
@@ -1186,7 +1186,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
             ClassBaseType classBaseType = baseReceiverType;
             Element getterOrField = classBaseType.element
                 .lookupMember(node.selector.asIdentifier().source);
-            if (getterOrField !== null) {
+            if (getterOrField != null) {
               augmentResult(baseReceiverType, getterOrField);
             }
           }
@@ -1221,7 +1221,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         if (!baseReceiverType.isNull()) {
           FunctionElement method = (baseReceiverType as ClassBaseType).element
               .lookupMember(node.selector.asIdentifier().source);
-          if (method !== null) {
+          if (method != null) {
             inferrer.addCaller(method, currentMethod);
             result = result.union(inferrer.getSendReturnType(method,
                 baseReceiverType, argumentsTypes));

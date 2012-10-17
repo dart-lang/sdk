@@ -48,7 +48,7 @@ class Enqueuer {
       queue = new Queue<WorkItem>(),
       resolvedElements = new Map<Element, TreeElements>();
 
-  bool get isResolutionQueue => compiler.enqueuer.resolution === this;
+  bool get isResolutionQueue => identical(compiler.enqueuer.resolution, this);
 
   TreeElements getCachedElements(Element element) {
     // TODO(ngeoffray): Get rid of this check.
@@ -79,14 +79,14 @@ class Enqueuer {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign()) return;
     if (queueIsClosed) {
-      if (isResolutionQueue && getCachedElements(element) !== null) return;
+      if (isResolutionQueue && getCachedElements(element) != null) return;
       compiler.internalErrorOnElement(element, "Work list is closed.");
     }
     if (!isResolutionQueue &&
-        element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+        identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
       registerInstantiatedClass(element.getEnclosingClass());
     }
-    if (elements === null) {
+    if (elements == null) {
       elements = getCachedElements(element);
     }
     if (isResolutionQueue) {
@@ -142,7 +142,7 @@ class Enqueuer {
       // Run through the classes and see if we need to compile methods.
       for (ClassElement classElement in universe.instantiatedClasses) {
         for (ClassElement currentClass = classElement;
-             currentClass !== null;
+             currentClass != null;
              currentClass = currentClass.superclass) {
           processInstantiatedClass(currentClass);
         }
@@ -161,7 +161,7 @@ class Enqueuer {
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (universe.generatedCode.containsKey(member)) return;
-    if (resolvedElements[member] !== null) return;
+    if (resolvedElements[member] != null) return;
     if (!member.isInstanceMember()) return;
     if (member.isField()) return;
 
@@ -195,7 +195,7 @@ class Enqueuer {
       if (universe.hasInvocation(member, compiler)) {
         return addToWorkList(member);
       }
-    } else if (member.kind === ElementKind.SETTER) {
+    } else if (identical(member.kind, ElementKind.SETTER)) {
       if (universe.hasInvokedSetter(member, compiler)) {
         return addToWorkList(member);
       }
@@ -276,7 +276,7 @@ class Enqueuer {
   processInstanceMembers(SourceString n, bool f(Element e)) {
     String memberName = n.slowToString();
     Link<Element> members = instanceMembersByName[memberName];
-    if (members !== null) {
+    if (members != null) {
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty(); members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
@@ -312,7 +312,7 @@ class Enqueuer {
   }
 
   void registerDynamicInvocation(SourceString methodName, Selector selector) {
-    assert(selector !== null);
+    assert(selector != null);
     registerInvocation(methodName, selector);
   }
 

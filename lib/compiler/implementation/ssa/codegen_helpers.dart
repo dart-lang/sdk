@@ -106,8 +106,8 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   bool isBlockSinglePredecessor(HBasicBlock block) {
-    return block.successors.length === 1
-        && block.successors[0].predecessors.length === 1;
+    return block.successors.length == 1
+        && block.successors[0].predecessors.length == 1;
   }
 
   void visitBasicBlock(HBasicBlock block) {
@@ -127,7 +127,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
-    if (expectedInputs === null) expectedInputs = new List<HInstruction>();
+    if (expectedInputs == null) expectedInputs = new List<HInstruction>();
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
@@ -136,7 +136,7 @@ class SsaInstructionMerger extends HBaseVisitor {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
-        if (nextInput === instruction) {
+        if (identical(nextInput, instruction)) {
           return true;
         }
       }
@@ -145,7 +145,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     block.last.accept(this);
     for (HInstruction instruction = block.last.previous;
-         instruction !== null;
+         instruction != null;
          instruction = instruction.previous) {
       if (generateAtUseSite.contains(instruction)) {
         continue;
@@ -167,7 +167,7 @@ class SsaInstructionMerger extends HBaseVisitor {
       instruction.accept(this);
     }
 
-    if (block.predecessors.length === 1
+    if (block.predecessors.length == 1
         && isBlockSinglePredecessor(block.predecessors[0])) {
       assert(block.phis.isEmpty());
       tryMergingExpressions(block.predecessors[0]);
@@ -207,13 +207,13 @@ class SsaConditionMerger extends HGraphVisitor {
   bool hasAnyStatement(HBasicBlock block, HInstruction instruction) {
     // If [instruction] is not in [block], then if the block is not
     // empty, we know there will be a statement to emit.
-    if (instruction.block !== block) return block.last !== block.first;
+    if (!identical(instruction.block, block)) return !identical(block.last, block.first);
 
     // If [instruction] is not the last instruction of the block
     // before the control flow instruction, or the last instruction,
     // then we will have to emit a statement for that last instruction.
     if (instruction != block.last
-        && instruction !== block.last.previous) return true;
+        && !identical(instruction, block.last.previous)) return true;
 
     // If one of the instructions in the block until [instruction] is
     // not generated at use site, then we will have to emit a
@@ -221,7 +221,7 @@ class SsaConditionMerger extends HGraphVisitor {
     // TODO(ngeoffray): we could generate a comma separated
     // list of expressions.
     for (HInstruction temp = block.first;
-         temp !== instruction;
+         !identical(temp, instruction);
          temp = temp.next) {
       if (!generateAtUseSite.contains(temp)) return true;
     }
@@ -277,10 +277,10 @@ class SsaConditionMerger extends HGraphVisitor {
 
     if (end == null) return;
     if (end.phis.isEmpty()) return;
-    if (end.phis.first !== end.phis.last) return;
+    if (!identical(end.phis.first, end.phis.last)) return;
     HBasicBlock elseBlock = startIf.elseBlock;
 
-    if (end.predecessors[1] !== elseBlock) return;
+    if (!identical(end.predecessors[1], elseBlock)) return;
     HPhi phi = end.phis.first;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
@@ -302,21 +302,21 @@ class SsaConditionMerger extends HGraphVisitor {
     // sequence of control flow operation.
     if (controlFlowOperators.contains(thenBlock.last)) {
       HIf otherIf = thenBlock.last;
-      if (otherIf.joinBlock !== end) {
+      if (!identical(otherIf.joinBlock, end)) {
         // This could be a join block that just feeds into our join block.
         HBasicBlock otherJoin = otherIf.joinBlock;
         if (otherJoin.first != otherJoin.last) return;
         if (otherJoin.successors.length != 1) return;
         if (otherJoin.successors[0] != end) return;
         if (otherJoin.phis.isEmpty()) return;
-        if (otherJoin.phis.first !== otherJoin.phis.last) return;
+        if (!identical(otherJoin.phis.first, otherJoin.phis.last)) return;
         HPhi otherPhi = otherJoin.phis.first;
         if (thenInput != otherPhi) return;
         if (elseInput != otherPhi.inputs[1]) return;
       }
       if (hasAnyStatement(thenBlock, otherIf)) return;
     } else {
-      if (end.predecessors[0] !== thenBlock) return;
+      if (!identical(end.predecessors[0], thenBlock)) return;
       if (hasAnyStatement(thenBlock, thenInput)) return;
       assert(thenBlock.successors.length == 1);
     }
@@ -329,19 +329,19 @@ class SsaConditionMerger extends HGraphVisitor {
     // of its block and is safe to be generated at use site, mark it
     // so.
     if (phi.usedBy.length == 1
-        && phi.usedBy[0] === phi.block.first
+        && identical(phi.usedBy[0], phi.block.first)
         && isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
       markAsGenerateAtUseSite(phi);
     }
 
-    if (elseInput.block === elseBlock) {
+    if (identical(elseInput.block, elseBlock)) {
       assert(elseInput.usedBy.length == 1);
       markAsGenerateAtUseSite(elseInput);
     }
 
     // If [thenInput] is defined in the first predecessor, then it is only used
     // by [phi] and can be generated at use site.
-    if (thenInput.block === end.predecessors[0]) {
+    if (identical(thenInput.block, end.predecessors[0])) {
       assert(thenInput.usedBy.length == 1);
       markAsGenerateAtUseSite(thenInput);
     }

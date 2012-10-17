@@ -30,7 +30,7 @@ removeAt$1(var receiver, var index) {
 removeLast(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
-    if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
+    if (receiver.length == 0) throw new IndexOutOfRangeException(-1);
     return JS('Object', r'#.pop()', receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
@@ -76,7 +76,7 @@ toString(var value) {
   if (JS('bool', r'# === 0 && (1 / #) < 0', value, value)) {
     return '-0.0';
   }
-  if (value === null) return 'null';
+  if (value == null) return 'null';
   if (JS('bool', r'typeof # == "function"', value)) {
     return 'Closure';
   }
@@ -190,7 +190,7 @@ getRange(receiver, start, length) {
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.getRange(start, length));
   }
-  if (0 === length) return [];
+  if (0 == length) return [];
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   if (start is !int) throw new ArgumentError(start);
@@ -271,7 +271,7 @@ lastIndexOf$2(receiver, element, start) {
   } else if (receiver is String) {
     checkNull(element);
     if (element is !String) throw new ArgumentError(element);
-    if (start !== null) {
+    if (start != null) {
       if (start is !num) throw new ArgumentError(start);
       if (start < 0) return -1;
       if (start >= receiver.length) {
@@ -325,7 +325,7 @@ setRange$4(receiver, start, length, from, startFrom) {
   }
 
   checkMutable(receiver, 'indexed set');
-  if (length === 0) return;
+  if (length == 0) return;
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
@@ -375,7 +375,7 @@ sort$1(receiver, compare) {
 
 isNegative(receiver) {
   if (receiver is num) {
-    return (receiver === 0) ? (1 / receiver) < 0 : receiver < 0;
+    return (receiver == 0) ? (1 / receiver) < 0 : receiver < 0;
   } else {
     return UNINTERCEPTED(receiver.isNegative());
   }
@@ -471,7 +471,7 @@ toStringAsExponential(receiver, fractionDigits) {
     return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
   }
   String result;
-  if (fractionDigits !== null) {
+  if (fractionDigits != null) {
     checkNum(fractionDigits);
     result = JS('String', r'#.toExponential(#)', receiver, fractionDigits);
   } else {
@@ -589,7 +589,7 @@ substring$2(receiver, startIndex, endIndex) {
   }
   checkNum(startIndex);
   var length = receiver.length;
-  if (endIndex === null) endIndex = length;
+  if (endIndex == null) endIndex = length;
   checkNum(endIndex);
   if (startIndex < 0 ) throw new IndexOutOfRangeException(startIndex);
   if (startIndex > endIndex) throw new IndexOutOfRangeException(startIndex);
@@ -624,7 +624,7 @@ trim(receiver) {
 hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
-  if (receiver === null) return 0;
+  if (receiver == null) return 0;
   if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
   if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
   if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
@@ -653,12 +653,12 @@ charCodes(receiver) {
 
 isEven(receiver) {
   if (receiver is !int) return UNINTERCEPTED(receiver.isEven());
-  return (receiver & 1) === 0;
+  return (receiver & 1) == 0;
 }
 
 isOdd(receiver) {
   if (receiver is !int) return UNINTERCEPTED(receiver.isOdd());
-  return (receiver & 1) === 1;
+  return (receiver & 1) == 1;
 }
 
 get$runtimeType(receiver) {
@@ -670,7 +670,7 @@ get$runtimeType(receiver) {
     return getOrCreateCachedRuntimeType('double');
   } else if (receiver is bool) {
     return getOrCreateCachedRuntimeType('bool');
-  } else if (receiver === null) {
+  } else if (receiver == null) {
     return getOrCreateCachedRuntimeType('Null');
   } else if (isJsArray(receiver)) {
     return getOrCreateCachedRuntimeType('List');

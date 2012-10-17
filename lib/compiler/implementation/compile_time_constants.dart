@@ -118,7 +118,7 @@ class ConstantHandler extends CompilerTask {
 
       SendSet assignment = node.asSendSet();
       Constant value;
-      if (assignment === null) {
+      if (assignment == null) {
         // No initial value.
         value = new NullConstant();
       } else {
@@ -158,7 +158,7 @@ class ConstantHandler extends CompilerTask {
                                       TreeElements definitions,
                                       {bool isConst}) {
     return measure(() {
-      assert(node !== null);
+      assert(node != null);
       CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
           constantSystem, definitions, compiler, isConst: isConst);
       return evaluator.evaluate(node);
@@ -168,7 +168,7 @@ class ConstantHandler extends CompilerTask {
   /** Attempts to compile a constant expression. Returns null if not possible */
   Constant tryCompileNodeWithDefinitions(Node node, TreeElements definitions) {
     return measure(() {
-      assert(node !== null);
+      assert(node != null);
       try {
         TryCompileTimeConstantEvaluator evaluator =
             new TryCompileTimeConstantEvaluator(constantSystem,
@@ -231,7 +231,7 @@ class ConstantHandler extends CompilerTask {
 
   Constant getInitialValueFor(VariableElement element) {
     Constant initialValue = initialVariableValues[element];
-    if (initialValue === null) {
+    if (initialValue == null) {
       compiler.internalError("No initial value for given element",
                              element: element);
     }
@@ -309,7 +309,7 @@ class CompileTimeConstantEvaluator extends Visitor {
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
-      if (!key.isString() || entry.key.asStringNode() === null) {
+      if (!key.isString() || entry.key.asStringNode() == null) {
         MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
         compiler.reportError(entry.key, new ResolutionError(kind, const []));
       }
@@ -326,7 +326,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         values.add(map[key]);
       }
     }
-    bool hasProtoKey = (protoValue !== null);
+    bool hasProtoKey = (protoValue != null);
     // TODO(floitsch): this should be a List<String> type.
     DartType keysType = new InterfaceType(compiler.listClass);
     ListConstant keysList = new ListConstant(keysType, keys);
@@ -367,7 +367,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     for (StringInterpolationPart part in node.parts) {
       Constant expression = evaluate(part.expression);
       DartString expressionString;
-      if (expression === null) {
+      if (expression == null) {
         return signalNotCompileTimeConstant(part.expression);
       } else if (expression.isNum() || expression.isBool()) {
         PrimitiveConstant primitive = expression;
@@ -403,15 +403,16 @@ class CompileTimeConstantEvaluator extends Visitor {
         } else if (element.modifiers.isFinal() && !isEvaluatingConstant) {
           result = compiler.compileVariable(element);
         }
-        if (result !== null) return result;
+        if (result != null) return result;
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isCall) {
-      if (element === compiler.identicalFunction && send.argumentCount() == 2) {
+      if (identical(element, compiler.identicalFunction)
+          && send.argumentCount() == 2) {
         Constant left = evaluate(send.argumentsNode.nodes.head);
         Constant right = evaluate(send.argumentsNode.nodes.tail.head);
         Constant result = constantSystem.identity.fold(left, right);
-        if (result !== null) return result;
+        if (result != null) return result;
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isPrefix) {
@@ -434,7 +435,7 @@ class CompileTimeConstantEvaluator extends Visitor {
           compiler.internalError("Unexpected operator.", node: op);
           break;
       }
-      if (folded === null) return signalNotCompileTimeConstant(send);
+      if (folded == null) return signalNotCompileTimeConstant(send);
       return folded;
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
@@ -506,7 +507,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         case "!=":
           if (left.isPrimitive() && right.isPrimitive()) {
             BoolConstant areEquals = constantSystem.equal.fold(left, right);
-            if (areEquals === null) {
+            if (areEquals == null) {
               folded = null;
             } else {
               folded = areEquals.negate();
@@ -516,14 +517,14 @@ class CompileTimeConstantEvaluator extends Visitor {
         case "!==":
           BoolConstant areIdentical =
               constantSystem.identity.fold(left, right);
-          if (areIdentical === null) {
+          if (areIdentical == null) {
             folded = null;
           } else {
             folded = areIdentical.negate();
           }
           break;
       }
-      if (folded === null) return signalNotCompileTimeConstant(send);
+      if (folded == null) return signalNotCompileTimeConstant(send);
       return folded;
     }
     return signalNotCompileTimeConstant(send);
@@ -660,7 +661,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     Element element = elements[send];
     if (Elements.isLocal(element)) {
       Constant constant = definitions[element];
-      if (constant === null) {
+      if (constant == null) {
         compiler.internalError("Local variable without value", node: send);
       }
       return constant;
@@ -734,7 +735,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
     bool foundSuperOrRedirect = false;
 
-    if (initializerList !== null) {
+    if (initializerList != null) {
       for (Link<Node> link = initializerList.nodes;
            !link.isEmpty();
            link = link.tail) {
@@ -765,7 +766,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       ClassElement enclosingClass = constructor.getEnclosingClass();
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
-        assert(superClass !== null);
+        assert(superClass != null);
         assert(superClass.resolutionState == STATE_DONE);
 
         Selector selector =
@@ -773,7 +774,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
         FunctionElement targetConstructor =
             superClass.lookupConstructor(selector);
-        if (targetConstructor === null) {
+        if (targetConstructor == null) {
           compiler.internalError("no default constructor available",
                                  node: functionNode);
         }

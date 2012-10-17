@@ -63,7 +63,7 @@ class TypesTask extends CompilerTask {
       }
       Element holder = element.enclosingElement;
       Link<Element> types = typedSends[holder];
-      if (types === null) return null;
+      if (types == null) return null;
       if (!holder.isFunction()) return null;
       if (untypedElements.contains(holder)) return null;
       FunctionElement function = holder;
@@ -165,15 +165,15 @@ class ConcreteTypeInferencer extends Visitor {
   }
 
   Link<Element> computeConcreteSendArguments(Send node) {
-    if (node.argumentsNode === null) return null;
+    if (node.argumentsNode == null) return null;
     if (node.arguments.isEmpty()) return const Link<Element>();
-    if (node.receiver !== null && concreteTypes[node.receiver] === null) {
+    if (node.receiver != null && concreteTypes[node.receiver] == null) {
       return null;
     }
     LinkBuilder<Element> types = new LinkBuilder<Element>();
     for (Node argument in node.arguments) {
       Element type = concreteTypes[argument];
-      if (type === null) return null;
+      if (type == null) return null;
       types.addLast(type);
     }
     return types.toLink();
@@ -182,22 +182,22 @@ class ConcreteTypeInferencer extends Visitor {
   visitSend(Send node) {
     node.visitChildren(this);
     Element element = elements[node.selector];
-    if (element === null) return;
+    if (element == null) return;
     if (!Elements.isStaticOrTopLevelFunction(element)) return;
-    if (node.argumentsNode === null) {
+    if (node.argumentsNode == null) {
       // interest(node, 'closurized method');
       task.untypedElements.add(element);
       return;
     }
     Link<Element> types = computeConcreteSendArguments(node);
-    if (types !== null) {
+    if (types != null) {
       Link<Element> existing = task.typedSends[element];
-      if (existing === null) {
+      if (existing == null) {
         task.typedSends[element] = types;
       } else {
         // interest(node, 'multiple invocations');
         Link<Element> lub = computeLubs(existing, types);
-        if (lub === null) {
+        if (lub == null) {
           task.untypedElements.add(element);
         } else {
           task.typedSends[element] = lub;
@@ -229,7 +229,7 @@ class ConcreteTypeInferencer extends Visitor {
     LinkBuilder<Element> lubs = new LinkBuilder<Element>();
     while (!a.isEmpty() && !b.isEmpty()) {
       Element lub = computeLub(a.head, b.head);
-      if (lub === null) return null;
+      if (lub == null) return null;
       lubs.addLast(lub);
       a = a.tail;
       b = b.tail;
@@ -243,7 +243,7 @@ class ConcreteTypeInferencer extends Visitor {
    */
   Element computeLub(Element a, Element b) {
     // Fast common case, but also simple initial implementation.
-    if (a === b) return a;
+    if (identical(a, b)) return a;
 
     // TODO(ahe): Improve the following "computation"...
     return null;

@@ -24,7 +24,7 @@ class HValidator extends HInstructionVisitor {
 
     // Test that the last instruction is a branching instruction and that the
     // basic block contains the branch-target.
-    if (block.first === null || block.last === null) {
+    if (block.first == null || block.last == null) {
       markInvalid("empty block");
     }
     if (block.last is !HControlFlow) {
@@ -61,10 +61,10 @@ class HValidator extends HInstructionVisitor {
 
     // Check that successors ids are always higher than the current one.
     // TODO(floitsch): this is, of course, not true for back-branches.
-    if (block.id === null) markInvalid("block without id");
+    if (block.id == null) markInvalid("block without id");
     for (HBasicBlock successor in block.successors) {
       if (!isValid) break;
-      if (successor.id === null) markInvalid("successor without id");
+      if (successor.id == null) markInvalid("successor without id");
       if (successor.id <= block.id && !successor.isLoopHeader()) {
         markInvalid("successor with lower id, but not a loop-header");
       }
@@ -74,10 +74,10 @@ class HValidator extends HInstructionVisitor {
     int lastId = 0;
     for (HBasicBlock dominated in block.dominatedBlocks) {
       if (!isValid) break;
-      if (dominated.dominator !== block) {
+      if (!identical(dominated.dominator, block)) {
         markInvalid("dominated block not pointing back");
       }
-      if (dominated.id === null || dominated.id <= lastId) {
+      if (dominated.id == null || dominated.id <= lastId) {
         markInvalid("dominated.id === null or dominated has <= id");
       }
       lastId = dominated.id;
@@ -116,7 +116,7 @@ class HValidator extends HInstructionVisitor {
                               HInstruction instruction) {
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
-      if (instructions[i] === instruction) result++;
+      if (identical(instructions[i], instruction)) result++;
     }
     return result;
   }
@@ -132,10 +132,10 @@ class HValidator extends HInstructionVisitor {
     // we have assigned an ID. The loop is therefore O(n^2) for now.
     for (int i = 0; i < copy.length; i++) {
       var current = copy[i];
-      if (current === null) continue;
+      if (current == null) continue;
       int count = 1;
       for (int j = i + 1; j < copy.length; j++) {
-        if (copy[j] === current) {
+        if (identical(copy[j], current)) {
           copy[j] = null;
           count++;
         }
@@ -166,7 +166,7 @@ class HValidator extends HInstructionVisitor {
       });
     }
 
-    if (instruction.block !== currentBlock) {
+    if (!identical(instruction.block, currentBlock)) {
       markInvalid("Instruction in wrong block");
     }
     if (!hasCorrectInputs()) {

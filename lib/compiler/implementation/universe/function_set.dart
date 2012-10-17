@@ -23,14 +23,14 @@ class FunctionSet extends PartialTypeTree {
   void remove(Element element) {
     assert(element.isMember());
     FunctionSetNode node = findNode(element.getEnclosingClass(), false);
-    if (node !== null) node.membersByName.remove(element.name);
+    if (node != null) node.membersByName.remove(element.name);
   }
 
   // TODO(kasperl): Allow static members too?
   bool contains(Element element) {
     assert(element.isMember());
     FunctionSetNode node = findNode(element.getEnclosingClass(), false);
-    return (node !== null)
+    return (node != null)
         ? node.membersByName.containsKey(element.name)
         : false;
   }
@@ -60,12 +60,12 @@ class FunctionSet extends PartialTypeTree {
 
   Set<Element> filterAllBySelector(Selector selector) {
     Set<Element> result = new Set<Element>();
-    if (root === null) return result;
+    if (root == null) return result;
     root.visitRecursively((FunctionSetNode node) {
       Element member = node.membersByName[selector.name];
       // Since we're running through the entire tree we have to use
       // the applies method that takes types into account.
-      if (member !== null && selector.applies(member, compiler)) {
+      if (member != null && selector.applies(member, compiler)) {
         result.add(member);
       }
       return true;
@@ -75,10 +75,10 @@ class FunctionSet extends PartialTypeTree {
 
   Set<Element> filterHierarchyBySelector(Selector selector) {
     Set<Element> result = new Set<Element>();
-    if (root === null) return result;
+    if (root == null) return result;
     visitHierarchy(selectorType(selector), (FunctionSetNode node) {
       Element member = node.membersByName[selector.name];
-      if (member !== null && selector.appliesUntyped(member, compiler)) {
+      if (member != null && selector.appliesUntyped(member, compiler)) {
         result.add(member);
       }
       return true;
@@ -88,12 +88,12 @@ class FunctionSet extends PartialTypeTree {
 
   bool hasAnyInAll(Selector selector) {
     bool result = false;
-    if (root === null) return result;
+    if (root == null) return result;
     root.visitRecursively((FunctionSetNode node) {
       Element member = node.membersByName[selector.name];
       // Since we're running through the entire tree we have to use
       // the applies method that takes types into account.
-      if (member !== null && selector.applies(member, compiler)) {
+      if (member != null && selector.applies(member, compiler)) {
         result = true;
         // End the traversal.
         return false;
@@ -105,10 +105,10 @@ class FunctionSet extends PartialTypeTree {
 
   bool hasAnyInHierarchy(Selector selector) {
     bool result = false;
-    if (root === null) return result;
+    if (root == null) return result;
     visitHierarchy(selectorType(selector), (FunctionSetNode node) {
       Element member = node.membersByName[selector.name];
-      if (member !== null && selector.appliesUntyped(member, compiler)) {
+      if (member != null && selector.appliesUntyped(member, compiler)) {
         result = true;
         // End the traversal.
         return false;
@@ -119,7 +119,7 @@ class FunctionSet extends PartialTypeTree {
   }
 
   void forEach(Function f) {
-    if (root === null) return;
+    if (root == null) return;
     root.visitRecursively((FunctionSetNode node) {
       node.membersByName.forEach(
           (SourceString _, Element element) => f(element));

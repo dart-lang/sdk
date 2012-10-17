@@ -121,7 +121,7 @@ class Token implements Spannable {
    */
   int get precedence => info.precedence;
 
-  bool isIdentifier() => kind === IDENTIFIER_TOKEN;
+  bool isIdentifier() => identical(kind, IDENTIFIER_TOKEN);
 
   /**
    * Returns a textual representation of this token to be used for debugging
@@ -226,7 +226,7 @@ class StringWrapper implements SourceString {
 
   bool isEmpty() => stringValue.isEmpty();
 
-  bool isPrivate() => !isEmpty() && stringValue.charCodeAt(0) === $_;
+  bool isPrivate() => !isEmpty() && identical(stringValue.charCodeAt(0), $_);
 }
 
 class StringCodeIterator implements Iterator<int> {
@@ -255,25 +255,25 @@ class BeginGroupToken extends StringToken {
 
 bool isUserDefinableOperator(String value) {
   return
-    (value === '==') ||
-    (value === '~') ||
-    (value === '[]') ||
-    (value === '[]=') ||
-    (value === '*') ||
-    (value === '/') ||
-    (value === '%') ||
-    (value === '~/') ||
-    (value === '+') ||
-    (value === '-') ||
-    (value === '<<') ||
-    (value === '>>') ||
-    (value === '>=') ||
-    (value === '>') ||
-    (value === '<=') ||
-    (value === '<') ||
-    (value === '&') ||
-    (value === '^') ||
-    (value === '|');
+    (identical(value, '==')) ||
+    (identical(value, '~')) ||
+    (identical(value, '[]')) ||
+    (identical(value, '[]=')) ||
+    (identical(value, '*')) ||
+    (identical(value, '/')) ||
+    (identical(value, '%')) ||
+    (identical(value, '~/')) ||
+    (identical(value, '+')) ||
+    (identical(value, '-')) ||
+    (identical(value, '<<')) ||
+    (identical(value, '>>')) ||
+    (identical(value, '>=')) ||
+    (identical(value, '>')) ||
+    (identical(value, '<=')) ||
+    (identical(value, '<')) ||
+    (identical(value, '&')) ||
+    (identical(value, '^')) ||
+    (identical(value, '|'));
 }
 
 class PrecedenceInfo {

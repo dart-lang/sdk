@@ -96,10 +96,10 @@ void checkAllowedLibrary(ElementListener listener, Token token) {
 Token handleNativeBlockToSkip(Listener listener, Token token) {
   checkAllowedLibrary(listener, token);
   token = token.next;
-  if (token.kind === STRING_TOKEN) {
+  if (identical(token.kind, STRING_TOKEN)) {
     token = token.next;
   }
-  if (token.stringValue === '{') {
+  if (identical(token.stringValue, '{')) {
     BeginGroupToken beginGroupToken = token;
     token = beginGroupToken.endGroup;
   }
@@ -110,11 +110,11 @@ Token handleNativeClassBodyToSkip(Listener listener, Token token) {
   checkAllowedLibrary(listener, token);
   listener.handleIdentifier(token);
   token = token.next;
-  if (token.kind !== STRING_TOKEN) {
+  if (!identical(token.kind, STRING_TOKEN)) {
     return listener.unexpected(token);
   }
   token = token.next;
-  if (token.stringValue !== '{') {
+  if (!identical(token.stringValue, '{')) {
     return listener.unexpected(token);
   }
   BeginGroupToken beginGroupToken = token;
@@ -125,7 +125,7 @@ Token handleNativeClassBodyToSkip(Listener listener, Token token) {
 Token handleNativeClassBody(Listener listener, Token token) {
   checkAllowedLibrary(listener, token);
   token = token.next;
-  if (token.kind !== STRING_TOKEN) {
+  if (!identical(token.kind, STRING_TOKEN)) {
     listener.unexpected(token);
   } else {
     token = token.next;
@@ -139,7 +139,7 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   listener.beginReturnStatement(token);
   token = token.next;
   bool hasExpression = false;
-  if (token.kind === STRING_TOKEN) {
+  if (identical(token.kind, STRING_TOKEN)) {
     hasExpression = true;
     listener.beginLiteralString(token);
     listener.endLiteralString(0);
@@ -214,7 +214,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   bool hasBody = false;
   bool isRedirecting = false;
   String nativeMethodName = element.name.slowToString();
-  if (nativeBody !== null) {
+  if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {

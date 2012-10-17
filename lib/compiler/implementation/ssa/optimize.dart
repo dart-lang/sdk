@@ -128,10 +128,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
-    while (instruction !== null) {
+    while (instruction != null) {
       HInstruction next = instruction.next;
       HInstruction replacement = instruction.accept(this);
-      if (replacement !== instruction) {
+      if (!identical(replacement, instruction)) {
         if (!replacement.isInBasicBlock()) {
           // The constant folding can return an instruction that is already
           // part of the graph (like an input), so we only add the replacement
@@ -146,10 +146,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         if (!types[replacement].isUseful()) {
           types[replacement] = types[instruction];
         }
-        if (replacement.sourceElement === null) {
+        if (replacement.sourceElement == null) {
           replacement.sourceElement = instruction.sourceElement;
         }
-        if (replacement.sourcePosition === null) {
+        if (replacement.sourcePosition == null) {
           replacement.sourcePosition = instruction.sourcePosition;
         }
       }
@@ -168,7 +168,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (input.isBoolean(types)) return input;
     // All values !== true are boolified to false.
     DartType type = types[input].computeType(compiler);
-    if (type !== null && type.element !== compiler.boolClass) {
+    if (type != null && !identical(type.element, compiler.boolClass)) {
       return graph.addConstantBool(false, constantSystem);
     }
     return node;
@@ -194,7 +194,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       UnaryOperation operation = node.operation(constantSystem);
       HConstant receiver = operand;
       Constant folded = operation.fold(receiver.constant);
-      if (folded !== null) return graph.addConstant(folded);
+      if (folded != null) return graph.addConstant(folded);
     }
     return node;
   }
@@ -338,7 +338,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HConstant op1 = left;
       HConstant op2 = right;
       Constant folded = operation.fold(op1.constant, op2.constant);
-      if (folded !== null) return graph.addConstant(folded);
+      if (folded != null) return graph.addConstant(folded);
     }
 
     if (!left.canBePrimitive(types)
@@ -366,7 +366,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HStatic oldTarget = node.target;
       Element boolifiedInterceptor =
           interceptors.getBoolifiedVersionOf(oldTarget.element);
-      if (boolifiedInterceptor !== null) {
+      if (boolifiedInterceptor != null) {
         HStatic boolifiedTarget = new HStatic(boolifiedInterceptor);
         // We don't remove the [oldTarget] in case it is used by other
         // instructions. If it is unused it will be treated as dead code and
@@ -424,13 +424,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
-    return newInstruction === null ? super.visitIdentity(node) : newInstruction;
+    return newInstruction == null ? super.visitIdentity(node) : newInstruction;
   }
 
   HInstruction foldBuiltinEqualsCheck(HEquals node) {
     // TODO(floitsch): cache interceptors.
     HInstruction newInstruction = handleIdentityCheck(node);
-    if (newInstruction === null) {
+    if (newInstruction == null) {
       HStatic target = new HStatic(
           backend.builder.interceptors.getTripleEqualsInterceptor());
       node.block.addBefore(node, target);
@@ -456,7 +456,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (leftType.isExact()) {
       HBoundedType type = leftType;
       Element element = type.lookupMember(Elements.OPERATOR_EQUALS);
-      if (element !== null) {
+      if (element != null) {
         // If the left-hand side is guaranteed to be a non-primitive
         // type and and it defines operator==, we emit a call to that
         // operator.
@@ -494,20 +494,20 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    if (element.kind === ElementKind.TYPE_VARIABLE) {
+    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       compiler.unimplemented("visitIs for type variables");
     }
 
     HType expressionType = types[node.expression];
-    if (element === compiler.objectClass
-        || element === compiler.dynamicClass) {
+    if (identical(element, compiler.objectClass)
+        || identical(element, compiler.dynamicClass)) {
       return graph.addConstantBool(true, constantSystem);
     } else if (expressionType.isInteger()) {
-      if (element === compiler.intClass
-          || element === compiler.numClass
+      if (identical(element, compiler.intClass)
+          || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
-      } else if (element === compiler.doubleClass) {
+      } else if (identical(element, compiler.doubleClass)) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will always return true.
         return node;
@@ -515,11 +515,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false, constantSystem);
       }
     } else if (expressionType.isDouble()) {
-      if (element === compiler.doubleClass
-          || element === compiler.numClass
+      if (identical(element, compiler.doubleClass)
+          || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
-      } else if (element === compiler.intClass) {
+      } else if (identical(element, compiler.intClass)) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will return true for a double that can be
         // represented as a 31-bit integer and for -0.0.
@@ -528,13 +528,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false, constantSystem);
       }
     } else if (expressionType.isNumber()) {
-      if (element === compiler.numClass) {
+      if (identical(element, compiler.numClass)) {
         return graph.addConstantBool(true, constantSystem);
       }
       // We cannot just return false, because the expression may be of
       // type int or double.
     } else if (expressionType.isString()) {
-      if (element === compiler.stringClass
+      if (identical(element, compiler.stringClass)
                || Elements.isStringOnlySupertype(element, compiler)
                || Elements.isNumberOrStringSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
@@ -542,7 +542,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false, constantSystem);
       }
     } else if (expressionType.isArray()) {
-      if (element === compiler.listClass
+      if (identical(element, compiler.listClass)
           || Elements.isListSupertype(element, compiler)) {
         return graph.addConstantBool(true, constantSystem);
       } else {
@@ -553,7 +553,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
                && !expressionType.canBeNull()
                && !compiler.codegenWorld.rti.hasTypeArguments(type)) {
       DartType receiverType = expressionType.computeType(compiler);
-      if (receiverType !== null) {
+      if (receiverType != null) {
         if (compiler.types.isSubtype(receiverType, type)) {
           return graph.addConstantBool(true, constantSystem);
         } else if (expressionType.isExact()) {
@@ -567,8 +567,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
     DartType type = types[node].computeType(compiler);
-    if (type.element === compiler.dynamicClass
-        || type.element === compiler.objectClass) {
+    if (identical(type.element, compiler.dynamicClass)
+        || identical(type.element, compiler.objectClass)) {
       return value;
     }
     if (types[value].canBeNull() && node.isBooleanConversionCheck) {
@@ -584,7 +584,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (!receiverType.isUseful()) return null;
     if (receiverType.canBeNull()) return null;
     DartType type = receiverType.computeType(compiler);
-    if (type === null) return null;
+    if (type == null) return null;
     return compiler.world.locateSingleField(type, selector);
   }
 
@@ -614,7 +614,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
-    if (field === null) return node;
+    if (field == null) return node;
     HInstruction value = node.inputs[1];
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
@@ -663,7 +663,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
-    while (instruction !== null) {
+    while (instruction != null) {
       HInstruction next = instruction.next;
       instruction = instruction.accept(this);
       instruction = next;
@@ -754,7 +754,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.last;
-    while (instruction !== null) {
+    while (instruction != null) {
       var previous = instruction.previous;
       if (isDeadCode(instruction)) block.remove(instruction);
       instruction = previous;
@@ -838,13 +838,13 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       // Find if the inputs of the phi are the same instruction.
       // The builder ensures that phi.inputs[0] cannot be the phi
       // itself.
-      assert(phi.inputs[0] !== phi);
+      assert(!identical(phi.inputs[0], phi));
       HInstruction candidate = phi.inputs[0];
       for (int i = 1; i < phi.inputs.length; i++) {
         HInstruction input = phi.inputs[i];
         // If the input is the phi, the phi is still candidate for
         // elimination.
-        if (input !== candidate && input !== phi) {
+        if (!identical(input, candidate) && !identical(input, phi)) {
           candidate = null;
           break;
         }
@@ -943,14 +943,14 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       int flags = loopChangesFlags[block.id];
       values.kill(flags);
     }
-    while (instruction !== null) {
+    while (instruction != null) {
       HInstruction next = instruction.next;
       int flags = instruction.getChangesFlags();
       assert(flags == 0 || !instruction.useGvn());
       values.kill(flags);
       if (instruction.useGvn()) {
         HInstruction other = values.lookup(instruction);
-        if (other !== null) {
+        if (other != null) {
           assert(other.gvnEquals(instruction) && instruction.gvnEquals(other));
           block.rewriteWithBetterUser(instruction, other);
           block.remove(instruction);
@@ -999,12 +999,12 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       // Compute block changes flags for the block.
       int changesFlags = 0;
       HInstruction instruction = block.first;
-      while (instruction !== null) {
+      while (instruction != null) {
         instruction.prepareGvn(types);
         changesFlags |= instruction.getChangesFlags();
         instruction = instruction.next;
       }
-      assert(blockChangesFlags[id] === null);
+      assert(blockChangesFlags[id] == null);
       blockChangesFlags[id] = changesFlags;
 
       // Loop headers are part of their loop, so update the loop
@@ -1015,7 +1015,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 
       // Propagate loop changes flags upwards.
       HBasicBlock parentLoopHeader = block.parentLoopHeader;
-      if (parentLoopHeader !== null) {
+      if (parentLoopHeader != null) {
         loopChangesFlags[parentLoopHeader.id] |= (block.isLoopHeader())
             ? loopChangesFlags[id]
             : changesFlags;
@@ -1111,7 +1111,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
     ValueSet set_ = values[block.id];
     HInstruction instruction = block.first;
     int flags = 0;
-    while (instruction !== null) {
+    while (instruction != null) {
       int dependsFlags = HInstruction.computeDependsOnFlags(flags);
       flags |= instruction.getChangesFlags();
 
@@ -1319,7 +1319,7 @@ class SsaConstructionFieldTypes
     // Don't handle fields defined in superclasses. Given that the field is
     // always added to the [allSetters] set, setting a field defined in a
     // superclass will get an inferred type of UNKNOWN.
-    if (work.element.getEnclosingClass() === field.getEnclosingClass() &&
+    if (identical(work.element.getEnclosingClass(), field.getEnclosingClass()) &&
         value.hasGuaranteedType()) {
       currentFieldSetters[field] = type;
     }

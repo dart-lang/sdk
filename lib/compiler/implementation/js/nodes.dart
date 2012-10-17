@@ -222,9 +222,9 @@ class For extends Loop {
   accept(NodeVisitor visitor) => visitor.visitFor(this);
 
   void visitChildren(NodeVisitor visitor) {
-    if (init !== null) init.accept(visitor);
-    if (condition !== null) condition.accept(visitor);
-    if (update !== null) update.accept(visitor);
+    if (init != null) init.accept(visitor);
+    if (condition != null) condition.accept(visitor);
+    if (update != null) update.accept(visitor);
     body.accept(visitor);
   }
 }
@@ -327,8 +327,8 @@ class Try extends Statement {
 
   void visitChildren(NodeVisitor visitor) {
     body.accept(visitor);
-    if (catchPart !== null) catchPart.accept(visitor);
-    if (finallyPart !== null) finallyPart.accept(visitor);
+    if (catchPart != null) catchPart.accept(visitor);
+    if (finallyPart != null) finallyPart.accept(visitor);
   }
 }
 

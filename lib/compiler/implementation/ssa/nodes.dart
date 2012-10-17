@@ -104,7 +104,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
   visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
       HInstruction instruction = list.first;
-      while (instruction !== null) {
+      while (instruction != null) {
         visitInstruction(instruction);
         instruction = instruction.next;
         assert(instruction != list.first);
@@ -140,7 +140,7 @@ class HGraph {
     int id = blocks.length;
     block.id = id;
     blocks.add(block);
-    assert(blocks[id] === block);
+    assert(identical(blocks[id], block));
   }
 
   HBasicBlock addNewBlock() {
@@ -172,7 +172,7 @@ class HGraph {
 
   HConstant addConstant(Constant constant) {
     HConstant result = constants[constant];
-    if (result === null) {
+    if (result == null) {
       HType type = mapConstantTypeToSsaType(constant);
       result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
@@ -242,7 +242,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
     currentBlock = node;
 
     HInstruction instruction = node.first;
-    while (instruction !== null) {
+    while (instruction != null) {
       instruction.accept(this);
       instruction = instruction.next;
     }
@@ -342,9 +342,9 @@ class SubGraph {
   const SubGraph(this.start, this.end);
 
   bool contains(HBasicBlock block) {
-    assert(start !== null);
-    assert(end !== null);
-    assert(block !== null);
+    assert(start != null);
+    assert(end != null);
+    assert(block != null);
     return start.id <= block.id && block.id <= end.id;
   }
 }
@@ -366,14 +366,14 @@ class HInstructionList {
   HInstruction last = null;
 
   bool isEmpty() {
-    return first === null;
+    return first == null;
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
-    if (cursor === null) {
+    if (cursor == null) {
       assert(isEmpty());
       first = last = instruction;
-    } else if (cursor === last) {
+    } else if (identical(cursor, last)) {
       last.next = instruction;
       instruction.previous = last;
       last = instruction;
@@ -386,10 +386,10 @@ class HInstructionList {
   }
 
   void addBefore(HInstruction cursor, HInstruction instruction) {
-    if (cursor === null) {
+    if (cursor == null) {
       assert(isEmpty());
       first = last = instruction;
-    } else if (cursor === first) {
+    } else if (identical(cursor, first)) {
       first.previous = instruction;
       instruction.next = first;
       first = instruction;
@@ -404,12 +404,12 @@ class HInstructionList {
   void detach(HInstruction instruction) {
     assert(contains(instruction));
     assert(instruction.isInBasicBlock());
-    if (instruction.previous === null) {
+    if (instruction.previous == null) {
       first = instruction.next;
     } else {
       instruction.previous.next = instruction.next;
     }
-    if (instruction.next === null) {
+    if (instruction.next == null) {
       last = instruction.previous;
     } else {
       instruction.next.previous = instruction.previous;
@@ -427,7 +427,7 @@ class HInstructionList {
   bool contains(HInstruction instruction) {
     HInstruction cursor = first;
     while (cursor != null) {
-      if (cursor === instruction) return true;
+      if (identical(cursor, instruction)) return true;
       cursor = cursor.next;
     }
     return false;
@@ -472,7 +472,7 @@ class HBasicBlock extends HInstructionList {
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() {
-    return loopInformation !== null;
+    return loopInformation != null;
   }
 
   void setBlockFlow(HBlockInformation blockInfo, HBasicBlock continuation) {
@@ -480,7 +480,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   bool isLabeledBlock() =>
-    blockFlow !== null &&
+    blockFlow != null &&
     blockFlow.body is HLabeledBlockInformation;
 
   HBasicBlock get enclosingLoopHeader {
@@ -618,7 +618,7 @@ class HBasicBlock extends HInstructionList {
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
     Link<HCheck> better = const Link<HCheck>();
     for (HInstruction user in to.usedBy) {
-      if (user is HCheck && (user as HCheck).checkedInput === to) {
+      if (user is HCheck && identical((user as HCheck).checkedInput, to)) {
         better = better.prepend(user);
       }
     }
@@ -640,12 +640,12 @@ class HBasicBlock extends HInstructionList {
   }
 
   bool isExitBlock() {
-    return first === last && first is HExit;
+    return identical(first, last) && first is HExit;
   }
 
   void addDominatedBlock(HBasicBlock block) {
     assert(isClosed());
-    assert(id !== null && block.id !== null);
+    assert(id != null && block.id != null);
     assert(dominatedBlocks.indexOf(block) < 0);
     // Keep the list of dominated blocks sorted such that if there are two
     // succeeding blocks in the list, the predecessor is before the successor.
@@ -659,13 +659,13 @@ class HBasicBlock extends HInstructionList {
     } else {
       dominatedBlocks.insertRange(index, 1, block);
     }
-    assert(block.dominator === null);
+    assert(block.dominator == null);
     block.dominator = this;
   }
 
   void removeDominatedBlock(HBasicBlock block) {
     assert(isClosed());
-    assert(id !== null && block.id !== null);
+    assert(id != null && block.id != null);
     int index = dominatedBlocks.indexOf(block);
     assert(index >= 0);
     if (index == dominatedBlocks.length - 1) {
@@ -673,31 +673,31 @@ class HBasicBlock extends HInstructionList {
     } else {
       dominatedBlocks.removeRange(index, 1);
     }
-    assert(block.dominator === this);
+    assert(identical(block.dominator, this));
     block.dominator = null;
   }
 
   void assignCommonDominator(HBasicBlock predecessor) {
     assert(isClosed());
-    if (dominator === null) {
+    if (dominator == null) {
       // If this basic block doesn't have a dominator yet we use the
       // given predecessor as the dominator.
       predecessor.addDominatedBlock(this);
-    } else if (predecessor.dominator !== null) {
+    } else if (predecessor.dominator != null) {
       // If the predecessor has a dominator and this basic block has a
       // dominator, we find a common parent in the dominator tree and
       // use that as the dominator.
       HBasicBlock block0 = dominator;
       HBasicBlock block1 = predecessor;
-      while (block0 !== block1) {
+      while (!identical(block0, block1)) {
         if (block0.id > block1.id) {
           block0 = block0.dominator;
         } else {
           block1 = block1.dominator;
         }
-        assert(block0 !== null && block1 !== null);
+        assert(block0 != null && block1 != null);
       }
-      if (dominator !== block0) {
+      if (!identical(dominator, block0)) {
         dominator.removeDominatedBlock(this);
         block0.addDominatedBlock(this);
       }
@@ -706,7 +706,7 @@ class HBasicBlock extends HInstructionList {
 
   void forEachPhi(void f(HPhi phi)) {
     HPhi current = phis.first;
-    while (current !== null) {
+    while (current != null) {
       HInstruction saved = current.next;
       f(current);
       current = saved;
@@ -715,7 +715,7 @@ class HBasicBlock extends HInstructionList {
 
   void forEachInstruction(void f(HInstruction instruction)) {
     HInstruction current = first;
-    while (current !== null) {
+    while (current != null) {
       HInstruction saved = current.next;
       f(current);
       current = saved;
@@ -733,9 +733,9 @@ class HBasicBlock extends HInstructionList {
   // being hot.
   bool dominates(HBasicBlock other) {
     do {
-      if (this === other) return true;
+      if (identical(this, other)) return true;
       other = other.dominator;
-    } while (other !== null && other.id >= id);
+    } while (other != null && other.id >= id);
     return false;
   }
 }
@@ -917,7 +917,7 @@ abstract class HInstruction implements Spannable {
     return HType.UNKNOWN;
   }
 
-  bool isInBasicBlock() => block !== null;
+  bool isInBasicBlock() => block != null;
 
   String inputsToString() {
     void addAsCommaSeparated(StringBuffer buffer, List<HInstruction> list) {
@@ -948,7 +948,7 @@ abstract class HInstruction implements Spannable {
     final List<HInstruction> otherInputs = other.inputs;
     if (inputsLength != otherInputs.length) return false;
     for (int i = 0; i < inputsLength; i++) {
-      if (inputs[i] !== otherInputs[i]) return false;
+      if (!identical(inputs[i], otherInputs[i])) return false;
     }
     // Check that the data in the instruction matches.
     return dataEquals(other);
@@ -973,7 +973,7 @@ abstract class HInstruction implements Spannable {
 
   void notifyAddedToBlock(HBasicBlock targetBlock) {
     assert(!isInBasicBlock());
-    assert(block === null);
+    assert(block == null);
     // Add [this] to the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
       assert(inputs[i].isInBasicBlock());
@@ -997,7 +997,7 @@ abstract class HInstruction implements Spannable {
 
   void rewriteInput(HInstruction from, HInstruction to) {
     for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i] === from) inputs[i] = to;
+      if (identical(inputs[i], from)) inputs[i] = to;
     }
   }
 
@@ -1006,7 +1006,7 @@ abstract class HInstruction implements Spannable {
     List<HInstruction> users = usedBy;
     int length = users.length;
     for (int i = 0; i < length; i++) {
-      if (users[i] === user) {
+      if (identical(users[i], user)) {
         users[i] = users[length - 1];
         length--;
       }
@@ -1018,7 +1018,7 @@ abstract class HInstruction implements Spannable {
   // updates the [usedBy] of [oldInput] and [newInput].
   void changeUse(HInstruction oldInput, HInstruction newInput) {
     for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i] === oldInput) {
+      if (identical(inputs[i], oldInput)) {
         inputs[i] = newInput;
         newInput.usedBy.add(this);
       }
@@ -1050,7 +1050,7 @@ abstract class HInstruction implements Spannable {
     for (int i = 0, length = usedBy.length; i < length; i++) {
       HInstruction current = usedBy[i];
       if (otherBlock.dominates(current.block)) {
-        if (current.block === otherBlock) usersInCurrentBlock++;
+        if (identical(current.block, otherBlock)) usersInCurrentBlock++;
         users.add(current);
       }
     }
@@ -1058,7 +1058,7 @@ abstract class HInstruction implements Spannable {
     // Run through all the phis in the same block as [other] and remove them
     // from the users set.
     if (usersInCurrentBlock > 0) {
-      for (HPhi phi = otherBlock.phis.first; phi !== null; phi = phi.next) {
+      for (HPhi phi = otherBlock.phis.first; phi != null; phi = phi.next) {
         if (users.contains(phi)) {
           users.remove(phi);
           if (--usersInCurrentBlock == 0) break;
@@ -1070,7 +1070,7 @@ abstract class HInstruction implements Spannable {
     // from the users set.
     if (usersInCurrentBlock > 0) {
       HInstruction current = otherBlock.first;
-      while (current !== other) {
+      while (!identical(current, other)) {
         if (users.contains(current)) {
           users.remove(current);
           if (--usersInCurrentBlock == 0) break;
@@ -1114,8 +1114,8 @@ abstract class HInstruction implements Spannable {
     if (block != other.block) return block.dominates(other.block);
 
     HInstruction current = this;
-    while (current !== null) {
-      if (current === other) return true;
+    while (current != null) {
+      if (identical(current, other)) return true;
       current = current.next;
     }
     return false;
@@ -1126,9 +1126,9 @@ abstract class HInstruction implements Spannable {
                            Element sourceElement,
                            int kind) {
     DartType type = sourceElement.computeType(compiler);
-    if (type === null) return this;
-    if (type.element === compiler.dynamicClass) return this;
-    if (type.element === compiler.objectClass) return this;
+    if (type == null) return this;
+    if (identical(type.element, compiler.dynamicClass)) return this;
+    if (identical(type.element, compiler.objectClass)) return this;
 
     // If the original can't be null, type conversion also can't produce null.
     bool canBeNull = this.guaranteedType.canBeNull();
@@ -1505,7 +1505,7 @@ class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
   HFieldGet(Element element, HInstruction receiver, {bool isAssignable})
-      : this.isAssignable = (isAssignable !== null)
+      : this.isAssignable = (isAssignable != null)
             ? isAssignable
             : element.isAssignable(),
         super(element, <HInstruction>[receiver]);
@@ -1997,14 +1997,14 @@ abstract class HJump extends HControlFlow {
 class HBreak extends HJump {
   HBreak(TargetElement target) : super(target);
   HBreak.toLabel(LabelElement label) : super.toLabel(label);
-  toString() => (label !== null) ? 'break ${label.labelName}' : 'break';
+  toString() => (label != null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
   HContinue(TargetElement target) : super(target);
   HContinue.toLabel(LabelElement label) : super.toLabel(label);
-  toString() => (label !== null) ? 'continue ${label.labelName}' : 'continue';
+  toString() => (label != null) ? 'continue ${label.labelName}' : 'continue';
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
 
@@ -2025,12 +2025,12 @@ class HIf extends HConditionalBranch {
   accept(HVisitor visitor) => visitor.visitIf(this);
 
   HBasicBlock get thenBlock {
-    assert(block.dominatedBlocks[0] === block.successors[0]);
+    assert(identical(block.dominatedBlocks[0], block.successors[0]));
     return block.successors[0];
   }
 
   HBasicBlock get elseBlock {
-    assert(block.dominatedBlocks[1] === block.successors[1]);
+    assert(identical(block.dominatedBlocks[1], block.successors[1]));
     return block.successors[1];
   }
 
@@ -2048,7 +2048,7 @@ class HLoopBranch extends HConditionalBranch {
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 
   bool isDoWhile() {
-    return kind === DO_WHILE_LOOP;
+    return identical(kind, DO_WHILE_LOOP);
   }
 }
 
@@ -2407,7 +2407,7 @@ class HThrow extends HControlFlow {
 class HStatic extends HInstruction {
   final Element element;
   HStatic(this.element) : super(<HInstruction>[]) {
-    assert(element !== null);
+    assert(element != null);
     assert(invariant(this, element.isDeclaration));
   }
 
@@ -2672,11 +2672,11 @@ class HLoopInformation {
   // Adds a block and transitively all its predecessors in the loop as
   // loop blocks.
   void addBlock(HBasicBlock block) {
-    if (block === header) return;
+    if (identical(block, header)) return;
     HBasicBlock parentHeader = block.parentLoopHeader;
-    if (parentHeader === header) {
+    if (identical(parentHeader, header)) {
       // Nothing to do in this case.
-    } else if (parentHeader !== null) {
+    } else if (parentHeader != null) {
       addBlock(parentHeader);
     } else {
       block.parentLoopHeader = header;
@@ -2873,7 +2873,7 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.endSourcePosition);
 
   HBasicBlock get start {
-    if (initializer !== null) return initializer.start;
+    if (initializer != null) return initializer.start;
     if (kind == DO_WHILE_LOOP) {
       return body.start;
     }
@@ -2885,7 +2885,7 @@ class HLoopBlockInformation implements HStatementInformation {
   }
 
   HBasicBlock get end {
-    if (updates !== null) return updates.end;
+    if (updates != null) return updates.end;
     if (kind == DO_WHILE_LOOP) {
       return condition.end;
     }
@@ -2909,7 +2909,7 @@ class HIfBlockInformation implements HStatementInformation {
                       this.elseGraph);
 
   HBasicBlock get start => condition.start;
-  HBasicBlock get end => elseGraph === null ? thenGraph.end : elseGraph.end;
+  HBasicBlock get end => elseGraph == null ? thenGraph.end : elseGraph.end;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitIfInfo(this);
@@ -2946,7 +2946,7 @@ class HTryBlockInformation implements HStatementInformation {
 
   HBasicBlock get start => body.start;
   HBasicBlock get end =>
-      finallyBlock === null ? catchBlock.end : finallyBlock.end;
+      finallyBlock == null ? catchBlock.end : finallyBlock.end;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitTryInfo(this);

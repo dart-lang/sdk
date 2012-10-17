@@ -50,10 +50,10 @@ class Compiler extends leg.Compiler {
 
   String lookupLibraryPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
-    if (info === null) return null;
+    if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPath;
-    if (path === null) {
+    if (path == null) {
       path = info.path;
     }
     return "lib/$path";
@@ -61,10 +61,10 @@ class Compiler extends leg.Compiler {
 
   String lookupPatchPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
-    if (info === null) return null;
+    if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPatchPath;
-    if (path === null) return null;
+    if (path == null) return null;
     return "lib/$path";
   }
 
@@ -92,7 +92,7 @@ class Compiler extends leg.Compiler {
       // directly. In effect, we don't support truly asynchronous API.
       text = provider(translated).value;
     } catch (exception) {
-      if (node !== null) {
+      if (node != null) {
         cancel("$exception", node: node);
       } else {
         reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
@@ -112,7 +112,7 @@ class Compiler extends leg.Compiler {
 
   Uri translateDartUri(Uri uri, tree.Node node) {
     String path = lookupLibraryPath(uri.path);
-    if (path === null || LIBRARIES[uri.path].category == "Internal") {
+    if (path == null || LIBRARIES[uri.path].category == "Internal") {
       if (node != null) {
         reportError(node, 'library not found ${uri}');
       } else {
@@ -132,7 +132,7 @@ class Compiler extends leg.Compiler {
 
   Uri resolvePatchUri(String dartLibraryPath) {
     String patchPath = lookupPatchPath(dartLibraryPath);
-    if (patchPath === null) return null;
+    if (patchPath == null) return null;
     return libraryRoot.resolve(patchPath);
   }
 
@@ -148,12 +148,13 @@ class Compiler extends leg.Compiler {
 
   void reportDiagnostic(leg.SourceSpan span, String message,
                         api.Diagnostic kind) {
-    if (kind === api.Diagnostic.ERROR || kind === api.Diagnostic.CRASH) {
+    if (identical(kind, api.Diagnostic.ERROR)
+        || identical(kind, api.Diagnostic.CRASH)) {
       compilationFailed = true;
     }
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
-    if (span === null || span.uri === null) {
+    if (span == null || span.uri == null) {
       handler(null, null, null, message, kind);
     } else {
       handler(translateUri(span.uri, null), span.begin, span.end,
@@ -163,6 +164,6 @@ class Compiler extends leg.Compiler {
 
   bool get isMockCompilation {
     return mockableLibraryUsed
-      && (options.indexOf('--allow-mock-compilation') !== -1);
+      && (options.indexOf('--allow-mock-compilation') != -1);
   }
 }

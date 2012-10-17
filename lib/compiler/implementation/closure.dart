@@ -23,7 +23,7 @@ class ClosureTask extends CompilerTask {
                                                TreeElements elements) {
     return measure(() {
       ClosureClassMap cached = closureMappingCache[node];
-      if (cached !== null) return cached;
+      if (cached != null) return cached;
 
       ClosureTranslator translator =
           new ClosureTranslator(compiler, elements, closureMappingCache);
@@ -45,7 +45,7 @@ class ClosureTask extends CompilerTask {
   ClosureClassMap getMappingForNestedFunction(FunctionExpression node) {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
-      if (nestedClosureData === null) {
+      if (nestedClosureData == null) {
         // TODO(floitsch): we can only assume that the reason for not having a
         // closure data here is, because the function is inside an initializer.
         compiler.unimplemented("Closures inside initializers", node: node);
@@ -163,7 +163,7 @@ class ClosureClassMap {
         this.usedVariablesInTry = new Set<Element>(),
         this.parametersWithSentinel = new Map<Element, Element>();
 
-  bool isClosure() => closureElement !== null;
+  bool isClosure() => closureElement != null;
 }
 
 class ClosureTranslator extends Visitor {
@@ -235,7 +235,7 @@ class ClosureTranslator extends Visitor {
       freeVariableMapping.getKeys().forEach((Element fromElement) {
         assert(fromElement == freeVariableMapping[fromElement]);
         Element updatedElement = capturedVariableMapping[fromElement];
-        assert(updatedElement !== null);
+        assert(updatedElement != null);
         if (fromElement == updatedElement) {
           assert(freeVariableMapping[fromElement] == updatedElement);
           assert(Elements.isLocal(updatedElement)
@@ -307,7 +307,7 @@ class ClosureTranslator extends Visitor {
          link = link.tail) {
       Node definition = link.head;
       Element element = elements[definition];
-      assert(element !== null);
+      assert(element != null);
       declareLocal(element);
       // We still need to visit the right-hand sides of the init-assignments.
       // For SendSets don't visit the left again. Otherwise it would be marked
@@ -335,7 +335,7 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       useLocal(element);
-    } else if (node.receiver === null &&
+    } else if (node.receiver == null &&
                Elements.isInstanceSend(node, elements)) {
       useLocal(closureData.thisElement);
     } else if (node.isSuperCall) {
@@ -463,11 +463,11 @@ class ClosureTranslator extends Visitor {
   visitFor(For node) {
     visitLoop(node);
     // See if we have declared loop variables that need to be boxed.
-    if (node.initializer === null) return;
+    if (node.initializer == null) return;
     VariableDefinitions definitions = node.initializer.asVariableDefinitions();
     if (definitions == null) return;
     ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData === null) return;
+    if (scopeData == null) return;
     List<Element> result = <Element>[];
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty();
@@ -492,11 +492,11 @@ class ClosureTranslator extends Visitor {
     }
     for (Element enclosingElement = element.enclosingElement;
          enclosingElement != null &&
-             (enclosingElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
-              || enclosingElement.kind === ElementKind.CLASS
-              || enclosingElement.kind === ElementKind.FUNCTION
-              || enclosingElement.kind === ElementKind.GETTER
-              || enclosingElement.kind === ElementKind.SETTER);
+             (identical(enclosingElement.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)
+              || identical(enclosingElement.kind, ElementKind.CLASS)
+              || identical(enclosingElement.kind, ElementKind.FUNCTION)
+              || identical(enclosingElement.kind, ElementKind.GETTER)
+              || identical(enclosingElement.kind, ElementKind.SETTER));
          enclosingElement = enclosingElement.enclosingElement) {
       SourceString surroundingName = enclosingElement.name;
       if (surroundingName != null) {
@@ -552,7 +552,7 @@ class ClosureTranslator extends Visitor {
 
     inNewScope(node, () {
       // We have to declare the implicit 'this' parameter.
-      if (!insideClosure && closureData.thisElement !== null) {
+      if (!insideClosure && closureData.thisElement != null) {
         declareLocal(closureData.thisElement);
       }
       // If we are inside a named closure we have to declare ourselve. For
@@ -614,8 +614,8 @@ class ClosureTranslator extends Visitor {
       // parameters, etc. Other phases should only visit statements.
       // TODO(floitsch): we avoid visiting the initializers on purpose so that
       // we get an error-message later in the builder.
-      if (node.parameters !== null) node.parameters.accept(this);
-      if (node.body !== null) node.body.accept(this);
+      if (node.parameters != null) node.parameters.accept(this);
+      if (node.body != null) node.body.accept(this);
     });
   }
 

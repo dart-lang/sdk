@@ -352,7 +352,7 @@ class Message {
   Message(this.kind, this.arguments);
 
   String toString() {
-    if (message === null) {
+    if (message == null) {
       message = kind.template;
       int position = 1;
       for (var argument in arguments) {

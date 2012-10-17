@@ -117,7 +117,7 @@ class Element implements Spannable {
   Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
-    assert(isErroneous() || getImplementationLibrary() !== null);
+    assert(isErroneous() || getImplementationLibrary() != null);
   }
 
   Modifiers get modifiers => Modifiers.EMPTY;
@@ -131,38 +131,39 @@ class Element implements Spannable {
   }
 
   void addMetadata(MetadataAnnotation annotation) {
-    assert(annotation.annotatedElement === null);
+    assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
     metadata = metadata.prepend(annotation);
   }
 
-  bool isFunction() => kind === ElementKind.FUNCTION;
+  bool isFunction() => identical(kind, ElementKind.FUNCTION);
   bool isConstructor() => isFactoryConstructor() || isGenerativeConstructor();
   bool isClosure() => false;
   bool isMember() {
     // Check that this element is defined in the scope of a Class.
-    return enclosingElement !== null && enclosingElement.isClass();
+    return enclosingElement != null && enclosingElement.isClass();
   }
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers.isFactory();
-  bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
+  bool isGenerativeConstructor() => 
+      identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);
   bool isGenerativeConstructorBody() =>
-      kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
-  bool isCompilationUnit() => kind === ElementKind.COMPILATION_UNIT;
-  bool isClass() => kind === ElementKind.CLASS;
-  bool isPrefix() => kind === ElementKind.PREFIX;
-  bool isVariable() => kind === ElementKind.VARIABLE;
-  bool isParameter() => kind === ElementKind.PARAMETER;
-  bool isStatement() => kind === ElementKind.STATEMENT;
-  bool isTypedef() => kind === ElementKind.TYPEDEF;
-  bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
-  bool isField() => kind === ElementKind.FIELD;
-  bool isAbstractField() => kind === ElementKind.ABSTRACT_FIELD;
-  bool isGetter() => kind === ElementKind.GETTER;
-  bool isSetter() => kind === ElementKind.SETTER;
+      identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
+  bool isCompilationUnit() => identical(kind, ElementKind.COMPILATION_UNIT);
+  bool isClass() => identical(kind, ElementKind.CLASS);
+  bool isPrefix() => identical(kind, ElementKind.PREFIX);
+  bool isVariable() => identical(kind, ElementKind.VARIABLE);
+  bool isParameter() => identical(kind, ElementKind.PARAMETER);
+  bool isStatement() => identical(kind, ElementKind.STATEMENT);
+  bool isTypedef() => identical(kind, ElementKind.TYPEDEF);
+  bool isTypeVariable() => identical(kind, ElementKind.TYPE_VARIABLE);
+  bool isField() => identical(kind, ElementKind.FIELD);
+  bool isAbstractField() => identical(kind, ElementKind.ABSTRACT_FIELD);
+  bool isGetter() => identical(kind, ElementKind.GETTER);
+  bool isSetter() => identical(kind, ElementKind.SETTER);
   bool isAccessor() => isGetter() || isSetter();
-  bool isForeign() => kind === ElementKind.FOREIGN;
-  bool isLibrary() => kind === ElementKind.LIBRARY;
+  bool isForeign() => identical(kind, ElementKind.FOREIGN);
+  bool isLibrary() => identical(kind, ElementKind.LIBRARY);
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
@@ -222,7 +223,7 @@ class Element implements Spannable {
   // which the enclosing element is a VariableDeclarations and not a compilation
   // unit.
   bool isTopLevel() {
-    return enclosingElement !== null && enclosingElement.isCompilationUnit();
+    return enclosingElement != null && enclosingElement.isCompilationUnit();
   }
 
   bool isAssignable() {
@@ -234,7 +235,7 @@ class Element implements Spannable {
   Token position() => null;
 
   Token findMyName(Token token) {
-    for (Token t = token; t.kind !== EOF_TOKEN; t = t.next) {
+    for (Token t = token; !identical(t.kind, EOF_TOKEN); t = t.next) {
       if (t.value == name) return t;
     }
     return token;
@@ -243,7 +244,7 @@ class Element implements Spannable {
   // TODO(kasperl): This is a very bad hash code for the element and
   // there's no reason why two elements with the same name should have
   // the same hash code. Replace this with a simple id in the element?
-  int hashCode() => name === null ? 0 : name.hashCode();
+  int hashCode() => name == null ? 0 : name.hashCode();
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
@@ -257,28 +258,28 @@ class Element implements Spannable {
 
   LibraryElement getImplementationLibrary() {
     Element element = this;
-    while (element.kind !== ElementKind.LIBRARY) {
+    while (!identical(element.kind, ElementKind.LIBRARY)) {
       element = element.enclosingElement;
     }
     return element;
   }
 
   ClassElement getEnclosingClass() {
-    for (Element e = this; e !== null; e = e.enclosingElement) {
+    for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClass()) return e;
     }
     return null;
   }
 
   Element getEnclosingClassOrCompilationUnit() {
-   for (Element e = this; e !== null; e = e.enclosingElement) {
+   for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClass() || e.isCompilationUnit()) return e;
     }
     return null;
   }
 
   Element getEnclosingMember() {
-    for (Element e = this; e !== null; e = e.enclosingElement) {
+    for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isMember()) return e;
     }
     return null;
@@ -286,7 +287,7 @@ class Element implements Spannable {
 
   Element getOutermostEnclosingMemberOrTopLevel() {
     // TODO(lrn): Why is this called "Outermost"?
-    for (Element e = this; e !== null; e = e.enclosingElement) {
+    for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isMember() || e.isTopLevel()) {
         return e;
       }
@@ -313,9 +314,9 @@ class Element implements Spannable {
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
     // invariant for all element types?
-    var nameText = name !== null ? name.slowToString() : '?';
-    if (enclosingElement !== null && !isTopLevel()) {
-      String holderName = enclosingElement.name !== null
+    var nameText = name != null ? name.slowToString() : '?';
+    if (enclosingElement != null && !isTopLevel()) {
+      String holderName = enclosingElement.name != null
           ? enclosingElement.name.slowToString()
           : '${enclosingElement.kind}?';
       return '$kind($holderName#${nameText})';
@@ -421,7 +422,7 @@ class ScopeContainerElement extends ContainerElement {
       addAccessorToScope(element, localScope[element.name], listener);
     } else {
       Element existing = localScope.putIfAbsent(element.name, () => element);
-      if (existing !== element) {
+      if (!identical(existing, element)) {
         // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
         listener.cancel('duplicate definition', token: element.position());
         listener.cancel('existing definition', token: existing.position());
@@ -461,7 +462,7 @@ class ScopeContainerElement extends ContainerElement {
     }
 
     if (existing != null) {
-      if (existing.kind !== ElementKind.ABSTRACT_FIELD) {
+      if (!identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
         reportError(existing);
       } else {
         AbstractFieldElement field = existing;
@@ -595,7 +596,7 @@ class LibraryElement extends ScopeContainerElement {
   Link<Element> slotForExports;
 
   LibraryElement(Script script, [Uri uri, LibraryElement this.origin])
-    : this.uri = ((uri === null) ? script.uri : uri),
+    : this.uri = ((uri == null) ? script.uri : uri),
       importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
@@ -604,8 +605,8 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
-  bool get isPatched => patch !== null;
-  bool get isPatch => origin !== null;
+  bool get isPatched => patch != null;
+  bool get isPatch => origin != null;
 
   LibraryElement get declaration => super.declaration;
   LibraryElement get implementation => super.implementation;
@@ -629,7 +630,7 @@ class LibraryElement extends ScopeContainerElement {
    */
   void addImport(Element element, DiagnosticListener listener) {
     Element existing = importScope[element.name];
-    if (existing !== null) {
+    if (existing != null) {
       if (!existing.isErroneous()) {
         // TODO(johnniwinther): Provide access to both the new and existing
         // elements.
@@ -646,7 +647,7 @@ class LibraryElement extends ScopeContainerElement {
    * Returns [:true:] if the export scope has already been computed for this
    * library.
    */
-  bool get exportsHandled => slotForExports !== null;
+  bool get exportsHandled => slotForExports != null;
 
   Link<Element> get exports {
     assert(invariant(this, exportsHandled,
@@ -660,7 +661,7 @@ class LibraryElement extends ScopeContainerElement {
   void setExports(Iterable<Element> exportedElements) {
     assert(invariant(this, !exportsHandled,
         message: 'Exports already set to $slotForExports on $this'));
-    assert(invariant(this, exportedElements !== null));
+    assert(invariant(this, exportedElements != null));
     var builder = new LinkBuilder<Element>();
     for (Element export in exportedElements) {
       builder.addLast(export);
@@ -678,7 +679,7 @@ class LibraryElement extends ScopeContainerElement {
    */
   Element find(SourceString elementName) {
     Element result = localScope[elementName];
-    if (result === null) {
+    if (result == null) {
       result = importScope[elementName];
     }
     return result;
@@ -690,7 +691,7 @@ class LibraryElement extends ScopeContainerElement {
     // TODO(johnniwinther): How to handle injected elements in the patch
     // library?
     Element result = localScope[elementName];
-    if (result === null || result.getLibrary() != this) return null;
+    if (result == null || result.getLibrary() != this) return null;
     return result;
   }
 
@@ -715,7 +716,7 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
-  bool hasLibraryName() => libraryTag !== null;
+  bool hasLibraryName() => libraryTag != null;
 
   /**
    * Returns the library name (as defined by the #library tag) or for script
@@ -723,7 +724,7 @@ class LibraryElement extends ScopeContainerElement {
    * to private 'library name' for scripts to use for instance in dartdoc.
    */
   String getLibraryOrScriptName() {
-    if (libraryTag !== null) {
+    if (libraryTag != null) {
       return libraryTag.name.toString();
     } else {
       // Use the file name as script name.
@@ -734,9 +735,9 @@ class LibraryElement extends ScopeContainerElement {
 
   // TODO(johnniwinther): Rewrite to avoid the optional argument.
   Scope buildEnclosingScope({bool patchScope: false}) {
-    if (origin !== null) {
+    if (origin != null) {
       return new PatchLibraryScope(origin, this);
-    } if (patchScope && patch !== null) {
+    } if (patchScope && patch != null) {
       return new PatchLibraryScope(this, patch);
     } else {
       return new TopScope(this);
@@ -746,9 +747,9 @@ class LibraryElement extends ScopeContainerElement {
   bool get isPlatformLibrary => uri.scheme == "dart";
 
   String toString() {
-    if (origin !== null) {
+    if (origin != null) {
       return 'patch library(${getLibraryOrScriptName()})';
-    } else if (patch !== null) {
+    } else if (patch != null) {
       return 'origin library(${getLibraryOrScriptName()})';
     } else {
       return 'library(${getLibraryOrScriptName()})';
@@ -793,7 +794,7 @@ class TypedefElement extends Element implements TypeDeclarationElement {
   FunctionSignature functionSignature;
 
   TypedefType computeType(Compiler compiler) {
-    if (cachedType !== null) return cachedType;
+    if (cachedType != null) return cachedType;
     Typedef node = parseNode(compiler);
     Link<DartType> parameters =
         TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
@@ -825,16 +826,16 @@ class VariableElement extends Element {
     : super(name, kind, enclosing), cachedNode = node;
 
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode !== null) return cachedNode;
+    if (cachedNode != null) return cachedNode;
     VariableDefinitions definitions = variables.parseNode(listener);
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty(); link = link.tail) {
       Expression initializedIdentifier = link.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
-      if (identifier === null) {
+      if (identifier == null) {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
-      if (name === identifier.source) {
+      if (identical(name, identifier.source)) {
         cachedNode = initializedIdentifier;
         return cachedNode;
       }
@@ -898,7 +899,7 @@ class VariableListElement extends Element {
       : super(null, kind, enclosing),
         this.cachedNode = node,
         this.modifiers = node.modifiers {
-    assert(modifiers !== null);
+    assert(modifiers != null);
   }
 
   VariableDefinitions parseNode(DiagnosticListener listener) {
@@ -909,13 +910,13 @@ class VariableListElement extends Element {
     if (type != null) return type;
     compiler.withCurrentElement(this, () {
       VariableDefinitions node = parseNode(compiler);
-      if (node.type !== null) {
+      if (node.type != null) {
         type = compiler.resolveTypeAnnotation(this, node.type);
       } else {
         // Is node.definitions exactly one FunctionExpression?
         Link<Node> link = node.definitions.nodes;
         if (!link.isEmpty() &&
-            link.head.asFunctionExpression() !== null &&
+            link.head.asFunctionExpression() != null &&
             link.tail.isEmpty()) {
           FunctionExpression functionExpression = link.head;
           // We found exactly one FunctionExpression
@@ -988,8 +989,8 @@ class AbstractFieldElement extends Element {
     //
     // We need to make sure that the position returned is relative to
     // the compilation unit of the abstract element.
-    if (getter !== null
-        && getter.getCompilationUnit() === getCompilationUnit()) {
+    if (getter != null
+        && identical(getter.getCompilationUnit(), getCompilationUnit())) {
       return getter.position();
     } else {
       return setter.position();
@@ -998,7 +999,7 @@ class AbstractFieldElement extends Element {
 
   Modifiers get modifiers {
     // The resolver ensures that the flags match (ignoring abstract).
-    if (getter !== null) {
+    if (getter != null) {
       return new Modifiers.withFlags(
           getter.modifiers.nodes,
           getter.modifiers.flags | Modifiers.FLAG_ABSTRACT);
@@ -1120,12 +1121,12 @@ class FunctionElement extends Element {
                                      Element enclosing,
                                      FunctionSignature this.functionSignature)
       : super(name, kind, enclosing) {
-    assert(modifiers !== null);
+    assert(modifiers != null);
     defaultImplementation = this;
   }
 
-  bool get isPatched => patch !== null;
-  bool get isPatch => origin !== null;
+  bool get isPatched => patch != null;
+  bool get isPatch => origin != null;
 
   /**
    * Applies a patch function to this function. The patch function's body
@@ -1135,7 +1136,7 @@ class FunctionElement extends Element {
    */
   void setPatch(FunctionElement patchElement) {
     // Sanity checks. The caller must check these things before calling.
-    assert(patch === null);
+    assert(patch == null);
     this.patch = patchElement;
   }
 
@@ -1146,7 +1147,7 @@ class FunctionElement extends Element {
   }
 
   FunctionSignature computeSignature(Compiler compiler) {
-    if (functionSignature !== null) return functionSignature;
+    if (functionSignature != null) return functionSignature;
     compiler.withCurrentElement(this, () {
       functionSignature = compiler.resolveSignature(this);
     });
@@ -1173,7 +1174,7 @@ class FunctionElement extends Element {
   }
 
   Node parseNode(DiagnosticListener listener) {
-    if (patch === null) {
+    if (patch == null) {
       if (modifiers.isExternal()) {
         listener.cancel("Compiling external function with no implementation.",
                         element: this);
@@ -1227,9 +1228,9 @@ class ConstructorBodyElement extends FunctionElement {
   }
 
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode !== null) return cachedNode;
+    if (cachedNode != null) return cachedNode;
     cachedNode = constructor.parseNode(listener);
-    assert(cachedNode !== null);
+    assert(cachedNode != null);
     return cachedNode;
   }
 
@@ -1277,7 +1278,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   static Link<DartType> createTypeVariables(TypeDeclarationElement element,
                                         NodeList parameters) {
-    if (parameters === null) return const Link<DartType>();
+    if (parameters == null) return const Link<DartType>();
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<DartType>();
@@ -1324,7 +1325,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   InterfaceType computeType(compiler) {
     if (type == null) {
-      if (origin === null) {
+      if (origin == null) {
         ClassNode node = parseNode(compiler);
         Link<DartType> parameters =
             TypeDeclarationElement.createTypeVariables(this,
@@ -1347,7 +1348,7 @@ abstract class ClassElement extends ScopeContainerElement
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
    */
   bool isObject(Compiler compiler) =>
-      declaration === compiler.objectClass;
+      identical(declaration, compiler.objectClass);
 
   Link<DartType> get typeVariables => type.arguments;
 
@@ -1363,7 +1364,7 @@ abstract class ClassElement extends ScopeContainerElement
    */
   Element lookupLocalMember(SourceString memberName) {
     var result = localLookup(memberName);
-    if (result !== null && result.isConstructor()) return null;
+    if (result != null && result.isConstructor()) return null;
     return result;
   }
 
@@ -1384,10 +1385,10 @@ abstract class ClassElement extends ScopeContainerElement
     bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
-      if (isPrivate && library !== s.getLibrary()) continue;
+      if (isPrivate && !identical(library, s.getLibrary())) continue;
       s = includeInjectedMembers ? s.implementation : s;
       Element e = s.lookupLocalMember(memberName);
-      if (e === null) continue;
+      if (e == null) continue;
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;
@@ -1406,9 +1407,9 @@ abstract class ClassElement extends ScopeContainerElement
       ClassElement cls = t.element;
       cls = includeInjectedMembers ? cls.implementation : cls;
       Element e = cls.lookupLocalMember(memberName);
-      if (e === null) continue;
+      if (e == null) continue;
       // Private members from a different library are not visible.
-      if (isPrivate && fromLibrary !== e.getLibrary()) continue;
+      if (isPrivate && !identical(fromLibrary, e.getLibrary())) continue;
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;
@@ -1445,7 +1446,7 @@ abstract class ClassElement extends ScopeContainerElement
    */
   Element lookupMember(SourceString memberName) {
     Element localMember = lookupLocalMember(memberName);
-    return localMember === null ? lookupSuperMember(memberName) : localMember;
+    return localMember == null ? lookupSuperMember(memberName) : localMember;
   }
 
   /**
@@ -1479,11 +1480,11 @@ abstract class ClassElement extends ScopeContainerElement
   Element validateConstructorLookupResults(Selector selector,
                                            Element result,
                                            Element noMatch(Element)) {
-    if (result === null
+    if (result == null
         || !result.isConstructor()
         || (selector.name.isPrivate()
             && result.getLibrary() != selector.library)) {
-      result = noMatch !== null ? noMatch(result) : null;
+      result = noMatch != null ? noMatch(result) : null;
     }
     return result;
   }
@@ -1495,8 +1496,8 @@ abstract class ClassElement extends ScopeContainerElement
     SourceString normalizedName;
     SourceString className = this.name;
     SourceString constructorName = selector.name;
-    if (constructorName !== const SourceString('') &&
-        ((className === null) ||
+    if (!identical(constructorName, const SourceString('')) &&
+        ((className == null) ||
          (constructorName.slowToString() != className.slowToString()))) {
       normalizedName = Elements.constructConstructorName(className,
                                                          constructorName);
@@ -1539,7 +1540,7 @@ abstract class ClassElement extends ScopeContainerElement
    */
   ClassElement get superclass {
     assert(supertypeLoadState == STATE_DONE);
-    return supertype === null ? null : supertype.element;
+    return supertype == null ? null : supertype.element;
   }
 
   /**
@@ -1584,7 +1585,7 @@ abstract class ClassElement extends ScopeContainerElement
         }
       }
       classElement = includeSuperMembers ? classElement.superclass : null;
-    } while(classElement !== null);
+    } while(classElement != null);
   }
 
   /**
@@ -1618,7 +1619,7 @@ abstract class ClassElement extends ScopeContainerElement
   bool implementsInterface(ClassElement intrface) {
     for (DartType implementedInterfaceType in allSupertypes) {
       ClassElement implementedInterface = implementedInterfaceType.element;
-      if (implementedInterface === intrface) {
+      if (identical(implementedInterface, intrface)) {
         return true;
       }
     }
@@ -1634,7 +1635,7 @@ abstract class ClassElement extends ScopeContainerElement
    */
   bool isSubclassOf(ClassElement cls) {
     for (ClassElement s = this; s != null; s = s.superclass) {
-      if (s === cls) return true;
+      if (identical(s, cls)) return true;
     }
     return false;
   }
@@ -1645,10 +1646,10 @@ abstract class ClassElement extends ScopeContainerElement
 
   // TODO(johnniwinther): Rewrite to avoid the optional argument.
   Scope buildScope({bool patchScope: false}) {
-    if (origin !== null) {
+    if (origin != null) {
       return new PatchClassScope(
           enclosingElement.buildScope(patchScope: patchScope), origin, this);
-    } else if (patchScope && patch !== null) {
+    } else if (patchScope && patch != null) {
       return new PatchClassScope(
           enclosingElement.buildScope(patchScope: patchScope), this, patch);
     } else {
@@ -1658,7 +1659,7 @@ abstract class ClassElement extends ScopeContainerElement
   }
 
   Scope buildLocalScope() {
-    if (origin !== null) {
+    if (origin != null) {
       return new LocalPatchClassScope(origin, this);
     } else {
       return new LocalClassScope(this);
@@ -1670,9 +1671,9 @@ abstract class ClassElement extends ScopeContainerElement
   }
 
   String toString() {
-    if (origin !== null) {
+    if (origin != null) {
       return 'patch ${super.toString()}';
-    } else if (patch !== null) {
+    } else if (patch != null) {
       return 'origin ${super.toString()}';
     } else {
       return super.toString();
@@ -1689,17 +1690,17 @@ class Elements {
             && !element.isInstanceMember()
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
-            && (element.kind === ElementKind.VARIABLE ||
-                element.kind === ElementKind.PARAMETER ||
-                element.kind === ElementKind.FUNCTION);
+            && (identical(element.kind, ElementKind.VARIABLE) ||
+                identical(element.kind, ElementKind.PARAMETER) ||
+                identical(element.kind, ElementKind.FUNCTION));
   }
 
   static bool isInstanceField(Element element) {
     return !Elements.isUnresolved(element)
            && element.isInstanceMember()
-           && (element.kind === ElementKind.FIELD
-               || element.kind === ElementKind.GETTER
-               || element.kind === ElementKind.SETTER);
+           && (identical(element.kind, ElementKind.FIELD)
+               || identical(element.kind, ElementKind.GETTER)
+               || identical(element.kind, ElementKind.SETTER));
   }
 
   static bool isStaticOrTopLevel(Element element) {
@@ -1712,7 +1713,7 @@ class Elements {
     return !Elements.isUnresolved(element)
            && !element.isInstanceMember()
            && !element.isPrefix()
-           && element.enclosingElement !== null
+           && element.enclosingElement != null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
                element.enclosingElement.kind == ElementKind.LIBRARY);
@@ -1720,34 +1721,34 @@ class Elements {
 
   static bool isStaticOrTopLevelField(Element element) {
     return isStaticOrTopLevel(element)
-           && (element.kind === ElementKind.FIELD
-               || element.kind === ElementKind.GETTER
-               || element.kind === ElementKind.SETTER);
+           && (identical(element.kind, ElementKind.FIELD)
+               || identical(element.kind, ElementKind.GETTER)
+               || identical(element.kind, ElementKind.SETTER));
   }
 
   static bool isStaticOrTopLevelFunction(Element element) {
     return isStaticOrTopLevel(element)
-           && (element.kind === ElementKind.FUNCTION);
+           && (identical(element.kind, ElementKind.FUNCTION));
   }
 
   static bool isInstanceMethod(Element element) {
     return !Elements.isUnresolved(element)
            && element.isInstanceMember()
-           && (element.kind === ElementKind.FUNCTION);
+           && (identical(element.kind, ElementKind.FUNCTION));
   }
 
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
-    if (element === null) return !isClosureSend(send, element);
+    if (element == null) return !isClosureSend(send, element);
     return isInstanceMethod(element) || isInstanceField(element);
   }
 
   static bool isClosureSend(Send send, Element element) {
     if (send.isPropertyAccess) return false;
-    if (send.receiver !== null) return false;
+    if (send.receiver != null) return false;
     // (o)() or foo()().
-    if (element === null && send.selector.asIdentifier() === null) return true;
-    if (element === null) return false;
+    if (element == null && send.selector.asIdentifier() == null) return true;
+    if (element == null) return false;
     // foo() with foo a local or a parameter.
     return isLocal(element);
   }
@@ -1765,51 +1766,51 @@ class Elements {
   static SourceString constructOperatorName(SourceString selector,
                                             bool isUnary) {
     String str = selector.stringValue;
-    if (str === '==' || str === '!=') return OPERATOR_EQUALS;
+    if (identical(str, '==') || identical(str, '!=')) return OPERATOR_EQUALS;
 
-    if (str === '~') {
+    if (identical(str, '~')) {
       str = 'not';
-    } else if (str === '-' && isUnary) {
+    } else if (identical(str, '-') && isUnary) {
       // TODO(ahe): Return something like 'unary -'.
       return const SourceString('negate');
-    } else if (str === '[]') {
+    } else if (identical(str, '[]')) {
       str = 'index';
-    } else if (str === '[]=') {
+    } else if (identical(str, '[]=')) {
       str = 'indexSet';
-    } else if (str === '*' || str === '*=') {
+    } else if (identical(str, '*') || identical(str, '*=')) {
       str = 'mul';
-    } else if (str === '/' || str === '/=') {
+    } else if (identical(str, '/') || identical(str, '/=')) {
       str = 'div';
-    } else if (str === '%' || str === '%=') {
+    } else if (identical(str, '%') || identical(str, '%=')) {
       str = 'mod';
-    } else if (str === '~/' || str === '~/=') {
+    } else if (identical(str, '~/') || identical(str, '~/=')) {
       str = 'tdiv';
-    } else if (str === '+' || str === '+=') {
+    } else if (identical(str, '+') || identical(str, '+=')) {
       str = 'add';
-    } else if (str === '-' || str === '-=') {
+    } else if (identical(str, '-') || identical(str, '-=')) {
       str = 'sub';
-    } else if (str === '<<' || str === '<<=') {
+    } else if (identical(str, '<<') || identical(str, '<<=')) {
       str = 'shl';
-    } else if (str === '>>' || str === '>>=') {
+    } else if (identical(str, '>>') || identical(str, '>>=')) {
       str = 'shr';
-    } else if (str === '>=') {
+    } else if (identical(str, '>=')) {
       str = 'ge';
-    } else if (str === '>') {
+    } else if (identical(str, '>')) {
       str = 'gt';
-    } else if (str === '<=') {
+    } else if (identical(str, '<=')) {
       str = 'le';
-    } else if (str === '<') {
+    } else if (identical(str, '<')) {
       str = 'lt';
-    } else if (str === '&' || str === '&=') {
+    } else if (identical(str, '&') || identical(str, '&=')) {
       str = 'and';
-    } else if (str === '^' || str === '^=') {
+    } else if (identical(str, '^') || identical(str, '^=')) {
       str = 'xor';
-    } else if (str === '|' || str === '|=') {
+    } else if (identical(str, '|') || identical(str, '|=')) {
       str = 'or';
     } else if (selector == const SourceString('negate')) {
       // TODO(ahe): Remove this case: Legacy support for pre-0.11 spec.
       return selector;
-    } else if (str === '?') {
+    } else if (identical(str, '?')) {
       return selector;
     } else {
       throw new Exception('Unhandled selector: ${selector.slowToString()}');
@@ -1820,18 +1821,18 @@ class Elements {
   static SourceString mapToUserOperator(SourceString op) {
     String value = op.stringValue;
 
-    if (value === '!=') return const SourceString('==');
-    if (value === '*=') return const SourceString('*');
-    if (value === '/=') return const SourceString('/');
-    if (value === '%=') return const SourceString('%');
-    if (value === '~/=') return const SourceString('~/');
-    if (value === '+=') return const SourceString('+');
-    if (value === '-=') return const SourceString('-');
-    if (value === '<<=') return const SourceString('<<');
-    if (value === '>>=') return const SourceString('>>');
-    if (value === '&=') return const SourceString('&');
-    if (value === '^=') return const SourceString('^');
-    if (value === '|=') return const SourceString('|');
+    if (identical(value, '!=')) return const SourceString('==');
+    if (identical(value, '*=')) return const SourceString('*');
+    if (identical(value, '/=')) return const SourceString('/');
+    if (identical(value, '%=')) return const SourceString('%');
+    if (identical(value, '~/=')) return const SourceString('~/');
+    if (identical(value, '+=')) return const SourceString('+');
+    if (identical(value, '-=')) return const SourceString('-');
+    if (identical(value, '<<=')) return const SourceString('<<');
+    if (identical(value, '>>=')) return const SourceString('>>');
+    if (identical(value, '&=')) return const SourceString('&');
+    if (identical(value, '^=')) return const SourceString('^');
+    if (identical(value, '|=')) return const SourceString('|');
 
     throw 'Unhandled operator: ${op.slowToString()}';
   }

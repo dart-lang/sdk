@@ -62,9 +62,9 @@ String typeNameInIE(obj) {
 }
 
 String constructorNameFallback(object) {
-  if (object === null) return 'Null';
+  if (object == null) return 'Null';
   var constructor = JS('var', "#.constructor", object);
-  if (JS('String', "typeof(#)", constructor) === 'function') {
+  if (identical(JS('String', "typeof(#)", constructor), 'function')) {
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
     var name = JS('var', '#.name', constructor);
@@ -74,9 +74,9 @@ String constructorNameFallback(object) {
     // we have to fall through to the toString() based implementation
     // below in that case.
     if (name is String
-        && name !== ''
-        && name !== 'Object'
-        && name !== 'Function.prototype') {  // Can happen in Opera.
+        && !identical(name, '')
+        && !identical(name, 'Object')
+        && !identical(name, 'Function.prototype')) {  // Can happen in Opera.
       return name;
     }
   }
@@ -119,7 +119,7 @@ newJsObject() {
  */
 Function getFunctionForTypeNameOf() {
   // If we're not in the browser, we're almost certainly running on v8.
-  if (JS('String', 'typeof(navigator)') !== 'object') return typeNameInChrome;
+  if (!identical(JS('String', 'typeof(navigator)'), 'object')) return typeNameInChrome;
 
   String userAgent = JS('String', "navigator.userAgent");
   if (contains(userAgent, 'Chrome') || contains(userAgent, 'DumpRenderTree')) {
@@ -152,7 +152,7 @@ Function _getTypeNameOf;
  * Returns the type name of [obj].
  */
 String getTypeNameOf(var obj) {
-  if (_getTypeNameOf === null) _getTypeNameOf = getFunctionForTypeNameOf();
+  if (_getTypeNameOf == null) _getTypeNameOf = getFunctionForTypeNameOf();
   return _getTypeNameOf(obj);
 }
 
@@ -192,22 +192,22 @@ dynamicBind(var obj,
   String tag = getTypeNameOf(obj);
   var method = JS('var', '#[#]', methods, tag);
 
-  if (method === null && _dynamicMetadata !== null) {
+  if (method == null && _dynamicMetadata != null) {
     for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
       MetaInfo entry = arrayGet(_dynamicMetadata, i);
       if (JS('bool', '#', propertyGet(entry._set, tag))) {
         method = propertyGet(methods, entry._tag);
-        if (method !== null) break;
+        if (method != null) break;
       }
     }
   }
 
-  if (method === null) {
+  if (method == null) {
     method = propertyGet(methods, 'Object');
   }
 
   var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
-  if (method === null) {
+  if (method == null) {
     // If the method cannot be found, we use a trampoline method that
     // will throw a [NoSuchMethodError] if the object is of the
     // exact prototype, or will call [dynamicBind] again if the object
@@ -248,7 +248,7 @@ dynamicBind(var obj,
  */
 dynamicFunction(name) {
   var f = JS('var', 'Object.prototype[#]', name);
-  if (f !== null && JS('bool', '!!#.methods', f)) {
+  if (f != null && JS('bool', '!!#.methods', f)) {
     return JS('var', '#.methods', f);
   }
 
@@ -258,7 +258,7 @@ dynamicFunction(name) {
   // If there is a method attached to the Dart Object class, use it as
   // the method to call in case no method is registered for that type.
   var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', const Object(), name);
-  if (dartMethod !== null) propertySet(methods, 'Object', dartMethod);
+  if (dartMethod != null) propertySet(methods, 'Object', dartMethod);
 
   var bind = JS('var',
       'function() {'
@@ -300,7 +300,7 @@ List<MetaInfo> get _dynamicMetadata {
   // that access native classes (eg multiple DOM isolates),
   // [_dynamicMetadata] cannot be a field, otherwise all non-main
   // isolates would not have any value for it.
-  if (JS('var', 'typeof(\$dynamicMetadata)') === 'undefined') {
+  if (identical(JS('var', 'typeof(\$dynamicMetadata)'), 'undefined')) {
     _dynamicMetadata = <MetaInfo>[];
   }
   return JS('var', '\$dynamicMetadata');

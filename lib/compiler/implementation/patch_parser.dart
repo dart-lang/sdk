@@ -178,7 +178,7 @@ class PatchParserTask extends leg.CompilerTask {
       PatchMemberListener listener = new PatchMemberListener(compiler, element);
       Parser parser = new PatchClassElementParser(listener);
       Token token = parser.parseTopLevelDeclaration(element.beginToken);
-      assert(token === element.endToken.next);
+      assert(identical(token, element.endToken.next));
       element.cachedNode = listener.popNode();
       assert(listener.nodes.isEmpty());
 
@@ -192,8 +192,8 @@ class PatchParserTask extends leg.CompilerTask {
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
       Element originalElement = original.localLookup(patchElement.name);
-      if (patchElement.isAccessor() && originalElement !== null) {
-        if (originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+      if (patchElement.isAccessor() && originalElement != null) {
+        if (!identical(originalElement.kind, ElementKind.ABSTRACT_FIELD)) {
           compiler.internalError(
               "Cannot patch non-getter/setter with getter/setter",
               element: originalElement);
@@ -205,7 +205,7 @@ class PatchParserTask extends leg.CompilerTask {
           originalElement = originalField.setter;
         }
       }
-      if (originalElement === null) {
+      if (originalElement == null) {
         if (isPatchElement(patchElement)) {
           compiler.internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
@@ -263,7 +263,7 @@ class PatchParserTask extends leg.CompilerTask {
       compiler.internalError("Trying to patch a function more than once.",
                     element: element);
     }
-    if (element.cachedNode !== null) {
+    if (element.cachedNode != null) {
       compiler.internalError("Trying to patch an already compiled function.",
                     element: element);
     }
@@ -293,7 +293,7 @@ class PatchParser extends PartialParser {
   PatchListener get patchListener => listener;
 
   bool isPatch(Token token) {
-    return token.stringValue === null &&
+    return token.stringValue == null &&
            token.slowToString() == "patch";
   }
 
@@ -308,10 +308,10 @@ class PatchParser extends PartialParser {
     Token patch = token;
     token = token.next;
     String value = token.stringValue;
-    if (value === 'interface'
-        || value === 'typedef'
-        || value === '#'
-        || value === 'abstract') {
+    if (identical(value, 'interface')
+        || identical(value, 'typedef')
+        || identical(value, '#')
+        || identical(value, 'abstract')) {
       // At the top level, you can only patch functions and classes.
       // Patch classes and functions can't be marked abstract.
       return listener.unexpected(patch);
@@ -372,7 +372,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
   }
 
   void beginPatch(Token token) {
-    if (token.next.stringValue === "class") {
+    if (identical(token.next.stringValue, "class")) {
       isClassPatch = true;
     } else {
       isMemberPatch = true;
@@ -381,7 +381,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
   }
 
   void endPatch(Token token) {
-    if (token.next.stringValue === "class") {
+    if (identical(token.next.stringValue, "class")) {
       isClassPatch = false;
     } else {
       isMemberPatch = false;
@@ -411,7 +411,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
           listener.internalErrorOnElement(element,
                                           "Member patch is not a function.");
         }
-        if (existing.kind === ElementKind.ABSTRACT_FIELD) {
+        if (identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
           if (!element.isAccessor()) {
             listener.internalErrorOnElement(
                 element, "Patching non-accessor with accessor");
@@ -469,7 +469,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
   }
 
   void beginPatch(Token token) {
-    if (token.next.stringValue === "class") {
+    if (identical(token.next.stringValue, "class")) {
       isClassPatch = true;
     } else {
       isMemberPatch = true;
@@ -478,7 +478,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
   }
 
   void endPatch(Token token) {
-    if (token.next.stringValue === "class") {
+    if (identical(token.next.stringValue, "class")) {
       isClassPatch = false;
     } else {
       isMemberPatch = false;

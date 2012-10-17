@@ -605,7 +605,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       if (codeBuffer == null) return;
       defineInstanceMember(namer.getName(member), codeBuffer);
       codeBuffer = compiler.codegenWorld.generatedBailoutCode[member];
-      if (codeBuffer !== null) {
+      if (codeBuffer != null) {
         defineInstanceMember(namer.getBailoutName(member), codeBuffer);
       }
       FunctionElement function = member;
@@ -670,7 +670,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       // We need to name shadowed fields differently, so they don't clash with
       // the non-shadowed field.
       bool isShadowed = false;
-      if (enclosingClass === classElement) {
+      if (identical(enclosingClass, classElement)) {
         needsDynamicGetter = instanceFieldNeedsGetter(member);
         needsDynamicSetter = instanceFieldNeedsSetter(member);
       } else {
@@ -761,7 +761,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       defineInstanceMember(namer.operatorIs(other), typeTestBuffer);
     });
 
-    if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
+    if (identical(classElement, compiler.objectClass)
+        && compiler.enabledNoSuchMethod) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -793,7 +794,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     String className = namer.getName(classElement);
     ClassElement superclass = classElement.superclass;
     String superName = "";
-    if (superclass !== null) {
+    if (superclass != null) {
       superName = namer.getName(superclass);
     }
     String constructorName = namer.safeName(classElement.name.slowToString());
@@ -869,7 +870,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         new Set<ClassElement>.from(instantiatedClasses);
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
-           superclass !== null;
+           superclass != null;
            superclass = superclass.superclass) {
         if (neededClasses.contains(superclass)) break;
         neededClasses.add(superclass);
@@ -893,7 +894,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       for (ClassElement element in sortedClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member === null) continue;
+        if (member == null) continue;
         if (noSuchMethodSelector.applies(member, compiler)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
@@ -1008,7 +1009,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     String closureClass =
         hasOptionalParameters ? null : boundClosureCache[parameterCount];
-    if (closureClass === null) {
+    if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
       SourceString name = const SourceString("BoundClosure");
@@ -1124,7 +1125,7 @@ $classesCollector.$mangledName = {'':
     if (!lazyFields.isEmpty()) {
       needsLazyInitializer = true;
       for (VariableElement element in lazyFields) {
-        assert(compiler.codegenWorld.generatedBailoutCode[element] === null);
+        assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
         StringBuffer code = compiler.codegenWorld.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
@@ -1159,7 +1160,7 @@ $classesCollector.$mangledName = {'':
       // The name is null when the constant is already a JS constant.
       // TODO(floitsch): every constant should be registered, so that we can
       // share the ones that take up too much space (like some strings).
-      if (name === null) continue;
+      if (name == null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
@@ -1190,7 +1191,7 @@ $classesCollector.$mangledName = {'':
     assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-      if (selectors !== null && !selectors.isEmpty()) {
+      if (selectors != null && !selectors.isEmpty()) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.isFunction()) {
@@ -1218,7 +1219,7 @@ $classesCollector.$mangledName = {'':
     Set<ClassElement> noSuchMethodHoldersFor(DartType type) {
       ClassElement element = type.element;
       Set<ClassElement> result = noSuchMethodHolders[element];
-      if (result === null) {
+      if (result == null) {
         // For now, we check the entire world to see if an object of
         // the given type may have a user-defined noSuchMethod
         // implementation. We could do better by only looking at
@@ -1253,16 +1254,16 @@ $classesCollector.$mangledName = {'':
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
           Element element = holder.lookupMember(selector.name);
-          if (element === null) return false;
+          if (element == null) return false;
 
           // TODO(kasperl): Consider folding this logic into the
           // Selector.applies() method.
           if (element is AbstractFieldElement) {
             AbstractFieldElement field = element;
-            if (selector.kind === SelectorKind.GETTER) {
-              return field.getter !== null;
-            } else if (selector.kind === SelectorKind.SETTER) {
-              return field.setter !== null;
+            if (identical(selector.kind, SelectorKind.GETTER)) {
+              return field.getter != null;
+            } else if (identical(selector.kind, SelectorKind.SETTER)) {
+              return field.setter != null;
             } else {
               return false;
             }

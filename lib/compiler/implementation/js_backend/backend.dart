@@ -18,7 +18,7 @@ class ReturnInfo {
   void update(HType type, Recompile recompile) {
     HType newType = returnType != null ? returnType.union(type) : type;
     if (newType != returnType) {
-      if (returnType == null && newType === HType.UNKNOWN) {
+      if (returnType == null && identical(newType, HType.UNKNOWN)) {
         // If the first actual piece of information is not providing any type
         // information there is no need to recompile callers.
         compiledFunctions.clear();
@@ -113,7 +113,7 @@ class HTypeList {
 
   static const HTypeList ALL_UNKNOWN = const HTypeList.withAllUnknown();
 
-  bool get allUnknown => types === null;
+  bool get allUnknown => types == null;
   bool get hasNamedArguments => namedArguments != null;
   int get length => types.length;
   HType operator[](int index) => types[index];
@@ -203,7 +203,7 @@ class HTypeList {
       // If some optional parameters were passed positionally these have
       // already been filled.
       if (index == next) {
-        assert(result.types[index] === null);
+        assert(result.types[index] == null);
         HType type = null;
         if (hasNamedArguments &&
             selector.namedArguments.indexOf(element.name) >= 0) {
@@ -292,7 +292,7 @@ class FieldTypesRegistry {
   int constructorCount(Element element) {
     assert(element.isClass());
     Set<Element> ctors = constructors[element];
-    return ctors === null ? 0 : ctors.length;
+    return ctors == null ? 0 : ctors.length;
   }
 
   void registerFieldType(Map<Element, HType> typeMap,
@@ -329,7 +329,7 @@ class FieldTypesRegistry {
     // constructor.
     if (ctors.length == 2) {
       optimizedFunctions.forEach((Element field, _) {
-        if (field.enclosingElement === cls) {
+        if (identical(field.enclosingElement, cls)) {
           scheduleRecompilation(field);
         }
       });
@@ -391,7 +391,7 @@ class FieldTypesRegistry {
     }
     HType initializerType = fieldInitializerTypeMap[field];
     HType constructorType = fieldConstructorTypeMap[field];
-    if (initializerType === null && constructorType === null) {
+    if (initializerType == null && constructorType == null) {
       // If there are no constructor type information return UNKNOWN. This
       // ensures that the function will be recompiled if useful constructor
       // type information becomes available.
@@ -401,7 +401,7 @@ class FieldTypesRegistry {
     // initializer list.
     HType result = constructorType != null ? constructorType : initializerType;
     HType type = fieldTypeMap[field];
-    if (type !== null) result = result.union(type);
+    if (type != null) result = result.union(type);
     return result;
   }
 
@@ -479,7 +479,7 @@ class ArgumentTypesRegistry {
     } else {
       if (oldTypes.allUnknown) return;
       HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
-      if (newTypes === oldTypes) return;
+      if (identical(newTypes, oldTypes)) return;
       staticTypeMap[element] = newTypes;
       if (optimizedStaticFunctions.contains(element)) {
         backend.scheduleForRecompilation(element);
@@ -521,7 +521,7 @@ class ArgumentTypesRegistry {
     } else {
       HTypeList oldTypes = selectorTypeMap[selector];
       HTypeList newTypes = oldTypes.unionWithInvoke(node, types);
-      if (newTypes === oldTypes) return;
+      if (identical(newTypes, oldTypes)) return;
       selectorTypeMap[selector] = newTypes;
     }
 
@@ -560,7 +560,7 @@ class ArgumentTypesRegistry {
     if (Elements.isStaticOrTopLevelFunction(element) ||
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       HTypeList types = staticTypeMap[element];
-      if (types !== null) {
+      if (types != null) {
         if (!optimizedStaticFunctions.contains(element)) {
           optimizedStaticFunctions.add(element);
         }
@@ -587,10 +587,10 @@ class ArgumentTypesRegistry {
                                                   defaultValueTypes);
       }
       assert(types.allUnknown || types.length == signature.parameterCount);
-      found = (found === null) ? types : found.union(types);
+      found = (found == null) ? types : found.union(types);
       return !found.allUnknown;
     });
-    return found !== null ? found : HTypeList.ALL_UNKNOWN;
+    return found != null ? found : HTypeList.ALL_UNKNOWN;
   }
 
   void registerOptimizedFunction(Element element,
@@ -706,14 +706,14 @@ class JavaScriptBackend extends Backend {
                         const SourceString('ConstantMap'),
                         const SourceString('ConstantProtoMap')]) {
       var e = compiler.findHelper(helper);
-      if (e !== null) world.registerInstantiatedClass(e);
+      if (e != null) world.registerInstantiatedClass(e);
     }
   }
 
   void codegen(WorkItem work) {
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
-      if (initialValue !== null) {
+      if (initialValue != null) {
         return;
       } else {
         // If the constant-handler was not able to produce a result we have to
@@ -918,7 +918,7 @@ class JavaScriptBackend extends Backend {
       return nativeCheck
           ? const SourceString('stringSuperNativeTypeCheck')
           : const SourceString('stringSuperTypeCheck');
-    } else if (element === compiler.listClass) {
+    } else if (identical(element, compiler.listClass)) {
       return const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {

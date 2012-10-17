@@ -77,7 +77,7 @@ class Universe {
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
                            Compiler compiler) {
-    if (selectors === null) return false;
+    if (selectors == null) return false;
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) return true;
     }
@@ -201,19 +201,19 @@ class Selector {
   Selector.noSuchMethod()
       : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null, 2);
 
-  bool isGetter() => kind === SelectorKind.GETTER;
-  bool isSetter() => kind === SelectorKind.SETTER;
-  bool isCall() => kind === SelectorKind.CALL;
+  bool isGetter() => identical(kind, SelectorKind.GETTER);
+  bool isSetter() => identical(kind, SelectorKind.SETTER);
+  bool isCall() => identical(kind, SelectorKind.CALL);
 
-  bool isIndex() => kind === SelectorKind.INDEX && argumentCount == 1;
-  bool isIndexSet() => kind === SelectorKind.INDEX && argumentCount == 2;
+  bool isIndex() => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
+  bool isIndexSet() => identical(kind, SelectorKind.INDEX) && argumentCount == 2;
 
-  bool isOperator() => kind === SelectorKind.OPERATOR;
+  bool isOperator() => identical(kind, SelectorKind.OPERATOR);
   bool isUnaryOperator() => isOperator() && argumentCount == 0;
   bool isBinaryOperator() => isOperator() && argumentCount == 1;
 
   /** Check whether this is a call to 'assert'. */
-  bool isAssert() => isCall() && name.stringValue === "assert";
+  bool isAssert() => isCall() && identical(name.stringValue, "assert");
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
@@ -429,13 +429,13 @@ class Selector {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
-    return receiverType === other.receiverType
+    return identical(receiverType, other.receiverType)
         && equalsUntyped(other);
   }
 
   bool equalsUntyped(Selector other) {
     return name == other.name
-           && library === other.library
+           && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
@@ -494,11 +494,11 @@ class TypedSelector extends Selector {
    */
   bool hasElementIn(ClassElement cls, Element element) {
     Element resolved = cls.lookupMember(element.name);
-    if (resolved === element) return true;
-    if (resolved === null) return false;
-    if (resolved.kind === ElementKind.ABSTRACT_FIELD) {
+    if (identical(resolved, element)) return true;
+    if (resolved == null) return false;
+    if (identical(resolved.kind, ElementKind.ABSTRACT_FIELD)) {
       AbstractFieldElement field = resolved;
-      if (element === field.getter || element === field.setter) {
+      if (identical(element, field.getter) || identical(element, field.setter)) {
         return true;
       } else {
         ClassElement otherCls = field.getEnclosingClass();
@@ -519,7 +519,7 @@ class TypedSelector extends Selector {
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
     ClassElement other = element.getEnclosingClass();
-    if (other.superclass === compiler.closureClass) {
+    if (identical(other.superclass, compiler.closureClass)) {
       return appliesUntyped(element, compiler);
     }
 

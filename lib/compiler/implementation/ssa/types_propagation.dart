@@ -88,7 +88,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     }
 
     HInstruction instruction = block.first;
-    while (instruction !== null) {
+    while (instruction != null) {
       if (updateType(instruction)) {
         addDependentInstructionsToWorkList(instruction);
       }
@@ -101,7 +101,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       while (!worklist.isEmpty()) {
         int id = worklist.removeLast();
         HInstruction instruction = workmap[id];
-        assert(instruction !== null);
+        assert(instruction != null);
         workmap.remove(id);
         if (updateType(instruction)) {
           addDependentInstructionsToWorkList(instruction);

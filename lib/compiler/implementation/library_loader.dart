@@ -181,7 +181,7 @@ class LibraryLoaderTask extends LibraryLoader {
         libraryDependencies.addLast(tag);
       } else if (tag.isLibraryName) {
         tagState = checkTag(TagState.LIBRARY, tag);
-        if (library.libraryTag !== null) {
+        if (library.libraryTag != null) {
           compiler.cancel("duplicated library declaration", node: tag);
         } else {
           library.libraryTag = tag;
@@ -218,7 +218,7 @@ class LibraryLoaderTask extends LibraryLoader {
       String name = library.getLibraryOrScriptName();
       LibraryElement existing =
           libraryNames.putIfAbsent(name, () => library);
-      if (existing !== library) {
+      if (!identical(existing, library)) {
         Uri uri = library.entryCompilationUnit.script.uri;
         compiler.reportMessage(
             compiler.spanFromNode(tag.name, uri),
@@ -239,7 +239,7 @@ class LibraryLoaderTask extends LibraryLoader {
    * Lazily loads and returns the [LibraryElement] for the dart:core library.
    */
   LibraryElement loadCoreLibrary(LibraryDependencyHandler handler) {
-    if (compiler.coreLibrary === null) {
+    if (compiler.coreLibrary == null) {
       Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
       compiler.coreLibrary = createLibrary(handler, coreUri, null, coreUri);
     }
@@ -250,7 +250,7 @@ class LibraryLoaderTask extends LibraryLoader {
                         LibraryElement library, String dartLibraryPath) {
     if (library.isPatched) return;
     Uri patchUri = compiler.resolvePatchUri(dartLibraryPath);
-    if (patchUri !== null) {
+    if (patchUri != null) {
       compiler.patchParser.patchLibrary(handler, patchUri, library);
     }
   }
@@ -283,7 +283,7 @@ class LibraryLoaderTask extends LibraryLoader {
 
     if (!loadedLibrary.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
-        compiler.reportError(tag === null ? null : tag.uri,
+        compiler.reportError(tag == null ? null : tag.uri,
             'no library name found in ${loadedLibrary.uri}');
       });
     }
@@ -305,7 +305,7 @@ class LibraryLoaderTask extends LibraryLoader {
       return element;
     }
     LibraryElement library;
-    if (canonicalUri === null) {
+    if (canonicalUri == null) {
       library = createLibrary();
     } else {
       library = compiler.libraries.putIfAbsent(canonicalUri.toString(),
@@ -370,15 +370,15 @@ class ImportLink {
                      importedLibrary.exportsHandled,
                      message: 'Exports not handled on $importedLibrary'));
     var combinatorFilter = new CombinatorFilter.fromTag(import);
-    if (import !== null && import.prefix !== null) {
+    if (import != null && import.prefix != null) {
       SourceString prefix = import.prefix.source;
       Element e = importingLibrary.find(prefix);
-      if (e === null) {
+      if (e == null) {
         e = new PrefixElement(prefix, importingLibrary.entryCompilationUnit,
                               import.getBeginToken());
         importingLibrary.addToScope(e, compiler);
       }
-      if (e.kind !== ElementKind.PREFIX) {
+      if (!identical(e.kind, ElementKind.PREFIX)) {
         compiler.withCurrentElement(e, () {
           compiler.reportWarning(new Identifier(e.position()),
           'duplicated definition');
@@ -391,7 +391,7 @@ class ImportLink {
         // TODO(johnniwinther): Clean-up like [checkDuplicateLibraryName].
         Element existing =
             prefixElement.imported.putIfAbsent(element.name, () => element);
-        if (existing !== element) {
+        if (!identical(existing, element)) {
           compiler.withCurrentElement(existing, () {
             compiler.reportWarning(new Identifier(existing.position()),
             'duplicated import');
@@ -539,7 +539,7 @@ class LibraryDependencyNode {
   Element addElementToExportScope(Compiler compiler, Element element) {
     SourceString name = element.name;
     Element existingElement = exportScope[name];
-    if (existingElement !== null) {
+    if (existingElement != null) {
       if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
         element = exportScope[name] = new ErroneousElement(
@@ -572,7 +572,7 @@ class LibraryDependencyNode {
    * to filter the element.
    */
   bool addElementToPendingExports(Element element) {
-    if (exportScope[element.name] !== element) {
+    if (!identical(exportScope[element.name], element)) {
       if (!pendingExportSet.contains(element)) {
         pendingExportSet.add(element);
         return true;

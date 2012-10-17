@@ -11,9 +11,9 @@ class SelectorMap<T> extends PartialTypeTree {
 
   T operator [](Selector selector) {
     SelectorMapNode<T> node = findNode(selectorType(selector), false);
-    if (node === null) return null;
+    if (node == null) return null;
     Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors === null) return null;
+    if (selectors == null) return null;
     for (Link link = selectors; !link.isEmpty(); link = link.tail) {
       SelectorValue<T> existing = link.head;
       if (existing.selector.equalsUntyped(selector)) return existing.value;
@@ -24,7 +24,7 @@ class SelectorMap<T> extends PartialTypeTree {
   void operator []=(Selector selector, T value) {
     SelectorMapNode<T> node = findNode(selectorType(selector), true);
     Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors === null) {
+    if (selectors == null) {
       // No existing selectors with the given name. Create a new
       // linked list.
       SelectorValue<T> head = new SelectorValue<T>(selector, value);
@@ -52,9 +52,9 @@ class SelectorMap<T> extends PartialTypeTree {
   // TODO(kasperl): Share code with the [] operator?
   bool containsKey(Selector selector) {
     SelectorMapNode<T> node = findNode(selectorType(selector), false);
-    if (node === null) return false;
+    if (node == null) return false;
     Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors === null) return false;
+    if (selectors == null) return false;
     for (Link link = selectors; !link.isEmpty(); link = link.tail) {
       SelectorValue<T> existing = link.head;
       if (existing.selector.equalsUntyped(selector)) return true;
@@ -69,7 +69,7 @@ class SelectorMap<T> extends PartialTypeTree {
    */
   void visitMatching(Element member, bool visit(Selector selector, T value)) {
     assert(member.isMember());
-    if (root === null) return;
+    if (root == null) return;
     // TODO(kasperl): For now, we use a different implementation for
     // visiting if the tree contains interface subtypes.
     if (containsInterfaceSubtypes) {
@@ -82,7 +82,7 @@ class SelectorMap<T> extends PartialTypeTree {
   void visitAllMatching(Element member, bool visit(selector, value)) {
     root.visitRecursively((SelectorMapNode<T> node) {
       Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
-      if (selectors === null) return true;
+      if (selectors == null) return true;
       for (Link link = selectors; !link.isEmpty(); link = link.tail) {
         SelectorValue<T> existing = link.head;
         Selector selector = existing.selector;
@@ -99,7 +99,7 @@ class SelectorMap<T> extends PartialTypeTree {
   void visitHierarchyMatching(Element member, bool visit(selector, value)) {
     visitHierarchy(member.getEnclosingClass(), (SelectorMapNode<T> node) {
       Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
-      if (selectors === null) return true;
+      if (selectors == null) return true;
       for (Link link = selectors; !link.isEmpty(); link = link.tail) {
         SelectorValue<T> existing = link.head;
         Selector selector = existing.selector;

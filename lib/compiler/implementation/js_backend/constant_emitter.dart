@@ -93,19 +93,19 @@ class ConstantEmitter implements ConstantVisitor {
     Iterator<int> iterator = string.iterator();
     while (iterator.hasNext()) {
       int code = iterator.next();
-      if (code === $SQ) {
+      if (identical(code, $SQ)) {
         buffer.add(r"\'");
-      } else if (code === $LF) {
+      } else if (identical(code, $LF)) {
         buffer.add(r'\n');
-      } else if (code === $CR) {
+      } else if (identical(code, $CR)) {
         buffer.add(r'\r');
-      } else if (code === $LS) {
+      } else if (identical(code, $LS)) {
         // This Unicode line terminator and $PS are invalid in JS string
         // literals.
         buffer.add(r'\u2028');
-      } else if (code === $PS) {
+      } else if (identical(code, $PS)) {
         buffer.add(r'\u2029');
-      } else if (code === $BACKSLASH) {
+      } else if (identical(code, $BACKSLASH)) {
         buffer.add(r'\\');
       } else {
         if (code > 0xffff) {
@@ -216,7 +216,7 @@ class ConstantEmitter implements ConstantVisitor {
             } else if (field.name == MapConstant.KEYS_NAME) {
               emitCanonicalVersionOfConstant(constant.keys, buffer);
             } else if (field.name == MapConstant.PROTO_VALUE) {
-              assert(constant.protoValue !== null);
+              assert(constant.protoValue != null);
               emitCanonicalVersionOfConstant(constant.protoValue, buffer);
             } else {
               badFieldCountError();
@@ -225,8 +225,8 @@ class ConstantEmitter implements ConstantVisitor {
           },
           includeBackendMembers: true,
           includeSuperMembers: true);
-      if ((constant.protoValue === null && emittedArgumentCount != 3) ||
-          (constant.protoValue !== null && emittedArgumentCount != 4)) {
+      if ((constant.protoValue == null && emittedArgumentCount != 3) ||
+          (constant.protoValue != null && emittedArgumentCount != 4)) {
         badFieldCountError();
       }
       buffer.add(")");

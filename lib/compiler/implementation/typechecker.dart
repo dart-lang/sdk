@@ -66,7 +66,7 @@ class TypeVariableType implements DartType {
 
   bool operator ==(other) {
     if (other is !TypeVariableType) return false;
-    return other.element === element;
+    return identical(other.element, element);
   }
 
   String toString() => name.slowToString();
@@ -89,7 +89,7 @@ class StatementType implements DartType {
 
   /** Combine the information about two control-flow edges that are joined. */
   StatementType join(StatementType other) {
-    return (this === other) ? this : MAYBE_RETURNING;
+    return (identical(this, other)) ? this : MAYBE_RETURNING;
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -153,7 +153,7 @@ class InterfaceType implements DartType {
 
   bool operator ==(other) {
     if (other is !InterfaceType) return false;
-    if (element !== other.element) return false;
+    if (!identical(element, other.element)) return false;
     return arguments == other.arguments;
   }
 }
@@ -165,7 +165,7 @@ class FunctionType implements DartType {
 
   FunctionType(DartType this.returnType, Link<DartType> this.parameterTypes,
                Element this.element) {
-    assert(element === null || invariant(element, element.isDeclaration));
+    assert(element == null || invariant(element, element.isDeclaration));
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -188,8 +188,8 @@ class FunctionType implements DartType {
   }
 
   void initializeFrom(FunctionType other) {
-    assert(returnType === null);
-    assert(parameterTypes === null);
+    assert(returnType == null);
+    assert(parameterTypes == null);
     returnType = other.returnType;
     parameterTypes = other.parameterTypes;
   }
@@ -241,7 +241,7 @@ class TypedefType implements DartType {
 
   bool operator ==(other) {
     if (other is !TypedefType) return false;
-    if (element !== other.element) return false;
+    if (!identical(element, other.element)) return false;
     return typeArguments == other.typeArguments;
   }
 }
@@ -264,11 +264,11 @@ class Types {
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {
-    if (t === s ||
-        t === dynamicType ||
-        s === dynamicType ||
-        s.element === compiler.objectClass ||
-        t.element === compiler.nullClass) {
+    if (identical(t, s) ||
+        identical(t, dynamicType) ||
+        identical(s, dynamicType) ||
+        identical(s.element, compiler.objectClass) ||
+        identical(t.element, compiler.nullClass)) {
       return true;
     }
     t = t.unalias(compiler);
@@ -279,16 +279,16 @@ class Types {
     } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
-      if (tc === s.element) return true;
+      if (identical(tc, s.element)) return true;
       for (Link<DartType> supertypes = tc.allSupertypes;
            supertypes != null && !supertypes.isEmpty();
            supertypes = supertypes.tail) {
         DartType supertype = supertypes.head;
-        if (supertype.element === s.element) return true;
+        if (identical(supertype.element, s.element)) return true;
       }
       return false;
     } else if (t is FunctionType) {
-      if (s.element === compiler.functionClass) return true;
+      if (identical(s.element, compiler.functionClass)) return true;
       if (s is !FunctionType) return false;
       FunctionType tf = t;
       FunctionType sf = s;
@@ -304,7 +304,7 @@ class Types {
       return true;
     } else if (t is TypeVariableType) {
       if (s is !TypeVariableType) return false;
-      return (t.element === s.element);
+      return (identical(t.element, s.element));
     } else {
       throw 'internal error: unknown type kind';
     }
@@ -351,7 +351,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType fail(node, [reason]) {
     String message = 'cannot type-check';
-    if (reason !== null) {
+    if (reason != null) {
       message = '$message: $reason';
     }
     throw new CancelTypeCheckException(node, message);
@@ -374,7 +374,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType analyzeWithDefault(Node node, DartType defaultValue) {
-    return node !== null ? analyze(node) : defaultValue;
+    return node != null ? analyze(node) : defaultValue;
   }
 
   DartType analyze(Node node) {
@@ -390,7 +390,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     }
     DartType result = node.accept(this);
     // TODO(karlklose): record type?
-    if (result === null) {
+    if (result == null) {
       fail(node, 'internal error: type is null');
     }
     return result;
@@ -470,8 +470,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     DartType previousType;
     final FunctionElement element = elements[node];
     if (Elements.isUnresolved(element)) return types.dynamicType;
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
-        element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+    if (identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
+        identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)) {
       type = types.dynamicType;
       returnType = types.voidType;
     } else {
@@ -521,16 +521,16 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   DartType lookupMethodType(Node node, ClassElement classElement,
                         SourceString name) {
     Element member = classElement.lookupLocalMember(name);
-    if (member === null) {
+    if (member == null) {
       classElement.ensureResolved(compiler);
       for (Link<DartType> supertypes = classElement.allSupertypes;
-           !supertypes.isEmpty() && member === null;
+           !supertypes.isEmpty() && member == null;
            supertypes = supertypes.tail) {
         ClassElement lookupTarget = supertypes.head.element;
         member = lookupTarget.lookupLocalMember(name);
       }
     }
-    if (member !== null && member.kind == ElementKind.FUNCTION) {
+    if (member != null && member.kind == ElementKind.FUNCTION) {
       return computeType(member);
     }
     reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
@@ -540,7 +540,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   void analyzeArguments(Send send, DartType type) {
     Link<Node> arguments = send.arguments;
-    if (type === null || type === types.dynamicType) {
+    if (type == null || identical(type, types.dynamicType)) {
       while(!arguments.isEmpty()) {
         analyze(arguments.head);
         arguments = arguments.tail;
@@ -574,7 +574,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     Identifier selector = node.selector.asIdentifier();
     String name = selector.source.stringValue;
 
-    if (node.isOperator && name === 'is') {
+    if (node.isOperator && identical(name, 'is')) {
       analyze(node.receiver);
       return boolType;
     } else if (node.isOperator) {
@@ -585,17 +585,17 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       final DartType secondArgumentType =
           analyzeWithDefault(secondArgument, null);
 
-      if (name === '+' || name === '=' || name === '-'
-          || name === '*' || name === '/' || name === '%'
-          || name === '~/' || name === '|' || name ==='&'
-          || name === '^' || name === '~'|| name === '<<'
-          || name === '>>' || name === '[]') {
+      if (identical(name, '+') || identical(name, '=') || identical(name, '-')
+          || identical(name, '*') || identical(name, '/') || identical(name, '%')
+          || identical(name, '~/') || identical(name, '|') || identical(name, '&')
+          || identical(name, '^') || identical(name, '~')|| identical(name, '<<')
+          || identical(name, '>>') || identical(name, '[]')) {
         return types.dynamicType;
-      } else if (name === '<' || name === '>' || name === '<='
-                 || name === '>=' || name === '==' || name === '!='
-                 || name === '===' || name === '!==') {
+      } else if (identical(name, '<') || identical(name, '>') || identical(name, '<=')
+                 || identical(name, '>=') || identical(name, '==') || identical(name, '!=')
+                 || identical(name, '===') || identical(name, '!==')) {
         return boolType;
-      } else if (name === '||' || name === '&&' || name === '!') {
+      } else if (identical(name, '||') || identical(name, '&&') || identical(name, '!')) {
         checkAssignable(firstArgument, boolType, firstArgumentType);
         if (!arguments.isEmpty()) {
           // TODO(karlklose): check number of arguments in validator.
@@ -606,11 +606,11 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       fail(selector, 'unexpected operator ${name}');
 
     } else if (node.isPropertyAccess) {
-      if (node.receiver !== null) {
+      if (node.receiver != null) {
         // TODO(karlklose): we cannot handle fields.
         return unhandledExpression();
       }
-      if (element === null) return types.dynamicType;
+      if (element == null) return types.dynamicType;
       return computeType(element);
 
     } else if (node.isFunctionObjectInvocation) {
@@ -618,43 +618,43 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
     } else {
       FunctionType computeFunType() {
-        if (node.receiver !== null) {
+        if (node.receiver != null) {
           DartType receiverType = analyze(node.receiver);
           if (receiverType.element == compiler.dynamicClass) return null;
-          if (receiverType === null) {
+          if (receiverType == null) {
             fail(node.receiver, 'receivertype is null');
           }
-          if (receiverType.element.kind === ElementKind.GETTER) {
+          if (identical(receiverType.element.kind, ElementKind.GETTER)) {
             FunctionType getterType  = receiverType;
             receiverType = getterType.returnType;
           }
           ElementKind receiverKind = receiverType.element.kind;
-          if (receiverKind === ElementKind.TYPEDEF) {
+          if (identical(receiverKind, ElementKind.TYPEDEF)) {
             // TODO(karlklose): handle typedefs.
             return null;
           }
-          if (receiverKind === ElementKind.TYPE_VARIABLE) {
+          if (identical(receiverKind, ElementKind.TYPE_VARIABLE)) {
             // TODO(karlklose): handle type variables.
             return null;
           }
-          if (receiverKind !== ElementKind.CLASS) {
+          if (!identical(receiverKind, ElementKind.CLASS)) {
             fail(node.receiver, 'unexpected receiver kind: ${receiverKind}');
           }
           ClassElement classElement = receiverType.element;
           // TODO(karlklose): substitute type arguments.
           DartType memberType =
             lookupMethodType(selector, classElement, selector.source);
-          if (memberType.element === compiler.dynamicClass) return null;
+          if (identical(memberType.element, compiler.dynamicClass)) return null;
           return memberType;
         } else {
           if (Elements.isUnresolved(element)) {
             fail(node, 'unresolved ${node.selector}');
-          } else if (element.kind === ElementKind.FUNCTION) {
+          } else if (identical(element.kind, ElementKind.FUNCTION)) {
             return computeType(element);
-          } else if (element.kind === ElementKind.FOREIGN) {
+          } else if (identical(element.kind, ElementKind.FOREIGN)) {
             return null;
-          } else if (element.kind === ElementKind.VARIABLE
-                     || element.kind === ElementKind.FIELD) {
+          } else if (identical(element.kind, ElementKind.VARIABLE)
+                     || identical(element.kind, ElementKind.FIELD)) {
             // TODO(karlklose): handle object invocations.
             return null;
           } else {
@@ -664,14 +664,14 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       }
       FunctionType funType = computeFunType();
       analyzeArguments(node, funType);
-      return (funType !== null) ? funType.returnType : types.dynamicType;
+      return (funType != null) ? funType.returnType : types.dynamicType;
     }
   }
 
   visitSendSet(SendSet node) {
     Identifier selector = node.selector;
     final name = node.assignmentOperator.source.stringValue;
-    if (name === '++' || name === '--') {
+    if (identical(name, '++') || identical(name, '--')) {
       final Element element = elements[node.selector];
       final DartType receiverType = computeType(element);
       // TODO(karlklose): this should be the return type instead of int.
@@ -747,17 +747,17 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   /** Dart Programming Language Specification: 11.10 Return */
   DartType visitReturn(Return node) {
-    if (node.getBeginToken().stringValue === 'native') {
+    if (identical(node.getBeginToken().stringValue, 'native')) {
       return StatementType.RETURNING;
     }
 
     final expression = node.expression;
-    final isVoidFunction = (expectedReturnType === types.voidType);
+    final isVoidFunction = (identical(expectedReturnType, types.voidType));
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the
     // immediately enclosing function.
-    if (expression !== null) {
+    if (expression != null) {
       final expressionType = analyze(expression);
       if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
@@ -779,14 +779,14 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitThrow(Throw node) {
-    if (node.expression !== null) analyze(node.expression);
+    if (node.expression != null) analyze(node.expression);
     return StatementType.RETURNING;
   }
 
   DartType computeType(Element element) {
     if (Elements.isUnresolved(element)) return types.dynamicType;
     DartType result = element.computeType(compiler);
-    return (result !== null) ? result : types.dynamicType;
+    return (result != null) ? result : types.dynamicType;
   }
 
   DartType visitTypeAnnotation(TypeAnnotation node) {
@@ -820,7 +820,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     checkCondition(node.condition);
     StatementType bodyType = analyze(node.body);
     Expression cond = node.condition.asParenthesizedExpression().expression;
-    if (cond.asLiteralBool() !== null && cond.asLiteralBool().value == true) {
+    if (cond.asLiteralBool() != null && cond.asLiteralBool().value == true) {
       // If the condition is a constant boolean expression denoting true,
       // control-flow always enters the loop body.
       // TODO(karlklose): this should be StatementType.RETURNING unless there

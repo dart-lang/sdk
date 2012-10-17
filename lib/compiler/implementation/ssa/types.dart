@@ -13,23 +13,23 @@ abstract class HType {
                                 Compiler compiler,
                                 [bool canBeNull = false]) {
     Element element = type.element;
-    if (element.kind === ElementKind.TYPE_VARIABLE) {
+    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       // TODO(ngeoffray): Replace object type with [type].
       return new HBoundedPotentialPrimitiveType(
           compiler.objectClass.computeType(compiler), canBeNull);
     }
 
-    if (element === compiler.intClass) {
+    if (identical(element, compiler.intClass)) {
       return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (element === compiler.numClass) {
+    } else if (identical(element, compiler.numClass)) {
       return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
-    } else if (element === compiler.doubleClass) {
+    } else if (identical(element, compiler.doubleClass)) {
       return canBeNull ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
-    } else if (element === compiler.stringClass) {
+    } else if (identical(element, compiler.stringClass)) {
       return canBeNull ? HType.STRING_OR_NULL : HType.STRING;
-    } else if (element === compiler.boolClass) {
+    } else if (identical(element, compiler.boolClass)) {
       return canBeNull ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
-    } else if (element === compiler.listClass
+    } else if (identical(element, compiler.listClass)
         || Elements.isListSupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveArray(type, canBeNull);
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -62,8 +62,8 @@ abstract class HType {
   static const HType DOUBLE_OR_NULL = const HDoubleOrNullType();
   static const HType STRING_OR_NULL = const HStringOrNullType();
 
-  bool isConflicting() => this === CONFLICTING;
-  bool isUnknown() => this === UNKNOWN;
+  bool isConflicting() => identical(this, CONFLICTING);
+  bool isUnknown() => identical(this, UNKNOWN);
   bool isNull() => false;
   bool isBoolean() => false;
   bool isNumber() => false;
@@ -701,7 +701,7 @@ class HBoundedType extends HType {
     if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
     if (other is HBoundedType) {
       HBoundedType temp = other;
-      if (this.type === temp.type) {
+      if (identical(this.type, temp.type)) {
         if (isExact()) {
           return this;
         } else if (other.isExact()) {
@@ -721,8 +721,8 @@ class HBoundedType extends HType {
   bool operator ==(HType other) {
     if (other is !HBoundedType) return false;
     HBoundedType bounded = other;
-    return (type === bounded.type && canBeNull() === bounded.canBeNull()
-            && isExact() === other .isExact());
+    return (identical(type, bounded.type) && identical(canBeNull(), bounded.canBeNull())
+            && identical(isExact(), other .isExact()));
   }
 
   HType union(HType other) {
@@ -735,7 +735,7 @@ class HBoundedType extends HType {
     }
     if (other is HBoundedType) {
       HBoundedType temp = other;
-      if (type !== temp.type) return HType.UNKNOWN;
+      if (!identical(type, temp.type)) return HType.UNKNOWN;
       if (isExact()) return other;
       if (other.isExact()) return this;
       return canBeNull() ? this : other;

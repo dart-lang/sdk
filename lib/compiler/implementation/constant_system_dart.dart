@@ -61,7 +61,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
       IntConstant leftInt = left;
       IntConstant rightInt = right;
       int resultValue = foldInts(leftInt.value, rightInt.value);
-      if (resultValue === null) return null;
+      if (resultValue == null) return null;
       return DART_CONSTANT_SYSTEM.createInt(resultValue);
     }
     return null;
@@ -157,7 +157,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
         foldedValue = foldNums(leftNum.value, rightNum.value);
       }
       // A division by 0 means that we might not have a folded value.
-      if (foldedValue === null) return null;
+      if (foldedValue == null) return null;
       if (left.isInt() && right.isInt() && !isDivide()) {
         assert(foldedValue is int);
         return DART_CONSTANT_SYSTEM.createInt(foldedValue);
@@ -317,7 +317,7 @@ class IdentityOperation implements BinaryOperation {
     if (left.isNaN() && right.isNaN()) return null;
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
-  apply(left, right) => left === right;
+  apply(left, right) => identical(left, right);
 }
 
 /**

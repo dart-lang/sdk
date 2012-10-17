@@ -27,49 +27,49 @@ class PartialParser extends Parser {
     while (true) {
       final kind = token.kind;
       final value = token.stringValue;
-      if ((kind === EOF_TOKEN) ||
-          (value === ';') ||
-          (value === ',') ||
-          (value === ']'))
+      if ((identical(kind, EOF_TOKEN)) ||
+          (identical(value, ';')) ||
+          (identical(value, ',')) ||
+          (identical(value, ']')))
         return token;
-      if (value === '=') {
+      if (identical(value, '=')) {
         var nextValue = token.next.stringValue;
-        if (nextValue === 'const') {
+        if (identical(nextValue, 'const')) {
           token = token.next;
           nextValue = token.next.stringValue;
         }
-        if (nextValue === '{') {
+        if (identical(nextValue, '{')) {
           // Handle cases like this:
           // class Foo {
           //   var map;
           //   Foo() : map = {};
           // }
           BeginGroupToken begin = token.next;
-          token = (begin.endGroup !== null) ? begin.endGroup : token;
+          token = (begin.endGroup != null) ? begin.endGroup : token;
           token = token.next;
           continue;
         }
-        if (nextValue === '<') {
+        if (identical(nextValue, '<')) {
           // Handle cases like this:
           // class Foo {
           //   var map;
           //   Foo() : map = <String, Foo>{};
           // }
           BeginGroupToken begin = token.next;
-          token = (begin.endGroup !== null) ? begin.endGroup : token;
+          token = (begin.endGroup != null) ? begin.endGroup : token;
           token = token.next;
-          if (token.stringValue === '{') {
+          if (identical(token.stringValue, '{')) {
             begin = token;
-            token = (begin.endGroup !== null) ? begin.endGroup : token;
+            token = (begin.endGroup != null) ? begin.endGroup : token;
             token = token.next;
           }
           continue;
         }
       }
-      if (!mayParseFunctionExpressions && value === '{') return token;
+      if (!mayParseFunctionExpressions && identical(value, '{')) return token;
       if (token is BeginGroupToken) {
         BeginGroupToken begin = token;
-        token = (begin.endGroup !== null) ? begin.endGroup : token;
+        token = (begin.endGroup != null) ? begin.endGroup : token;
       }
       token = token.next;
     }
@@ -81,9 +81,9 @@ class PartialParser extends Parser {
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
-    if (endGroup === null) {
+    if (endGroup == null) {
       return listener.unmatched(beginGroupToken);
-    } else if (endGroup.kind !== $CLOSE_CURLY_BRACKET) {
+    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
       return listener.unmatched(beginGroupToken);
     }
     return endGroup;
@@ -92,9 +92,9 @@ class PartialParser extends Parser {
   Token parseFunctionBody(Token token, bool isExpression) {
     assert(!isExpression);
     String value = token.stringValue;
-    if (value === ';') {
+    if (identical(value, ';')) {
       // No body.
-    } else if (value === '=>') {
+    } else if (identical(value, '=>')) {
       token = parseExpression(token.next);
       expectSemicolon(token);
     } else {

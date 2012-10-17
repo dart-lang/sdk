@@ -46,19 +46,19 @@ le(var a, var b) => (a is num && b is num)
 
 gtB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# > #', a, b)
-    : gt$slow(a, b) === true;
+    : identical(gt$slow(a, b), true);
 
 geB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# >= #', a, b)
-    : ge$slow(a, b) === true;
+    : identical(ge$slow(a, b), true);
 
 ltB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# < #', a, b)
-    : lt$slow(a, b) === true;
+    : identical(lt$slow(a, b), true);
 
 leB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# <= #', a, b)
-    : le$slow(a, b) === true;
+    : identical(le$slow(a, b), true);
 
 index(var a, var index) {
   // The type test may cause a NullPointerException to be thrown but
@@ -69,7 +69,7 @@ index(var a, var index) {
       a, a);
   if (isJsArrayOrString) {
     var key = JS('int', '# >>> 0', index);
-    if (key === index && key < JS('int', r'#.length', a)) {
+    if (identical(key, index) && key < JS('int', r'#.length', a)) {
       return JS('var', r'#[#]', a, key);
     }
   }
@@ -85,7 +85,7 @@ indexSet(var a, var index, var value) {
       a, a);
   if (isMutableJsArray) {
     var key = JS('int', '# >>> 0', index);
-    if (key === index && key < JS('int', r'#.length', a)) {
+    if (identical(key, index) && key < JS('int', r'#.length', a)) {
       JS('void', r'#[#] = #', a, key, value);
       return;
     }
@@ -112,7 +112,7 @@ bool checkNumbers(var a, var b) {
 }
 
 bool isJsArray(var value) {
-  return value !== null && JS('bool', r'#.constructor === Array', value);
+  return value != null && JS('bool', r'#.constructor === Array', value);
 }
 
 add$slow(var a, var b) {
@@ -182,7 +182,7 @@ bool eqB(var a, var b) {
   if (JS('bool', r'# == null', b)) return false;
   if (JS('bool', r'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
-      return UNINTERCEPTED(a == b) === true;
+      return identical(UNINTERCEPTED(a == b), true);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
@@ -296,7 +296,7 @@ index$slow(var a, var index) {
   if (a is String || isJsArray(a)) {
     if (index is !int) {
       if (index is !num) throw new ArgumentError(index);
-      if (index.truncate() !== index) throw new ArgumentError(index);
+      if (!identical(index.truncate(), index)) throw new ArgumentError(index);
     }
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
@@ -357,7 +357,7 @@ class Primitives {
 
   static int objectHashCode(object) {
     int hash = JS('var', r'#.$identityHash', object);
-    if (hash === null) {
+    if (hash == null) {
       // TOOD(ahe): We should probably randomize this somehow.
       hash = ++hashCodeSeed;
       JS('void', r'#.$identityHash = #', object, hash);
@@ -403,11 +403,11 @@ class Primitives {
     var match = JS('List',
                    r'/^\s*[+-]?(?:0(x)[a-f0-9]+|\d+)\s*$/i.exec(#)',
                    string);
-    if (match === null) {
+    if (match == null) {
       throw new FormatException(string);
     }
     var base = 10;
-    if (match[1] !== null) base = 16;
+    if (match[1] != null) base = 16;
     var result = JS('num', r'parseInt(#, #)', string, base);
     if (result.isNaN()) throw new FormatException(string);
     return result;
@@ -448,7 +448,7 @@ class Primitives {
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
-    if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
+    if (identical(name.charCodeAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
     return name;
   }
 
@@ -458,7 +458,7 @@ class Primitives {
   }
 
   static List newList(length) {
-    if (length === null) return JS('Object', r'new Array()');
+    if (length == null) return JS('Object', r'new Array()');
     if ((length is !int) || (length < 0)) {
       throw new ArgumentError(length);
     }
@@ -671,7 +671,7 @@ ioore(index) {
 }
 
 listInsertRange(receiver, start, length, initialValue) {
-  if (length === 0) {
+  if (length == 0) {
     return;
   }
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
@@ -690,7 +690,7 @@ listInsertRange(receiver, start, length, initialValue) {
               receiver,
               start + length,
               receiverLength - start);
-  if (initialValue !== null) {
+  if (initialValue != null) {
     for (int i = start; i < start + length; i++) {
       receiver[i] = initialValue;
     }
@@ -703,7 +703,7 @@ stringLastIndexOfUnchecked(receiver, element, start)
 
 
 checkNull(object) {
-  if (object === null) throw new NullPointerException();
+  if (object == null) throw new NullPointerException();
   return object;
 }
 
@@ -821,7 +821,7 @@ class MathNatives {
  * object out of the wrapper again.
  */
 $throw(ex) {
-  if (ex === null) ex = const NullPointerException();
+  if (ex == null) ex = const NullPointerException();
   var jsError = JS('Object', r'new Error()');
   JS('void', r'#.name = #', jsError, ex);
   JS('void', r'#.description = #', jsError, ex);
@@ -1001,7 +1001,7 @@ invokeClosure(Function closure,
  * closure when the Dart closure is passed to the DOM.
  */
 convertDartClosureToJS(closure, int arity) {
-  if (closure === null) return null;
+  if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
 
@@ -1058,11 +1058,11 @@ class Null {
 
 setRuntimeTypeInfo(target, typeInfo) {
   // We have to check for null because factories may return null.
-  if (target !== null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
+  if (target != null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
 }
 
 getRuntimeTypeInfo(target) {
-  if (target === null) return null;
+  if (target == null) return null;
   var res = JS('var', r'#.builtin$typeInfo', target);
   // If the object does not have runtime type information, return an
   // empty literal, to avoid null checks.
@@ -1078,79 +1078,79 @@ getRuntimeTypeInfo(target) {
  */
 boolConversionCheck(value) {
   boolTypeCheck(value);
-  assert(value !== null);
+  assert(value != null);
   return value;
 }
 
 stringTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   throw new TypeErrorImplementation(value, 'String');
 }
 
 stringTypeCast(value) {
-  if (value is String || value === null) return value;
+  if (value is String || value == null) return value;
   // TODO(lrn): When reified types are available, pass value.class and String.
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'String');
 }
 
 doubleTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is double) return value;
   throw new TypeErrorImplementation(value, 'double');
 }
 
 doubleTypeCast(value) {
-  if (value is double || value === null) return value;
+  if (value is double || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'double');
 }
 
 numTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is num) return value;
   throw new TypeErrorImplementation(value, 'num');
 }
 
 numTypeCast(value) {
-  if (value is num || value === null) return value;
+  if (value is num || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'num');
 }
 
 boolTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is bool) return value;
   throw new TypeErrorImplementation(value, 'bool');
 }
 
 boolTypeCast(value) {
-  if (value is bool || value === null) return value;
+  if (value is bool || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'bool');
 }
 
 functionTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is Function) return value;
   throw new TypeErrorImplementation(value, 'Function');
 }
 
 functionTypeCast(value) {
-  if (value is Function || value === null) return value;
+  if (value is Function || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'Function');
 }
 
 intTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is int) return value;
   throw new TypeErrorImplementation(value, 'int');
 }
 
 intTypeCast(value) {
-  if (value is int || value === null) return value;
+  if (value is int || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'int');
 }
@@ -1174,7 +1174,7 @@ void propertyTypeCastError(value, property) {
  * that type.
  */
 propertyTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeError(value, property);
 }
@@ -1185,7 +1185,7 @@ propertyTypeCheck(value, property) {
  * that type.
  */
 propertyTypeCast(value, property) {
-  if (value === null || JS('bool', '!!#[#]', value, property)) return value;
+  if (value == null || JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeCastError(value, property);
 }
 
@@ -1195,8 +1195,8 @@ propertyTypeCast(value, property) {
  * time.
  */
 callTypeCheck(value, property) {
-  if (value === null) return value;
-  if ((JS('String', 'typeof #', value) === 'object')
+  if (value == null) return value;
+  if ((identical(JS('String', 'typeof #', value), 'object'))
       && JS('bool', '#[#]()', value, property)) {
     return value;
   }
@@ -1209,7 +1209,7 @@ callTypeCheck(value, property) {
  * time.
  */
 callTypeCast(value, property) {
-  if (value === null
+  if (value == null
       || ((JS('bool', 'typeof # === "object"', value))
           && JS('bool', '#[#]()', value, property))) {
     return value;
@@ -1222,7 +1222,7 @@ callTypeCast(value, property) {
  * supertype since [value] can be a JS primitive.
  */
 numberOrStringSuperTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
@@ -1236,7 +1236,7 @@ numberOrStringSuperTypeCast(value, property) {
 }
 
 numberOrStringSuperNativeTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
@@ -1244,7 +1244,7 @@ numberOrStringSuperNativeTypeCheck(value, property) {
 }
 
 numberOrStringSuperNativeTypeCast(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
@@ -1256,7 +1256,7 @@ numberOrStringSuperNativeTypeCast(value, property) {
  * since [value] can be a JS primitive.
  */
 stringSuperTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeError(value, property);
@@ -1268,14 +1268,14 @@ stringSuperTypeCast(value, property) {
 }
 
 stringSuperNativeTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is String) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
 }
 
 stringSuperNativeTypeCast(value, property) {
-  if (value is String || value === null) return value;
+  if (value is String || value == null) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeCastError(value, property);
 }
@@ -1285,19 +1285,19 @@ stringSuperNativeTypeCast(value, property) {
  * since [value] can be a JS array.
  */
 listTypeCheck(value) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is List) return value;
   throw new TypeErrorImplementation(value, 'List');
 }
 
 listTypeCast(value) {
-  if (value is List || value === null) return value;
+  if (value is List || value == null) return value;
   throw new CastErrorImplementation(
       Primitives.objectTypeName(value), 'List');
 }
 
 listSuperTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is List) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeError(value, property);
@@ -1309,14 +1309,14 @@ listSuperTypeCast(value, property) {
 }
 
 listSuperNativeTypeCheck(value, property) {
-  if (value === null) return value;
+  if (value == null) return value;
   if (value is List) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
 }
 
 listSuperNativeTypeCast(value, property) {
-  if (value is List || value === null) return value;
+  if (value is List || value == null) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeCastError(value, property);
 }
@@ -1372,7 +1372,7 @@ void assertHelper(condition) {
   }
   // Compare to true to avoid boolean conversion check in checked
   // mode.
-  if (condition !== true) throw new AssertionError();
+  if (!identical(condition, true)) throw new AssertionError();
 }
 
 /**

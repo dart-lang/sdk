@@ -71,5 +71,5 @@ class SubstringWrapper implements SourceString {
 
   bool isEmpty() => begin == end;
 
-  bool isPrivate() => !isEmpty() && internalString.charCodeAt(begin) === $_;
+  bool isPrivate() => !isEmpty() && identical(internalString.charCodeAt(begin), $_);
 }

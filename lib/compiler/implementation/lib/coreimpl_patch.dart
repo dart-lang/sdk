@@ -154,7 +154,7 @@ patch class JSSyntaxRegExp {
 
   patch Match firstMatch(String str) {
     List<String> m = regExpExec(this, checkString(str));
-    if (m === null) return null;
+    if (m == null) return null;
     var matchStart = regExpMatchStart(m);
     // m.lastIndex only works with flag 'g'.
     var matchEnd = matchStart + m[0].length;
@@ -165,7 +165,7 @@ patch class JSSyntaxRegExp {
 
   patch String stringMatch(String str) {
     var match = firstMatch(str);
-    return match === null ? null : match.group(0);
+    return match == null ? null : match.group(0);
   }
 
   patch Iterable<Match> allMatches(String str) {

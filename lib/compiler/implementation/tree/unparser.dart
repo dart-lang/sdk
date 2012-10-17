@@ -20,9 +20,10 @@ class Unparser implements Visitor {
   }
 
   void addToken(Token token) {
-    if (token === null) return;
+    if (token == null) return;
     add(token.value);
-    if (token.kind === KEYWORD_TOKEN || token.kind === IDENTIFIER_TOKEN) {
+    if (identical(token.kind, KEYWORD_TOKEN)
+        || identical(token.kind, IDENTIFIER_TOKEN)) {
       sb.add(' ');
     }
   }
@@ -30,7 +31,7 @@ class Unparser implements Visitor {
   unparse(Node node) { visit(node); }
 
   visit(Node node) {
-    if (node !== null) node.accept(this);
+    if (node != null) node.accept(this);
   }
 
   visitBlock(Block node) {
@@ -51,10 +52,10 @@ class Unparser implements Visitor {
       addToken(node.beginToken.next);
     }
     visit(node.name);
-    if (node.typeParameters !== null) {
+    if (node.typeParameters != null) {
       visit(node.typeParameters);
     }
-    if (node.extendsKeyword !== null) {
+    if (node.extendsKeyword != null) {
       sb.add(' ');
       addToken(node.extendsKeyword);
       visit(node.superclass);
@@ -63,7 +64,7 @@ class Unparser implements Visitor {
       sb.add(' ');
       visit(node.interfaces);
     }
-    if (node.defaultClause !== null) {
+    if (node.defaultClause != null) {
       sb.add(' default ');
       visit(node.defaultClause);
     }
@@ -112,11 +113,11 @@ class Unparser implements Visitor {
       visit(node.modifiers);
       sb.add(' ');
     }
-    if (node.returnType !== null) {
+    if (node.returnType != null) {
       visit(node.returnType);
       sb.add(' ');
     }
-    if (node.getOrSet !== null) {
+    if (node.getOrSet != null) {
       add(node.getOrSet.value);
       sb.add(' ');
     }
@@ -134,7 +135,7 @@ class Unparser implements Visitor {
       } else {
         visit(send.receiver);
         Identifier identifier = send.selector.asIdentifier();
-        if (identifier.token.kind === KEYWORD_TOKEN) {
+        if (identical(identifier.token.kind, KEYWORD_TOKEN)) {
           sb.add(' ');
         } else if (identifier.source == const SourceString('negate')) {
           // TODO(ahe): Remove special case for negate.
@@ -201,7 +202,7 @@ class Unparser implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.constKeyword !== null) add(node.constKeyword.value);
+    if (node.constKeyword != null) add(node.constKeyword.value);
     visit(node.typeArguments);
     visit(node.elements);
     // If list is empty, emit space after [] to disambiguate cases like []==[].
@@ -215,7 +216,7 @@ class Unparser implements Visitor {
    */
   unparseNodeListFrom(NodeList node, Link<Node> from) {
     if (from.isEmpty()) return;
-    String delimiter = (node.delimiter === null) ? "" : "${node.delimiter}";
+    String delimiter = (node.delimiter == null) ? "" : "${node.delimiter}";
     visit(from.head);
     for (Link link = from.tail; !link.isEmpty(); link = link.tail) {
       sb.add(delimiter);
@@ -225,10 +226,10 @@ class Unparser implements Visitor {
 
   visitNodeList(NodeList node) {
     addToken(node.beginToken);
-    if (node.nodes !== null) {
+    if (node.nodes != null) {
       unparseNodeListFrom(node, node.nodes);
     }
-    if (node.endToken !== null) add(node.endToken.value);
+    if (node.endToken != null) add(node.endToken.value);
   }
 
   visitOperator(Operator node) {
@@ -244,16 +245,16 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
     visit(node.expression);
-    if (node.endToken !== null) add(node.endToken.value);
+    if (node.endToken != null) add(node.endToken.value);
   }
 
   unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
-    if (node.receiver === null) return;
+    if (node.receiver == null) return;
     visit(node.receiver);
     CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
-    if (asCascadeReceiver !== null) {
+    if (asCascadeReceiver != null) {
       add(asCascadeReceiver.cascadeOperator.value);
-    } else if (node.selector.asOperator() === null) {
+    } else if (node.selector.asOperator() == null) {
       sb.add('.');
     } else if (spacesNeeded) {
       sb.add(' ');
@@ -262,8 +263,8 @@ class Unparser implements Visitor {
 
   visitSend(Send node) {
     Operator op = node.selector.asOperator();
-    String opString = op !== null ? op.source.stringValue : null;
-    bool spacesNeeded = opString === 'is' || opString === 'as';
+    String opString = op != null ? op.source.stringValue : null;
+    bool spacesNeeded = identical(opString, 'is') || identical(opString, 'as');
 
     if (node.isPrefix) visit(node.selector);
     unparseSendReceiver(node, spacesNeeded: spacesNeeded);
@@ -271,9 +272,10 @@ class Unparser implements Visitor {
     if (spacesNeeded) sb.add(' ');
     // Also add a space for sequences like x + +1 and y - -y.
     // TODO(ahe): remove case for '+' when we drop the support for it.
-    if (node.argumentsNode != null && (opString === '-' || opString === '+')) {
+    if (node.argumentsNode != null && (identical(opString, '-')
+        || identical(opString, '+'))) {
       Token beginToken = node.argumentsNode.getBeginToken();
-      if (beginToken !== null && beginToken.stringValue === opString) {
+      if (beginToken != null && identical(beginToken.stringValue, opString)) {
         sb.add(' ');
       }
     }
@@ -304,7 +306,7 @@ class Unparser implements Visitor {
 
   visitThrow(Throw node) {
     add(node.throwToken.value);
-    if (node.expression !== null) {
+    if (node.expression != null) {
       sb.add(' ');
       visit(node.expression);
     }
@@ -318,7 +320,7 @@ class Unparser implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     visit(node.name);
-    if (node.bound !== null) {
+    if (node.bound != null) {
       sb.add(' extends ');
       visit(node.bound);
     }
@@ -329,7 +331,7 @@ class Unparser implements Visitor {
     if (node.modifiers.nodes.length() > 0) {
       sb.add(' ');
     }
-    if (node.type !== null) {
+    if (node.type != null) {
       visit(node.type);
       sb.add(' ');
     }
@@ -378,7 +380,7 @@ class Unparser implements Visitor {
 
   visitGotoStatement(GotoStatement node) {
     add(node.keywordToken.value);
-    if (node.target !== null) {
+    if (node.target != null) {
       sb.add(' ');
       visit(node.target);
     }
@@ -415,8 +417,8 @@ class Unparser implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    if (node.constKeyword !== null) add(node.constKeyword.value);
-    if (node.typeArguments !== null) visit(node.typeArguments);
+    if (node.constKeyword != null) add(node.constKeyword.value);
+    if (node.typeArguments != null) visit(node.typeArguments);
     visit(node.entries);
   }
 
@@ -447,7 +449,7 @@ class Unparser implements Visitor {
   }
 
   unparseImportTag(String uri, [String prefix]) {
-    final suffix = prefix === null ? '' : ' as $prefix';
+    final suffix = prefix == null ? '' : ' as $prefix';
     sb.add('import "$uri"$suffix;');
   }
 
@@ -456,7 +458,7 @@ class Unparser implements Visitor {
     visit(node.tag);
     sb.add('(');
     visit(node.argument);
-    if (node.prefixIdentifier !== null) {
+    if (node.prefixIdentifier != null) {
       visit(node.prefixIdentifier);
       sb.add(':');
       visit(node.prefix);
@@ -469,7 +471,7 @@ class Unparser implements Visitor {
     addToken(node.tryKeyword);
     visit(node.tryBlock);
     visit(node.catchBlocks);
-    if (node.finallyKeyword !== null) {
+    if (node.finallyKeyword != null) {
       addToken(node.finallyKeyword);
       visit(node.finallyBlock);
     }
@@ -484,7 +486,7 @@ class Unparser implements Visitor {
 
   visitCatchBlock(CatchBlock node) {
     addToken(node.onKeyword);
-    if (node.type !== null) {
+    if (node.type != null) {
       visit(node.type);
       sb.add(' ');
     }
@@ -495,12 +497,12 @@ class Unparser implements Visitor {
 
   visitTypedef(Typedef node) {
     addToken(node.typedefKeyword);
-    if (node.returnType !== null) {
+    if (node.returnType != null) {
       visit(node.returnType);
       sb.add(' ');
     }
     visit(node.name);
-    if (node.typeParameters !== null) {
+    if (node.typeParameters != null) {
       visit(node.typeParameters);
     }
     visit(node.formals);

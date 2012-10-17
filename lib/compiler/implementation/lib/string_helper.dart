@@ -59,7 +59,7 @@ List<Match> allMatchesInStringUnchecked(String needle, String haystack) {
 
 stringContainsUnchecked(receiver, other, startIndex) {
   if (other is String) {
-    return receiver.indexOf(other, startIndex) !== -1;
+    return receiver.indexOf(other, startIndex) != -1;
   } else if (other is JSSyntaxRegExp) {
     return other.hasMatch(receiver.substring(startIndex));
   } else {

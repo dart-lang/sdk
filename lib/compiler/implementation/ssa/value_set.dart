@@ -12,7 +12,7 @@ class ValueSet {
   int get length => size;
 
   void add(HInstruction instruction) {
-    assert(lookup(instruction) === null);
+    assert(lookup(instruction) == null);
     int hashCode = instruction.gvnHashCode();
     int capacity = table.length;
     // Resize when half of the hash table is in use.
@@ -22,7 +22,7 @@ class ValueSet {
     }
     // Try to insert in the hash table first.
     int index = hashCode % capacity;
-    if (table[index] === null) {
+    if (table[index] == null) {
       table[index] = instruction;
     } else {
       collisions = new ValueSetNode(instruction, hashCode, collisions);
@@ -35,9 +35,9 @@ class ValueSet {
     int index = hashCode % table.length;
     // Look in the hash table.
     HInstruction probe = table[index];
-    if (probe !== null && probe.gvnEquals(instruction)) return probe;
+    if (probe != null && probe.gvnEquals(instruction)) return probe;
     // Look in the collisions list.
-    for (ValueSetNode node = collisions; node !== null; node = node.next) {
+    for (ValueSetNode node = collisions; node != null; node = node.next) {
       if (node.hashCode() == hashCode) {
         HInstruction cached = node.value;
         if (cached.gvnEquals(instruction)) return cached;
@@ -52,7 +52,7 @@ class ValueSet {
     // Kill in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction instruction = table[index];
-      if (instruction !== null && (instruction.flags & depends) != 0) {
+      if (instruction != null && (instruction.flags & depends) != 0) {
         table[index] = null;
         size--;
       }
@@ -60,11 +60,11 @@ class ValueSet {
     // Kill in the collisions list.
     ValueSetNode previous = null;
     ValueSetNode current = collisions;
-    while (current !== null) {
+    while (current != null) {
       ValueSetNode next = current.next;
       HInstruction cached = current.value;
       if ((cached.flags & depends) != 0) {
-        if (previous === null) {
+        if (previous == null) {
           collisions = next;
         } else {
           previous.next = next;
@@ -93,11 +93,11 @@ class ValueSet {
     // Copy elements from the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction instruction = table[index];
-      if (instruction !== null) other.add(instruction);
+      if (instruction != null) other.add(instruction);
     }
     // Copy elements from the collision list.
     ValueSetNode current = collisions;
-    while (current !== null) {
+    while (current != null) {
       // TODO(kasperl): Maybe find a way of reusing the hash code
       // rather than recomputing it every time.
       other.add(current.value);
@@ -112,15 +112,15 @@ class ValueSet {
     // Look in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction instruction = table[index];
-      if (instruction !== null && other.lookup(instruction) !== null) {
+      if (instruction != null && other.lookup(instruction) != null) {
         result.add(instruction);
       }
     }
     // Look in the collision list.
     ValueSetNode current = collisions;
-    while (current !== null) {
+    while (current != null) {
       HInstruction value = current.value;
-      if (other.lookup(value) !== null) {
+      if (other.lookup(value) != null) {
         result.add(value);
       }
       current = current.next;

@@ -477,7 +477,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           basicBlock = basicBlock.successors[0];
         } else {
           // We allow an expression to end on an HIf (a condition expression).
-          return basicBlock === limits.end ? result : TYPE_STATEMENT;
+          return identical(basicBlock, limits.end) ? result : TYPE_STATEMENT;
         }
       } else {
         // Expression-incompatible control flow.
@@ -488,17 +488,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool isJSExpression(HExpressionInformation info) {
-    return expressionType(info) !== TYPE_STATEMENT;
+    return !identical(expressionType(info), TYPE_STATEMENT);
   }
 
   bool isJSDeclaration(HExpressionInformation info) {
-    return expressionType(info) === TYPE_DECLARATION;
+    return identical(expressionType(info), TYPE_DECLARATION);
   }
 
   bool isJSCondition(HExpressionInformation info) {
     HSubExpressionBlockInformation graph = info;
     SubExpression limits = graph.subExpression;
-    return expressionType(info) !== TYPE_STATEMENT &&
+    return !identical(expressionType(info), TYPE_STATEMENT) &&
        (limits.end.last is HConditionalBranch);
   }
 
@@ -775,7 +775,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Block body = generateStatementsInNewBlock(info.body);
     js.Catch catchPart = null;
     js.Block finallyPart = null;
-    if (info.catchBlock !== null) {
+    if (info.catchBlock != null) {
       HParameterValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
       parameterNames[exception.sourceElement] = name;
@@ -814,7 +814,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case HLoopBlockInformation.FOR_IN_LOOP:
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
-        if (initialization !== null) {
+        if (initialization != null) {
           initializationType = expressionType(initialization);
           if (initializationType == TYPE_STATEMENT) {
             generateStatements(initialization);
@@ -822,11 +822,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           }
         }
         if (isConditionExpression &&
-            info.updates !== null && isJSExpression(info.updates)) {
+            info.updates != null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
           js.Expression jsInitialization = null;
-          if (initialization !== null) {
+          if (initialization != null) {
             int delayedVariablesCount = delayedVariableDeclarations.length;
             jsInitialization = generateExpression(initialization);
             if (delayedVariablesCount < delayedVariableDeclarations.length) {
@@ -884,7 +884,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else {
           // We have either no update graph, or it's too complex to
           // put in an expression.
-          if (initialization !== null) {
+          if (initialization != null) {
             generateStatements(initialization);
           }
           js.Expression jsCondition;
@@ -902,7 +902,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             js.Break jsBreak = new js.Break(null);
             pushStatement(new js.If.noElse(ifTest, jsBreak));
           }
-          if (info.updates !== null) {
+          if (info.updates != null) {
             wrapLoopBodyForContinue(info);
             generateStatements(info.updates);
           } else {
@@ -915,18 +915,18 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         break;
       case HLoopBlockInformation.DO_WHILE_LOOP:
         // Generate do-while loop in all cases.
-        if (info.initializer !== null) {
+        if (info.initializer != null) {
           generateStatements(info.initializer);
         }
         js.Block oldContainer = currentContainer;
         js.Statement body = new js.Block.empty();
         currentContainer = body;
-        if (!isConditionExpression || info.updates !== null) {
+        if (!isConditionExpression || info.updates != null) {
           wrapLoopBodyForContinue(info);
         } else {
           visitBodyIgnoreLabels(info);
         }
-        if (info.updates !== null) {
+        if (info.updates != null) {
           generateStatements(info.updates);
         }
         if (isConditionExpression) {
@@ -1022,7 +1022,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // to (if necessary).
   void wrapLoopBodyForContinue(HLoopBlockInformation info) {
     TargetElement target = info.target;
-    if (target !== null && target.isContinueTarget) {
+    if (target != null && target.isContinueTarget) {
       js.Block oldContainer = currentContainer;
       js.Block body = new js.Block.empty();
       currentContainer = body;
@@ -1060,7 +1060,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // When the structure graph is complete, we will be able to have
     // different structures starting on the same basic block (e.g., an
     // "if" and its condition).
-    if (info === currentBlockInformation) return false;
+    if (identical(info, currentBlockInformation)) return false;
 
     HBlockInformation oldBlockInformation = currentBlockInformation;
     currentBlockInformation = info;
@@ -1068,7 +1068,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentBlockInformation = oldBlockInformation;
     if (success) {
       HBasicBlock continuation = block.continuation;
-      if (continuation !== null) {
+      if (continuation != null) {
         visitBasicBlock(continuation);
       }
     }
@@ -1082,13 +1082,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentBlock = node;
     // If this node has block-structure based information attached,
     // try using that to traverse from here.
-    if (node.blockFlow !== null &&
+    if (node.blockFlow != null &&
         handleBlockFlow(node.blockFlow)) {
       return;
     }
     // Flow based traversal.
     if (node.isLoopHeader() &&
-        node.loopInformation.loopBlockInformation !== currentBlockInformation) {
+        !identical(node.loopInformation.loopBlockInformation, currentBlockInformation)) {
       beginLoop(node);
     }
     iterateBasicBlock(node);
@@ -1141,7 +1141,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // For each copy, if the destination does not have a current
     // location, then we can safely assign to it.
     for (Copy copy in copies) {
-      if (currentLocation[copy.destination] === null) {
+      if (currentLocation[copy.destination] == null) {
         ready.add(copy.destination);
       }
     }
@@ -1159,7 +1159,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If [source] hasn't been updated and needs to have a value,
         // add it to the list of variables that can be updated. Copies
         // of [source] will now use [destination].
-        if (source == copy && initialValue[source] !== null) {
+        if (source == copy && initialValue[source] != null) {
           ready.add(source);
         }
       }
@@ -1169,7 +1169,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If [current] is used as a source, and the assignment has been
       // done, we are done with this variable. Otherwise there is a
       // cycle that we break by using a temporary name.
-      if (currentLocation[current] !== null
+      if (currentLocation[current] != null
           && current != currentLocation[initialValue[current]]) {
         String tempName = variableNames.swapTemp;
         emitAssignment(tempName, current);
@@ -1196,7 +1196,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void iterateBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
-    while (instruction !== node.last) {
+    while (!identical(instruction, node.last)) {
       if (instruction is HTypeGuard || instruction is HBailoutTarget) {
         visit(instruction);
       } else if (!isGenerateAtUseSite(instruction)) {
@@ -1328,7 +1328,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.internalError('dominated.length = ${dominated.length}',
                              instruction: node);
     }
-    if (dominated.length == 2 && currentBlock !== currentGraph.entry) {
+    if (dominated.length == 2 && !identical(currentBlock, currentGraph.entry)) {
       compiler.internalError('currentBlock !== currentGraph.entry',
                              instruction: node);
     }
@@ -1343,14 +1343,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   bool tryCallAction(Map<Element, ElementAction> map, Element element) {
     ElementAction action = map[element];
-    if (action === null) return false;
+    if (action == null) return false;
     action(element);
     return true;
   }
 
   visitBreak(HBreak node) {
     assert(currentBlock.successors.length == 1);
-    if (node.label !== null) {
+    if (node.label != null) {
       LabelElement label = node.label;
       if (!tryCallAction(breakAction, label)) {
         pushStatement(new js.Break(backend.namer.breakLabelName(label)), node);
@@ -1365,7 +1365,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitContinue(HContinue node) {
     assert(currentBlock.successors.length == 1);
-    if (node.label !== null) {
+    if (node.label != null) {
       LabelElement label = node.label;
       if (!tryCallAction(continueAction, label)) {
         // TODO(floitsch): should this really be the breakLabelName?
@@ -1438,7 +1438,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     HBasicBlock joinBlock = node.joinBlock;
-    if (joinBlock !== null && joinBlock.dominator !== node.block) {
+    if (joinBlock != null && !identical(joinBlock.dominator, node.block)) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
       // instead.
@@ -1479,7 +1479,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       methodName = backend.namer.instanceMethodInvocationName(
           node.selector.library, name, node.selector);
       arguments = visitArguments(node.inputs);
-      bool inLoop = node.block.enclosingLoopHeader !== null;
+      bool inLoop = node.block.enclosingLoopHeader != null;
 
       // Register this invocation to collect the types used at all call sites.
       Selector selector = getOptimizedSelectorFor(node, node.selector);
@@ -1488,7 +1488,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
       // with the same arguments.
-      if (target === null || target.isGetter()) {
+      if (target == null || target.isGetter()) {
         // TODO(kasperl): If we have a typed selector for the call, we
         // may know something about the types of closures that need
         // the specific closure call method.
@@ -1496,7 +1496,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         world.registerDynamicInvocation(call.name, call);
       }
 
-      if (target !== null) {
+      if (target != null) {
         // If we know we're calling a specific method, register that
         // method only.
         if (inLoop) backend.builder.functionsCalledInLoop.add(target);
@@ -1515,7 +1515,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (defaultSelector.name.isPrivate()) return defaultSelector;
     HType receiverHType = types[node.inputs[0]];
     DartType receiverType = receiverHType.computeType(compiler);
-    if (receiverType !== null) {
+    if (receiverType != null) {
       return new TypedSelector(receiverType, defaultSelector);
     } else {
       return defaultSelector;
@@ -1750,7 +1750,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitLoopBranch(HLoopBranch node) {
-    if (subGraph !== null && node.block === subGraph.end) {
+    if (subGraph != null && identical(node.block, subGraph.end)) {
       // We are generating code for a loop condition.
       // If doing this as part of a SubGraph traversal, the
       // calling code will handle the control flow logic.
@@ -1775,7 +1775,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // If the branch does not dominate the code after the loop, the
     // dominator will visit it.
-    if (branchBlock.successors[1].dominator !== branchBlock) return;
+    if (!identical(branchBlock.successors[1].dominator, branchBlock)) return;
 
     visitBasicBlock(branchBlock.successors[1]);
     // With labeled breaks we can have more dominated blocks.
@@ -1980,13 +1980,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     node.usedBy.forEach((HInstruction instr) {
       if (instr is !HInvokeStatic) {
         backend.registerNonCallStaticUse(node);
-      } else if (instr.target !== node) {
+      } else if (!identical(instr.target, node)) {
         backend.registerNonCallStaticUse(node);
       } else {
         // If invoking the static is can still be passed as an argument as well
         // which will also be non call static use.
         for (int i = 1; i < node.inputs.length; i++) {
-          if (node.inputs === node) {
+          if (identical(node.inputs, node)) {
             backend.registerNonCallStaticUse(node);
             break;
           }
@@ -2119,7 +2119,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {
     String builtin = builtinJsName(node);
-    if (builtin !== null) {
+    if (builtin != null) {
       if (builtin == '+') {
         use(node.inputs[1]);
         js.Expression left = pop();
@@ -2257,7 +2257,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input, DartType type) {
-    assert(type.element !== compiler.listClass
+    assert(!identical(type.element, compiler.listClass)
            && !Elements.isListSupertype(type.element, compiler)
            && !Elements.isStringOnlySupertype(type.element, compiler));
     checkNum(input, '===');
@@ -2273,7 +2273,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleStringSupertypeCheck(HInstruction input, DartType type) {
-    assert(type.element !== compiler.listClass
+    assert(!identical(type.element, compiler.listClass)
            && !Elements.isListSupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
     checkString(input, '===');
@@ -2287,7 +2287,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void handleListOrSupertypeCheck(HInstruction input, DartType type) {
-    assert(type.element !== compiler.stringClass
+    assert(!identical(type.element, compiler.stringClass)
            && !Elements.isStringOnlySupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
     checkObject(input, '===');
@@ -2304,16 +2304,16 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     DartType type = node.typeExpression;
     world.registerIsCheck(type);
     Element element = type.element;
-    if (element.kind === ElementKind.TYPE_VARIABLE) {
+    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       compiler.unimplemented("visitIs for type variables", instruction: node);
-    } else if (element.kind === ElementKind.TYPEDEF) {
+    } else if (identical(element.kind, ElementKind.TYPEDEF)) {
       compiler.unimplemented("visitIs for typedefs", instruction: node);
     }
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
-    if (element === objectClass || element === compiler.dynamicClass) {
+    if (identical(element, objectClass) || identical(element, compiler.dynamicClass)) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
       push(new js.LiteralBool(true), node);
@@ -2346,7 +2346,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
       handleStringSupertypeCheck(input, type);
       attachLocationToLast(node);
-    } else if (element === compiler.listClass
+    } else if (identical(element, compiler.listClass)
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, type);
       attachLocationToLast(node);
@@ -2487,7 +2487,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void endGraph(HGraph graph) {}
 
   js.Statement bailout(HTypeGuard guard, String reason) {
-    if (maxBailoutParameters === null) {
+    if (maxBailoutParameters == null) {
       maxBailoutParameters = 0;
       work.guards.forEach((HTypeGuard workGuard) {
         HBailoutTarget target = workGuard.bailoutTarget;
@@ -2872,7 +2872,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     if (block.hasBailoutTargets()) {
       startBailoutSwitch();
       HLoopInformation loopInformation = block.loopInformation;
-      if (loopInformation.target !== null) {
+      if (loopInformation.target != null) {
         breakAction[loopInformation.target] = (TargetElement target) {
           pushStatement(new js.Break(loopLabel));
         };

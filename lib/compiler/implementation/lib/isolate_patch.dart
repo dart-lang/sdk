@@ -97,7 +97,7 @@ void _fillStatics(context) {
 
 ReceivePort _lazyPort;
 patch ReceivePort get port {
-  if (_lazyPort === null) {
+  if (_lazyPort == null) {
     _lazyPort = new ReceivePort();
   }
   return _lazyPort;
@@ -625,7 +625,7 @@ class _BaseSendPort implements SendPort {
   const _BaseSendPort(this._isolateId);
 
   void _checkReplyTo(SendPort replyTo) {
-    if (replyTo !== null
+    if (replyTo != null
         && replyTo is! _NativeJsSendPort
         && replyTo is! _WorkerSendPort
         && replyTo is! _BufferingSendPort) {
@@ -842,7 +842,7 @@ class _PendingSendPortFinder extends _MessageTraverser {
 
   visitList(List list) {
     final seen = _visited[list];
-    if (seen !== null) return;
+    if (seen != null) return;
     _visited[list] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
     // list.forEach(_dispatch);
@@ -851,7 +851,7 @@ class _PendingSendPortFinder extends _MessageTraverser {
 
   visitMap(Map map) {
     final seen = _visited[map];
-    if (seen !== null) return;
+    if (seen != null) return;
 
     _visited[map] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
@@ -1090,7 +1090,7 @@ class _MessageTraverser {
   }
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
@@ -1102,7 +1102,7 @@ class _Copier extends _MessageTraverser {
 
   List visitList(List list) {
     List copy = _visited[list];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     int len = list.length;
 
@@ -1117,7 +1117,7 @@ class _Copier extends _MessageTraverser {
 
   Map visitMap(Map map) {
     Map copy = _visited[map];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     // TODO(floitsch): we loose the generic type of the map.
     copy = new Map();
@@ -1138,7 +1138,7 @@ class _Serializer extends _MessageTraverser {
 
   visitList(List list) {
     int copyId = _visited[list];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[list] = id;
@@ -1149,7 +1149,7 @@ class _Serializer extends _MessageTraverser {
 
   visitMap(Map map) {
     int copyId = _visited[map];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
@@ -1176,7 +1176,7 @@ class _Deserializer {
   _Deserializer();
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 
   deserialize(x) {
@@ -1201,7 +1201,7 @@ class _Deserializer {
   _deserializeRef(List x) {
     int id = x[1];
     var result = _deserialized[id];
-    assert(result !== null);
+    assert(result != null);
     return result;
   }
 

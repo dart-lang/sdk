@@ -34,7 +34,7 @@ class Parser {
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
     int count = 0;
-    while (token.kind !== EOF_TOKEN) {
+    while (!identical(token.kind, EOF_TOKEN)) {
       token = parseTopLevelDeclaration(token);
       count++;
     }
@@ -45,21 +45,21 @@ class Parser {
   Token parseTopLevelDeclaration(Token token) {
     token = parseMetadataStar(token);
     final String value = token.stringValue;
-    if (value === 'interface') {
+    if (identical(value, 'interface')) {
       return parseInterface(token);
-    } else if ((value === 'abstract') || (value === 'class')) {
+    } else if ((identical(value, 'abstract')) || (identical(value, 'class'))) {
       return parseClass(token);
-    } else if (value === 'typedef') {
+    } else if (identical(value, 'typedef')) {
       return parseNamedFunctionAlias(token);
-    } else if (value === '#') {
+    } else if (identical(value, '#')) {
       return parseScriptTags(token);
-    } else if (value === 'library') {
+    } else if (identical(value, 'library')) {
       return parseLibraryName(token);
-    } else if (value === 'import') {
+    } else if (identical(value, 'import')) {
       return parseImport(token);
-    } else if (value === 'export') {
+    } else if (identical(value, 'export')) {
       return parseExport(token);
-    } else if (value === 'part') {
+    } else if (identical(value, 'part')) {
       return parsePartOrPartOf(token);
     } else {
       return parseTopLevelMember(token);
@@ -114,9 +114,9 @@ class Parser {
     int count = 0;
     while (true) {
       String value = token.stringValue;
-      if ('hide' === value) {
+      if (identical('hide', value)) {
         token = parseHide(token);
-      } else if ('show' === value) {
+      } else if (identical('show', value)) {
         token = parseShow(token);
       } else {
         listener.endCombinators(count);
@@ -251,7 +251,7 @@ class Parser {
   }
 
   Token parseReturnTypeOpt(Token token) {
-    if (token.stringValue === 'void') {
+    if (identical(token.stringValue, 'void')) {
       listener.handleVoidKeyword(token);
       return token.next;
     } else {
@@ -281,10 +281,10 @@ class Parser {
       ++parameterCount;
       token = token.next;
       String value = token.stringValue;
-      if (value === '[') {
+      if (identical(value, '[')) {
         token = parseOptionalFormalParameters(token, false);
         break;
-      } else if (value === '{') {
+      } else if (identical(value, '{')) {
         token = parseOptionalFormalParameters(token, true);
         break;
       }
@@ -312,7 +312,7 @@ class Parser {
       listener.handleFunctionTypedFormalParameter(token);
     }
     String value = token.stringValue;
-    if (('=' === value) || (':' === value)) {
+    if ((identical('=', value)) || (identical(':', value))) {
       // TODO(ahe): Validate that these are only used for optional parameters.
       Token equal = token;
       token = parseExpression(token.next);
@@ -342,7 +342,7 @@ class Parser {
 
   Token parseTypeOpt(Token token) {
     String value = token.stringValue;
-    if (value !== 'this') {
+    if (!identical(value, 'this')) {
       Token peek = peekAfterExpectedType(token);
       if (peek.isIdentifier() || optional('this', peek)) {
         return parseType(token);
@@ -354,15 +354,15 @@ class Parser {
 
   bool isValidTypeReference(Token token) {
     final kind = token.kind;
-    if (kind === IDENTIFIER_TOKEN) return true;
-    if (kind === KEYWORD_TOKEN) {
+    if (identical(kind, IDENTIFIER_TOKEN)) return true;
+    if (identical(kind, KEYWORD_TOKEN)) {
       Keyword keyword = token.value;
       String value = keyword.stringValue;
       // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
       return keyword.isPseudo
-          || (value === 'dynamic')
-          || (value === 'Dynamic')
-          || (value === 'void');
+          || (identical(value, 'dynamic'))
+          || (identical(value, 'Dynamic'))
+          || (identical(value, 'void'));
     }
     return false;
   }
@@ -408,8 +408,8 @@ class Parser {
 
   bool isDefaultKeyword(Token token) {
     String value = token.stringValue;
-    if (value === 'default') return true;
-    if (value === 'factory') {
+    if (identical(value, 'default')) return true;
+    if (identical(value, 'factory')) {
       listener.recoverableError("expected 'default'", token: token);
       return true;
     }
@@ -422,9 +422,9 @@ class Parser {
     }
     BeginGroupToken beginGroupToken = token;
     Token endGroup = beginGroupToken.endGroup;
-    if (endGroup === null) {
+    if (endGroup == null) {
       return listener.unmatched(beginGroupToken);
-    } else if (endGroup.kind !== $CLOSE_CURLY_BRACKET) {
+    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
       return listener.unmatched(beginGroupToken);
     }
     return beginGroupToken.endGroup;
@@ -466,7 +466,7 @@ class Parser {
   }
 
   Token parseStringPart(Token token) {
-    if (token.kind === STRING_TOKEN) {
+    if (identical(token.kind, STRING_TOKEN)) {
       listener.handleStringPart(token);
       return token.next;
     } else {
@@ -484,7 +484,7 @@ class Parser {
   }
 
   Token expect(String string, Token token) {
-    if (string !== token.stringValue) {
+    if (!identical(string, token.stringValue)) {
       return listener.expected(string, token);
     }
     return token.next;
@@ -505,10 +505,10 @@ class Parser {
   /**
    * Returns true if the stringValue of the [token] is [value].
    */
-  bool optional(String value, Token token) => value === token.stringValue;
+  bool optional(String value, Token token) => identical(value, token.stringValue);
 
   bool notEofOrValue(String value, Token token) {
-    return token.kind !== EOF_TOKEN && value !== token.stringValue;
+    return !identical(token.kind, EOF_TOKEN) && !identical(value, token.stringValue);
   }
 
   Token parseType(Token token) {
@@ -552,11 +552,11 @@ class Parser {
         ++count;
       } while (optional(',', token));
       Token next = token.next;
-      if (token.stringValue === '>>') {
+      if (identical(token.stringValue, '>>')) {
         token = new Token(GT_INFO, token.charOffset);
         token.next = new Token(GT_INFO, token.charOffset + 1);
         token.next.next = next;
-      } else if (token.stringValue === '>>>') {
+      } else if (identical(token.stringValue, '>>>')) {
         token = new Token(GT_INFO, token.charOffset);
         token.next = new Token(GT_GT_INFO, token.charOffset + 1);
         token.next.next = next;
@@ -581,7 +581,7 @@ class Parser {
     Token getOrSet;
     if (!identifiers.isEmpty()) {
       String value = identifiers.head.stringValue;
-      if ((value === 'get') || (value === 'set')) {
+      if ((identical(value, 'get')) || (identical(value, 'set'))) {
         getOrSet = identifiers.head;
         identifiers = identifiers.tail;
       }
@@ -594,7 +594,7 @@ class Parser {
       }
     }
     parseModifierList(identifiers.reverse());
-    if (type === null) {
+    if (type == null) {
       listener.handleNoType(token);
     } else {
       parseReturnTypeOpt(type);
@@ -606,17 +606,18 @@ class Parser {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
       final String value = token.stringValue;
-      if ((value === '(') || (value === '{') || (value === '=>')) {
+      if ((identical(value, '(')) || (identical(value, '{'))
+          || (identical(value, '=>'))) {
         isField = false;
         break;
-      } else if ((value === '=') || (value === ',')) {
+      } else if ((identical(value, '=')) || (identical(value, ','))) {
         isField = true;
         break;
-      } else if (value === ';') {
+      } else if (identical(value, ';')) {
         if (getOrSet != null) {
           // If we found a "get" keyword, this must be an abstract
           // getter.
-          isField = (getOrSet.stringValue !== 'get');
+          isField = (!identical(getOrSet.stringValue, 'get'));
           // TODO(ahe): This feels like a hack.
         } else {
           isField = true;
@@ -624,7 +625,7 @@ class Parser {
         break;
       } else {
         token = listener.unexpected(token);
-        if (token.kind === EOF_TOKEN) {
+        if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack. It would be better to tell the
           // listener more explicitly that it must pop an identifier.
           listener.endTopLevelFields(1, start, token);
@@ -653,12 +654,14 @@ class Parser {
   Link<Token> findMemberName(Token token) {
     Token start = token;
     Link<Token> identifiers = const Link<Token>();
-    while (token.kind !== EOF_TOKEN) {
+    while (!identical(token.kind, EOF_TOKEN)) {
       String value = token.stringValue;
-      if ((value === '(') || (value === '{') || (value === '=>')) {
+      if ((identical(value, '(')) || (identical(value, '{')) 
+          || (identical(value, '=>'))) {
         // A method.
         return identifiers;
-      } else if ((value === '=') || (value === ';') || (value === ',')) {
+      } else if ((identical(value, '=')) || (identical(value, ';'))
+          || (identical(value, ','))) {
         // A field or abstract getter.
         return identifiers;
       }
@@ -738,7 +741,7 @@ class Parser {
   }
 
   Token parseLiteralStringOrRecoverExpression(Token token) {
-    if (token.kind === STRING_TOKEN) {
+    if (identical(token.kind, STRING_TOKEN)) {
       return parseLiteralString(token);
     } else {
       listener.recoverableError("unexpected", token: token);
@@ -752,12 +755,12 @@ class Parser {
 
   bool isModifier(Token token) {
     final String value = token.stringValue;
-    return ('final' === value) ||
-           ('var' === value) ||
-           ('const' === value) ||
-           ('abstract' === value) ||
-           ('static' === value) ||
-           ('external' === value);
+    return (identical('final', value)) ||
+           (identical('var', value)) ||
+           (identical('const', value)) ||
+           (identical('abstract', value)) ||
+           (identical('static', value)) ||
+           (identical('external', value));
   }
 
   Token parseModifier(Token token) {
@@ -782,7 +785,7 @@ class Parser {
 
   Token parseModifiers(Token token) {
     int count = 0;
-    while (token.kind === KEYWORD_TOKEN) {
+    while (identical(token.kind, KEYWORD_TOKEN)) {
       if (!isModifier(token))
         break;
       token = parseModifier(token);
@@ -796,19 +799,19 @@ class Parser {
     // TODO(ahe): Also handle var?
     // We are looking at "identifier ...".
     Token peek = token.next;
-    if (peek.kind === PERIOD_TOKEN) {
+    if (identical(peek.kind, PERIOD_TOKEN)) {
       if (peek.next.isIdentifier()) {
         // Look past a library prefix.
         peek = peek.next.next;
       }
     }
     // We are looking at "qualified ...".
-    if (peek.kind === LT_TOKEN) {
+    if (identical(peek.kind, LT_TOKEN)) {
       // Possibly generic type.
       // We are looking at "qualified '<'".
       BeginGroupToken beginGroupToken = peek;
       Token gtToken = beginGroupToken.endGroup;
-      if (gtToken !== null) {
+      if (gtToken != null) {
         // We are looking at "qualified '<' ... '>' ...".
         return gtToken.next;
       }
@@ -821,7 +824,7 @@ class Parser {
    * If [token] is not the start of a type, [Listener.unexpectedType] is called.
    */
   Token peekAfterExpectedType(Token token) {
-    if ('void' !== token.stringValue && !token.isIdentifier()) {
+    if (!identical('void', token.stringValue) && !token.isIdentifier()) {
       return listener.expectedType(token);
     }
     return peekAfterType(token);
@@ -845,7 +848,7 @@ class Parser {
 
   bool isGetOrSet(Token token) {
     final String value = token.stringValue;
-    return (value === 'get') || (value === 'set');
+    return (identical(value, 'get')) || (identical(value, 'set'));
   }
 
   bool isFactoryDeclaration(Token token) {
@@ -890,7 +893,7 @@ class Parser {
       }
     }
     parseModifierList(identifiers.reverse());
-    if (type === null) {
+    if (type == null) {
       listener.handleNoType(token);
     } else {
       parseReturnTypeOpt(type);
@@ -906,26 +909,26 @@ class Parser {
       // Loop to allow the listener to rewrite the token stream for
       // error handling.
       final String value = token.stringValue;
-      if ((value === '(') || (value === '.') || (value === '{') ||
-          (value === '=>')) {
+      if ((identical(value, '(')) || (identical(value, '.'))
+          || (identical(value, '{')) || (identical(value, '=>'))) {
         isField = false;
         break;
-      } else if (value === ';') {
+      } else if (identical(value, ';')) {
         if (getOrSet != null) {
           // If we found a "get" keyword, this must be an abstract
           // getter.
-          isField = (getOrSet.stringValue !== 'get');
+          isField = (!identical(getOrSet.stringValue, 'get'));
           // TODO(ahe): This feels like a hack.
         } else {
           isField = true;
         }
         break;
-      } else if ((value === '=') || (value === ',')) {
+      } else if ((identical(value, '=')) || (identical(value, ','))) {
         isField = true;
         break;
       } else {
         token = listener.unexpected(token);
-        if (token.kind === EOF_TOKEN) {
+        if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
           listener.endFields(1, start, token);
           return token;
@@ -935,7 +938,7 @@ class Parser {
     if (isField) {
       int fieldCount = 1;
       token = parseVariableInitializerOpt(token);
-      if (getOrSet !== null) {
+      if (getOrSet != null) {
         listener.recoverableError("unexpected", token: getOrSet);
       }
       while (optional(',', token)) {
@@ -959,7 +962,7 @@ class Parser {
   Token parseFactoryMethod(Token token) {
     assert(isFactoryDeclaration(token));
     Token start = token;
-    if (token.stringValue === 'external') token = token.next;
+    if (identical(token.stringValue, 'external')) token = token.next;
     Token constKeyword = null;
     if (optional('const', token)) {
       constKeyword = token;
@@ -1001,14 +1004,14 @@ class Parser {
   Token parseFunction(Token token, Token getOrSet) {
     listener.beginFunction(token);
     token = parseModifiers(token);
-    if (getOrSet === token) token = token.next;
+    if (identical(getOrSet, token)) token = token.next;
     if (optional('operator', token)) {
       listener.handleNoType(token);
       listener.beginFunctionName(token);
       token = parseOperatorName(token);
     } else {
       token = parseReturnTypeOpt(token);
-      if (getOrSet === token) token = token.next;
+      if (identical(getOrSet, token)) token = token.next;
       listener.beginFunctionName(token);
       if (optional('operator', token)) {
         token = parseOperatorName(token);
@@ -1121,39 +1124,39 @@ class Parser {
 
   Token parseStatement(Token token) {
     final value = token.stringValue;
-    if (token.kind === IDENTIFIER_TOKEN) {
+    if (identical(token.kind, IDENTIFIER_TOKEN)) {
       return parseExpressionStatementOrDeclaration(token);
-    } else if (value === '{') {
+    } else if (identical(value, '{')) {
       return parseBlock(token);
-    } else if (value === 'return') {
+    } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
-    } else if (value === 'var' || value === 'final') {
+    } else if (identical(value, 'var') || identical(value, 'final')) {
       return parseVariablesDeclaration(token);
-    } else if (value === 'if') {
+    } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (value === 'for') {
+    } else if (identical(value, 'for')) {
       return parseForStatement(token);
-    } else if (value === 'throw') {
+    } else if (identical(value, 'throw')) {
       return parseThrowStatement(token);
-    } else if (value === 'void') {
+    } else if (identical(value, 'void')) {
       return parseExpressionStatementOrDeclaration(token);
-    } else if (value === 'while') {
+    } else if (identical(value, 'while')) {
       return parseWhileStatement(token);
-    } else if (value === 'do') {
+    } else if (identical(value, 'do')) {
       return parseDoWhileStatement(token);
-    } else if (value === 'try') {
+    } else if (identical(value, 'try')) {
       return parseTryStatement(token);
-    } else if (value === 'switch') {
+    } else if (identical(value, 'switch')) {
       return parseSwitchStatement(token);
-    } else if (value === 'break') {
+    } else if (identical(value, 'break')) {
       return parseBreakStatement(token);
-    } else if (value === 'continue') {
+    } else if (identical(value, 'continue')) {
       return parseContinueStatement(token);
-    } else if (value === 'assert') {
+    } else if (identical(value, 'assert')) {
       return parseAssertStatement(token);
-    } else if (value === ';') {
+    } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (value === 'const') {
+    } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (token.isIdentifier()) {
       return parseExpressionStatementOrDeclaration(token);
@@ -1165,7 +1168,7 @@ class Parser {
   Token parseReturnStatement(Token token) {
     Token begin = token;
     listener.beginReturnStatement(begin);
-    assert('return' === token.stringValue);
+    assert(identical('return', token.stringValue));
     token = token.next;
     if (optional(';', token)) {
       listener.endReturnStatement(false, begin, token);
@@ -1178,7 +1181,7 @@ class Parser {
 
   Token peekIdentifierAfterType(Token token) {
     Token peek = peekAfterType(token);
-    if (peek !== null && peek.isIdentifier()) {
+    if (peek != null && peek.isIdentifier()) {
       // We are looking at "type identifier".
       return peek;
     } else {
@@ -1188,7 +1191,7 @@ class Parser {
 
   Token peekIdentifierAfterOptionalType(Token token) {
     Token peek = peekIdentifierAfterType(token);
-    if (peek !== null) {
+    if (peek != null) {
       // We are looking at "type identifier".
       return peek;
     } else if (token.isIdentifier()) {
@@ -1200,18 +1203,18 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
-    assert(token.isIdentifier() || token.stringValue === 'void');
+    assert(token.isIdentifier() || identical(token.stringValue, 'void'));
     Token identifier = peekIdentifierAfterType(token);
-    if (identifier !== null) {
+    if (identifier != null) {
       assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
-      if (afterIdKind === EQ_TOKEN ||
-          afterIdKind === SEMICOLON_TOKEN ||
-          afterIdKind === COMMA_TOKEN) {
+      if (identical(afterIdKind, EQ_TOKEN) ||
+          identical(afterIdKind, SEMICOLON_TOKEN) ||
+          identical(afterIdKind, COMMA_TOKEN)) {
         // We are looking at "type identifier" followed by '=', ';', ','.
         return parseVariablesDeclaration(token);
-      } else if (afterIdKind === OPEN_PAREN_TOKEN) {
+      } else if (identical(afterIdKind, OPEN_PAREN_TOKEN)) {
         // We are looking at "type identifier '('".
         BeginGroupToken beginParen = afterId;
         Token endParen = beginParen.endGroup;
@@ -1229,7 +1232,7 @@ class Parser {
       } else if (optional('(', token.next)) {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
-        if (afterParens === '{' || afterParens === '=>') {
+        if (identical(afterParens, '{') || identical(afterParens, '=>')) {
           return parseFunctionDeclaration(token);
         }
       }
@@ -1238,18 +1241,18 @@ class Parser {
   }
 
   Token parseExpressionStatementOrConstDeclaration(Token token) {
-    assert(token.stringValue === 'const');
+    assert(identical(token.stringValue, 'const'));
     if (isModifier(token.next)) {
       return parseVariablesDeclaration(token);
     }
     Token identifier = peekIdentifierAfterOptionalType(token.next);
-    if (identifier !== null) {
+    if (identifier != null) {
       assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
-      if (afterIdKind === EQ_TOKEN ||
-          afterIdKind === SEMICOLON_TOKEN ||
-          afterIdKind === COMMA_TOKEN) {
+      if (identical(afterIdKind, EQ_TOKEN) ||
+          identical(afterIdKind, SEMICOLON_TOKEN) ||
+          identical(afterIdKind, COMMA_TOKEN)) {
         // We are looking at "const type identifier" followed by '=', ';', or
         // ','.
         return parseVariablesDeclaration(token);
@@ -1313,41 +1316,41 @@ class Parser {
     PrecedenceInfo info = token.info;
     int tokenLevel = info.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
-      while (tokenLevel === level) {
+      while (identical(tokenLevel, level)) {
         Token operator = token;
-        if (tokenLevel === CASCADE_PRECEDENCE) {
+        if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
           if (!allowCascades) {
             return token;
           }
           token = parseCascadeExpression(token);
-        } else if (tokenLevel === ASSIGNMENT_PRECEDENCE) {
+        } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
-        } else if (tokenLevel === POSTFIX_PRECEDENCE) {
-          if (info === PERIOD_INFO) {
+        } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
+          if (identical(info, PERIOD_INFO)) {
             // Left associative, so we recurse at the next higher
             // precedence level. However, POSTFIX_PRECEDENCE is the
             // highest level, so we just call parseUnaryExpression
             // directly.
             token = parseUnaryExpression(token.next, allowCascades);
             listener.handleBinaryExpression(operator);
-          } else if ((info === OPEN_PAREN_INFO) ||
-                     (info === OPEN_SQUARE_BRACKET_INFO)) {
+          } else if ((identical(info, OPEN_PAREN_INFO)) ||
+                     (identical(info, OPEN_SQUARE_BRACKET_INFO))) {
             token = parseArgumentOrIndexStar(token);
-          } else if ((info === PLUS_PLUS_INFO) ||
-                     (info === MINUS_MINUS_INFO)) {
+          } else if ((identical(info, PLUS_PLUS_INFO)) ||
+                     (identical(info, MINUS_MINUS_INFO))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
             token = token.next;
           } else {
             token = listener.unexpected(token);
           }
-        } else if (info === IS_INFO) {
+        } else if (identical(info, IS_INFO)) {
           token = parseIsOperatorRest(token);
-        } else if (info === AS_INFO) {
+        } else if (identical(info, AS_INFO)) {
           token = parseAsOperatorRest(token);
-        } else if (info === QUESTION_INFO) {
+        } else if (identical(info, QUESTION_INFO)) {
           token = parseConditionalExpressionRest(token);
         } else {
           // Left associative, so we recurse at the next higher
@@ -1385,9 +1388,9 @@ class Parser {
         listener.handleBinaryExpression(period);
       }
       token = parseArgumentOrIndexStar(token);
-    } while (mark !== token);
+    } while (!identical(mark, token));
 
-    if (token.info.precedence === ASSIGNMENT_PRECEDENCE) {
+    if (identical(token.info.precedence, ASSIGNMENT_PRECEDENCE)) {
       Token assignment = token;
       token = parseExpressionWithoutCascade(token.next);
       listener.handleAssignmentExpression(assignment);
@@ -1399,17 +1402,17 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (value === '+') {
+    if (identical(value, '+')) {
       // Dart only allows "prefix plus" as an initial part of a
       // decimal literal. We scan it as a separate token and let
       // the parser listener combine it with the digits.
       Token next = token.next;
-      if (next.charOffset === token.charOffset + 1) {
-        if (next.kind === INT_TOKEN) {
+      if (identical(next.charOffset, token.charOffset + 1)) {
+        if (identical(next.kind, INT_TOKEN)) {
           listener.handleLiteralInt(token);
           return next.next;
         }
-        if (next.kind === DOUBLE_TOKEN) {
+        if (identical(next.kind, DOUBLE_TOKEN)) {
           listener.handleLiteralDouble(token);
           return next.next;
         }
@@ -1417,16 +1420,16 @@ class Parser {
       listener.recoverableError("Unexpected token '+'", token: token);
       return parsePrecedenceExpression(next, POSTFIX_PRECEDENCE,
                                        allowCascades);
-    } else if ((value === '!') ||
-               (value === '-') ||
-               (value === '~')) {
+    } else if ((identical(value, '!')) ||
+               (identical(value, '-')) ||
+               (identical(value, '~'))) {
       Token operator = token;
       // Right associative, so we recurse at the same precedence
       // level.
       token = parsePrecedenceExpression(token.next, POSTFIX_PRECEDENCE,
                                         allowCascades);
       listener.handleUnaryPrefixExpression(operator);
-    } else if ((value === '++') || value === '--') {
+    } else if ((identical(value, '++')) || identical(value, '--')) {
       // TODO(ahe): Validate this is used correctly.
       Token operator = token;
       // Right associative, so we recurse at the same precedence
@@ -1462,43 +1465,44 @@ class Parser {
 
   Token parsePrimary(Token token) {
     final kind = token.kind;
-    if (kind === IDENTIFIER_TOKEN) {
+    if (identical(kind, IDENTIFIER_TOKEN)) {
       return parseSendOrFunctionLiteral(token);
-    } else if (kind === INT_TOKEN || kind === HEXADECIMAL_TOKEN) {
+    } else if (identical(kind, INT_TOKEN)
+        || identical(kind, HEXADECIMAL_TOKEN)) {
       return parseLiteralInt(token);
-    } else if (kind === DOUBLE_TOKEN) {
+    } else if (identical(kind, DOUBLE_TOKEN)) {
       return parseLiteralDouble(token);
-    } else if (kind === STRING_TOKEN) {
+    } else if (identical(kind, STRING_TOKEN)) {
       return parseLiteralString(token);
-    } else if (kind === KEYWORD_TOKEN) {
+    } else if (identical(kind, KEYWORD_TOKEN)) {
       final value = token.stringValue;
-      if ((value === 'true') || (value === 'false')) {
+      if ((identical(value, 'true')) || (identical(value, 'false'))) {
         return parseLiteralBool(token);
-      } else if (value === 'null') {
+      } else if (identical(value, 'null')) {
         return parseLiteralNull(token);
-      } else if (value === 'this') {
+      } else if (identical(value, 'this')) {
         return parseThisExpression(token);
-      } else if (value === 'super') {
+      } else if (identical(value, 'super')) {
         return parseSuperExpression(token);
-      } else if (value === 'new') {
+      } else if (identical(value, 'new')) {
         return parseNewExpression(token);
-      } else if (value === 'const') {
+      } else if (identical(value, 'const')) {
         return parseConstExpression(token);
-      } else if (value === 'void') {
+      } else if (identical(value, 'void')) {
         return parseFunctionExpression(token);
       } else if (token.isIdentifier()) {
         return parseSendOrFunctionLiteral(token);
       } else {
         return listener.expectedExpression(token);
       }
-    } else if (kind === OPEN_PAREN_TOKEN) {
+    } else if (identical(kind, OPEN_PAREN_TOKEN)) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if ((kind === LT_TOKEN) ||
-               (kind === OPEN_SQUARE_BRACKET_TOKEN) ||
-               (kind === OPEN_CURLY_BRACKET_TOKEN) ||
-               token.stringValue === '[]') {
+    } else if ((identical(kind, LT_TOKEN)) ||
+               (identical(kind, OPEN_SQUARE_BRACKET_TOKEN)) ||
+               (identical(kind, OPEN_CURLY_BRACKET_TOKEN)) ||
+               identical(token.stringValue, '[]')) {
       return parseLiteralListOrMap(token);
-    } else if (kind === QUESTION_TOKEN) {
+    } else if (identical(kind, QUESTION_TOKEN)) {
       return parseArgumentDefinitionTest(token);
     } else {
       return listener.expectedExpression(token);
@@ -1518,7 +1522,8 @@ class Parser {
     BeginGroupToken beginGroup = token;
     int kind = beginGroup.endGroup.next.kind;
     if (mayParseFunctionExpressions &&
-        (kind === FUNCTION_TOKEN || kind === OPEN_CURLY_BRACKET_TOKEN)) {
+        (identical(kind, FUNCTION_TOKEN)
+            || identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
       return parseUnamedFunction(token);
     } else {
       bool old = mayParseFunctionExpressions;
@@ -1533,7 +1538,7 @@ class Parser {
     Token begin = token;
     token = expect('(', token);
     token = parseExpression(token);
-    if (begin.endGroup !== token) {
+    if (!identical(begin.endGroup, token)) {
       listener.unexpected(token);
       token = begin.endGroup;
     }
@@ -1622,7 +1627,7 @@ class Parser {
   Token parseSendOrFunctionLiteral(Token token) {
     if (!mayParseFunctionExpressions) return parseSend(token);
     Token peek = peekAfterExpectedType(token);
-    if (peek.kind === IDENTIFIER_TOKEN && isFunctionDeclaration(peek.next)) {
+    if (identical(peek.kind, IDENTIFIER_TOKEN) && isFunctionDeclaration(peek.next)) {
       return parseFunctionExpression(token);
     } else if (isFunctionDeclaration(token.next)) {
       return parseFunctionExpression(token);
@@ -1635,7 +1640,7 @@ class Parser {
     if (optional('(', token)) {
       BeginGroupToken begin = token;
       String afterParens = begin.endGroup.next.stringValue;
-      if (afterParens === '{' || afterParens === '=>') {
+      if (identical(afterParens, '{') || identical(afterParens, '=>')) {
         return true;
       }
     }
@@ -1665,10 +1670,10 @@ class Parser {
     Token constKeyword = token;
     token = expect('const', token);
     final String value = token.stringValue;
-    if ((value === '<') ||
-        (value === '[') ||
-        (value === '[]') ||
-        (value === '{')) {
+    if ((identical(value, '<')) ||
+        (identical(value, '[')) ||
+        (identical(value, '[]')) ||
+        (identical(value, '{'))) {
       return parseLiteralListOrMap(constKeyword);
     }
     token = parseType(token);
@@ -1696,7 +1701,7 @@ class Parser {
   Token parseLiteralString(Token token) {
     token = parseSingleLiteralString(token);
     int count = 1;
-    while (token.kind === STRING_TOKEN) {
+    while (identical(token.kind, STRING_TOKEN)) {
       token = parseSingleLiteralString(token);
       count++;
     }
@@ -1716,12 +1721,12 @@ class Parser {
     int interpolationCount = 0;
     var kind = token.kind;
     while (kind != EOF_TOKEN) {
-      if (kind === STRING_INTERPOLATION_TOKEN) {
+      if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
         token = token.next;
         token = parseExpression(token);
         token = expect('}', token);
-      } else if (kind === STRING_INTERPOLATION_IDENTIFIER_TOKEN) {
+      } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
         token = token.next;
         token = parseExpression(token);
@@ -1767,7 +1772,7 @@ class Parser {
   Token parseArguments(Token token) {
     Token begin = token;
     listener.beginArguments(begin);
-    assert('(' === token.stringValue);
+    assert(identical('(', token.stringValue));
     int argumentCount = 0;
     if (optional(')', token.next)) {
       listener.endArguments(argumentCount, begin, token.next);
@@ -1782,7 +1787,7 @@ class Parser {
         colon = token;
       }
       token = parseExpression(token.next);
-      if (colon !== null) listener.handleNamedArgument(colon);
+      if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
     } while (optional(',', token));
     mayParseFunctionExpressions = old;
@@ -1801,7 +1806,7 @@ class Parser {
     token = parseType(token.next);
     listener.handleIsOperator(operator, not, token);
     String value = token.stringValue;
-    if (value === 'is' || value === 'as') {
+    if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained, but they can take part of
       // expressions like: foo is Foo || foo is Bar.
       listener.unexpected(token);
@@ -1815,7 +1820,7 @@ class Parser {
     token = parseType(token.next);
     listener.handleAsOperator(operator, token);
     String value = token.stringValue;
-    if (value === 'is' || value === 'as') {
+    if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained.
       listener.unexpected(token);
     }
@@ -1879,19 +1884,19 @@ class Parser {
 
   Token parseVariablesDeclarationOrExpressionOpt(Token token) {
     final String value = token.stringValue;
-    if (value === ';') {
+    if (identical(value, ';')) {
       listener.handleNoExpression(token);
       return token;
-    } else if ((value === 'var') || (value === 'final')) {
+    } else if ((identical(value, 'var')) || (identical(value, 'final'))) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
     Token identifier = peekIdentifierAfterType(token);
-    if (identifier !== null) {
+    if (identifier != null) {
       assert(identifier.isIdentifier());
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
-      if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN ||
-          afterIdKind === COMMA_TOKEN || optional('in', afterId)) {
+      if (identical(afterIdKind, EQ_TOKEN) || identical(afterIdKind, SEMICOLON_TOKEN) ||
+          identical(afterIdKind, COMMA_TOKEN) || optional('in', afterId)) {
         return parseVariablesDeclarationNoSemicolon(token);
       }
     }
@@ -1989,16 +1994,16 @@ class Parser {
     int catchCount = 0;
 
     String value = token.stringValue;
-    while (value === 'catch' || value === 'on') {
+    while (identical(value, 'catch') || identical(value, 'on')) {
       var onKeyword = null;
-      if (value === 'on') {
+      if (identical(value, 'on')) {
         // on qualified catchPart?
         onKeyword = token;
         token = parseType(token.next);
         value = token.stringValue;
       }
       Token catchKeyword = null;
-      if (value === 'catch') {
+      if (identical(value, 'catch')) {
         catchKeyword = token;
         // TODO(ahe): Validate the "parameters".
         token = parseFormalParameters(token.next);
@@ -2034,7 +2039,7 @@ class Parser {
     listener.beginSwitchBlock(begin);
     token = expect('{', token);
     int caseCount = 0;
-    while (token.kind !== EOF_TOKEN) {
+    while (!identical(token.kind, EOF_TOKEN)) {
       if (optional('}', token)) {
         break;
       }
@@ -2071,8 +2076,8 @@ class Parser {
     while (true) {
       // Loop until we find something that can't be part of a switch case.
       String value = peek.stringValue;
-      if (value === 'default') {
-        while (token !== peek) {
+      if (identical(value, 'default')) {
+        while (!identical(token, peek)) {
           token = parseLabel(token);
           labelCount++;
         }
@@ -2080,8 +2085,8 @@ class Parser {
         token = expect(':', token.next);
         peek = token;
         break;
-      } else if (value === 'case') {
-        while (token !== peek) {
+      } else if (identical(value, 'case')) {
+        while (!identical(token, peek)) {
           token = parseLabel(token);
           labelCount++;
         }
@@ -2101,11 +2106,11 @@ class Parser {
     }
     // Finally zero or more statements.
     int statementCount = 0;
-    while (token.kind !== EOF_TOKEN) {
+    while (!identical(token.kind, EOF_TOKEN)) {
       String value = peek.stringValue;
-      if ((value === 'case') ||
-          (value === 'default') ||
-          ((value === '}') && (token === peek))) {
+      if ((identical(value, 'case')) ||
+          (identical(value, 'default')) ||
+          ((identical(value, '}')) && (identical(token, peek)))) {
         // A label just before "}" will be handled as a statement error.
         break;
       } else {

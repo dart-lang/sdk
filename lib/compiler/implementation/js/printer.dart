@@ -193,18 +193,18 @@ class Printer implements NodeVisitor {
     outIndent("for");
     spaceOut();
     out("(");
-    if (loop.init !== null) {
+    if (loop.init != null) {
       visitNestedExpression(loop.init, EXPRESSION,
                             newInForInit: true, newAtStatementBegin: false);
     }
     out(";");
-    if (loop.condition !== null) {
+    if (loop.condition != null) {
       spaceOut();
       visitNestedExpression(loop.condition, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
     }
     out(";");
-    if (loop.update !== null) {
+    if (loop.update != null) {
       spaceOut();
       visitNestedExpression(loop.update, EXPRESSION,
                             newInForInit: false, newAtStatementBegin: false);
@@ -288,10 +288,10 @@ class Printer implements NodeVisitor {
   visitTry(Try node) {
     outIndent("try");
     blockBody(node.body, needsSeparation: true, needsNewline: false);
-    if (node.catchPart !== null) {
+    if (node.catchPart != null) {
       visit(node.catchPart);
     }
-    if (node.finallyPart !== null) {
+    if (node.finallyPart != null) {
       spaceOut();
       out("finally");
       blockBody(node.finallyPart, needsSeparation: true, needsNewline: true);
@@ -424,7 +424,7 @@ class Printer implements NodeVisitor {
     visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
-    if (assignment.value !== null) {
+    if (assignment.value != null) {
       spaceOut();
       String op = assignment.op;
       if (op != null) out(op);

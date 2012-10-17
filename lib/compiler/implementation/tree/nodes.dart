@@ -81,10 +81,10 @@ abstract class Visitor<R> {
 
 Token firstBeginToken(Node first, Node second) {
   Token token = null;
-  if (first !== null) {
+  if (first != null) {
     token = first.getBeginToken();
   }
-  if (token === null && second !== null) {
+  if (token == null && second != null) {
     // [token] might be null even when [first] is not, e.g. for empty Modifiers.
     token = second.getBeginToken();
   }
@@ -225,14 +225,14 @@ class ClassNode extends Node {
   accept(Visitor visitor) => visitor.visitClassNode(this);
 
   visitChildren(Visitor visitor) {
-    if (name !== null) name.accept(visitor);
-    if (typeParameters !== null) typeParameters.accept(visitor);
-    if (superclass !== null) superclass.accept(visitor);
-    if (interfaces !== null) interfaces.accept(visitor);
-    if (body !== null) body.accept(visitor);
+    if (name != null) name.accept(visitor);
+    if (typeParameters != null) typeParameters.accept(visitor);
+    if (superclass != null) superclass.accept(visitor);
+    if (interfaces != null) interfaces.accept(visitor);
+    if (body != null) body.accept(visitor);
   }
 
-  bool get isInterface => beginToken.stringValue === 'interface';
+  bool get isInterface => identical(beginToken.stringValue, 'interface');
 
   bool get isClass => !isInterface;
 
@@ -276,11 +276,11 @@ class Send extends Expression {
 
   Send([this.receiver, this.selector, this.argumentsNode]);
   Send.postfix(this.receiver, this.selector, [Node argument = null])
-      : argumentsNode = (argument === null)
+      : argumentsNode = (argument == null)
         ? new Postfix()
         : new Postfix.singleton(argument);
   Send.prefix(this.receiver, this.selector, [Node argument = null])
-      : argumentsNode = (argument === null)
+      : argumentsNode = (argument == null)
         ? new Prefix()
         : new Prefix.singleton(argument);
 
@@ -289,32 +289,32 @@ class Send extends Expression {
   accept(Visitor visitor) => visitor.visitSend(this);
 
   visitChildren(Visitor visitor) {
-    if (receiver !== null) receiver.accept(visitor);
-    if (selector !== null) selector.accept(visitor);
-    if (argumentsNode !== null) argumentsNode.accept(visitor);
+    if (receiver != null) receiver.accept(visitor);
+    if (selector != null) selector.accept(visitor);
+    if (argumentsNode != null) argumentsNode.accept(visitor);
   }
 
-  int argumentCount() => (argumentsNode === null) ? -1 : argumentsNode.length();
+  int argumentCount() => (argumentsNode == null) ? -1 : argumentsNode.length();
 
   bool get isSuperCall {
-    return receiver !== null &&
-           receiver.asIdentifier() !== null &&
+    return receiver != null &&
+           receiver.asIdentifier() != null &&
            receiver.asIdentifier().isSuper();
   }
   bool get isOperator => selector is Operator;
-  bool get isPropertyAccess => argumentsNode === null;
-  bool get isFunctionObjectInvocation => selector === null;
+  bool get isPropertyAccess => argumentsNode == null;
+  bool get isFunctionObjectInvocation => selector == null;
   bool get isPrefix => argumentsNode is Prefix;
   bool get isPostfix => argumentsNode is Postfix;
   bool get isCall => !isOperator && !isPropertyAccess;
   bool get isIndex =>
-      isOperator && selector.asOperator().source.stringValue === '[]';
+      isOperator && identical(selector.asOperator().source.stringValue, '[]');
   bool get isLogicalAnd =>
-      isOperator && selector.asOperator().source.stringValue === '&&';
+      isOperator && identical(selector.asOperator().source.stringValue, '&&');
   bool get isLogicalOr =>
-      isOperator && selector.asOperator().source.stringValue === '||';
+      isOperator && identical(selector.asOperator().source.stringValue, '||');
   bool get isParameterCheck =>
-      isOperator && selector.asOperator().source.stringValue === '?';
+      isOperator && identical(selector.asOperator().source.stringValue, '?');
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();
@@ -323,19 +323,19 @@ class Send extends Expression {
 
   Token getEndToken() {
     if (isPrefix) {
-      if (receiver !== null) return receiver.getEndToken();
-      if (selector !== null) return selector.getEndToken();
+      if (receiver != null) return receiver.getEndToken();
+      if (selector != null) return selector.getEndToken();
       return null;
     }
-    if (!isPostfix && argumentsNode !== null) {
+    if (!isPostfix && argumentsNode != null) {
       return argumentsNode.getEndToken();
     }
-    if (selector !== null) return selector.getEndToken();
+    if (selector != null) return selector.getEndToken();
     return receiver.getBeginToken();
   }
 
   Send copyWithReceiver(Node newReceiver) {
-    assert(receiver === null);
+    assert(receiver == null);
     return new Send(newReceiver, selector, argumentsNode);
   }
 
@@ -387,11 +387,11 @@ class SendSet extends Send {
 
   visitChildren(Visitor visitor) {
     super.visitChildren(visitor);
-    if (assignmentOperator !== null) assignmentOperator.accept(visitor);
+    if (assignmentOperator != null) assignmentOperator.accept(visitor);
   }
 
   Send copyWithReceiver(Node newReceiver) {
-    assert(receiver === null);
+    assert(receiver == null);
     return new SendSet(newReceiver, selector, assignmentOperator,
                        argumentsNode);
   }
@@ -419,10 +419,10 @@ class NewExpression extends Expression {
   accept(Visitor visitor) => visitor.visitNewExpression(this);
 
   visitChildren(Visitor visitor) {
-    if (send !== null) send.accept(visitor);
+    if (send != null) send.accept(visitor);
   }
 
-  bool isConst() => newToken.stringValue === 'const';
+  bool isConst() => identical(newToken.stringValue, 'const');
 
   Token getBeginToken() => newToken;
 
@@ -456,20 +456,20 @@ class NodeList extends Node implements Iterable<Node> {
   accept(Visitor visitor) => visitor.visitNodeList(this);
 
   visitChildren(Visitor visitor) {
-    if (nodes === null) return;
+    if (nodes == null) return;
     for (Link<Node> link = nodes; !link.isEmpty(); link = link.tail) {
-      if (link.head !== null) link.head.accept(visitor);
+      if (link.head != null) link.head.accept(visitor);
     }
   }
 
   Token getBeginToken() {
-    if (beginToken !== null) return beginToken;
-     if (nodes !== null) {
+    if (beginToken != null) return beginToken;
+     if (nodes != null) {
        for (Link<Node> link = nodes; !link.isEmpty(); link = link.tail) {
-         if (link.head.getBeginToken() !== null) {
+         if (link.head.getBeginToken() != null) {
            return link.head.getBeginToken();
          }
-         if (link.head.getEndToken() !== null) {
+         if (link.head.getEndToken() != null) {
            return link.head.getEndToken();
          }
        }
@@ -478,13 +478,13 @@ class NodeList extends Node implements Iterable<Node> {
   }
 
   Token getEndToken() {
-    if (endToken !== null) return endToken;
-    if (nodes !== null) {
+    if (endToken != null) return endToken;
+    if (nodes != null) {
       Link<Node> link = nodes;
       if (link.isEmpty()) return beginToken;
       while (!link.tail.isEmpty()) link = link.tail;
-      if (link.head.getEndToken() !== null) return link.head.getEndToken();
-      if (link.head.getBeginToken() !== null) return link.head.getBeginToken();
+      if (link.head.getEndToken() != null) return link.head.getEndToken();
+      if (link.head.getBeginToken() != null) return link.head.getBeginToken();
     }
     return beginToken;
   }
@@ -500,7 +500,7 @@ class Block extends Statement {
   accept(Visitor visitor) => visitor.visitBlock(this);
 
   visitChildren(Visitor visitor) {
-    if (statements !== null) statements.accept(visitor);
+    if (statements != null) statements.accept(visitor);
   }
 
   Token getBeginToken() => statements.getBeginToken();
@@ -521,7 +521,7 @@ class If extends Statement {
 
   If asIf() => this;
 
-  bool get hasElsePart => elsePart !== null;
+  bool get hasElsePart => elsePart != null;
 
   void validate() {
     // TODO(ahe): Check that condition has size one.
@@ -530,15 +530,15 @@ class If extends Statement {
   accept(Visitor visitor) => visitor.visitIf(this);
 
   visitChildren(Visitor visitor) {
-    if (condition !== null) condition.accept(visitor);
-    if (thenPart !== null) thenPart.accept(visitor);
-    if (elsePart !== null) elsePart.accept(visitor);
+    if (condition != null) condition.accept(visitor);
+    if (thenPart != null) thenPart.accept(visitor);
+    if (elsePart != null) elsePart.accept(visitor);
   }
 
   Token getBeginToken() => ifToken;
 
   Token getEndToken() {
-    if (elsePart === null) return thenPart.getEndToken();
+    if (elsePart == null) return thenPart.getEndToken();
     return elsePart.getEndToken();
   }
 }
@@ -594,10 +594,10 @@ class For extends Loop {
   accept(Visitor visitor) => visitor.visitFor(this);
 
   visitChildren(Visitor visitor) {
-    if (initializer !== null) initializer.accept(visitor);
-    if (conditionStatement !== null) conditionStatement.accept(visitor);
-    if (update !== null) update.accept(visitor);
-    if (body !== null) body.accept(visitor);
+    if (initializer != null) initializer.accept(visitor);
+    if (conditionStatement != null) conditionStatement.accept(visitor);
+    if (update != null) update.accept(visitor);
+    if (body != null) body.accept(visitor);
   }
 
   Token getBeginToken() => forToken;
@@ -641,7 +641,7 @@ class FunctionExpression extends Expression {
 
   FunctionExpression(this.name, this.parameters, this.body, this.returnType,
                      this.modifiers, this.initializers, this.getOrSet) {
-    assert(modifiers !== null);
+    assert(modifiers != null);
   }
 
   FunctionExpression asFunctionExpression() => this;
@@ -649,33 +649,33 @@ class FunctionExpression extends Expression {
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
   visitChildren(Visitor visitor) {
-    if (modifiers !== null) modifiers.accept(visitor);
-    if (returnType !== null) returnType.accept(visitor);
-    if (name !== null) name.accept(visitor);
-    if (parameters !== null) parameters.accept(visitor);
-    if (initializers !== null) initializers.accept(visitor);
-    if (body !== null) body.accept(visitor);
+    if (modifiers != null) modifiers.accept(visitor);
+    if (returnType != null) returnType.accept(visitor);
+    if (name != null) name.accept(visitor);
+    if (parameters != null) parameters.accept(visitor);
+    if (initializers != null) initializers.accept(visitor);
+    if (body != null) body.accept(visitor);
   }
 
   bool hasBody() {
     // TODO(karlklose,ahe): refactor AST nodes (issue 1713).
-    if (body.asReturn() !== null) return true;
+    if (body.asReturn() != null) return true;
     NodeList statements = body.asBlock().statements;
     return (!statements.nodes.isEmpty() ||
-            statements.getBeginToken().kind !== $SEMICOLON);
+            !identical(statements.getBeginToken().kind, $SEMICOLON));
   }
 
   Token getBeginToken() {
     Token token = firstBeginToken(modifiers, returnType);
-    if (token !== null) return token;
-    if (getOrSet !== null) return getOrSet;
+    if (token != null) return token;
+    if (getOrSet != null) return getOrSet;
     return firstBeginToken(name, parameters);
   }
 
   Token getEndToken() {
-    Token token = (body === null) ? null : body.getEndToken();
-    token = (token === null) ? parameters.getEndToken() : token;
-    return (token === null) ? name.getEndToken() : token;
+    Token token = (body == null) ? null : body.getEndToken();
+    token = (token == null) ? parameters.getEndToken() : token;
+    return (token == null) ? name.getEndToken() : token;
   }
 }
 
@@ -704,7 +704,7 @@ class LiteralInt extends Literal<int> {
   int get value {
     try {
       Token valueToken = token;
-      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
       return parseInt(valueToken.value.slowToString());
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
@@ -723,7 +723,7 @@ class LiteralDouble extends Literal<double> {
   double get value {
     try {
       Token valueToken = token;
-      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
       return parseDouble(valueToken.value.slowToString());
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
@@ -739,8 +739,8 @@ class LiteralBool extends Literal<bool> {
   LiteralBool asLiteralBool() => this;
 
   bool get value {
-    if (token.stringValue === 'true') return true;
-    if (token.stringValue === 'false') return false;
+    if (identical(token.stringValue, 'true')) return true;
+    if (identical(token.stringValue, 'false')) return false;
     (this.handler)(token, "not a bool ${token.value}");
   }
 
@@ -806,14 +806,14 @@ class StringQuoting {
   final int quote;
   const StringQuoting(this.quote, {bool raw, int leftQuoteLength})
       : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
-  String get quoteChar => quote === $DQ ? '"' : "'";
+  String get quoteChar => identical(quote, $DQ) ? '"' : "'";
 
   int get leftQuoteLength => (raw ? 1 : 0) + leftQuoteCharCount;
   int get rightQuoteLength => (leftQuoteCharCount > 2) ? 3 : 1;
   static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
     int index = quoteLength - 1;
     if (quoteLength > 2) index -= 1;
-    return mapping[(raw ? 1 : 0) + index * 2 + (quote === $SQ ? 8 : 0)];
+    return mapping[(raw ? 1 : 0) + index * 2 + (identical(quote, $SQ) ? 8 : 0)];
   }
 }
 
@@ -839,7 +839,7 @@ class LiteralString extends StringNode {
   void visitChildren(Visitor visitor) {}
 
   bool get isInterpolation => false;
-  bool isValidated() => dartString !== null;
+  bool isValidated() => dartString != null;
 
   Token getBeginToken() => token;
   Token getEndToken() => token;
@@ -865,18 +865,18 @@ class LiteralList extends Expression {
 
   LiteralList(this.typeArguments, this.elements, this.constKeyword);
 
-  bool isConst() => constKeyword !== null;
+  bool isConst() => constKeyword != null;
 
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
   visitChildren(Visitor visitor) {
-    if (typeArguments !== null) typeArguments.accept(visitor);
+    if (typeArguments != null) typeArguments.accept(visitor);
     elements.accept(visitor);
   }
 
   Token getBeginToken() {
-    if (constKeyword !== null) return constKeyword;
+    if (constKeyword != null) return constKeyword;
     return firstBeginToken(typeArguments, elements);
   }
 
@@ -890,9 +890,9 @@ class Identifier extends Expression {
 
   Identifier(Token this.token);
 
-  bool isThis() => source.stringValue === 'this';
+  bool isThis() => identical(source.stringValue, 'this');
 
-  bool isSuper() => source.stringValue === 'super';
+  bool isSuper() => identical(source.stringValue, 'super');
 
   Identifier asIdentifier() => this;
 
@@ -922,20 +922,20 @@ class Return extends Statement {
 
   Return asReturn() => this;
 
-  bool get hasExpression => expression !== null;
+  bool get hasExpression => expression != null;
 
   bool get isRedirectingConstructorBody => beginToken.stringValue == '=';
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
   visitChildren(Visitor visitor) {
-    if (expression !== null) expression.accept(visitor);
+    if (expression != null) expression.accept(visitor);
   }
 
   Token getBeginToken() => beginToken;
 
   Token getEndToken() {
-    if (endToken === null) return expression.getEndToken();
+    if (endToken == null) return expression.getEndToken();
     return endToken;
   }
 }
@@ -951,7 +951,7 @@ class ExpressionStatement extends Statement {
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
   visitChildren(Visitor visitor) {
-    if (expression !== null) expression.accept(visitor);
+    if (expression != null) expression.accept(visitor);
   }
 
   Token getBeginToken() => expression.getBeginToken();
@@ -972,7 +972,7 @@ class Throw extends Statement {
   accept(Visitor visitor) => visitor.visitThrow(this);
 
   visitChildren(Visitor visitor) {
-    if (expression !== null) expression.accept(visitor);
+    if (expression != null) expression.accept(visitor);
   }
 
   Token getBeginToken() => throwToken;
@@ -992,7 +992,7 @@ class TypeAnnotation extends Node {
 
   visitChildren(Visitor visitor) {
     typeName.accept(visitor);
-    if (typeArguments !== null) typeArguments.accept(visitor);
+    if (typeArguments != null) typeArguments.accept(visitor);
   }
 
   Token getBeginToken() => typeName.getBeginToken();
@@ -1009,7 +1009,7 @@ class TypeVariable extends Node {
 
   visitChildren(Visitor visitor) {
     name.accept(visitor);
-    if (bound !== null) {
+    if (bound != null) {
       bound.accept(visitor);
     }
   }
@@ -1019,7 +1019,7 @@ class TypeVariable extends Node {
   Token getBeginToken() => name.getBeginToken();
 
   Token getEndToken() {
-    return (bound !== null) ? bound.getEndToken() : name.getEndToken();
+    return (bound != null) ? bound.getEndToken() : name.getEndToken();
   }
 }
 
@@ -1030,7 +1030,7 @@ class VariableDefinitions extends Statement {
   final NodeList definitions;
   VariableDefinitions(this.type, this.modifiers, this.definitions,
                       this.endToken) {
-    assert(modifiers !== null);
+    assert(modifiers != null);
   }
 
   VariableDefinitions asVariableDefinitions() => this;
@@ -1038,13 +1038,13 @@ class VariableDefinitions extends Statement {
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
 
   visitChildren(Visitor visitor) {
-    if (type !== null) type.accept(visitor);
-    if (definitions !== null) definitions.accept(visitor);
+    if (type != null) type.accept(visitor);
+    if (definitions != null) definitions.accept(visitor);
   }
 
   Token getBeginToken() {
     var token = firstBeginToken(modifiers, type);
-    if (token === null) {
+    if (token == null) {
       token = definitions.getBeginToken();
     }
     return token;
@@ -1078,8 +1078,8 @@ class DoWhile extends Loop {
   accept(Visitor visitor) => visitor.visitDoWhile(this);
 
   visitChildren(Visitor visitor) {
-    if (condition !== null) condition.accept(visitor);
-    if (body !== null) body.accept(visitor);
+    if (condition != null) condition.accept(visitor);
+    if (body != null) body.accept(visitor);
   }
 
   Token getBeginToken() => doKeyword;
@@ -1099,8 +1099,8 @@ class While extends Loop {
   accept(Visitor visitor) => visitor.visitWhile(this);
 
   visitChildren(Visitor visitor) {
-    if (condition !== null) condition.accept(visitor);
-    if (body !== null) body.accept(visitor);
+    if (condition != null) condition.accept(visitor);
+    if (body != null) body.accept(visitor);
   }
 
   Token getBeginToken() => whileKeyword;
@@ -1120,7 +1120,7 @@ class ParenthesizedExpression extends Expression {
   accept(Visitor visitor) => visitor.visitParenthesizedExpression(this);
 
   visitChildren(Visitor visitor) {
-    if (expression !== null) expression.accept(visitor);
+    if (expression != null) expression.accept(visitor);
   }
 
   Token getBeginToken() => beginToken;
@@ -1162,13 +1162,13 @@ class Modifiers extends Node {
     int flags = 0;
     for (; !nodes.isEmpty(); nodes = nodes.tail) {
       String value = nodes.head.asIdentifier().source.stringValue;
-      if (value === 'static') flags |= FLAG_STATIC;
-      else if (value === 'abstract') flags |= FLAG_ABSTRACT;
-      else if (value === 'final') flags |= FLAG_FINAL;
-      else if (value === 'var') flags |= FLAG_VAR;
-      else if (value === 'const') flags |= FLAG_CONST;
-      else if (value === 'factory') flags |= FLAG_FACTORY;
-      else if (value === 'external') flags |= FLAG_EXTERNAL;
+      if (identical(value, 'static')) flags |= FLAG_STATIC;
+      else if (identical(value, 'abstract')) flags |= FLAG_ABSTRACT;
+      else if (identical(value, 'final')) flags |= FLAG_FINAL;
+      else if (identical(value, 'var')) flags |= FLAG_VAR;
+      else if (identical(value, 'const')) flags |= FLAG_CONST;
+      else if (identical(value, 'factory')) flags |= FLAG_FACTORY;
+      else if (identical(value, 'external')) flags |= FLAG_EXTERNAL;
       else throw 'internal error: ${nodes.head}';
     }
     return flags;
@@ -1178,7 +1178,7 @@ class Modifiers extends Node {
     Link<Node> nodeList = nodes.nodes;
     for (; !nodeList.isEmpty(); nodeList = nodeList.tail) {
       String value = nodeList.head.asIdentifier().source.stringValue;
-      if(value === modifier) {
+      if(identical(value, modifier)) {
         return nodeList.head;
       }
     }
@@ -1290,7 +1290,7 @@ class StringJuxtaposition extends StringNode {
   StringJuxtaposition asStringJuxtaposition() => this;
 
   bool get isInterpolation {
-    if (isInterpolationCache === null) {
+    if (isInterpolationCache == null) {
       isInterpolationCache = (first.accept(const IsInterpolationVisitor()) ||
                           second.accept(const IsInterpolationVisitor()));
     }
@@ -1307,10 +1307,10 @@ class StringJuxtaposition extends StringNode {
       throw new NodeAssertionFailure(this,
                                      "Getting dartString on interpolation;");
     }
-    if (dartStringCache === null) {
+    if (dartStringCache == null) {
       DartString firstString = first.accept(const GetDartStringVisitor());
       DartString secondString = second.accept(const GetDartStringVisitor());
-      if (firstString === null || secondString === null) {
+      if (firstString == null || secondString == null) {
         return null;
       }
       dartStringCache = new DartString.concat(firstString, secondString);
@@ -1354,7 +1354,7 @@ class LiteralMap extends Expression {
 
   LiteralMap(this.typeArguments, this.entries, this.constKeyword);
 
-  bool isConst() => constKeyword !== null;
+  bool isConst() => constKeyword != null;
 
   LiteralMap asLiteralMap() => this;
 
@@ -1366,7 +1366,7 @@ class LiteralMap extends Expression {
   }
 
   Token getBeginToken() {
-    if (constKeyword !== null) return constKeyword;
+    if (constKeyword != null) return constKeyword;
     return firstBeginToken(typeArguments, entries);
   }
 
@@ -1478,7 +1478,7 @@ class SwitchCase extends Node {
 
   SwitchCase asSwitchCase() => this;
 
-  bool get isDefaultCase => defaultKeyword !== null;
+  bool get isDefaultCase => defaultKeyword != null;
 
   bool isValidContinueTarget() => true;
 
@@ -1496,7 +1496,7 @@ class SwitchCase extends Node {
   Token getEndToken() {
     if (statements.nodes.isEmpty()) {
       // All cases must have at least one expression or be the default.
-      if (defaultKeyword !== null) {
+      if (defaultKeyword != null) {
         // The colon after 'default'.
         return defaultKeyword.next;
       }
@@ -1516,7 +1516,7 @@ abstract class GotoStatement extends Statement {
   GotoStatement(this.target, this.keywordToken, this.semicolonToken);
 
   visitChildren(Visitor visitor) {
-    if (target !== null) target.accept(visitor);
+    if (target != null) target.accept(visitor);
   }
 
   Token getBeginToken() => keywordToken;
@@ -1639,8 +1639,8 @@ class ScriptTag extends Node {
   visitChildren(Visitor visitor) {
     tag.accept(visitor);
     argument.accept(visitor);
-    if (prefixIdentifier !== null) prefixIdentifier.accept(visitor);
-    if (prefix !== null) prefix.accept(visitor);
+    if (prefixIdentifier != null) prefixIdentifier.accept(visitor);
+    if (prefix != null) prefix.accept(visitor);
   }
 
   Token getBeginToken() => beginToken;
@@ -1650,7 +1650,7 @@ class ScriptTag extends Node {
   LibraryTag toLibraryTag() {
     if (isImport()) {
       Identifier prefixNode;
-      if (prefix !== null) {
+      if (prefix != null) {
         SourceString source = prefix.dartString.source;
         Token prefixToken = prefix.getBeginToken();
         Token token = new StringToken.fromSource(IDENTIFIER_INFO, source,
@@ -1734,15 +1734,15 @@ class Import extends LibraryDependency {
 
   visitChildren(Visitor visitor) {
     uri.accept(visitor);
-    if (prefix !== null) prefix.accept(visitor);
-    if (combinators !== null) combinators.accept(visitor);
+    if (prefix != null) prefix.accept(visitor);
+    if (combinators != null) combinators.accept(visitor);
   }
 
   Token getBeginToken() => importKeyword;
 
   Token getEndToken() {
-    if (combinators !== null) return combinators.getEndToken().next;
-    if (prefix !== null) return prefix.getEndToken().next;
+    if (combinators != null) return combinators.getEndToken().next;
+    if (prefix != null) return prefix.getEndToken().next;
     return uri.getEndToken().next;
   }
 }
@@ -1768,13 +1768,13 @@ class Export extends LibraryDependency {
 
   visitChildren(Visitor visitor) {
     uri.accept(visitor);
-    if (combinators !== null) combinators.accept(visitor);
+    if (combinators != null) combinators.accept(visitor);
   }
 
   Token getBeginToken() => exportKeyword;
 
   Token getEndToken() {
-    if (combinators !== null) return combinators.getEndToken().next;
+    if (combinators != null) return combinators.getEndToken().next;
     return uri.getEndToken().next;
   }
 }
@@ -1828,9 +1828,9 @@ class Combinator extends Node {
 
   Combinator(this.identifiers, this.keywordToken);
 
-  bool get isShow => keywordToken.stringValue === 'show';
+  bool get isShow => identical(keywordToken.stringValue, 'show');
 
-  bool get isHide => keywordToken.stringValue === 'hide';
+  bool get isHide => identical(keywordToken.stringValue, 'hide');
 
   Combinator asCombinator() => this;
 
@@ -1860,9 +1860,9 @@ class Typedef extends Node {
   accept(Visitor visitor) => visitor.visitTypedef(this);
 
   visitChildren(Visitor visitor) {
-    if (returnType !== null) returnType.accept(visitor);
+    if (returnType != null) returnType.accept(visitor);
     name.accept(visitor);
-    if (typeParameters !== null) typeParameters.accept(visitor);
+    if (typeParameters != null) typeParameters.accept(visitor);
     formals.accept(visitor);
   }
 
@@ -1889,13 +1889,13 @@ class TryStatement extends Statement {
   visitChildren(Visitor visitor) {
     tryBlock.accept(visitor);
     catchBlocks.accept(visitor);
-    if (finallyBlock !== null) finallyBlock.accept(visitor);
+    if (finallyBlock != null) finallyBlock.accept(visitor);
   }
 
   Token getBeginToken() => tryKeyword;
 
   Token getEndToken() {
-    if (finallyBlock !== null) return finallyBlock.getEndToken();
+    if (finallyBlock != null) return finallyBlock.getEndToken();
     if (!catchBlocks.isEmpty()) return catchBlocks.getEndToken();
     return tryBlock.getEndToken();
   }
@@ -1950,13 +1950,13 @@ class CatchBlock extends Node {
   accept(Visitor visitor) => visitor.visitCatchBlock(this);
 
   Node get exception {
-    if (formals === null || formals.nodes.isEmpty()) return null;
+    if (formals == null || formals.nodes.isEmpty()) return null;
     VariableDefinitions declarations = formals.nodes.head;
     return declarations.definitions.nodes.head;
   }
 
   Node get trace {
-    if (formals === null || formals.nodes.isEmpty()) return null;
+    if (formals == null || formals.nodes.isEmpty()) return null;
     Link<Node> declarations = formals.nodes.tail;
     if (declarations.isEmpty()) return null;
     VariableDefinitions head = declarations.head;
@@ -1964,8 +1964,8 @@ class CatchBlock extends Node {
   }
 
   visitChildren(Visitor visitor) {
-    if (type !== null) type.accept(visitor);
-    if (formals !== null) formals.accept(visitor);
+    if (type != null) type.accept(visitor);
+    if (formals != null) formals.accept(visitor);
     block.accept(visitor);
   }
 
@@ -1976,23 +1976,23 @@ class CatchBlock extends Node {
 
 class Initializers {
   static bool isSuperConstructorCall(Send node) {
-    return (node.receiver === null &&
-            node.selector.asIdentifier() !== null &&
+    return (node.receiver == null &&
+            node.selector.asIdentifier() != null &&
             node.selector.asIdentifier().isSuper()) ||
-           (node.receiver !== null &&
-            node.receiver.asIdentifier() !== null &&
+           (node.receiver != null &&
+            node.receiver.asIdentifier() != null &&
             node.receiver.asIdentifier().isSuper() &&
-            node.selector.asIdentifier() !== null);
+            node.selector.asIdentifier() != null);
   }
 
   static bool isConstructorRedirect(Send node) {
-    return (node.receiver === null &&
-            node.selector.asIdentifier() !== null &&
+    return (node.receiver == null &&
+            node.selector.asIdentifier() != null &&
             node.selector.asIdentifier().isThis()) ||
-           (node.receiver !== null &&
-            node.receiver.asIdentifier() !== null &&
+           (node.receiver != null &&
+            node.receiver.asIdentifier() != null &&
             node.receiver.asIdentifier().isThis() &&
-            node.selector.asIdentifier() !== null);
+            node.selector.asIdentifier() != null);
   }
 }
 
@@ -2022,5 +2022,5 @@ class IsInterpolationVisitor extends Visitor<bool> {
  */
 initializerDo(Node node, f(Node node)) {
   SendSet send = node.asSendSet();
-  if (send !== null) return f(send.arguments.head);
+  if (send != null) return f(send.arguments.head);
 }

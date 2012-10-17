@@ -39,9 +39,9 @@ class ValidatorVisitor extends Visitor {
     final name = node.assignmentOperator.source.stringValue;
     final arguments = node.arguments;
 
-    expect(node, arguments !== null);
+    expect(node, arguments != null);
     expect(node, selector is Identifier, 'selector is not assignable');
-    if (name === '++' || name === '--') {
+    if (identical(name, '++') || identical(name, '--')) {
       expect(node, node.assignmentOperator is Operator);
       if (node.isIndex) {
         expect(node.arguments.tail.head, node.arguments.tail.isEmpty());
@@ -70,7 +70,7 @@ class InvalidNodeError {
   toString() {
     String nodeString = node.toDebugString();
     String result = 'invalid node: $nodeString';
-    if (message !== null) result = '$result ($message)';
+    if (message != null) result = '$result ($message)';
     return result;
   }
 }

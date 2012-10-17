@@ -25,7 +25,7 @@ main() {
   // Should be called when [codeDiv] has changed. For now, call it always
   // on mouse up and key up events.
   update() {
-    if (port === null) return;
+    if (port == null) return;
     port.call(codeDiv.text).then(setOutline);
   }
 
@@ -230,10 +230,10 @@ class LeapCompiler extends Compiler {
   }
 
   currentScript() {
-    if (currentElement === null) return null;
+    if (currentElement == null) return null;
     CompilationUnitElement compilationUnit =
       currentElement.getCompilationUnit();
-    if (compilationUnit === null) return null;
+    if (compilationUnit == null) return null;
     return compilationUnit.script;
   }
 

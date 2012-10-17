@@ -75,7 +75,7 @@ class Keyword implements SourceString {
 
   static Map<String, Keyword> _keywords;
   static Map<String, Keyword> get keywords {
-    if (_keywords === null) {
+    if (_keywords == null) {
       _keywords = computeKeywordMap();
     }
     return _keywords;
@@ -129,7 +129,7 @@ abstract class KeywordState {
 
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
-    if (_KEYWORD_STATE === null) {
+    if (_KEYWORD_STATE == null) {
       List<String> strings = new List<String>(Keyword.values.length);
       for (int i = 0; i < Keyword.values.length; i++) {
         strings[i] = Keyword.values[i].syntax;
@@ -155,7 +155,7 @@ abstract class KeywordState {
         int c = strings[i].charCodeAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            assert(result[chunk - $a] === null);
+            assert(result[chunk - $a] == null);
             result[chunk - $a] = computeKeywordStateTable(start + 1, strings,
                                                           chunkStart,
                                                           i - chunkStart);
@@ -166,7 +166,7 @@ abstract class KeywordState {
       }
     }
     if (chunkStart != -1) {
-      assert(result[chunk - $a] === null);
+      assert(result[chunk - $a] == null);
       result[chunk - $a] =
         computeKeywordStateTable(start + 1, strings, chunkStart,
                                  offset + length - chunkStart);
@@ -190,7 +190,7 @@ class ArrayKeywordState extends KeywordState {
   final Keyword keyword;
 
   ArrayKeywordState(List<KeywordState> this.table, String syntax)
-    : keyword = (syntax === null) ? null : Keyword.keywords[syntax];
+    : keyword = (syntax == null) ? null : Keyword.keywords[syntax];
 
   bool isLeaf() => false;
 
@@ -199,7 +199,7 @@ class ArrayKeywordState extends KeywordState {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("[");
-    if (keyword !== null) {
+    if (keyword != null) {
       sb.add("*");
       sb.add(keyword);
       sb.add(" ");
