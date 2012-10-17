@@ -101,6 +101,9 @@ class DartiumBackend(object):
       template = self._template_loader.Load('dart_implementation.darttemplate')
     return template
 
+  def RootClassName(self):
+    return 'NativeFieldWrapperClass1'
+
   def AdditionalImplementedInterfaces(self):
     return []
 
@@ -171,27 +174,6 @@ class DartiumBackend(object):
         constructor_info.idl_args,
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
-
-  def BaseClassName(self):
-    root_class = 'NativeFieldWrapperClass1'
-
-    if not self._interface.parents:
-      return root_class
-
-    supertype = self._interface.parents[0].type.id
-
-    if IsPureInterface(supertype):    # The class is a root.
-      return root_class
-
-    # FIXME: We're currently injecting List<..> and EventTarget as
-    # supertypes in dart.idl. We should annotate/preserve as
-    # attributes instead.  For now, this hack lets the self._interfaces
-    # inherit, but not the classes.
-    # List methods are injected in AddIndexer.
-    if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return root_class
-
-    return self._type_registry.TypeInfo(supertype).implementation_name()
 
   ATTRIBUTES_OF_CONSTRUCTABLE = set([
     'CustomConstructor',

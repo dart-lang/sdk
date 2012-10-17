@@ -312,9 +312,17 @@ class HtmlDartInterfaceGenerator(object):
         DOMNAME=self._interface.doc_js_name)
 
     implementation_emitter = self._ImplementationEmitter()
-    base_class = self._backend.BaseClassName()
-    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    implemented_interfaces = [interface_type_info.interface_name()] +\
+
+    base_class = self._backend.RootClassName()
+    if self._interface.parents:
+      supertype = self._interface.parents[0].type.id
+      if not IsDartCollectionType(supertype) and not IsPureInterface(supertype):
+        type_info = self._type_registry.TypeInfo(supertype)
+        if type_info.merged_into() and self._backend.ImplementsMergedMembers():
+          type_info = self._type_registry.TypeInfo(type_info.merged_into())
+        base_class = type_info.implementation_name()
+
+    implemented_interfaces = [interface_name] +\
                              self._backend.AdditionalImplementedInterfaces()
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -591,19 +599,8 @@ class Dart2JSBackend(object):
   def GenerateCallback(self, info):
     pass
 
-  def BaseClassName(self):
-    if not self._interface.parents:
-      return None
-    supertype = self._interface.parents[0].type.id
-    if IsDartCollectionType(supertype):
-      # List methods are injected in AddIndexer.
-      return None
-    if IsPureInterface(supertype):
-      return None
-    type_info = self._type_registry.TypeInfo(supertype)
-    if type_info.merged_into():
-      type_info = self._type_registry.TypeInfo(type_info.merged_into())
-    return type_info.implementation_name()
+  def RootClassName(self):
+    return None
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
