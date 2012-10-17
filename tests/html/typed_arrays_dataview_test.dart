@@ -38,13 +38,17 @@ main() {
 
       expect(dv.getInt16(0), equals(1023));
       expect(dv.getInt16(0, false), equals(1023));
-      expect(dv.getInt16(0, littleEndian: false), equals(1023));
+      // OPTIONALS expect(dv.getInt16(0, littleEndian: false), equals(1023));
+      expect(dv.getInt16(0, false), equals(1023));
       expect(dv.getInt16(0, true), equals(-253));
-      expect(dv.getInt16(0, littleEndian: true), equals(-253));
+      // OPTIONALS expect(dv.getInt16(0, littleEndian: true), equals(-253));
+      expect(dv.getInt16(0, true), equals(-253));
 
       expect(dv.getUint16(0), equals(1023));
-      expect(dv.getUint16(0, littleEndian: false), equals(1023));
-      expect(dv.getUint16(0, littleEndian: true), equals(0xFF03));
+      // OPTIONALS expect(dv.getUint16(0, littleEndian: false), equals(1023));
+      expect(dv.getUint16(0, false), equals(1023));
+      // OPTIONALS expect(dv.getUint16(0, littleEndian: true), equals(0xFF03));
+      expect(dv.getUint16(0, true), equals(0xFF03));
 
       dv.setInt16(2, -1);
       expect(dv.getInt16(2), equals(-1));
@@ -58,13 +62,17 @@ main() {
 
       expect(dv.getInt32(0), equals(1023));
       expect(dv.getInt32(0, false), equals(1023));
-      expect(dv.getInt32(0, littleEndian: false), equals(1023));
+      // OPTIONALS expect(dv.getInt32(0, littleEndian: false), equals(1023));
+      expect(dv.getInt32(0, false), equals(1023));
       expect(dv.getInt32(0, true), equals(-0xFD0000));
-      expect(dv.getInt32(0, littleEndian: true), equals(-0xFD0000));
+      // OPTIONALS expect(dv.getInt32(0, littleEndian: true), equals(-0xFD0000));
+      expect(dv.getInt32(0, true), equals(-0xFD0000));
 
       expect(dv.getUint32(0), equals(1023));
-      expect(dv.getUint32(0, littleEndian: false), equals(1023));
-      expect(dv.getUint32(0, littleEndian: true), equals(0xFF030000));
+      // OPTIONALS expect(dv.getUint32(0, littleEndian: false), equals(1023));
+      expect(dv.getUint32(0, false), equals(1023));
+      // OPTIONALS expect(dv.getUint32(0, littleEndian: true), equals(0xFF030000));
+      expect(dv.getUint32(0, true), equals(0xFF030000));
   });
 
 }

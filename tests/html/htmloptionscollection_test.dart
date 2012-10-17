@@ -31,7 +31,8 @@ main() {
 
     expect(() { optionsCollection[0] = 1; }, throws);
 
-    optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
+    // OPTIONALS optionsCollection[0] = new OptionElement(value: '42', data: 'Option42');
+    optionsCollection[0] = new OptionElement('Option42', '42');
     expect(optionsCollection[0].value, equals('42'));
     expect(optionsCollection[0].text, equals('Option42'));
   });

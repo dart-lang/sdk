@@ -20,7 +20,8 @@ main() {
     });
 
   test('anchor2', () {
-      var e = new AnchorElement(href: '#blah');
+      // OPTIONALS var e = new AnchorElement(href: '#blah');
+      var e = new AnchorElement('#blah');
       Expect.isTrue(e is AnchorElement);
       Expect.isTrue(e.href.endsWith('#blah'));
     });
@@ -43,7 +44,8 @@ main() {
     });
 
   test('canvas2', () {
-      var e = new CanvasElement(height: 100, width: 200);
+      // OPTIONALS var e = new CanvasElement(height: 100, width: 200);
+      var e = new CanvasElement(200, 100);
       Expect.isTrue(e is CanvasElement);
       Expect.equals(200, e.width);
       Expect.equals(100, e.height);

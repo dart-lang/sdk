@@ -16,23 +16,27 @@ main() {
     });
 
   test('type1', () {
-      var b = new Blob(['Harry'], type: 'text');
+      // OPTIONALS var b = new Blob(['Harry'], type: 'text');
+      var b = new Blob(['Harry'], 'text');
       expect(b.size, 5);
       expect(b.type, 'text');
     });
 
   test('endings1', () {
-      var b = new Blob(['A\nB\n'], endings: 'transparent');
+      // OPTIONALS var b = new Blob(['A\nB\n'], endings: 'transparent');
+      var b = new Blob(['A\nB\n'], null, 'transparent');
       expect(b.size, 4);
     });
 
   test('endings2', () {
-      var b = new Blob(['A\nB\n'], endings: 'native');
+      // OPTIONALS var b = new Blob(['A\nB\n'], endings: 'native');
+      var b = new Blob(['A\nB\n'], null, 'native');
       expect(b.size, (x) => x == 4 || x == 6);
     });
 
   test('twoStrings', () {
-      var b = new Blob(['123', 'xyz'], type: 'text/plain;charset=UTF-8');
+      // OPTIONALS var b = new Blob(['123', 'xyz'], type: 'text/plain;charset=UTF-8');
+      var b = new Blob(['123', 'xyz'], 'text/plain;charset=UTF-8');
       expect(b.size, 6);
     });
 

@@ -61,7 +61,8 @@ main() {
         var div2 = new DivElement();
         var mutationObserver = new MutationObserver(
             mutationCallback(2, orderedEquals([div1, div2])));
-        mutationObserver.observe(container, childList: true);
+        // OPTIONALS mutationObserver.observe(container, childList: true);
+        mutationObserver.observe(container, {}, true);
 
         container.nodes.add(div1);
         container.nodes.add(div2);
@@ -73,7 +74,8 @@ main() {
         var div2 = new DivElement();
         var mutationObserver =
             new MutationObserver(mutationCallback(1, orderedEquals([div1])));
-        mutationObserver.observe(container, childList: true);
+        // OPTIONALS mutationObserver.observe(container, childList: true);
+        mutationObserver.observe(container, {}, true);
 
         container.nodes.add(div1);
         div1.nodes.add(div2);
@@ -99,7 +101,8 @@ main() {
         var div2 = new DivElement();
         var mutationObserver = new MutationObserver(
             mutationCallback(2, orderedEquals([div1, div2])));
-        mutationObserver.observe(container, childList: true, subtree: true);
+        // OPTIONALS mutationObserver.observe(container, childList: true, subtree: true);
+        mutationObserver.observe(container, {}, true, null, null, true);
 
         container.nodes.add(div1);
         div1.nodes.add(div2);

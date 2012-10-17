@@ -122,27 +122,34 @@ class Test {
   only3() => testRange(new IDBKeyRange.only(-1), null, null);
 
   lower1() => testRange(new IDBKeyRange.lowerBound(40), 40, 99);
-  lower2() => testRange(new IDBKeyRange.lowerBound(40, open: true), 41, 99);
-  lower3() => testRange(new IDBKeyRange.lowerBound(40, open: false), 40, 99);
+  // OPTIONALS lower2() => testRange(new IDBKeyRange.lowerBound(40, open: true), 41, 99);
+  lower2() => testRange(new IDBKeyRange.lowerBound(40, true), 41, 99);
+  // OPTIONALS lower3() => testRange(new IDBKeyRange.lowerBound(40, open: false), 40, 99);
+  lower3() => testRange(new IDBKeyRange.lowerBound(40, false), 40, 99);
 
   upper1() => testRange(new IDBKeyRange.upperBound(40), 0, 40);
-  upper2() => testRange(new IDBKeyRange.upperBound(40, open: true), 0, 39);
-  upper3() => testRange(new IDBKeyRange.upperBound(40, open: false), 0, 40);
+  // OPTIONALS upper2() => testRange(new IDBKeyRange.upperBound(40, open: true), 0, 39);
+  upper2() => testRange(new IDBKeyRange.upperBound(40, true), 0, 39);
+  // upper3() => testRange(new IDBKeyRange.upperBound(40, open: false), 0, 40);
+  upper3() => testRange(new IDBKeyRange.upperBound(40, false), 0, 40);
 
   bound1() => testRange(new IDBKeyRange.bound(20, 30), 20, 30);
 
   bound2() => testRange(new IDBKeyRange.bound(-100, 200), 0, 99);
 
   bound3() =>
-      testRange(new IDBKeyRange.bound(20, 30, upperOpen: true),
+      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, upperOpen: true),
+      testRange(new IDBKeyRange.bound(20, 30, false, true),
                          20, 29);
 
   bound4() =>
-      testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true),
+      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true),
+      testRange(new IDBKeyRange.bound(20, 30, true),
                          21, 30);
 
   bound5() =>
-      testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true, upperOpen: true),
+      // OPTIONALS testRange(new IDBKeyRange.bound(20, 30, lowerOpen: true, upperOpen: true),
+      testRange(new IDBKeyRange.bound(20, 30, true, true),
                          21, 29);
 
 }

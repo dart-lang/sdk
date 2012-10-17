@@ -23,6 +23,6 @@ main() {
       // should never be greater than 3.
       assert(counter < 3);
       counter++;
-    }, count:3), 10);
+    }, 3), 10);
   });
 }
