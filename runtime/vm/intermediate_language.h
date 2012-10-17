@@ -1910,7 +1910,12 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool HasSideEffect() const { return false; }
 
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const;
+
   virtual intptr_t ResultCid() const { return kDynamicCid; }
+
+  virtual Definition* Canonicalize();
 
  private:
   const intptr_t token_pos_;
@@ -1950,6 +1955,9 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
