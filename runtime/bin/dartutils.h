@@ -93,7 +93,6 @@ class DartUtils {
                                        Dart_Handle library,
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
-                                bool resolve_script,
                                 Dart_Handle builtin_lib);
   static Dart_Handle LoadSource(CommandLineOptions* url_mapping,
                                 Dart_Handle library,

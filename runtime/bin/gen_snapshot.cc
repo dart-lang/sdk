@@ -379,7 +379,7 @@ int main(int argc, char** argv) {
       CHECK_RESULT(result);
 
       // Load specified script.
-      library = DartUtils::LoadScript(app_script_name, true, builtin_lib);
+      library = DartUtils::LoadScript(app_script_name, builtin_lib);
 
       // Now create and write snapshot of script.
       CreateAndWriteSnapshot(true);
