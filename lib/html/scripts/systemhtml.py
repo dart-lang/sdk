@@ -845,8 +845,7 @@ class Dart2JSBackend(object):
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
-          PARAMS=info.ParametersDeclaration(
-              lambda type_name: self._NarrowInputType(type_name)))
+          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
       operation_emitter.Emit(
           '\n'
@@ -859,8 +858,7 @@ class Dart2JSBackend(object):
           MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=self._NarrowOutputType(info.type_name),
           NAME=info.name,
-          PARAMS=info.ParametersDeclaration(
-              lambda type_name: self._NarrowInputType(type_name)))
+          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
