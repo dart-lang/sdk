@@ -98,6 +98,16 @@ main() {
       defaultsTo: false, negatable: false,
       callback: (linkApi) => dartdoc.linkToApi = linkApi);
 
+  argParser.addFlag('show-private',
+      help: 'Document private types and members.',
+      defaultsTo: false,
+      callback: (showPrivate) => dartdoc.showPrivate = showPrivate);
+
+  argParser.addFlag('inherit-from-object',
+      help: 'Show members inherited from Object.',
+      defaultsTo: false, negatable: false,
+      callback: (inherit) => dartdoc.inheritFromObject = inherit);
+
   argParser.addFlag('enable-diagnostic-colors', negatable: false);
 
   argParser.addOption('out',

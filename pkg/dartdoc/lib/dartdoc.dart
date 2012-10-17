@@ -195,6 +195,12 @@ class Dartdoc {
   /** Set this to generate links to the online API. */
   bool linkToApi = false;
 
+  /** Set this to generate docs for private types and members. */
+  bool showPrivate = false;
+
+  /** Set this to inherit from Object. */
+  bool inheritFromObject = false;
+
   /** Set this to select the libraries to include in the documentation. */
   List<String> includedLibraries = const <String>[];
 
@@ -572,7 +578,7 @@ class Dartdoc {
 
     final types = [];
     for (InterfaceMirror type in orderByName(library.types.getValues())) {
-      if (type.isPrivate) continue;
+      if (!showPrivate && type.isPrivate) continue;
 
       var typeInfo = {};
       typeInfo[NAME] = type.displayName;
@@ -608,7 +614,7 @@ class Dartdoc {
   List docMembersJson(Map<Object,MemberMirror> memberMap) {
     final members = [];
     for (MemberMirror member in orderByName(memberMap.getValues())) {
-      if (member.isPrivate) continue;
+      if (!showPrivate && member.isPrivate) continue;
 
       var memberInfo = {};
       if (member.isField) {
@@ -670,7 +676,7 @@ class Dartdoc {
     final exceptions = <InterfaceMirror>[];
 
     for (InterfaceMirror type in orderByName(library.types.getValues())) {
-      if (type.isPrivate) continue;
+      if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
         exceptions.add(type);
@@ -736,7 +742,7 @@ class Dartdoc {
     final exceptions = <InterfaceMirror>[];
 
     for (InterfaceMirror type in orderByName(library.types.getValues())) {
-      if (type.isPrivate) continue;
+      if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
         exceptions.add(type);
@@ -760,7 +766,7 @@ class Dartdoc {
     endFile();
 
     for (final type in library.types.getValues()) {
-      if (type.isPrivate) continue;
+      if (!showPrivate && type.isPrivate) continue;
 
       docType(type);
     }
@@ -827,7 +833,6 @@ class Dartdoc {
     docInheritance(type);
     docTypedef(type);
 
-    docConstructors(type);
     docMembers(type);
 
     writeTypeFooter();
@@ -876,8 +881,13 @@ class Dartdoc {
     listTypes(types, header) {
       if (types == null) return;
 
-      // Skip private types.
-      final publicTypes = new List.from(types.filter((t) => !t.isPrivate));
+      var publicTypes;
+      if (showPrivate) {
+        publicTypes = types;
+      } else {
+        // Skip private types.
+        publicTypes = new List.from(types.filter((t) => !t.isPrivate));
+      }
       if (publicTypes.length == 0) return;
 
       writeln('<h3>$header</h3>');
@@ -975,28 +985,6 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  /** Document the constructors for [Type], if any. */
-  void docConstructors(InterfaceMirror type) {
-    final constructors = <MethodMirror>[];
-    for (var constructor in type.constructors.getValues()) {
-       if (!constructor.isPrivate) {
-         constructors.add(constructor);
-       }
-    }
-
-    if (constructors.length > 0) {
-      writeln('<div>');
-      writeln('<h3>Constructors</h3>');
-      constructors.sort((x, y) => x.constructorName.toUpperCase().compareTo(
-                                  y.constructorName.toUpperCase()));
-
-      for (final constructor in constructors) {
-        docMethod(type, constructor);
-      }
-      writeln('</div>');
-    }
-  }
-
   static const operatorOrder = const <String>[
       '[]', '[]=', // Indexing.
       '+', Mirror.UNARY_MINUS, '-', '*', '/', '~/', '%', // Arithmetic.
@@ -1025,9 +1013,10 @@ class Dartdoc {
     final instanceOperators = [];
     final instanceGetters = new Map<String,MemberMirror>();
     final instanceSetters = new Map<String,MemberMirror>();
+    final constructors = [];
 
     host.declaredMembers.forEach((_, MemberMirror member) {
-      if (member.isPrivate) return;
+      if (!showPrivate && member.isPrivate) return;
       if (host is LibraryMirror || member.isStatic) {
         if (member is MethodMirror) {
           if (member.isGetter) {
@@ -1046,34 +1035,69 @@ class Dartdoc {
     if (host is InterfaceMirror) {
       var iterable = new HierarchyIterable(host, includeType: true);
       for (InterfaceMirror type in iterable) {
+        if (!host.isObject && !inheritFromObject && type.isObject) continue;
+
         type.declaredMembers.forEach((_, MemberMirror member) {
-          if (member.isPrivate) return;
-          if (!member.isStatic) {
-            if (member.isField) {
-              // Fields override both getters and setters.
-              memberMap.putIfAbsent(member.simpleName, () => member);
-              memberMap.putIfAbsent('${member.simpleName}=', () => member);
-            } else {
-              memberMap.putIfAbsent(member.simpleName, () => member);
+          if (member.isStatic) return;
+          if (!showPrivate && member.isPrivate) return;
+
+          bool inherit = true;
+          if (type !== host) {
+            if (member.isPrivate) {
+              // Don't inherit private members.
+              inherit = false;
             }
+            if (member.isConstructor) {
+              // Don't inherit constructors.
+              inherit = false;
+            }
+          }
+          if (!inherit) return;
+
+          if (member.isField) {
+            // Fields override both getters and setters.
+            memberMap.putIfAbsent(member.simpleName, () => member);
+            memberMap.putIfAbsent('${member.simpleName}=', () => member);
+          } else if (member.isConstructor) {
+            constructors.add(member);
+          } else {
+            memberMap.putIfAbsent(member.simpleName, () => member);
           }
         });
       }
     }
 
+    bool allMethodsInherited = true;
+    bool allPropertiesInherited = true;
+    bool allOperatorsInherited = true;
     memberMap.forEach((_, MemberMirror member) {
       if (member is MethodMirror) {
         if (member.isGetter) {
           instanceGetters[member.displayName] = member;
+          if (member.surroundingDeclaration == host) {
+            allPropertiesInherited = false;
+          }
         } else if (member.isSetter) {
           instanceSetters[member.displayName] = member;
+          if (member.surroundingDeclaration == host) {
+            allPropertiesInherited = false;
+          }
         } else if (member.isOperator) {
           instanceOperators.add(member);
+          if (member.surroundingDeclaration == host) {
+            allOperatorsInherited = false;
+          }
         } else {
           instanceMethods.add(member);
+          if (member.surroundingDeclaration == host) {
+            allMethodsInherited = false;
+          }
         }
       } else if (member is FieldMirror) {
         instanceGetters[member.displayName] = member;
+        if (member.surroundingDeclaration == host) {
+          allPropertiesInherited = false;
+        }
       }
     });
 
@@ -1084,14 +1108,19 @@ class Dartdoc {
 
     docProperties(host,
                   host is LibraryMirror ? 'Properties' : 'Static Properties',
-                  staticGetters, staticSetters);
+                  staticGetters, staticSetters, allInherited: false);
     docMethods(host,
                host is LibraryMirror ? 'Functions' : 'Static Methods',
-               staticMethods);
+               staticMethods, allInherited: false);
 
-    docProperties(host, 'Properties', instanceGetters, instanceSetters);
-    docMethods(host, 'Operators', instanceOperators);
-    docMethods(host, 'Methods', orderByName(instanceMethods));
+    docMethods(host, 'Constructors', orderByName(constructors),
+               allInherited: false);
+    docProperties(host, 'Properties', instanceGetters, instanceSetters,
+                  allInherited: allPropertiesInherited);
+    docMethods(host, 'Operators', instanceOperators,
+               allInherited: allOperatorsInherited);
+    docMethods(host, 'Methods', orderByName(instanceMethods),
+               allInherited: allMethodsInherited);
   }
 
   /**
@@ -1099,7 +1128,8 @@ class Dartdoc {
    */
   void docProperties(ObjectMirror host, String title,
                      Map<String,MemberMirror> getters,
-                     Map<String,MemberMirror> setters) {
+                     Map<String,MemberMirror> setters,
+                     {bool allInherited}) {
     if (getters.isEmpty() && setters.isEmpty()) return;
 
     var nameSet = new Set<String>.from(getters.getKeys());
@@ -1109,7 +1139,7 @@ class Dartdoc {
       return a.toLowerCase().compareTo(b.toLowerCase());
     });
 
-    writeln('<div>');
+    writeln('<div${allInherited ? ' class="inherited"' : ''}>');
     writeln('<h3>$title</h3>');
     for (String name in nameList) {
       MemberMirror getter = getters[name];
@@ -1155,9 +1185,10 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  void docMethods(ObjectMirror host, String title, List<MethodMirror> methods) {
+  void docMethods(ObjectMirror host, String title, List<MethodMirror> methods,
+                  {bool allInherited}) {
     if (methods.length > 0) {
-      writeln('<div>');
+      writeln('<div${allInherited ? ' class="inherited"' : ''}>');
       writeln('<h3>$title</h3>');
       for (final method in methods) {
         docMethod(host, method);
