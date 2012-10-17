@@ -9623,7 +9623,7 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
   _DedicatedWorkerContextEventsImpl get on =>
     new _DedicatedWorkerContextEventsImpl(this);
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*any*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -15353,7 +15353,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   _IDBRequestImpl delete() native;
 
-  _IDBRequestImpl update(value) {
+  _IDBRequestImpl update(/*any*/ value) {
     var value_1 = _convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
@@ -15608,7 +15608,7 @@ abstract class IDBFactory {
 
 class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
-  int cmp(first, second) {
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
     var first_1 = _convertDartToNative_IDBKey(first);
     var second_2 = _convertDartToNative_IDBKey(second);
     return _cmp_1(first_1, second_2);
@@ -15905,7 +15905,7 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
   final bool upperOpen;
 
-  static _IDBKeyRangeImpl bound_(lower, upper, [lowerOpen, upperOpen]) {
+  static _IDBKeyRangeImpl bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
       var upper_2 = _convertDartToNative_IDBKey(upper);
@@ -15924,7 +15924,7 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   _IDBKeyRangeImpl _bound__2(lower, upper, bool lowerOpen) native "bound";
   _IDBKeyRangeImpl _bound__3(lower, upper) native "bound";
 
-  static _IDBKeyRangeImpl lowerBound_(bound, [open]) {
+  static _IDBKeyRangeImpl lowerBound_(/*IDBKey*/ bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _lowerBound__1(bound_1, open);
@@ -15935,13 +15935,13 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   _IDBKeyRangeImpl _lowerBound__1(bound, bool open) native "lowerBound";
   _IDBKeyRangeImpl _lowerBound__2(bound) native "lowerBound";
 
-  static _IDBKeyRangeImpl only_(value) {
+  static _IDBKeyRangeImpl only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
   _IDBKeyRangeImpl _only__1(value) native "only";
 
-  static _IDBKeyRangeImpl upperBound_(bound, [open]) {
+  static _IDBKeyRangeImpl upperBound_(/*IDBKey*/ bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _upperBound__1(bound_1, open);
@@ -16019,7 +16019,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _IDBTransactionImpl transaction;
 
-  _IDBRequestImpl add(value, [key]) {
+  _IDBRequestImpl add(/*any*/ value, [key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -16160,7 +16160,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
   _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
-  _IDBRequestImpl put(value, [key]) {
+  _IDBRequestImpl put(/*any*/ value, [key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -18703,7 +18703,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void postMessage(message, String targetOrigin, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [messagePorts]) {
     if (?message &&
         !?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -20235,7 +20235,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*any*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -37184,7 +37184,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
   _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);

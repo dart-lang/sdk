@@ -205,7 +205,7 @@ class DartiumBackend(object):
         template,
         FACTORYPROVIDER=factory_provider,
         INTERFACE=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
+        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_binding)
 
@@ -454,7 +454,7 @@ class DartiumBackend(object):
         'static ' if info.IsStatic() else '',
         SecureOutputType(self, info.type_name),
         html_name,
-        info.ParametersImplementationDeclaration(
+        info.ParametersDeclaration(
             (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
 
     if not needs_dispatcher:

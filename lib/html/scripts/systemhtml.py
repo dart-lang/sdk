@@ -185,7 +185,7 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
         CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
         CLASS=class_name,
         TAG=info.tag,
-        PARAMS=constructor_info.ParametersInterfaceDeclaration(rename_type))
+        PARAMS=constructor_info.ParametersDeclaration(rename_type))
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
@@ -222,7 +222,7 @@ class HtmlDartInterfaceGenerator(object):
     code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=self._interface.id,
               TYPE=self._DartType(info.type_name),
-              PARAMS=info.ParametersImplementationDeclaration(self._DartType))
+              PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
@@ -501,7 +501,7 @@ class HtmlDartInterfaceGenerator(object):
              '  $TYPE $NAME($PARAMS);\n',
              TYPE=SecureOutputType(self, info.type_name),
              NAME=html_name,
-             PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
+             PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
 
   def AddSecondaryOperation(self, interface, info):
@@ -642,7 +642,7 @@ class Dart2JSBackend(object):
         template,
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
+        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
         NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=arguments,
         PRE_ARGUMENTS_COMMA=comma,
@@ -845,7 +845,7 @@ class Dart2JSBackend(object):
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
-          PARAMS=info.ParametersImplementationDeclaration(
+          PARAMS=info.ParametersDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
 
       operation_emitter.Emit(
@@ -859,7 +859,7 @@ class Dart2JSBackend(object):
           MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=self._NarrowOutputType(info.type_name),
           NAME=info.name,
-          PARAMS=info.ParametersImplementationDeclaration(
+          PARAMS=info.ParametersDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
 
   def _AddOperationWithConversions(self, info, html_name):
@@ -890,7 +890,7 @@ class Dart2JSBackend(object):
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=return_type,
         HTML_NAME=html_name,
-        PARAMS=info.ParametersImplementationDeclaration(InputType))
+        PARAMS=info.ParametersDeclaration(InputType))
 
     parameter_names = [param_info.name for param_info in info.param_infos]
     parameter_types = [InputType(param_info.type_id)

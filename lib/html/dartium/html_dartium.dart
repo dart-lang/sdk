@@ -622,7 +622,7 @@ class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(begin, [end]) {
+  ArrayBuffer slice(/*long*/ begin, [/*long*/ end]) {
     if (?end) {
       return _slice_1(begin, end);
     }
@@ -836,7 +836,7 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
-  void start(when, [grainOffset, grainDuration]) {
+  void start(/*double*/ when, [/*double*/ grainOffset, /*double*/ grainDuration]) {
     if ((when is num || when === null) && !?grainOffset && !?grainDuration) {
       _start_1(when);
       return;
@@ -1008,7 +1008,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [sampleRate]) {
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [/*float*/ sampleRate]) {
     if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames === null) && (sampleRate is num || sampleRate === null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
@@ -1024,7 +1024,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
-  AudioChannelMerger createChannelMerger([numberOfInputs]) {
+  AudioChannelMerger createChannelMerger([/*unsigned long*/ numberOfInputs]) {
     if (?numberOfInputs) {
       return _createChannelMerger_1(numberOfInputs);
     }
@@ -1035,7 +1035,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioChannelMerger _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
 
-  AudioChannelSplitter createChannelSplitter([numberOfOutputs]) {
+  AudioChannelSplitter createChannelSplitter([/*unsigned long*/ numberOfOutputs]) {
     if (?numberOfOutputs) {
       return _createChannelSplitter_1(numberOfOutputs);
     }
@@ -1048,7 +1048,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
-  DelayNode createDelayNode([maxDelayTime]) {
+  DelayNode createDelayNode([/*double*/ maxDelayTime]) {
     if (?maxDelayTime) {
       return _createDelayNode_1(maxDelayTime);
     }
@@ -1063,7 +1063,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioGainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
-  JavaScriptAudioNode createJavaScriptNode(bufferSize, [numberOfInputChannels, numberOfOutputChannels]) {
+  JavaScriptAudioNode createJavaScriptNode(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
     if (?numberOfOutputChannels) {
       return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
@@ -1276,7 +1276,7 @@ class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
-  void connect(destination, output, [input]) {
+  void connect(destination, /*unsigned long*/ output, [/*unsigned long*/ input]) {
     if ((destination is AudioNode || destination === null) && (output is int || output === null) && (input is int || input === null)) {
       _connect_1(destination, output, input);
       return;
@@ -1863,7 +1863,7 @@ class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
 
   String get type native "Blob_type_Getter";
 
-  Blob slice([start, end, contentType]) {
+  Blob slice([/*long long*/ start, /*long long*/ end, /*DOMString*/ contentType]) {
     if (?contentType) {
       return _slice_1(start, end, contentType);
     }
@@ -7652,7 +7652,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
   List<CSSRule> get rules native "CSSStyleSheet_rules_Getter";
 
-  int addRule(selector, style, [index]) {
+  int addRule(/*DOMString*/ selector, /*DOMString*/ style, [/*unsigned long*/ index]) {
     if (?index) {
       return _addRule_1(selector, style, index);
     }
@@ -8328,7 +8328,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [sh]) {
+  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) && !?sh) {
       return _createImageData_1(imagedata_OR_sw);
     }
@@ -8344,7 +8344,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, repetitionType) {
+  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
     if ((canvas_OR_image is CanvasElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
@@ -8360,7 +8360,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, [sw_OR_width, height_OR_sh, dx, dy, dw, dh]) {
+  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -8418,7 +8418,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-  void drawImageFromRect(image, [sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation]) {
+  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
     if (?compositeOperation) {
       _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
       return;
@@ -8482,7 +8482,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
-  void fillText(text, x, y, [maxWidth]) {
+  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
     if (?maxWidth) {
       _fillText_1(text, x, y, maxWidth);
       return;
@@ -8506,7 +8506,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
-  void putImageData(imagedata, dx, dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
     if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _putImageData_1(imagedata, dx, dy);
       return;
@@ -8548,7 +8548,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
 
-  void setShadow(width, height, blur, [c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
+  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
     if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_1(width, height, blur);
       return;
@@ -8598,7 +8598,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
-  void strokeRect(x, y, width, height, [lineWidth]) {
+  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
     if (?lineWidth) {
       _strokeRect_1(x, y, width, height, lineWidth);
       return;
@@ -8610,7 +8610,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
-  void strokeText(text, x, y, [maxWidth]) {
+  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
     if (?maxWidth) {
       _strokeText_1(text, x, y, maxWidth);
       return;
@@ -8628,7 +8628,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void webkitPutImageDataHD(imagedata, dx, dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
     if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
@@ -10504,7 +10504,7 @@ class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements Data
 
   int get length native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [type]) {
+  void add(data_OR_file, [/*DOMString*/ type]) {
     if ((data_OR_file is File || data_OR_file === null) && !?type) {
       _add_1(data_OR_file);
       return;
@@ -10600,7 +10600,7 @@ abstract class DataView implements ArrayBufferView {
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
-  num getFloat32(byteOffset, [littleEndian]) {
+  num getFloat32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getFloat32_1(byteOffset, littleEndian);
     }
@@ -10611,7 +10611,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(byteOffset, [littleEndian]) {
+  num getFloat64(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getFloat64_1(byteOffset, littleEndian);
     }
@@ -10622,7 +10622,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(byteOffset, [littleEndian]) {
+  int getInt16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getInt16_1(byteOffset, littleEndian);
     }
@@ -10633,7 +10633,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
-  int getInt32(byteOffset, [littleEndian]) {
+  int getInt32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getInt32_1(byteOffset, littleEndian);
     }
@@ -10646,7 +10646,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
-  int getUint16(byteOffset, [littleEndian]) {
+  int getUint16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getUint16_1(byteOffset, littleEndian);
     }
@@ -10657,7 +10657,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
-  int getUint32(byteOffset, [littleEndian]) {
+  int getUint32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getUint32_1(byteOffset, littleEndian);
     }
@@ -10670,7 +10670,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
-  void setFloat32(byteOffset, value, [littleEndian]) {
+  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setFloat32_1(byteOffset, value, littleEndian);
       return;
@@ -10682,7 +10682,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(byteOffset, value, [littleEndian]) {
+  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setFloat64_1(byteOffset, value, littleEndian);
       return;
@@ -10694,7 +10694,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(byteOffset, value, [littleEndian]) {
+  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setInt16_1(byteOffset, value, littleEndian);
       return;
@@ -10706,7 +10706,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
-  void setInt32(byteOffset, value, [littleEndian]) {
+  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setInt32_1(byteOffset, value, littleEndian);
       return;
@@ -10720,7 +10720,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
-  void setUint16(byteOffset, value, [littleEndian]) {
+  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setUint16_1(byteOffset, value, littleEndian);
       return;
@@ -10732,7 +10732,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
-  void setUint32(byteOffset, value, [littleEndian]) {
+  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setUint32_1(byteOffset, value, littleEndian);
       return;
@@ -11049,7 +11049,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-  void getDirectory(path, [options, successCallback, errorCallback]) {
+  void getDirectory(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?options) {
       _getDirectory_1(path, options, successCallback, errorCallback);
       return;
@@ -11061,7 +11061,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   void _getDirectory_2(path) native "DirectoryEntry_getDirectory_2_Callback";
 
-  void getFile(path, [options, successCallback, errorCallback]) {
+  void getFile(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?options) {
       _getFile_1(path, options, successCallback, errorCallback);
       return;
@@ -13470,7 +13470,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([centerIfNeeded]) {
+  void scrollIntoView([/*boolean*/ centerIfNeeded]) {
     if (?centerIfNeeded) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -14111,7 +14111,7 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   String get name native "Entry_name_Getter";
 
-  void copyTo(parent, [name, successCallback, errorCallback]) {
+  void copyTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -14127,7 +14127,7 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(parent, [name, successCallback, errorCallback]) {
+  void moveTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -15108,7 +15108,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
 
-  void readAsText(blob, [encoding]) {
+  void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
       _readAsText_1(blob, encoding);
       return;
@@ -15176,7 +15176,7 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 
   String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
-  String readAsText(blob, [encoding]) {
+  String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
       return _readAsText_1(blob, encoding);
     }
@@ -15483,7 +15483,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(start, [end]) {
+  Float32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15615,7 +15615,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(start, [end]) {
+  Float64Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -17031,7 +17031,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   void advance(int count) native "IDBCursor_advance_Callback";
 
-  void continueFunction([key]) {
+  void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       _continue_1(key);
       return;
@@ -17212,7 +17212,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   void close() native "IDBDatabase_close_Callback";
 
-  IDBObjectStore createObjectStore(name, [options]) {
+  IDBObjectStore createObjectStore(/*DOMString*/ name, [/*Dictionary*/ options]) {
     if (?options) {
       return _createObjectStore_1(name, options);
     }
@@ -17231,7 +17231,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
-  IDBTransaction transaction(storeName_OR_storeNames, mode) {
+  IDBTransaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
@@ -17290,11 +17290,11 @@ abstract class IDBFactory {
 
 class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 
-  int cmp(first, second) native "IDBFactory_cmp_Callback";
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) native "IDBFactory_cmp_Callback";
 
   IDBVersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  IDBOpenDBRequest open(name, [version]) {
+  IDBOpenDBRequest open(/*DOMString*/ name, [/*unsigned long long*/ version]) {
     if (?version) {
       return _open_1(name, version);
     }
@@ -17605,7 +17605,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound_(lower, upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [/*boolean*/ lowerOpen, /*boolean*/ upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -17621,7 +17621,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound_(bound, [open]) {
+  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -17632,9 +17632,9 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
-  static IDBKeyRange only_(value) native "IDBKeyRange_only__Callback";
+  static IDBKeyRange only_(/*IDBKey*/ value) native "IDBKeyRange_only__Callback";
 
-  static IDBKeyRange upperBound_(bound, [open]) {
+  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -17718,7 +17718,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBTransaction get transaction native "IDBObjectStore_transaction_Getter";
 
-  IDBRequest add(value, [key]) {
+  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       return _add_1(value, key);
     }
@@ -17750,7 +17750,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
-  IDBIndex createIndex(name, keyPath, [options]) {
+  IDBIndex createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
     if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && !?options) {
       return _createIndex_1(name, keyPath);
     }
@@ -17855,7 +17855,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBRequest _openCursor_9(key_OR_range, direction) native "IDBObjectStore_openCursor_9_Callback";
 
-  IDBRequest put(value, [key]) {
+  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       return _put_1(value, key);
     }
@@ -18918,7 +18918,7 @@ class _InputElementImpl extends _ElementImpl_Merged implements InputElement {
 
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
-  void stepDown([n]) {
+  void stepDown([/*long*/ n]) {
     if (?n) {
       _stepDown_1(n);
       return;
@@ -18930,7 +18930,7 @@ class _InputElementImpl extends _ElementImpl_Merged implements InputElement {
 
   void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
-  void stepUp([n]) {
+  void stepUp([/*long*/ n]) {
     if (?n) {
       _stepUp_1(n);
       return;
@@ -19069,7 +19069,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(start, [end]) {
+  Int16Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -19201,7 +19201,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(start, [end]) {
+  Int32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -19333,7 +19333,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(start, [end]) {
+  Int8Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -20662,7 +20662,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
-  void postMessage(message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   void print() native "DOMWindow_print_Callback";
 
@@ -21428,7 +21428,7 @@ class _MediaElementImpl extends _ElementImpl_Merged implements MediaElement {
 
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  TextTrack addTextTrack(kind, [label, language]) {
+  TextTrack addTextTrack(/*DOMString*/ kind, [/*DOMString*/ label, /*DOMString*/ language]) {
     if (?language) {
       return _addTextTrack_1(kind, label, language);
     }
@@ -21452,7 +21452,7 @@ class _MediaElementImpl extends _ElementImpl_Merged implements MediaElement {
 
   void play() native "HTMLMediaElement_play_Callback";
 
-  void webkitAddKey(keySystem, key, [initData, sessionId]) {
+  void webkitAddKey(/*DOMString*/ keySystem, /*Uint8Array*/ key, [/*Uint8Array*/ initData, /*DOMString*/ sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -21466,7 +21466,7 @@ class _MediaElementImpl extends _ElementImpl_Merged implements MediaElement {
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void webkitGenerateKeyRequest(keySystem, [initData]) {
+  void webkitGenerateKeyRequest(/*DOMString*/ keySystem, [/*Uint8Array*/ initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -24972,7 +24972,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
-  void addStream(stream, [mediaStreamHints]) {
+  void addStream(/*MediaStream*/ stream, [/*Dictionary*/ mediaStreamHints]) {
     if (?mediaStreamHints) {
       _addStream_1(stream, mediaStreamHints);
       return;
@@ -24986,7 +24986,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void close() native "PeerConnection00_close_Callback";
 
-  SessionDescription createAnswer(offer, [mediaHints]) {
+  SessionDescription createAnswer(/*DOMString*/ offer, [/*Dictionary*/ mediaHints]) {
     if (?mediaHints) {
       return _createAnswer_1(offer, mediaHints);
     }
@@ -24997,7 +24997,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   SessionDescription _createAnswer_2(offer) native "PeerConnection00_createAnswer_2_Callback";
 
-  SessionDescription createOffer([mediaHints]) {
+  SessionDescription createOffer([/*Dictionary*/ mediaHints]) {
     if (?mediaHints) {
       return _createOffer_1(mediaHints);
     }
@@ -25020,7 +25020,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
 
-  void startIce([iceOptions]) {
+  void startIce([/*Dictionary*/ iceOptions]) {
     if (?iceOptions) {
       _startIce_1(iceOptions);
       return;
@@ -35350,7 +35350,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(string, [weight]) {
+  void addFromString(/*DOMString*/ string, [/*float*/ weight]) {
     if (?weight) {
       _addFromString_1(string, weight);
       return;
@@ -35362,7 +35362,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
-  void addFromUri(src, [weight]) {
+  void addFromUri(/*DOMString*/ src, [/*float*/ weight]) {
     if (?weight) {
       _addFromUri_1(src, weight);
       return;
@@ -37041,7 +37041,7 @@ class _TextAreaElementImpl extends _ElementImpl_Merged implements TextAreaElemen
 
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setSelectionRange(start, end, [direction]) {
+  void setSelectionRange(/*long*/ start, /*long*/ end, [/*DOMString*/ direction]) {
     if (?direction) {
       _setSelectionRange_1(start, end, direction);
       return;
@@ -38347,7 +38347,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(start, [end]) {
+  Uint16Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38479,7 +38479,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(start, [end]) {
+  Uint32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38611,7 +38611,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(start, [end]) {
+  Uint8Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38666,7 +38666,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(start, [end]) {
+  Uint8ClampedArray subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -40259,7 +40259,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
-  void bufferData(target, data_OR_size, usage) {
+  void bufferData(/*unsigned long*/ target, data_OR_size, /*unsigned long*/ usage) {
     if ((target is int || target === null) && (data_OR_size is ArrayBuffer || data_OR_size === null) && (usage is int || usage === null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
@@ -40281,7 +40281,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
-  void bufferSubData(target, offset, data) {
+  void bufferSubData(/*unsigned long*/ target, /*long long*/ offset, data) {
     if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBuffer || data === null)) {
       _bufferSubData_1(target, offset, data);
       return;
@@ -40473,7 +40473,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
+  void texImage2D(/*unsigned long*/ target, /*long*/ level, /*unsigned long*/ internalformat, /*long*/ format_OR_width, /*long*/ height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [/*unsigned long*/ format, /*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
     if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && (format is int || format === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -40511,7 +40511,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
+  void texSubImage2D(/*unsigned long*/ target, /*long*/ level, /*long*/ xoffset, /*long*/ yoffset, /*long*/ format_OR_width, /*long*/ height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [/*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
     if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
@@ -41017,7 +41017,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
-  void close([code, reason]) {
+  void close([/*unsigned short*/ code, /*DOMString*/ reason]) {
     if (?reason) {
       _close_1(code, reason);
       return;
@@ -41287,7 +41287,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
   _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [List messagePorts]) native "Worker_postMessage_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
 
   void terminate() native "Worker_terminate_Callback";
 

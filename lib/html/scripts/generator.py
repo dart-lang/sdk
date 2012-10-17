@@ -339,39 +339,14 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersInterfaceDeclaration(self, rename_type):
-    """Returns a formatted string declaring the parameters for the interface."""
-    return self._FormatParams(self.param_infos, rename_type, True)
-
-  def ParametersImplementationDeclaration(self, rename_type):
-    """Returns a formatted string declaring the parameters for the
-    implementation.
-
-    Args:
-      rename_type: A function that allows the types to be renamed.
-        The function is applied to the parameter's dart_type.
-    """
-    return self._FormatParams(self.param_infos, rename_type, False)
-
-  def ParametersAsArgumentList(self, parameter_count = None):
-    """Returns a string of the parameter names suitable for passing the
-    parameters as arguments.
-    """
-    if parameter_count is None:
-      parameter_count = len(self.param_infos)
-    return ', '.join(map(
-        lambda param_info: param_info.name,
-        self.param_infos[:parameter_count]))
-
-  def _FormatParams(self, params, rename_type, provide_comments):
+  def ParametersDeclaration(self, rename_type):
     def FormatParam(param):
       dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
-      type = TypeOrNothing(dart_type, param.type_id if provide_comments else None)
-      return '%s%s' % (type, param.name)
+      return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
 
     required = []
     optional = []
-    for param_info in params:
+    for param_info in self.param_infos:
       if param_info.is_optional:
         optional.append(param_info)
       else:
@@ -383,6 +358,16 @@ class OperationInfo(object):
     if optional:
       argtexts.append('[' + ', '.join(map(FormatParam, optional)) + ']')
     return ', '.join(argtexts)
+
+  def ParametersAsArgumentList(self, parameter_count = None):
+    """Returns a string of the parameter names suitable for passing the
+    parameters as arguments.
+    """
+    if parameter_count is None:
+      parameter_count = len(self.param_infos)
+    return ', '.join(map(
+        lambda param_info: param_info.name,
+        self.param_infos[:parameter_count]))
 
   def IsStatic(self):
     is_static = self.overloads[0].is_static
@@ -409,7 +394,7 @@ class OperationInfo(object):
           '  factory $CTOR($PARAMS) => '
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
           CTOR=self._ConstructorFullName(rename_type),
-          PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+          PARAMS=self.ParametersDeclaration(rename_type),
           FACTORY=factory_provider,
           CTOR_FACTORY_NAME=factory_name,
           FACTORY_PARAMS=self.ParametersAsArgumentList())
@@ -422,7 +407,7 @@ class OperationInfo(object):
         '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '  }\n',
         CTOR=self._ConstructorFullName(rename_type),
-        PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+        PARAMS=self.ParametersDeclaration(rename_type),
         FACTORY=factory_provider,
         CTOR_FACTORY_NAME=factory_name,
         FACTORY_PARAMS=self.ParametersAsArgumentList())
