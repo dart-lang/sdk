@@ -745,7 +745,7 @@ abstract class AudioBuffer {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
+typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10774,7 +10774,7 @@ abstract class Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(database);
+typedef void DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13855,7 +13855,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntriesCallback(List<Entry> entries);
+typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14092,7 +14092,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntryCallback(Entry entry);
+typedef void EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14223,7 +14223,7 @@ class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool ErrorCallback(FileError error);
+typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14734,7 +14734,7 @@ abstract class File implements Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileCallback(File file);
+typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15194,7 +15194,7 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileSystemCallback(DOMFileSystem fileSystem);
+typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15269,7 +15269,7 @@ abstract class FileWriterEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileWriterCallback(FileWriter fileWriter);
+typedef void FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18308,7 +18308,7 @@ class _IFrameElementImpl extends _ElementImpl_Merged implements IFrameElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22503,7 +22503,7 @@ abstract class Metadata {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MetadataCallback(Metadata metadata);
+typedef void MetadataCallback(Metadata metadata);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22752,7 +22752,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
+typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23248,7 +23248,7 @@ abstract class NavigatorUserMediaError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23266,7 +23266,7 @@ class _NavigatorUserMediaErrorImpl extends NativeFieldWrapperClass1 implements N
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24082,7 +24082,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NotificationPermissionCallback(String permission);
+typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25307,7 +25307,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionCallback(Geoposition position);
+typedef void PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25335,7 +25335,7 @@ abstract class PositionError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionErrorCallback(PositionError error);
+typedef void PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25559,7 +25559,7 @@ class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCErrorCallback(String errorInformation);
+typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25804,7 +25804,7 @@ abstract class RTCSessionDescription {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCSessionDescriptionCallback(RTCSessionDescription sdp);
+typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25828,7 +25828,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCStatsCallback(RTCStatsResponse response);
+typedef void RTCStatsCallback(RTCStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26511,14 +26511,14 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26537,14 +26537,14 @@ abstract class SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionCallback(SQLTransaction transaction);
+typedef void SQLTransactionCallback(SQLTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionErrorCallback(SQLError error);
+typedef void SQLTransactionErrorCallback(SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26574,7 +26574,7 @@ abstract class SQLTransactionSync {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
+typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36067,7 +36067,7 @@ abstract class StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoErrorCallback(DOMException error);
+typedef void StorageInfoErrorCallback(DOMException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36087,21 +36087,21 @@ class _StorageInfoImpl extends NativeFieldWrapperClass1 implements StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StringCallback(String data);
+typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -38856,7 +38856,7 @@ class _VideoElementImpl extends _MediaElementImpl implements VideoElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool VoidCallback();
+typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
