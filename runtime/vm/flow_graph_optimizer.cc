@@ -418,8 +418,6 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
 
 
 bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
-  // TODO(fschneider): Optimize []= operator in checked mode as well.
-  if (FLAG_enable_type_checks) return false;
   const intptr_t class_id = ReceiverClassId(call);
   ICData& value_check = ICData::Handle();
   switch (class_id) {
@@ -437,8 +435,60 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       break;
     }
     default:
+      // TODO(fschneider): Add support for other array types.
       return false;
   }
+
+  if (FLAG_enable_type_checks) {
+    Value* array = call->ArgumentAt(0)->value();
+    Value* value = call->ArgumentAt(2)->value();
+    // Only type check for the value. A type check for the index is not
+    // needed here because we insert a deoptimizing smi-check for the case
+    // the index is not a smi.
+    const Function& target =
+        Function::ZoneHandle(call->ic_data()->GetTargetAt(0));
+    const AbstractType& value_type =
+        AbstractType::ZoneHandle(target.ParameterTypeAt(2));
+    Value* instantiator = NULL;
+    Value* type_args = NULL;
+    switch (class_id) {
+      case kArrayCid:
+      case kGrowableObjectArrayCid: {
+        const Class& instantiator_class = Class::Handle(target.Owner());
+        intptr_t type_arguments_instance_field_offset =
+            instantiator_class.type_arguments_instance_field_offset();
+        LoadFieldInstr* load_type_args =
+            new LoadFieldInstr(array->Copy(),
+                               type_arguments_instance_field_offset,
+                               Type::ZoneHandle());  // No type.
+        InsertBefore(call, load_type_args, NULL, Definition::kValue);
+        instantiator = array->Copy();
+        type_args = new Value(load_type_args);
+        break;
+      }
+      case kFloat64ArrayCid: {
+        ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
+        InsertBefore(call, null_constant, NULL, Definition::kValue);
+        instantiator = new Value(null_constant);
+        type_args = new Value(null_constant);
+        ASSERT(value_type.IsDoubleType());
+        ASSERT(value_type.IsInstantiated());
+        break;
+      }
+      default:
+        // TODO(fschneider): Add support for other array types.
+        UNREACHABLE();
+    }
+    AssertAssignableInstr* assert_value =
+        new AssertAssignableInstr(call->token_pos(),
+                                  value->Copy(),
+                                  instantiator,
+                                  type_args,
+                                  value_type,
+                                  String::ZoneHandle(Symbols::New("value")));
+    InsertBefore(call, assert_value, NULL, Definition::kValue);
+  }
+
   Value* array = NULL;
   Value* index = NULL;
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
