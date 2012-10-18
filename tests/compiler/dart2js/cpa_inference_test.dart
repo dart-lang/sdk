@@ -290,7 +290,7 @@ testNamedParameters() {
   final String source = r"""
       class A {
         var x, y, z, w;
-        A(this.x, [this.y, this.z, this.w]);
+        A(this.x, {this.y, this.z, this.w});
       }
       main() {
         new A(42);

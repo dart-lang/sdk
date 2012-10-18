@@ -6,7 +6,7 @@
 
 const String TEST = r"""
 class A {
-  foo([a, b]) {}
+  foo({a, b}) {}
 }
 
 class B extends A {
