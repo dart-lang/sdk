@@ -2731,7 +2731,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!succeeded) {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node);
+        compiler.cancel('Unimplemented non-matching static call', node: node);
       }
       push(new HInvokeSuper(inputs));
     } else {

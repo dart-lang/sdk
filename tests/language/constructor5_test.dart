@@ -14,7 +14,7 @@ int E(int i) {
 }
 
 class A {
-  A([arg1 = 100, arg2 = 200]) : a1 = E(arg1++), a2 = E(arg2++) {
+  A({arg1: 100, arg2: 200}) : a1 = E(arg1++), a2 = E(arg2++) {
     // b2 should be initialized between the above initializers and the following
     // statements.
     E(arg1);  // 101

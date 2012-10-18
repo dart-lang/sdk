@@ -2566,7 +2566,7 @@ class HIs extends HInstruction {
                        HInstruction typeInfo, [this.nullOk = false])
     : super(<HInstruction>[expression, typeInfo]);
 
-  HIs(this.typeExpression, HInstruction expression, [this.nullOk = false])
+  HIs(this.typeExpression, HInstruction expression, {this.nullOk: false})
      : super(<HInstruction>[expression]);
 
   HInstruction get expression => inputs[0];

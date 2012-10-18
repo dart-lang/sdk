@@ -92,7 +92,7 @@ abstract class ConcreteType {
 
   abstract ConcreteType union(ConcreteType other);
   abstract bool isUnkown();
-  abstract Set<BaseType> get baseTypes();
+  abstract Set<BaseType> get baseTypes;
 
   /**
    * Returns the unique element of [: this :] if [: this :] is a singleton,
@@ -108,7 +108,7 @@ class UnknownConcreteType implements ConcreteType {
   const UnknownConcreteType();
   bool isUnkown() => true;
   bool operator ==(ConcreteType other) => identical(this, other);
-  Set<BaseType> get baseTypes() =>
+  Set<BaseType> get baseTypes =>
       new Set<BaseType>.from([const UnknownBaseType()]);
   int hashCode() => 0;
   ConcreteType union(ConcreteType other) => this;

@@ -89,13 +89,24 @@ getter_declaration_negative_test: Fail # This will be fixed when dart2js reject 
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
 
-function_type_alias_test: Fail # Support for optional parameters not conform to latest spec.
-function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
-positional_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_test/0*: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_test/1*: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_with_object_property_names_test: Fail # Support for optional parameters not conform to latest spec.
+# These tests will pass once new optional parameter semantics is enforced.
+named_parameters_test/02: Fail
+named_parameters_test/04: Fail
+named_parameters_test/06: Fail
+named_parameters_test/08: Fail
+named_parameters_test/10: Fail
+
+# Support for optional parameters not conform to latest spec.
+function_type_alias_test: Fail
+function_type_alias2_test: Fail
+named_parameters_type_test: Fail
+positional_parameters_type_test: Fail
+named_parameters_test/01: Fail
+named_parameters_test/03: Fail
+named_parameters_test/05: Fail
+named_parameters_test/07: Fail
+named_parameters_test/09: Fail
+named_parameters_with_object_property_names_test: Fail
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
