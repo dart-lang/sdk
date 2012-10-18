@@ -17,17 +17,23 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
   intptr_t in_use = page->used();
   page->set_used(0);
 
-  uword current = page->first_object_start();
-  uword top = page->top();
+  // Whole page is empty. Do not enter anything into the freelist.
+  if (in_use == 0) {
+    return 0;
+  }
 
-  while (current < top) {
+  uword current = page->object_start();
+  uword end = page->object_end();
+
+  while (current < end) {
+    intptr_t obj_size;
     if (in_use_swept == in_use) {
       // No more marked objects will be found on this page.
-      page->set_top(current);
+      obj_size = end - current;
+      freelist->Free(current, obj_size);
       break;
     }
     RawObject* raw_obj = RawObject::FromAddr(current);
-    intptr_t obj_size;
     if (raw_obj->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
@@ -35,7 +41,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       in_use_swept += obj_size;
     } else {
       uword free_end = current + raw_obj->Size();
-      while (free_end < top) {
+      while (free_end < end) {
         RawObject* next_obj = RawObject::FromAddr(free_end);
         if (next_obj->IsMarked()) {
           // Reached the end of the free block.
@@ -45,12 +51,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
         free_end += next_obj->Size();
       }
       obj_size = free_end - current;
-      if ((current + obj_size) == top) {
-        page->set_top(current);
-        break;
-      } else {
-        freelist->Free(current, obj_size);
-      }
+      freelist->Free(current, obj_size);
     }
     current += obj_size;
   }
@@ -60,7 +61,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 
 
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
-  RawObject* raw_obj = RawObject::FromAddr(page->first_object_start());
+  RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (!raw_obj->IsMarked()) {
     // The large object was not marked. Used size is zero, which also tells the
     // calling code that the large object page can be recycled.

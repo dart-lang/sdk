@@ -28,30 +28,17 @@ class HeapPage {
     return memory_->Contains(addr);
   }
 
-  uword start() const { return reinterpret_cast<uword>(this); }
-  uword end() const { return memory_->end(); }
-
-  uword top() const { return top_; }
-  void set_top(uword top) { top_ = top; }
-
-  uword first_object_start() const {
+  uword object_start() const {
     return (reinterpret_cast<uword>(this) + sizeof(HeapPage));
+  }
+  uword object_end() const {
+    return object_end_;
   }
 
   void set_used(uword used) { used_ = used; }
   uword used() const { return used_; }
   void AddUsed(uword size) {
     used_ += size;
-  }
-
-  uword TryBumpAllocate(intptr_t size) {
-    uword result = top();
-    intptr_t remaining_space = end() - result;
-    if (remaining_space < size) {
-      return 0;
-    }
-    set_top(result + size);
-    return result;
   }
 
   void VisitObjects(ObjectVisitor* visitor) const;
@@ -62,6 +49,11 @@ class HeapPage {
   void WriteProtect(bool read_only);
 
  private:
+  void set_object_end(uword val) {
+    ASSERT((val & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
+    object_end_ = val;
+  }
+
   static HeapPage* Initialize(VirtualMemory* memory, bool is_executable);
   static HeapPage* Allocate(intptr_t size, bool is_executable);
 
@@ -72,7 +64,7 @@ class HeapPage {
   VirtualMemory* memory_;
   HeapPage* next_;
   uword used_;
-  uword top_;
+  uword object_end_;
 
   friend class PageSpace;
 
@@ -216,7 +208,7 @@ class PageSpace {
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
-  void AllocatePage();
+  HeapPage* AllocatePage();
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
@@ -229,8 +221,6 @@ class PageSpace {
     return increase <= (max_capacity_ - capacity_);
   }
 
-  uword TryBumpAllocate(intptr_t size);
-
   FreeList freelist_;
 
   Heap* heap_;
@@ -240,13 +230,6 @@ class PageSpace {
   HeapPage* large_pages_;
 
   PeerTable peer_table_;
-
-  // Page being used for bump allocation.
-  // The value has different meanings:
-  // NULL: Still bump allocating from last allocated fresh page.
-  // !NULL: Last page that had enough room to bump allocate, when we reach the
-  // tail page, we give up bump allocating.
-  HeapPage* bump_page_;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_;
