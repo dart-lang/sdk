@@ -355,6 +355,12 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
   }
 
+  public void test_deprecatedRawString() {
+    parseExpectWarnings(
+        "String s() { return @'s'; }",
+        errEx(ParserErrorCode.DEPRECATED_RAW_STRING, 1, 21, 1));
+  }
+
   public void test_useExtendsInTypedef() {
     parseExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",

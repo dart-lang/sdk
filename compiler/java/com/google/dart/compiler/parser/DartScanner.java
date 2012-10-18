@@ -1210,8 +1210,8 @@ public class DartScanner {
         // Raw strings.
         advance();
         if (is('\'') || is('"')) {
+          reportError(position() - 1, ParserErrorCode.DEPRECATED_RAW_STRING);
           Token token = scanString(true);
-//          reportError(position() - 1, ParserErrorCode.DEPRECATED_RAW_STRING);
           return token;
         } else {
           return Token.AT;
