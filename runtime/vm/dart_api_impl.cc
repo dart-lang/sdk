@@ -457,12 +457,14 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
 
 DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
-  if (!obj.IsError()) {
-    return Api::NewError(
-        "%s expects argument 'handle' to be an error handle.  "
-        "Did you forget to check Dart_IsError first?",
-        CURRENT_FUNC);
+  {
+    const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
+    if (!obj.IsError()) {
+      return Api::NewError(
+          "%s expects argument 'handle' to be an error handle.  "
+          "Did you forget to check Dart_IsError first?",
+          CURRENT_FUNC);
+    }
   }
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
@@ -480,7 +482,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
     // that GC won't touch the raw error object before creating a valid
     // handle for it in the surviving zone.
     NoGCScope no_gc;
-    RawError* raw_error = static_cast<RawError*>(Api::UnwrapHandle(handle));
+    RawError* raw_error = Api::UnwrapErrorHandle(isolate, handle).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     error = &Error::Handle(isolate, raw_error);
   }
@@ -3926,7 +3928,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   {
     NoGCScope no_gc;
     RawInstance* raw_exception =
-        static_cast<RawInstance*>(Api::UnwrapHandle(exception));
+        Api::UnwrapInstanceHandle(isolate, exception).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
@@ -3963,9 +3965,9 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   {
     NoGCScope no_gc;
     RawInstance* raw_exception =
-        static_cast<RawInstance*>(Api::UnwrapHandle(exception));
+        Api::UnwrapInstanceHandle(isolate, exception).raw();
     RawInstance* raw_stacktrace =
-        static_cast<RawInstance*>(Api::UnwrapHandle(stacktrace));
+        Api::UnwrapInstanceHandle(isolate, stacktrace).raw();
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
     saved_stacktrace = &Instance::Handle(raw_stacktrace);
