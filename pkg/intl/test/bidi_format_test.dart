@@ -42,50 +42,50 @@ main() {
 
     // Text contains HTML or HTML-escaping.
     expect(ltrFmt.estimateDirection(
-        '<some sort of tag/>$he &amp;', false), equals(LTR));
+        '<some sort of tag/>$he &amp;', isHtml: false), equals(LTR));
     expect(ltrFmt.estimateDirection(
-        '<some sort of tag/>$he &amp;', true), equals(RTL));
+        '<some sort of tag/>$he &amp;', isHtml: true), equals(RTL));
   });
 
   test('wrapWithSpan', () {
     // Test overall dir matches context dir (LTR), no dirReset.
-    expect(ltrFmt.wrapWithSpan(en, true, false), equals(en));
+    expect(ltrFmt.wrapWithSpan(en, isHtml: true, resetDir: false), equals(en));
     // Test overall dir matches context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithSpan(en, true, true), equals(en));
+    expect(ltrFmt.wrapWithSpan(en, isHtml: true, resetDir: true), equals(en));
     // Test overall dir matches context dir (RTL), no dirReset'.
-    expect(rtlFmt.wrapWithSpan(he, true, false), equals(he));
+    expect(rtlFmt.wrapWithSpan(he, isHtml: true, resetDir: false), equals(he));
     // Test overall dir matches context dir (RTL), dirReset.
-    expect(rtlFmt.wrapWithSpan(he, true, true), equals(he));
+    expect(rtlFmt.wrapWithSpan(he, isHtml: true, resetDir: true), equals(he));
     // Test overall dir (RTL) doesn't match context dir (LTR), no dirReset.
-    expect(ltrFmt.wrapWithSpan(he, true, false),
+    expect(ltrFmt.wrapWithSpan(he, isHtml: true, resetDir: false),
         equals('<span dir=rtl>$he</span>'));
     // Test overall dir (RTL) doesn't match context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithSpan(he, true, true),
+    expect(ltrFmt.wrapWithSpan(he, isHtml: true, resetDir: true),
         equals('<span dir=rtl>$he</span>$LRM'));
     // Test overall dir (LTR) doesn't match context dir (RTL), no dirReset.
-    expect(rtlFmt.wrapWithSpan(en, true, false),
+    expect(rtlFmt.wrapWithSpan(en, isHtml: true, resetDir: false),
         equals('<span dir=ltr>$en</span>'));
     // Test overall dir (LTR) doesn't match context dir (RTL), dirReset.
-    expect(rtlFmt.wrapWithSpan(en, true, true),
+    expect(rtlFmt.wrapWithSpan(en, isHtml: true, resetDir: true),
         equals('<span dir=ltr>$en</span>$RLM'));
     // Test overall dir (LTR) doesn't match context dir (unknown), no dirReset.
-    expect(unkFmt.wrapWithSpan(en, true, false),
+    expect(unkFmt.wrapWithSpan(en, isHtml: true, resetDir: false),
         equals('<span dir=ltr>$en</span>'));
     // Test overall dir (RTL) doesn't match context dir (unknown), dirReset.
-    expect(unkFmt.wrapWithSpan(he, true, true),
+    expect(unkFmt.wrapWithSpan(he, isHtml: true, resetDir: true),
         equals('<span dir=rtl>$he</span>'));
     // Test overall dir (neutral) doesn't match context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithSpan('', true, true), equals(''));
+    expect(ltrFmt.wrapWithSpan('', isHtml: true, resetDir: true), equals(''));
 
     // Test exit dir (but not overall dir) is opposite to context dir, dirReset.
-    expect(ltrFmt.wrapWithSpan('$longEn$he$html', true, true),
+    expect(ltrFmt.wrapWithSpan('$longEn$he$html', isHtml: true, resetDir: true),
         equals('$longEn$he$html$LRM'));
     // Test overall dir (but not exit dir) is opposite to context dir, dirReset.
-    expect(rtlFmt.wrapWithSpan('$longEn$he', true, true),
+    expect(rtlFmt.wrapWithSpan('$longEn$he', isHtml: true, resetDir: true),
         equals('<span dir=ltr>$longEn$he</span>$RLM'));
 
     // Test input is plain text (not escaped).
-    expect(ltrFmt.wrapWithSpan('<br>$en', false, false),
+    expect(ltrFmt.wrapWithSpan('<br>$en', isHtml: false, resetDir: false),
         equals('&lt;br&gt;$en'));
 
     var ltrAlwaysSpanFmt = new BidiFormatter.LTR(true);
@@ -93,29 +93,29 @@ main() {
     var unkAlwaysSpanFmt = new BidiFormatter.UNKNOWN(true);
 
     // Test alwaysSpan, overall dir matches context dir (LTR), no dirReset.
-    expect(ltrAlwaysSpanFmt.wrapWithSpan(en, true, false),
+    expect(ltrAlwaysSpanFmt.wrapWithSpan(en, isHtml: true, resetDir: false),
         equals('<span>$en</span>'));
     // Test alwaysSpan, overall dir matches context dir (LTR), dirReset.
-    expect(ltrAlwaysSpanFmt.wrapWithSpan(en, true, true),
+    expect(ltrAlwaysSpanFmt.wrapWithSpan(en, isHtml: true, resetDir: true),
         equals('<span>$en</span>'));
     // Test alwaysSpan, overall dir matches context dir (RTL), no dirReset.
-    expect(rtlAlwaysSpanFmt.wrapWithSpan(he, true, false),
+    expect(rtlAlwaysSpanFmt.wrapWithSpan(he, isHtml: true, resetDir: false),
         equals('<span>$he</span>'));
     // Test alwaysSpan, overall dir matches context dir (RTL), dirReset.
-    expect(rtlAlwaysSpanFmt.wrapWithSpan(he, true, true),
+    expect(rtlAlwaysSpanFmt.wrapWithSpan(he, isHtml: true, resetDir: true),
         equals('<span>$he</span>'));
 
     // Test alwaysSpan, overall dir (RTL) doesn't match context dir (LTR),
     // no dirReset.
-    expect(ltrAlwaysSpanFmt.wrapWithSpan(he, true, false),
+    expect(ltrAlwaysSpanFmt.wrapWithSpan(he, isHtml: true, resetDir: false),
         equals('<span dir=rtl>$he</span>'));
     // Test alwaysSpan, overall dir (RTL) doesn't match context dir (LTR),
     // dirReset.
-    expect(ltrAlwaysSpanFmt.wrapWithSpan(he, true, true),
+    expect(ltrAlwaysSpanFmt.wrapWithSpan(he, isHtml: true, resetDir: true),
         equals('<span dir=rtl>$he</span>$LRM'));
     // Test alwaysSpan, overall dir (neutral) doesn't match context dir (LTR),
     // dirReset
-    expect(ltrAlwaysSpanFmt.wrapWithSpan('', true, true),
+    expect(ltrAlwaysSpanFmt.wrapWithSpan('', isHtml: true, resetDir: true),
         equals('<span></span>'));
 
     // Test overall dir matches context dir (LTR.
@@ -151,34 +151,45 @@ main() {
 
   test('wrapWithUnicode', () {
     // Test overall dir matches context dir (LTR), no dirReset.
-    expect(ltrFmt.wrapWithUnicode(en, true, false), equals(en));
+    expect(ltrFmt.wrapWithUnicode(en, isHtml: true, resetDir: false),
+        equals(en));
     // Test overall dir matches context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithUnicode(en, true, true), equals(en));
+    expect(ltrFmt.wrapWithUnicode(en, isHtml: true, resetDir: true),
+        equals(en));
     // Test overall dir matches context dir (RTL), no dirReset.
-    expect(rtlFmt.wrapWithUnicode(he, true, false), equals(he));
+    expect(rtlFmt.wrapWithUnicode(he, isHtml: true, resetDir: false),
+        equals(he));
     // Test overall dir matches context dir (RTL), dirReset.
-    expect(rtlFmt.wrapWithUnicode(he, true, true), equals(he));
+    expect(rtlFmt.wrapWithUnicode(he, isHtml: true, resetDir: true),
+        equals(he));
 
     // Test overall dir (RTL) doesn't match context dir (LTR), no dirReset.
-    expect(ltrFmt.wrapWithUnicode(he, true, false), equals('$RLE$he$PDF'));
+    expect(ltrFmt.wrapWithUnicode(he, isHtml: true, resetDir: false),
+        equals('$RLE$he$PDF'));
     // Test overall dir (RTL) doesn't match context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithUnicode(he, true, true), equals('$RLE$he$PDF$LRM'));
+    expect(ltrFmt.wrapWithUnicode(he, isHtml: true, resetDir: true),
+        equals('$RLE$he$PDF$LRM'));
     // Test overall dir (LTR) doesn't match context dir (RTL), no dirReset.
-    expect(rtlFmt.wrapWithUnicode(en, true, false), equals('$LRE$en$PDF'));
+    expect(rtlFmt.wrapWithUnicode(en, isHtml: true, resetDir: false),
+        equals('$LRE$en$PDF'));
     // Test overall dir (LTR) doesn't match context dir (RTL), dirReset.
-    expect(rtlFmt.wrapWithUnicode(en, true, true), equals('$LRE$en$PDF$RLM'));
+    expect(rtlFmt.wrapWithUnicode(en, isHtml: true, resetDir: true),
+        equals('$LRE$en$PDF$RLM'));
     // Test overall dir (LTR) doesn't match context dir (unknown), no dirReset.
-    expect(unkFmt.wrapWithUnicode(en, true, false), equals('$LRE$en$PDF'));
+    expect(unkFmt.wrapWithUnicode(en, isHtml: true, resetDir: false),
+        equals('$LRE$en$PDF'));
     // Test overall dir (RTL) doesn't match context dir (unknown), dirReset.
-    expect(unkFmt.wrapWithUnicode(he, true, true), equals('$RLE$he$PDF'));
+    expect(unkFmt.wrapWithUnicode(he, isHtml: true, resetDir: true),
+        equals('$RLE$he$PDF'));
     // Test overall dir (neutral) doesn't match context dir (LTR), dirReset.
-    expect(ltrFmt.wrapWithUnicode('', true, true), equals(''));
+    expect(ltrFmt.wrapWithUnicode('', isHtml: true, resetDir: true),
+        equals(''));
 
     // Test exit dir (but not overall dir) is opposite to context dir, dirReset.
-    expect(ltrFmt.wrapWithUnicode('$longEn$he$html', true, true),
-        equals('$longEn$he$html$LRM'));
+    expect(ltrFmt.wrapWithUnicode('$longEn$he$html', isHtml: true,
+        resetDir: true), equals('$longEn$he$html$LRM'));
     // Test overall dir (but not exit dir) is opposite to context dir, dirReset.
-    expect(rtlFmt.wrapWithUnicode('$longEn$he', true, true),
+    expect(rtlFmt.wrapWithUnicode('$longEn$he', isHtml: true, resetDir: true),
         equals('$LRE$longEn$he$PDF$RLM'));
 
     // Test overall dir matches context dir (LTR).

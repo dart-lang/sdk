@@ -113,9 +113,9 @@ class BidiFormatter {
    * a trailing unicode BiDi mark matching the context directionality is
    * appended (LRM or RLM). If [isHtml] is false, we HTML-escape the [text].
    */
-  String wrapWithSpan(String text, [bool isHtml=false, bool resetDir=true,
-                  TextDirection direction]) {
-    if (direction == null) direction = estimateDirection(text, isHtml);
+  String wrapWithSpan(String text, {bool isHtml: false, bool resetDir: true,
+                      TextDirection direction}) {
+    if (direction == null) direction = estimateDirection(text, isHtml: isHtml);
     var result;
     if (!isHtml) text = htmlEscape(text);
     var directionChange = contextDirection.isDirectionChange(direction);
@@ -150,9 +150,9 @@ class BidiFormatter {
    * [isHtml]. [isHtml] is used to designate if the text contains HTML (escaped
    * or unescaped).
    */
-  String wrapWithUnicode(String text, [bool isHtml=false, bool resetDir=true,
-                     TextDirection direction]) {
-    if (direction == null) direction = estimateDirection(text, isHtml);
+  String wrapWithUnicode(String text, {bool isHtml: false, bool resetDir: true,
+                         TextDirection direction}) {
+    if (direction == null) direction = estimateDirection(text, isHtml: isHtml);
     var result = text;
     if (contextDirection.isDirectionChange(direction)) {
       var marker = direction == TextDirection.RTL ? Bidi.RLE : Bidi.LRE;
@@ -168,8 +168,8 @@ class BidiFormatter {
    * TextDirection.UNKNOWN return value indicates completely neutral input.
    * [isHtml] is true if [text] HTML or HTML-escaped.
    */
-  TextDirection estimateDirection(String text, [bool isHtml=false]) {
-    return Bidi.estimateDirectionOfText(text, isHtml); //TODO~!!!
+  TextDirection estimateDirection(String text, {bool isHtml: false}) {
+    return Bidi.estimateDirectionOfText(text, isHtml: isHtml); //TODO~!!!
   }
 
   /**

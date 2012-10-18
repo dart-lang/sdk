@@ -185,27 +185,28 @@ main() {
   });
 
   test('estimateDirectionOfText', () {
-    expect(Bidi.estimateDirectionOfText('', false).value,
+    expect(Bidi.estimateDirectionOfText('', isHtml: false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(Bidi.estimateDirectionOfText(' ', false).value,
+    expect(Bidi.estimateDirectionOfText(' ', isHtml: false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(Bidi.estimateDirectionOfText('! (...)', false).value,
+    expect(Bidi.estimateDirectionOfText('! (...)', isHtml: false).value,
         equals(TextDirection.UNKNOWN.value));
-    expect(Bidi.estimateDirectionOfText('All-Ascii content', false).value,
+    expect(Bidi.estimateDirectionOfText('All-Ascii content',
+                                        isHtml: false).value,
         equals(TextDirection.LTR.value));
-    expect(Bidi.estimateDirectionOfText('-17.0%', false).value,
+    expect(Bidi.estimateDirectionOfText('-17.0%', isHtml: false).value,
         equals(TextDirection.LTR.value));
-    expect(Bidi.estimateDirectionOfText('http://foo/bar/', false).value,
+    expect(Bidi.estimateDirectionOfText('http://foo/bar/', isHtml: false).value,
         equals(TextDirection.LTR.value));
     expect(Bidi.estimateDirectionOfText(
         'http://foo/bar/?s=\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0'
         '\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0\u05d0'
         '\u05d0\u05d0\u05d0\u05d0\u05d0').value,
         equals(TextDirection.LTR.value));
-    expect(Bidi.estimateDirectionOfText('\u05d0', false).value,
+    expect(Bidi.estimateDirectionOfText('\u05d0', isHtml: false).value,
         equals(TextDirection.RTL.value));
     expect(Bidi.estimateDirectionOfText(
-        '9 \u05d0 -> 17.5, 23, 45, 19', false).value,
+        '9 \u05d0 -> 17.5, 23, 45, 19', isHtml: false).value,
         equals(TextDirection.RTL.value));
     expect(Bidi.estimateDirectionOfText(
         'http://foo/bar/ \u05d0 http://foo2/bar2/ http://foo3/bar3/').value,
@@ -229,7 +230,7 @@ main() {
         '\u05dc\u05d4\u05e1\u05ea\u05db\u05dc \u05e2\u05dc \u05db\u05de\u05d4 '
         '\u05ea\u05de\u05d5\u05e0\u05d5\u05ea \u05de\u05e9\u05e9\u05e2\u05d5'
         '\u05ea \u05d9\u05e9\u05e0\u05d5 \u05d9\u05d5\u05ea\u05e8 \u05e9\u05d9'
-        '\u05e9 \u05dc\u05d9 \u05d1\u05d0\u05ea\u05e8', false).value,
+        '\u05e9 \u05dc\u05d9 \u05d1\u05d0\u05ea\u05e8', isHtml: false).value,
         equals(TextDirection.RTL.value));
     expect(Bidi.estimateDirectionOfText(
         'CAPTCHA \u05de\u05e9\u05d5\u05db\u05dc\u05dc '
@@ -247,7 +248,7 @@ main() {
         equals(TextDirection.RTL.value));
     expect(Bidi.estimateDirectionOfText(
         '5710 5720 5730. \u05d4\u05d3\u05dc\u05ea. \u05d4\u05e0\u05e9\u05d9'
-        '\u05e7\u05d4', false).value,
+        '\u05e7\u05d4', isHtml: false).value,
         equals(TextDirection.RTL.value));
     expect(Bidi.estimateDirectionOfText(
         '\u05d4\u05d3\u05dc\u05ea http://www.google.com '
@@ -263,7 +264,7 @@ main() {
         '\u05d4\u05d3\u05dc\u05ea &amp; &lt; &gt;').value,
         equals(TextDirection.LTR.value));
     expect(Bidi.estimateDirectionOfText(
-        '\u05d4\u05d3\u05dc\u05ea &amp; &lt; &gt;', true).value,
+        '\u05d4\u05d3\u05dc\u05ea &amp; &lt; &gt;', isHtml: true).value,
         equals(TextDirection.RTL.value));
   });
 
@@ -325,7 +326,7 @@ main() {
 
     for (var i = 0; i < bidiText.length; i++) {
         var isRtlDir = Bidi.detectRtlDirectionality(bidiText[i].text,
-                                                            bidiText[i].isHtml);
+                                                    isHtml: bidiText[i].isHtml);
       if (isRtlDir != bidiText[i].isRtl) {
         var str = '"${bidiText[i].text} " should be '
                   '${bidiText[i].isRtl ? "rtl" : "ltr"} but detected as '
