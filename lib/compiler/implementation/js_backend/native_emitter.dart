@@ -454,7 +454,7 @@ function(cls, fields, methods) {
       });
       targetBuffer.add("\n});\n\n");
     }
-    targetBuffer.add('$nativeBuffer');
+    targetBuffer.add(nativeBuffer);
     targetBuffer.add('\n');
   }
 }
