@@ -11869,8 +11869,6 @@ class _CssClassSet implements CSSClassSet {
   // interface Collection - END
 
   // interface Set - BEGIN
-  bool contains(String value) => _read().contains(value);
-
   void add(String value) {
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough
