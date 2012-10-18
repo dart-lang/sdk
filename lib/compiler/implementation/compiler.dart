@@ -130,6 +130,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement functionClass;
   ClassElement nullClass;
   ClassElement listClass;
+  ClassElement mapClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
@@ -370,6 +371,7 @@ abstract class Compiler implements DiagnosticListener {
     stringClass = lookupSpecialClass(const SourceString('String'));
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
+    mapClass = lookupSpecialClass(const SourceString('Map'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));

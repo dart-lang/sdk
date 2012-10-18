@@ -251,6 +251,8 @@ class BaseTypes {
   final BaseType doubleBaseType;
   final BaseType boolBaseType;
   final BaseType stringBaseType;
+  final BaseType listBaseType;
+  final BaseType mapBaseType;
   final BaseType objectBaseType;
 
   BaseTypes(Compiler compiler) :
@@ -258,6 +260,8 @@ class BaseTypes {
     doubleBaseType = new ClassBaseType(compiler.doubleClass),
     boolBaseType = new ClassBaseType(compiler.boolClass),
     stringBaseType = new ClassBaseType(compiler.stringClass),
+    listBaseType = new ClassBaseType(compiler.listClass),
+    mapBaseType = new ClassBaseType(compiler.mapClass),
     objectBaseType = new ClassBaseType(compiler.objectClass);
 }
 
@@ -980,7 +984,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralList(LiteralList node) {
-    inferrer.fail(node, 'not yet implemented');
+    visitNodeList(node.elements);
+    return new ConcreteType.singleton(inferrer.baseTypes.listBaseType);
   }
 
   ConcreteType visitNodeList(NodeList node) {
@@ -997,11 +1002,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not yet implemented');
   }
 
-  /** Dart Programming Language Specification: 11.10 Return */
   ConcreteType visitReturn(Return node) {
     final expression = node.expression;
-    return (expression == null)
-        ? new ConcreteType.empty()
+    return (expression === null)
+        ? new ConcreteType.singleton(const NullBaseType())
         : analyze(expression);
   }
 
@@ -1073,6 +1077,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitContinueStatement(ContinueStatement node) {
+    // TODO(polux): we can be more precise
     return new ConcreteType.empty();
   }
 
@@ -1089,11 +1094,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralMap(LiteralMap node) {
-    inferrer.fail(node, 'not yet implemented');
+    visitNodeList(node.entries);
+    return new ConcreteType.singleton(inferrer.baseTypes.mapBaseType);
   }
 
   ConcreteType visitLiteralMapEntry(LiteralMapEntry node) {
-    inferrer.fail(node, 'not yet implemented');
+    return analyze(node.value);
   }
 
   ConcreteType visitNamedArgument(NamedArgument node) {

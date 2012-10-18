@@ -35,6 +35,7 @@ const String DEFAULT_HELPERLIB = r'''
   guard$stringOrArray(x) { return x; }
   index(a, index) {}
   indexSet(a, index, value) {}
+  makeLiteralMap(List keyValuePairs) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
   stringTypeCheck(x) {}
@@ -61,8 +62,8 @@ const String DEFAULT_CORELIB = r'''
   class Object {}
   abstract class num {}
   class Function {}
-  interface List default ListImplementation { List([length]);}
-  class ListImplementation { factory List([length]) => null; }
+  abstract class List { List([length]); }
+  abstract class Map {}
   class Closure {}
   class Null {}
   class Dynamic_ {}
@@ -78,11 +79,13 @@ class MockCompiler extends Compiler {
                 String helperSource: DEFAULT_HELPERLIB,
                 String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                 bool enableTypeAssertions: false,
-                bool enableMinification: false})
+                bool enableMinification: false,
+                bool enableConcreteTypeInference: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
-              enableMinification: enableMinification) {
+              enableMinification: enableMinification,
+              enableConcreteTypeInference: enableConcreteTypeInference) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.

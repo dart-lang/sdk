@@ -43,14 +43,19 @@ class AnalysisResult {
   BaseType double;
   BaseType bool;
   BaseType string;
+  BaseType list;
+  BaseType map;
+  BaseType nullType;
 
-  AnalysisResult(MockCompiler compiler, ConcreteTypesInferrer inferrer)
-      : this.compiler = compiler,
-        this.inferrer = inferrer,
-        int = inferrer.baseTypes.intBaseType,
-        double = inferrer.baseTypes.doubleBaseType,
-        bool = inferrer.baseTypes.boolBaseType,
-        string = inferrer.baseTypes.stringBaseType {
+  AnalysisResult(MockCompiler compiler) : this.compiler = compiler {
+    inferrer = compiler.typesTask.concreteTypesInferrer;
+    int = inferrer.baseTypes.intBaseType;
+    double = inferrer.baseTypes.doubleBaseType;
+    bool = inferrer.baseTypes.boolBaseType;
+    string = inferrer.baseTypes.stringBaseType;
+    list = inferrer.baseTypes.listBaseType;
+    map = inferrer.baseTypes.mapBaseType;
+    nullType = new NullBaseType();
     Element mainElement = compiler.mainApp.find(buildSourceString('main'));
     ast = mainElement.parseNode(compiler);
   }
@@ -113,12 +118,10 @@ class AnalysisResult {
 
 AnalysisResult analyze(String code) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler(enableConcreteTypeInference: true);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.runCompiler(uri);
-  ConcreteTypesInferrer inferrer = new ConcreteTypesInferrer(compiler);
-  inferrer.analyzeMain(compiler.mainApp.find(const SourceString("main")));
-  return new AnalysisResult(compiler, inferrer);
+  return new AnalysisResult(compiler);
 }
 
 testLiterals() {
@@ -301,6 +304,72 @@ testNamedParameters() {
   result.checkFieldHasType('A', 'w', [new NullBaseType(), result.bool]);
 }
 
+testListLiterals() {
+  final String source = r"""
+      class A {
+        var x;
+        A(this.x);
+      }
+      main() {
+        var x = [];
+        var y = [1, "a", null, new A(42)];
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.list]);
+  result.checkNodeHasType('y', [result.list]);
+  result.checkFieldHasType('A', 'x', [result.int]);
+}
+
+testMapLiterals() {
+  final String source = r"""
+      class A {
+        var x;
+        A(this.x);
+      }
+      main() {
+        var x = {};
+        var y = {'a': "foo", 'b': new A(42) };
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.map]);
+  result.checkNodeHasType('y', [result.map]);
+  result.checkFieldHasType('A', 'x', [result.int]);
+}
+
+testReturn() {
+  final String source = r"""
+      f() { if (true) { return 1; }; return "a"; }
+      g() { f(); return; }
+      main() {
+        var x = f();
+        var y = g();
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.int, result.string]);
+  result.checkNodeHasType('y', [result.nullType]);
+}
+
+testNoReturn() {
+  final String source = r"""
+      f() { if (true) { return 1; }; }
+      g() { f(); }
+      main() {
+        var x = f();
+        var y = g();
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.int, result.nullType]);
+  result.checkNodeHasType('y', [result.nullType]);
+}
+
 void main() {
   testLiterals();
   testRedefinition();
@@ -314,4 +383,8 @@ void main() {
   testGetters();
   testSetters();
   testNamedParameters();
+  testListLiterals();
+  testMapLiterals();
+  testReturn();
+  // testNoReturn(); // right now we infer the empty type instead of null
 }
