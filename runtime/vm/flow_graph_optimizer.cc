@@ -13,6 +13,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/symbols.h"
 
@@ -28,8 +29,79 @@ DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
             "Print constant propagation and useless code elimination.");
 
+
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
+}
+
+
+// Attempts to convert an instance call (IC call) using propagated class-ids,
+// e.g., receiver class id.
+void FlowGraphOptimizer::ApplyClassIds() {
+  ASSERT(current_iterator_ == NULL);
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      if (it.Current()->IsInstanceCall()) {
+        InstanceCallInstr* call = it.Current()->AsInstanceCall();
+        if (call->HasICData()) {
+          if (TryCreateICData(call)) {
+            VisitInstanceCall(call);
+          }
+        }
+      }
+    }
+    current_iterator_ = NULL;
+  }
+}
+
+
+// Attempt to build ICData for call using propagated class-ids.
+bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+  ASSERT(call->HasICData());
+  if (call->ic_data()->NumberOfChecks() > 0) {
+    // This occurs when an instance call has too many checks.
+    // TODO(srdjan): Replace IC call with megamorphic call.
+    return false;
+  }
+  GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
+  ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
+    intptr_t cid = call->ArgumentAt(i)->value()->ResultCid();
+    class_ids.Add(cid);
+  }
+  // TODO(srdjan): Test for other class_ids > 1.
+  if (class_ids.length() != 1) return false;
+  if (class_ids[0] != kDynamicCid) {
+    const intptr_t num_named_arguments = call->argument_names().IsNull() ?
+        0 : call->argument_names().Length();
+    const Class& receiver_class = Class::Handle(
+        Isolate::Current()->class_table()->At(class_ids[0]));
+    Function& function = Function::Handle();
+    function = Resolver::ResolveDynamicForReceiverClass(
+        receiver_class,
+        call->function_name(),
+        call->ArgumentCount(),
+        num_named_arguments);
+    if (function.IsNull()) {
+      return false;
+    }
+    // Create new ICData, do not modify the one attached to the instruction
+    // since it is attached to the assembly instruction itself.
+    // TODO(srdjan): Prevent modification of ICData object that is
+    // referenced in assembly code.
+    ICData& ic_data = ICData::ZoneHandle(ICData::New(
+        flow_graph_->parsed_function().function(),
+        call->function_name(),
+        call->deopt_id(),
+        class_ids.length()));
+    ic_data.AddReceiverCheck(class_ids[0], function);
+    call->set_ic_data(&ic_data);
+    return true;
+  }
+  return false;
 }
 
 
@@ -1113,8 +1185,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ReplaceWith(call, current_iterator());
     }
   }
-  // An instance call without ICData should continue calling via IC calls
-  // which should trigger reoptimization of optimized code.
+  // An instance call without ICData will trigger deoptimization.
 }
 
 

@@ -2113,6 +2113,10 @@ class InstanceCallInstr : public TemplateDefinition<0> {
 
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
+ protected:
+  friend class FlowGraphOptimizer;
+  void set_ic_data(ICData* value) { ic_data_ = value; }
+
  private:
   const ICData* ic_data_;
   const intptr_t token_pos_;

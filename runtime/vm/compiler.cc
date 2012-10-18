@@ -194,7 +194,11 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Propagate sminess from CheckSmi to phis.
         optimizer.PropagateSminess();
 
+        // Use propagated class-ids to optimize further.
+        optimizer.ApplyClassIds();
+
         // Do optimizations that depend on the propagated type information.
+        // TODO(srdjan): Should this be called CanonicalizeComputations?
         optimizer.OptimizeComputations();
 
         // Unbox doubles.

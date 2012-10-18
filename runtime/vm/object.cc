@@ -2205,6 +2205,10 @@ RawFunction* Class::LookupFunction(const String& name) const {
   ASSERT(name.IsOneByteString());
   const OneByteString& lookup_name = OneByteString::Cast(name);
   Array& funcs = Array::Handle(isolate, functions());
+  if (funcs.IsNull()) {
+    // This can occur, e.g., for Null classes.
+    return Function::null();
+  }
   Function& function = Function::Handle(isolate, Function::null());
   OneByteString& function_name =
       OneByteString::Handle(isolate, OneByteString::null());
