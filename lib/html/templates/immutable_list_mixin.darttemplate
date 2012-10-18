@@ -24,8 +24,6 @@
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
-  bool contains($E element) => _Collections.contains(this, element);
-
   void forEach(void f($E element)) => _Collections.forEach(this, f);
 
   Collection map(f($E element)) => _Collections.map(this, [], f);

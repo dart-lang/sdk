@@ -8,13 +8,6 @@
  * method.
  */
 class Collections {
-  static bool contains(Iterable iterable, var element) {
-    for (final e in iterable) {
-      if (element == e) return true;
-    }
-    return false;
-  }
-
   static void forEach(Iterable iterable, void f(o)) {
     for (final e in iterable) {
       f(e);

@@ -4,7 +4,7 @@
 
 class $CLASSNAME
     // Console is sometimes a singleton bag-of-properties without a prototype.
-    implements Console
+    implements Console 
     native "=(typeof console == 'undefined' ? {} : console)" {
 $!MEMBERS
 }

@@ -21,13 +21,6 @@ class _ChildrenElementList implements List {
     return output;
   }
 
-  bool contains(Element element) {
-    for (_ElementImpl child in _childElements) {
-      if (child == element) return true;
-    }
-    return false;
-  }
-
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -35,7 +28,7 @@ class _ChildrenElementList implements List {
   }
 
   List<Element> filter(bool f(Element element)) {
-    final output = <Element>[];
+    final output = [];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
@@ -166,13 +159,6 @@ class _FrozenElementList implements List {
     return _nodeList[0];
   }
 
-  bool contains(Element element) {
-    for (Element el in this) {
-      if (el == element) return true;
-    }
-    return false;
-  }
-
   void forEach(void f(Element element)) {
     for (Element el in this) {
       f(el);
@@ -188,7 +174,7 @@ class _FrozenElementList implements List {
   }
 
   List<Element> filter(bool f(Element element)) {
-    final out = <Element>[];
+    final out = [];
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
@@ -479,8 +465,6 @@ class _CssClassSet implements CSSClassSet {
   // interface Iterable - END
 
   // interface Collection - BEGIN
-  bool contains(String element) => _read().contains(element);
-
   void forEach(void f(String element)) {
     _read().forEach(f);
   }
@@ -502,6 +486,8 @@ class _CssClassSet implements CSSClassSet {
   // interface Collection - END
 
   // interface Set - BEGIN
+  bool contains(String value) => _read().contains(value);
+
   void add(String value) {
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough

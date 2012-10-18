@@ -32,7 +32,6 @@
 #source("print.dart");
 #source("queue.dart");
 #source("regexp.dart");
-#source("sequences.dart");
 #source("set.dart");
 #source("stopwatch.dart");
 #source("string.dart");

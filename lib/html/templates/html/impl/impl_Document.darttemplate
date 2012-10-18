@@ -9,7 +9,7 @@ $endif
 {
 
 $!MEMBERS
-  // TODO(jacobr): implement all Element methods not on Document.
+  // TODO(jacobr): implement all Element methods not on Document. 
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have

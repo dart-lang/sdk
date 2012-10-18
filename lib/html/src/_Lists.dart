@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Lists {
+
   /**
    * Returns the index in the array [a] of the given [element], starting
    * the search at index [startIndex] to [endIndex] (exclusive).

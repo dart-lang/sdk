@@ -15,10 +15,6 @@ class _FilteredElementList implements List {
   List<Element> get _filtered =>
     new List.from(_childNodes.filter((n) => n is Element));
 
-  bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
-  }
-
   void forEach(void f(Element element)) {
     _filtered.forEach(f);
   }

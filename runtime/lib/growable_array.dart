@@ -166,9 +166,9 @@ class _GrowableObjectArray<T> implements List<T> {
     _setData(new_data);
   }
 
-  // Collection interface.
-
-  bool contains(T element) => Collections.contains(this, element);
+  /**
+   * Collection interface.
+   */
 
   void forEach(f(T element)) {
     // TODO(srdjan): Use Collections.forEach(this, f);
@@ -216,6 +216,28 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   Iterator<T> iterator() {
-    return new SequenceIterator<T>(this);
+    return new VariableSizeArrayIterator<T>(this);
   }
+}
+
+
+// Iterator for arrays with variable size.
+class VariableSizeArrayIterator<T> implements Iterator<T> {
+  VariableSizeArrayIterator(_GrowableObjectArray<T> array)
+      : _array = array,  _pos = 0 {
+  }
+
+  bool hasNext() {
+    return _array.length > _pos;
+  }
+
+  T next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+    return _array[_pos++];
+  }
+
+  final _GrowableObjectArray<T> _array;
+  int _pos;
 }

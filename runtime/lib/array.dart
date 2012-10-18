@@ -59,9 +59,9 @@ class _ObjectArray<E> implements List<E> {
     return list;
   }
 
-  // Collection interface.
-
-  bool contains(E element) => Collections.contains(this, element);
+  /**
+   * Collection interface.
+   */
 
   void forEach(f(E element)) {
     Collections.forEach(this, f);
@@ -201,9 +201,9 @@ class _ImmutableArray<E> implements List<E> {
     return list;
   }
 
-  // Collection interface.
-
-  bool contains(E element) => Collections.contains(this, element);
+  /**
+   * Collection interface.
+   */
 
   void forEach(f(E element)) {
     Collections.forEach(this, f);

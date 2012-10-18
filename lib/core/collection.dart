@@ -3,55 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * The common interface of all collections.
- *
- * The [Collection] class contains a skeleton implementation of
- * an iterator based collection.
+ * The [Collection] interface is the public interface of all
+ * collections.
  */
 abstract class Collection<E> extends Iterable<E> {
+  /**
+   * Applies the function [f] to each element of this collection.
+   */
+  void forEach(void f(E element));
+
   /**
    * Returns a new collection with the elements [: f(e) :]
    * for each element [:e:] of this collection.
    *
-   * Subclasses of [Collection] should implement the [map] method
-   * to return a collection of the same general type as themselves.
-   * E.g., [List.map] should return a [List].
+   * Note on typing: the return type of f() could be an arbitrary
+   * type and consequently the returned collection's
+   * typeis Collection.
    */
   Collection map(f(E element));
-
-  /**
-   * Returns a collection with the elements of this collection
-   * that satisfy the predicate [f].
-   *
-   * The returned collection should be of the same type as the collection
-   * creating it.
-   *
-   * An element satisfies the predicate [f] if [:f(element):]
-   * returns true.
-   */
-  Collection<E> filter(bool f(E element));
-
-  /**
-   * Returns the number of elements in this collection.
-   */
-  int get length;
-
-  /**
-   * Check whether the collection contains an element equal to [element].
-   */
-  bool contains(E element) {
-    for (E e in this) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  /**
-   * Applies the function [f] to each element of this collection.
-   */
-  void forEach(void f(E element)) {
-    for (E element in this) f(element);
-  }
 
   /**
    * Reduce a collection to a single value by iteratively combining each element
@@ -63,37 +32,37 @@ abstract class Collection<E> extends Iterable<E> {
    *
    *   collection.reduce(0, (prev, element) => prev + element);
    */
-  Dynamic reduce(var initialValue,
-                 Dynamic combine(var previousValue, E element)) {
-    var value = initialValue;
-    for (E element in this) value = combine(value, element);
-    return value;
-  }
+  Dynamic reduce(Dynamic initialValue,
+                 Dynamic combine(Dynamic previousValue, E element));
+
+  /**
+   * Returns a new collection with the elements of this collection
+   * that satisfy the predicate [f].
+   *
+   * An element satisfies the predicate [f] if [:f(element):]
+   * returns true.
+   */
+  Collection<E> filter(bool f(E element));
 
   /**
    * Returns true if every elements of this collection satisify the
    * predicate [f]. Returns false otherwise.
    */
-  bool every(bool f(E element)) {
-    for (E element in this) {
-      if (!f(element)) return false;
-    }
-    return true;
-  }
+  bool every(bool f(E element));
 
   /**
    * Returns true if one element of this collection satisfies the
    * predicate [f]. Returns false otherwise.
    */
-  bool some(bool f(E element)) {
-    for (E element in this) {
-      if (f(element)) return true;
-    }
-    return false;
-  }
+  bool some(bool f(E element));
 
   /**
    * Returns true if there is no element in this collection.
    */
-  bool isEmpty() => !iterator().hasNext();
+  bool isEmpty();
+
+  /**
+   * Returns the number of elements in this collection.
+   */
+  int get length;
 }
