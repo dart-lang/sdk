@@ -347,7 +347,7 @@ class HtmlDartInterfaceGenerator(object):
           '  factory $CTOR.fromList(List<$TYPE> list) =>\n'
           '    $FACTORY.create$(CTOR)_fromList(list);\n'
           '\n'
-          '  factory $CTOR.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => \n'
+          '  factory $CTOR.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>\n'
           '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
         CTOR=self._interface.id,
         TYPE=self._DartType(element_type),

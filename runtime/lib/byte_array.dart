@@ -123,6 +123,8 @@ abstract class _ByteArrayBase {
 
   // Methods implementing the Collection interface.
 
+  bool contains(element) => Collections.contains(this, element);
+
   void forEach(void f(element)) {
     var len = this.length;
     for (var i = 0; i < len; i++) {

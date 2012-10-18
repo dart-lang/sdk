@@ -56,6 +56,8 @@ $endif
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);

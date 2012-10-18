@@ -9,7 +9,7 @@
  * [charCodes] method.
  */
 interface String
-    extends Comparable, Pattern
+    extends Comparable, Pattern, Sequence<String>
     default StringImplementation {
   /**
    * Allocates a new String for the specified [charCodes].
