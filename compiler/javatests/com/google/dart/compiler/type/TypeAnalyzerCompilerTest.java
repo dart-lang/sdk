@@ -3074,7 +3074,65 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(testUnit, "v", "Event");
   }
-  
+
+  public void test_typesPropagation_parameterOfClosure_assignVariable() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "main() {",
+        "  // local variable assign",
+        "  {",
+        "    EventListener listener;",
+        "    listener = (e) {",
+        "      var v1 = e;",
+        "    };",
+        "  }",
+        "  // local variable declare",
+        "  {",
+        "    EventListener listener = (e) {",
+        "      var v2 = e;",
+        "    };",
+        "  }",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "Event");
+    assertInferredElementTypeString(testUnit, "v2", "Event");
+  }
+
+  public void test_typesPropagation_parameterOfClosure_assignField() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "class Button {",
+        "  EventListener listener;",
+        "}",
+        "EventListener topLevelListener;",
+        "main() {",
+        "  // top-level field",
+        "  {",
+        "    topLevelListener = (e) {",
+        "      var v1 = e;",
+        "    };",
+        "  }",
+        "  // member field",
+        "  {",
+        "    Button button = new Button();",
+        "    button.listener = (e) {",
+        "      var v2 = e;",
+        "    };",
+        "  }",
+        "}",
+        "EventListener topLevelListener2 = (e) {",
+        "  var v3 = e;",
+        "};",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "Event");
+    assertInferredElementTypeString(testUnit, "v2", "Event");
+    assertInferredElementTypeString(testUnit, "v3", "Event");
+  }
+
   /**
    * Helpful (but not perfectly satisfying Specification) type of "conditional" is intersection of
    * then/else types, not just their "least upper bounds". And this corresponds runtime behavior.
