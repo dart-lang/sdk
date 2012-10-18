@@ -155,7 +155,8 @@ void compile(List<String> argv) {
     new OptionHandler('--enable-concrete-type-inference',
                       (_) => passThrough('--enable-concrete-type-inference')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
-    new OptionHandler(r'--package-root=.+|-p.+', setPackageRoot),
+    new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
+    new OptionHandler('--disallow-unsafe-eval', passThrough),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -392,7 +393,13 @@ be removed in a future version:
     libraries are used: dart:dom, dart:html dart:io.
 
   --enable-concrete-type-inference
-    Enable experimental concrete type inference.''');
+    Enable experimental concrete type inference.
+
+  --disallow-unsafe-eval
+    Disables dynamic generation of code in the generated output. This is
+    necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
+    This flag is not continuously tested. Please report breakages and we
+    will fix them as soon as possible.''');
 }
 
 void helpAndExit(bool verbose) {

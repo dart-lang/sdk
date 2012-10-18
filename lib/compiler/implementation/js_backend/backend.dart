@@ -667,13 +667,17 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
+  JavaScriptBackend(Compiler compiler,
+                    bool generateSourceMap,
+                    bool disableEval)
       : namer = new Namer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         interceptors = new Interceptors(compiler),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
-    emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
+    emitter = disableEval
+        ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
+        : new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);

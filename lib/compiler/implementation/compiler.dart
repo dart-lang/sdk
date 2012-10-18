@@ -202,6 +202,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableMinification: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
+            bool disallowUnsafeEval: false,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
@@ -218,7 +219,9 @@ abstract class Compiler implements DiagnosticListener {
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this, enableConcreteTypeInference);
     backend = emitJavaScript ?
-        new js_backend.JavaScriptBackend(this, generateSourceMap) :
+        new js_backend.JavaScriptBackend(this,
+                                         generateSourceMap,
+                                         disallowUnsafeEval) :
         new dart_backend.DartBackend(this, strips);
     constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);

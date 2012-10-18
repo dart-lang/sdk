@@ -22,5 +22,6 @@
 #source('constant_emitter.dart');
 #source('constant_system_javascript.dart');
 #source('emitter.dart');
+#source('emitter_no_eval.dart');
 #source('namer.dart');
 #source('native_emitter.dart');

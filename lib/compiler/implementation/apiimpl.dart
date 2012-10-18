@@ -31,6 +31,7 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
+            disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             strips: getStrips(options),
             enableConcreteTypeInference:
               hasOption(options, '--enable-concrete-type-inference'));
