@@ -452,6 +452,7 @@ abstract class Compiler implements DiagnosticListener {
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
       if (libraryName == 'dart:html') {
+        // dart:html needs access to convertDartClosureToJS.
         importHelperLibrary(library);
       }
       library.addToScope(findHelper(const SourceString('JS')), this);
