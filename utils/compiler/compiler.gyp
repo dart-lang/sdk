@@ -45,6 +45,32 @@
             '<(dart_dir)',
           ],
         },
+        {
+          'action_name': 'generate_dart2js_snapshot',
+          'inputs': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '../../lib/_internal/libraries.dart',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib/compiler", "../../runtime/lib"])',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/dart2js.snapshot',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
+
+            # TODO(ahe): Remove option when http://dartbug.com/5989 is fixed.
+            '--optimization_counter_threshold=-1',
+
+            # Note: we don't store the snapshot in the location where
+            # the dart2js script is looking for it.  The motivation
+            # for that is to support an incremental development model
+            # for dart2js compiler engineers.  However, we install the
+            # snapshot in the proper location when building the SDK.
+            '--script_snapshot=<(PRODUCT_DIR)/dart2js.snapshot',
+            '../../lib/compiler/implementation/dart2js.dart',
+          ],
+        },
       ],
     },
   ],
