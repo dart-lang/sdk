@@ -219,18 +219,22 @@ class SsaBuilderTask extends CompilerTask {
             defaultValueTypes.update(index, parameter.name, type);
             index++;
           });
+        } else {
+          // TODO(ahe): I have disabled type optimizations for
+          // optional arguments as the types are stored in the wrong
+          // order.
+          HTypeList parameterTypes =
+              backend.optimisticParameterTypes(element.declaration,
+                                               defaultValueTypes);
+          if (!parameterTypes.allUnknown) {
+            int i = 0;
+            signature.forEachParameter((Element param) {
+              builder.parameters[param].guaranteedType = parameterTypes[i++];
+            });
+          }
+          backend.registerParameterTypesOptimization(
+              element.declaration, parameterTypes, defaultValueTypes);
         }
-        HTypeList parameterTypes =
-            backend.optimisticParameterTypes(element.declaration,
-                                             defaultValueTypes);
-        if (!parameterTypes.allUnknown) {
-          int i = 0;
-          signature.orderedForEachParameter((Element param) {
-            builder.parameters[param].guaranteedType = parameterTypes[i++];
-          });
-        }
-        backend.registerParameterTypesOptimization(
-            element.declaration, parameterTypes, defaultValueTypes);
       }
 
       if (compiler.tracer.enabled) {

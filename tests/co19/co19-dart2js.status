@@ -745,7 +745,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http:
 [ $compiler == dart2js ]
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TypeError: Object #<C> has no method 'call$0'
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TypeError: Object #<Foo> has no method 'call$0'
-Language/10_Expressions/30_Type_Cast_A02_t01: Fail # Expect.identical(expected: <Instance of 'C'>, actual: <Instance of 'C'>) fails.
 Language/10_Expressions/30_Type_Cast_A02_t03: Fail # Expect.fail('CastError expected')
 Language/10_Expressions/30_Type_Cast_A05_t03: Fail # CastError: Casting value of type Number to incompatible type G
 Language/10_Expressions/30_Type_Cast_A05_t05: Fail # CastError: Casting value of type Number to incompatible type G
