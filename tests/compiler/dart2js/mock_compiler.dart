@@ -62,7 +62,8 @@ const String DEFAULT_CORELIB = r'''
   class Object {}
   abstract class num {}
   class Function {}
-  abstract class List { List([length]); }
+  interface List default ListImplementation { List([length]);}
+  class ListImplementation { factory List([length]) => null; }
   abstract class Map {}
   class Closure {}
   class Null {}

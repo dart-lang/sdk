@@ -713,6 +713,7 @@ testInitializers() {
          class num {}
          class Function {}
          class List {}
+         class Map {}
          class Closure {}
          class Null {}
          class Dynamic_ {}
