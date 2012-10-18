@@ -409,7 +409,7 @@ class DiffProgressIndicator extends ColorProgressIndicator {
   String _extractRuntime(String configuration) {
     // Extract runtime from a configuration, for example,
     // 'none-vm-checked release_ia32'.
-    List<String> runtime = config.split(' ')[0].split('-');
+    List<String> runtime = configuration.split(' ')[0].split('-');
     return '${runtime[0]}-${runtime[1]}';
   }
 
