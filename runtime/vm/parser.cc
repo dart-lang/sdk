@@ -1848,8 +1848,9 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   ASSERT(phase_param != NULL);
   AstNode* phase_argument = new LoadLocalNode(call_pos, phase_param);
   arguments->Add(phase_argument);
+  receiver->set_invisible(true);
   ParseActualParameters(arguments, kAllowConst);
-
+  receiver->set_invisible(false);
   // Resolve the constructor.
   const Function& redirect_ctor = Function::ZoneHandle(
       cls.LookupConstructor(ctor_name));
