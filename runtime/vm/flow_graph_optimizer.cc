@@ -2335,7 +2335,11 @@ void LICM::Optimize(FlowGraph* flow_graph) {
               break;
             }
           }
-          if (inputs_loop_invariant) {
+          if (inputs_loop_invariant &&
+              !current->IsAssertAssignable() &&
+              !current->IsAssertBoolean()) {
+            // TODO(fschneider): Enable hoisting of Assert-instructions
+            // if it safe to do.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
