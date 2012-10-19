@@ -516,10 +516,15 @@ concat(receiver, other) {
 }
 
 contains$1(receiver, other) {
-  if (receiver is !String) {
-    return UNINTERCEPTED(receiver.contains(other));
+  if (receiver is String) {
+    return contains$2(receiver, other, 0);
+  } else if (isJsArray(receiver)) {
+    for (int i = 0; i < receiver.length; i++) {
+      if (other == receiver[i]) return true;
+    }
+    return false;
   }
-  return contains$2(receiver, other, 0);
+  return UNINTERCEPTED(receiver.contains(other));
 }
 
 contains$2(receiver, other, startIndex) {

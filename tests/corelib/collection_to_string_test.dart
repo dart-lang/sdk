@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Tests for the toString methods on collections (including maps).
+ * Tests for the toString methods on collections and maps.
  */
 
 #library('collection_to_string');
@@ -122,7 +122,7 @@ Object randomCollection(int size, StringBuffer stringRep, {bool exact}) {
 /**
  * Return a random collection (or map) of the specified size, placing its
  * string representation into the given string buffer. The beingMade
- * parameter is a list of collections currently under construction, i.e., 
+ * parameter is a list of collections currently under construction, i.e.,
  * candidates for recursive references.
  *
  * If exact is true, the returned collections will not be, and will not contain
@@ -156,7 +156,7 @@ Object randomCollectionHelper(int size, bool exact, StringBuffer stringRep,
 /**
  * Return a random List of the specified size, placing its string
  * representation into the given string buffer. The beingMade
- * parameter is a list of collections currently under construction, i.e., 
+ * parameter is a list of collections currently under construction, i.e.,
  * candidates for recursive references.
  *
  * If exact is true, the returned collections will not be, and will not contain
