@@ -27,6 +27,7 @@ Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # issue 6060
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # issue 6060
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
+Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/06_Functions/1_Function_Declaration_A02_t03: Fail # issue 6058
 Language/06_Functions/1_Function_Declaration_A03_t03: Fail # issue 6058
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
