@@ -1407,6 +1407,20 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6077
+   */
+  public void test_dartMirrors_notFullyImplemented() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode("// filler filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:mirrors';"));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(DartCompilerErrorCode.MIRRORS_NOT_FULLY_IMPLEMENTED, 2, 1, 22));
+  }
 
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);
