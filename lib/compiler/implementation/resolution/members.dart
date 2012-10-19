@@ -1347,9 +1347,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
-    // If [function] is the [enclosingElement], the [scope] has
-    // already been set in the constructor of [ResolverVisitor].
-    if (function != enclosingElement) scope = new MethodScope(scope, function);
+    scope = new MethodScope(scope, function);
 
     // Put the parameters in scope.
     FunctionSignature functionParameters =
@@ -2952,11 +2950,14 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     SourceString name = node.source;
     Element e = resolver.lookup(node, name);
+    // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE, [name]);
     } else if (identical(e.kind, ElementKind.TYPEDEF)) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
+    } else if (identical(e.kind, ElementKind.TYPE_VARIABLE)) {
+      error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE, [name]);
     } else if (!identical(e.kind, ElementKind.CLASS)
         && !identical(e.kind, ElementKind.PREFIX)) {
       error(node, MessageKind.NOT_A_TYPE, [name]);
@@ -2978,25 +2979,7 @@ abstract class Scope {
     return parent.lookup(name);
   }
 
-  Element lexicalLookup(SourceString name) {
-    Element result = localLookup(name);
-    if (result != null) return result;
-    return parent.lexicalLookup(name);
-  }
-
   abstract Element localLookup(SourceString name);
-}
-
-class VariableScope extends Scope {
-  VariableScope(parent, element) : super(parent, element);
-
-  Element add(Element newElement) {
-    throw "Cannot add element to VariableScope";
-  }
-
-  Element localLookup(SourceString name) => null;
-
-  String toString() => '$element > $parent';
 }
 
 /**
@@ -3068,7 +3051,7 @@ class BlockScope extends MethodScope {
  * scope and inherited members are available, in the given order.
  */
 class ClassScope extends TypeDeclarationScope {
-  bool inStaticContext = false;
+  ClassElement get element => super.element;
 
   ClassScope(Scope parentScope, ClassElement element)
       : super(parentScope, element)  {
@@ -3076,16 +3059,9 @@ class ClassScope extends TypeDeclarationScope {
   }
 
   Element localLookup(SourceString name) {
-    ClassElement cls = element;
-    Element result = cls.lookupLocalMember(name);
+    Element result = element.lookupLocalMember(name);
     if (result != null) return result;
-    if (!inStaticContext) {
-      // If not in a static context, we can lookup in the
-      // TypeDeclaration scope, which contains the type variables of
-      // the class.
-      result = super.localLookup(name);
-    }
-    return result;
+    return super.localLookup(name);
   }
 
   Element lookup(SourceString name) {
@@ -3093,8 +3069,7 @@ class ClassScope extends TypeDeclarationScope {
     if (result != null) return result;
     result = parent.lookup(name);
     if (result != null) return result;
-    ClassElement cls = element;
-    return cls.lookupSuperMember(name);
+    return element.lookupSuperMember(name);
   }
 
   Element add(Element newElement) {
@@ -3106,7 +3081,6 @@ class ClassScope extends TypeDeclarationScope {
 
 // TODO(johnniwinther): Refactor scopes to avoid class explosion.
 class PatchClassScope extends TypeDeclarationScope {
-  bool inStaticContext = false;
   ClassElement get origin => element;
   final ClassElement patch;
 
@@ -3121,13 +3095,8 @@ class PatchClassScope extends TypeDeclarationScope {
     if (result != null) return result;
     result = origin.lookupLocalMember(name);
     if (result != null) return result;
-    if (!inStaticContext) {
-      // If not in a static context, we can lookup in the
-      // TypeDeclaration scope, which contains the type variables of
-      // the class.
-      result = super.localLookup(name);
-      if (result != null) return result;
-    }
+    result = super.localLookup(name);
+    if (result != null) return result;
     result = parent.lookup(name);
     if (result != null) return result;
     return result;

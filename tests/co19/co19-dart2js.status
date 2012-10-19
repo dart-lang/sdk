@@ -269,6 +269,8 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t11: Fail # TOD
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
 
+Language/09_Generics/09_Generics_A05_t01: Fail # dart2js fails to reject type variable within static member
+
 Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
@@ -427,6 +429,8 @@ Language/13_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # co19 issue 249
 Language/13_Libraries_and_Scripts/2_Imports_A06_t01: Fail, OK # co19 issue 250
 
 Language/13_Libraries_and_Scripts/2_Imports_A01_t39: Fail # co19 issue 253: Show combinators are intersections.
+
+Language/03_Overview/1_Scoping_A02_t05: Fail # co19 issue 261
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333

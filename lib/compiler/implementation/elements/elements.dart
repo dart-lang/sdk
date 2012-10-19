@@ -948,17 +948,6 @@ class VariableListElement extends Element {
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
   }
-
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    Scope result = new VariableScope(
-        enclosingElement.buildScope(patchScope: patchScope), this);
-    if (enclosingElement.isClass()) {
-      Scope clsScope = result.parent;
-      clsScope.inStaticContext = !isInstanceMember();
-    }
-    return result;
-  }
 }
 
 class ForeignElement extends Element {
@@ -1205,17 +1194,6 @@ class FunctionElement extends Element {
     } else {
       return super.toString();
     }
-  }
-
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    Scope result = new MethodScope(
-        enclosingElement.buildScope(patchScope: patchScope), this);
-    if (enclosingElement.isClass()) {
-      Scope clsScope = result.parent;
-      clsScope.inStaticContext = !isInstanceMember() && !isConstructor();
-    }
-    return result;
   }
 }
 

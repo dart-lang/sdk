@@ -175,6 +175,9 @@ class MessageKind {
   static const CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       "cannot instantiate typedef '#{1}'");
 
+  static const CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
+      "cannot instantiate type variable '#{1}'");
+
   static const NO_DEFAULT_CLASS = const MessageKind(
       "no default class on enclosing interface '#{1}'");
 
@@ -299,7 +302,7 @@ Length: #{3}''');
   static const PATCH_PARAMETER_MISMATCH = const MessageKind(
       "Patch method parameter '#{3}' doesn't match '#{2}' on origin method "
       "#{1}.");
-  
+
   static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
       "Top-level variable cannot be declared static.");
 

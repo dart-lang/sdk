@@ -294,7 +294,7 @@ method_override2_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
-new_expression_type_args_test/01: Fail # http://dartbug.com/5519
+new_expression_type_args_test/02: Fail # inherited from dart2js
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 override_field_test/04: Fail # http://dartbug.com/5519
 static_field3_test/01: Fail # http://dartbug.com/5519

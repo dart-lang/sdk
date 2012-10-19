@@ -68,7 +68,6 @@ getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
-new_expression_type_args_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/02: Fail # http://dartbug.com/5519
 optional_named_parameters_test/01: Fail # http://dartbug.com/5519
@@ -79,6 +78,7 @@ optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
+new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
