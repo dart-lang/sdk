@@ -412,41 +412,44 @@ class PatchElementListener extends ElementListener implements PatchListener {
           listener.internalErrorOnElement(element,
                                           "Member patch is not a function.");
         }
+        FunctionElement functionElement = element;
         if (identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
           if (!element.isAccessor()) {
             listener.internalErrorOnElement(
-                element, "Patching non-accessor with accessor");
+                functionElement, "Patching non-accessor with accessor");
           }
           AbstractFieldElement field = existing;
-          if (element.isGetter()) {
+          if (functionElement.isGetter()) {
             existing = field.getter;
           } else {
             existing = field.setter;
           }
         }
         if (existing is! FunctionElement) {
-          listener.internalErrorOnElement(element,
+          listener.internalErrorOnElement(functionElement,
                                           "No corresponding method for patch.");
         }
-        FunctionElement function = existing;
-        if (function.isPatched) {
+        FunctionElement existingFunction = existing;
+        if (existingFunction.isPatched) {
           listener.internalErrorOnElement(
-              element, "Patching the same function more than once.");
+              functionElement, "Patching the same function more than once.");
         }
-        function.patch = element;
-        element.origin = function;
+        existingFunction.patch = functionElement;
+        functionElement.origin = existingFunction;
       } else {
+        assert(leg.invariant(element, element is ClassElement));
+        ClassElement classElement = element;
         if (existing is! ClassElement) {
           listener.internalErrorOnElement(
-              element, "Patching a non-class with a class patch.");
+              classElement, "Patching a non-class with a class patch.");
         }
-        ClassElement classElement = existing;
-        if (classElement.isPatched) {
+        ClassElement existingClass = existing;
+        if (existingClass.isPatched) {
           listener.internalErrorOnElement(
-              element, "Patching the same class more than once.");
+              classElement, "Patching the same class more than once.");
         }
-        classElement.patch = element;
-        element.origin = classElement;
+        existingClass.patch = classElement;
+        classElement.origin = existingClass;
       }
     }
     super.pushElement(element);

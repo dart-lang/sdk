@@ -230,6 +230,14 @@ class Element implements Spannable {
    */
   Element get declaration => isPatch ? origin : this;
 
+  Element get patch {
+    throw new UnsupportedOperationException('patch is not supported on $this');
+  }
+
+  Element get origin {
+    throw new UnsupportedOperationException('origin is not supported on $this');
+  }
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -445,7 +453,8 @@ class ScopeContainerElement extends ContainerElement {
   Element localLookup(SourceString elementName) {
     Element result = localScope[elementName];
     if (result == null && isPatch) {
-      result = origin.localScope[elementName];
+      ScopeContainerElement element = origin;
+      result = element.localScope[elementName];
     }
     return result;
   }
