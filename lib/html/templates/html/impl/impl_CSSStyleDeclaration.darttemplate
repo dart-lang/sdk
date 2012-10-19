@@ -29,13 +29,13 @@ $!MEMBERS
   }
 
 $if DART2JS
-  void setProperty(String propertyName, String value, [String priority]) native '''
-    this.setProperty(propertyName, value, priority);
+  void setProperty(String propertyName, String value, [String priority]) {
+    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
     // Bug #2772, IE9 requires a poke to actually apply the value.
-    if (this.setAttribute) {
-      this.setAttribute(propertyName, value);
+    if (JS('bool', '!!#.setAttribute', this)) {
+      JS('void', '#.setAttribute(#, #)', this, propertyName, value);
     }
-  ''';
+  }
 $endif
 
   // TODO(jacobr): generate this list of properties using the existing script.

@@ -79,7 +79,8 @@ Zone::Zone()
       limit_(initial_buffer_.end()),
       head_(NULL),
       large_segments_(NULL),
-      handles_() {
+      handles_(),
+      previous_(NULL) {
 #ifdef DEBUG
     // Zap the entire initial buffer.
   memset(initial_buffer_.pointer(), kZapUninitializedByte,
@@ -206,24 +207,20 @@ void Zone::DumpZoneSizes() {
 
 StackZone::StackZone(BaseIsolate* isolate)
     : StackResource(isolate),
-      zone_(),
-      previous_(NULL) {
-  // Assert that there is no current zone as we only want to scope
-  // zones when transitioning from generated dart code to dart VM
-  // runtime code.
-  previous_ = isolate->current_zone();
-  isolate->set_current_zone(this);
+      zone_() {
+  zone_.Link(isolate->current_zone());
+  isolate->set_current_zone(&zone_);
 }
 
 
 StackZone::~StackZone() {
-  ASSERT(isolate()->current_zone() == this);
-  isolate()->set_current_zone(previous_);
+  ASSERT(isolate()->current_zone() == &zone_);
+  isolate()->set_current_zone(zone_.previous_);
 }
 
 
-void StackZone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  StackZone* zone = this;
+void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  Zone* zone = this;
   while (zone != NULL) {
     zone->handles()->VisitObjectPointers(visitor);
     zone = zone->previous_;
@@ -231,7 +228,7 @@ void StackZone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-char* StackZone::PrintToString(const char* format, ...) {
+char* Zone::PrintToString(const char* format, ...) {
   va_list args;
   va_start(args, format);
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);

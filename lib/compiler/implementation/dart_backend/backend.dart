@@ -25,25 +25,25 @@ class AggregatedTreeElements extends TreeElementMapping {
 
   Element operator[](Node node) {
     final result = super[node];
-    return result !== null ? result : getFirstNotNullResult((e) => e[node]);
+    return result != null ? result : getFirstNotNullResult((e) => e[node]);
   }
 
   Selector getSelector(Send send) {
     final result = super.getSelector(send);
-    return result !== null ?
+    return result != null ?
         result : getFirstNotNullResult((e) => e.getSelector(send));
   }
 
   DartType getType(TypeAnnotation annotation) {
     final result = super.getType(annotation);
-    return result !== null ?
+    return result != null ?
         result : getFirstNotNullResult((e) => e.getType(annotation));
   }
 
   getFirstNotNullResult(f(TreeElements element)) {
     for (final element in treeElements) {
       final result = f(element);
-      if (result !== null) return result;
+      if (result != null) return result;
     }
 
     return null;
@@ -72,9 +72,9 @@ class FunctionBodyRewriter extends CloningVisitor {
       if (statement is EmptyStatement) return true;
       if (statement is ExpressionStatement) {
         Send send = statement.expression.asSend();
-        if (send !== null) {
+        if (send != null) {
           Element element = originalTreeElements[send];
-          if (stripAsserts && element === compiler.assertMethod) {
+          if (stripAsserts && identical(element, compiler.assertMethod)) {
             return true;
           }
         }
@@ -149,7 +149,7 @@ class DartBackend extends Backend {
         assert(typeArgument is TypeAnnotation);
         DartType argumentType =
             compiler.resolveTypeAnnotation(classElement, typeArgument);
-        assert(argumentType !== null);
+        assert(argumentType != null);
         workQueue.add(argumentType);
       }
     }
@@ -165,7 +165,7 @@ class DartBackend extends Backend {
         // Check class type args.
         processTypeArguments(element, node.typeParameters);
         // Check superclass type args.
-        if (node.superclass !== null) {
+        if (node.superclass != null) {
           NodeList typeArguments = node.superclass.typeArguments;
           processTypeArguments(element, node.superclass.typeArguments);
         }
@@ -175,7 +175,7 @@ class DartBackend extends Backend {
               element, (interfaceNode as TypeAnnotation).typeArguments);
         }
         // Check all supertypes.
-        if (element.allSupertypes !== null) {
+        if (element.allSupertypes != null) {
           workQueue.addAll(element.allSupertypes.toList());
         }
       }
@@ -258,7 +258,7 @@ class DartBackend extends Backend {
      * Object should not be in the resulting code.
      */
     bool shouldOutput(Element element) =>
-      element.kind !== ElementKind.VOID &&
+      !identical(element.kind, ElementKind.VOID) &&
       isUserLibrary(element.getLibrary()) &&
       element is !SynthesizedConstructorElement &&
       element is !AbstractFieldElement;
@@ -354,11 +354,11 @@ class DartBackend extends Backend {
           compiler.types.voidType, const Link<DartType>(),
           constructor);
       constructor.cachedNode = new FunctionExpression(
-          new Send(receiver: classElement.parseNode(compiler).name,
-                   selector: synthesizedIdentifier),
-          new NodeList(beginToken: new StringToken(OPEN_PAREN_INFO, '(', -1),
-                       endToken: new StringToken(CLOSE_PAREN_INFO, ')', -1),
-                       nodes: const Link<Node>()),
+          new Send(classElement.parseNode(compiler).name,
+                   synthesizedIdentifier),
+          new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),
+                       const Link<Node>(),
+                       new StringToken(CLOSE_PAREN_INFO, ')', -1)),
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 
@@ -462,17 +462,17 @@ class EmitterUnparser extends Unparser {
   EmitterUnparser(this.renames);
 
   visit(Node node) {
-    if (node !== null && renames.containsKey(node)) {
+    if (node != null && renames.containsKey(node)) {
       sb.add(renames[node]);
     } else {
       super.visit(node);
     }
   }
 
-  unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
+  unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
     // TODO(smok): Remove ugly hack for library prefices.
-    if (node.receiver !== null && renames[node.receiver] == '') return;
-    super.unparseSendReceiver(node, spacesNeeded);
+    if (node.receiver != null && renames[node.receiver] == '') return;
+    super.unparseSendReceiver(node, spacesNeeded: spacesNeeded);
   }
 }
 
@@ -501,7 +501,7 @@ class ReferencedElementCollector extends Visitor {
     super.visitClassNode(node);
     // Temporary hack which should go away once interfaces
     // and default clauses are out.
-    if (node.defaultClause !== null) {
+    if (node.defaultClause != null) {
       // Resolver cannot resolve parameterized default clauses.
       TypeAnnotation evilCousine = new TypeAnnotation(
           node.defaultClause.typeName, null);

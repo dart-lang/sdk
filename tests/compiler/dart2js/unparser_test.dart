@@ -208,39 +208,77 @@ testCombinators() {
   testUnparseTopLevelWithMetadata('export "søhest" hide a,show hide a,show;');
 }
 
+testUnparseMemberAndAsMemberOfFoo(String code) {
+  testUnparseMember(code);
+  testUnparseTopLevelWithMetadata('class Foo{$code}');
+}
+
 testRedirectingFactoryConstructors() {
-  testUnparseMember("factory Foo() = Bar;");
-  testUnparseMember("factory Foo() = Bar.baz;");
-  testUnparseMember("factory Foo() = Bar<T>;");
-  testUnparseMember("factory Foo() = Bar<T>.baz;");
-  testUnparseMember("factory Foo() = prefix.Bar;");
-  testUnparseMember("factory Foo() = prefix.Bar.baz;");
-  testUnparseMember("factory Foo() = prefix.Bar<T>;");
-  testUnparseMember("factory Foo() = prefix.Bar<T>.baz;");
-  testUnparseMember("const factory Foo() = Bar;");
-  testUnparseMember("const factory Foo() = Bar.baz;");
-  testUnparseMember("const factory Foo() = Bar<T>;");
-  testUnparseMember("const factory Foo() = Bar<T>.baz;");
-  testUnparseMember("const factory Foo() = prefix.Bar;");
-  testUnparseMember("const factory Foo() = prefix.Bar.baz;");
-  testUnparseMember("const factory Foo() = prefix.Bar<T>;");
-  testUnparseMember("const factory Foo() = prefix.Bar<T>.baz;");
-  testUnparseMember("external factory Foo() = Bar;");
-  testUnparseMember("external factory Foo() = Bar.baz;");
-  testUnparseMember("external factory Foo() = Bar<T>;");
-  testUnparseMember("external factory Foo() = Bar<T>.baz;");
-  testUnparseMember("external factory Foo() = prefix.Bar;");
-  testUnparseMember("external factory Foo() = prefix.Bar.baz;");
-  testUnparseMember("external factory Foo() = prefix.Bar<T>;");
-  testUnparseMember("external factory Foo() = prefix.Bar<T>.baz;");
-  testUnparseMember("external const factory Foo() = Bar;");
-  testUnparseMember("external const factory Foo() = Bar.baz;");
-  testUnparseMember("external const factory Foo() = Bar<T>;");
-  testUnparseMember("external const factory Foo() = Bar<T>.baz;");
-  testUnparseMember("external const factory Foo() = prefix.Bar;");
-  testUnparseMember("external const factory Foo() = prefix.Bar.baz;");
-  testUnparseMember("external const factory Foo() = prefix.Bar<T>;");
-  testUnparseMember("external const factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = prefix.Bar;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = prefix.Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = prefix.Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = prefix.Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "factory Foo() = prefix.Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = Bar;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "const factory Foo() = Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = prefix.Bar;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = prefix.Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = prefix.Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "const factory Foo() = prefix.Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "const factory Foo() = prefix.Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = Bar;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external factory Foo() = Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = prefix.Bar;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = prefix.Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external factory Foo() = prefix.Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external factory Foo() = prefix.Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external factory Foo() = prefix.Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external const factory Foo() = Bar;");
+  testUnparseMemberAndAsMemberOfFoo("external const factory Foo() = Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external const factory Foo() = Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar<T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar<List<T>,T>;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo(
+      "external const factory Foo() = prefix.Bar<List<T>,T>.baz;");
 }
 
 testClassDeclarations() {

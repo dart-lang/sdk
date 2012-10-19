@@ -131,6 +131,20 @@ def CopyDart2Js(build_dir, sdk_root, version):
     ReplaceInFiles([dartdoc],
                    [(r'\$BIN_DIR/\.\./\.\.', r'$BIN_DIR/..')])
 
+    # TODO(ahe): Enable for Windows as well.
+    subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
+
+                     # TODO(ahe): Remove option when
+                     # http://dartbug.com/5989 is fixed.
+                     '--optimization_counter_threshold=-1',
+
+                     '--script_snapshot=%s' %
+                     os.path.join(sdk_root, 'pkg', 'compiler',
+                                  'implementation', 'dart2js.dart.snapshot'),
+                     os.path.join(sdk_root, 'pkg', 'compiler',
+                                  'implementation', 'dart2js.dart')])
+
+
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.

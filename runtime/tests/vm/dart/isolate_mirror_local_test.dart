@@ -311,17 +311,17 @@ void testLibrariesMap(Map libraries) {
   Expect.equals("ClassMirror on 'List'", list_intf.toString());
 
   // Lookup a class from a library and make sure it is sane.
-  ClassMirror oom_cls = core_lib.members['OutOfMemoryException'];
+  ClassMirror oom_cls = core_lib.members['OutOfMemoryError'];
   Expect.isTrue(oom_cls is ClassMirror);
-  Expect.equals('OutOfMemoryException', oom_cls.simpleName);
-  Expect.equals('dart:core.OutOfMemoryException', oom_cls.qualifiedName);
+  Expect.equals('OutOfMemoryError', oom_cls.simpleName);
+  Expect.equals('dart:core.OutOfMemoryError', oom_cls.qualifiedName);
   Expect.isFalse(oom_cls.isPrivate);
   Expect.equals('Object', oom_cls.superclass.simpleName);
   Expect.isTrue(oom_cls.defaultFactory === null);
   Expect.equals('dart:core', oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
   Expect.equals('Exception', oom_cls.superinterfaces[0].simpleName);
-  Expect.equals("ClassMirror on 'OutOfMemoryException'",
+  Expect.equals("ClassMirror on 'OutOfMemoryError'",
                 oom_cls.toString());
   testDone('testLibrariesMap');
 }

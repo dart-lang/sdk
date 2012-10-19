@@ -7,18 +7,16 @@
 #import("dart:io");
 
 testStartError() {
-  Process process = Process.start("__path_to_something_that_should_not_exist__",
-                                  const []);
-
-  process.onExit = (int exitCode) {
-    Expect.fail("exit handler called");
-  };
-
-  process.onError = (ProcessException e) {
+  Future<Process> processFuture =
+      Process.start("__path_to_something_that_should_not_exist__",
+                    const []);
+  processFuture.then((p) => Expect.fail('got process despite start error'));
+  processFuture.handleException((e) {
+    Expect.isTrue(e is ProcessException);
     Expect.equals(2, e.errorCode, e.toString());
-  };
+    return true;
+  });
 }
-
 
 testRunError() {
   Future<ProcessResult> processFuture =

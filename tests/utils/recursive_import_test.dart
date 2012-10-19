@@ -17,6 +17,7 @@ class double{}
 class String{}
 class Function{}
 class List {}
+class Map {}
 class Closure {}
 class Dynamic_ {}
 class Null {}

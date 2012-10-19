@@ -41,7 +41,7 @@ class Version implements Comparable, VersionConstraint {
   final String build;
 
   /** Creates a new [Version] object. */
-  Version(this.major, this.minor, this.patch, [String pre, this.build])
+  Version(this.major, this.minor, this.patch, {String pre, this.build})
     : preRelease = pre {
     if (major < 0) throw new ArgumentError(
         'Major version must be non-negative.');
@@ -68,7 +68,7 @@ class Version implements Comparable, VersionConstraint {
       String preRelease = match[5];
       String build = match[8];
 
-      return new Version(major, minor, patch, preRelease, build);
+      return new Version(major, minor, patch, pre: preRelease, build: build);
     } on FormatException catch (ex) {
       throw new FormatException('Could not parse "$text".');
     }
@@ -257,8 +257,8 @@ class VersionRange implements VersionConstraint {
   final bool includeMin;
   final bool includeMax;
 
-  VersionRange([this.min, this.max,
-      this.includeMin = false, this.includeMax = false]) {
+  VersionRange({this.min, this.max,
+      this.includeMin: false, this.includeMax: false}) {
     if (min != null && max != null && min > max) {
       throw new ArgumentError(
           'Minimum version ("$min") must be less than maximum ("$max").');
@@ -339,8 +339,8 @@ class VersionRange implements VersionConstraint {
       }
 
       // If we got here, there is an actual range.
-      return new VersionRange(intersectMin, intersectMax,
-          intersectIncludeMin, intersectIncludeMax);
+      return new VersionRange(min: intersectMin, max: intersectMax,
+          includeMin: intersectIncludeMin, includeMax: intersectIncludeMax);
     }
 
     throw new ArgumentError(

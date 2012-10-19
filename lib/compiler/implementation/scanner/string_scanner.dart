@@ -9,7 +9,7 @@
 class StringScanner extends ArrayBasedScanner<SourceString> {
   final String string;
 
-  StringScanner(String this.string, [bool includeComments = false])
+  StringScanner(String this.string, {bool includeComments: false})
     : super(includeComments);
 
   int nextByte() => charAt(++byteOffset);
@@ -71,5 +71,5 @@ class SubstringWrapper implements SourceString {
 
   bool isEmpty() => begin == end;
 
-  bool isPrivate() => !isEmpty() && internalString.charCodeAt(begin) === $_;
+  bool isPrivate() => !isEmpty() && identical(internalString.charCodeAt(begin), $_);
 }

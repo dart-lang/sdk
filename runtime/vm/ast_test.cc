@@ -46,8 +46,9 @@ TEST_CASE(Ast) {
   EXPECT_EQ(l, b->left());
   EXPECT_EQ(lln, b->right());
 
-  UnaryOpNode* u = new UnaryOpNode(Scanner::kDummyTokenIndex, Token::kSUB, b);
-  EXPECT_EQ(Token::kSUB, u->kind());
+  UnaryOpNode* u =
+      new UnaryOpNode(Scanner::kDummyTokenIndex, Token::kNEGATE, b);
+  EXPECT_EQ(Token::kNEGATE, u->kind());
   EXPECT_EQ(b, u->operand());
 
   SequenceNode* sequence_node = new SequenceNode(1, new LocalScope(NULL, 0, 0));

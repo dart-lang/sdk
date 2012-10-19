@@ -99,7 +99,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     return closed ? 0 : _data.length - _position;
   }
 
-  void pipe(OutputStream output, [bool close = true]) {
+  void pipe(OutputStream output, {bool close: true}) {
     _pipe(this, output, close: close);
   }
 

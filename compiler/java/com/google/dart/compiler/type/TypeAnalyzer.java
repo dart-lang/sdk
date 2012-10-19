@@ -426,10 +426,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Token operator = node.getOperator();
       switch (operator) {
         case ASSIGN: {
-          Type rhs = nonVoidTypeOf(rhsNode);
-          if (!hasInferredType(lhsNode)) {
-            checkAssignable(rhsNode, lhs, rhs);
+          // prepare RHS type
+          Type rhs = getInvocationArgumentType(rhsNode);
+          try {
+            if (!hasInferredType(lhsNode)) {
+              if (checkAssignable(rhsNode, lhs, rhs)) {
+                inferFunctionLiteralParametersTypes(rhsNode, lhs);
+              }
+            }
+          } finally {
+            if (rhsNode instanceof DartFunctionExpression) {
+              rhsNode.accept(this);
+            }
           }
+          // may be replace type of variable
           setVariableElementType(lhsNode.getElement(), rhs);
           checkAssignableElement(lhsNode);
           // if cascade, then use type of "lhs" qualifier
@@ -954,9 +964,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           List<DartParameter> parameterNodes = literal.getFunction().getParameters();
           // try to infer types of "normal" parameters
           List<Type> requiredNormalParameterTypes = requiredType.getParameterTypes();
-          for (int i = 0; i < requiredNormalParameterTypes.size(); i++) {
-            DartParameter parameterNode = parameterNodes.get(i);
+          int n = Math.min(requiredNormalParameterTypes.size(), parameterNodes.size());
+          for (int i = 0; i < n; i++) {
             Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
+            DartParameter parameterNode = parameterNodes.get(i);
             inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
           }
         }
@@ -2723,6 +2734,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
+    /**
+     * Almost same as {@link #nonVoidTypeOf(DartNode)}, but does not visit
+     * {@link DartFunctionExpression}, because we know its type already and want to infer types of
+     * arguments, and then propagate them into body.
+     */
     private Type getInvocationArgumentType(DartExpression argument) {
       // We are interesting in the type of expression, without name.
       if (argument instanceof DartNamedExpression) {
@@ -2764,14 +2780,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitVariable(DartVariable node) {
-      Type result = checkInitializedDeclaration(node, node.getValue());
-      // if no type declared for variables, try to use type of value
-      {
-        DartExpression value = node.getValue();
-        if (value != null) {
-          Type valueType = value.getType();
-          inferVariableDeclarationType(node, valueType);
+      DartExpression value = node.getValue();
+      // if type is declared and right side is closure, infer its parameter types
+      if (value != null) {
+        Type varType = node.getElement().getType();
+        if (isExclicitlySpecifiedType(varType)) {
+          inferFunctionLiteralParametersTypes(value, varType);
         }
+      }
+      // prepare type of value
+      Type result = checkInitializedDeclaration(node, value);
+      // if no type declared for variables, try to use type of value
+      if (value != null) {
+        Type valueType = value.getType();
+        inferVariableDeclarationType(node, valueType);
       }
       // done
       return result;
@@ -2866,16 +2888,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (accessor != null) {
         return typeOf(accessor);
       } else {
-        Type result = checkInitializedDeclaration(node, node.getValue());
+        DartExpression value = node.getValue();
+        // if type is declared and right side is closure, infer its parameter types
+        if (value != null) {
+          Type fieldType = node.getElement().getType();
+          if (isExclicitlySpecifiedType(fieldType)) {
+            inferFunctionLiteralParametersTypes(value, fieldType);
+          }
+        }
+        // prepare type of value
+        Type result = checkInitializedDeclaration(node, value);
         // if no type declared for field, try to use type of value
         // only final fields, because only in this case we can be sure that field is not assigned
         // somewhere, may be even not in this unit
-        if (node.getModifiers().isFinal()) {
-          DartExpression value = node.getValue();
-          if (value != null) {
-            Type valueType = value.getType();
-            inferVariableDeclarationType(node, valueType);
-          }
+        if (node.getModifiers().isFinal() && value != null) {
+          Type valueType = value.getType();
+          inferVariableDeclarationType(node, valueType);
         }
         // done
         return result;
@@ -3378,5 +3406,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return named;
       }
     }
+  }
+
+  private static boolean isExclicitlySpecifiedType(Type fieldType) {
+    return fieldType != null && TypeKind.of(fieldType) != TypeKind.DYNAMIC
+        && !fieldType.isInferred();
   }
 }

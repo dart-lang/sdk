@@ -10,7 +10,7 @@ class Namer {
 
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved {
-    if (_jsReserved === null) {
+    if (_jsReserved == null) {
       _jsReserved = new Set<String>();
       _jsReserved.addAll(JsNames.javaScriptKeywords);
       _jsReserved.addAll(JsNames.reservedPropertySymbols);
@@ -51,7 +51,7 @@ class Namer {
     // constant and can be accessed directly.
     assert(!constant.isFunction());
     String result = constantNames[constant];
-    if (result === null) {
+    if (result == null) {
       result = getFreshGlobalName("CTC");
       constantNames[constant] = result;
     }
@@ -91,7 +91,7 @@ class Namer {
       // If a private name could clash with a mangled private name we don't
       // use the short name. For example a private name "_lib3_foo" would
       // clash with "_foo" from "lib3".
-      if (owner === lib && !nameString.startsWith('_$LIBRARY_PREFIX')) {
+      if (identical(owner, lib) && !nameString.startsWith('_$LIBRARY_PREFIX')) {
         return nameString;
       }
       String libName = getName(lib);
@@ -173,11 +173,11 @@ class Namer {
   String getFreshGlobalName(String proposedName) {
     String name = proposedName;
     int count = usedGlobals[name];
-    if (count !== null) {
+    if (count != null) {
       // Not the first time we see this name. Append a number to make it unique.
       do {
         name = '$proposedName${count++}';
-      } while (usedGlobals[name] !== null);
+      } while (usedGlobals[name] != null);
       // Record the count in case we see this name later. We
       // frequently see names multiple times, as all our closures use
       // the same name for their class.
@@ -212,7 +212,7 @@ class Namer {
       } else {
         name = element.name.slowToString();
       }
-    } else if (element.kind === ElementKind.LIBRARY) {
+    } else if (identical(element.kind, ElementKind.LIBRARY)) {
       name = LIBRARY_PREFIX;
     } else {
       name = element.name.slowToString();
@@ -254,23 +254,23 @@ class Namer {
 
       // Dealing with a top-level or static element.
       String cached = globals[element];
-      if (cached !== null) return cached;
+      if (cached != null) return cached;
 
       String guess = _computeGuess(element);
       ElementKind kind = element.kind;
-      if (kind === ElementKind.VARIABLE ||
-          kind === ElementKind.PARAMETER) {
+      if (identical(kind, ElementKind.VARIABLE) ||
+          identical(kind, ElementKind.PARAMETER)) {
         // The name is not guaranteed to be unique.
         return guess;
       }
-      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
-          kind === ElementKind.FUNCTION ||
-          kind === ElementKind.CLASS ||
-          kind === ElementKind.FIELD ||
-          kind === ElementKind.GETTER ||
-          kind === ElementKind.SETTER ||
-          kind === ElementKind.TYPEDEF ||
-          kind === ElementKind.LIBRARY) {
+      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
+          identical(kind, ElementKind.FUNCTION) ||
+          identical(kind, ElementKind.CLASS) ||
+          identical(kind, ElementKind.FIELD) ||
+          identical(kind, ElementKind.GETTER) ||
+          identical(kind, ElementKind.SETTER) ||
+          identical(kind, ElementKind.TYPEDEF) ||
+          identical(kind, ElementKind.LIBRARY)) {
         String result = getFreshGlobalName(guess);
         globals[element] = result;
         return result;

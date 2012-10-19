@@ -33,30 +33,32 @@ class TemplateLoader(object):
     self._conditions = conditions
     self._cache = {}
 
-  def TryLoad(self, name):
+  def TryLoad(self, name, more_conditions={}):
     """Returns content of template file as a string, or None of not found."""
-    if name in self._cache:
-      return self._cache[name]
+    conditions = dict(self._conditions, **more_conditions)
+    cache_key = (name, tuple(sorted(conditions.items())))
+    if cache_key in self._cache:
+      return self._cache[cache_key]
 
     for subpath in self._subpaths:
       template_file = os.path.join(self._root, subpath, name)
       if os.path.exists(template_file):
         template = ''.join(open(template_file).readlines())
-        template = self._Preprocess(template, template_file)
-        self._cache[name] = template
+        template = self._Preprocess(template, template_file, conditions)
+        self._cache[cache_key] = template
         return template
 
     return None
 
-  def Load(self, name):
+  def Load(self, name, more_conditions={}):
     """Returns contents of template file as a string, or raises an exception."""
-    template = self.TryLoad(name)
+    template = self.TryLoad(name, more_conditions)
     if template is not None:  # Can be empty string
       return template
     raise Exception("Could not find template '%s' on %s / %s" % (
         name, self._root, self._subpaths))
 
-  def _Preprocess(self, template, filename):
+  def _Preprocess(self, template, filename, conditions):
     def error(lineno, message):
       raise Exception('%s:%s: %s' % (filename, lineno, message))
 
@@ -78,9 +80,9 @@ class TemplateLoader(object):
           if len(words) != 2:
             error(lineno, '$if does not have single variable')
           variable = words[1]
-          if variable in self._conditions:
+          if variable in conditions:
             condition_stack.append((active, seen_else))
-            active = self._conditions[variable]
+            active = conditions[variable]
             seen_else = False
           else:
             error(lineno, "Unknown $if variable '%s'" % variable)

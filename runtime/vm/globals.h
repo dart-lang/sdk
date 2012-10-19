@@ -70,6 +70,15 @@ typedef uword cpp_vtable;
 #define ALIGN16 __attribute__((aligned(16)))
 #endif
 
+
+// Zap value used to indicate uninitialized handle area (debug purposes).
+#if defined(ARCH_IS_32_BIT)
+static const uword kZapUninitializedWord = 0xabababab;
+#else
+static const uword kZapUninitializedWord = 0xabababababababab;
+#endif
+
+
 }  // namespace dart
 
 #endif  // VM_GLOBALS_H_

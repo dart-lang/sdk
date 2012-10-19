@@ -16,9 +16,9 @@ class $FACTORYPROVIDER {
     return _create_2(blobParts, bag);
   }
 
-  static _create_1(parts) native 'return new Blob(parts);';
-  static _create_2(parts, bag) native 'return new Blob(parts, bag);';
+  static _create_1(parts) => JS('Blob', 'new Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new Blob(#, #)', parts, bag);
 
-  static _create_bag() native 'return {}';
-  static _bag_set(bag, key, value) native 'bag[key] = value;';
+  static _create_bag() => JS('var', '{}');
+  static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 }

@@ -9,13 +9,14 @@
 #source("process_test_util.dart");
 
 testExit() {
-  Process process = Process.start(getProcessTestFileName(),
-                                  const ["0", "0", "99", "0"]);
-
-  process.onExit = (int exitCode) {
-    Expect.equals(exitCode, 99);
-    process.close();
-  };
+  var future = Process.start(getProcessTestFileName(),
+                             const ["0", "0", "99", "0"]);
+  future.then((process) {
+    process.onExit = (int exitCode) {
+      Expect.equals(exitCode, 99);
+      process.close();
+    };
+  });
 }
 
 testExitRun() {

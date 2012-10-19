@@ -199,7 +199,7 @@ void renamePlaceholders(
         (functionElement, functionScope) {
       Set<LocalPlaceholder> placeholders = functionScope.localPlaceholders;
       Set<String> memberIdentifiers = new Set<String>();
-      if (functionElement.getEnclosingClass() !== null) {
+      if (functionElement.getEnclosingClass() != null) {
         functionElement.getEnclosingClass().forEachMember(
             (enclosingClass, member) {
               memberIdentifiers.add(member.name.slowToString());

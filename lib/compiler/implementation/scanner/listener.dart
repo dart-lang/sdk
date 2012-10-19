@@ -59,6 +59,13 @@ class Listener {
   void endCompilationUnit(int count, Token token) {
   }
 
+  void beginConstructorReference(Token start) {
+  }
+
+  void endConstructorReference(Token start, Token periodBeforeName,
+                               Token endToken) {
+  }
+
   void beginDoWhileStatement(Token token) {
   }
 
@@ -266,12 +273,6 @@ class Listener {
   }
 
   void endPartOf(Token partKeyword, Token semicolon) {
-  }
-
-  void beginQualifiedList(Token start) {
-  }
-
-  void endQualifiedList(int count) {
   }
 
   void beginRedirectingFactoryBody(Token token) {
@@ -579,14 +580,14 @@ class Listener {
   }
 
   skipToEof(Token token) {
-    while (token.info !== EOF_INFO) {
+    while (!identical(token.info, EOF_INFO)) {
       token = token.next;
     }
     return token;
   }
 
-  void recoverableError(String message, [Token token, Node node]) {
-    if (token === null && node !== null) {
+  void recoverableError(String message, {Token token, Node node}) {
+    if (token == null && node != null) {
       token = node.getBeginToken();
     }
     error(message, token);
@@ -665,7 +666,7 @@ class ElementListener extends Listener {
   void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
     NodeList combinators = popNode();
     Identifier prefix;
-    if (asKeyword !== null) {
+    if (asKeyword != null) {
       prefix = popNode();
     }
     LiteralString uri = popLiteralString();
@@ -806,11 +807,11 @@ class ElementListener extends Listener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     ElementKind kind;
-    if (getOrSet === null) {
+    if (getOrSet == null) {
       kind = ElementKind.FUNCTION;
-    } else if (getOrSet.stringValue === 'get') {
+    } else if (identical(getOrSet.stringValue, 'get')) {
       kind = ElementKind.GETTER;
-    } else if (getOrSet.stringValue === 'set') {
+    } else if (identical(getOrSet.stringValue, 'set')) {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
@@ -820,8 +821,7 @@ class ElementListener extends Listener {
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     void buildFieldElement(SourceString name, Element fields) {
-      pushElement(new VariableElement(
-          name, fields, ElementKind.FIELD, compilationUnitElement));
+      pushElement(new VariableElement(name, fields, ElementKind.FIELD, null));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
@@ -846,7 +846,7 @@ class ElementListener extends Listener {
          variableNodes = variableNodes.tail) {
       Expression initializedIdentifier = variableNodes.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
-      if (identifier === null) {
+      if (identifier == null) {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
       SourceString name = identifier.source;
@@ -946,7 +946,7 @@ class ElementListener extends Listener {
   }
 
   Token expectedBlockToSkip(Token token) {
-    if (token.stringValue === 'native') {
+    if (identical(token.stringValue, 'native')) {
       return native.handleNativeBlockToSkip(this, token);
     } else {
       return unexpected(token);
@@ -967,7 +967,7 @@ class ElementListener extends Listener {
   }
 
   Token expectedClassBodyToSkip(Token token) {
-    if (token.stringValue === 'native') {
+    if (identical(token.stringValue, 'native')) {
       return native.handleNativeClassBodyToSkip(this, token);
     } else {
       return unexpected(token);
@@ -985,7 +985,7 @@ class ElementListener extends Listener {
     return skipToEof(token);
   }
 
-  void recoverableError(String message, [Token token, Node node]) {
+  void recoverableError(String message, {Token token, Node node}) {
     listener.cancel(message, token: token, node: node);
   }
 
@@ -1046,7 +1046,7 @@ class ElementListener extends Listener {
       poppedNodes = poppedNodes.prepend(popNode());
     }
     SourceString sourceDelimiter =
-        (delimiter === null) ? null : new SourceString(delimiter);
+        (delimiter == null) ? null : new SourceString(delimiter);
     return new NodeList(beginToken, poppedNodes, endToken, sourceDelimiter);
   }
 
@@ -1188,11 +1188,11 @@ class NodeListener extends ElementListener {
     Identifier name = popNode();
     Modifiers modifiers = popNode();
     ElementKind kind;
-    if (getOrSet === null) {
+    if (getOrSet == null) {
       kind = ElementKind.FUNCTION;
-    } else if (getOrSet.stringValue === 'get') {
+    } else if (identical(getOrSet.stringValue, 'get')) {
       kind = ElementKind.GETTER;
-    } else if (getOrSet.stringValue === 'set') {
+    } else if (identical(getOrSet.stringValue, 'set')) {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
@@ -1202,9 +1202,9 @@ class NodeListener extends ElementListener {
 
   void endFormalParameter(Token token, Token thisKeyword) {
     Expression name = popNode();
-    if (thisKeyword !== null) {
+    if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
-      if (name.asSend() === null) {
+      if (name.asSend() == null) {
         name = new Send(thisIdentifier, name);
       } else {
         name = name.asSend().copyWithReceiver(thisIdentifier);
@@ -1232,14 +1232,40 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
-  void endQualifiedList(int count) {
-    pushNode(makeNodeList(count, null, null, "."));
+  void endConstructorReference(Token start, Token periodBeforeName,
+                               Token endToken) {
+    Identifier name = null;
+    if (periodBeforeName != null) {
+      name = popNode();
+    }
+    NodeList typeArguments = popNode();
+    Node classReference = popNode();
+    if (typeArguments != null) {
+      classReference = new TypeAnnotation(classReference, typeArguments);
+    } else {
+      Identifier identifier = classReference.asIdentifier();
+      Send send = classReference.asSend();
+      if (identifier != null) {
+        // TODO(ahe): Should be:
+        // classReference = new Send(null, identifier);
+        classReference = identifier;
+      } else if (send != null) {
+        classReference = send;
+      } else {
+        internalError(node: classReference);
+      }
+    }
+    Node constructor = classReference;
+    if (name != null) {
+      // Either typeName<args>.name or x.y.name.
+      constructor = new Send(classReference, name);
+    }
+    pushNode(constructor);
   }
 
   void endRedirectingFactoryBody(Token beginToken,
                                  Token endToken) {
-    NodeList qualifiedList = popNode();
-    pushNode(new Return(beginToken, endToken, qualifiedList));
+    pushNode(new Return(beginToken, endToken, popNode()));
   }
 
   void endReturnStatement(bool hasExpression,
@@ -1258,7 +1284,7 @@ class NodeListener extends ElementListener {
   }
 
   Token expectedFunctionBody(Token token) {
-    if (token.stringValue === 'native') {
+    if (identical(token.stringValue, 'native')) {
       return native.handleNativeFunctionBody(this, token);
     } else {
       listener.cancel(
@@ -1269,7 +1295,7 @@ class NodeListener extends ElementListener {
   }
 
   Token expectedClassBody(Token token) {
-    if (token.stringValue === 'native') {
+    if (identical(token.stringValue, 'native')) {
       return native.handleNativeClassBody(this, token);
     } else {
       listener.cancel(
@@ -1299,9 +1325,9 @@ class NodeListener extends ElementListener {
     Node argument = popNode();
     Node receiver = popNode();
     String tokenString = token.stringValue;
-    if (tokenString === '.' || tokenString === '..') {
+    if (identical(tokenString, '.') || identical(tokenString, '..')) {
       if (argument is !Send) internalError(node: argument);
-      if (argument.asSend().receiver !== null) internalError(node: argument);
+      if (argument.asSend().receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
       pushNode(argument.asSend().copyWithReceiver(receiver));
     } else {
@@ -1329,9 +1355,9 @@ class NodeListener extends ElementListener {
     Node arg = popNode();
     Node node = popNode();
     Send send = node.asSend();
-    if (send === null) internalError(node: node);
+    if (send == null) internalError(node: node);
     if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
-    if (send.asSendSet() !== null) internalError(node: send);
+    if (send.asSendSet() != null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
       Link<Node> link = const Link<Node>().prepend(arg);
@@ -1401,7 +1427,7 @@ class NodeListener extends ElementListener {
   }
 
   void endIfStatement(Token ifToken, Token elseToken) {
-    Statement elsePart = (elseToken === null) ? null : popNode();
+    Statement elsePart = (elseToken == null) ? null : popNode();
     Statement thenPart = popNode();
     ParenthesizedExpression condition = popNode();
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
@@ -1461,9 +1487,9 @@ class NodeListener extends ElementListener {
   void handleUnaryAssignmentExpression(Token token, bool isPrefix) {
     Node node = popNode();
     Send send = node.asSend();
-    if (send === null) internalError(node: node);
+    if (send == null) internalError(node: node);
     if (!(send.isPropertyAccess || send.isIndex)) internalError(node: send);
-    if (send.asSendSet() !== null) internalError(node: send);
+    if (send.asSendSet() != null) internalError(node: send);
     Node argument = null;
     if (send.isIndex) argument = send.arguments.head;
     Operator op = new Operator(token);
@@ -1519,7 +1545,7 @@ class NodeListener extends ElementListener {
   void endLiteralMapEntry(Token colon, Token endToken) {
     Expression value = popNode();
     Expression key = popNode();
-    if (key.asStringNode() === null) {
+    if (key.asStringNode() == null) {
       recoverableError('expected a string', node: key);
     }
     pushNode(new LiteralMapEntry(key, colon, value));
@@ -1591,7 +1617,7 @@ class NodeListener extends ElementListener {
 
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Block finallyBlock = null;
-    if (finallyKeyword !== null) {
+    if (finallyKeyword != null) {
       finallyBlock = popNode();
     }
     NodeList catchBlocks = makeNodeList(catchCount, null, null, null);
@@ -1606,8 +1632,8 @@ class NodeListener extends ElementListener {
 
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
-    NodeList formals = catchKeyword !== null? popNode(): null;
-    TypeAnnotation type = onKeyword !== null ? popNode() : null;
+    NodeList formals = catchKeyword != null? popNode(): null;
+    TypeAnnotation type = onKeyword != null ? popNode() : null;
     pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 
@@ -1666,7 +1692,7 @@ class NodeListener extends ElementListener {
     // TODO(karlklose): don't throw type parameters away.
     NodeList typeParameters;
     Node name;
-    if (periodBeforeName !== null) {
+    if (periodBeforeName != null) {
       name = popNode();
       typeParameters = popNode();
       // A library prefix was handled in [handleQualified].
@@ -1749,7 +1775,8 @@ class NodeListener extends ElementListener {
     listener.log(message);
   }
 
-  void internalError([Token token, Node node]) {
+  void internalError({Token token, Node node}) {
+    // TODO(ahe): This should call listener.internalError.
     listener.cancel('internal error', token: token, node: node);
     throw 'internal error';
   }
@@ -1771,7 +1798,7 @@ class PartialFunctionElement extends FunctionElement {
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    if (patch === null) {
+    if (patch == null) {
       if (modifiers.isExternal()) {
         listener.cancel("External method without an implementation",
                         element: this);
@@ -1794,7 +1821,7 @@ class PartialFunctionElement extends FunctionElement {
 
   PartialFunctionElement cloneTo(Element enclosing,
                                  DiagnosticListener listener) {
-    if (patch !== null) {
+    if (patch != null) {
       listener.cancel("Cloning a patched function.", element: this);
     }
     PartialFunctionElement result = new PartialFunctionElement(
@@ -1821,10 +1848,10 @@ class PartialFieldListElement extends VariableListElement {
     if (!cachedNode.modifiers.isVar() &&
         !cachedNode.modifiers.isFinal() &&
         !cachedNode.modifiers.isConst() &&
-        cachedNode.type === null) {
+        cachedNode.type == null) {
       listener.cancel('A field declaration must start with var, final, '
                       'const, or a type annotation.',
-                      cachedNode);
+                      node: cachedNode);
     }
     return cachedNode;
   }
@@ -1846,7 +1873,7 @@ class PartialTypedefElement extends TypedefElement {
       : super(name, enclosing);
 
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode !== null) return cachedNode;
+    if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
                        getCompilationUnit(),
                        (p) => p.parseTopLevelDeclaration(token));
@@ -1872,7 +1899,7 @@ class PartialMetadataAnnotation extends MetadataAnnotation {
   PartialMetadataAnnotation(this.beginToken);
 
   Node parseNode(DiagnosticListener listener) {
-    if (cachedNode !== null) return cachedNode;
+    if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
                        annotatedElement.getCompilationUnit(),
                        (p) => p.parseSend(beginToken.next));

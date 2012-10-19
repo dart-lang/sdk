@@ -55,6 +55,8 @@ closure_test(int a, {int b: 2, int c: 3}) {
   };
 }
 
+tl_test([a]) => ?a;
+
 main() {
   // Use a loop to test optimized version as well.
   for (int i = 0; i < 1000; i++) {
@@ -67,5 +69,8 @@ main() {
     Expect.equals(720, closure_test(1, b: 2)());
     Expect.equals(523, closure_test(1, b: 2, c: 3)());
     Expect.equals(703, closure_test(1, c: 3)());
+
+    Expect.equals(true, tl_test(0));
+    Expect.equals(false, tl_test());
   }
 }

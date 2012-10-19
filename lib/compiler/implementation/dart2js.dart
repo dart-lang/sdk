@@ -36,7 +36,7 @@ String extractParameter(String argument) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
   Match m = const RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
-  if (m === null) helpAndFail('Error: Unknown option "$argument".');
+  if (m == null) helpAndFail('Error: Unknown option "$argument".');
   return m[2];
 }
 
@@ -56,7 +56,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount() == handlers.length);
     for (int i = 0; i < handlers.length; i++) {
-      if (match[i + 1] !== null) {
+      if (match[i + 1] != null) {
         handlers[i].handle(argument);
         continue OUTER;
       }
@@ -155,7 +155,8 @@ void compile(List<String> argv) {
     new OptionHandler('--enable-concrete-type-inference',
                       (_) => passThrough('--enable-concrete-type-inference')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
-    new OptionHandler(r'--package-root=.+|-p.+', setPackageRoot),
+    new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
+    new OptionHandler('--disallow-unsafe-eval', passThrough),
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
       helpAndFail('Error: Unknown option "$argument".');
@@ -201,7 +202,7 @@ void compile(List<String> argv) {
   }
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
-    if (!verbose && kind === api.Diagnostic.VERBOSE_INFO) return;
+    if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
     if (enableColors) {
       print('${colors.green("info:")} $message');
     } else {
@@ -217,7 +218,7 @@ void compile(List<String> argv) {
 
   void handler(Uri uri, int begin, int end, String message,
                api.Diagnostic kind) {
-    if (kind.name === 'source map') {
+    if (identical(kind.name, 'source map')) {
       // TODO(podivilov): We should find a better way to return source maps from
       // emitter. Using diagnostic handler for that purpose is a temporary hack.
       writeString(sourceMapOut, message);
@@ -225,30 +226,30 @@ void compile(List<String> argv) {
     }
 
     if (isAborting) return;
-    isAborting = kind === api.Diagnostic.CRASH;
+    isAborting = identical(kind, api.Diagnostic.CRASH);
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo && uri === null && kind !== api.Diagnostic.INFO) {
+    if (isInfo && uri == null && !identical(kind, api.Diagnostic.INFO)) {
       info(message, kind);
       return;
     }
     var color;
     if (!enableColors) {
       color = (x) => x;
-    } else if (kind === api.Diagnostic.ERROR) {
+    } else if (identical(kind, api.Diagnostic.ERROR)) {
       color = colors.red;
-    } else if (kind === api.Diagnostic.WARNING) {
+    } else if (identical(kind, api.Diagnostic.WARNING)) {
       color = colors.magenta;
-    } else if (kind === api.Diagnostic.LINT) {
+    } else if (identical(kind, api.Diagnostic.LINT)) {
       color = colors.magenta;
-    } else if (kind === api.Diagnostic.CRASH) {
+    } else if (identical(kind, api.Diagnostic.CRASH)) {
       color = colors.red;
-    } else if (kind === api.Diagnostic.INFO) {
+    } else if (identical(kind, api.Diagnostic.INFO)) {
       color = colors.green;
     } else {
       throw 'Unknown kind: $kind (${kind.ordinal})';
     }
-    if (uri === null) {
+    if (uri == null) {
       assert(fatal);
       print(color(message));
     } else if (fatal || showWarnings) {
@@ -265,7 +266,7 @@ void compile(List<String> argv) {
   }
 
   Uri uri = cwd.resolve(arguments[0]);
-  if (packageRoot === null) {
+  if (packageRoot == null) {
     packageRoot = uri.resolve('./packages/');
   }
 
@@ -275,7 +276,7 @@ void compile(List<String> argv) {
   // directly. In effect, we don't support truly asynchronous API.
   String code = api.compile(uri, libraryRoot, packageRoot, provider, handler,
                             options).value;
-  if (code === null) {
+  if (code == null) {
     fail('Error: Compilation failed.');
   }
   String sourceMapFileName =
@@ -392,7 +393,13 @@ be removed in a future version:
     libraries are used: dart:dom, dart:html dart:io.
 
   --enable-concrete-type-inference
-    Enable experimental concrete type inference.''');
+    Enable experimental concrete type inference.
+
+  --disallow-unsafe-eval
+    Disables dynamic generation of code in the generated output. This is
+    necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
+    This flag is not continuously tested. Please report breakages and we
+    will fix them as soon as possible.''');
 }
 
 void helpAndExit(bool verbose) {

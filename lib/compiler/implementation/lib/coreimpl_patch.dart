@@ -74,13 +74,13 @@ patch class ListImplementation<E> {
 // in patch files?
 patch class DateImplementation {
   patch DateImplementation(int year,
-                           [int month = 1,
-                            int day = 1,
-                            int hour = 0,
-                            int minute = 0,
-                            int second = 0,
-                            int millisecond = 0,
-                            bool isUtc = false])
+                           int month,
+                           int day,
+                           int hour,
+                           int minute,
+                           int second,
+                           int millisecond,
+                           bool isUtc)
       : this.isUtc = checkNull(isUtc),
         millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
             year, month, day, hour, minute, second, millisecond, isUtc) {
@@ -154,7 +154,7 @@ patch class JSSyntaxRegExp {
 
   patch Match firstMatch(String str) {
     List<String> m = regExpExec(this, checkString(str));
-    if (m === null) return null;
+    if (m == null) return null;
     var matchStart = regExpMatchStart(m);
     // m.lastIndex only works with flag 'g'.
     var matchEnd = matchStart + m[0].length;
@@ -165,7 +165,7 @@ patch class JSSyntaxRegExp {
 
   patch String stringMatch(String str) {
     var match = firstMatch(str);
-    return match === null ? null : match.group(0);
+    return match == null ? null : match.group(0);
   }
 
   patch Iterable<Match> allMatches(String str) {

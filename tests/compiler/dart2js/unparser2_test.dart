@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
-#import("../../../lib/compiler/implementation/elements/elements.dart"); // only need CompilationUnitElement
-#import("../../../lib/compiler/implementation/tree/tree.dart");
-#import("../../../lib/compiler/implementation/leg.dart"); // only need DiagnosticListener & Script
+import "../../../lib/compiler/implementation/scanner/scannerlib.dart";
+import "../../../lib/compiler/implementation/elements/elements.dart" show CompilationUnitElement, LibraryElement;
+import "../../../lib/compiler/implementation/tree/tree.dart";
+import "../../../lib/compiler/implementation/dart2jslib.dart" show DiagnosticListener, Script;
 
 main() {
   testClassDef();
@@ -64,7 +64,7 @@ class MessageCollector implements DiagnosticListener {
   MessageCollector() {
     messages = [];
   }
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     messages.add(reason);
     throw reason;
   }
@@ -75,8 +75,8 @@ class MessageCollector implements DiagnosticListener {
     throw message;
   }
   void internalError(String message,
-                     [Node node, Token token, dynamic instruction,
-                      Element element]) {
+                     {Node node, Token token, dynamic instruction,
+                      Element element}) {
     throw message;
   }
 }

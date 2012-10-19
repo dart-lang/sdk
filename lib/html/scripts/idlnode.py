@@ -9,7 +9,7 @@ import sys
 class IDLNode(object):
   """Base class for all IDL elements.
   IDLNode may contain various child nodes, and have properties. Examples
-  of IDLNode are modules, interfaces, interface members, function arguments,
+  of IDLNode are interfaces, interface members, function arguments,
   etc.
   """
 
@@ -245,14 +245,18 @@ class IDLDictNode(IDLNode):
 
 
 class IDLFile(IDLNode):
-  """IDLFile is the top-level node in each IDL file. It may contain
-  modules or interfaces."""
+  """IDLFile is the top-level node in each IDL file. It may contain interfaces."""
 
   def __init__(self, ast, filename=None):
     IDLNode.__init__(self, ast)
     self.filename = filename
-    self.modules = self._convert_all(ast, 'Module', IDLModule)
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
+    modules = self._convert_all(ast, 'Module', IDLModule)
+    self.implementsStatements = self._convert_all(ast, 'ImplStmt',
+      IDLImplementsStatement)
+    for module in modules:
+      self.interfaces.extend(module.interfaces)
+      self.implementsStatements.extend(module.implementsStatements)
 
 
 class IDLModule(IDLNode):

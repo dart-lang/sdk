@@ -1086,7 +1086,7 @@ class Benchmark1 {
 
   static void main() {
     init();
-    PingPongGame pingPongGame = new PingPongGame.play();
+    PingPongGame pingPongGame = new PingPongGame();
   }
 
   static var _run;
@@ -1095,7 +1095,7 @@ class Benchmark1 {
 
 class PingPongGame {
 
-  PingPongGame.play()
+  PingPongGame()
       : _ping = new ReceivePort(),
         _pingPort = _ping.toSendPort(),
         _pong = null,
@@ -1125,7 +1125,7 @@ class PingPongGame {
       shutdown();
       Benchmark1.add_result((1.0 * _iterations * Benchmark1.MESSAGES) / time);
       if (Benchmark1.run() < Benchmark1.RUNS) {
-        new PingPongGame.play();
+        new PingPongGame();
       } else {
         print("PingPong: ", Benchmark1.get_result());
       }
@@ -1412,7 +1412,7 @@ void count_main() {
       if (count == 10) {
         remote.send(-1, reply);
       }
-    }, count: 11));
+    }, 11));
     remote.send(count++, reply);
   });
 }

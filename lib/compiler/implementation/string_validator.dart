@@ -4,13 +4,13 @@
 
 // Check the validity of string literals.
 
-#library("stringvalidator");
+library stringvalidator;
 
-#import("leg.dart");
-#import("scanner/scannerlib.dart");
-#import("tree/tree.dart");
-#import("elements/elements.dart");
-#import("util/characters.dart");
+import "dart2jslib.dart";
+import "tree/tree.dart";
+import "elements/elements.dart";
+import "util/characters.dart";
+import "scanner/scannerlib.dart" show Token;
 
 class StringValidator {
   final DiagnosticListener listener;
@@ -30,8 +30,8 @@ class StringValidator {
   }
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
-                                       [bool isFirst = false,
-                                        bool isLast = false]) {
+                                       {bool isFirst: false,
+                                        bool isLast: false}) {
     SourceString source = token.value;
     int leftQuote = 0;
     int rightQuote = 0;
@@ -49,29 +49,28 @@ class StringValidator {
     bool raw = false;
     int quoteLength = 1;
     int quoteChar = source.next();
-    // TODO(aprelev@gmail.com): Remove deprecated "quoteChar === $AT ||" below.
-    if (quoteChar === $AT || quoteChar === $r) {
+    if (quoteChar === $r) {
       raw = true;
       quoteChar = source.next();
     }
-    assert(quoteChar === $SQ || quoteChar === $DQ);
+    assert(identical(quoteChar, $SQ) || identical(quoteChar, $DQ));
     // String has at least one quote. Check it if has three.
     // If it only have two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
-    if (source.hasNext() && source.next() === quoteChar && source.hasNext()) {
+    if (source.hasNext() && identical(source.next(), quoteChar) && source.hasNext()) {
       int code = source.next();
-      assert(code === quoteChar);  // If not, there is a bug in the parser.
+      assert(identical(code, quoteChar));  // If not, there is a bug in the parser.
       quoteLength = 3;
       // Check if a multiline string starts with a newline (CR, LF or CR+LF).
       if (source.hasNext()) {
         code = source.next();
-        if (code === $CR) {
+        if (identical(code, $CR)) {
           quoteLength += 1;
-          if (source.hasNext() && source.next() === $LF) {
+          if (source.hasNext() && identical(source.next(), $LF)) {
             quoteLength += 1;
           }
-        } else if (code === $LF) {
+        } else if (identical(code, $LF)) {
           quoteLength += 1;
         }
       }
@@ -100,7 +99,7 @@ class StringValidator {
     for(Iterator<int> iter = string.iterator(); iter.hasNext(); length++) {
       index++;
       int code = iter.next();
-      if (code === $BACKSLASH) {
+      if (identical(code, $BACKSLASH)) {
         if (quoting.raw) continue;
         containsEscape = true;
         if (!iter.hasNext()) {
@@ -109,7 +108,7 @@ class StringValidator {
         }
         index++;
         code = iter.next();
-        if (code === $x) {
+        if (identical(code, $x)) {
           for (int i = 0; i < 2; i++) {
             if (!iter.hasNext()) {
               stringParseError("Incomplete escape sequence", token, index);
@@ -125,7 +124,7 @@ class StringValidator {
           }
           // A two-byte hex escape can't generate an invalid value.
           continue;
-        } else if (code === $u) {
+        } else if (identical(code, $u)) {
           int escapeStart = index - 1;
           index++;
           code = iter.next();

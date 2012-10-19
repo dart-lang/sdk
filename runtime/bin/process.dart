@@ -17,23 +17,19 @@ void exit(int status) {
 class Process {
   /**
    * Starts a process running the [executable] with the specified
-   * [arguments]. Returns a [Process] instance that can be used to
-   * interact with the process.
+   * [arguments]. Returns a [:Future<Process>:] that completes with a
+   * Process instance when the process has been successfully
+   * started. That [Process] object can be used to interact with the
+   * process. If the process cannot be started the returned [Future]
+   * completes with an exception.
    *
    * An optional [ProcessOptions] object can be passed to specify
    * options other than the executable and the arguments.
-   *
-   * When the process has been successfully started [onStart] is
-   * called on the returned Process object. If the process fails to
-   * start [onError] is called on the returned Process object.
-   *
-   * No data can be written to the process stdin and the process
-   * cannot be closed nor killed before [onStart] has been invoked.
    */
-  static Process start(String executable,
-                       List<String> arguments,
-                       [ProcessOptions options]) {
-    return new _Process.start(executable, arguments, options);
+  static Future<Process> start(String executable,
+                               List<String> arguments,
+                               [ProcessOptions options]) {
+    return _Process.start(executable, arguments, options);
   }
 
   /**
@@ -78,12 +74,6 @@ class Process {
   abstract OutputStream get stdin;
 
   /**
-   * Set the start handler which gets invoked when the process is
-   * successfully started.
-   */
-  abstract void set onStart(void callback());
-
-  /**
    * Sets an exit handler which gets invoked when the process
    * terminates.
    *
@@ -93,18 +83,12 @@ class Process {
   abstract void set onExit(void callback(int exitCode));
 
   /**
-   * Set an error handler which gets invoked if an operation on the process
-   * fails.
-   */
-  abstract void set onError(void callback(e));
-
-  /**
    * On Windows, [kill] kills the process, ignoring the [signal]
    * flag. On Posix systems, [kill] sends [signal] to the
    * process. Depending on the signal giving, it'll have different
    * meanings. When the process terminates as a result of calling
-   * [kill] [onExit] is called. If the kill operation fails, [onError]
-   * is called.
+   * [kill] [onExit] is called. If the kill operation fails an
+   * exception is thrown.
    */
   abstract void kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
 

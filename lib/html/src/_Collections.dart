@@ -8,6 +8,13 @@
  * method.
  */
 class _Collections {
+  static bool contains(Iterable<Object> iterable, Object element) {
+    for (final e in iterable) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
   static void forEach(Iterable<Object> iterable, void f(Object o)) {
     for (final e in iterable) {
       f(e);

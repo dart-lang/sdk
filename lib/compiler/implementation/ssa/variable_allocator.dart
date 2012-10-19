@@ -251,7 +251,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     for (int i = 0; i < block.successors.length; i++) {
       HBasicBlock successor = block.successors[i];
       LiveEnvironment successorEnv = liveInstructions[successor];
-      if (successorEnv !== null) {
+      if (successorEnv != null) {
         environment.mergeWith(successorEnv);
       } else {
         environment.addLoopMarker(successor, instructionId);
@@ -442,7 +442,7 @@ class VariableNamer {
     // add them to the list of used names.
     environment.liveInstructions.forEach((HInstruction instruction, int index) {
       String name = names.getName(instruction);
-      if (name !== null) {
+      if (name != null) {
         usedNames.add(name);
       }
     });
@@ -469,7 +469,7 @@ class VariableNamer {
 
   HPhi firstPhiUserWithElement(HInstruction instruction) {
     for (HInstruction user in instruction.usedBy) {
-      if (user is HPhi && user.sourceElement !== null) {
+      if (user is HPhi && user.sourceElement != null) {
         return user;
       }
     }
@@ -486,7 +486,7 @@ class VariableNamer {
         temp = temp.checkedInput;
         name = names.ownName[temp];
       } while (name == null && temp is HCheck);
-      if (name !== null) return addAllocatedName(instruction, name);
+      if (name != null) return addAllocatedName(instruction, name);
     } else if (instruction is HParameterValue) {
       HParameterValue parameter = instruction;
       name = parameterNames[parameter.sourceElement];
@@ -496,14 +496,14 @@ class VariableNamer {
       return addAllocatedName(instruction, name);
     }
 
-    if (instruction.sourceElement !== null) {
+    if (instruction.sourceElement != null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
       // We could not find an element for the instruction. If the
       // instruction is used by a phi, try to use the name of the phi.
       // Otherwise, just allocate a temporary name.
       HPhi phi = firstPhiUserWithElement(instruction);
-      if (phi !== null) {
+      if (phi != null) {
         name = allocateWithHint(phi.sourceElement.name.slowToString());
       } else {
         name = allocateTemporary();

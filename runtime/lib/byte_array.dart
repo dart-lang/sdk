@@ -123,6 +123,8 @@ abstract class _ByteArrayBase {
 
   // Methods implementing the Collection interface.
 
+  bool contains(element) => Collections.contains(this, element);
+
   void forEach(void f(element)) {
     var len = this.length;
     for (var i = 0; i < len; i++) {
@@ -181,7 +183,7 @@ abstract class _ByteArrayBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort(int compare(a, b)) {
+  void sort([Comparator compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 
@@ -1659,7 +1661,7 @@ class _ByteArrayViewBase {
         "Cannot add to a non-extendable array");
   }
 
-  void sort(int compare(a, b)) {
+  void sort([Comparator compare = Comparable.compare]) {
     DualPivotQuicksort.sort(this, compare);
   }
 

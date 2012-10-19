@@ -60,38 +60,39 @@ void writeFile(String fileName, String contents) {
  */
 Future _processHelper(String command, List<String> args,
     [int timeout = 300, int procId = 0, Function outputMonitor]) {
-  var completer = new Completer();
+  var completer = procId == 0 ? new Completer() : null;
   log.add('Running $command ${Strings.join(args, " ")}');
   var timer = null;
   var stdoutHandler, stderrHandler;
-  var process = Process.start(command, args);
-  if (procId != 0) {
+  var processFuture = Process.start(command, args);
+  processFuture.then((process) {
     _procs[procId] = process;
-  }
-  process.onStart = () {
+
     timer = new Timer(1000 * timeout, (t) {
       timer = null;
       process.kill();
     });
-  };
-  process.onExit = (exitCode) {
-    if (timer != null) {
-      timer.cancel();
-    }
-    process.close();
-    if (completer != null) {
-      completer.complete(exitCode);
-    }
-  };
-  process.onError = (e) {
+
+    process.onExit = (exitCode) {
+      if (timer != null) {
+        timer.cancel();
+      }
+      process.close();
+      if (completer != null) {
+        completer.complete(exitCode);
+      }
+    };
+
+    _pipeStream(process.stdout, stdout, outputMonitor);
+    _pipeStream(process.stderr, stderr, outputMonitor);
+  });
+  processFuture.handleException((e) {
     stderr.add("Error starting process:");
     stderr.add("  Command: $command");
     stderr.add("  Error: $e");
     completePipeline(-1);
-  };
-
-  _pipeStream(process.stdout, stdout, outputMonitor);
-  _pipeStream(process.stderr, stderr, outputMonitor);
+    return true;
+  });
 
   return completer.future;
 }

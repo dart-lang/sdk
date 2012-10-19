@@ -13,6 +13,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/symbols.h"
 
@@ -28,8 +29,79 @@ DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
             "Print constant propagation and useless code elimination.");
 
+
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
+}
+
+
+// Attempts to convert an instance call (IC call) using propagated class-ids,
+// e.g., receiver class id.
+void FlowGraphOptimizer::ApplyClassIds() {
+  ASSERT(current_iterator_ == NULL);
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      if (it.Current()->IsInstanceCall()) {
+        InstanceCallInstr* call = it.Current()->AsInstanceCall();
+        if (call->HasICData()) {
+          if (TryCreateICData(call)) {
+            VisitInstanceCall(call);
+          }
+        }
+      }
+    }
+    current_iterator_ = NULL;
+  }
+}
+
+
+// Attempt to build ICData for call using propagated class-ids.
+bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+  ASSERT(call->HasICData());
+  if (call->ic_data()->NumberOfChecks() > 0) {
+    // This occurs when an instance call has too many checks.
+    // TODO(srdjan): Replace IC call with megamorphic call.
+    return false;
+  }
+  GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
+  ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
+    intptr_t cid = call->ArgumentAt(i)->value()->ResultCid();
+    class_ids.Add(cid);
+  }
+  // TODO(srdjan): Test for other class_ids > 1.
+  if (class_ids.length() != 1) return false;
+  if (class_ids[0] != kDynamicCid) {
+    const intptr_t num_named_arguments = call->argument_names().IsNull() ?
+        0 : call->argument_names().Length();
+    const Class& receiver_class = Class::Handle(
+        Isolate::Current()->class_table()->At(class_ids[0]));
+    Function& function = Function::Handle();
+    function = Resolver::ResolveDynamicForReceiverClass(
+        receiver_class,
+        call->function_name(),
+        call->ArgumentCount(),
+        num_named_arguments);
+    if (function.IsNull()) {
+      return false;
+    }
+    // Create new ICData, do not modify the one attached to the instruction
+    // since it is attached to the assembly instruction itself.
+    // TODO(srdjan): Prevent modification of ICData object that is
+    // referenced in assembly code.
+    ICData& ic_data = ICData::ZoneHandle(ICData::New(
+        flow_graph_->parsed_function().function(),
+        call->function_name(),
+        call->deopt_id(),
+        class_ids.length()));
+    ic_data.AddReceiverCheck(class_ids[0], function);
+    call->set_ic_data(&ic_data);
+    return true;
+  }
+  return false;
 }
 
 
@@ -374,76 +446,173 @@ static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithArrayOp(InstanceCallInstr* call,
-                                               Token::Kind op_kind) {
-  // TODO(fschneider): Optimize []= operator in checked mode as well.
-  if (op_kind == Token::kASSIGN_INDEX && FLAG_enable_type_checks) return false;
+// Returns array classid to load from, array and idnex value
 
+intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
+                                              intptr_t class_id,
+                                              Value** array,
+                                              Value** index) {
+  *array = call->ArgumentAt(0)->value();
+  *index = call->ArgumentAt(1)->value();
+  // Insert class check and index smi checks and attach a copy of the
+  // original environment because the operation can still deoptimize.
+  AddCheckClass(call, (*array)->Copy());
+  InsertBefore(call,
+               new CheckSmiInstr((*index)->Copy(), call->deopt_id()),
+               call->env(),
+               Definition::kEffect);
+  // If both index and array are constants, then the bound check always
+  // succeeded.
+  // TODO(srdjan): Remove once constant propagation lands.
+  if (!((*array)->BindsToConstant() && (*index)->BindsToConstant())) {
+    // Insert array bounds check.
+    InsertBefore(call,
+                 new CheckArrayBoundInstr((*array)->Copy(),
+                                          (*index)->Copy(),
+                                          class_id,
+                                          call),
+                 call->env(),
+                 Definition::kEffect);
+  }
+  if (class_id == kGrowableObjectArrayCid) {
+    // Insert data elements load.
+    LoadFieldInstr* elements =
+        new LoadFieldInstr((*array)->Copy(),
+                           GrowableObjectArray::data_offset(),
+                           Type::ZoneHandle(Type::DynamicType()));
+    elements->set_result_cid(kArrayCid);
+    InsertBefore(call, elements, NULL, Definition::kValue);
+    *array = new Value(elements);
+    return kArrayCid;
+  }
+  return class_id;
+}
+
+
+bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
+  const intptr_t class_id = ReceiverClassId(call);
+  ICData& value_check = ICData::Handle();
+  switch (class_id) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+      // Acceptable store index classes.
+      break;
+    case kFloat64ArrayCid: {
+      // Check that value is always double.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kDoubleCid)) {
+        return false;
+      }
+      break;
+    }
+    default:
+      // TODO(fschneider): Add support for other array types.
+      return false;
+  }
+
+  if (FLAG_enable_type_checks) {
+    Value* array = call->ArgumentAt(0)->value();
+    Value* value = call->ArgumentAt(2)->value();
+    // Only type check for the value. A type check for the index is not
+    // needed here because we insert a deoptimizing smi-check for the case
+    // the index is not a smi.
+    const Function& target =
+        Function::ZoneHandle(call->ic_data()->GetTargetAt(0));
+    const AbstractType& value_type =
+        AbstractType::ZoneHandle(target.ParameterTypeAt(2));
+    Value* instantiator = NULL;
+    Value* type_args = NULL;
+    switch (class_id) {
+      case kArrayCid:
+      case kGrowableObjectArrayCid: {
+        const Class& instantiator_class = Class::Handle(target.Owner());
+        intptr_t type_arguments_instance_field_offset =
+            instantiator_class.type_arguments_instance_field_offset();
+        LoadFieldInstr* load_type_args =
+            new LoadFieldInstr(array->Copy(),
+                               type_arguments_instance_field_offset,
+                               Type::ZoneHandle());  // No type.
+        InsertBefore(call, load_type_args, NULL, Definition::kValue);
+        instantiator = array->Copy();
+        type_args = new Value(load_type_args);
+        break;
+      }
+      case kFloat64ArrayCid: {
+        ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
+        InsertBefore(call, null_constant, NULL, Definition::kValue);
+        instantiator = new Value(null_constant);
+        type_args = new Value(null_constant);
+        ASSERT(value_type.IsDoubleType());
+        ASSERT(value_type.IsInstantiated());
+        break;
+      }
+      default:
+        // TODO(fschneider): Add support for other array types.
+        UNREACHABLE();
+    }
+    AssertAssignableInstr* assert_value =
+        new AssertAssignableInstr(call->token_pos(),
+                                  value->Copy(),
+                                  instantiator,
+                                  type_args,
+                                  value_type,
+                                  String::ZoneHandle(Symbols::New("value")));
+    InsertBefore(call, assert_value, NULL, Definition::kValue);
+  }
+
+  Value* array = NULL;
+  Value* index = NULL;
+  intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  Value* value = call->ArgumentAt(2)->value();
+  // Check if store barrier is needed.
+  bool needs_store_barrier = true;
+  if (class_id == kFloat64ArrayCid) {
+    ASSERT(!value_check.IsNull());
+    InsertBefore(call,
+                 new CheckClassInstr(value->Copy(),
+                                     call->deopt_id(),
+                                     value_check),
+                 call->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  } else if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
+    InsertBefore(call,
+                 new CheckSmiInstr(value->Copy(), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    needs_store_barrier = false;
+  }
+
+  Definition* array_op =
+      new StoreIndexedInstr(array, index, value,
+                            needs_store_barrier, array_cid, call->deopt_id());
+  call->ReplaceWith(array_op, current_iterator());
+  RemovePushArguments(call);
+  return true;
+}
+
+
+
+bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
   switch (class_id) {
-    case kImmutableArrayCid:
-      // Stores are only specialized for Array and GrowableObjectArray,
-      // not for ImmutableArray.
-      if (op_kind == Token::kASSIGN_INDEX) return false;
-      // Fall through.
     case kArrayCid:
-    case kGrowableObjectArrayCid: {
-      Value* array = call->ArgumentAt(0)->value();
-      Value* index = call->ArgumentAt(1)->value();
-      // Insert class check and index smi checks and attach a copy of the
-      // original environment because the operation can still deoptimize.
-      AddCheckClass(call, array->Copy());
-      InsertBefore(call,
-                   new CheckSmiInstr(index->Copy(), call->deopt_id()),
-                   call->env(),
-                   Definition::kEffect);
-      // If both index and array are constants, then the bound check always
-      // succeeded.
-      // TODO(srdjan): Remove once constant propagation lands.
-      if (!(array->BindsToConstant() && index->BindsToConstant())) {
-        // Insert array bounds check.
-        InsertBefore(call,
-                     new CheckArrayBoundInstr(array->Copy(),
-                                              index->Copy(),
-                                              class_id,
-                                              call),
-                     call->env(),
-                     Definition::kEffect);
-      }
-      if (class_id == kGrowableObjectArrayCid) {
-        // Insert data elements load.
-        LoadFieldInstr* elements =
-            new LoadFieldInstr(array->Copy(),
-                               GrowableObjectArray::data_offset(),
-                               Type::ZoneHandle(Type::DynamicType()));
-        elements->set_result_cid(kArrayCid);
-        InsertBefore(call, elements, NULL, Definition::kValue);
-        array = new Value(elements);
-      }
-      Definition* array_op = NULL;
-      if (op_kind == Token::kINDEX) {
-        array_op = new LoadIndexedInstr(array, index);
-      } else {
-        bool needs_store_barrier = true;
-        if (ArgIsAlwaysSmi(*call->ic_data(), 2)) {
-          InsertBefore(call,
-                       new CheckSmiInstr(call->ArgumentAt(2)->value()->Copy(),
-                                         call->deopt_id()),
-                       call->env(),
-                       Definition::kEffect);
-          needs_store_barrier = false;
-        }
-        Value* value = call->ArgumentAt(2)->value();
-        array_op =
-            new StoreIndexedInstr(array, index, value, needs_store_barrier);
-      }
-      call->ReplaceWith(array_op, current_iterator());
-      RemovePushArguments(call);
-      return true;
-    }
+    case kImmutableArrayCid:
+    case kGrowableObjectArrayCid:
+    case kFloat64ArrayCid:
+      // Acceptable load index classes.
+      break;
     default:
       return false;
   }
+  Value* array = NULL;
+  Value* index = NULL;
+  intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  Definition* array_op = new LoadIndexedInstr(array, index, array_cid);
+  call->ReplaceWith(array_op, current_iterator());
+  RemovePushArguments(call);
+  return true;
 }
 
 
@@ -606,6 +775,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
           new BinarySmiOpInstr(Token::kBIT_AND, call, left, new Value(c));
       call->ReplaceWith(bin_op, current_iterator());
       RemovePushArguments(call);
+    } else {
+      // Did not replace.
+      return false;
     }
   } else {
     ASSERT(operands_type == kSmiCid);
@@ -960,15 +1132,18 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (instr->HasICData() && (instr->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = instr->token_kind();
-    if (Token::IsIndexOperator(op_kind) &&
-        TryReplaceWithArrayOp(instr, op_kind)) {
+    if ((op_kind == Token::kASSIGN_INDEX) &&
+        TryReplaceWithStoreIndexed(instr)) {
       return;
     }
-    if (Token::IsBinaryToken(op_kind) &&
+    if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+      return;
+    }
+    if (Token::IsBinaryOperator(op_kind) &&
         TryReplaceWithBinaryOp(instr, op_kind)) {
       return;
     }
-    if (Token::IsUnaryToken(op_kind) &&
+    if (Token::IsPrefixOperator(op_kind) &&
         TryReplaceWithUnaryOp(instr, op_kind)) {
       return;
     }
@@ -1010,8 +1185,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ReplaceWith(call, current_iterator());
     }
   }
-  // An instance call without ICData should continue calling via IC calls
-  // which should trigger reoptimization of optimized code.
+  // An instance call without ICData will trigger deoptimization.
 }
 
 
@@ -2131,19 +2305,26 @@ void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   // i.e. the receiver argument or the constructor phase argument.
   AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
   param->SetPropagatedCid(kDynamicCid);
-  if (param->index() < 2) {
+  bool param_type_is_known = false;
+  if (param->index() == 0) {
     const Function& function = parsed_function().function();
-    if (((param->index() == 0) && function.IsDynamicFunction()) ||
-        ((param->index() == 1) && function.IsConstructor())) {
-      // Parameter is the receiver or the constructor phase.
-      LocalScope* scope = parsed_function().node_sequence()->scope();
-      param_type = scope->VariableAt(param->index())->type().raw();
-      if (FLAG_use_cha) {
-        const intptr_t cid = Class::Handle(param_type.type_class()).id();
-        if (!CHA::HasSubclasses(cid)) {
-          // Receiver's class has no subclasses.
-          param->SetPropagatedCid(cid);
-        }
+    if ((function.IsDynamicFunction() || function.IsConstructor())) {
+      // Parameter is the receiver .
+      param_type_is_known = true;
+    }
+  } else if ((param->index() == 1) &&
+      parsed_function().function().IsConstructor()) {
+    // Parameter is the constructor phase.
+    param_type_is_known = true;
+  }
+  if (param_type_is_known) {
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    param_type = scope->VariableAt(param->index())->type().raw();
+    if (FLAG_use_cha) {
+      const intptr_t cid = Class::Handle(param_type.type_class()).id();
+      if (!CHA::HasSubclasses(cid)) {
+        // Receiver's class has no subclasses.
+        param->SetPropagatedCid(cid);
       }
     }
   }
@@ -2275,7 +2456,11 @@ void LICM::Optimize(FlowGraph* flow_graph) {
               break;
             }
           }
-          if (inputs_loop_invariant) {
+          if (inputs_loop_invariant &&
+              !current->IsAssertAssignable() &&
+              !current->IsAssertBoolean()) {
+            // TODO(fschneider): Enable hoisting of Assert-instructions
+            // if it safe to do.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {

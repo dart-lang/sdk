@@ -22,8 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, constructor_name_check, false,
-            "Named constructors may not clash with other members");
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -33,6 +31,8 @@ DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
 DEFINE_FLAG(bool, warn_legacy_dynamic, false,
             "Warning on legacy type Dynamic)");
+DEFINE_FLAG(bool, warn_legacy_getters, false,
+            "Warning on legacy getter syntax");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -487,6 +487,7 @@ struct MemberDesc {
     has_var = false;
     has_factory = false;
     has_operator = false;
+    operator_token = Token::kILLEGAL;
     type = NULL;
     name_pos = 0;
     name = NULL;
@@ -518,6 +519,7 @@ struct MemberDesc {
   bool has_var;
   bool has_factory;
   bool has_operator;
+  Token::Kind operator_token;
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
@@ -1461,9 +1463,16 @@ AstNode* Parser::ParseSuperOperator() {
       super_op = new StaticCallNode(
           operator_pos, assign_index_operator, operator_args);
     }
-  } else if (Token::CanBeOverloaded(CurrentToken())) {
+  } else if (Token::CanBeOverloaded(CurrentToken()) ||
+             (CurrentToken() == Token::kNE)) {
     Token::Kind op = CurrentToken();
     ConsumeToken();
+
+    bool negate_result = false;
+    if (op == Token::kNE) {
+      op = Token::kEQ;
+      negate_result = true;
+    }
 
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
@@ -1490,6 +1499,9 @@ AstNode* Parser::ParseSuperOperator() {
                                                 *op_arguments);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+    if (negate_result) {
+      super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
+    }
   }
   return super_op;
 }
@@ -1846,8 +1858,9 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   ASSERT(phase_param != NULL);
   AstNode* phase_argument = new LoadLocalNode(call_pos, phase_param);
   arguments->Add(phase_argument);
+  receiver->set_invisible(true);
   ParseActualParameters(arguments, kAllowConst);
-
+  receiver->set_invisible(false);
   // Resolve the constructor.
   const Function& redirect_ctor = Function::ZoneHandle(
       cls.LookupConstructor(ctor_name));
@@ -2438,6 +2451,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     // TODO(hausner): Remove this once the old getter syntax with
     // empty parameter list is no longer supported.
     if (CurrentToken() == Token::kLPAREN) {
+      if (FLAG_warn_legacy_getters) {
+        Warning("legacy getter syntax, remove parenthesis");
+      }
       ConsumeToken();
       ExpectToken(Token::kRPAREN);
     }
@@ -2445,12 +2461,15 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
 
   // Now that we know the parameter list, we can distinguish between the
   // unary and binary operator -.
-  if (method->has_operator &&
-      method->name->Equals("-") &&
-      (method->params.num_fixed_parameters == 1)) {
-    // Patch up name for unary operator - so it does not clash with the
-    // name for binary operator -.
-    *method->name = Symbols::New("unary-");
+  if (method->has_operator) {
+    if ((method->operator_token == Token::kSUB) &&
+       (method->params.num_fixed_parameters == 1)) {
+      // Patch up name for unary operator - so it does not clash with the
+      // name for binary operator -.
+      method->operator_token = Token::kNEGATE;
+      *method->name = Symbols::New(Token::Str(Token::kNEGATE));
+    }
+    CheckOperatorArity(*method);
   }
 
   if (members->FunctionNameExists(*method->name, method->kind)) {
@@ -2811,19 +2830,12 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 }
 
 
-void Parser::CheckOperatorArity(const MemberDesc& member,
-                                Token::Kind operator_token) {
+void Parser::CheckOperatorArity(const MemberDesc& member) {
   intptr_t expected_num_parameters;  // Includes receiver.
-  if (operator_token == Token::kASSIGN_INDEX) {
+  Token::Kind op = member.operator_token;
+  if (op == Token::kASSIGN_INDEX) {
     expected_num_parameters = 3;
-  } else if (operator_token == Token::kSUB) {
-    if (member.params.num_fixed_parameters == 1) {
-      // Unary operator minus (i.e. negate).
-      expected_num_parameters = 1;
-    } else {
-      expected_num_parameters = 2;
-    }
-  } else if (operator_token == Token::kBIT_NOT) {
+  } else if ((op == Token::kBIT_NOT) || (op == Token::kNEGATE)) {
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;
@@ -2917,7 +2929,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       }
     }
   }
-  Token::Kind operator_token = Token::kILLEGAL;
+
   // Optionally parse a (possibly named) constructor name or factory.
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
@@ -3014,12 +3026,12 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (member.has_static) {
       ErrorMsg("operator overloading functions cannot be static");
     }
-    operator_token = CurrentToken();
+    member.operator_token = CurrentToken();
     member.has_operator = true;
     member.kind = RawFunction::kRegularFunction;
     member.name_pos = this->TokenPos();
     member.name =
-        &String::ZoneHandle(Symbols::New(Token::Str(operator_token)));
+        &String::ZoneHandle(Symbols::New(Token::Str(member.operator_token)));
     ConsumeToken();
   } else if (IsIdentifier()) {
     member.name = CurrentLiteral();
@@ -3044,9 +3056,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
     ASSERT(member.IsFactory() == member.has_factory);
     ParseMethodOrConstructor(members, &member);
-    if (member.has_operator) {
-      CheckOperatorArity(member, operator_token);
-    }
   } else if (CurrentToken() ==  Token::kSEMICOLON ||
              CurrentToken() == Token::kCOMMA ||
              CurrentToken() == Token::kASSIGN) {
@@ -3253,7 +3262,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
 
-    if (FLAG_constructor_name_check && member->constructor_name != NULL) {
+    if (member->constructor_name != NULL) {
+      // Check whether constructor name conflicts with a member name.
       if (class_desc->FunctionNameExists(
           *member->constructor_name, member->kind)) {
         ErrorMsg(member->name_pos,
@@ -4003,7 +4013,11 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 
   const intptr_t accessor_pos = TokenPos();
   ParamList params;
-  // TODO(hausner): Remove the ( check once we remove old getter syntax.
+  if (FLAG_warn_legacy_getters &&
+      is_getter && (CurrentToken() == Token::kLPAREN)) {
+    Warning("legacy getter syntax, remove parenthesis");
+  }
+  // TODO(hausner): Remove the kLPAREN check once we remove old getter syntax.
   if (!is_getter || (CurrentToken() == Token::kLPAREN)) {
     const bool allow_explicit_default_values = true;
     ParseFormalParameterList(allow_explicit_default_values, &params);
@@ -5880,8 +5894,6 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
-// TODO(hausner): This structure can be simplified once the old catch
-// syntax is removed. All catch parameters in the new syntax are final.
 struct CatchParamDesc {
   CatchParamDesc()
       : token_pos(0), type(NULL), var(NULL) { }
@@ -6617,12 +6629,12 @@ bool Parser::IsLiteral(const char* literal) {
 }
 
 
-bool Parser::IsIncrementOperator(Token::Kind token) {
+static bool IsIncrementOperator(Token::Kind token) {
   return token == Token::kINCR || token == Token::kDECR;
 }
 
 
-bool Parser::IsPrefixOperator(Token::Kind token) {
+static bool IsPrefixOperator(Token::Kind token) {
   return (token == Token::kTIGHTADD) ||   // Valid for literals only!
          (token == Token::kSUB) ||
          (token == Token::kNOT) ||
@@ -7095,6 +7107,9 @@ AstNode* Parser::ParseUnaryExpr() {
   const intptr_t op_pos = TokenPos();
   if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
+    if (unary_op == Token::kSUB) {
+      unary_op = Token::kNEGATE;
+    }
     ConsumeToken();
     expr = ParseUnaryExpr();
     if (unary_op == Token::kTIGHTADD) {
@@ -9423,7 +9438,8 @@ AstNode* Parser::ParsePrimary() {
         primary = ParseSuperFieldAccess(ident);
       }
     } else if ((CurrentToken() == Token::kLBRACK) ||
-        Token::CanBeOverloaded(CurrentToken())) {
+        Token::CanBeOverloaded(CurrentToken()) ||
+        (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
     } else {
       ErrorMsg("illegal super call");
@@ -9626,6 +9642,12 @@ void Parser::SkipPrimary() {
     case Token::kLBRACK:
     case Token::kINDEX:
       SkipCompoundLiteral();
+      break;
+    case Token::kCONDITIONAL:
+      ConsumeToken();
+      if (IsIdentifier()) {
+        ConsumeToken();
+      }
       break;
     default:
       if (IsIdentifier()) {

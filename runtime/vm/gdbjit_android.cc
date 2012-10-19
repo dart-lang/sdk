@@ -31,12 +31,14 @@ extern "C" {
     struct jit_code_entry* first_entry;
   };
 
+#ifndef GDB_JIT_SYMBOLS
   /* GDB puts a breakpoint in this function.  */
   void __attribute__((noinline)) __jit_debug_register_code() { }
 
   /* Make sure to specify the version statically, because the
      debugger may check the version before we can set it.  */
   struct jit_descriptor __jit_debug_descriptor = { 1, 0, 0, 0 };
+#endif
 
   static struct jit_code_entry* first_dynamic_region = NULL;
   static struct jit_code_entry* last_dynamic_region = NULL;

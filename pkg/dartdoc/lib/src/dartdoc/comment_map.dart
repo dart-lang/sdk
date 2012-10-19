@@ -58,7 +58,8 @@ class CommentMap {
   _parseComments(Source source) {
     final comments = new Map<int, String>();
 
-    final scanner = new dart2js.StringScanner(source.text, true);
+    final scanner = new dart2js.StringScanner(source.text,
+                                              includeComments: true);
     var lastComment = null;
 
     var token = scanner.tokenize();

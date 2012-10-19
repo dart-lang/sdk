@@ -5,12 +5,19 @@
 class $FACTORYPROVIDER {
   static TextTrackCue createTextTrackCue(
       String id, num startTime, num endTime, String text,
-      [String settings, bool pauseOnExit])
-      native '''
-        if (settings == null)
-          return new TextTrackCue(id, startTime, endTime, text);
-        if (pauseOnExit == null)
-          return new TextTrackCue(id, startTime, endTime, text, settings);
-        return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
-      ''';
+      [String settings, bool pauseOnExit]) {
+        if (settings == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#,#)',
+                    id, startTime, endTime, text);
+        }
+        if (pauseOnExit == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#,#,#)',
+                    id, startTime, endTime, text, settings);
+        }
+        return JS('TextTrackCue',
+                  'new TextTrackCue(#,#,#,#,#,#)',
+                  id, startTime, endTime, text, settings, pauseOnExit);
+  }
 }

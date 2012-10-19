@@ -6,22 +6,22 @@
 
 const String TEST_ONE = r"""
 foo(j) {
-  var a = [1, 2, 3];
+  var array = [1, 2, 3];
   if (j < 0) j = 0;
   for (var i = j; i < 3; i++) {
-    a[i];
+    array[i];
   }
 }
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
 
   // Test for absence of an illegal argument exception. This means that the
   // arguments are known to be integers.
   Expect.isFalse(generated.contains('iae'));
   // Also make sure that we are not just in bailout mode without speculative
   // types by grepping for the integer-bailout check on argument j.
-  RegExp regexp = new RegExp(getIntTypeCheck('j'));
+  RegExp regexp = new RegExp(getIntTypeCheck('[aj]'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('leg_apiimpl');
+library leg_apiimpl;
 
-#import('dart:uri');
+import 'dart:uri';
 
-#import('../compiler.dart', prefix: 'api');
-#import('leg.dart', prefix: 'leg');
-#import('tree/tree.dart', prefix: 'tree');
-#import('elements/elements.dart', prefix: 'elements');
-#import('ssa/tracer.dart', prefix: 'ssa');
-#import('../../../lib/_internal/libraries.dart');
-#import('source_file.dart');
+import '../compiler.dart' as api;
+import 'dart2jslib.dart' as leg;
+import 'tree/tree.dart' as tree;
+import 'elements/elements.dart' as elements;
+import 'ssa/tracer.dart' as ssa;
+import '../../../lib/_internal/libraries.dart';
+import 'source_file.dart';
 
 class Compiler extends leg.Compiler {
   api.ReadStringFromUri provider;
@@ -31,6 +31,7 @@ class Compiler extends leg.Compiler {
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
+            disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             strips: getStrips(options),
             enableConcreteTypeInference:
               hasOption(options, '--enable-concrete-type-inference'));
@@ -50,10 +51,10 @@ class Compiler extends leg.Compiler {
 
   String lookupLibraryPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
-    if (info === null) return null;
+    if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPath;
-    if (path === null) {
+    if (path == null) {
       path = info.path;
     }
     return "lib/$path";
@@ -61,10 +62,10 @@ class Compiler extends leg.Compiler {
 
   String lookupPatchPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
-    if (info === null) return null;
+    if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPatchPath;
-    if (path === null) return null;
+    if (path == null) return null;
     return "lib/$path";
   }
 
@@ -92,7 +93,7 @@ class Compiler extends leg.Compiler {
       // directly. In effect, we don't support truly asynchronous API.
       text = provider(translated).value;
     } catch (exception) {
-      if (node !== null) {
+      if (node != null) {
         cancel("$exception", node: node);
       } else {
         reportDiagnostic(null, "$exception", api.Diagnostic.ERROR);
@@ -112,7 +113,7 @@ class Compiler extends leg.Compiler {
 
   Uri translateDartUri(Uri uri, tree.Node node) {
     String path = lookupLibraryPath(uri.path);
-    if (path === null || LIBRARIES[uri.path].category == "Internal") {
+    if (path == null || LIBRARIES[uri.path].category == "Internal") {
       if (node != null) {
         reportError(node, 'library not found ${uri}');
       } else {
@@ -132,7 +133,7 @@ class Compiler extends leg.Compiler {
 
   Uri resolvePatchUri(String dartLibraryPath) {
     String patchPath = lookupPatchPath(dartLibraryPath);
-    if (patchPath === null) return null;
+    if (patchPath == null) return null;
     return libraryRoot.resolve(patchPath);
   }
 
@@ -148,12 +149,13 @@ class Compiler extends leg.Compiler {
 
   void reportDiagnostic(leg.SourceSpan span, String message,
                         api.Diagnostic kind) {
-    if (kind === api.Diagnostic.ERROR || kind === api.Diagnostic.CRASH) {
+    if (identical(kind, api.Diagnostic.ERROR)
+        || identical(kind, api.Diagnostic.CRASH)) {
       compilationFailed = true;
     }
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
-    if (span === null || span.uri === null) {
+    if (span == null || span.uri == null) {
       handler(null, null, null, message, kind);
     } else {
       handler(translateUri(span.uri, null), span.begin, span.end,
@@ -163,6 +165,6 @@ class Compiler extends leg.Compiler {
 
   bool get isMockCompilation {
     return mockableLibraryUsed
-      && (options.indexOf('--allow-mock-compilation') !== -1);
+      && (options.indexOf('--allow-mock-compilation') != -1);
   }
 }

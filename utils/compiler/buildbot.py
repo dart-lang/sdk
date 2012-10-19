@@ -167,6 +167,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
   user_test = os.environ.get('USER_TEST', 'no')
 
+  if runtime == 'ie':
+    runtime = 'ie9' # TODO(efortuna): Fix with issue 6003.
   cmd.extend([sys.executable,
               os.path.join(os.curdir, 'tools', 'test.py'),
               '--step_name=' + step_name,
@@ -300,7 +302,7 @@ def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
   for f in os.listdir(directory):
     item = os.path.join(directory, f)
-    if os.path.isdir(item) and f.startswith('tmp'):
+    if os.path.isdir(item) and (f.startswith('tmp') or f.startswith('opera')):
       subprocess.Popen('rm -rf %s' % item, shell=True)
 
 def CleanUpTemporaryFiles(system, browser):

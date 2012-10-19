@@ -27,11 +27,11 @@ void foo() {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = const RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
 
-  generated = compile(TEST_TWO, 'foo');
+  generated = compile(TEST_TWO, entry: 'foo');
   regexp = const RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
   regexp = const RegExp("temp");

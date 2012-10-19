@@ -2,27 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors.dart2js');
+library mirrors_dart2js;
 
-#import('dart:io');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:uri';
 
-#import('../../../../../lib/compiler/compiler.dart', prefix: 'diagnostics');
-#import('../../../../../lib/compiler/implementation/elements/elements.dart');
-#import('../../../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
-#import('../../../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import('../../../../../lib/compiler/implementation/ssa/ssa.dart');
-#import('../../../../../lib/compiler/implementation/leg.dart');
-#import('../../../../../lib/compiler/implementation/filenames.dart');
-#import('../../../../../lib/compiler/implementation/source_file.dart');
-#import('../../../../../lib/compiler/implementation/tree/tree.dart');
-#import('../../../../../lib/compiler/implementation/util/util.dart');
-#import('../../../../../lib/compiler/implementation/util/uri_extras.dart');
-#import('../../../../../lib/compiler/implementation/dart2js.dart');
+import '../../../../../lib/compiler/compiler.dart' as diagnostics;
+import '../../../../../lib/compiler/implementation/elements/elements.dart';
+import '../../../../../lib/compiler/implementation/resolution/resolution.dart'
+    show ResolverTask, ResolverVisitor;
+import '../../../../../lib/compiler/implementation/apiimpl.dart' as api;
+import '../../../../../lib/compiler/implementation/scanner/scannerlib.dart';
+import '../../../../../lib/compiler/implementation/ssa/ssa.dart';
+import '../../../../../lib/compiler/implementation/dart2jslib.dart';
+import '../../../../../lib/compiler/implementation/filenames.dart';
+import '../../../../../lib/compiler/implementation/source_file.dart';
+import '../../../../../lib/compiler/implementation/tree/tree.dart';
+import '../../../../../lib/compiler/implementation/util/util.dart';
+import '../../../../../lib/compiler/implementation/util/uri_extras.dart';
+import '../../../../../lib/compiler/implementation/dart2js.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('../../mirrors.dart');
-#import('util.dart');
+import '../../mirrors.dart';
+import 'util.dart';
 
 //------------------------------------------------------------------------------
 // Utility types and functions for the dart2js mirror system
@@ -162,7 +164,7 @@ DiagnosticListener get _diagnosticListener {
 class Dart2JsDiagnosticListener implements DiagnosticListener {
   const Dart2JsDiagnosticListener();
 
-  void cancel([String reason, node, token, instruction, element]) {
+  void cancel(String reason, {node, token, instruction, element}) {
     print(reason);
   }
 
@@ -171,8 +173,8 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
   }
 
   void internalError(String message,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
     cancel('Internal error: $message', node, token, instruction, element);
   }
 
@@ -508,23 +510,21 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   void _ensureTypes() {
     if (_types == null) {
       _types = <String, InterfaceMirror>{};
-      _library.forEachExport((Element e) {
-        if (e.getLibrary() == _library) {
-          if (e.isClass()) {
-            e.ensureResolved(system.compiler);
-            var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
-            assert(invariant(_library, !_types.containsKey(type.simpleName),
-                message: "Type name '${type.simpleName}' "
-                         "is not unique in $_library."));
-            _types[type.simpleName] = type;
-          } else if (e.isTypedef()) {
-            var type = new Dart2JsTypedefMirror.fromLibrary(this,
-                e.computeType(system.compiler));
-            assert(invariant(_library, !_types.containsKey(type.simpleName),
-                message: "Type name '${type.simpleName}' "
-                         "is not unique in $_library."));
-            _types[type.simpleName] = type;
-          }
+      _library.forEachLocalMember((Element e) {
+        if (e.isClass()) {
+          e.ensureResolved(system.compiler);
+          var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
+          assert(invariant(_library, !_types.containsKey(type.simpleName),
+              message: "Type name '${type.simpleName}' "
+                       "is not unique in $_library."));
+          _types[type.simpleName] = type;
+        } else if (e.isTypedef()) {
+          var type = new Dart2JsTypedefMirror.fromLibrary(this,
+              e.computeType(system.compiler));
+          assert(invariant(_library, !_types.containsKey(type.simpleName),
+              message: "Type name '${type.simpleName}' "
+                       "is not unique in $_library."));
+          _types[type.simpleName] = type;
         }
       });
     }
@@ -533,7 +533,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
   void _ensureMembers() {
     if (_members == null) {
       _members = <String, MemberMirror>{};
-      _library.forEachExport((Element e) {
+      _library.forEachLocalMember((Element e) {
         if (!e.isClass() && !e.isTypedef()) {
           for (var member in _convertElementMemberToMemberMirrors(this, e)) {
             assert(!_members.containsKey(member.simpleName));
@@ -1305,7 +1305,8 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
 
   bool get isMethod => !isConstructor;
 
-  bool get isPrivate => _isPrivate(simpleName);
+  bool get isPrivate =>
+      isConstructor ? _isPrivate(constructorName) : _isPrivate(simpleName);
 
   bool get isStatic => _function.modifiers.isStatic();
 

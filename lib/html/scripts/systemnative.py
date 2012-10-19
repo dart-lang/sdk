@@ -20,10 +20,7 @@ class DartiumBackend(object):
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
-
-  def ImplementationClassName(self):
-    return self._ImplClassName(self._interface.id)
+    self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -96,12 +93,16 @@ class DartiumBackend(object):
 
   def ImplementationTemplate(self):
     template = None
-    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
-      template_file = 'impl_%s.darttemplate' % self._html_interface_name
+    interface_name = self._interface_type_info.interface_name()
+    if interface_name == self._interface.id or not self._database.HasInterface(interface_name):
+      template_file = 'impl_%s.darttemplate' % interface_name
       template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('dart_implementation.darttemplate')
     return template
+
+  def RootClassName(self):
+    return 'NativeFieldWrapperClass1'
 
   def AdditionalImplementedInterfaces(self):
     return []
@@ -174,30 +175,6 @@ class DartiumBackend(object):
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
 
-  def _ImplClassName(self, interface_name):
-    return '_%sImpl' % interface_name
-
-  def BaseClassName(self):
-    root_class = 'NativeFieldWrapperClass1'
-
-    if not self._interface.parents:
-      return root_class
-
-    supertype = self._interface.parents[0].type.id
-
-    if IsPureInterface(supertype):    # The class is a root.
-      return root_class
-
-    # FIXME: We're currently injecting List<..> and EventTarget as
-    # supertypes in dart.idl. We should annotate/preserve as
-    # attributes instead.  For now, this hack lets the self._interfaces
-    # inherit, but not the classes.
-    # List methods are injected in AddIndexer.
-    if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return root_class
-
-    return self._ImplClassName(supertype)
-
   ATTRIBUTES_OF_CONSTRUCTABLE = set([
     'CustomConstructor',
     'V8CustomConstructor',
@@ -217,7 +194,8 @@ class DartiumBackend(object):
     return False
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
-    template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name
+    interface_name = self._interface_type_info.interface_name()
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
@@ -226,8 +204,8 @@ class DartiumBackend(object):
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        INTERFACE=self._html_interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
+        INTERFACE=interface_name,
+        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
         NATIVE_NAME=native_binding)
 
@@ -240,7 +218,7 @@ class DartiumBackend(object):
         INCLUDES=self._GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments(),
-        DART_IMPLEMENTATION_CLASS=self.ImplementationClassName())
+        DART_IMPLEMENTATION_CLASS=self._interface_type_info.implementation_name())
 
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
@@ -420,7 +398,10 @@ class DartiumBackend(object):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
-    template = self._template_loader.Load(template_file)
+    has_contains = any(op.id == 'contains' for op in self._interface.operations)
+    template = self._template_loader.Load(
+        template_file,
+        {'DEFINE_CONTAINS': not has_contains})
     self._members_emitter.Emit(template, E=dart_element_type)
 
   def AmendIndexer(self, element_type):
@@ -476,7 +457,7 @@ class DartiumBackend(object):
         'static ' if info.IsStatic() else '',
         SecureOutputType(self, info.type_name),
         html_name,
-        info.ParametersImplementationDeclaration(
+        info.ParametersDeclaration(
             (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
 
     if not needs_dispatcher:

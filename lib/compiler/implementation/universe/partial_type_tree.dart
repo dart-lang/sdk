@@ -61,7 +61,7 @@ class PartialTypeTree {
   // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
     DartType type = selector.receiverType;
-    return (type !== null) ? type.element : compiler.objectClass;
+    return (type != null) ? type.element : compiler.objectClass;
   }
 
   /**
@@ -71,13 +71,13 @@ class PartialTypeTree {
    * return null if we cannot find a node that matches the [type].
    */
   PartialTypeTreeNode findNode(ClassElement type, bool insert) {
-    if (root === null) {
+    if (root == null) {
       if (!insert) return null;
       root = newNode(compiler.objectClass);
     }
 
     PartialTypeTreeNode current = root;
-    L: while (current.type !== type) {
+    L: while (!identical(current.type, type)) {
       assert(type.isSubclassOf(current.type));
 
       // Run through the children. If we find a subtype of the type
@@ -123,7 +123,7 @@ class PartialTypeTree {
     }
 
     // We found an exact match. No need to insert new nodes.
-    assert(current.type === type);
+    assert(identical(current.type, type));
     return current;
   }
 
@@ -134,7 +134,7 @@ class PartialTypeTree {
   void visitHierarchy(ClassElement type, bool visit(PartialTypeTreeNode node)) {
     assert(!containsInterfaceSubtypes);
     PartialTypeTreeNode current = root;
-    L: while (current.type !== type) {
+    L: while (!identical(current.type, type)) {
       assert(type.isSubclassOf(current.type));
       if (!visit(current)) return;
       for (Link link = current.children; !link.isEmpty(); link = link.tail) {

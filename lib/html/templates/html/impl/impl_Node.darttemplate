@@ -56,6 +56,8 @@ $endif
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -73,7 +75,7 @@ $endif
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 

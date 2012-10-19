@@ -36,7 +36,7 @@ main() {
   compileAndMatch(
       NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(r"print\(1\)"));
 
-  String generated = compile(NULL_EQUALS_FOLDING, 'foo');
+  String generated = compile(NULL_EQUALS_FOLDING, entry: 'foo');
   RegExp regexp = const RegExp(r'a == null');
   Expect.isTrue(regexp.hasMatch(generated));
 

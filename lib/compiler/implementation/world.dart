@@ -122,22 +122,22 @@ class World {
    * types.
    */
   MemberSet _memberSetFor(DartType type, Selector selector) {
-    assert(compiler !== null);
+    assert(compiler != null);
     ClassElement cls = type.element;
     SourceString name = selector.name;
     LibraryElement library = selector.library;
     MemberSet result = new MemberSet(name);
     Element element = cls.implementation.lookupSelector(selector);
-    if (element !== null) result.add(element);
+    if (element != null) result.add(element);
 
     bool isPrivate = name.isPrivate();
     Set<ClassElement> subtypesOfCls = subtypes[cls];
-    if (subtypesOfCls !== null) {
+    if (subtypesOfCls != null) {
       for (ClassElement sub in subtypesOfCls) {
         // Private members from a different library are not visible.
         if (isPrivate && sub.getLibrary() != library) continue;
         element = sub.implementation.lookupLocalMember(name);
-        if (element !== null) result.add(element);
+        if (element != null) result.add(element);
       }
     }
     return result;
@@ -167,7 +167,7 @@ class World {
     MemberSet memberSet = _memberSetFor(type, noSuchMethodSelector);
     for (Element element in memberSet.elements) {
       ClassElement holder = element.getEnclosingClass();
-      if (holder !== compiler.objectClass &&
+      if (!identical(holder, compiler.objectClass) &&
           noSuchMethodSelector.applies(element, compiler)) {
         result.add(holder);
       }

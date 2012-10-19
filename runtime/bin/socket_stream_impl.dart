@@ -45,7 +45,7 @@ class _SocketInputStream implements SocketInputStream {
 
   int available() => _socket.available();
 
-  void pipe(OutputStream output, [bool close = true]) {
+  void pipe(OutputStream output, {bool close: true}) {
     _pipe(this, output, close: close);
   }
 

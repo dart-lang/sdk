@@ -37,7 +37,8 @@ main() {
       Expect.equals(0xCFCECDCC, a2[1]);
       Expect.equals(0x03020100, a2[14]);
 
-      a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
+      // OPTIONALS a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
+      a2 = new Uint32Array.fromBuffer(a1.buffer, 456, 30);
       Expect.equals(30, a2.length);
       Expect.equals(0xCBCAC9C8, a2[0]);
       Expect.equals(0xCFCECDCC, a2[1]);
@@ -69,7 +70,8 @@ main() {
       Expect.equals(0xCFCECDCC, a2[1]);
       Expect.equals(0x03020100, a2[14]);
 
-      a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
+      // OPTIONALS a2 = new Uint32Array.fromBuffer(a1.buffer, length: 30, byteOffset: 456);
+      a2 = new Uint32Array.fromBuffer(a1.buffer, 456, 30);
       Expect.equals(30, a2.length);
       Expect.equals(0xCBCAC9C8, a2[0]);
       Expect.equals(0xCFCECDCC, a2[1]);

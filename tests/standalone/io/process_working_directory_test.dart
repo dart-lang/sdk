@@ -22,20 +22,19 @@ class ProcessWorkingDirectoryTest {
 
     var options = new ProcessOptions();
     options.workingDirectory = directory.path;
-    Process process = Process.start(fullTestFilePath,
-                                    const ["0", "0", "99", "0"],
-                                    options);
-
-    process.onExit = (int exitCode) {
-      Expect.equals(exitCode, 99);
-      process.close();
+    var processFuture =
+        Process.start(fullTestFilePath, const ["0", "0", "99", "0"], options);
+    processFuture.then((process) {
+      process.onExit = (int exitCode) {
+        Expect.equals(exitCode, 99);
+        process.close();
+        directory.deleteSync();
+      };
+    });
+    processFuture.handleException((error) {
       directory.deleteSync();
-    };
-
-    process.onError = (error) {
-      Expect.fail("error running process $error");
-      directory.deleteSync();
-    };
+      Expect.fails("Couldn't start process");
+    });
   }
 
   static void testInvalidDirectory() {
@@ -44,20 +43,20 @@ class ProcessWorkingDirectoryTest {
 
     var options = new ProcessOptions();
     options.workingDirectory = directory.path.concat("/subPath");
-    Process process = Process.start(fullTestFilePath,
-                                    const ["0", "0", "99", "0"],
-                                    options);
-
-    process.onExit = (int exitCode) {
+    var future = Process.start(fullTestFilePath,
+                               const ["0", "0", "99", "0"],
+                               options);
+    future.then((process) {
       Expect.fail("bad process completed");
       process.close();
       directory.deleteSync();
-    };
+    });
 
-    process.onError = (error) {
-      Expect.isNotNull(error);
+    future.handleException((e) {
+      Expect.isNotNull(e);
       directory.deleteSync();
-    };
+      return true;
+    });
   }
 }
 

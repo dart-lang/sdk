@@ -26,6 +26,7 @@ main() {
       expect("timer_fired", msg);
       int endTime = (new Date.now()).millisecondsSinceEpoch;
       expect((endTime - startTime) >= TIMEOUT);
+      port.close();
     }));
     
     startTime = (new Date.now()).millisecondsSinceEpoch;

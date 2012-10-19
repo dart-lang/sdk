@@ -63,7 +63,7 @@ test(param) {
 """;
 
 compileAndTest(String code) {
-  String generated = compile(code, 'test');
+  String generated = compile(code, entry: 'test');
   RegExp validAdd =
       new RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
   RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");

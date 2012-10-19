@@ -24,7 +24,7 @@ int countOccurrences(String text, String search) {
 }
 
 /** Repeats [text] [count] times, separated by [separator] if given. */
-String repeat(String text, int count, [String separator]) {
+String repeat(String text, int count, {String separator}) {
   // TODO(rnystrom): Should be in corelib.
   final buffer = new StringBuffer();
   for (int i = 0; i < count; i++) {

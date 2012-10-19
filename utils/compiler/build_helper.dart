@@ -116,7 +116,14 @@ if test -t 1; then
     COLORS="--enable-diagnostic-colors"
   fi
 fi
-exec "\$BIN_DIR"/dart$options "\$BIN_DIR/$path" \$COLORS "\$@"
+
+unset SNAPSHOT
+if test -f "\$BIN_DIR/${path}.snapshot"; then
+  # TODO(ahe): Remove the following line when we are relatively sure it works.
+  echo Using snapshot "\$BIN_DIR/${path}.snapshot" 1>&2
+  SNAPSHOT="--use_script_snapshot=\$BIN_DIR/${path}.snapshot"
+fi
+exec "\$BIN_DIR"/dart$options \$SNAPSHOT "\$BIN_DIR/$path" \$COLORS "\$@"
 ''',
 '''
 @echo off

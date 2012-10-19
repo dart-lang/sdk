@@ -16,7 +16,7 @@ void foo(bar) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = const RegExp("toBeRemoved");
   Expect.isTrue(!regexp.hasMatch(generated));
 }

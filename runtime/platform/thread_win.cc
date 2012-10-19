@@ -84,7 +84,7 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
 
 
 intptr_t Thread::GetMaxStackSize() {
-  const int kStackSize = (512 * KB);
+  const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 

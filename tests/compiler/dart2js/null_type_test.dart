@@ -12,6 +12,6 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isFalse(generated.contains('typeof (void 0)'));
 }

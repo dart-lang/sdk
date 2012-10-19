@@ -41,7 +41,7 @@ class _Completes extends BaseMatcher {
         reason = '$reason\nStack trace:\n$stackTrace';
       }
 
-      expect(future.hasValue, reason: reason);
+      expect(future.hasValue, isTrue, reason);
       if (_matcher != null) expect(future.value, _matcher);
     }));
 

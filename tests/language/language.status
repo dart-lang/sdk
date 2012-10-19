@@ -38,8 +38,6 @@ super_first_constructor_test: Fail # Issue 1372.
 # Issue 1355
 call_operator_test: Fail
 
-constructor_redirect_test/01: Fail # Issue 2103.
-
 closure_with_super_send_test: Fail # Issue 3197.
 closure_with_super_field_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
@@ -133,6 +131,7 @@ class_literal_test/27 : Fail # language change 3368
 class_literal_test/28 : Fail # language change 3368
 class_literal_test/29 : Fail # language change 3368
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+compile_time_constant_test/02: Fail # issue 5987.
 compile_time_constant10_test/none: Fail # issue 5215.
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -169,7 +168,6 @@ prefix10_negative_test : Fail # language change 1031
 prefix11_negative_test : Fail # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/09: Fail, OK # 'interface' is not a built-in identifier
-pseudo_kw_illegal_test/11: Fail, OK # 'negate' is not a built-in identifier
 pseudo_kw_illegal_test/14: Fail, OK # 'source' is not a built-in identifier
 resource_test: Fail # out of date - resource directives have been removed
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -190,9 +188,6 @@ type_parameter_test/03: Fail, OK
 type_parameter_test/04: Fail, OK
 type_variable_scope2_test: Fail, OK
 
-# test issue 5333
-named_constructor_test: Fail, OK
-naming_test: Fail, OK
 
 # test issue 5337
 bad_constructor_test/05: Fail, OK
@@ -234,7 +229,7 @@ string_escape1_negative_test: Skip
 [ $runtime == opera ]
 *: Skip
 
-[ $runtime == ie && ($system == linux || $system == macos) ]
+[ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
@@ -271,7 +266,6 @@ compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/04: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
-compile_time_constant_test/02: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/05: Fail # http://dartbug.com/5519
 const_syntax_test/01: Fail # http://dartbug.com/5519
@@ -300,7 +294,7 @@ method_override2_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/04: Fail # http://dartbug.com/5519
-new_expression_type_args_test/01: Fail # http://dartbug.com/5519
+new_expression_type_args_test/02: Fail # inherited from dart2js
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 override_field_test/04: Fail # http://dartbug.com/5519
 static_field3_test/01: Fail # http://dartbug.com/5519
@@ -328,7 +322,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # chokes on things like typedef(x) => "typedef $x" and alike.
 abstract_syntax_test/01: Fail
 abstract_syntax_test/02: Fail
-pseudo_kw_illegal_test/11: Fail
 pseudo_kw_illegal_test/14: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.

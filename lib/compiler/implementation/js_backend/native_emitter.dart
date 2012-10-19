@@ -95,13 +95,19 @@ class NativeEmitter {
 
   String get defineNativeClassFunction {
     return """
-function(cls, fields, methods) {
+function(cls, desc) {
+  var fields = desc[''] || [];
   var generateGetterSetter = ${emitter.generateGetterSetterFunction};
   for (var i = 0; i < fields.length; i++) {
-    generateGetterSetter(fields[i], methods);
+    generateGetterSetter(fields[i], desc);
   }
-  for (var method in methods) {
-    $dynamicName(method)[cls] = methods[method];
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  for (var method in desc) {
+    if (method !== '') {
+      if (hasOwnProperty.call(desc, method)) {
+        $dynamicName(method)[cls] = desc[method];
+      }
+    }
   }
 }""";
   }
@@ -127,11 +133,11 @@ function(cls, fields, methods) {
   }
 
   bool isNativeLiteral(String quotedName) {
-    return quotedName[1] === '=';
+    return identical(quotedName[1], '=');
   }
 
   bool isNativeGlobal(String quotedName) {
-    return quotedName[1] === '@';
+    return identical(quotedName[1], '@');
   }
 
   String toNativeName(ClassElement cls) {
@@ -157,23 +163,39 @@ function(cls, fields, methods) {
     }
 
     CodeBuffer fieldBuffer = new CodeBuffer();
-    List<String> checkedSetters =
-        emitter.emitClassFields(classElement, fieldBuffer);
+    CodeBuffer getterSetterBuffer = new CodeBuffer();
+
+    emitter.emitClassFields(classElement, fieldBuffer);
+    emitter.emitClassGettersSetters(classElement, getterSetterBuffer,
+                                    omitLeadingComma: true);
 
     CodeBuffer methodBuffer = new CodeBuffer();
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
-    if (methodBuffer.isEmpty() && fieldBuffer.isEmpty()) return;
+    if (methodBuffer.isEmpty()
+        && fieldBuffer.isEmpty()
+        && getterSetterBuffer.isEmpty()) {
+      return;
+    }
 
     String nativeName = toNativeName(classElement);
-    nativeBuffer.add("$defineNativeClassName('$nativeName', [");
-    nativeBuffer.add(fieldBuffer);
-    nativeBuffer.add('], {');
-    if (!checkedSetters.isEmpty()) {
-      nativeBuffer.add('${Strings.join(checkedSetters, ",\n")}');
-      nativeBuffer.add(',\n');
+    nativeBuffer.add("$defineNativeClassName('$nativeName', ");
+    nativeBuffer.add('{');
+    bool firstInMap = true;
+    if (!fieldBuffer.isEmpty()) {
+      firstInMap = false;
+      nativeBuffer.add(fieldBuffer);
     }
-    nativeBuffer.add(methodBuffer);
+    if (!getterSetterBuffer.isEmpty()) {
+      if (!firstInMap) nativeBuffer.add(",");
+      firstInMap = false;
+      nativeBuffer.add("\n ");
+      nativeBuffer.add(getterSetterBuffer);
+    }
+    if (!methodBuffer.isEmpty()) {
+      if (!firstInMap) nativeBuffer.add(",");
+      nativeBuffer.add(methodBuffer);
+    }
     nativeBuffer.add('\n});\n\n');
 
     classesWithDynamicDispatch.add(classElement);
@@ -181,7 +203,7 @@ function(cls, fields, methods) {
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
     List<ClassElement> result = directSubtypes[cls];
-    return result === null ? const<ClassElement>[] : result;
+    return result == null ? const<ClassElement>[] : result;
   }
 
   void potentiallyConvertDartClosuresToJs(CodeBuffer code,
@@ -239,7 +261,7 @@ function(cls, fields, methods) {
     } else {
       // When calling a JS method, we call it with the native name.
       String name = redirectingMethods[member];
-      if (name === null) name = member.name.slowToString();
+      if (name == null) name = member.name.slowToString();
       code.add('  return this.$name($nativeArguments);');
     }
 
@@ -384,7 +406,7 @@ function(cls, fields, methods) {
       return false;
     }
 
-    return subtypes[element] !== null;
+    return subtypes[element] != null;
   }
 
   bool requiresNativeIsCheck(Element element) {
@@ -454,7 +476,7 @@ function(cls, fields, methods) {
       });
       targetBuffer.add("\n});\n\n");
     }
-    targetBuffer.add('$nativeBuffer');
+    targetBuffer.add(nativeBuffer);
     targetBuffer.add('\n');
   }
 }

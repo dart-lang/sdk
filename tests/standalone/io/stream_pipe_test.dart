@@ -19,9 +19,9 @@ String getDataFilename(String path) =>
 
 bool compareFileContent(String fileName1,
                         String fileName2,
-                        [int file1Offset = 0,
-                         int file2Offset = 0,
-                         int count]) {
+                        {int file1Offset: 0,
+                         int file2Offset: 0,
+                         int count}) {
   var file1 = new File(fileName1).openSync();
   var file2 = new File(fileName2).openSync();
   var length1 = file1.lengthSync();

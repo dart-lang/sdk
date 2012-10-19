@@ -14,7 +14,7 @@
 namespace dart {
 
 static uword NewContents(intptr_t capacity) {
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   uword result = zone->AllocUnsafe(capacity);
 #if defined(DEBUG)
   // Initialize the buffer with kBreakPointInstruction to force a break

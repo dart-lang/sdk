@@ -16,18 +16,18 @@
 
 void testParseHttpDate() {
   Date date;
-  date = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
+  date = new Date.utc(1999, Date.JUN, 11, 18, 46, 53, 0);
   Expect.equals(date, _HttpUtils.parseDate("Fri, 11 Jun 1999 18:46:53 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Friday, 11-Jun-1999 18:46:53 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Fri Jun 11 18:46:53 1999"));
 
-  date = new Date(1970, Date.JAN, 1, 0, 0, 0, 0, isUtc: true);
+  date = new Date.utc(1970, Date.JAN, 1, 0, 0, 0, 0);
   Expect.equals(date, _HttpUtils.parseDate("Thu, 1 Jan 1970 00:00:00 GMT"));
   Expect.equals(date,
                 _HttpUtils.parseDate("Thursday, 1-Jan-1970 00:00:00 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Thu Jan  1 00:00:00 1970"));
 
-  date = new Date(2012, Date.MAR, 5, 23, 59, 59, 0, isUtc: true);
+  date = new Date.utc(2012, Date.MAR, 5, 23, 59, 59, 0);
   Expect.equals(date, _HttpUtils.parseDate("Mon, 5 Mar 2012 23:59:59 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Monday, 5-Mar-2012 23:59:59 GMT"));
   Expect.equals(date, _HttpUtils.parseDate("Mon Mar  5 23:59:59 2012"));
@@ -43,7 +43,7 @@ void testFormatParseHttpDate() {
        String expectedFormatted) {
     Date date;
     String formatted;
-    date = new Date(year, month, day, hours, minutes, seconds, 0, isUtc: true);
+    date = new Date.utc(year, month, day, hours, minutes, seconds, 0);
     formatted = _HttpUtils.formatDate(date);
     Expect.equals(expectedFormatted, formatted);
     Expect.equals(date, _HttpUtils.parseDate(formatted));
@@ -95,8 +95,7 @@ void testParseHttpCookieDate() {
        int minutes,
        int seconds,
        String formatted) {
-    Date date = new Date(
-        year, month, day, hours, minutes, seconds, 0, isUtc: true);
+    Date date = new Date.utc(year, month, day, hours, minutes, seconds, 0);
     Expect.equals(date, _HttpUtils.parseCookieDate(formatted));
   }
 

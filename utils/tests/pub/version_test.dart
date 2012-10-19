@@ -94,10 +94,11 @@ main() {
       expect(v123.intersect(v114).isEmpty);
 
       // Intersecting a range returns the version if the range allows it.
-      expect(v123.intersect(new VersionRange(v114, v124)), equals(v123));
+      expect(v123.intersect(new VersionRange(min: v114, max: v124)),
+          equals(v123));
 
       // Intersecting a range allows no versions if the range doesn't allow it.
-      expect(v114.intersect(new VersionRange(v123, v124)).isEmpty);
+      expect(v114.intersect(new VersionRange(min: v123, max: v124)).isEmpty);
     });
 
     test('isEmpty', () {
@@ -149,13 +150,13 @@ main() {
   group('VersionRange', () {
     group('constructor', () {
       test('takes a min and max', () {
-        var range = new VersionRange(v123, v124);
+        var range = new VersionRange(min: v123, max: v124);
         expect(range.min, equals(v123));
         expect(range.max, equals(v124));
       });
 
       test('allows omitting max', () {
-        var range = new VersionRange(v123);
+        var range = new VersionRange(min: v123);
         expect(range.min, equals(v123));
         expect(range.max, isNull);
       });
@@ -187,13 +188,13 @@ main() {
       });
 
       test('throws if min > max', () {
-        throwsIllegalArg(() => new VersionRange(v124, v123));
+        throwsIllegalArg(() => new VersionRange(min: v124, max: v123));
       });
     });
 
     group('allows()', () {
       test('version must be greater than min', () {
-        var range = new VersionRange(v123, v234);
+        var range = new VersionRange(min: v123, max: v234);
 
         expect(!range.allows(new Version.parse('1.2.2')));
         expect(!range.allows(new Version.parse('1.2.3')));
@@ -202,7 +203,7 @@ main() {
       });
 
       test('version must be min or greater if includeMin', () {
-        var range = new VersionRange(v123, v234, includeMin: true);
+        var range = new VersionRange(min: v123, max: v234, includeMin: true);
 
         expect(!range.allows(new Version.parse('1.2.2')));
         expect(range.allows(new Version.parse('1.2.3')));
@@ -211,7 +212,7 @@ main() {
       });
 
       test('version must be less than max', () {
-        var range = new VersionRange(v123, v234);
+        var range = new VersionRange(min: v123, max: v234);
 
         expect(range.allows(new Version.parse('2.3.3')));
         expect(!range.allows(new Version.parse('2.3.4')));
@@ -219,7 +220,7 @@ main() {
       });
 
       test('version must be max or less if includeMax', () {
-        var range = new VersionRange(v123, v234, includeMax: true);
+        var range = new VersionRange(min: v123, max: v234, includeMax: true);
 
         expect(range.allows(new Version.parse('2.3.3')));
         expect(range.allows(new Version.parse('2.3.4')));
@@ -234,7 +235,7 @@ main() {
       });
 
       test('has no max if one was not set', () {
-        var range = new VersionRange(v123);
+        var range = new VersionRange(min: v123);
 
         expect(!range.allows(new Version.parse('1.2.3')));
         expect(range.allows(new Version.parse('1.3.3')));
@@ -251,8 +252,8 @@ main() {
 
     group('intersect()', () {
       test('two overlapping ranges', () {
-        var a = new VersionRange(v123, v250);
-        var b = new VersionRange(v200, v300);
+        var a = new VersionRange(min: v123, max: v250);
+        var b = new VersionRange(min: v200, max: v300);
         var intersect = a.intersect(b);
         expect(intersect.min, equals(v200));
         expect(intersect.max, equals(v250));
@@ -261,39 +262,40 @@ main() {
       });
 
       test('a non-overlapping range allows no versions', () {
-        var a = new VersionRange(v114, v124);
-        var b = new VersionRange(v200, v250);
+        var a = new VersionRange(min: v114, max: v124);
+        var b = new VersionRange(min: v200, max: v250);
         expect(a.intersect(b).isEmpty);
       });
 
       test('adjacent ranges allow no versions if exclusive', () {
-        var a = new VersionRange(v114, v124, includeMax: false);
-        var b = new VersionRange(v124, v200, includeMin: true);
+        var a = new VersionRange(min: v114, max: v124, includeMax: false);
+        var b = new VersionRange(min: v124, max: v200, includeMin: true);
         expect(a.intersect(b).isEmpty);
       });
 
       test('adjacent ranges allow version if inclusive', () {
-        var a = new VersionRange(v114, v124, includeMax: true);
-        var b = new VersionRange(v124, v200, includeMin: true);
+        var a = new VersionRange(min: v114, max: v124, includeMax: true);
+        var b = new VersionRange(min: v124, max: v200, includeMin: true);
         expect(a.intersect(b), equals(v124));
       });
 
       test('with an open range', () {
         var open = new VersionRange();
-        var a = new VersionRange(v114, v124);
+        var a = new VersionRange(min: v114, max: v124);
         expect(open.intersect(open), equals(open));
         expect(a.intersect(open), equals(a));
       });
 
       test('returns the version if the range allows it', () {
-        expect(new VersionRange(v114, v124).intersect(v123), equals(v123));
-        expect(new VersionRange(v123, v124).intersect(v114).isEmpty);
+        expect(new VersionRange(min: v114, max: v124).intersect(v123),
+            equals(v123));
+        expect(new VersionRange(min: v123, max: v124).intersect(v114).isEmpty);
       });
     });
 
     test('isEmpty', () {
       expect(new VersionRange().isEmpty, isFalse);
-      expect(new VersionRange(v123, v124).isEmpty, isFalse);
+      expect(new VersionRange(min: v123, max: v124).isEmpty, isFalse);
     });
   });
 

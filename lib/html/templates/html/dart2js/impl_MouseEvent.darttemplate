@@ -6,8 +6,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
   int get offsetX {
-    if (JS('bool', '!!this.offsetX')) {
-      return this._offsetX;
+  if (JS('bool', '!!#.offsetX', this)) {
+      return JS('int', '#.offsetX', this);
     } else {
       // Firefox does not support offsetX.
       var target = this.target;
@@ -20,19 +20,16 @@ $!MEMBERS
   }
 
   int get offsetY {
-    if (JS('bool', '!!this.offsetY')) {
-      return this._offsetY;
+    if (JS('bool', '!!#.offsetY', this)) {
+      return JS('int', '#.offsetY', this);
     } else {
       // Firefox does not support offsetY.
       var target = this.target;
       if (!(target is Element)) {
         throw const UnsupportedOperationException(
-            'offsetX is only supported on elements');
+            'offsetY is only supported on elements');
       }
       return this.clientY - this.target.getBoundingClientRect().top;
     }
   }
-
-  int get _offsetX() native 'return this.offsetX';
-  int get _offsetY() native 'return this.offsetY';
 }

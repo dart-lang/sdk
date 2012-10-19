@@ -8,7 +8,7 @@
 
 String compileExpression(String expression) {
   var source = "foo() { return $expression; }";
-  return compile(source, "foo");
+  return compile(source, entry: "foo");
 }
 
 main() {

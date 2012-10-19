@@ -90,7 +90,7 @@ class SourceMapBuilder {
     encodeVLQ(output, targetColumn - previousTargetColumn);
     previousTargetColumn = targetColumn;
 
-    if (entry.sourceLocation === null) return;
+    if (entry.sourceLocation == null) return;
 
     String sourceUrl = entry.sourceLocation.getSourceUrl();
     int sourceLine = entry.sourceLocation.getLine();
@@ -106,7 +106,7 @@ class SourceMapBuilder {
     encodeVLQ(output, sourceColumn - previousSourceColumn);
     previousSourceColumn = sourceColumn;
 
-    if (sourceName === null) {
+    if (sourceName == null) {
       return;
     }
 

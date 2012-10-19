@@ -15,12 +15,12 @@
 
 
 
-LocalWindow get window() native "return window;";
-_LocalWindowImpl get _window() native "return window;";
+LocalWindow get window() => JS('LocalWindow', 'window');
+_LocalWindowImpl get _window() => JS('_LocalWindowImpl', 'window');
 
-Document get document() native "return document;";
+Document get document() => JS('Document', 'document');
 
-_DocumentImpl get _document() native "return document;";
+_DocumentImpl get _document() => JS('_DocumentImpl', 'document');
 
 Element query(String selector) => _document.query(selector);
 List<Element> queryAll(String selector) => _document.queryAll(selector);
@@ -31,12 +31,12 @@ class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
-int _getNewIsolateId() native r'''
-  if (!window.$dart$isolate$counter) {
-    window.$dart$isolate$counter = 1;
+int _getNewIsolateId() {
+  if (JS('bool', r'!window.$dart$isolate$counter')) {
+    JS('void', r'window.$dart$isolate$counter = 1');
   }
-  return window.$dart$isolate$counter++;
-''';
+  return JS('int', r'window.$dart$isolate$counter++');
+}
 
 // Fast path to invoke JS send port.
 _callPortSync(int id, message) {
@@ -100,7 +100,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 /// @domName HTMLAnchorElement
 abstract class AnchorElement implements Element {
 
-  factory AnchorElement([String href]) {
+  factory AnchorElement({String href}) {
     if (!?href) {
       return _Elements.createAnchorElement();
     }
@@ -588,7 +588,7 @@ abstract class AudioBuffer {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
+typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
 class _AudioBufferImpl implements AudioBuffer native "*AudioBuffer" {
 
@@ -2211,7 +2211,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
   final int length;
 
-  _CSSRuleImpl operator[](int index) native "return this[index];";
+  _CSSRuleImpl operator[](int index) => JS("_CSSRuleImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSRuleImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -2242,6 +2242,8 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSRule element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
@@ -2257,7 +2259,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
   // From List<CSSRule>:
 
-  void sort(int compare(CSSRule a, CSSRule b)) {
+  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -4232,13 +4234,13 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
     return propValue != null ? propValue : '';
   }
 
-  void setProperty(String propertyName, String value, [String priority]) native '''
-    this.setProperty(propertyName, value, priority);
+  void setProperty(String propertyName, String value, [String priority]) {
+    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
     // Bug #2772, IE9 requires a poke to actually apply the value.
-    if (this.setAttribute) {
-      this.setAttribute(propertyName, value);
+    if (JS('bool', '!!#.setAttribute', this)) {
+      JS('void', '#.setAttribute(#, #)', this, propertyName, value);
     }
-  ''';
+  }
 
   // TODO(jacobr): generate this list of properties using the existing script.
     /** Gets the value of "animation" */
@@ -7179,7 +7181,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 
   final int length;
 
-  _CSSValueImpl operator[](int index) native "return this[index];";
+  _CSSValueImpl operator[](int index) => JS("_CSSValueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSValueImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -7210,6 +7212,8 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSValue element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
@@ -7225,7 +7229,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 
   // From List<CSSValue>:
 
-  void sort(int compare(CSSValue a, CSSValue b)) {
+  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7271,7 +7275,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 /// @domName HTMLCanvasElement
 abstract class CanvasElement implements Element {
 
-  factory CanvasElement([int width, int height]) {
+  factory CanvasElement({int width, int height}) {
     if (!?width) {
       return _Elements.createCanvasElement();
     }
@@ -7907,7 +7911,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
 
   final int length;
 
-  _ClientRectImpl operator[](int index) native "return this[index];";
+  _ClientRectImpl operator[](int index) => JS("_ClientRectImpl", "#[#]", this, index);
 
   void operator[]=(int index, _ClientRectImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -7938,6 +7942,8 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(ClientRect element) => _Collections.contains(this, element);
+
   void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
 
   Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
@@ -7953,7 +7959,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
 
   // From List<ClientRect>:
 
-  void sort(int compare(ClientRect a, ClientRect b)) {
+  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -8186,7 +8192,7 @@ abstract class Console {
 
 class _ConsoleImpl
     // Console is sometimes a singleton bag-of-properties without a prototype.
-    implements Console 
+    implements Console
     native "=(typeof console == 'undefined' ? {} : console)" {
 
   final _MemoryInfoImpl memory;
@@ -8740,7 +8746,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
 
   final int length;
 
-  _DOMMimeTypeImpl operator[](int index) native "return this[index];";
+  _DOMMimeTypeImpl operator[](int index) => JS("_DOMMimeTypeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMMimeTypeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -8771,6 +8777,8 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
@@ -8786,7 +8794,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
 
   // From List<DOMMimeType>:
 
-  void sort(int compare(DOMMimeType a, DOMMimeType b)) {
+  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -8908,7 +8916,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
 
   final int length;
 
-  _DOMPluginImpl operator[](int index) native "return this[index];";
+  _DOMPluginImpl operator[](int index) => JS("_DOMPluginImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMPluginImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -8939,6 +8947,8 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMPlugin element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
@@ -8954,7 +8964,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
 
   // From List<DOMPlugin>:
 
-  void sort(int compare(DOMPlugin a, DOMPlugin b)) {
+  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9169,30 +9179,12 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
   String value;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-/// @domName DOMStringList
-abstract class DOMStringList implements List<String> {
-
-  /** @domName DOMStringList.length */
-  abstract int get length;
-
-  /** @domName DOMStringList.contains */
-  bool contains(String string);
-
-  /** @domName DOMStringList.item */
-  String item(int index);
-}
-
-class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior native "*DOMStringList" {
+class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior native "*DOMStringList" {
 
   final int length;
 
-  String operator[](int index) native "return this[index];";
+  String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -9223,6 +9215,8 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  // contains() defined by IDL.
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -9238,7 +9232,7 @@ class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior na
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9564,7 +9558,7 @@ abstract class Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(database);
+typedef void DatabaseCallback(database);
 
 class _DatabaseImpl implements Database native "*Database" {
 
@@ -9641,7 +9635,7 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
   _DedicatedWorkerContextEventsImpl get on =>
     new _DedicatedWorkerContextEventsImpl(this);
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*any*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -10286,7 +10280,11 @@ class _FilteredElementList implements List {
     add(value);
   }
 
-  void sort(int compare(Element a, Element b)) {
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -10623,7 +10621,7 @@ class _DocumentImpl extends _NodeImpl implements Document
   String cookie;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() native "return this.defaultView;";
+  Window get _window() => JS("Window", "#.defaultView", this);
 
   final _ElementImpl documentElement;
 
@@ -10721,7 +10719,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   void webkitExitPointerLock() native;
 
-  // TODO(jacobr): implement all Element methods not on Document. 
+  // TODO(jacobr): implement all Element methods not on Document.
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
@@ -11390,6 +11388,8 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  bool contains(Element element) => _childElements.contains(element);
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -11407,7 +11407,7 @@ class _ChildrenElementList implements List {
   }
 
   bool every(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (!f(element)) {
         return false;
       }
@@ -11416,7 +11416,7 @@ class _ChildrenElementList implements List {
   }
 
   bool some(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (f(element)) {
         return true;
       }
@@ -11468,7 +11468,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -11526,6 +11526,13 @@ class _FrozenElementList implements List {
 
   Element get first {
     return _nodeList[0];
+  }
+
+  bool contains(Element element) {
+    for (Element el in this) {
+      if (el == element) return true;
+    }
+    return false;
   }
 
   void forEach(void f(Element element)) {
@@ -11596,7 +11603,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('');
   }
 
@@ -12101,7 +12108,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   /** @domName Element.insertAdjacentText */
   void insertAdjacentText(String where, String text) {
-    if (JS('bool', '!!this.insertAdjacentText')) {
+    if (JS('bool', '!!#.insertAdjacentText', this)) {
       _insertAdjacentText(where, text);
     } else {
       _insertAdjacentNode(where, new Text(text));
@@ -12113,7 +12120,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   /** @domName Element.insertAdjacentHTML */
   void insertAdjacentHTML(String where, String text) {
-    if (JS('bool', '!!this.insertAdjacentHTML')) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
       _insertAdjacentHTML(where, text);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(text));
@@ -12125,7 +12132,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   /** @domName Element.insertAdjacentHTML */
   Element insertAdjacentElement(String where, Element element) {
-    if (JS('bool', '!!this.insertAdjacentElement')) {
+    if (JS('bool', '!!#.insertAdjacentElement', this)) {
       _insertAdjacentElement(where, element);
     } else {
       _insertAdjacentNode(where, element);
@@ -12160,7 +12167,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
-  _HTMLCollectionImpl get $dom_children() native "return this.children;";
+  _HTMLCollectionImpl get $dom_children() => JS("_HTMLCollectionImpl", "#.children", this);
 
   String contentEditable;
 
@@ -12192,11 +12199,13 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void click() native;
 
-  int get $dom_childElementCount() native "return this.childElementCount;";
+  int get $dom_childElementCount() => JS("int", "#.childElementCount", this);
 
-  String get $dom_className() native "return this.className;";
+  String get $dom_className() => JS("String", "#.className", this);
 
-  void set $dom_className(String value) native "this.className = value;";
+  void set $dom_className(String value) {
+    JS("void", "#.className = #", this, value);
+  }
 
   final int clientHeight;
 
@@ -12208,9 +12217,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   final Map<String, String> dataset;
 
-  _ElementImpl get $dom_firstElementChild() native "return this.firstElementChild;";
+  _ElementImpl get $dom_firstElementChild() => JS("_ElementImpl", "#.firstElementChild", this);
 
-  _ElementImpl get $dom_lastElementChild() native "return this.lastElementChild;";
+  _ElementImpl get $dom_lastElementChild() => JS("_ElementImpl", "#.lastElementChild", this);
 
   final _ElementImpl nextElementSibling;
 
@@ -12336,8 +12345,8 @@ class _ElementFactoryProvider {
   /** @domName Document.createElement */
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static Element createElement_tag(String tag)
-      native "return document.createElement(tag)";
+  static Element createElement_tag(String tag) =>
+      JS('Element', 'document.createElement(#)', tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12548,33 +12557,6 @@ class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HT
 
 // WARNING: Do not edit - generated code.
 
-/// @domName Entity
-abstract class Entity implements Node {
-
-  /** @domName Entity.notationName */
-  abstract String get notationName;
-
-  /** @domName Entity.publicId */
-  abstract String get publicId;
-
-  /** @domName Entity.systemId */
-  abstract String get systemId;
-}
-
-class _EntityImpl extends _NodeImpl implements Entity native "*Entity" {
-
-  final String notationName;
-
-  final String publicId;
-
-  final String systemId;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName EntityReference
 abstract class EntityReference implements Node {
 }
@@ -12587,7 +12569,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference native "
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntriesCallback(List<Entry> entries);
+typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12635,7 +12617,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
 
   final int length;
 
-  _EntryImpl operator[](int index) native "return this[index];";
+  _EntryImpl operator[](int index) => JS("_EntryImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntryImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -12666,6 +12648,8 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Entry element) => _Collections.contains(this, element);
+
   void forEach(void f(Entry element)) => _Collections.forEach(this, f);
 
   Collection map(f(Entry element)) => _Collections.map(this, [], f);
@@ -12681,7 +12665,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
 
   // From List<Entry>:
 
-  void sort(int compare(Entry a, Entry b)) {
+  void sort([Comparator<Entry> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -12723,7 +12707,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
   final int length;
 
-  _EntrySyncImpl operator[](int index) native "return this[index];";
+  _EntrySyncImpl operator[](int index) => JS("_EntrySyncImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntrySyncImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -12754,6 +12738,8 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(EntrySync element) => _Collections.contains(this, element);
+
   void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
 
   Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
@@ -12769,7 +12755,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
   // From List<EntrySync>:
 
-  void sort(int compare(EntrySync a, EntrySync b)) {
+  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -12812,7 +12798,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntryCallback(Entry entry);
+typedef void EntryCallback(Entry entry);
 
 class _EntryImpl implements Entry native "*Entry" {
 
@@ -12911,7 +12897,7 @@ class _EntrySyncImpl implements EntrySync native "*EntrySync" {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool ErrorCallback(FileError error);
+typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13093,7 +13079,7 @@ class _EventImpl implements Event native "*Event" {
   final _ClipboardImpl clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  EventTarget get _currentTarget() native "return this.currentTarget;";
+  EventTarget get _currentTarget() => JS("EventTarget", "#.currentTarget", this);
 
   final bool defaultPrevented;
 
@@ -13102,10 +13088,10 @@ class _EventImpl implements Event native "*Event" {
   bool returnValue;
 
   EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  EventTarget get _srcElement() native "return this.srcElement;";
+  EventTarget get _srcElement() => JS("EventTarget", "#.srcElement", this);
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() native "return this.target;";
+  EventTarget get _target() => JS("EventTarget", "#.target", this);
 
   final int timeStamp;
 
@@ -13387,7 +13373,7 @@ abstract class File implements Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileCallback(File file);
+typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13543,7 +13529,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
 
   final int length;
 
-  _FileImpl operator[](int index) native "return this[index];";
+  _FileImpl operator[](int index) => JS("_FileImpl", "#[#]", this, index);
 
   void operator[]=(int index, _FileImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -13574,6 +13560,8 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(File element) => _Collections.contains(this, element);
+
   void forEach(void f(File element)) => _Collections.forEach(this, f);
 
   Collection map(f(File element)) => _Collections.map(this, [], f);
@@ -13589,7 +13577,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
 
   // From List<File>:
 
-  void sort(int compare(File a, File b)) {
+  void sort([Comparator<File> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -13780,7 +13768,7 @@ class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileSystemCallback(DOMFileSystem fileSystem);
+typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13855,7 +13843,7 @@ abstract class FileWriterEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileWriterCallback(FileWriter fileWriter);
+typedef void FileWriterCallback(FileWriter fileWriter);
 
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*FileWriter" {
 
@@ -13971,9 +13959,9 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   final int length;
 
-  num operator[](int index) native "return this[index];";
+  num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) native "this[index] = value";
+  void operator[]=(int index, num value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<num> mixins.
   // num is the element type.
 
@@ -14000,6 +13988,8 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -14015,7 +14005,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14088,9 +14078,9 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   final int length;
 
-  num operator[](int index) native "return this[index];";
+  num operator[](int index) => JS("num", "#[#]", this, index);
 
-  void operator[]=(int index, num value) native "this[index] = value";
+  void operator[]=(int index, num value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<num> mixins.
   // num is the element type.
 
@@ -14117,6 +14107,8 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -14132,7 +14124,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14358,7 +14350,7 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
   final _DocumentImpl contentDocument;
 
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() native "return this.contentWindow;";
+  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -14515,7 +14507,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
 
   final int length;
 
-  _GamepadImpl operator[](int index) native "return this[index];";
+  _GamepadImpl operator[](int index) => JS("_GamepadImpl", "#[#]", this, index);
 
   void operator[]=(int index, _GamepadImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -14546,6 +14538,8 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Gamepad element) => _Collections.contains(this, element);
+
   void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
 
   Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
@@ -14561,7 +14555,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
 
   // From List<Gamepad>:
 
-  void sort(int compare(Gamepad a, Gamepad b)) {
+  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14707,7 +14701,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 
   final int length;
 
-  _NodeImpl operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -14738,6 +14732,8 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -14753,7 +14749,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14817,7 +14813,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 
   final int length;
 
-  _NodeImpl operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -14848,6 +14844,8 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -14863,7 +14861,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14924,9 +14922,11 @@ abstract class HTMLOptionsCollection implements HTMLCollection {
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  int get length() native "return this.length;";
+  int get length() => JS("int", "#.length", this);
 
-  void set length(int value) native "this.length = value;";
+  void set length(int value) {
+    JS("void", "#.length = #", this, value);
+  }
 
   int selectedIndex;
 
@@ -15371,10 +15371,10 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
   final String direction;
 
   Dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key() native "return this.key;";
+  Dynamic get _key() => JS("Dynamic", "#.key", this);
 
   Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey() native "return this.primaryKey;";
+  Dynamic get _primaryKey() => JS("Dynamic", "#.primaryKey", this);
 
   final Dynamic source;
 
@@ -15394,7 +15394,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   _IDBRequestImpl delete() native;
 
-  _IDBRequestImpl update(value) {
+  _IDBRequestImpl update(/*any*/ value) {
     var value_1 = _convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
@@ -15416,7 +15416,7 @@ abstract class IDBCursorWithValue implements IDBCursor {
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
   Dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value() native "return this.value;";
+  Dynamic get _value() => JS("Dynamic", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15543,8 +15543,8 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
       throw new ArgumentError(mode);
     }
 
-    // TODO(sra): Ensure storeName_OR_storeNames is a string, List<String> or
-    // DOMStringList, and copy to JavaScript array if necessary.
+    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
+    // and copy to JavaScript array if necessary.
 
     if (_transaction_fn != null) {
       return _transaction_fn(this, storeName_OR_storeNames, mode);
@@ -15576,7 +15576,8 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBTransactionImpl _transaction(stores, mode) native 'transaction';
 
-  static bool _hasNumericMode(txn) native 'return typeof(txn.mode) === "number"';
+  static bool _hasNumericMode(txn) =>
+      JS('bool', 'typeof(#.mode) === "number"', txn);
 
 
   _IDBDatabaseEventsImpl get on =>
@@ -15584,7 +15585,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final String name;
 
-  final List<String> objectStoreNames;
+  final _DOMStringListImpl objectStoreNames;
 
   final Dynamic version;
 
@@ -15648,7 +15649,7 @@ abstract class IDBFactory {
 
 class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
-  int cmp(first, second) {
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
     var first_1 = _convertDartToNative_IDBKey(first);
     var second_2 = _convertDartToNative_IDBKey(second);
     return _cmp_1(first_1, second_2);
@@ -15936,16 +15937,16 @@ abstract class IDBKeyRange {
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
   Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower() native "return this.lower;";
+  Dynamic get _lower() => JS("Dynamic", "#.lower", this);
 
   final bool lowerOpen;
 
   Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper() native "return this.upper;";
+  Dynamic get _upper() => JS("Dynamic", "#.upper", this);
 
   final bool upperOpen;
 
-  static _IDBKeyRangeImpl bound_(lower, upper, [lowerOpen, upperOpen]) {
+  static _IDBKeyRangeImpl bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [lowerOpen, upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
       var upper_2 = _convertDartToNative_IDBKey(upper);
@@ -15964,7 +15965,7 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   _IDBKeyRangeImpl _bound__2(lower, upper, bool lowerOpen) native "bound";
   _IDBKeyRangeImpl _bound__3(lower, upper) native "bound";
 
-  static _IDBKeyRangeImpl lowerBound_(bound, [open]) {
+  static _IDBKeyRangeImpl lowerBound_(/*IDBKey*/ bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _lowerBound__1(bound_1, open);
@@ -15975,13 +15976,13 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   _IDBKeyRangeImpl _lowerBound__1(bound, bool open) native "lowerBound";
   _IDBKeyRangeImpl _lowerBound__2(bound) native "lowerBound";
 
-  static _IDBKeyRangeImpl only_(value) {
+  static _IDBKeyRangeImpl only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
   _IDBKeyRangeImpl _only__1(value) native "only";
 
-  static _IDBKeyRangeImpl upperBound_(bound, [open]) {
+  static _IDBKeyRangeImpl upperBound_(/*IDBKey*/ bound, [open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
       return _upperBound__1(bound_1, open);
@@ -16051,7 +16052,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final bool autoIncrement;
 
-  final List<String> indexNames;
+  final _DOMStringListImpl indexNames;
 
   final Dynamic keyPath;
 
@@ -16059,7 +16060,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _IDBTransactionImpl transaction;
 
-  _IDBRequestImpl add(value, [key]) {
+  _IDBRequestImpl add(/*any*/ value, [key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -16200,7 +16201,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
   _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
-  _IDBRequestImpl put(value, [key]) {
+  _IDBRequestImpl put(/*any*/ value, [key]) {
     if (?key) {
       var value_1 = _convertDartToNative_SerializedScriptValue(value);
       var key_2 = _convertDartToNative_IDBKey(key);
@@ -16319,7 +16320,7 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
   final String readyState;
 
   Dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result() native "return this.result;";
+  Dynamic get _result() => JS("Dynamic", "#.result", this);
 
   final Dynamic source;
 
@@ -16563,7 +16564,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String align;
 
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() native "return this.contentWindow;";
+  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -16595,7 +16596,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
 
 // WARNING: Do not edit - generated code.
 
-typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16656,7 +16657,7 @@ class _ImageDataImpl implements ImageData native "*ImageData" {
 /// @domName HTMLImageElement
 abstract class ImageElement implements Element {
 
-  factory ImageElement([String src, int width, int height]) {
+  factory ImageElement({String src, int width, int height}) {
     if (!?src) {
       return _Elements.createImageElement();
     }
@@ -16776,7 +16777,7 @@ class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HT
 /// @domName HTMLInputElement
 abstract class InputElement implements Element {
 
-  factory InputElement([String type]) {
+  factory InputElement({String type}) {
     if (!?type) {
       return _Elements.createInputElement();
     }
@@ -17114,9 +17115,9 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -17143,6 +17144,8 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -17158,7 +17161,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17231,9 +17234,9 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -17260,6 +17263,8 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -17275,7 +17280,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17348,9 +17353,9 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -17377,6 +17382,8 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -17392,7 +17399,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -17930,7 +17937,7 @@ abstract class LocalLocation implements Location {
 
 class _LocalLocationImpl implements LocalLocation native "*Location" {
 
-  final List<String> ancestorOrigins;
+  final _DOMStringListImpl ancestorOrigins;
 
   String hash;
 
@@ -18458,11 +18465,12 @@ abstract class LocalWindowEvents implements Events {
 
 class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@*DOMWindow" {
 
-  _DocumentImpl get document() native "return this.document;";
+  _DocumentImpl get document() => JS('_DocumentImpl', '#.document', this);
 
-  Window _open2(url, name) native "return this.open(url, name);";
+  Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
-  Window _open3(url, name, options) native "return this.open(url, name, options);";
+  Window _open3(url, name, options) =>
+      JS('Window', '#.open(#,#,#)', this, url, name, options);
 
   Window open(String url, String name, [String options]) {
     if (options == null) {
@@ -18507,8 +18515,10 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   var _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location() native 'return this.location';
-  void set _location(Location value) native 'this.location = value';
+  Location get _location() => JS('Location', '#.location', this);
+  void set _location(Location value) {
+    JS('void', '#.location = #', this, value);
+  }
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
   _protect_location() native 'location';
@@ -18545,29 +18555,39 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   void _cancelAnimationFrame(int id)
       native 'cancelAnimationFrame';
 
-  _ensureRequestAnimationFrame() native '''
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+  _ensureRequestAnimationFrame() {
+    if (JS('bool',
+           '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
+      return;
+
+    JS('void',
+       r"""
+  (function($this) {
    var vendors = ['ms', 'moz', 'webkit', 'o'];
-   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
-     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
-     this.cancelAnimationFrame =
-         this[vendors[i]+'CancelAnimationFrame'] ||
-         this[vendors[i]+'CancelRequestAnimationFrame'];
+   for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
+     $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
+     $this.cancelAnimationFrame =
+         $this[vendors[i]+'CancelAnimationFrame'] ||
+         $this[vendors[i]+'CancelRequestAnimationFrame'];
    }
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   this.requestAnimationFrame = function(callback) {
+   if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
+   $this.requestAnimationFrame = function(callback) {
       return window.setTimeout(function() {
         callback(Date.now());
       }, 16 /* 16ms ~= 60fps */);
    };
-   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
-''';
+   $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+  })(#)""",
+       this);
+  }
 
 
   _IDBFactoryImpl get indexedDB => _get_indexedDB();
 
-  _IDBFactoryImpl _get_indexedDB() native
-      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+  _IDBFactoryImpl _get_indexedDB() =>
+      JS('_IDBFactoryImpl',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
 
   // TODO(kasperl): Document these.
   lookupPort(String name) {
@@ -18580,13 +18600,15 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
-  String createObjectUrl(object) native '''
-    return (window.URL || window.webkitURL).createObjectURL(object)
-  ''';
+  String createObjectUrl(object) =>
+      JS('String',
+         '(window.URL || window.webkitURL).createObjectURL(#)', object);
 
-  void revokeObjectUrl(String objectUrl) native '''
-    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
-  ''';
+  void revokeObjectUrl(String objectUrl) {
+    JS('void',
+       '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
+  }
+
 
   _LocalWindowEventsImpl get on =>
     new _LocalWindowEventsImpl(this);
@@ -18628,7 +18650,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final bool offscreenBuffering;
 
   Window get opener => _convertNativeToDart_Window(this._opener);
-  Window get _opener() native "return this.opener;";
+  Window get _opener() => JS("Window", "#.opener", this);
 
   final int outerHeight;
 
@@ -18641,7 +18663,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final int pageYOffset;
 
   Window get parent => _convertNativeToDart_Window(this._parent);
-  Window get _parent() native "return this.parent;";
+  Window get _parent() => JS("Window", "#.parent", this);
 
   final _PerformanceImpl performance;
 
@@ -18664,7 +18686,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl scrollbars;
 
   Window get self => _convertNativeToDart_Window(this._self);
-  Window get _self() native "return this.self;";
+  Window get _self() => JS("Window", "#.self", this);
 
   final _StorageImpl sessionStorage;
 
@@ -18677,7 +18699,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl toolbar;
 
   Window get top => _convertNativeToDart_Window(this._top);
-  Window get _top() native "return this.top;";
+  Window get _top() => JS("Window", "#.top", this);
 
   final _IDBFactoryImpl webkitIndexedDB;
 
@@ -18686,7 +18708,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _StorageInfoImpl webkitStorageInfo;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() native "return this.window;";
+  Window get _window() => JS("Window", "#.window", this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -18728,7 +18750,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void postMessage(message, String targetOrigin, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [messagePorts]) {
     if (?message &&
         !?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
@@ -19842,7 +19864,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
 
   final int length;
 
-  _MediaStreamImpl operator[](int index) native "return this[index];";
+  _MediaStreamImpl operator[](int index) => JS("_MediaStreamImpl", "#[#]", this, index);
 
   void operator[]=(int index, _MediaStreamImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -19873,6 +19895,8 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(MediaStream element) => _Collections.contains(this, element);
+
   void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
 
   Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
@@ -19888,7 +19912,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
 
   // From List<MediaStream>:
 
-  void sort(int compare(MediaStream a, MediaStream b)) {
+  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -20196,7 +20220,7 @@ abstract class MessageEvent implements Event {
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
   Dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
-  Dynamic get _data() native "return this.data;";
+  Dynamic get _data() => JS("Dynamic", "#.data", this);
 
   final String lastEventId;
 
@@ -20205,7 +20229,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
   final List ports;
 
   Window get source => _convertNativeToDart_Window(this._source);
-  Window get _source() native "return this.source;";
+  Window get _source() => JS("Window", "#.source", this);
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List messagePorts) native;
 
@@ -20260,7 +20284,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*any*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -20336,7 +20360,7 @@ abstract class Metadata {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MetadataCallback(Metadata metadata);
+typedef void MetadataCallback(Metadata metadata);
 
 class _MetadataImpl implements Metadata native "*Metadata" {
 
@@ -20519,7 +20543,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   final bool metaKey;
 
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  EventTarget get _relatedTarget() native "return this.relatedTarget;";
+  EventTarget get _relatedTarget() => JS("EventTarget", "#.relatedTarget", this);
 
   final int screenX;
 
@@ -20546,8 +20570,8 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
 
   int get offsetX {
-    if (JS('bool', '!!this.offsetX')) {
-      return this._offsetX;
+  if (JS('bool', '!!#.offsetX', this)) {
+      return JS('int', '#.offsetX', this);
     } else {
       // Firefox does not support offsetX.
       var target = this.target;
@@ -20560,21 +20584,18 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   }
 
   int get offsetY {
-    if (JS('bool', '!!this.offsetY')) {
-      return this._offsetY;
+    if (JS('bool', '!!#.offsetY', this)) {
+      return JS('int', '#.offsetY', this);
     } else {
       // Firefox does not support offsetY.
       var target = this.target;
       if (!(target is Element)) {
         throw const UnsupportedOperationException(
-            'offsetX is only supported on elements');
+            'offsetY is only supported on elements');
       }
       return this.clientY - this.target.getBoundingClientRect().top;
     }
   }
-
-  int get _offsetX() native 'return this.offsetX';
-  int get _offsetY() native 'return this.offsetY';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20582,7 +20603,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
+typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20649,14 +20670,14 @@ abstract class MutationObserver {
   List<MutationRecord> takeRecords();
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]);
+                List<String> attributeFilter});
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20676,14 +20697,14 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
   List<MutationRecord> takeRecords() native;
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]) {
+                List<String> attributeFilter}) {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
@@ -20831,7 +20852,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 
   final int length;
 
-  _NodeImpl operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -20862,6 +20883,8 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -20877,7 +20900,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -21069,7 +21092,7 @@ abstract class NavigatorUserMediaError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
@@ -21081,7 +21104,7 @@ class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*N
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21306,6 +21329,8 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -21323,7 +21348,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -21393,27 +21418,29 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   }
 
 
-  _NamedNodeMapImpl get $dom_attributes() native "return this.attributes;";
+  _NamedNodeMapImpl get $dom_attributes() => JS("_NamedNodeMapImpl", "#.attributes", this);
 
-  List<Node> get $dom_childNodes() native "return this.childNodes;";
+  List<Node> get $dom_childNodes() => JS("List<Node>", "#.childNodes", this);
 
-  _NodeImpl get $dom_firstChild() native "return this.firstChild;";
+  _NodeImpl get $dom_firstChild() => JS("_NodeImpl", "#.firstChild", this);
 
-  _NodeImpl get $dom_lastChild() native "return this.lastChild;";
+  _NodeImpl get $dom_lastChild() => JS("_NodeImpl", "#.lastChild", this);
 
-  _NodeImpl get nextNode() native "return this.nextSibling;";
+  _NodeImpl get nextNode() => JS("_NodeImpl", "#.nextSibling", this);
 
-  int get $dom_nodeType() native "return this.nodeType;";
+  int get $dom_nodeType() => JS("int", "#.nodeType", this);
 
-  _DocumentImpl get document() native "return this.ownerDocument;";
+  _DocumentImpl get document() => JS("_DocumentImpl", "#.ownerDocument", this);
 
-  _NodeImpl get parent() native "return this.parentNode;";
+  _NodeImpl get parent() => JS("_NodeImpl", "#.parentNode", this);
 
-  _NodeImpl get previousNode() native "return this.previousSibling;";
+  _NodeImpl get previousNode() => JS("_NodeImpl", "#.previousSibling", this);
 
-  String get text() native "return this.textContent;";
+  String get text() => JS("String", "#.textContent", this);
 
-  void set text(String value) native "this.textContent = value;";
+  void set text(String value) {
+    JS("void", "#.textContent = #", this, value);
+  }
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -21526,6 +21553,8 @@ class _ListWrapper<E> implements List<E> {
 
   Iterator<E> iterator() => _list.iterator();
 
+  bool contains(E element) => _list.contains(element);
+
   void forEach(void f(E element)) => _list.forEach(f);
 
   Collection map(f(E element)) => _list.map(f);
@@ -21552,7 +21581,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -21641,6 +21670,8 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
     _parent.$dom_replaceChild(value, this[index]);
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -21656,7 +21687,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -21687,7 +21718,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   final int length;
 
-  _NodeImpl operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   _NodeImpl _item(int index) native "item";
 
@@ -21861,7 +21892,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NotificationPermissionCallback(String permission);
+typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22882,7 +22913,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*Po
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionCallback(Geoposition position);
+typedef void PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22910,7 +22941,7 @@ abstract class PositionError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionErrorCallback(PositionError error);
+typedef void PositionErrorCallback(PositionError error);
 
 class _PositionErrorImpl implements PositionError native "*PositionError" {
 
@@ -23080,7 +23111,7 @@ class _RGBColorImpl implements RGBColor native "*RGBColor" {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCErrorCallback(String errorInformation);
+typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23328,7 +23359,7 @@ abstract class RTCSessionDescription {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCSessionDescriptionCallback(RTCSessionDescription sdp);
+typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 
 class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSessionDescription" {
 
@@ -23342,7 +23373,7 @@ class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSe
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCStatsCallback(RTCStatsResponse response);
+typedef void RTCStatsCallback(RTCStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23854,7 +23885,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
   final int length;
 
-  Map operator[](int index) native "return this[index];";
+  Map operator[](int index) => JS("Map", "#[#]", this, index);
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -23885,6 +23916,8 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Map element) => _Collections.contains(this, element);
+
   void forEach(void f(Map element)) => _Collections.forEach(this, f);
 
   Collection map(f(Map element)) => _Collections.map(this, [], f);
@@ -23900,7 +23933,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
   // From List<Map>:
 
-  void sort(int compare(Map a, Map b)) {
+  void sort([Comparator<Map> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23946,14 +23979,14 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23972,14 +24005,14 @@ abstract class SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionCallback(SQLTransaction transaction);
+typedef void SQLTransactionCallback(SQLTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionErrorCallback(SQLError error);
+typedef void SQLTransactionErrorCallback(SQLError error);
 
 class _SQLTransactionImpl implements SQLTransaction native "*SQLTransaction" {
 
@@ -24003,7 +24036,7 @@ abstract class SQLTransactionSync {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
+typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransactionSync" {
 
@@ -24052,7 +24085,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24359,7 +24392,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 
   final _SVGLengthListImpl baseVal;
 
-  _SVGAnimatedLengthImpl operator[](int index) native "return this[index];";
+  _SVGAnimatedLengthImpl operator[](int index) => JS("_SVGAnimatedLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedLengthImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -24390,6 +24423,8 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
@@ -24405,7 +24440,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 
   // From List<SVGAnimatedLength>:
 
-  void sort(int compare(SVGAnimatedLength a, SVGAnimatedLength b)) {
+  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24484,7 +24519,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 
   final _SVGNumberListImpl baseVal;
 
-  _SVGAnimatedNumberImpl operator[](int index) native "return this[index];";
+  _SVGAnimatedNumberImpl operator[](int index) => JS("_SVGAnimatedNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedNumberImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -24515,6 +24550,8 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedNumber element)) => _Collections.map(this, [], f);
@@ -24530,7 +24567,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 
   // From List<SVGAnimatedNumber>:
 
-  void sort(int compare(SVGAnimatedNumber a, SVGAnimatedNumber b)) {
+  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24653,7 +24690,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 
   final _SVGTransformListImpl baseVal;
 
-  _SVGAnimateTransformElementImpl operator[](int index) native "return this[index];";
+  _SVGAnimateTransformElementImpl operator[](int index) => JS("_SVGAnimateTransformElementImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimateTransformElementImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -24684,6 +24721,8 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimateTransformElement element)) => _Collections.map(this, [], f);
@@ -24699,7 +24738,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 
   // From List<SVGAnimateTransformElement>:
 
-  void sort(int compare(SVGAnimateTransformElement a, SVGAnimateTransformElement b)) {
+  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24839,7 +24878,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24903,7 +24942,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25106,7 +25145,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25151,7 +25190,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25262,9 +25301,11 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 
   // Shadowing definition.
-  String get id() native "return this.id;";
+  String get id() => JS("String", "#.id", this);
 
-  void set id(String value) native "this.id = value;";
+  void set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
 
   final _SVGSVGElementImpl ownerSVGElement;
 
@@ -25505,7 +25546,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 
   final int length;
 
-  _SVGElementInstanceImpl operator[](int index) native "return this[index];";
+  _SVGElementInstanceImpl operator[](int index) => JS("_SVGElementInstanceImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGElementInstanceImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -25536,6 +25577,8 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGElementInstance element)) => _Collections.map(this, [], f);
@@ -25551,7 +25594,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 
   // From List<SVGElementInstance>:
 
-  void sort(int compare(SVGElementInstance a, SVGElementInstance b)) {
+  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -25642,7 +25685,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25770,7 +25813,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25828,7 +25871,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25866,7 +25909,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25948,7 +25991,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26049,7 +26092,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26107,7 +26150,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26175,7 +26218,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26260,7 +26303,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26293,7 +26336,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26394,7 +26437,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26446,7 +26489,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26479,7 +26522,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26560,7 +26603,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26608,7 +26651,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26688,7 +26731,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26778,7 +26821,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26853,7 +26896,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26933,7 +26976,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27105,7 +27148,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27164,7 +27207,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27249,7 +27292,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27301,7 +27344,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27383,7 +27426,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27525,7 +27568,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 
   final int numberOfItems;
 
-  _SVGLengthImpl operator[](int index) native "return this[index];";
+  _SVGLengthImpl operator[](int index) => JS("_SVGLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGLengthImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -27556,6 +27599,8 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
@@ -27571,7 +27616,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 
   // From List<SVGLength>:
 
-  void sort(int compare(SVGLength a, SVGLength b)) {
+  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27674,7 +27719,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27859,7 +27904,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27936,7 +27981,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -28119,7 +28164,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
 
   final int numberOfItems;
 
-  _SVGNumberImpl operator[](int index) native "return this[index];";
+  _SVGNumberImpl operator[](int index) => JS("_SVGNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGNumberImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -28150,6 +28195,8 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGNumber element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGNumber element)) => _Collections.map(this, [], f);
@@ -28165,7 +28212,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
 
   // From List<SVGNumber>:
 
-  void sort(int compare(SVGNumber a, SVGNumber b)) {
+  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -28435,7 +28482,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29034,7 +29081,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
 
   final int numberOfItems;
 
-  _SVGPathSegImpl operator[](int index) native "return this[index];";
+  _SVGPathSegImpl operator[](int index) => JS("_SVGPathSegImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGPathSegImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -29065,6 +29112,8 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
@@ -29080,7 +29129,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
 
   // From List<SVGPathSeg>:
 
-  void sort(int compare(SVGPathSeg a, SVGPathSeg b)) {
+  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -29246,7 +29295,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29382,7 +29431,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29451,7 +29500,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29648,7 +29697,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29933,7 +29982,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30020,7 +30069,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30065,7 +30114,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 
   final int numberOfItems;
 
-  String operator[](int index) native "return this[index];";
+  String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -30096,6 +30145,8 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(String element) => _Collections.contains(this, element);
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -30111,7 +30162,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30207,9 +30258,11 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   String media;
 
   // Shadowing definition.
-  String get title() native "return this.title;";
+  String get title() => JS("String", "#.title", this);
 
-  void set title(String value) native "this.title = value;";
+  void set title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 
   String type;
 
@@ -30253,7 +30306,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30302,7 +30355,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30459,7 +30512,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30596,7 +30649,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30718,7 +30771,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 
   final int numberOfItems;
 
-  _SVGTransformImpl operator[](int index) native "return this[index];";
+  _SVGTransformImpl operator[](int index) => JS("_SVGTransformImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGTransformImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -30749,6 +30802,8 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGTransform element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGTransform element)) => _Collections.map(this, [], f);
@@ -30764,7 +30819,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 
   // From List<SVGTransform>:
 
-  void sort(int compare(SVGTransform a, SVGTransform b)) {
+  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30927,7 +30982,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() native "return this.className;";
+  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -31657,7 +31712,7 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
 
   final int length;
 
-  _SourceBufferImpl operator[](int index) native "return this[index];";
+  _SourceBufferImpl operator[](int index) => JS("_SourceBufferImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SourceBufferImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -31688,6 +31743,8 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+
   void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
 
   Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
@@ -31703,7 +31760,7 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
 
   // From List<SourceBuffer>:
 
-  void sort(int compare(SourceBuffer a, SourceBuffer b)) {
+  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31841,7 +31898,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 
   final int length;
 
-  _SpeechGrammarImpl operator[](int index) native "return this[index];";
+  _SpeechGrammarImpl operator[](int index) => JS("_SpeechGrammarImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechGrammarImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -31872,6 +31929,8 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
@@ -31887,7 +31946,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 
   // From List<SpeechGrammar>:
 
-  void sort(int compare(SpeechGrammar a, SpeechGrammar b)) {
+  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31972,7 +32031,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
 
   final int length;
 
-  _SpeechInputResultImpl operator[](int index) native "return this[index];";
+  _SpeechInputResultImpl operator[](int index) => JS("_SpeechInputResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechInputResultImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -32003,6 +32062,8 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
@@ -32018,7 +32079,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
 
   // From List<SpeechInputResult>:
 
-  void sort(int compare(SpeechInputResult a, SpeechInputResult b)) {
+  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32297,7 +32358,7 @@ class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*S
 
   final _DocumentImpl emma;
 
-  bool get finalValue() native "return this.final;";
+  bool get finalValue() => JS("bool", "#.final", this);
 
   final int length;
 
@@ -32308,7 +32369,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 
   final int length;
 
-  _SpeechRecognitionResultImpl operator[](int index) native "return this[index];";
+  _SpeechRecognitionResultImpl operator[](int index) => JS("_SpeechRecognitionResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechRecognitionResultImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -32339,6 +32400,8 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
@@ -32354,7 +32417,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 
   // From List<SpeechRecognitionResult>:
 
-  void sort(int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)) {
+  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32512,7 +32575,7 @@ class _StorageImpl implements Storage native "*Storage" {
 
   bool isEmpty() => $dom_key(0) == null;
 
-  int get $dom_length() native "return this.length;";
+  int get $dom_length() => JS("int", "#.length", this);
 
   void $dom_clear() native "clear";
 
@@ -32550,7 +32613,7 @@ abstract class StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoErrorCallback(DOMException error);
+typedef void StorageInfoErrorCallback(DOMException error);
 
 class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
 
@@ -32564,21 +32627,21 @@ class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StringCallback(String data);
+typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32692,7 +32755,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
 
   final int length;
 
-  _StyleSheetImpl operator[](int index) native "return this[index];";
+  _StyleSheetImpl operator[](int index) => JS("_StyleSheetImpl", "#[#]", this, index);
 
   void operator[]=(int index, _StyleSheetImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -32723,6 +32786,8 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(StyleSheet element) => _Collections.contains(this, element);
+
   void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
 
   Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
@@ -32738,7 +32803,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
 
   // From List<StyleSheet>:
 
-  void sort(int compare(StyleSheet a, StyleSheet b)) {
+  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33584,7 +33649,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
 
   final int length;
 
-  _TextTrackCueImpl operator[](int index) native "return this[index];";
+  _TextTrackCueImpl operator[](int index) => JS("_TextTrackCueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackCueImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -33615,6 +33680,8 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
@@ -33630,7 +33697,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
 
   // From List<TextTrackCue>:
 
-  void sort(int compare(TextTrackCue a, TextTrackCue b)) {
+  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33745,7 +33812,7 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
 
   final int length;
 
-  _TextTrackImpl operator[](int index) native "return this[index];";
+  _TextTrackImpl operator[](int index) => JS("_TextTrackImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -33776,6 +33843,8 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrack element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
@@ -33791,7 +33860,7 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
 
   // From List<TextTrack>:
 
-  void sort(int compare(TextTrack a, TextTrack b)) {
+  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34003,7 +34072,7 @@ class _TouchImpl implements Touch native "*Touch" {
   final int screenY;
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() native "return this.target;";
+  EventTarget get _target() => JS("EventTarget", "#.target", this);
 
   final num webkitForce;
 
@@ -34033,7 +34102,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
 
   final int length;
 
-  _TouchImpl operator[](int index) native "return this[index];";
+  _TouchImpl operator[](int index) => JS("_TouchImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TouchImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -34064,6 +34133,8 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Touch element) => _Collections.contains(this, element);
+
   void forEach(void f(Touch element)) => _Collections.forEach(this, f);
 
   Collection map(f(Touch element)) => _Collections.map(this, [], f);
@@ -34079,7 +34150,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
 
   // From List<Touch>:
 
-  void sort(int compare(Touch a, Touch b)) {
+  void sort([Comparator<Touch> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34159,9 +34230,11 @@ abstract class TrackElement implements Element {
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
 
-  bool get defaultValue() native "return this.default;";
+  bool get defaultValue() => JS("bool", "#.default", this);
 
-  void set defaultValue(bool value) native "this.default = value;";
+  void set defaultValue(bool value) {
+    JS("void", "#.default = #", this, value);
+  }
 
   String kind;
 
@@ -34343,7 +34416,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
   final int pageY;
 
   Window get view => _convertNativeToDart_Window(this._view);
-  Window get _view() native "return this.view;";
+  Window get _view() => JS("Window", "#.view", this);
 
   final int which;
 
@@ -34407,9 +34480,9 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -34436,6 +34509,8 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -34451,7 +34526,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34524,9 +34599,9 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -34553,6 +34628,8 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -34568,7 +34645,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34641,9 +34718,9 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   final int length;
 
-  int operator[](int index) native "return this[index];";
+  int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) native "this[index] = value";
+  void operator[]=(int index, int value) => JS("void", "#[#] = #", this, index, value);
   // -- start List<int> mixins.
   // int is the element type.
 
@@ -34670,6 +34747,8 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -34685,7 +34764,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34915,7 +34994,7 @@ class _VideoElementImpl extends _MediaElementImpl implements VideoElement native
 
 // WARNING: Do not edit - generated code.
 
-typedef bool VoidCallback();
+typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36626,7 +36705,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   final int length;
 
-  _AnimationImpl operator[](int index) native "return this[index];";
+  _AnimationImpl operator[](int index) => JS("_AnimationImpl", "#[#]", this, index);
 
   void operator[]=(int index, _AnimationImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
@@ -36657,6 +36736,8 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Animation element) => _Collections.contains(this, element);
+
   void forEach(void f(Animation element)) => _Collections.forEach(this, f);
 
   Collection map(f(Animation element)) => _Collections.map(this, [], f);
@@ -36672,7 +36753,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   // From List<Animation>:
 
-  void sort(int compare(Animation a, Animation b)) {
+  void sort([Comparator<Animation> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37023,12 +37104,12 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
     return this._deltaMode;
   }
 
-  num get _deltaY() native 'return this.deltaY';
-  num get _deltaX() native 'return this.deltaX';
-  num get _wheelDelta() native 'return this.wheelDelta';
-  num get _wheelDeltaX() native 'return this.wheelDeltaX';
-  num get _detail() native 'return this.detail';
-  int get _deltaMode() native 'return this.deltaMode';
+  num get _deltaY => JS('num', '#.deltaY', this);
+  num get _deltaX => JS('num', '#.deltaX', this);
+  num get _wheelDelta => JS('num', '#.wheelDelta', this);
+  num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
+  num get _detail => JS('num', '#.detail', this);
+  int get _deltaMode => JS('int', '#.deltaMode', this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37204,7 +37285,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
   _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [messagePorts]) {
+  void postMessage(/*SerializedScriptValue*/ message, [messagePorts]) {
     if (?messagePorts) {
       var message_1 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
@@ -37573,18 +37654,18 @@ class _XSLTProcessorImpl implements XSLTProcessor native "*XSLTProcessor" {
 // BSD-style license that can be found in the LICENSE file.
 
 class _ArrayBufferFactoryProvider {
-  static ArrayBuffer createArrayBuffer(int length) native
-      '''return new ArrayBuffer(length);''';
+  static ArrayBuffer createArrayBuffer(int length) =>
+      JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioElementFactoryProvider {
-  static AudioElement createAudioElement([String src = null]) native '''
-      if (src == null) return new Audio();
-      return new Audio(src);
-    ''';
+  static AudioElement createAudioElement([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37604,48 +37685,51 @@ class _BlobFactoryProvider {
     return _create_2(blobParts, bag);
   }
 
-  static _create_1(parts) native 'return new Blob(parts);';
-  static _create_2(parts, bag) native 'return new Blob(parts, bag);';
+  static _create_1(parts) => JS('Blob', 'new Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new Blob(#, #)', parts, bag);
 
-  static _create_bag() native 'return {}';
-  static _bag_set(bag, key, value) native 'bag[key] = value;';
+  static _create_bag() => JS('var', '{}');
+  static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _CSSMatrixFactoryProvider {
-  static CSSMatrix createCSSMatrix([String cssValue = '']) native
-      'return new WebKitCSSMatrix(cssValue);';
+  static CSSMatrix createCSSMatrix([String cssValue = '']) =>
+      JS('CSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _DOMParserFactoryProvider {
-  static DOMParser createDOMParser() native
-      '''return new DOMParser();''';
+  static DOMParser createDOMParser() =>
+      JS('DOMParser', 'new DOMParser()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _DOMURLFactoryProvider {
-  static DOMURL createDOMURL() native
-      '''return new DOMURL();''';
+  static DOMURL createDOMURL() =>
+      JS('DOMURL', 'new DOMURL()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _DataViewFactoryProvider {
-  static DataView createDataView(ArrayBuffer buffer,
-      [int byteOffset = null, int byteLength = null])
-      native '''
-          if (byteOffset == null) return new DataView(buffer);
-          if (byteLength == null) return new DataView(buffer, byteOffset);
-          return new DataView(buffer, byteOffset, byteLength);
-      ''';
+  static DataView createDataView(
+      ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) {
+    if (byteOffset == null) {
+      return JS('DataView', 'new DataView(#)', buffer);
+    }
+    if (byteLength == null) {
+      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
+    }
+    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37956,41 +38040,42 @@ class _Elements {
 // BSD-style license that can be found in the LICENSE file.
 
 class _EventSourceFactoryProvider {
-  static EventSource createEventSource(String scriptUrl) native
-      '''return new EventSource(scriptUrl);''';
+  static EventSource createEventSource(String scriptUrl) =>
+      JS('EventSource', 'new EventSource(#)', scriptUrl);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileReaderFactoryProvider {
-  static FileReader createFileReader() native
-      '''return new FileReader();''';
+  static FileReader createFileReader() =>
+      JS('FileReader', 'new FileReader()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileReaderSyncFactoryProvider {
-  static FileReaderSync createFileReaderSync() native
-      '''return new FileReaderSync();''';
+  static FileReaderSync createFileReaderSync() =>
+      JS('FileReaderSync', 'new FileReaderSync()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _FormDataFactoryProvider {
-  static FormData createFormData([FormElement form = null]) native '''
-    if (form == null) return new FormData();
-    return new FormData(form);
-  ''';
+  static FormData createFormData([FormElement form = null]) {
+    if (form == null) return JS('FormData', 'new FormData()');
+    return JS('FormData', 'new FormData(#)', form);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _HttpRequestFactoryProvider {
-  static HttpRequest createHttpRequest() native 'return new XMLHttpRequest();';
+  static HttpRequest createHttpRequest() =>
+      JS('HttpRequest', 'new XMLHttpRequest();');
 
   static HttpRequest createHttpRequest_get(String url,
       onSuccess(HttpRequest request)) =>
@@ -38005,40 +38090,40 @@ class _HttpRequestFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _IceCandidateFactoryProvider {
-  static IceCandidate createIceCandidate(String label, String candidateLine) native
-      '''return new IceCandidate(label, candidateLine);''';
+  static IceCandidate createIceCandidate(String label, String candidateLine) =>
+      JS('IceCandidate', 'new IceCandidate(#,#)', label, candidateLine);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaControllerFactoryProvider {
-  static MediaController createMediaController() native
-      '''return new MediaController();''';
+  static MediaController createMediaController() =>
+      JS('MediaController', 'new MediaController()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaSourceFactoryProvider {
-  static MediaSource createMediaSource() native
-      '''return new MediaSource();''';
+  static MediaSource createMediaSource() =>
+      JS('MediaSource', 'new MediaSource()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _MediaStreamFactoryProvider {
-  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native
-      '''return new MediaStream(audioTracks, videoTracks);''';
+  static MediaStream createMediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
+      JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _MessageChannelFactoryProvider {
-  static MessageChannel createMessageChannel() native
-      '''return new MessageChannel();''';
+  static MessageChannel createMessageChannel() =>
+      JS('MessageChannel', 'new MessageChannel()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38051,14 +38136,24 @@ class _MutationObserverFactoryProvider {
         window.MozMutationObserver;
     return new constructor(callback);
   ''';
+
+  // TODO(sra): Dart2js inserts a conversion when a Dart function (i.e. an
+  // object with a call method) is passed to a native method.  This is so the
+  // native code sees a JavaScript function.
+  //
+  // This does not happen when a function is 'passed' to a JS-form so it is not
+  // possible to rewrite the above code to, e.g. (simplified):
+  //
+  // static createMutationObserver(MutationCallback callback) =>
+  //    JS('var', 'new (window.MutationObserver)(#)', callback);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  static Notification createNotification(String title, [Map options]) native
-      '''return new Notification(title, options);''';
+  static Notification createNotification(String title, [Map options]) =>
+      JS('Notification', 'new Notification(#,#)', title, options);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38066,98 +38161,106 @@ class _NotificationFactoryProvider {
 
 class _OptionElementFactoryProvider {
   static OptionElement createOptionElement(
-      [String data, String value, bool defaultSelected, bool selected])
-      native '''
-          if (data == null) return new Option();
-          if (value == null) return new Option(data);
-          if (defaultSelected == null) return new Option(data, value);
-          if (selected == null) return new Option(data, value, defaultSelected);
-          return new Option(data, value, defaultSelected, selected);
-      ''';
+      [String data, String value, bool defaultSelected, bool selected]) {
+    if (data == null) {
+      return JS('OptionElement', 'new Option()');
+    }
+    if (value == null) {
+      return JS('OptionElement', 'new Option(#)', data);
+    }
+    if (defaultSelected == null) {
+      return JS('OptionElement', 'new Option(#,#)', data, value);
+    }
+    if (selected == null) {
+      return JS('OptionElement', 'new Option(#,#,#)',
+                data, value, defaultSelected);
+    }
+    return JS('OptionElement', 'new Option(#,#,#,#)',
+              data, value, defaultSelected, selected);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _PeerConnection00FactoryProvider {
-  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) native
-      '''return new PeerConnection00(serverConfiguration, iceCallback);''';
+  static PeerConnection00 createPeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
+      JS('PeerConnection00', 'new PeerConnection00(#,#)', serverConfiguration, iceCallback);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCIceCandidateFactoryProvider {
-  static RTCIceCandidate createRTCIceCandidate(Map dictionary) native
-      '''return new RTCIceCandidate(dictionary);''';
+  static RTCIceCandidate createRTCIceCandidate(Map dictionary) =>
+      JS('RTCIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCPeerConnectionFactoryProvider {
-  static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) native
-      '''return new RTCPeerConnection(rtcIceServers, mediaConstraints);''';
+  static RTCPeerConnection createRTCPeerConnection(Map rtcIceServers, [Map mediaConstraints]) =>
+      JS('RTCPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _RTCSessionDescriptionFactoryProvider {
-  static RTCSessionDescription createRTCSessionDescription(Map dictionary) native
-      '''return new RTCSessionDescription(dictionary);''';
+  static RTCSessionDescription createRTCSessionDescription(Map dictionary) =>
+      JS('RTCSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _SessionDescriptionFactoryProvider {
-  static SessionDescription createSessionDescription(String sdp) native
-      '''return new SessionDescription(sdp);''';
+  static SessionDescription createSessionDescription(String sdp) =>
+      JS('SessionDescription', 'new SessionDescription(#)', sdp);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _ShadowRootFactoryProvider {
-  static ShadowRoot createShadowRoot(Element host) native '''
-      return new (window.ShadowRoot || window.WebKitShadowRoot)(host);
-    ''';
+  static ShadowRoot createShadowRoot(Element host) =>
+      JS('ShadowRoot',
+         'new (window.ShadowRoot || window.WebKitShadowRoot)(#)', host);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _SharedWorkerFactoryProvider {
-  static SharedWorker createSharedWorker(String scriptURL, [String name])
-      native '''
-        if (name == null) return new SharedWorker(scriptURL);
-        return new SharedWorker(scriptURL, name);
-      ''';
+  static SharedWorker createSharedWorker(String scriptURL, [String name]) {
+    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
+    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechGrammarFactoryProvider {
-  static SpeechGrammar createSpeechGrammar() native
-      '''return new SpeechGrammar();''';
+  static SpeechGrammar createSpeechGrammar() =>
+      JS('SpeechGrammar', 'new SpeechGrammar()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechGrammarListFactoryProvider {
-  static SpeechGrammarList createSpeechGrammarList() native
-      '''return new SpeechGrammarList();''';
+  static SpeechGrammarList createSpeechGrammarList() =>
+      JS('SpeechGrammarList', 'new SpeechGrammarList()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _SpeechRecognitionFactoryProvider {
-  static SpeechRecognition createSpeechRecognition() native
-      '''return new SpeechRecognition();''';
+  static SpeechRecognition createSpeechRecognition() =>
+      JS('SpeechRecognition', 'new SpeechRecognition()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38166,46 +38269,53 @@ class _SpeechRecognitionFactoryProvider {
 class _TextTrackCueFactoryProvider {
   static TextTrackCue createTextTrackCue(
       String id, num startTime, num endTime, String text,
-      [String settings, bool pauseOnExit])
-      native '''
-        if (settings == null)
-          return new TextTrackCue(id, startTime, endTime, text);
-        if (pauseOnExit == null)
-          return new TextTrackCue(id, startTime, endTime, text, settings);
-        return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
-      ''';
+      [String settings, bool pauseOnExit]) {
+        if (settings == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#,#)',
+                    id, startTime, endTime, text);
+        }
+        if (pauseOnExit == null) {
+          return JS('TextTrackCue',
+                    'new TextTrackCue(#,#,#,#,#)',
+                    id, startTime, endTime, text, settings);
+        }
+        return JS('TextTrackCue',
+                  'new TextTrackCue(#,#,#,#,#,#)',
+                  id, startTime, endTime, text, settings, pauseOnExit);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _WorkerFactoryProvider {
-  static Worker createWorker(String scriptUrl) native
-      '''return new Worker(scriptUrl);''';
+  static Worker createWorker(String scriptUrl) =>
+      JS('Worker', 'new Worker(#)', scriptUrl);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _XMLSerializerFactoryProvider {
-  static XMLSerializer createXMLSerializer() native
-      '''return new XMLSerializer();''';
+  static XMLSerializer createXMLSerializer() =>
+      JS('XMLSerializer', 'new XMLSerializer()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _XPathEvaluatorFactoryProvider {
-  static XPathEvaluator createXPathEvaluator() native
-      '''return new XPathEvaluator();''';
+  static XPathEvaluator createXPathEvaluator() =>
+      JS('XPathEvaluator', 'new XPathEvaluator()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _XSLTProcessorFactoryProvider {
-  static XSLTProcessor createXSLTProcessor() native
-      '''return new XSLTProcessor();''';
+  static XSLTProcessor createXSLTProcessor() =>
+      JS('XSLTProcessor', 'new XSLTProcessor()' );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38843,6 +38953,13 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
  * method.
  */
 class _Collections {
+  static bool contains(Iterable<Object> iterable, Object element) {
+    for (final e in iterable) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
   static void forEach(Iterable<Object> iterable, void f(Object o)) {
     for (final e in iterable) {
       f(e);
@@ -39214,7 +39331,7 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
     _dummy = new DivElement();
-    _observer.observe(_dummy, {}, attributes: true);
+    _observer.observe(_dummy, attributes: true);
   }
 
   void _schedule() {
@@ -40192,25 +40309,25 @@ class _HistoryCrossFrameImpl implements History {
 
 class _AudioContextFactoryProvider {
 
-  static AudioContext createAudioContext() native '''
-    var constructor = window.AudioContext || window.webkitAudioContext;
-    return new constructor();
-''';
+  static AudioContext createAudioContext() {
+    return JS('AudioContext',
+              'new (window.AudioContext || window.webkitAudioContext)()');
+  }
 }
 
 class _PointFactoryProvider {
-  static Point createPoint(num x, num y) native
-    'return new WebKitPoint(x, y);';
+  static Point createPoint(num x, num y) =>
+      JS('Point', 'new WebKitPoint(#, #)', x, y);
 }
 
 class _WebSocketFactoryProvider {
-  static WebSocket createWebSocket(String url) native
-      '''return new WebSocket(url);''';
+  static WebSocket createWebSocket(String url) =>
+      JS('WebSocket', 'new WebSocket(#)', url);
 }
 
 class _TextFactoryProvider {
-  static Text createText(String data) native
-      "return document.createTextNode(data);";
+  static Text createText(String data) =>
+      JS('Text', 'document.createTextNode(#)', data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40241,25 +40358,25 @@ class _IDBKeyRangeFactoryProvider {
     return _cachedClass = _uncachedClass();
   }
 
-  static _uncachedClass() native '''
-      return window.webkitIDBKeyRange || window.mozIDBKeyRange ||
-             window.msIDBKeyRange || window.IDBKeyRange;
-  ''';
+  static _uncachedClass() =>
+    JS('var',
+       '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
+          window.msIDBKeyRange || window.IDBKeyRange''');
 
   static _translateKey(idbkey) => idbkey;  // TODO: fixme.
 
-  static _IDBKeyRangeImpl _only(cls, value) native
-      '''return cls.only(value);''';
+  static _IDBKeyRangeImpl _only(cls, value) =>
+       JS('_IDBKeyRangeImpl', '#.only(#)', cls, value);
 
-  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) native
-      '''return cls.lowerBound(bound, open);''';
+  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) =>
+       JS('_IDBKeyRangeImpl', '#.lowerBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _upperBound(cls, bound, open) native
-      '''return cls.upperBound(bound, open);''';
+  static _IDBKeyRangeImpl _upperBound(cls, bound, open) =>
+       JS('_IDBKeyRangeImpl', '#.upperBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) native
-      '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
-
+  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) =>
+       JS('_IDBKeyRangeImpl', '#.bound(#, #, #, #)',
+          cls, lower, upper, lowerOpen, upperOpen);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40317,22 +40434,17 @@ class _LocationWrapper implements LocalLocation {
   void set search(String value) => _set(_ptr, 'search', value);
 
 
-  void assign(String url) => _assign(_ptr, url);
+  void assign(String url) => JS('void', '#.assign(#)', _ptr, url);
 
-  void reload() => _reload(_ptr);
+  void reload() => JS('void', '#.reload()', _ptr);
 
-  void replace(String url) => _replace(_ptr, url);
+  void replace(String url) => JS('void', '#.replace(#)', _ptr, url);
 
-  String toString() => _toString(_ptr);
+  String toString() => JS('String', '#.toString()', _ptr);
 
 
-  static _get(p, m) native 'return p[m];';
-  static _set(p, m, v) native 'p[m] = v;';
-
-  static _assign(p, url) native 'p.assign(url);';
-  static _reload(p) native 'p.reload()';
-  static _replace(p, url) native 'p.replace(url);';
-  static _toString(p) native 'return p.toString();';
+  static _get(p, m) => JS('var', '#[#]', p, m);
+  static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40342,9 +40454,8 @@ class _LocationWrapper implements LocalLocation {
  * Checks to see if the mutation observer API is supported on the current
  * platform.
  */
-bool _isMutationObserverSupported() native '''
-  return !!( window.MutationObserver || window.WebKitMutationObserver);
-''';
+bool _isMutationObserverSupported() =>
+  JS('bool', '!!(window.MutationObserver || window.WebKitMutationObserver)');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40432,35 +40543,62 @@ class _TypedArrayFactoryProvider {
     return _U8C_3(buffer, byteOffset, length);
   }
 
-  static Float32Array _F32(arg) native 'return new Float32Array(arg);';
-  static Float64Array _F64(arg) native 'return new Float64Array(arg);';
-  static Int8Array _I8(arg) native 'return new Int8Array(arg);';
-  static Int16Array _I16(arg) native 'return new Int16Array(arg);';
-  static Int32Array _I32(arg) native 'return new Int32Array(arg);';
-  static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
-  static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
-  static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
-  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
+  static Float32Array _F32(arg) =>
+      JS('Float32Array', 'new Float32Array(#)', arg);
+  static Float64Array _F64(arg) =>
+      JS('Float64Array', 'new Float64Array(#)', arg);
+  static Int8Array _I8(arg) =>
+      JS('Int8Array', 'new Int8Array(#)', arg);
+  static Int16Array _I16(arg) =>
+      JS('Int16Array', 'new Int16Array(#)', arg);
+  static Int32Array _I32(arg) =>
+      JS('Int32Array', 'new Int32Array(#)', arg);
+  static Uint8Array _U8(arg) =>
+      JS('Uint8Array', 'new Uint8Array(#)', arg);
+  static Uint16Array _U16(arg) =>
+      JS('Uint16Array', 'new Uint16Array(#)', arg);
+  static Uint32Array _U32(arg) =>
+      JS('Uint32Array', 'new Uint32Array(#)', arg);
+  static Uint8ClampedArray _U8C(arg) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#)', arg);
 
-  static Float32Array _F32_2(arg1, arg2) native 'return new Float32Array(arg1, arg2);';
-  static Float64Array _F64_2(arg1, arg2) native 'return new Float64Array(arg1, arg2);';
-  static Int8Array _I8_2(arg1, arg2) native 'return new Int8Array(arg1, arg2);';
-  static Int16Array _I16_2(arg1, arg2) native 'return new Int16Array(arg1, arg2);';
-  static Int32Array _I32_2(arg1, arg2) native 'return new Int32Array(arg1, arg2);';
-  static Uint8Array _U8_2(arg1, arg2) native 'return new Uint8Array(arg1, arg2);';
-  static Uint16Array _U16_2(arg1, arg2) native 'return new Uint16Array(arg1, arg2);';
-  static Uint32Array _U32_2(arg1, arg2) native 'return new Uint32Array(arg1, arg2);';
-  static Uint8ClampedArray _U8C_2(arg1, arg2) native 'return new Uint8ClampedArray(arg1, arg2);';
+  static Float32Array _F32_2(arg1, arg2) =>
+      JS('Float32Array', 'new Float32Array(#, #)', arg1, arg2);
+  static Float64Array _F64_2(arg1, arg2) =>
+      JS('Float64Array', 'new Float64Array(#, #)', arg1, arg2);
+  static Int8Array _I8_2(arg1, arg2) =>
+      JS('Int8Array', 'new Int8Array(#, #)', arg1, arg2);
+  static Int16Array _I16_2(arg1, arg2) =>
+      JS('Int16Array', 'new Int16Array(#, #)', arg1, arg2);
+  static Int32Array _I32_2(arg1, arg2) =>
+      JS('Int32Array', 'new Int32Array(#, #)', arg1, arg2);
+  static Uint8Array _U8_2(arg1, arg2) =>
+      JS('Uint8Array', 'new Uint8Array(#, #)', arg1, arg2);
+  static Uint16Array _U16_2(arg1, arg2) =>
+      JS('Uint16Array', 'new Uint16Array(#, #)', arg1, arg2);
+  static Uint32Array _U32_2(arg1, arg2) =>
+      JS('Uint32Array', 'new Uint32Array(#, #)', arg1, arg2);
+  static Uint8ClampedArray _U8C_2(arg1, arg2) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#, #)', arg1, arg2);
 
-  static Float32Array _F32_3(arg1, arg2, arg3) native 'return new Float32Array(arg1, arg2, arg3);';
-  static Float64Array _F64_3(arg1, arg2, arg3) native 'return new Float64Array(arg1, arg2, arg3);';
-  static Int8Array _I8_3(arg1, arg2, arg3) native 'return new Int8Array(arg1, arg2, arg3);';
-  static Int16Array _I16_3(arg1, arg2, arg3) native 'return new Int16Array(arg1, arg2, arg3);';
-  static Int32Array _I32_3(arg1, arg2, arg3) native 'return new Int32Array(arg1, arg2, arg3);';
-  static Uint8Array _U8_3(arg1, arg2, arg3) native 'return new Uint8Array(arg1, arg2, arg3);';
-  static Uint16Array _U16_3(arg1, arg2, arg3) native 'return new Uint16Array(arg1, arg2, arg3);';
-  static Uint32Array _U32_3(arg1, arg2, arg3) native 'return new Uint32Array(arg1, arg2, arg3);';
-  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) native 'return new Uint8ClampedArray(arg1, arg2, arg3);';
+  static Float32Array _F32_3(arg1, arg2, arg3) =>
+      JS('Float32Array', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
+  static Float64Array _F64_3(arg1, arg2, arg3) =>
+      JS('Float64Array', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
+  static Int8Array _I8_3(arg1, arg2, arg3) =>
+      JS('Int8Array', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
+  static Int16Array _I16_3(arg1, arg2, arg3) =>
+      JS('Int16Array', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
+  static Int32Array _I32_3(arg1, arg2, arg3) =>
+      JS('Int32Array', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
+  static Uint8Array _U8_3(arg1, arg2, arg3) =>
+      JS('Uint8Array', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
+  static Uint16Array _U16_3(arg1, arg2, arg3) =>
+      JS('Uint16Array', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
+  static Uint32Array _U32_3(arg1, arg2, arg3) =>
+      JS('Uint32Array', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
+  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3);
 
 
   // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,

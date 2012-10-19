@@ -20,7 +20,7 @@ class Script;
 class TokenStream;
 
 struct TopLevel;
-struct ClassDesc;
+class ClassDesc;
 struct MemberDesc;
 struct ParamList;
 struct QualIdent;
@@ -544,9 +544,6 @@ class Parser : public ValueObject {
 
   static bool IsAssignableExpr(AstNode* expr);
 
-  static bool IsPrefixOperator(Token::Kind token);
-  static bool IsIncrementOperator(Token::Kind token);
-
   static SequenceNode* NodeAsSequenceNode(intptr_t sequence_pos,
                                           AstNode* node,
                                           LocalScope* scope);
@@ -561,7 +558,7 @@ class Parser : public ValueObject {
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos, const String& name);
 
   void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
-  void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
+  void CheckOperatorArity(const MemberDesc& member);
 
   const LocalVariable* GetIncrementTempLocal();
   void EnsureExpressionTemp();

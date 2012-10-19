@@ -17,10 +17,7 @@ namespace dart {
 // support deallocating all chunks in one fast operation.
 
 class Zone {
- private:
-  Zone();
-  ~Zone();  // Delete all memory associated with the zone.
-
+ public:
   // Allocate an array sized to hold 'len' elements of type
   // 'ElementType'.  Checks for integer overflow when performing the
   // size computation.
@@ -43,12 +40,25 @@ class Zone {
   // responsible for avoiding integer overflow yourself.
   inline uword AllocUnsafe(intptr_t size);
 
+
+  // Make a copy of the string in the zone allocated area.
+  char* MakeCopyOfString(const char* str);
+
+  // Make a zone-allocated string based on printf format and args.
+  char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const;
 
-  // Make a copy of the string in the zone allocated area.
-  char* MakeCopyOfString(const char* str);
+  // Structure for managing handles allocation.
+  VMHandles* handles() { return &handles_; }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+ private:
+  Zone();
+  ~Zone();  // Delete all memory associated with the zone.
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kWordSize;
@@ -70,6 +80,11 @@ class Zone {
 
   // Allocate a large segment.
   uword AllocateLargeSegment(intptr_t size);
+
+  // Insert zone into zone chain, after current_zone.
+  void Link(Zone* current_zone) {
+    previous_ = current_zone;
+  }
 
   // Delete all objects and free all memory allocated in the zone.
   void DeleteAll();
@@ -105,7 +120,9 @@ class Zone {
 
   // Structure for managing handles allocation.
   VMHandles handles_;
-  VMHandles* handles() { return &handles_; }
+
+  // Used for chaining zones in order to allow unwinding of stacks.
+  Zone* previous_;
 
   friend class StackZone;
   friend class ApiZone;
@@ -122,54 +139,14 @@ class StackZone : public StackResource {
   // Delete all memory associated with the zone.
   ~StackZone();
 
-  // Allocates an array sized to hold 'len' elements of type
-  // 'ElementType'.  Checks for integer overflow when performing the
-  // size computation.
-  template <class ElementType>
-  ElementType* Alloc(intptr_t len) { return zone_.Alloc<ElementType>(len); }
-
-  // Allocates an array sized to hold 'len' elements of type
-  // 'ElementType'.  The new array is initialized from the memory of
-  // 'old_array' up to 'old_len'.
-  template <class ElementType>
-  ElementType* Realloc(ElementType* old_array,
-                       intptr_t old_len,
-                       intptr_t new_len) {
-    return zone_.Realloc<ElementType>(old_array, old_len, new_len);
-  }
-
-  // Allocates 'size' bytes of memory in the zone; expands the zone by
-  // allocating new segments of memory on demand using 'new'.
-  //
-  // It is preferred to use Alloc<T>() instead, as that function can
-  // check for integer overflow.  If you use AllocUnsafe, you are
-  // responsible for avoiding integer overflow yourself.
-  uword AllocUnsafe(intptr_t size) { return zone_.AllocUnsafe(size); }
-
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
-  // Make a copy of the string in the zone allocated area.
-  char* MakeCopyOfString(const char* str) {
-    return zone_.MakeCopyOfString(str);
-  }
-
-  // Make a zone-allocated string based on printf format and args.
-  char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-
-  // TODO(tball): remove once zone refactoring is finished.
-  VMHandles* handles() { return zone_.handles(); }
-
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  Zone* GetZone() { return &zone_; }
 
  private:
-  Zone* GetBaseZone() { return &zone_; }
-
   Zone zone_;
-
-  // Used for chaining zones in order to allow unwinding of stacks.
-  StackZone* previous_;
 
   template<typename T> friend class GrowableArray;
   template<typename T> friend class ZoneGrowableArray;

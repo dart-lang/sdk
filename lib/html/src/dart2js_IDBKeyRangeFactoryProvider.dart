@@ -27,23 +27,23 @@ class _IDBKeyRangeFactoryProvider {
     return _cachedClass = _uncachedClass();
   }
 
-  static _uncachedClass() native '''
-      return window.webkitIDBKeyRange || window.mozIDBKeyRange ||
-             window.msIDBKeyRange || window.IDBKeyRange;
-  ''';
+  static _uncachedClass() =>
+    JS('var',
+       '''window.webkitIDBKeyRange || window.mozIDBKeyRange ||
+          window.msIDBKeyRange || window.IDBKeyRange''');
 
   static _translateKey(idbkey) => idbkey;  // TODO: fixme.
 
-  static _IDBKeyRangeImpl _only(cls, value) native
-      '''return cls.only(value);''';
+  static _IDBKeyRangeImpl _only(cls, value) =>
+       JS('_IDBKeyRangeImpl', '#.only(#)', cls, value);
 
-  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) native
-      '''return cls.lowerBound(bound, open);''';
+  static _IDBKeyRangeImpl _lowerBound(cls, bound, open) =>
+       JS('_IDBKeyRangeImpl', '#.lowerBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _upperBound(cls, bound, open) native
-      '''return cls.upperBound(bound, open);''';
+  static _IDBKeyRangeImpl _upperBound(cls, bound, open) =>
+       JS('_IDBKeyRangeImpl', '#.upperBound(#, #)', cls, bound, open);
 
-  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) native
-      '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
-
+  static _IDBKeyRangeImpl _bound(cls, lower, upper, lowerOpen, upperOpen) =>
+       JS('_IDBKeyRangeImpl', '#.bound(#, #, #, #)',
+          cls, lower, upper, lowerOpen, upperOpen);
 }

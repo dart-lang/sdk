@@ -40,6 +40,7 @@ type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
+new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -68,7 +69,6 @@ getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
-new_expression_type_args_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/02: Fail # http://dartbug.com/5519
 optional_named_parameters_test/01: Fail # http://dartbug.com/5519
@@ -89,13 +89,24 @@ getter_declaration_negative_test: Fail # This will be fixed when dart2js reject 
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
 
-function_type_alias_test: Fail # Support for optional parameters not conform to latest spec.
-function_type_alias2_test: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
-positional_parameters_type_test: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_test/0*: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_test/1*: Fail # Support for optional parameters not conform to latest spec.
-named_parameters_with_object_property_names_test: Fail # Support for optional parameters not conform to latest spec.
+# These tests will pass once new optional parameter semantics is enforced.
+named_parameters_test/02: Fail
+named_parameters_test/04: Fail
+named_parameters_test/06: Fail
+named_parameters_test/08: Fail
+named_parameters_test/10: Fail
+
+# Support for optional parameters not conform to latest spec.
+function_type_alias_test: Fail
+function_type_alias2_test: Fail
+named_parameters_type_test: Fail
+positional_parameters_type_test: Fail
+named_parameters_test/01: Fail
+named_parameters_test/03: Fail
+named_parameters_test/05: Fail
+named_parameters_test/07: Fail
+named_parameters_test/09: Fail
+named_parameters_with_object_property_names_test: Fail
 
 # Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
 # Crash infinite loop on Mac and dart2js checked mode on linux.
@@ -266,7 +277,6 @@ prefix18_negative_test: Fail # Negative language test.
 prefix20_negative_test: Fail # Negative language test.
 prefix23_negative_test: Fail # Negative language test.
 pseudo_kw_illegal_test/03: Fail # Negative language test.
-pseudo_kw_illegal_test/11: Fail # Negative language test.
 pseudo_kw_illegal_test/14: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
 setter_declaration2_negative_test: Fail # Negative language test.
@@ -326,7 +336,7 @@ call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instan
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
 
-[ $compiler == dart2js && $runtime == ie ]
+[ $compiler == dart2js && $runtime == ie9 ]
 call_through_getter_test: Fail
 call_through_null_getter_test: Fail
 div_by_zero_test: Fail
@@ -349,11 +359,9 @@ string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 prefix_new_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
-first_class_types_test: Fail # http://dartbug.com/5523
 part2_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 part_test: Fail # TODO(ahe): Enable wrapper-less tests on Firefox/Windows.
 export_test: Fail # Issue 5785 (root cause: issue 2264)
 export_cyclic_test: Fail # Issue 5785 (root cause: issue 2264)
-generic_creation_test: Fail # Issue 5785 (root cause: issue 2264)
 import_combinators_test: Fail # Issue 5785 (root cause: issue 2264)
 first_class_types_libraries_test: Fail

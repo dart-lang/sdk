@@ -280,7 +280,7 @@ class Throws extends BaseMatcher {
       // completes.
       item.onComplete(expectAsync1((future) {
         if (future.hasValue) {
-          expect(false, reason:
+          expect(false, isTrue,
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
           var reason;
@@ -289,7 +289,7 @@ class Throws extends BaseMatcher {
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
             reason = "Actual exception trace:\n$stackTrace";
           }
-          expect(future.exception, _matcher, reason: reason);
+          expect(future.exception, _matcher, reason);
         }
       }));
 
@@ -610,7 +610,7 @@ class _In extends BaseMatcher {
  * Returns a matcher that uses an arbitrary function that returns
  * true or false for the actual value.
  */
-Matcher predicate(f, [description = 'satisfies function']) =>
+Matcher predicate(f, {description: 'satisfies function'}) =>
     new _Predicate(f, description);
 
 class _Predicate extends BaseMatcher {

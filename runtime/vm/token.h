@@ -115,6 +115,7 @@ namespace dart {
                                                                                \
   TOK(kINDEX, "[]", 0, kNoAttribute)                                           \
   TOK(kASSIGN_INDEX, "[]=", 0, kNoAttribute)                                   \
+  TOK(kNEGATE, "unary-", 0, kNoAttribute)                                      \
                                                                                \
   TOK(kIDENT, "", 0, kNoAttribute)                                             \
   TOK(kSTRING, "", 0, kNoAttribute)                                            \
@@ -166,7 +167,6 @@ namespace dart {
   KW(kIN, "in", 0, kKeyword)                                                   \
   KW(kINTERFACE, "interface", 0, kPseudoKeyword)                               \
   KW(kIS, "is", 10, kKeyword)                                                  \
-  KW(kNEGATE, "negate", 0, kPseudoKeyword)                                     \
   KW(kNEW, "new", 0, kKeyword)                                                 \
   KW(kNULL, "null", 0, kKeyword)                                               \
   KW(kOPERATOR, "operator", 0, kPseudoKeyword)                                 \
@@ -286,8 +286,8 @@ class Token {
             (tok == Token::kDOUBLE));
   }
 
-  static bool IsBinaryToken(Token::Kind token);
-  static bool IsUnaryToken(Token::Kind token);
+  static bool IsBinaryOperator(Token::Kind token);
+  static bool IsPrefixOperator(Token::Kind token);
 
  private:
   static const char* name_[];

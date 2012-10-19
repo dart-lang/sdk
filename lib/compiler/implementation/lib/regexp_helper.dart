@@ -16,7 +16,7 @@ bool regExpTest(JSSyntaxRegExp regExp, String str) {
 
 regExpGetNative(JSSyntaxRegExp regExp) {
   var r = JS('var', r'#._re', regExp);
-  if (r === null) {
+  if (r == null) {
     r = JS('var', r'#._re = #', regExp, regExpMakeNative(regExp));
   }
   return r;
@@ -26,7 +26,7 @@ regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
   JS('var', r'#._re = #', regExp, regExpMakeNative(regExp, global: true));
 }
 
-regExpMakeNative(JSSyntaxRegExp regExp, [bool global = false]) {
+regExpMakeNative(JSSyntaxRegExp regExp, {bool global: false}) {
   String pattern = regExp.pattern;
   bool multiLine = regExp.multiLine;
   bool ignoreCase = regExp.ignoreCase;

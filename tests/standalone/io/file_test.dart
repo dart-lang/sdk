@@ -216,14 +216,14 @@ class FileTest {
       };
       input.onData = () {
         Expect.isFalse(input.closed);
-        bytesRead = input.readInto(inputBuffer, offset: position,
-                                   len: inputBuffer.length - position);
+        bytesRead = input.readInto(inputBuffer, position,
+                                   inputBuffer.length - position);
         position += bytesRead;
         // The buffer is large enough to hold all available data.
         // So there should be no data left to read.
         Expect.equals(0, input.available());
-        bytesRead = input.readInto(inputBuffer, offset: position,
-                                   len: expectedLength - position);
+        bytesRead = input.readInto(inputBuffer, position,
+                                   expectedLength - position);
         Expect.equals(0, bytesRead);
         Expect.equals(0, input.available());
         Expect.isFalse(input.closed);

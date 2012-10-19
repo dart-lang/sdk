@@ -58,7 +58,7 @@ static uint8_t* malloc_allocator(
 
 static uint8_t* zone_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
@@ -416,7 +416,6 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
   free(const_cast<char*>(str2));
 
   // Read object back from the snapshot into a C structure.
-  ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   // Bigint not supported.
@@ -428,6 +427,7 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 void CheckBigint(const char* bigint_value) {
   StackZone zone(Isolate::Current());
+  ApiNativeScope scope;
 
   Bigint& bigint = Bigint::Handle();
   bigint ^= BigintOperations::NewFromCString(bigint_value);

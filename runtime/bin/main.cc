@@ -399,7 +399,6 @@ static void DumpPprofSymbolInfo() {
 // Returns true on success, false on failure.
 static bool CreateIsolateAndSetupHelper(const char* script_uri,
                                         const char* main,
-                                        bool resolve_script,
                                         void* data,
                                         char** error) {
   Dart_Isolate isolate =
@@ -466,7 +465,7 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
     CHECK_RESULT(result);
 
-    library = DartUtils::LoadScript(script_uri, resolve_script, builtin_lib);
+    library = DartUtils::LoadScript(script_uri, builtin_lib);
   }
   CHECK_RESULT(library);
   if (!Dart_IsLibrary(library)) {
@@ -489,7 +488,6 @@ static bool CreateIsolateAndSetup(const char* script_uri,
                                   void* data, char** error) {
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
-                                     false,  // script_uri already canonical.
                                      new IsolateData(),
                                      error);
 }
@@ -684,7 +682,6 @@ int main(int argc, char** argv) {
   char* isolate_name = BuildIsolateName(script_name, "main");
   if (!CreateIsolateAndSetupHelper(script_name,
                                    "main",
-                                   true,  // Canonicalize the script name.
                                    new IsolateData(),
                                    &error)) {
     fprintf(stderr, "%s\n", error);

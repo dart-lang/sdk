@@ -14,7 +14,7 @@ bool foo(bar) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
 
   // Check that no boolify code is generated.
   RegExp regexp = const RegExp("=== true");

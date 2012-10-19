@@ -36,15 +36,25 @@ class _DateBuilder {
   Date asDate() {
     // TODO(alanknight): Validate the date, especially for things which
     // can crash the VM, e.g. large month values.
-    return new Date(
-        year,
-        month,
-        day,
-        pm ? hour + 12 : hour,
-        minute,
-        second,
-        fractionalSecond,
-        utc);
+    if (utc) {
+      return new Date.utc(
+          year,
+          month,
+          day,
+          pm ? hour + 12 : hour,
+          minute,
+          second,
+          fractionalSecond);
+    } else {
+      return new Date(
+          year,
+          month,
+          day,
+          pm ? hour + 12 : hour,
+          minute,
+          second,
+          fractionalSecond);
+    }
   }
 }
 

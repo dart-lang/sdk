@@ -148,21 +148,19 @@ class ParamInfo(object):
   Attributes:
     name: Name of parameter.
     type_id: Original type id.  None for merged types.
-    dart_type: DartType of parameter.
     is_optional: Parameter optionality.
   """
-  def __init__(self, name, type_id, dart_type, is_optional):
+  def __init__(self, name, type_id, is_optional):
     self.name = name
     self.type_id = type_id
-    self.dart_type = dart_type
     self.is_optional = is_optional
 
   def Copy(self):
-    return ParamInfo(self.name, self.type_id, self.dart_type, self.is_optional)
+    return ParamInfo(self.name, self.type_id, self.is_optional)
 
   def __repr__(self):
-    content = 'name = %s, type_id = %s, dart_type = %s, is_optional = %s' % (
-        self.name, self.type_id, self.dart_type, self.is_optional)
+    content = 'name = %s, type_id = %s, is_optional = %s' % (
+        self.name, self.type_id, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
 
@@ -191,12 +189,9 @@ def _BuildArguments(args, interface, constructor=False):
   def OverloadedType(args):
     type_ids = sorted(set(arg.type.id for arg in args))
     if len(set(DartType(arg.type.id) for arg in args)) == 1:
-      if len(type_ids) == 1:
-        return (type_ids[0], type_ids[0])
-      else:
-        return (None, type_ids[0])
+      return type_ids[0]
     else:
-      return (None, TypeName(type_ids, interface))
+      return None
 
   result = []
 
@@ -205,9 +200,9 @@ def _BuildArguments(args, interface, constructor=False):
     is_optional = is_optional or any(arg is None or IsOptional(arg) for arg in arg_tuple)
 
     filtered = filter(None, arg_tuple)
-    (type_id, dart_type) = OverloadedType(filtered)
+    type_id = OverloadedType(filtered)
     name = OverloadedName(filtered)
-    result.append(ParamInfo(name, type_id, dart_type, is_optional))
+    result.append(ParamInfo(name, type_id, is_optional))
 
   return result
 
@@ -242,6 +237,7 @@ def AnalyzeOperation(interface, operations):
   info.js_name = info.declared_name
   info.type_name = operations[0].type.id   # TODO: widen.
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
+  info.requires_named_arguments = False
   return info
 
 
@@ -275,6 +271,7 @@ def AnalyzeConstructor(interface):
   info.js_name = name
   info.type_name = interface.id
   info.param_infos = args
+  info.requires_named_arguments = False
   return info
 
 def IsDartListType(type):
@@ -344,31 +341,30 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersInterfaceDeclaration(self, rename_type):
-    """Returns a formatted string declaring the parameters for the interface."""
-    def type_function(param):
-      # TODO(podivilov): replace param.dart_type field with param.is_optional
-      dart_type = param.dart_type
-      if dart_type != 'Dynamic':
-        dart_type = rename_type(dart_type)
-      return TypeOrNothing(dart_type, param.type_id)
-    return self._FormatParams(self.param_infos, None, type_function)
+  def ParametersDeclaration(self, rename_type, force_optional=False):
+    def FormatParam(param):
+      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
+      return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
 
-  def ParametersImplementationDeclaration(self, rename_type):
-    """Returns a formatted string declaring the parameters for the
-    implementation.
-
-    Args:
-      rename_type: A function that allows the types to be renamed.
-        The function is applied to the parameter's dart_type.
-    """
-    def type_function(param):
-      # TODO(podivilov): replace param.dart_type field with param.is_optional
-      dart_type = param.dart_type
-      if dart_type != 'Dynamic':
-        dart_type = rename_type(dart_type)
-      return TypeOrNothing(dart_type)
-    return self._FormatParams(self.param_infos, 'null', type_function)
+    required = []
+    optional = []
+    for param_info in self.param_infos:
+      if param_info.is_optional:
+        optional.append(param_info)
+      else:
+        if optional:
+          raise Exception('Optional parameters cannot precede required ones: '
+                          + str(params))
+        required.append(param_info)
+    argtexts = map(FormatParam, required)
+    if optional:
+      needs_named = self.requires_named_arguments and not force_optional
+      left_bracket, right_bracket = '{}' if needs_named else '[]'
+      argtexts.append(
+          left_bracket +
+          ', '.join(map(FormatParam, optional)) +
+          right_bracket)
+    return ', '.join(argtexts)
 
   def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
@@ -379,29 +375,6 @@ class OperationInfo(object):
     return ', '.join(map(
         lambda param_info: param_info.name,
         self.param_infos[:parameter_count]))
-
-  def _FormatParams(self, params, default_value, type_fn):
-    def FormatParam(param):
-      """Returns a parameter declaration fragment for an ParamInfo."""
-      type = type_fn(param)
-      if param.is_optional and default_value and default_value != 'null':
-        return '%s%s = %s' % (type, param.name, default_value)
-      return '%s%s' % (type, param.name)
-
-    required = []
-    optional = []
-    for param_info in params:
-      if param_info.is_optional:
-        optional.append(param_info)
-      else:
-        if optional:
-          raise Exception('Optional parameters cannot precede required ones: '
-                          + str(params))
-        required.append(param_info)
-    argtexts = map(FormatParam, required)
-    if optional:
-      argtexts.append('[' + ', '.join(map(FormatParam, optional)) + ']')
-    return ', '.join(argtexts)
 
   def IsStatic(self):
     is_static = self.overloads[0].is_static
@@ -428,7 +401,7 @@ class OperationInfo(object):
           '  factory $CTOR($PARAMS) => '
           '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
           CTOR=self._ConstructorFullName(rename_type),
-          PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+          PARAMS=self.ParametersDeclaration(rename_type),
           FACTORY=factory_provider,
           CTOR_FACTORY_NAME=factory_name,
           FACTORY_PARAMS=self.ParametersAsArgumentList())
@@ -441,7 +414,7 @@ class OperationInfo(object):
         '    return $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
         '  }\n',
         CTOR=self._ConstructorFullName(rename_type),
-        PARAMS=self.ParametersInterfaceDeclaration(rename_type),
+        PARAMS=self.ParametersDeclaration(rename_type),
         FACTORY=factory_provider,
         CTOR_FACTORY_NAME=factory_name,
         FACTORY_PARAMS=self.ParametersAsArgumentList())
@@ -469,7 +442,7 @@ class OperationInfo(object):
     info.param_infos = [param.Copy() for param in self.param_infos]
     for param in info.param_infos:
       if param.is_optional:
-        param.dart_type = 'Dynamic'
+        param.type_id = None
     return info
 
 
@@ -737,13 +710,17 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
       return self.dart_type()
     if IsPureInterface(self.idl_type()):
       return self.idl_type()
-    return self.implementation_name()
+    return ImplementationClassNameForInterfaceName(self.interface_name())
 
   def interface_name(self):
     return self._dart_interface_name
 
   def implementation_name(self):
-    return ImplementationClassNameForInterfaceName(self._dart_interface_name)
+    implementation_name = ImplementationClassNameForInterfaceName(
+        self.interface_name())
+    if self.merged_into():
+      implementation_name = '%s_Merged' % implementation_name
+    return implementation_name
 
   def has_generated_interface(self):
     return True
@@ -1004,7 +981,6 @@ _idl_type_registry = {
 
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
     'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
-    'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
     'Document': TypeData(clazz='Interface', merged_interface='HTMLDocument'),
@@ -1025,6 +1001,8 @@ _idl_type_registry = {
     'ClientRectList': TypeData(clazz='ListLike', item_type='ClientRect'),
     'CSSRuleList': TypeData(clazz='ListLike', item_type='CSSRule'),
     'CSSValueList': TypeData(clazz='ListLike', item_type='CSSValue'),
+    'DOMStringList': TypeData(clazz='ListLike', item_type='DOMString',
+        custom_to_native=True),
     'EntryArray': TypeData(clazz='ListLike', item_type='Entry'),
     'EntryArraySync': TypeData(clazz='ListLike', item_type='EntrySync'),
     'FileList': TypeData(clazz='ListLike', item_type='File'),

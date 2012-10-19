@@ -74,16 +74,16 @@ foo(a) {
 
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isTrue(generated.contains(r'for ('));
-  generated = compile(TEST_TWO, 'foo');
+  generated = compile(TEST_TWO, entry: 'foo');
   Expect.isTrue(!generated.contains(r'break'));
-  generated = compile(TEST_THREE, 'foo');
+  generated = compile(TEST_THREE, entry: 'foo');
   Expect.isTrue(!generated.contains(r'break'));
-  generated = compile(TEST_FOUR, 'foo');
+  generated = compile(TEST_FOUR, entry: 'foo');
   Expect.isTrue(generated.contains(r'continue'));
-  generated = compile(TEST_FIVE, 'foo');
+  generated = compile(TEST_FIVE, entry: 'foo');
   Expect.isTrue(generated.contains(r'continue'));
-  generated = compile(TEST_SIX, 'foo');
+  generated = compile(TEST_SIX, entry: 'foo');
   Expect.isTrue(generated.contains(r'continue'));
 }

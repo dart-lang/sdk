@@ -82,8 +82,9 @@ class ElementConstructorInfo(object):
     info.constructor_name = self.name
     info.js_name = None
     info.type_name = interface_name
-    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], None, tXn[0], 'null'),
+    info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
                            self.opt_params)
+    info.requires_named_arguments = True
     return info
 
 _html_element_constructors = {
@@ -185,7 +186,8 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
         CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
         CLASS=class_name,
         TAG=info.tag,
-        PARAMS=constructor_info.ParametersInterfaceDeclaration(rename_type))
+        PARAMS=constructor_info.ParametersDeclaration(
+            rename_type, force_optional=True))
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
@@ -205,7 +207,6 @@ class HtmlDartInterfaceGenerator(object):
     self._interface = interface
     self._backend = backend
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
 
   def Generate(self):
     if 'Callback' in self._interface.ext_attrs:
@@ -220,25 +221,23 @@ class HtmlDartInterfaceGenerator(object):
     info = AnalyzeOperation(self._interface, handlers)
     code = self._library_emitter.FileEmitter(self._interface.id)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
-    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
+    code.Emit('typedef void $NAME($PARAMS);\n',
               NAME=self._interface.id,
-              TYPE=self._DartType(info.type_name),
-              PARAMS=info.ParametersImplementationDeclaration(self._DartType))
+              PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):
+    interface_name = self._interface_type_info.interface_name()
+
     if (self._interface_type_info.has_generated_interface() and
         not self._interface_type_info.merged_into()):
-      interface_emitter = self._library_emitter.FileEmitter(
-          self._html_interface_name)
+      interface_emitter = self._library_emitter.FileEmitter(interface_name)
     else:
       interface_emitter = emitter.Emitter()
 
-    template_file = 'interface_%s.darttemplate' % self._html_interface_name
+    template_file = 'interface_%s.darttemplate' % interface_name
     interface_template = (self._template_loader.TryLoad(template_file) or
                           self._template_loader.Load('interface.darttemplate'))
-
-    typename = self._html_interface_name
 
     implements = []
     suppressed_implements = []
@@ -258,8 +257,8 @@ class HtmlDartInterfaceGenerator(object):
         suppressed_implements.append('%s.%s' %
             (self._common_prefix, parent_interface_name))
 
-    if typename in _secure_base_types:
-      implements.append(_secure_base_types[typename])
+    if interface_name in _secure_base_types:
+      implements.append(_secure_base_types[interface_name])
 
     comment = ' extends'
     implements_str = ''
@@ -271,20 +270,20 @@ class HtmlDartInterfaceGenerator(object):
           ', '.join(suppressed_implements))
 
     factory_provider = None
-    if typename in interface_factories:
-      factory_provider = interface_factories[typename]
+    if interface_name in interface_factories:
+      factory_provider = interface_factories[interface_name]
 
     constructors = []
     constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
       constructors.append(constructor_info)
-      factory_provider = '_' + typename + 'FactoryProvider'
+      factory_provider = '_' + interface_name + 'FactoryProvider'
       factory_provider_emitter = self._library_emitter.FileEmitter(
-          '_%sFactoryProvider' % self._html_interface_name)
+          '_%sFactoryProvider' % interface_name)
       self._backend.EmitFactoryProvider(
           constructor_info, factory_provider, factory_provider_emitter)
 
-    infos = HtmlElementConstructorInfos(typename)
+    infos = HtmlElementConstructorInfos(interface_name)
     if infos:
       template = self._template_loader.Load(
           'factoryprovider_Elements.darttemplate')
@@ -292,7 +291,7 @@ class HtmlDartInterfaceGenerator(object):
           self._library_emitter.FileEmitter('_Elements', template),
           infos,
           self._interface.id,
-          self._backend.ImplementationClassName(),
+          self._interface_type_info.implementation_name(),
           self._DartType)
 
     for info in infos:
@@ -307,20 +306,28 @@ class HtmlDartInterfaceGenerator(object):
      self._members_emitter,
      self._top_level_emitter) = interface_emitter.Emit(
          interface_template + '$!TOP_LEVEL',
-         ID=typename,
+         ID=interface_name,
          EXTENDS=implements_str)
 
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
 
     implementation_emitter = self._ImplementationEmitter()
-    base_class = self._backend.BaseClassName()
-    interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    implemented_interfaces = [interface_type_info.interface_name()] +\
+
+    base_class = self._backend.RootClassName()
+    if self._interface.parents:
+      supertype = self._interface.parents[0].type.id
+      if not IsDartCollectionType(supertype) and not IsPureInterface(supertype):
+        type_info = self._type_registry.TypeInfo(supertype)
+        if type_info.merged_into() and self._backend.ImplementsMergedMembers():
+          type_info = self._type_registry.TypeInfo(type_info.merged_into())
+        base_class = type_info.implementation_name()
+
+    implemented_interfaces = [interface_name] +\
                              self._backend.AdditionalImplementedInterfaces()
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
-        CLASSNAME=self._backend.ImplementationClassName(),
+        CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=' implements ' + ', '.join(implemented_interfaces),
         NATIVESPEC=self._backend.NativeSpec())
@@ -348,7 +355,7 @@ class HtmlDartInterfaceGenerator(object):
         FACTORY=factory_provider)
 
     events_interface = self._event_generator.ProcessInterface(
-        self._interface, self._html_interface_name,
+        self._interface, interface_name,
         self._backend.CustomJSMembers(),
         interface_emitter, implementation_emitter)
     if events_interface:
@@ -484,16 +491,18 @@ class HtmlDartInterfaceGenerator(object):
 
       if info.IsStatic():
         # FIXME: provide a type.
-        self._members_emitter.Emit('\n'
-                                  '  static final $NAME = $IMPL_CLASS_NAME.$NAME;\n',
-                                  IMPL_CLASS_NAME=self._backend.ImplementationClassName(),
-                                  NAME=html_name)
+        self._members_emitter.Emit(
+            '\n'
+            '  static final $NAME = $IMPL_CLASS_NAME.$NAME;\n',
+            IMPL_CLASS_NAME=self._interface_type_info.implementation_name(),
+            NAME=html_name)
       else:
-        self._members_emitter.Emit('\n'
-                                  '  $TYPE $NAME($PARAMS);\n',
-                                  TYPE=SecureOutputType(self, info.type_name),
-                                  NAME=html_name,
-                                  PARAMS=info.ParametersInterfaceDeclaration(self._DartType))
+        self._members_emitter.Emit(
+             '\n'
+             '  $TYPE $NAME($PARAMS);\n',
+             TYPE=SecureOutputType(self, info.type_name),
+             NAME=html_name,
+             PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.AddOperation(info, html_name)
 
   def AddSecondaryOperation(self, interface, info):
@@ -510,16 +519,12 @@ class HtmlDartInterfaceGenerator(object):
   def _ImplementationEmitter(self):
     if IsPureInterface(self._interface.id):
       return emitter.Emitter()
-
-    if not self._interface_type_info.merged_into():
-      name = self._html_interface_name
-      basename = '%sImpl' % name
-    else:
-      if self._backend.ImplementsMergedMembers():
-        # Merged members are implemented in target interface implementation.
-        return emitter.Emitter()
-      basename = '%sImpl_Merged' % self._html_interface_name
-    return self._library_emitter.FileEmitter(basename)
+    basename = self._interface_type_info.implementation_name()
+    if (self._interface_type_info.merged_into() and
+        self._backend.ImplementsMergedMembers()):
+      # Merged members are implemented in target interface implementation.
+      return emitter.Emitter()
+    return self._library_emitter.FileEmitter(basename.lstrip('_'))
 
   def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
@@ -587,31 +592,16 @@ class Dart2JSBackend(object):
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
-    self._html_interface_name = options.renamer.RenameInterface(self._interface)
     self._current_secondary_parent = None
-
-  def ImplementationClassName(self):
-    return self._ImplClassName(self._html_interface_name)
 
   def ImplementsMergedMembers(self):
     return True
 
-  def _ImplClassName(self, type_name):
-    return '_%sImpl' % type_name
-
   def GenerateCallback(self, info):
     pass
 
-  def BaseClassName(self):
-    if not self._interface.parents:
-      return None
-    supertype = self._interface.parents[0].type.id
-    if IsDartCollectionType(supertype):
-      # List methods are injected in AddIndexer.
-      return None
-    if IsPureInterface(supertype):
-      return None
-    return self._type_registry.TypeInfo(supertype).implementation_name()
+  def RootClassName(self):
+    return None
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
@@ -628,7 +618,8 @@ class Dart2JSBackend(object):
     return ' native "%s"' % native_spec
 
   def ImplementationTemplate(self):
-    template_file = 'impl_%s.darttemplate' % self._html_interface_name
+    template_file = ('impl_%s.darttemplate' %
+                     self._interface_type_info.interface_name())
     return (self._template_loader.TryLoad(template_file) or
             self._template_loader.Load('dart2js_impl.darttemplate'))
 
@@ -640,18 +631,23 @@ class Dart2JSBackend(object):
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
-                     self._html_interface_name)
+                     self._interface_type_info.interface_name())
     template = self._template_loader.TryLoad(template_file)
     if not template:
       template = self._template_loader.Load('factoryprovider.darttemplate')
 
+    interface_name = self._interface_type_info.interface_name()
+    arguments = constructor_info.ParametersAsArgumentList()
+    comma = ',' if arguments else ''
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
-        CONSTRUCTOR=self._html_interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
-        NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
-        ARGUMENTS=constructor_info.ParametersAsArgumentList())
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersDeclaration(self._DartType),
+        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        ARGUMENTS=arguments,
+        PRE_ARGUMENTS_COMMA=comma,
+        ARGUMENTS_PATTERN=','.join(['#'] * len(constructor_info.param_infos)))
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
@@ -679,13 +675,14 @@ class Dart2JSBackend(object):
     #
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE operator[](int index) native "return this[index];";\n',
+        '  $TYPE operator[](int index) => JS("$TYPE", "#[#]", this, index);\n',
         TYPE=self._NarrowOutputType(element_type))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
-          '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
+          '  void operator[]=(int index, $TYPE value) =>'
+          ' JS("void", "#[#] = #", this, index, value);\n',
           TYPE=self._NarrowInputType(element_type))
     else:
       # The HTML library implementation of NodeList has a custom indexed setter
@@ -703,7 +700,10 @@ class Dart2JSBackend(object):
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     if self._interface.id != 'NodeList':
       template_file = 'immutable_list_mixin.darttemplate'
-      template = self._template_loader.Load(template_file)
+      has_contains = any(op.id == 'contains' for op in self._interface.operations)
+      template = self._template_loader.Load(
+          template_file,
+          {'DEFINE_CONTAINS': not has_contains})
       self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def AddAttribute(self, attribute, html_name, read_only):
@@ -750,12 +750,14 @@ class Dart2JSBackend(object):
     input_type = self._NarrowInputType(attribute.type.id)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $TYPE $NAME;\n',
+          '\n  $TYPE $NAME;'
+          '\n',
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
     else:
       self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;\n',
+          '\n  final $TYPE $NAME;'
+          '\n',
           NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
 
@@ -770,7 +772,9 @@ class Dart2JSBackend(object):
       return self._AddConvertingGetter(attr, html_name, conversion)
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
-        '\n  $TYPE get $HTML_NAME() native "return this.$NAME;";\n',
+        # TODO(sra): Use metadata to provide native name.
+        '\n  $TYPE get $HTML_NAME() => JS("$TYPE", "#.$NAME", this);'
+        '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=return_type)
@@ -780,16 +784,21 @@ class Dart2JSBackend(object):
     if conversion:
       return self._AddConvertingSetter(attr, html_name, conversion)
     self._members_emitter.Emit(
-        '\n  void set $HTML_NAME($TYPE value)'
-        ' native "this.$NAME = value;";\n',
+        # TODO(sra): Use metadata to provide native name.
+        '\n  void set $HTML_NAME($TYPE value) {'
+        '\n    JS("void", "#.$NAME = #", this, value);'
+        '\n  }'
+        '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
         TYPE=self._NarrowInputType(attr.type.id))
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
+        # TODO(sra): Use metadata to provide native name.
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME() native "return this.$NAME;";'
+        '\n  $NATIVE_TYPE get _$HTML_NAME() =>'
+        ' JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
@@ -799,10 +808,13 @@ class Dart2JSBackend(object):
 
   def _AddConvertingSetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
+        # TODO(sra): Use metadata to provide native name.
         '\n  void set $HTML_NAME($INPUT_TYPE value) {'
-        ' this._$HTML_NAME = $CONVERT(value); }'
-        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value)'
-        ' native "this.$NAME = value;";'
+        '\n    this._$HTML_NAME = $CONVERT(value);'
+        '\n  }'
+        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n    JS("void", "#.$NAME = #", this, value);'
+        '\n  }'
         '\n',
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
@@ -837,8 +849,7 @@ class Dart2JSBackend(object):
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.declared_name,
-          PARAMS=info.ParametersImplementationDeclaration(
-              lambda type_name: self._NarrowInputType(type_name)))
+          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
       operation_emitter.Emit(
           '\n'
@@ -851,8 +862,7 @@ class Dart2JSBackend(object):
           MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=self._NarrowOutputType(info.type_name),
           NAME=info.name,
-          PARAMS=info.ParametersImplementationDeclaration(
-              lambda type_name: self._NarrowInputType(type_name)))
+          PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
@@ -872,7 +882,7 @@ class Dart2JSBackend(object):
       if conversion:
         return conversion.input_type
       else:
-        return self._NarrowInputType(type_name)
+        return self._NarrowInputType(type_name) if type_name else 'Dynamic'
 
     body = self._members_emitter.Emit(
         '\n'
@@ -882,10 +892,10 @@ class Dart2JSBackend(object):
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=return_type,
         HTML_NAME=html_name,
-        PARAMS=info.ParametersImplementationDeclaration(InputType))
+        PARAMS=info.ParametersDeclaration(InputType))
 
     parameter_names = [param_info.name for param_info in info.param_infos]
-    parameter_types = [InputType(param_info.dart_type)
+    parameter_types = [InputType(param_info.type_id)
                        for param_info in info.param_infos]
     operations = info.operations
 
@@ -926,7 +936,7 @@ class Dart2JSBackend(object):
           arguments.append(parameter_names[position])
           param_type = self._NarrowInputType(arg.type.id)
           # Verified by argument checking on entry to the dispatcher.
-          verified_type = InputType(info.param_infos[position].dart_type)
+          verified_type = InputType(info.param_infos[position].type_id)
 
         # The native method does not need an argument type if we know the type.
         # But we do need the native methods to have correct function types, so
@@ -1018,7 +1028,8 @@ class Dart2JSBackend(object):
     return FindConversion(idl_type, 'set', self._interface.id, member)
 
   def _HasCustomImplementation(self, member_name):
-    member_name = '%s.%s' % (self._html_interface_name, member_name)
+    member_name = '%s.%s' % (self._interface_type_info.interface_name(),
+                             member_name)
     return member_name in _js_custom_members
 
   def CustomJSMembers(self):
@@ -1032,8 +1043,6 @@ class Dart2JSBackend(object):
     return False
 
   def _NarrowToImplementationType(self, type_name):
-    if type_name == 'Dynamic':
-      return type_name
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()
 
   def _NarrowInputType(self, type_name):

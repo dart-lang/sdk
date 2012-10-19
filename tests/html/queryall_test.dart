@@ -47,6 +47,13 @@ main() {
       expect(all.length, equals(2));
     });
 
+  test('queryAll-contains', () {
+      List<Element> all = queryAll('*');
+      for (var e in all) {
+        expect(all.contains(e), isTrue);
+      }
+    });
+
   test('queryAll-filter', () {
       List<Element> all = queryAll('*');
       List<CanvasElement> canvases = all.filter((e) => e is CanvasElement);

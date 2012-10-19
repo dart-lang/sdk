@@ -82,7 +82,7 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
 
 // TODO(srdjan): Add code for logical negation.
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
-  if (unary_op_kind == Token::kSUB) {
+  if (unary_op_kind == Token::kNEGATE) {
     if (literal().IsSmi()) {
       const Smi& smi = Smi::Cast(literal());
       const Instance& literal =
@@ -255,7 +255,7 @@ AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_pos,
 bool UnaryOpNode::IsKindValid() const {
   switch (kind_) {
     case Token::kADD:
-    case Token::kSUB:
+    case Token::kNEGATE:
     case Token::kNOT:
     case Token::kBIT_NOT:
       return true;
@@ -272,7 +272,7 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
   }
   switch (kind_) {
     case Token::kADD:
-    case Token::kSUB:
+    case Token::kNEGATE:
       return val->IsNumber() ? val : NULL;
     case Token::kNOT:
       return val->IsBool() ? val : NULL;

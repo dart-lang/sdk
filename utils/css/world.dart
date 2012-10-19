@@ -135,7 +135,7 @@ class World {
 
   /** [message] at [location] is about a bug in the compiler. */
   void internalError(String message,
-      [SourceSpan span, SourceSpan span1, SourceSpan span2]) {
+      {SourceSpan span, SourceSpan span1, SourceSpan span2}) {
     _message(_NO_COLOR,
         'We are sorry, but...', message, span, span1, span2, true);
   }

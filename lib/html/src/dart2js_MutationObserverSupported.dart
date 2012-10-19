@@ -6,6 +6,5 @@
  * Checks to see if the mutation observer API is supported on the current
  * platform.
  */
-bool _isMutationObserverSupported() native '''
-  return !!( window.MutationObserver || window.WebKitMutationObserver);
-''';
+bool _isMutationObserverSupported() =>
+  JS('bool', '!!(window.MutationObserver || window.WebKitMutationObserver)');

@@ -29,7 +29,7 @@ class D {
 
 // Non-trivial method body combination of positional and named.
 class E {
-  String call(String str, [int count=1]) {
+  String call(String str, {int count: 1}) {
     StringBuffer buffer = new StringBuffer();
     for (var i = 0; i < count; i++) {
       buffer.add(str);
@@ -61,16 +61,16 @@ main() {
   var d = new D();
   Expect.equals(42, d());
   Expect.equals(7, d(1));
-  Expect.equals(14, d(arg:2));
+  Expect.equals(14, d(2));
   Expect.equals(42, d.call());
   Expect.equals(7, d.call(1));
-  Expect.equals(14, d.call(arg:2));
+  Expect.equals(14, d.call(2));
 
   var e = new E();
   Expect.equals("foo", e("foo"));
-  Expect.equals("foo:foo", e("foo", 2));
+  Expect.equals("foo:foo", e("foo", count:2));
   Expect.equals("foo:foo:foo", e("foo", count:3));
   Expect.equals("foo", e.call("foo"));
-  Expect.equals("foo:foo", e.call("foo", 2));
+  Expect.equals("foo:foo", e.call("foo", count:2));
   Expect.equals("foo:foo:foo", e.call("foo", count:3));
 }

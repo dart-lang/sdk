@@ -982,20 +982,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(push_value);
-  InstanceCallInstr* call = (node->kind() == Token::kSUB)
-      ? new InstanceCallInstr(node->token_pos(),
-                              String::ZoneHandle(Symbols::New("unary-")),
-                              Token::kNEGATE,
-                              arguments,
-                              Array::ZoneHandle(),
-                              1)
-      : new InstanceCallInstr(node->token_pos(),
-                              String::ZoneHandle(
-                                  Symbols::New(Token::Str(node->kind()))),
-                              node->kind(),
-                              arguments,
-                              Array::ZoneHandle(),
-                              1);
+  InstanceCallInstr* call =
+      new InstanceCallInstr(node->token_pos(),
+                            String::ZoneHandle(
+                                Symbols::New(Token::Str(node->kind()))),
+                            node->kind(),
+                            arguments,
+                            Array::ZoneHandle(),
+                            1);
   ReturnDefinition(call);
 }
 

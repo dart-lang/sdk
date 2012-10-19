@@ -331,7 +331,7 @@ Future<File> createSymlink(from, to) {
 // TODO(rnystrom): Remove this when old style packages are no longer supported.
 // See: http://code.google.com/p/dart/issues/detail?id=4964.
 Future<File> createPackageSymlink(String name, from, to,
-    [bool isSelfLink = false]) {
+    {bool isSelfLink: false}) {
   // If from contains any Dart files at the top level (aside from build.dart)
   // we assume that means it's an old style package.
   return listDir(from).chain((contents) {
@@ -481,8 +481,8 @@ Future<List<int>> consumeInputStream(InputStream stream) {
  * piped streams won't be available in the result object.
  */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    [workingDir, Map<String, String> environment, bool pipeStdout = false,
-    bool pipeStderr = false]) {
+    {workingDir, Map<String, String> environment, bool pipeStdout: false,
+    bool pipeStderr: false}) {
   int exitCode;
 
   // TODO(rnystrom): Should dart:io just handle this?
@@ -556,8 +556,8 @@ Future<bool> get isGitInstalled {
 }
 
 /// Run a git process with [args] from [workingDir].
-Future<PubProcessResult> runGit(List<String> args, [String workingDir]) =>
-    _gitCommand.chain((git) => runProcess(git, args, workingDir));
+Future<PubProcessResult> runGit(List<String> args, {String workingDir}) =>
+    _gitCommand.chain((git) => runProcess(git, args, workingDir: workingDir));
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
@@ -614,20 +614,19 @@ Future<bool> extractTarGz(InputStream stream, destination) {
     return _extractTarGzWindows(stream, destination);
   }
 
-  var process = Process.start("tar",
-      ["--extract", "--gunzip", "--directory", destination]);
   var completer = new Completer<int>();
-
-  process.onExit = completer.complete;
-  process.onError = completer.completeException;
-
-  // Wait for the process to be fully started before writing to its
-  // stdin stream.
-  process.onStart = () {
+  var processFuture = Process.start("tar",
+      ["--extract", "--gunzip", "--directory", destination]);
+  processFuture.then((process) {
+    process.onExit = completer.complete;
     stream.pipe(process.stdin);
     process.stdout.pipe(stdout, close: false);
     process.stderr.pipe(stderr, close: false);
-  };
+  });
+  processFuture.handleException((error) {
+    completer.completeException(error);
+    return true;
+  });
 
   return completer.future.transform((exitCode) => exitCode == 0);
 }

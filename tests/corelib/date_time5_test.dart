@@ -14,7 +14,7 @@ main() {
   Expect.equals(0, d.second);
   Expect.equals(0, d.millisecond);
 
-  d = new Date(2012, day: 28);
+  d = new Date(2012, 1, 28);
   Expect.equals(2012, d.year);
   Expect.equals(1, d.month);
   Expect.equals(28, d.day);
@@ -32,7 +32,7 @@ main() {
   Expect.equals(0, d.second);
   Expect.equals(0, d.millisecond);
 
-  d = new Date(1970, 3, hour: 11);
+  d = new Date(1970, 3, 1, 11);
   Expect.equals(1970, d.year);
   Expect.equals(3, d.month);
   Expect.equals(1, d.day);
@@ -41,7 +41,7 @@ main() {
   Expect.equals(0, d.second);
   Expect.equals(0, d.millisecond);
 
-  d = new Date(0, 12, 24, minute: 12);
+  d = new Date(0, 12, 24, 0, 12);
   Expect.equals(0, d.year);
   Expect.equals(12, d.month);
   Expect.equals(24, d.day);
@@ -50,7 +50,7 @@ main() {
   Expect.equals(0, d.second);
   Expect.equals(0, d.millisecond);
 
-  d = new Date(-1, 2, 2, 3, millisecond: 4);
+  d = new Date(-1, 2, 2, 3, 0, 0, 4);
   Expect.equals(-1, d.year);
   Expect.equals(2, d.month);
   Expect.equals(2, d.day);
@@ -59,7 +59,7 @@ main() {
   Expect.equals(0, d.second);
   Expect.equals(4, d.millisecond);
 
-  d = new Date(-1, 2, 2, 3, second: 4);
+  d = new Date(-1, 2, 2, 3, 0, 4);
   Expect.equals(-1, d.year);
   Expect.equals(2, d.month);
   Expect.equals(2, d.day);
@@ -68,8 +68,7 @@ main() {
   Expect.equals(4, d.second);
   Expect.equals(0, d.millisecond);
 
-  d = new Date(2012, month: 5, day: 15,
-               hour: 13, minute: 21, second: 33, millisecond: 12);
+  d = new Date(2012, 5, 15, 13, 21, 33, 12);
   Expect.equals(2012, d.year);
   Expect.equals(5, d.month);
   Expect.equals(15, d.day);

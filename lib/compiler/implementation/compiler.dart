@@ -47,11 +47,11 @@ class WorkItem {
     assert(invariant(element, element.isDeclaration));
   }
 
-  bool isAnalyzed() => resolutionTree !== null;
+  bool isAnalyzed() => resolutionTree != null;
 
   void run(Compiler compiler, Enqueuer world) {
     CodeBuffer codeBuffer = world.universe.generatedCode[element];
-    if (codeBuffer !== null) return;
+    if (codeBuffer != null) return;
     resolutionTree = compiler.analyze(this, world);
     compiler.codegen(this, world);
   }
@@ -130,6 +130,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement functionClass;
   ClassElement nullClass;
   ClassElement listClass;
+  ClassElement mapClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
@@ -194,14 +195,15 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasCrashed = false;
 
-  Compiler([this.tracer = const Tracer(),
-            this.enableTypeAssertions = false,
-            this.enableUserAssertions = false,
-            this.enableConcreteTypeInference = false,
-            this.enableMinification = false,
-            bool emitJavaScript = true,
-            bool generateSourceMap = true,
-            List<String> strips = const []])
+  Compiler({this.tracer: const Tracer(),
+            this.enableTypeAssertions: false,
+            this.enableUserAssertions: false,
+            this.enableConcreteTypeInference: false,
+            this.enableMinification: false,
+            bool emitJavaScript: true,
+            bool generateSourceMap: true,
+            bool disallowUnsafeEval: false,
+            List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch() {
     progress.start();
@@ -217,7 +219,9 @@ abstract class Compiler implements DiagnosticListener {
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this, enableConcreteTypeInference);
     backend = emitJavaScript ?
-        new js_backend.JavaScriptBackend(this, generateSourceMap) :
+        new js_backend.JavaScriptBackend(this,
+                                         generateSourceMap,
+                                         disallowUnsafeEval) :
         new dart_backend.DartBackend(this, strips);
     constantHandler = new ConstantHandler(this, backend.constantSystem);
     enqueuer = new EnqueueTask(this);
@@ -236,16 +240,19 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void unimplemented(String methodName,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
     internalError("$methodName not implemented",
-                  node, token, instruction, element);
+                  node: node, token: token,
+                  instruction: instruction, element: element);
   }
 
   void internalError(String message,
-                     [Node node, Token token, HInstruction instruction,
-                      Element element]) {
-    cancel('Internal error: $message', node, token, instruction, element);
+                     {Node node, Token token, HInstruction instruction,
+                      Element element}) {
+    cancel('Internal error: $message',
+           node: node, token: token,
+           instruction: instruction, element: element);
   }
 
   void internalErrorOnElement(Element element, String message) {
@@ -261,18 +268,18 @@ abstract class Compiler implements DiagnosticListener {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
   }
 
-  void cancel([String reason, Node node, Token token,
-               HInstruction instruction, Element element]) {
+  void cancel(String reason, {Node node, Token token,
+               HInstruction instruction, Element element}) {
     assembledCode = null; // Compilation failed. Make sure that we
                           // don't return a bogus result.
     SourceSpan span = null;
-    if (node !== null) {
+    if (node != null) {
       span = spanFromNode(node);
-    } else if (token !== null) {
+    } else if (token != null) {
       span = spanFromTokens(token, token);
-    } else if (instruction !== null) {
+    } else if (instruction != null) {
       span = spanFromElement(currentElement);
-    } else if (element !== null) {
+    } else if (element != null) {
       span = spanFromElement(element);
     } else {
       throw 'No error location for error: $reason';
@@ -282,9 +289,10 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void reportFatalError(String reason, Element element,
-                        [Node node, Token token, HInstruction instruction]) {
+                        {Node node, Token token, HInstruction instruction}) {
     withCurrentElement(element, () {
-      cancel(reason, node, token, instruction, element);
+      cancel(reason, node: node, token: token, instruction: instruction,
+             element: element);
     });
   }
 
@@ -308,7 +316,7 @@ abstract class Compiler implements DiagnosticListener {
   void enableNoSuchMethod(Element element) {
     // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
-    if (element.getEnclosingClass() === objectClass) {
+    if (identical(element.getEnclosingClass(), objectClass)) {
       enqueuer.resolution.registerDynamicInvocationOf(element);
       return;
     }
@@ -329,14 +337,14 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.codegen.addToWorkList(isolateLibrary.find(START_ROOT_ISOLATE));
   }
 
-  bool hasIsolateSupport() => isolateLibrary !== null;
+  bool hasIsolateSupport() => isolateLibrary != null;
 
   /**
    * This method is called before [library] import and export scopes have been
    * set up.
    */
   void onLibraryScanned(LibraryElement library, Uri uri) {
-    if (dynamicClass !== null) {
+    if (dynamicClass != null) {
       // When loading the built-in libraries, dynamicClass is null. We
       // take advantage of this as core and coreimpl import js_helper
       // and see Dynamic this way.
@@ -352,7 +360,7 @@ abstract class Compiler implements DiagnosticListener {
     bool coreLibValid = true;
     ClassElement lookupSpecialClass(SourceString name) {
       ClassElement result = coreLibrary.find(name);
-      if (result === null) {
+      if (result == null) {
         log('core library class $name missing');
         coreLibValid = false;
       }
@@ -366,6 +374,7 @@ abstract class Compiler implements DiagnosticListener {
     stringClass = lookupSpecialClass(const SourceString('String'));
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
+    mapClass = lookupSpecialClass(const SourceString('Map'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
@@ -406,7 +415,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void importHelperLibrary(LibraryElement library) {
-    if (jsHelperLibrary !== null) {
+    if (jsHelperLibrary != null) {
       libraryLoader.importLibrary(library, jsHelperLibrary, null);
     }
   }
@@ -443,12 +452,13 @@ abstract class Compiler implements DiagnosticListener {
         || libraryName == 'dart:math'
         || libraryName == 'dart:html') {
       if (libraryName == 'dart:html') {
+        // dart:html needs access to convertDartClosureToJS.
         importHelperLibrary(library);
       }
       library.addToScope(findHelper(const SourceString('JS')), this);
       Element jsIndexingBehaviorInterface =
           findHelper(const SourceString('JavaScriptIndexingBehavior'));
-      if (jsIndexingBehaviorInterface !== null) {
+      if (jsIndexingBehaviorInterface != null) {
         library.addToScope(jsIndexingBehaviorInterface, this);
       }
     }
@@ -462,7 +472,7 @@ abstract class Compiler implements DiagnosticListener {
       maybeEnableJSHelper(library);
     });
     final Element main = mainApp.find(MAIN);
-    if (main === null) {
+    if (main == null) {
       reportFatalError('Could not find $MAIN', mainApp);
     } else {
       if (!main.isFunction()) reportFatalError('main is not a function', main);
@@ -536,10 +546,10 @@ abstract class Compiler implements DiagnosticListener {
           e.isField() ||
           e.isTypeVariable() ||
           e.isTypedef() ||
-          e.kind === ElementKind.ABSTRACT_FIELD) {
+          identical(e.kind, ElementKind.ABSTRACT_FIELD)) {
         resolved.remove(e);
       }
-      if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+      if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
         ClassElement enclosingClass = e.getEnclosingClass();
         if (enclosingClass.isInterface()) {
           resolved.remove(e);
@@ -547,10 +557,10 @@ abstract class Compiler implements DiagnosticListener {
         resolved.remove(e);
 
       }
-      if (e.getLibrary() === jsHelperLibrary) {
+      if (identical(e.getLibrary(), jsHelperLibrary)) {
         resolved.remove(e);
       }
-      if (e.getLibrary() === interceptorsLibrary) {
+      if (identical(e.getLibrary(), interceptorsLibrary)) {
         resolved.remove(e);
       }
     }
@@ -566,16 +576,16 @@ abstract class Compiler implements DiagnosticListener {
   TreeElements analyzeElement(Element element) {
     assert(invariant(element, element.isDeclaration));
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
-    if (elements !== null) return elements;
+    if (elements != null) return elements;
     final int allowed = ElementCategory.VARIABLE | ElementCategory.FUNCTION
                         | ElementCategory.FACTORY;
     ElementKind kind = element.kind;
     if (!element.isAccessor() &&
-        ((kind === ElementKind.ABSTRACT_FIELD) ||
+        ((identical(kind, ElementKind.ABSTRACT_FIELD)) ||
          (kind.category & allowed) == 0)) {
       return null;
     }
-    assert(parser !== null);
+    assert(parser != null);
     Node tree = parser.parse(element);
     validator.validate(tree);
     elements = resolver.resolve(element);
@@ -602,8 +612,8 @@ abstract class Compiler implements DiagnosticListener {
     }
     Element element = work.element;
     TreeElements result = world.getCachedElements(element);
-    if (result !== null) return result;
-    if (world !== enqueuer.resolution) {
+    if (result != null) return result;
+    if (!identical(world, enqueuer.resolution)) {
       internalErrorOnElement(element,
                              'Internal error: unresolved element: $element.');
     }
@@ -614,7 +624,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void codegen(WorkItem work, Enqueuer world) {
-    if (world !== enqueuer.codegen) return null;
+    if (!identical(world, enqueuer.codegen)) return null;
     if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
@@ -658,7 +668,7 @@ abstract class Compiler implements DiagnosticListener {
 
   bool isLazilyInitialized(VariableElement element) {
     Constant initialValue = compileVariable(element);
-    return initialValue === null;
+    return initialValue == null;
   }
 
   /**
@@ -681,11 +691,11 @@ abstract class Compiler implements DiagnosticListener {
     if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
-      if (message.message.kind === MessageKind.NOT_ASSIGNABLE) return;
-      if (message.message.kind === MessageKind.MISSING_RETURN) return;
-      if (message.message.kind === MessageKind.MAYBE_MISSING_RETURN) return;
-      if (message.message.kind === MessageKind.ADDITIONAL_ARGUMENT) return;
-      if (message.message.kind === MessageKind.METHOD_NOT_FOUND) return;
+      if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
+      if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
+      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) return;
+      if (identical(message.message.kind, MessageKind.ADDITIONAL_ARGUMENT)) return;
+      if (identical(message.message.kind, MessageKind.METHOD_NOT_FOUND)) return;
     }
     SourceSpan span = spanFromNode(node);
 
@@ -708,13 +718,13 @@ abstract class Compiler implements DiagnosticListener {
                                  api.Diagnostic kind);
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
-    if (begin === null || end === null) {
+    if (begin == null || end == null) {
       // TODO(ahe): We can almost always do better. Often it is only
       // end that is null. Otherwise, we probably know the current
       // URI.
       throw 'Cannot find tokens to produce error message.';
     }
-    if (uri === null && currentElement !== null) {
+    if (uri == null && currentElement != null) {
       uri = currentElement.getCompilationUnit().script.uri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
@@ -729,7 +739,7 @@ abstract class Compiler implements DiagnosticListener {
     if (Elements.isErroneousElement(element)) {
       element = element.enclosingElement;
     }
-    if (element.position() === null) {
+    if (element.position() == null) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is
       // not a good error location, but cancel really is "internal
@@ -738,12 +748,12 @@ abstract class Compiler implements DiagnosticListener {
       element = element.enclosingElement;
       // TODO(ahe): I plan to overhaul this infrastructure anyways.
     }
-    if (element === null) {
+    if (element == null) {
       element = currentElement;
     }
     Token position = element.position();
     Uri uri = element.getCompilationUnit().script.uri;
-    return (position === null)
+    return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
   }
@@ -779,11 +789,11 @@ class CompilerTask {
     // TODO(kasperl): Do we have to worry about exceptions here?
     CompilerTask previous = compiler.measuredTask;
     compiler.measuredTask = this;
-    if (previous !== null) previous.watch.stop();
+    if (previous != null) previous.watch.stop();
     watch.start();
     var result = action();
     watch.stop();
-    if (previous !== null) previous.watch.start();
+    if (previous != null) previous.watch.start();
     compiler.measuredTask = previous;
     return result;
   }
@@ -795,7 +805,7 @@ class CompilerCancelledException implements Exception {
 
   String toString() {
     String banner = 'compiler cancelled';
-    return (reason !== null) ? '$banner: $reason' : '$banner';
+    return (reason != null) ? '$banner: $reason' : '$banner';
   }
 }
 

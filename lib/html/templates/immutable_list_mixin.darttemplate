@@ -24,6 +24,12 @@
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+$if DEFINE_CONTAINS
+  bool contains($E element) => _Collections.contains(this, element);
+$else
+  // contains() defined by IDL.
+$endif
+
   void forEach(void f($E element)) => _Collections.forEach(this, f);
 
   Collection map(f($E element)) => _Collections.map(this, [], f);
@@ -39,7 +45,7 @@
 
   // From List<$E>:
 
-  void sort(int compare($E a, $E b)) {
+  void sort([Comparator<$E> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 

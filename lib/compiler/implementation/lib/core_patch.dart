@@ -45,12 +45,12 @@ patch class Expando<T> {
 
   patch T operator[](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values === null) ? null : Primitives.getProperty(values, _getKey());
+    return (values == null) ? null : Primitives.getProperty(values, _getKey());
   }
 
   patch void operator[]=(Object object, T value) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    if (values === null) {
+    if (values == null) {
       values = new Object();
       Primitives.setProperty(object, _EXPANDO_PROPERTY_NAME, values);
     }
@@ -59,7 +59,7 @@ patch class Expando<T> {
 
   String _getKey() {
     String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
-    if (key === null) {
+    if (key == null) {
       key = "expando\$key\$${_keyCount++}";
       Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
     }

@@ -23,7 +23,7 @@ namespace dart {
 
 
 static uword BigintAllocator(intptr_t size) {
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   return zone->AllocUnsafe(size);
 }
 

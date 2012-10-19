@@ -74,7 +74,7 @@ is 'dart file.dart' and you specify special command
 
    dart2js: Compile dart code to JavaScript by running dart2js.
          (only valid with the following runtimes: d8, drt, chrome,
-         safari, ie, firefox, opera, none (compile only)),
+         safari, ie9, firefox, opera, none (compile only)),
 
    dartc: Perform static analysis on Dart code by running dartc.
           (only valid with the following runtimes: none)''',
@@ -95,14 +95,14 @@ is 'dart file.dart' and you specify special command
 
     dartium: Run Dart or JavaScript in Dartium.
 
-    [ff | chrome | safari | ie | opera]: Run JavaScript in the specified
+    [ff | chrome | safari | ie9 | opera]: Run JavaScript in the specified
          browser.
 
     none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
-               'chrome', 'safari', 'ie', 'opera', 'none'],
+               'chrome', 'safari', 'ie9', 'opera', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -398,7 +398,7 @@ Note: currently only implemented for dart2js.''',
         // dart2js_drt will be duplicating work. If later we don't need 'none'
         // with dart2js, we should remove it from here.
         validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
-                               'ff', 'chrome', 'safari', 'ie', 'opera'];
+                               'ff', 'chrome', 'safari', 'ie9', 'opera'];
         break;
       case 'dartc':
         validRuntimes = const ['none'];
@@ -413,7 +413,7 @@ Note: currently only implemented for dart2js.''',
       print("Warning: combination of ${config['compiler']} and "
           "${config['runtime']} is invalid. Skipping this combination.");
     }
-    if (config['runtime'] == 'ie' &&
+    if (config['runtime'] == 'ie9' &&
         Platform.operatingSystem != 'windows') {
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating"
@@ -560,7 +560,7 @@ Note: currently only implemented for dart2js.''',
             timeout *= 2;
           }
           if (Contains(configuration['runtime'],
-                       const ['ie', 'ff', 'chrome', 'safari', 'opera'])) {
+                       const ['ie9', 'ff', 'chrome', 'safari', 'opera'])) {
             timeout *= 8; // Allow additional time for browser testing to run.
           }
           break;

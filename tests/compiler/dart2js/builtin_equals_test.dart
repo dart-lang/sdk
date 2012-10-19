@@ -16,7 +16,7 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST, 'foo', enableTypeAssertions: true);
+  String generated = compile(TEST, entry: 'foo', enableTypeAssertions: true);
   Expect.isTrue(!generated.contains('eqB'));
 
   RegExp regexp = new RegExp('==');

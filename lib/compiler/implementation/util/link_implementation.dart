@@ -27,7 +27,7 @@ class LinkEntry<T> extends Link<T> {
 
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.add(head);
-    if (separatedBy === null) separatedBy = '';
+    if (separatedBy == null) separatedBy = '';
     for (Link link = tail; !link.isEmpty(); link = link.tail) {
       buffer.add(separatedBy);
       buffer.add(link.head);
@@ -97,7 +97,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   LinkBuilderImplementation();
 
   Link<T> toLink() {
-    if (head === null) return const Link();
+    if (head == null) return const Link();
     lastLink.tail = const Link();
     Link<T> link = head;
     lastLink = null;
@@ -108,7 +108,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   void addLast(T t) {
     length++;
     LinkEntry<T> entry = new LinkEntry<T>(t, null);
-    if (head === null) {
+    if (head == null) {
       head = entry;
     } else {
       lastLink.tail = entry;

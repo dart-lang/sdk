@@ -8,8 +8,18 @@
  * Interface implemented by all core library exceptions.
  * Defaults to an implementation that only carries a simple message.
  */
-interface Exception default ExceptionImplementation {
+interface Exception default _ExceptionImplementation {
+  // TODO(lrn): This should be an abstract class, but we don't yet support
+  // redirecting factory constructors.
   const Exception([var message]);
+}
+
+
+/** Default implementation of [Exception] which carries a message. */
+class _ExceptionImplementation implements Exception {
+  final message;
+  const _ExceptionImplementation([this.message]);
+  String toString() => (message == null) ? "Exception" : "Exception: $message";
 }
 
 
@@ -23,7 +33,6 @@ class IndexOutOfRangeException implements Exception {
 
   final _value;
 }
-
 
 /**
  * Exception thrown because of attempt to modify an immutable object.
@@ -43,12 +52,6 @@ class ClosureArgumentMismatchException implements Exception {
 class ObjectNotClosureException implements Exception {
   const ObjectNotClosureException();
   String toString() => "Object is not closure";
-}
-
-
-class OutOfMemoryException implements Exception {
-  const OutOfMemoryException();
-  String toString() => "Out of Memory";
 }
 
 

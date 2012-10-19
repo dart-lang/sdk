@@ -118,7 +118,7 @@ class _ScalarNode extends _Node {
    * should be specified for a composed scalar, although `null` is a valid
    * value.
    */
-  _ScalarNode(String tagName, [String content, this.value])
+  _ScalarNode(String tagName, {String content, this.value})
    : _content = content,
      super(new _Tag.scalar(tagName));
 

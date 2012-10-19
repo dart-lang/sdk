@@ -6,8 +6,8 @@
  * A [List] is an indexable collection with a length. It can be of
  * fixed size or extendable.
  */
-interface List<E> extends Collection<E> default ListImplementation<E> {
-
+interface List<E> extends Collection<E>, Sequence<E>
+                  default ListImplementation<E> {
   /**
    * Creates a list of the given [length].
    *
@@ -69,7 +69,7 @@ interface List<E> extends Collection<E> default ListImplementation<E> {
   /**
    * Sorts the list according to the order specified by the [Comparator].
    */
-  void sort(Comparator<E> compare);
+  void sort([Comparator<E> compare = Comparable.compare]);
 
   /**
    * Returns the first index of [element] in the list.

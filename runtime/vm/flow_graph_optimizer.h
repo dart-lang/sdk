@@ -20,7 +20,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
         flow_graph_(flow_graph) { }
   virtual ~FlowGraphOptimizer() {}
 
+  // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
+
+  // Use propagated class ids to optimize, replace or eliminate instructions.
+  void ApplyClassIds();
 
   void OptimizeComputations();
 
@@ -44,7 +48,16 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                     Definition::UseKind use_kind);
 
  private:
-  bool TryReplaceWithArrayOp(InstanceCallInstr* call, Token::Kind op_kind);
+  // Attempt to build ICData for call using propagated class-ids.
+  bool TryCreateICData(InstanceCallInstr* call);
+
+  intptr_t PrepareIndexedOp(InstanceCallInstr* call,
+                            intptr_t class_id,
+                            Value** array,
+                            Value** index);
+  bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
+
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
 

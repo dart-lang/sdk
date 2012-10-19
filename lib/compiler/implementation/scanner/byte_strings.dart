@@ -27,7 +27,7 @@ class ByteString implements SourceString {
   Iterator<int> iterator() => new Utf8Decoder(bytes, offset, length);
 
   int hashCode() {
-    if (_hashCode === null) {
+    if (_hashCode == null) {
       _hashCode = computeHashCode();
     }
     return _hashCode;
@@ -47,7 +47,7 @@ class ByteString implements SourceString {
   }
 
   bool isEmpty() => length == 0;
-  bool isPrivate() => !isEmpty() && bytes[offset] === $_;
+  bool isPrivate() => !isEmpty() && identical(bytes[offset], $_);
 
   String get stringValue => null;
 }

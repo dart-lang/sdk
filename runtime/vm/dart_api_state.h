@@ -28,10 +28,22 @@ namespace dart {
 class ApiZone {
  public:
   // Create an empty zone.
-  ApiZone() : zone_() { }
+  ApiZone() : zone_() {
+    Isolate* isolate = Isolate::Current();
+    Zone* current_zone = isolate != NULL ? isolate->current_zone() : NULL;
+    zone_.Link(current_zone);
+    if (isolate != NULL) {
+      isolate->set_current_zone(&zone_);
+    }
+  }
 
   // Delete all memory associated with the zone.
-  ~ApiZone() { }
+  ~ApiZone() {
+    Isolate* isolate = Isolate::Current();
+    if (isolate != NULL && isolate->current_zone() == &zone_) {
+      isolate->set_current_zone(zone_.previous_);
+    }
+  }
 
   // Allocates an array sized to hold 'len' elements of type
   // 'ElementType'.  Checks for integer overflow when performing the
@@ -61,9 +73,9 @@ class ApiZone {
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
- private:
-  Zone* GetBaseZone() { return &zone_; }
+  Zone* GetZone() { return &zone_; }
 
+ private:
   Zone zone_;
 
   template<typename T> friend class ApiGrowableArray;
@@ -446,7 +458,7 @@ class ApiLocalScope {
   uword stack_marker() const { return stack_marker_; }
   void set_previous(ApiLocalScope* value) { previous_ = value; }
   LocalHandles* local_handles() { return &local_handles_; }
-  ApiZone* zone() { return &zone_; }
+  Zone* zone() { return zone_.GetZone(); }
 
  private:
   ApiLocalScope* previous_;
@@ -653,7 +665,7 @@ class ApiNativeScope {
         Thread::GetThreadLocal(Api::api_native_key_));
   }
 
-  ApiZone* zone() { return &zone_; }
+  Zone* zone() { return zone_.GetZone(); }
 
  private:
   ApiZone zone_;
@@ -671,10 +683,10 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
   explicit ApiGrowableArray(int initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
           initial_capacity,
-          ApiNativeScope::Current()->zone()->GetBaseZone()) {}
+          ApiNativeScope::Current()->zone()) {}
   ApiGrowableArray()
       : BaseGrowableArray<T, ValueObject>(
-          ApiNativeScope::Current()->zone()->GetBaseZone()) {}
+          ApiNativeScope::Current()->zone()) {}
 };
 
 

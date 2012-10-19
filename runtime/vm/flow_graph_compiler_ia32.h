@@ -210,6 +210,14 @@ class FlowGraphCompiler : public ValueObject {
 
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
 
+  // Array/list element address computations.
+  static FieldAddress ElementAddressForIntIndex(intptr_t cid,
+                                                Register array,
+                                                intptr_t offset);
+  static FieldAddress ElementAddressForRegIndex(intptr_t cid,
+                                                Register array,
+                                                Register index);
+
  private:
   void GenerateDeferredCode();
 

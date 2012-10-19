@@ -85,35 +85,62 @@ class _TypedArrayFactoryProvider {
     return _U8C_3(buffer, byteOffset, length);
   }
 
-  static Float32Array _F32(arg) native 'return new Float32Array(arg);';
-  static Float64Array _F64(arg) native 'return new Float64Array(arg);';
-  static Int8Array _I8(arg) native 'return new Int8Array(arg);';
-  static Int16Array _I16(arg) native 'return new Int16Array(arg);';
-  static Int32Array _I32(arg) native 'return new Int32Array(arg);';
-  static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
-  static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
-  static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
-  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
+  static Float32Array _F32(arg) =>
+      JS('Float32Array', 'new Float32Array(#)', arg);
+  static Float64Array _F64(arg) =>
+      JS('Float64Array', 'new Float64Array(#)', arg);
+  static Int8Array _I8(arg) =>
+      JS('Int8Array', 'new Int8Array(#)', arg);
+  static Int16Array _I16(arg) =>
+      JS('Int16Array', 'new Int16Array(#)', arg);
+  static Int32Array _I32(arg) =>
+      JS('Int32Array', 'new Int32Array(#)', arg);
+  static Uint8Array _U8(arg) =>
+      JS('Uint8Array', 'new Uint8Array(#)', arg);
+  static Uint16Array _U16(arg) =>
+      JS('Uint16Array', 'new Uint16Array(#)', arg);
+  static Uint32Array _U32(arg) =>
+      JS('Uint32Array', 'new Uint32Array(#)', arg);
+  static Uint8ClampedArray _U8C(arg) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#)', arg);
 
-  static Float32Array _F32_2(arg1, arg2) native 'return new Float32Array(arg1, arg2);';
-  static Float64Array _F64_2(arg1, arg2) native 'return new Float64Array(arg1, arg2);';
-  static Int8Array _I8_2(arg1, arg2) native 'return new Int8Array(arg1, arg2);';
-  static Int16Array _I16_2(arg1, arg2) native 'return new Int16Array(arg1, arg2);';
-  static Int32Array _I32_2(arg1, arg2) native 'return new Int32Array(arg1, arg2);';
-  static Uint8Array _U8_2(arg1, arg2) native 'return new Uint8Array(arg1, arg2);';
-  static Uint16Array _U16_2(arg1, arg2) native 'return new Uint16Array(arg1, arg2);';
-  static Uint32Array _U32_2(arg1, arg2) native 'return new Uint32Array(arg1, arg2);';
-  static Uint8ClampedArray _U8C_2(arg1, arg2) native 'return new Uint8ClampedArray(arg1, arg2);';
+  static Float32Array _F32_2(arg1, arg2) =>
+      JS('Float32Array', 'new Float32Array(#, #)', arg1, arg2);
+  static Float64Array _F64_2(arg1, arg2) =>
+      JS('Float64Array', 'new Float64Array(#, #)', arg1, arg2);
+  static Int8Array _I8_2(arg1, arg2) =>
+      JS('Int8Array', 'new Int8Array(#, #)', arg1, arg2);
+  static Int16Array _I16_2(arg1, arg2) =>
+      JS('Int16Array', 'new Int16Array(#, #)', arg1, arg2);
+  static Int32Array _I32_2(arg1, arg2) =>
+      JS('Int32Array', 'new Int32Array(#, #)', arg1, arg2);
+  static Uint8Array _U8_2(arg1, arg2) =>
+      JS('Uint8Array', 'new Uint8Array(#, #)', arg1, arg2);
+  static Uint16Array _U16_2(arg1, arg2) =>
+      JS('Uint16Array', 'new Uint16Array(#, #)', arg1, arg2);
+  static Uint32Array _U32_2(arg1, arg2) =>
+      JS('Uint32Array', 'new Uint32Array(#, #)', arg1, arg2);
+  static Uint8ClampedArray _U8C_2(arg1, arg2) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#, #)', arg1, arg2);
 
-  static Float32Array _F32_3(arg1, arg2, arg3) native 'return new Float32Array(arg1, arg2, arg3);';
-  static Float64Array _F64_3(arg1, arg2, arg3) native 'return new Float64Array(arg1, arg2, arg3);';
-  static Int8Array _I8_3(arg1, arg2, arg3) native 'return new Int8Array(arg1, arg2, arg3);';
-  static Int16Array _I16_3(arg1, arg2, arg3) native 'return new Int16Array(arg1, arg2, arg3);';
-  static Int32Array _I32_3(arg1, arg2, arg3) native 'return new Int32Array(arg1, arg2, arg3);';
-  static Uint8Array _U8_3(arg1, arg2, arg3) native 'return new Uint8Array(arg1, arg2, arg3);';
-  static Uint16Array _U16_3(arg1, arg2, arg3) native 'return new Uint16Array(arg1, arg2, arg3);';
-  static Uint32Array _U32_3(arg1, arg2, arg3) native 'return new Uint32Array(arg1, arg2, arg3);';
-  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) native 'return new Uint8ClampedArray(arg1, arg2, arg3);';
+  static Float32Array _F32_3(arg1, arg2, arg3) =>
+      JS('Float32Array', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
+  static Float64Array _F64_3(arg1, arg2, arg3) =>
+      JS('Float64Array', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
+  static Int8Array _I8_3(arg1, arg2, arg3) =>
+      JS('Int8Array', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
+  static Int16Array _I16_3(arg1, arg2, arg3) =>
+      JS('Int16Array', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
+  static Int32Array _I32_3(arg1, arg2, arg3) =>
+      JS('Int32Array', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
+  static Uint8Array _U8_3(arg1, arg2, arg3) =>
+      JS('Uint8Array', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
+  static Uint16Array _U16_3(arg1, arg2, arg3) =>
+      JS('Uint16Array', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
+  static Uint32Array _U32_3(arg1, arg2, arg3) =>
+      JS('Uint32Array', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
+  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) =>
+      JS('Uint8ClampedArray', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3);
 
 
   // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,

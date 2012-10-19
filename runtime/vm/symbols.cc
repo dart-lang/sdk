@@ -96,7 +96,7 @@ void Symbols::Add(const Array& symbol_table, const String& str) {
 RawString* Symbols::New(const char* str) {
   intptr_t width = 0;
   intptr_t len = Utf8::CodePointCount(str, &width);
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
   } else if (width == 1) {

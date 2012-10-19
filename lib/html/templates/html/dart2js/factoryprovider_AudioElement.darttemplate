@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  static AudioElement createAudioElement([String src = null]) native '''
-      if (src == null) return new Audio();
-      return new Audio(src);
-    ''';
+  static AudioElement createAudioElement([String src = null]) {
+    if (src == null) return JS('AudioElement', 'new Audio()');
+    return JS('AudioElement', 'new Audio(#)', src);
+  }
 }

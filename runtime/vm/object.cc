@@ -2205,6 +2205,10 @@ RawFunction* Class::LookupFunction(const String& name) const {
   ASSERT(name.IsOneByteString());
   const OneByteString& lookup_name = OneByteString::Cast(name);
   Array& funcs = Array::Handle(isolate, functions());
+  if (funcs.IsNull()) {
+    // This can occur, e.g., for Null classes.
+    return Function::null();
+  }
   Function& function = Function::Handle(isolate, Function::null());
   OneByteString& function_name =
       OneByteString::Handle(isolate, OneByteString::null());
@@ -9709,7 +9713,7 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
 
 
 static uword BigintAllocator(intptr_t size) {
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   return zone->AllocUnsafe(size);
 }
 
@@ -10221,7 +10225,7 @@ RawString* String::NewFormattedV(const char* format, va_list args) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   char* buffer = zone->Alloc<char>(len + 1);
   OS::VSNPrint(buffer, (len + 1), format, args);
 
@@ -10326,7 +10330,7 @@ RawString* String::SubString(const String& str,
 
 const char* String::ToCString() const {
   intptr_t len = Utf8::Length(*this);
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   char* result = zone->Alloc<char>(len + 1);
   Utf8::Encode(*this, result, len);
   result[len] = 0;

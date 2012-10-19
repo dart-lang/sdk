@@ -47,13 +47,11 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
-  CodeEmitterTask(Compiler compiler, Namer namer,
-                  [bool generateSourceMap = false])
+  CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
       : boundClosureBuffer = new CodeBuffer(),
         mainBuffer = new CodeBuffer(),
         this.namer = namer,
         boundClosureCache = new Map<int, String>(),
-        generateSourceMap = generateSourceMap,
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
@@ -68,7 +66,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void writeConstantToBuffer(Constant value, CodeBuffer buffer,
-                             [emitCanonicalVersion = true]) {
+                             {emitCanonicalVersion: true}) {
     if (emitCanonicalVersion) {
       constantEmitter.emitCanonicalVersionOfConstant(value, buffer);
     } else {
@@ -165,6 +163,8 @@ function(cls, fields, prototype) {
     // On Firefox and Webkit browsers we can manipulate the __proto__
     // directly. Opera claims to have __proto__ support, but it is buggy.
     // So we have to do more checks.
+    // Opera bug was filed as DSK-370158, and fixed as CORE-47615
+    // (http://my.opera.com/desktopteam/blog/2012/07/20/more-12-01-fixes).
     // If the browser does not support __proto__ we need to instantiate an
     // object with the correct (internal) prototype set up correctly, and then
     // copy the members.
@@ -605,7 +605,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       if (codeBuffer == null) return;
       defineInstanceMember(namer.getName(member), codeBuffer);
       codeBuffer = compiler.codegenWorld.generatedBailoutCode[member];
-      if (codeBuffer !== null) {
+      if (codeBuffer != null) {
         defineInstanceMember(namer.getBailoutName(member), codeBuffer);
       }
       FunctionElement function = member;
@@ -618,107 +618,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
                              element: member);
     }
     emitExtraAccessors(member, defineInstanceMember);
-  }
-
-  String generateCheckedSetter(Element member, String fieldName) {
-    DartType type = member.computeType(compiler);
-    if (type.element.isTypeVariable()
-        || type.element == compiler.dynamicClass
-        || type.element == compiler.objectClass) {
-      // TODO(ngeoffray): Support type checks on type parameters.
-      return null;
-    } else {
-      SourceString helper = compiler.backend.getCheckedModeHelper(type);
-      FunctionElement helperElement = compiler.findHelper(helper);
-      String helperName = namer.isolateAccess(helperElement);
-      String additionalArgument = '';
-      if (helperElement.computeSignature(compiler).parameterCount != 1) {
-        additionalArgument = ", '${namer.operatorIs(type.element)}'";
-      }
-      return " set\$$fieldName: function(v) { "
-          "this.$fieldName = $helperName(v$additionalArgument); }";
-    }
-  }
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [classElement] must be a declaration element.
-   */
-  List<String> emitClassFields(ClassElement classElement, CodeBuffer buffer) {
-    assert(invariant(classElement, classElement.isDeclaration));
-    // If the class is never instantiated we still need to set it up for
-    // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isInstantiated =
-        compiler.codegenWorld.instantiatedClasses.contains(classElement);
-    List<String> checkedSetters = <String>[];
-
-    bool isFirstField = true;
-    void addField(ClassElement enclosingClass, Element member) {
-      assert(!member.isNative());
-      assert(invariant(classElement, member.isDeclaration));
-
-      LibraryElement library = member.getLibrary();
-      SourceString name = member.name;
-      bool isPrivate = name.isPrivate();
-      // See if we can dynamically create getters and setters.
-      // We can only generate getters and setters for [classElement] since
-      // the fields of super classes could be overwritten with getters or
-      // setters.
-      bool needsDynamicGetter = false;
-      bool needsDynamicSetter = false;
-      // We need to name shadowed fields differently, so they don't clash with
-      // the non-shadowed field.
-      bool isShadowed = false;
-      if (enclosingClass === classElement) {
-        needsDynamicGetter = instanceFieldNeedsGetter(member);
-        needsDynamicSetter = instanceFieldNeedsSetter(member);
-      } else {
-        isShadowed = classElement.isShadowedByField(member);
-      }
-
-      if ((isInstantiated && !enclosingClass.isNative())
-          || needsDynamicGetter
-          || needsDynamicSetter) {
-        if (isFirstField) {
-          isFirstField = false;
-        } else {
-          buffer.add(", ");
-        }
-        String fieldName = isShadowed
-            ? namer.shadowedFieldName(member)
-            : namer.getName(member);
-        if (needsDynamicSetter && compiler.enableTypeAssertions) {
-          String setter = generateCheckedSetter(member, fieldName);
-          if (setter != null) {
-            needsDynamicSetter = false;
-            checkedSetters.add(setter);
-          }
-        }
-        // Getters and setters with suffixes will be generated dynamically.
-        buffer.add('"$fieldName');
-        if (needsDynamicGetter || needsDynamicSetter) {
-          if (needsDynamicGetter && needsDynamicSetter) {
-            buffer.add(GETTER_SETTER_SUFFIX);
-          } else if (needsDynamicGetter) {
-            buffer.add(GETTER_SUFFIX);
-          } else {
-            buffer.add(SETTER_SUFFIX);
-          }
-        }
-        buffer.add('"');
-      }
-    }
-
-    // If a class is not instantiated then we add the field just so we can
-    // generate the field getter/setter dynamically. Since this is only
-    // allowed on fields that are in [classElement] we don't need to visit
-    // superclasses for non-instantiated classes.
-    classElement.implementation.forEachInstanceField(
-        addField,
-        includeBackendMembers: true,
-        includeSuperMembers: isInstantiated && !classElement.isNative());
-    return checkedSetters;
   }
 
   /**
@@ -739,13 +638,14 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       buffer.add(memberBuffer);
     }
 
-    classElement.implementation.forEachMember(includeBackendMembers: true,
-        f: (ClassElement enclosing, Element member) {
-      assert(invariant(classElement, member.isDeclaration));
-      if (member.isInstanceMember()) {
-        addInstanceMember(member, defineInstanceMember);
-      }
-    });
+    classElement.implementation.forEachMember(
+        (ClassElement enclosing, Element member) {
+          assert(invariant(classElement, member.isDeclaration));
+          if (member.isInstanceMember()) {
+            addInstanceMember(member, defineInstanceMember);
+          }
+        },
+        includeBackendMembers: true);
 
     generateIsTestsOn(classElement, (ClassElement other) {
       String code;
@@ -760,7 +660,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       defineInstanceMember(namer.operatorIs(other), typeTestBuffer);
     });
 
-    if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
+    if (identical(classElement, compiler.objectClass)
+        && compiler.enabledNoSuchMethod) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -769,6 +670,165 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         emitNoSuchMethodHandlers(defineInstanceMember);
       }
     }
+  }
+
+  /**
+   * Documentation wanted -- johnniwinther
+   *
+   * Invariant: [classElement] must be a declaration element.
+   */
+  void visitClassFields(ClassElement classElement,
+                        void addField(Element member,
+                                      String name,
+                                      bool needsGetter,
+                                      bool needsSetter,
+                                      bool needsCheckedSetter)) {
+    assert(invariant(classElement, classElement.isDeclaration));
+    // If the class is never instantiated we still need to set it up for
+    // inheritance purposes, but we can simplify its JavaScript constructor.
+    bool isInstantiated =
+        compiler.codegenWorld.instantiatedClasses.contains(classElement);
+
+    void visitField(ClassElement enclosingClass, Element member) {
+      assert(!member.isNative());
+      assert(invariant(classElement, member.isDeclaration));
+
+      LibraryElement library = member.getLibrary();
+      SourceString name = member.name;
+      bool isPrivate = name.isPrivate();
+      // See if we can dynamically create getters and setters.
+      // We can only generate getters and setters for [classElement] since
+      // the fields of super classes could be overwritten with getters or
+      // setters.
+      bool needsGetter = false;
+      bool needsSetter = false;
+      // We need to name shadowed fields differently, so they don't clash with
+      // the non-shadowed field.
+      bool isShadowed = false;
+      if (identical(enclosingClass, classElement)) {
+        needsGetter = instanceFieldNeedsGetter(member);
+        needsSetter = instanceFieldNeedsSetter(member);
+      } else {
+        isShadowed = classElement.isShadowedByField(member);
+      }
+
+      if ((isInstantiated && !enclosingClass.isNative())
+          || needsGetter
+          || needsSetter) {
+        String fieldName = isShadowed
+            ? namer.shadowedFieldName(member)
+            : namer.getName(member);
+        bool needsCheckedSetter = false;
+        if (needsSetter && compiler.enableTypeAssertions
+            && canGenerateCheckedSetter(member)) {
+          needsCheckedSetter = true;
+          needsSetter = false;
+        }
+        // Getters and setters with suffixes will be generated dynamically.
+        addField(member,
+                 fieldName,
+                 needsGetter,
+                 needsSetter,
+                 needsCheckedSetter);
+      }
+    }
+
+    // If a class is not instantiated then we add the field just so we can
+    // generate the field getter/setter dynamically. Since this is only
+    // allowed on fields that are in [classElement] we don't need to visit
+    // superclasses for non-instantiated classes.
+    classElement.implementation.forEachInstanceField(
+        visitField,
+        includeBackendMembers: true,
+        includeSuperMembers: isInstantiated && !classElement.isNative());
+  }
+
+  void generateGetter(Element member, String fieldName, CodeBuffer buffer) {
+    String getterName = namer.getterName(member.getLibrary(), member.name);
+    buffer.add("$getterName: function() { return this.$fieldName; }");
+  }
+
+  void generateSetter(Element member, String fieldName, CodeBuffer buffer) {
+    String setterName = namer.setterName(member.getLibrary(), member.name);
+    buffer.add("$setterName: function(v) { this.$fieldName = v; }");
+  }
+
+  bool canGenerateCheckedSetter(Element member) {
+    DartType type = member.computeType(compiler);
+    if (type.element.isTypeVariable()
+        || type.element == compiler.dynamicClass
+        || type.element == compiler.objectClass) {
+      // TODO(ngeoffray): Support type checks on type parameters.
+      return false;
+    }
+    return true;
+  }
+
+  void generateCheckedSetter(Element member,
+                             String fieldName,
+                             CodeBuffer buffer) {
+    assert(canGenerateCheckedSetter(member));
+    DartType type = member.computeType(compiler);
+    SourceString helper = compiler.backend.getCheckedModeHelper(type);
+    FunctionElement helperElement = compiler.findHelper(helper);
+    String helperName = namer.isolateAccess(helperElement);
+    String additionalArgument = '';
+    if (helperElement.computeSignature(compiler).parameterCount != 1) {
+      additionalArgument = ", '${namer.operatorIs(type.element)}'";
+    }
+    String setterName = namer.setterName(member.getLibrary(), member.name);
+    buffer.add("$setterName: function(v) { "
+        "this.$fieldName = $helperName(v$additionalArgument); }");
+  }
+
+  void emitClassConstructor(ClassElement classElement, CodeBuffer buffer) {
+    /* Do nothing. */
+  }
+
+  void emitClassFields(ClassElement classElement, CodeBuffer buffer) {
+    buffer.add('"": [');
+    bool isFirstField = true;
+    visitClassFields(classElement, (Element member,
+                                    String name,
+                                    bool needsGetter,
+                                    bool needsSetter,
+                                    bool needsCheckedSetter) {
+      if (isFirstField) {
+        isFirstField = false;
+      } else {
+        buffer.add(", ");
+      }
+      buffer.add('"$name');
+      if (needsGetter && needsSetter) {
+        buffer.add(GETTER_SETTER_SUFFIX);
+      } else if (needsGetter) {
+        buffer.add(GETTER_SUFFIX);
+      } else if (needsSetter) {
+        buffer.add(SETTER_SUFFIX);
+      }
+      buffer.add('"');
+    });
+    buffer.add(']');
+  }
+
+  /** Each getter/setter must be prefixed with a ",\n ". */
+  void emitClassGettersSetters(ClassElement classElement, CodeBuffer buffer,
+                               {bool omitLeadingComma: false}) {
+    visitClassFields(classElement, (Element member,
+                                    String name,
+                                    bool needsGetter,
+                                    bool needsSetter,
+                                    bool needsCheckedSetter) {
+      if (needsCheckedSetter) {
+        assert(!needsSetter);
+        if (!omitLeadingComma) {
+          buffer.add(",\n ");
+        } else {
+          omitLeadingComma = false;
+        }
+        generateCheckedSetter(member, name, buffer);
+      }
+    });
   }
 
   /**
@@ -792,23 +852,18 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     String className = namer.getName(classElement);
     ClassElement superclass = classElement.superclass;
     String superName = "";
-    if (superclass !== null) {
+    if (superclass != null) {
       superName = namer.getName(superclass);
     }
-    String constructorName = namer.safeName(classElement.name.slowToString());
 
-    buffer.add('$classesCollector.$className = {"":\n');
-    buffer.add(' [');
-    List<String> checkedSetters = emitClassFields(classElement, buffer);
-    buffer.add('],\n');
+    buffer.add('$classesCollector.$className = {');
+    emitClassConstructor(classElement, buffer);
+    emitClassFields(classElement, buffer);
     // TODO(floitsch): the emitInstanceMember should simply always emit a ',\n'.
     // That does currently not work because the native classes have a different
     // syntax.
-    buffer.add(' "super": "$superName"');
-    if (!checkedSetters.isEmpty()) {
-      buffer.add(',\n');
-      buffer.add('${Strings.join(checkedSetters, ",\n")}');
-    }
+    buffer.add(',\n "super": "$superName"');
+    emitClassGettersSetters(classElement, buffer);
     emitInstanceMembers(classElement, buffer, true);
     buffer.add('\n};\n\n');
   }
@@ -868,7 +923,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         new Set<ClassElement>.from(instantiatedClasses);
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
-           superclass !== null;
+           superclass != null;
            superclass = superclass.superclass) {
         if (neededClasses.contains(superclass)) break;
         neededClasses.add(superclass);
@@ -892,7 +947,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       for (ClassElement element in sortedClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member === null) continue;
+        if (member == null) continue;
         if (noSuchMethodSelector.applies(member, compiler)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
@@ -973,6 +1028,16 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     }
   }
 
+  void emitBoundClosureClassHeader(String mangledName,
+                             String superName,
+                             CodeBuffer buffer) {
+    buffer.add("""
+$classesCollector.$mangledName = {'':
+['self', 'target'],
+'super': '$superName',
+""");
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1007,7 +1072,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
     String closureClass =
         hasOptionalParameters ? null : boundClosureCache[parameterCount];
-    if (closureClass === null) {
+    if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
       SourceString name = const SourceString("BoundClosure");
@@ -1019,11 +1084,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
-      boundClosureBuffer.add("""
-$classesCollector.$mangledName = {'':
- ['self', 'target'],
- 'super': '$superName',
-""");
+      emitBoundClosureClassHeader(mangledName, superName, boundClosureBuffer);
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
       // its stubs we simply create a fake element with the correct name.
@@ -1123,7 +1184,7 @@ $classesCollector.$mangledName = {'':
     if (!lazyFields.isEmpty()) {
       needsLazyInitializer = true;
       for (VariableElement element in lazyFields) {
-        assert(compiler.codegenWorld.generatedBailoutCode[element] === null);
+        assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
         StringBuffer code = compiler.codegenWorld.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
@@ -1158,7 +1219,7 @@ $classesCollector.$mangledName = {'':
       // The name is null when the constant is already a JS constant.
       // TODO(floitsch): every constant should be registered, so that we can
       // share the ones that take up too much space (like some strings).
-      if (name === null) continue;
+      if (name == null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
@@ -1189,7 +1250,7 @@ $classesCollector.$mangledName = {'':
     assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-      if (selectors !== null && !selectors.isEmpty()) {
+      if (selectors != null && !selectors.isEmpty()) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.isFunction()) {
@@ -1217,7 +1278,7 @@ $classesCollector.$mangledName = {'':
     Set<ClassElement> noSuchMethodHoldersFor(DartType type) {
       ClassElement element = type.element;
       Set<ClassElement> result = noSuchMethodHolders[element];
-      if (result === null) {
+      if (result == null) {
         // For now, we check the entire world to see if an object of
         // the given type may have a user-defined noSuchMethod
         // implementation. We could do better by only looking at
@@ -1252,16 +1313,16 @@ $classesCollector.$mangledName = {'':
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
           Element element = holder.lookupMember(selector.name);
-          if (element === null) return false;
+          if (element == null) return false;
 
           // TODO(kasperl): Consider folding this logic into the
           // Selector.applies() method.
           if (element is AbstractFieldElement) {
             AbstractFieldElement field = element;
-            if (selector.kind === SelectorKind.GETTER) {
-              return field.getter !== null;
-            } else if (selector.kind === SelectorKind.SETTER) {
-              return field.setter !== null;
+            if (identical(selector.kind, SelectorKind.GETTER)) {
+              return field.getter != null;
+            } else if (identical(selector.kind, SelectorKind.SETTER)) {
+              return field.setter != null;
             } else {
               return false;
             }
@@ -1373,6 +1434,9 @@ $classesCollector.$mangledName = {'':
 
     // TODO(ngeoffray): These globals are currently required by the isolate
     // library. They should be removed.
+    String runtimeTypeCache =
+        compiler.enabledRuntimeType ? "  context.runtimeTypeCache = {}\n" : "";
+
     buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;
@@ -1384,7 +1448,7 @@ function \$static_init(){};
 
 function \$initGlobals(context) {
   context.isolateStatics = new ${namer.ISOLATE}();
-}
+$runtimeTypeCache}
 function \$setGlobals(context) {
   $currentIsolate = context.isolateStatics;
   \$globalThis = $currentIsolate;
@@ -1459,7 +1523,7 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
-      if (compiler.enabledRuntimeType) {
+      if (compiler.enabledRuntimeType && !compiler.hasIsolateSupport()) {
         mainBuffer.add('$isolateProperties.runtimeTypeCache = {};\n');
       }
 

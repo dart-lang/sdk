@@ -40,10 +40,10 @@ abstract class Date implements Comparable {
 
   /**
    * Constructs a [Date] instance based on the individual parts. The date is
-   * in the local time zone if [isUtc] is false.
+   * in the local time zone.
    *
    * [month] and [day] are one-based. For example
-   * [:new Date(1938, 1, 10)] represents the 10th of January 1938.
+   * [:new Date(1938, 1, 10):] represents the 10th of January 1938.
    */
   factory Date(int year,
                [int month = 1,
@@ -51,11 +51,30 @@ abstract class Date implements Comparable {
                 int hour = 0,
                 int minute = 0,
                 int second = 0,
-                int millisecond = 0,
-                bool isUtc = false]) {
+                int millisecond = 0]) {
     return new DateImplementation(year, month, day,
                                   hour, minute, second,
-                                  millisecond, isUtc);
+                                  millisecond, false);
+  }
+
+  /**
+   * Constructs a [Date] instance based on the individual parts. The date is
+   * in the UTC time zone.
+   *
+   * [month] and [day] are one-based. For example
+   * [:new Date.utc(1938, 1, 10):] represents the 10th of January 1938 in
+   * Coordinated Universal Time.
+   */
+  factory Date.utc(int year,
+                   [int month = 1,
+                    int day = 1,
+                    int hour = 0,
+                    int minute = 0,
+                    int second = 0,
+                    int millisecond = 0]) {
+    return new DateImplementation(year, month, day,
+                                  hour, minute, second,
+                                  millisecond, true);
   }
 
   /**
@@ -82,7 +101,7 @@ abstract class Date implements Comparable {
   // tools don't yet. Eventually we want to have default values here.
   // TODO(lrn): Have two constructors instead of taking an optional bool.
   factory Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                          [bool isUtc = false]) {
+                                          {bool isUtc: false}) {
     return new DateImplementation.fromMillisecondsSinceEpoch(
         millisecondsSinceEpoch, isUtc);
   }
@@ -120,14 +139,16 @@ abstract class Date implements Comparable {
   /**
    * Returns [this] in the local time zone. Returns itself if it is already in
    * the local time zone. Otherwise, this method is equivalent to
-   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, false):].
+   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
+   *                                       isUtc: false):].
    */
   Date toLocal();
 
   /**
    * Returns [this] in UTC. Returns itself if it is already in UTC. Otherwise,
    * this method is equivalent to
-   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, true):].
+   * [:new Date.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
+   *                                       isUtc: true):].
    */
   Date toUtc();
 

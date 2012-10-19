@@ -4,11 +4,12 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
-  _DocumentImpl get document() native "return this.document;";
+  _DocumentImpl get document() => JS('_DocumentImpl', '#.document', this);
 
-  Window _open2(url, name) native "return this.open(url, name);";
+  Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
-  Window _open3(url, name, options) native "return this.open(url, name, options);";
+  Window _open3(url, name, options) =>
+      JS('Window', '#.open(#,#,#)', this, url, name, options);
 
   Window open(String url, String name, [String options]) {
     if (options == null) {
@@ -53,8 +54,10 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   var _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location() native 'return this.location';
-  void set _location(Location value) native 'this.location = value';
+  Location get _location() => JS('Location', '#.location', this);
+  void set _location(Location value) {
+    JS('void', '#.location = #', this, value);
+  }
   // Prevent compiled from thinking 'location' property is available for a Dart
   // member.
   _protect_location() native 'location';
@@ -91,29 +94,39 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   void _cancelAnimationFrame(int id)
       native 'cancelAnimationFrame';
 
-  _ensureRequestAnimationFrame() native '''
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
+  _ensureRequestAnimationFrame() {
+    if (JS('bool',
+           '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
+      return;
+
+    JS('void',
+       r"""
+  (function($this) {
    var vendors = ['ms', 'moz', 'webkit', 'o'];
-   for (var i = 0; i < vendors.length && !this.requestAnimationFrame; ++i) {
-     this.requestAnimationFrame = this[vendors[i] + 'RequestAnimationFrame'];
-     this.cancelAnimationFrame =
-         this[vendors[i]+'CancelAnimationFrame'] ||
-         this[vendors[i]+'CancelRequestAnimationFrame'];
+   for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
+     $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
+     $this.cancelAnimationFrame =
+         $this[vendors[i]+'CancelAnimationFrame'] ||
+         $this[vendors[i]+'CancelRequestAnimationFrame'];
    }
-   if (this.requestAnimationFrame && this.cancelAnimationFrame) return;
-   this.requestAnimationFrame = function(callback) {
+   if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
+   $this.requestAnimationFrame = function(callback) {
       return window.setTimeout(function() {
         callback(Date.now());
       }, 16 /* 16ms ~= 60fps */);
    };
-   this.cancelAnimationFrame = function(id) { clearTimeout(id); }
-''';
+   $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+  })(#)""",
+       this);
+  }
 
 
   _IDBFactoryImpl get indexedDB => _get_indexedDB();
 
-  _IDBFactoryImpl _get_indexedDB() native
-      'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+  _IDBFactoryImpl _get_indexedDB() =>
+      JS('_IDBFactoryImpl',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
 
   // TODO(kasperl): Document these.
   lookupPort(String name) {
@@ -126,12 +139,14 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
     localStorage['dart-port:$name'] = JSON.stringify(serialized);
   }
 
-  String createObjectUrl(object) native '''
-    return (window.URL || window.webkitURL).createObjectURL(object)
-  ''';
+  String createObjectUrl(object) =>
+      JS('String',
+         '(window.URL || window.webkitURL).createObjectURL(#)', object);
 
-  void revokeObjectUrl(String objectUrl) native '''
-    (window.URL || window.webkitURL).revokeObjectURL(objectUrl)
-  ''';
+  void revokeObjectUrl(String objectUrl) {
+    JS('void',
+       '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
+  }
+
 $!MEMBERS
 }

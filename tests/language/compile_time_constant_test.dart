@@ -4,9 +4,9 @@
 
 class Bad {
   int foo;
-  static int bar
-      = foo /// 01: compile-time error
-      ;
+  const int bar =
+      foo /// 01: compile-time error
+      -1;
   static const int toto =
       bar /// 02: compile-time error
       -3;
@@ -15,6 +15,6 @@ class Bad {
 void use(x) {}
 
 main() {
-  use(Bad.bar);
+  use(new Bad().bar);
   use(Bad.toto);
 }

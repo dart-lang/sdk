@@ -76,7 +76,7 @@ class RawSourceDartString extends SourceBasedDartString {
   RawSourceDartString(source, length) : super(source, length);
   Iterator<int> iterator() => source.iterator();
   String slowToString() {
-    if (toStringCache !== null) return toStringCache;
+    if (toStringCache != null) return toStringCache;
     toStringCache  = source.slowToString();
     return toStringCache;
   }
@@ -89,11 +89,11 @@ class RawSourceDartString extends SourceBasedDartString {
 class EscapedSourceDartString extends SourceBasedDartString {
   EscapedSourceDartString(source, length) : super(source, length);
   Iterator<int> iterator() {
-    if (toStringCache !== null) return new StringCodeIterator(toStringCache);
+    if (toStringCache != null) return new StringCodeIterator(toStringCache);
     return new StringEscapeIterator(source);
   }
   String slowToString() {
-    if (toStringCache !== null) return toStringCache;
+    if (toStringCache != null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
     StringEscapeIterator it = new StringEscapeIterator(source);
     while (it.hasNext()) {
@@ -120,7 +120,7 @@ class ConsDartString extends DartString {
   Iterator<int> iterator() => new ConsDartStringIterator(this);
 
   String slowToString() {
-    if (toStringCache !== null) return toStringCache;
+    if (toStringCache != null) return toStringCache;
     toStringCache = left.slowToString().concat(right.slowToString());
     return toStringCache;
   }
@@ -152,7 +152,7 @@ class ConsDartStringIterator implements Iterator<int> {
     return result;
   }
   void nextPart() {
-    if (right !== null) {
+    if (right != null) {
       current = right.iterator();
       right = null;
       hasNextLookAhead = current.hasNext();
@@ -169,25 +169,25 @@ class StringEscapeIterator implements Iterator<int>{
   bool hasNext() => source.hasNext();
   int next() {
     int code = source.next();
-    if (code !== $BACKSLASH) {
+    if (!identical(code, $BACKSLASH)) {
       return code;
     }
     code = source.next();
-    if (code === $n) return $LF;
-    if (code === $r) return $CR;
-    if (code === $t) return $TAB;
-    if (code === $b) return $BS;
-    if (code === $f) return $FF;
-    if (code === $v) return $VTAB;
-    if (code === $x) {
+    if (identical(code, $n)) return $LF;
+    if (identical(code, $r)) return $CR;
+    if (identical(code, $t)) return $TAB;
+    if (identical(code, $b)) return $BS;
+    if (identical(code, $f)) return $FF;
+    if (identical(code, $v)) return $VTAB;
+    if (identical(code, $x)) {
       int value = hexDigitValue(source.next());
       value = value * 16 + hexDigitValue(source.next());
       return value;
     }
-    if (code === $u) {
+    if (identical(code, $u)) {
       int value = 0;
       code = source.next();
-      if (code === $OPEN_CURLY_BRACKET) {
+      if (identical(code, $OPEN_CURLY_BRACKET)) {
         for (code = source.next();
              code != $CLOSE_CURLY_BRACKET;
              code = source.next()) {

@@ -8,38 +8,38 @@ class Interceptors {
 
   SourceString mapOperatorToMethodName(Operator op) {
     String name = op.source.stringValue;
-    if (name === '+') return const SourceString('add');
-    if (name === '-') return const SourceString('sub');
-    if (name === '*') return const SourceString('mul');
-    if (name === '/') return const SourceString('div');
-    if (name === '~/') return const SourceString('tdiv');
-    if (name === '%') return const SourceString('mod');
-    if (name === '<<') return const SourceString('shl');
-    if (name === '>>') return const SourceString('shr');
-    if (name === '|') return const SourceString('or');
-    if (name === '&') return const SourceString('and');
-    if (name === '^') return const SourceString('xor');
-    if (name === '<') return const SourceString('lt');
-    if (name === '<=') return const SourceString('le');
-    if (name === '>') return const SourceString('gt');
-    if (name === '>=') return const SourceString('ge');
-    if (name === '==') return const SourceString('eq');
-    if (name === '!=') return const SourceString('eq');
-    if (name === '===') return const SourceString('eqq');
-    if (name === '!==') return const SourceString('eqq');
-    if (name === '+=') return const SourceString('add');
-    if (name === '-=') return const SourceString('sub');
-    if (name === '*=') return const SourceString('mul');
-    if (name === '/=') return const SourceString('div');
-    if (name === '~/=') return const SourceString('tdiv');
-    if (name === '%=') return const SourceString('mod');
-    if (name === '<<=') return const SourceString('shl');
-    if (name === '>>=') return const SourceString('shr');
-    if (name === '|=') return const SourceString('or');
-    if (name === '&=') return const SourceString('and');
-    if (name === '^=') return const SourceString('xor');
-    if (name === '++') return const SourceString('add');
-    if (name === '--') return const SourceString('sub');
+    if (identical(name, '+')) return const SourceString('add');
+    if (identical(name, '-')) return const SourceString('sub');
+    if (identical(name, '*')) return const SourceString('mul');
+    if (identical(name, '/')) return const SourceString('div');
+    if (identical(name, '~/')) return const SourceString('tdiv');
+    if (identical(name, '%')) return const SourceString('mod');
+    if (identical(name, '<<')) return const SourceString('shl');
+    if (identical(name, '>>')) return const SourceString('shr');
+    if (identical(name, '|')) return const SourceString('or');
+    if (identical(name, '&')) return const SourceString('and');
+    if (identical(name, '^')) return const SourceString('xor');
+    if (identical(name, '<')) return const SourceString('lt');
+    if (identical(name, '<=')) return const SourceString('le');
+    if (identical(name, '>')) return const SourceString('gt');
+    if (identical(name, '>=')) return const SourceString('ge');
+    if (identical(name, '==')) return const SourceString('eq');
+    if (identical(name, '!=')) return const SourceString('eq');
+    if (identical(name, '===')) return const SourceString('eqq');
+    if (identical(name, '!==')) return const SourceString('eqq');
+    if (identical(name, '+=')) return const SourceString('add');
+    if (identical(name, '-=')) return const SourceString('sub');
+    if (identical(name, '*=')) return const SourceString('mul');
+    if (identical(name, '/=')) return const SourceString('div');
+    if (identical(name, '~/=')) return const SourceString('tdiv');
+    if (identical(name, '%=')) return const SourceString('mod');
+    if (identical(name, '<<=')) return const SourceString('shl');
+    if (identical(name, '>>=')) return const SourceString('shr');
+    if (identical(name, '|=')) return const SourceString('or');
+    if (identical(name, '&=')) return const SourceString('and');
+    if (identical(name, '^=')) return const SourceString('xor');
+    if (identical(name, '++')) return const SourceString('add');
+    if (identical(name, '--')) return const SourceString('sub');
     compiler.unimplemented('Unknown operator', node: op);
   }
 
@@ -60,7 +60,7 @@ class Interceptors {
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = name.slowToString();
     Element element = compiler.findInterceptor(new SourceString(mangledName));
-    if (element !== null && element.isFunction()) {
+    if (element != null && element.isFunction()) {
       // Only pick the function element with the short name if the
       // number of parameters it expects matches the number we're
       // passing modulo the receiver.
@@ -87,17 +87,17 @@ class Interceptors {
   }
 
   Element getBoolifiedVersionOf(Element interceptor) {
-    if (interceptor === null) return interceptor;
+    if (interceptor == null) return interceptor;
     String boolifiedName = "${interceptor.name.slowToString()}B";
     return compiler.findHelper(new SourceString(boolifiedName));
   }
 
   Element getPrefixOperatorInterceptor(Operator op) {
     String name = op.source.stringValue;
-    if (name === '~') {
+    if (identical(name, '~')) {
       return compiler.findHelper(const SourceString('not'));
     }
-    if (name === '-') {
+    if (identical(name, '-')) {
       return compiler.findHelper(const SourceString('neg'));
     }
     compiler.unimplemented('Unknown operator', node: op);
@@ -180,25 +180,25 @@ class SsaBuilderTask extends CompilerTask {
       SsaBuilder builder = new SsaBuilder(constantSystem, this, work);
       HGraph graph;
       ElementKind kind = element.kind;
-      if (kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
         graph = compileConstructor(builder, work);
-      } else if (kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-                 kind === ElementKind.FUNCTION ||
-                 kind === ElementKind.GETTER ||
-                 kind === ElementKind.SETTER) {
+      } else if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY) ||
+                 identical(kind, ElementKind.FUNCTION) ||
+                 identical(kind, ElementKind.GETTER) ||
+                 identical(kind, ElementKind.SETTER)) {
         graph = builder.buildMethod(element);
-      } else if (kind === ElementKind.FIELD) {
+      } else if (identical(kind, ElementKind.FIELD)) {
         graph = builder.buildLazyInitializer(element);
       } else {
         compiler.internalErrorOnElement(element,
                                         'unexpected element kind $kind');
       }
       assert(graph.isValid());
-      if (kind !== ElementKind.FIELD) {
+      if (!identical(kind, ElementKind.FIELD)) {
         bool inLoop = functionsCalledInLoop.contains(element.declaration);
         if (!inLoop) {
           Selector selector = selectorsCalledInLoop[element.name];
-          inLoop = selector !== null && selector.applies(element, compiler);
+          inLoop = selector != null && selector.applies(element, compiler);
         }
         graph.calledInLoop = inLoop;
 
@@ -219,18 +219,22 @@ class SsaBuilderTask extends CompilerTask {
             defaultValueTypes.update(index, parameter.name, type);
             index++;
           });
+        } else {
+          // TODO(ahe): I have disabled type optimizations for
+          // optional arguments as the types are stored in the wrong
+          // order.
+          HTypeList parameterTypes =
+              backend.optimisticParameterTypes(element.declaration,
+                                               defaultValueTypes);
+          if (!parameterTypes.allUnknown) {
+            int i = 0;
+            signature.forEachParameter((Element param) {
+              builder.parameters[param].guaranteedType = parameterTypes[i++];
+            });
+          }
+          backend.registerParameterTypesOptimization(
+              element.declaration, parameterTypes, defaultValueTypes);
         }
-        HTypeList parameterTypes =
-            backend.optimisticParameterTypes(element.declaration,
-                                             defaultValueTypes);
-        if (!parameterTypes.allUnknown) {
-          int i = 0;
-          signature.orderedForEachParameter((Element param) {
-            builder.parameters[param].guaranteedType = parameterTypes[i++];
-          });
-        }
-        backend.registerParameterTypesOptimization(
-            element.declaration, parameterTypes, defaultValueTypes);
       }
 
       if (compiler.tracer.enabled) {
@@ -297,7 +301,7 @@ class LocalsHandler {
    * must be a boxed variable or a variable that is stored in a closure-field.
    */
   void redirectElement(Element from, Element to) {
-    assert(redirectionMapping[from] === null);
+    assert(redirectionMapping[from] == null);
     redirectionMapping[from] = to;
     assert(isStoredInClosureField(from) || isBoxed(from));
   }
@@ -320,7 +324,7 @@ class LocalsHandler {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData !== null) {
+    if (scopeData != null) {
       // The scope has captured variables. Create a box.
       // TODO(floitsch): Clean up this hack. Should we create a box-object by
       // just creating an empty object literal?
@@ -419,9 +423,9 @@ class LocalsHandler {
   }
 
   bool hasValueForDirectLocal(Element element) {
-    assert(element !== null);
+    assert(element != null);
     assert(isAccessedDirectly(element));
-    return directLocals[element] !== null;
+    return directLocals[element] != null;
   }
 
   /**
@@ -429,13 +433,13 @@ class LocalsHandler {
    * captured variables that are stored in the closure-field return [false].
    */
   bool isAccessedDirectly(Element element) {
-    assert(element !== null);
-    return redirectionMapping[element] === null
+    assert(element != null);
+    return redirectionMapping[element] == null
         && !closureData.usedVariablesInTry.contains(element);
   }
 
   bool isStoredInClosureField(Element element) {
-    assert(element !== null);
+    assert(element != null);
     if (isAccessedDirectly(element)) return false;
     Element redirectTarget = redirectionMapping[element];
     if (redirectTarget == null) return false;
@@ -449,7 +453,7 @@ class LocalsHandler {
   bool isBoxed(Element element) {
     if (isAccessedDirectly(element)) return false;
     if (isStoredInClosureField(element)) return false;
-    return redirectionMapping[element] !== null;
+    return redirectionMapping[element] != null;
   }
 
   bool isUsedInTry(Element element) {
@@ -499,8 +503,8 @@ class LocalsHandler {
 
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
-    if (res.guaranteedType === null) {
-      if (cachedTypeOfThis === null) {
+    if (res.guaranteedType == null) {
+      if (cachedTypeOfThis == null) {
         assert(closureData.isClosure());
         Element element = closureData.thisElement;
         ClassElement cls = element.enclosingElement.getEnclosingClass();
@@ -618,7 +622,7 @@ class LocalsHandler {
     saved.forEach((Element element, HInstruction instruction) {
       if (isAccessedDirectly(element)) {
         // We know 'this' cannot be modified.
-        if (element !== closureData.thisElement) {
+        if (!identical(element, closureData.thisElement)) {
           HPhi phi = new HPhi.singleInput(element, instruction);
           loopEntry.addPhi(phi);
           directLocals[element] = phi;
@@ -675,13 +679,13 @@ class LocalsHandler {
     Map<Element, HInstruction> joinedLocals = new Map<Element, HInstruction>();
     otherLocals.directLocals.forEach((element, instruction) {
       // We know 'this' cannot be modified.
-      if (element === closureData.thisElement) {
+      if (identical(element, closureData.thisElement)) {
         assert(directLocals[element] == instruction);
         joinedLocals[element] = instruction;
       } else {
         HInstruction mine = directLocals[element];
-        if (mine === null) return;
-        if (instruction === mine) {
+        if (mine == null) return;
+        if (identical(instruction, mine)) {
           joinedLocals[element] = instruction;
         } else {
           HInstruction phi =
@@ -707,7 +711,7 @@ class LocalsHandler {
     Map<Element, HInstruction> joinedLocals = new Map<Element,HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Element element, HInstruction instruction) {
-      if (element !== closureData.thisElement) {
+      if (!identical(element, closureData.thisElement)) {
         HPhi phi = new HPhi.noInputs(element);
         joinedLocals[element] = phi;
         joinBlock.addPhi(phi);
@@ -721,12 +725,12 @@ class LocalsHandler {
     for (LocalsHandler local in locals) {
       local.directLocals.forEach((Element element, HInstruction instruction) {
         HPhi phi = joinedLocals[element];
-        if (phi !== null) {
+        if (phi != null) {
           phi.addInput(instruction);
         }
       });
     }
-    if (thisValue !== null) {
+    if (thisValue != null) {
       // If there was a "this" for the scope, add it to the new locals.
       joinedLocals[closureData.thisElement] = thisValue;
     }
@@ -796,13 +800,13 @@ class TargetJumpHandler implements JumpHandler {
   TargetJumpHandler(SsaBuilder builder, this.target)
       : this.builder = builder,
         jumps = <JumpHandlerEntry>[] {
-    assert(builder.jumpTargets[target] === null);
+    assert(builder.jumpTargets[target] == null);
     builder.jumpTargets[target] = this;
   }
 
   void generateBreak([LabelElement label]) {
     HInstruction breakInstruction;
-    if (label === null) {
+    if (label == null) {
       breakInstruction = new HBreak(target);
     } else {
       breakInstruction = new HBreak.toLabel(label);
@@ -814,7 +818,7 @@ class TargetJumpHandler implements JumpHandler {
 
   void generateContinue([LabelElement label]) {
     HInstruction continueInstruction;
-    if (label === null) {
+    if (label == null) {
       continueInstruction = new HContinue(target);
     } else {
       continueInstruction = new HContinue.toLabel(label);
@@ -844,10 +848,10 @@ class TargetJumpHandler implements JumpHandler {
   List<LabelElement> labels() {
     List<LabelElement> result = null;
     for (LabelElement element in target.labels) {
-      if (result === null) result = <LabelElement>[];
+      if (result == null) result = <LabelElement>[];
       result.add(element);
     }
-    return (result === null) ? const <LabelElement>[] : result;
+    return (result == null) ? const <LabelElement>[] : result;
   }
 }
 
@@ -932,9 +936,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     FunctionExpression function = functionElement.parseNode(compiler);
-    assert(function !== null);
+    assert(function != null);
     assert(!function.modifiers.isExternal());
-    assert(elements[function] !== null);
+    assert(elements[function] != null);
     openFunction(functionElement, function);
     function.body.accept(this);
     return closeFunction();
@@ -964,7 +968,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (constructor is SynthesizedConstructorElement) return null;
     FunctionExpression node = constructor.parseNode(compiler);
     // If we know the body doesn't have any code, we don't generate it.
-    if (node.body.asBlock() !== null) {
+    if (node.body.asBlock() != null) {
       NodeList statements = node.body.asBlock().statements;
       if (statements.isEmpty()) return null;
     }
@@ -982,7 +986,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     }
-    if (bodyElement === null) {
+    if (bodyElement == null) {
       bodyElement = new ConstructorBodyElement(constructor);
       // [:resolveMethodElement:] require the passed element to be a
       // declaration.
@@ -1035,7 +1039,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     localsHandler.updateLocal(returnElement,
                               graph.addConstantNull(constantSystem));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
-    assert(elements !== null);
+    assert(elements != null);
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
     signature.orderedForEachParameter((Element parameter) {
@@ -1096,7 +1100,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     FunctionExpression functionExpression = function.parseNode(compiler);
     TreeElements newElements =
         compiler.enqueuer.resolution.getCachedElements(function);
-    if (newElements === null) {
+    if (newElements == null) {
       compiler.internalError("Element not resolved: $function");
     }
     if (!InlineWeeder.canBeInlined(functionExpression, newElements)) {
@@ -1181,7 +1185,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     bool foundSuperOrRedirect = false;
 
-    if (functionNode.initializers !== null) {
+    if (functionNode.initializers != null) {
       Link<Node> initializers = functionNode.initializers.nodes;
       for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
         assert(link.head is Send);
@@ -1215,13 +1219,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClassElement enclosingClass = constructor.getEnclosingClass();
       ClassElement superClass = enclosingClass.superclass;
       if (!enclosingClass.isObject(compiler)) {
-        assert(superClass !== null);
+        assert(superClass != null);
         assert(superClass.resolutionState == STATE_DONE);
         Selector selector =
             new Selector.callDefaultConstructor(enclosingClass.getLibrary());
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupConstructor(selector);
-        if (target === null) {
+        if (target == null) {
           compiler.internalError("no default constructor available");
         }
         inlineSuperOrRedirect(target.implementation,
@@ -1243,25 +1247,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
+        (ClassElement enclosingClass, Element member) {
+          TreeElements definitions = compiler.analyzeElement(member);
+          Node node = member.parseNode(compiler);
+          SendSet assignment = node.asSendSet();
+          HInstruction value;
+          if (assignment === null) {
+            value = graph.addConstantNull(constantSystem);
+          } else {
+            Node right = assignment.arguments.head;
+            TreeElements savedElements = elements;
+            elements = definitions;
+            right.accept(this);
+            elements = savedElements;
+            value = pop();
+          }
+          fieldValues[member] = value;
+        },
         includeBackendMembers: true,
-        includeSuperMembers: false,
-        f: (ClassElement enclosingClass, Element member) {
-      TreeElements definitions = compiler.analyzeElement(member);
-      Node node = member.parseNode(compiler);
-      SendSet assignment = node.asSendSet();
-      HInstruction value;
-      if (assignment === null) {
-        value = graph.addConstantNull(constantSystem);
-      } else {
-        Node right = assignment.arguments.head;
-        TreeElements savedElements = elements;
-        elements = definitions;
-        right.accept(this);
-        elements = savedElements;
-        value = pop();
-      }
-      fieldValues[member] = value;
-    });
+        includeSuperMembers: false);
   }
 
 
@@ -1315,12 +1319,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
     classElement.forEachInstanceField(
+        (ClassElement enclosingClass, Element member) {
+          constructorArguments.add(
+              potentiallyCheckType(fieldValues[member], member));
+        },
         includeBackendMembers: true,
-        includeSuperMembers: true,
-        f: (ClassElement enclosingClass, Element member) {
-      constructorArguments.add(
-          potentiallyCheckType(fieldValues[member], member));
-    });
+        includeSuperMembers: true);
 
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
@@ -1340,7 +1344,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       FunctionElement constructor = constructors[index];
       assert(invariant(functionElement, constructor.isImplementation));
       ConstructorBodyElement body = getConstructorBody(constructor);
-      if (body === null) continue;
+      if (body == null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
       FunctionSignature functionSignature = body.computeSignature(compiler);
@@ -1505,7 +1509,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   bool isAborted() {
-    return current === null;
+    return current == null;
   }
 
   /**
@@ -1586,7 +1590,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 }
 
   void visit(Node node) {
-    if (node !== null) node.accept(this);
+    if (node != null) node.accept(this);
   }
 
   visitBlock(Block node) {
@@ -1662,12 +1666,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
-    if (statements === null) return null;
+    if (statements == null) return null;
     return new HSubGraphBlockInformation(statements);
   }
 
   HSubExpressionBlockInformation wrapExpressionGraph(SubExpression expression) {
-    if (expression === null) return null;
+    if (expression == null) return null;
     return new HSubExpressionBlockInformation(expression);
   }
 
@@ -1693,7 +1697,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // The initializer.
     SubExpression initializerGraph = null;
     HBasicBlock startBlock;
-    if (initialize !== null) {
+    if (initialize != null) {
       HBasicBlock initializerBlock = openNewBlock();
       startBlock = initializerBlock;
       initialize();
@@ -1705,7 +1709,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock conditionBlock = current;
-    if (startBlock === null) startBlock = conditionBlock;
+    if (startBlock == null) startBlock = conditionBlock;
 
     HInstruction conditionInstruction = condition();
     HBasicBlock conditionExitBlock =
@@ -1754,7 +1758,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               jumpHandler.labels(),
               isContinue: true),
           updateBlock);
-    } else if (target !== null && target.isContinueTarget) {
+    } else if (target != null && target.isContinueTarget) {
       beginBodyBlock.setBlockFlow(
           new HLabeledBlockInformation.implicit(
               new HSubGraphBlockInformation(bodyGraph),
@@ -1791,19 +1795,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitFor(For node) {
-    assert(node.body !== null);
+    assert(node.body != null);
     void buildInitializer() {
-      if (node.initializer === null) return;
+      if (node.initializer == null) return;
       Node initializer = node.initializer;
-      if (initializer !== null) {
+      if (initializer != null) {
         visit(initializer);
-        if (initializer.asExpression() !== null) {
+        if (initializer.asExpression() != null) {
           pop();
         }
       }
     }
     HInstruction buildCondition() {
-      if (node.condition === null) {
+      if (node.condition == null) {
         return graph.addConstantBool(true, constantSystem);
       }
       visit(node.condition);
@@ -1844,7 +1848,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
     TargetElement target = elements[node];
-    bool hasContinues = target !== null && target.isContinueTarget;
+    bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
       // It doesn't currently work if they are on the same block as the
@@ -1921,8 +1925,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitFunctionExpression(FunctionExpression node) {
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
-    assert(nestedClosureData !== null);
-    assert(nestedClosureData.closureClassElement !== null);
+    assert(nestedClosureData != null);
+    assert(nestedClosureData.closureClassElement != null);
     ClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
@@ -2002,7 +2006,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
-    assert(op.token.kind !== PLUS_TOKEN);
+    assert(!identical(op.token.kind, PLUS_TOKEN));
     HInstruction operand = pop();
 
     HInstruction target =
@@ -2022,7 +2026,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HConstant constant = operand;
       Constant folded =
           result.operation(constantSystem).fold(constant.constant);
-      if (folded !== null) {
+      if (folded != null) {
         stack.add(graph.addConstant(folded));
         return;
       }
@@ -2139,7 +2143,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(kasperl): This is a convoluted way of checking if we're
     // generating code for a compound assignment. If we are, we need
     // to get the selector from the mapping for the AST selector node.
-    Selector selector = (send.asSendSet() === null)
+    Selector selector = (send.asSendSet() == null)
         ? elements.getSelector(send)
         : elements.getSelector(send.selector);
     assert(selector.isGetter());
@@ -2236,7 +2240,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
-    } else if (element === null || Elements.isInstanceField(element)) {
+    } else if (element == null || Elements.isInstanceField(element)) {
       HInstruction receiver = generateInstanceSendReceiver(send);
       generateInstanceSetterWithCompiledReceiver(send, receiver, value);
     } else if (Elements.isErroneousElement(element)) {
@@ -2247,11 +2251,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       stack.add(value);
       // If the value does not already have a name, give it here.
-      if (value.sourceElement === null) {
+      if (value.sourceElement == null) {
         value.sourceElement = element;
       }
       HInstruction checked = potentiallyCheckType(value, element);
-      if (checked !== value) {
+      if (!identical(checked, value)) {
         pop();
         stack.add(checked);
       }
@@ -2341,7 +2345,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         stack.add(graph.addConstantBool(true, constantSystem));
       } else {
         HInstruction instruction;
-        if (typeInfo !== null) {
+        if (typeInfo != null) {
           instruction = new HIs.withTypeInfoCall(type, expression, typeInfo);
         } else {
           instruction = new HIs(type, expression);
@@ -2460,7 +2464,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           const SourceString('[]='), false);
     } else if (node.selector.asOperator() != null) {
       SourceString name = node.selector.asIdentifier().source;
-      isNotEquals = name.stringValue === '!=';
+      isNotEquals = identical(name.stringValue, '!=');
       dartMethodName = Elements.constructOperatorName(
           name, node.argumentsNode is Prefix);
     } else {
@@ -2468,7 +2472,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     Element interceptor = null;
-    if (methodInterceptionEnabled && node.receiver !== null) {
+    if (methodInterceptionEnabled && node.receiver != null) {
       interceptor = interceptors.getStaticInterceptor(dartMethodName,
                                                       node.argumentCount());
     }
@@ -2483,7 +2487,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
-    if (node.receiver === null) {
+    if (node.receiver == null) {
       inputs.add(localsHandler.readThis());
     } else {
       visit(node.receiver);
@@ -2503,10 +2507,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitClosureSend(Send node) {
     Selector selector = elements.getSelector(node);
-    assert(node.receiver === null);
+    assert(node.receiver == null);
     Element element = elements[node];
     HInstruction closureTarget;
-    if (element === null) {
+    if (element == null) {
       visit(node.selector);
       closureTarget = pop();
     } else {
@@ -2598,7 +2602,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Leg's isolate.
       Element element = compiler.isolateLibrary.find(
           const SourceString('_currentIsolate'));
-      if (element === null) {
+      if (element == null) {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
@@ -2618,7 +2622,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Call a helper method from the isolate library.
       Element element = compiler.isolateLibrary.find(
           const SourceString('_callInIsolate'));
-      if (element === null) {
+      if (element == null) {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
@@ -2648,7 +2652,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // signatures have different elements for parameters.
     FunctionElement implementation = function.implementation;
     FunctionSignature params = implementation.computeSignature(compiler);
-    if (params.optionalParameterCount !== 0) {
+    if (params.optionalParameterCount != 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
           node: closure);
@@ -2704,7 +2708,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (element !== null && element === work.element) {
+    if (element != null && identical(element, work.element)) {
       graph.isRecursiveMethod = true;
     }
     super.visitSend(node);
@@ -2713,7 +2717,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element === null) return generateSuperNoSuchMethodSend(node);
+    if (element == null) return generateSuperNoSuchMethodSend(node);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     HInstruction target = new HStatic(element.declaration);
@@ -2731,7 +2735,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!succeeded) {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
-        compiler.cancel('Unimplemented non-matching static call', node);
+        compiler.cancel('Unimplemented non-matching static call', node: node);
       }
       push(new HInvokeSuper(inputs));
     } else {
@@ -2898,7 +2902,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
-      if (originalElement.getEnclosingClass() === compiler.listClass) {
+      if (identical(originalElement.getEnclosingClass(), compiler.listClass)) {
         isListConstructor = true;
         if (node.arguments.isEmpty()) {
           return HType.EXTENDABLE_ARRAY;
@@ -2915,7 +2919,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element constructor = elements[node];
     Selector selector = elements.getSelector(node);
-    if (compiler.enqueuer.resolution.getCachedElements(constructor) === null) {
+    if (compiler.enqueuer.resolution.getCachedElements(constructor) == null) {
       compiler.internalError("Unresolved element: $constructor", node: node);
     }
     FunctionElement functionElement = constructor;
@@ -2973,7 +2977,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateThrowNoSuchMethod(node, getTargetName(element), node.arguments);
       return;
     }
-    if (element === compiler.assertMethod && !compiler.enableUserAssertions) {
+    if (identical(element, compiler.assertMethod) && !compiler.enableUserAssertions) {
       stack.add(graph.addConstantNull(constantSystem));
       return;
     }
@@ -2996,6 +3000,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
+
+      // TODO(kasperl): Try to use the general inlining infrastructure for
+      // inlining the identical function.
+      if (identical(element, compiler.identicalFunction)) {
+        pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
+        return;
+      }
+
       HInvokeStatic instruction = new HInvokeStatic(inputs);
       // TODO(ngeoffray): Only do this if knowing the return type is
       // useful.
@@ -3017,7 +3029,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   // TODO(antonm): migrate rest of SsaBuilder to internalError.
-  internalError(String reason, [Node node]) {
+  internalError(String reason, {Node node}) {
     compiler.internalError(reason, node: node);
   }
 
@@ -3094,20 +3106,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
       Element element = elements[node];
-      if (element === null) return generateSuperNoSuchMethodSend(node);
+      if (element == null) return generateSuperNoSuchMethodSend(node);
       HInstruction target = new HStatic(element);
       HInstruction context = localsHandler.readThis();
       add(target);
       var inputs = <HInstruction>[target, context];
       addDynamicSendArgumentsToList(node, inputs);
-      if (node.assignmentOperator.source.stringValue !== '=') {
+      if (!identical(node.assignmentOperator.source.stringValue, '=')) {
         compiler.unimplemented('complex super assignment',
                                node: node.assignmentOperator);
       }
       push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
-        assert(op.source.stringValue === '=');
+        assert(identical(op.source.stringValue, '='));
         visitDynamicSend(node);
       } else {
         HStatic target = new HStatic(
@@ -3159,7 +3171,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(link.head);
       HInstruction value = pop();
       generateSetter(node, element, value);
-    } else if (op.source.stringValue === "is") {
+    } else if (identical(op.source.stringValue, "is")) {
       compiler.internalError("is-operator as SendSet", node: op);
     } else {
       assert(const SourceString("++") == op.source ||
@@ -3187,12 +3199,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       visitBinary(left, op, right);
       HInstruction operation = pop();
-      assert(operation !== null);
+      assert(operation != null);
       if (Elements.isInstanceSend(node, elements)) {
-        assert(receiver !== null);
+        assert(receiver != null);
         generateInstanceSetterWithCompiledReceiver(node, receiver, operation);
       } else {
-        assert(receiver === null);
+        assert(receiver == null);
         generateSetter(node, element, operation);
       }
       if (!isPrefix) {
@@ -3264,12 +3276,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitReturn(Return node) {
-    if (node.getBeginToken().stringValue === 'native') {
+    if (identical(node.getBeginToken().stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
       return;
     }
+    if (node.isRedirectingFactoryBody) {
+      compiler.internalError("Unimplemented: Redirecting factory constructor",
+                             node: node);
+    }
     HInstruction value;
-    if (node.expression === null) {
+    if (node.expression == null) {
       value = graph.addConstantNull(constantSystem);
     } else {
       visit(node.expression);
@@ -3283,9 +3299,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitThrow(Throw node) {
-    if (node.expression === null) {
+    if (node.expression == null) {
       HInstruction exception = rethrowableException;
-      if (exception === null) {
+      if (exception == null) {
         exception = graph.addConstantNull(constantSystem);
         compiler.internalError(
             'rethrowableException should not be null', node: node);
@@ -3337,8 +3353,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    SsaBranchBuilder brancher =
-        new SsaBranchBuilder(this, diagnosticNode: node);
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
     brancher.handleConditional(() => visit(node.condition),
                                () => visit(node.thenExpression),
                                () => visit(node.elseExpression));
@@ -3367,10 +3382,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitBreakStatement(BreakStatement node) {
     assert(!isAborted());
     TargetElement target = elements[node];
-    assert(target !== null);
+    assert(target != null);
     JumpHandler handler = jumpTargets[target];
-    assert(handler !== null);
-    if (node.target === null) {
+    assert(handler != null);
+    if (node.target == null) {
       handler.generateBreak();
     } else {
       LabelElement label = elements[node.target];
@@ -3380,14 +3395,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitContinueStatement(ContinueStatement node) {
     TargetElement target = elements[node];
-    assert(target !== null);
+    assert(target != null);
     JumpHandler handler = jumpTargets[target];
-    assert(handler !== null);
-    if (node.target === null) {
+    assert(handler != null);
+    if (node.target == null) {
       handler.generateContinue();
     } else {
       LabelElement label = elements[node.target];
-      assert(label !== null);
+      assert(label != null);
       handler.generateContinue(label);
     }
   }
@@ -3399,7 +3414,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   JumpHandler createJumpHandler(Statement node) {
     TargetElement element = elements[node];
-    if (element === null || element.statement !== node) {
+    if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(compiler);
     }
@@ -3436,10 +3451,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeDynamicMethod(call, <HInstruction>[iterator]));
 
       Element variable;
-      if (node.declaredIdentifier.asSend() !== null) {
+      if (node.declaredIdentifier.asSend() != null) {
         variable = elements[node.declaredIdentifier];
       } else {
-        assert(node.declaredIdentifier.asVariableDefinitions() !== null);
+        assert(node.declaredIdentifier.asVariableDefinitions() != null);
         VariableDefinitions variableDefinitions = node.declaredIdentifier;
         variable = elements[variableDefinitions.definitions.nodes.head];
       }
@@ -3447,7 +3462,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (variable.isErroneous()) {
         generateThrowNoSuchMethod(node,
                                   getTargetName(variable, 'set'),
-                                  argumentValues: <HInstruction>[oldVariable]);
+                                  <HInstruction>[oldVariable]);
         pop();
       } else {
         localsHandler.updateLocal(variable, oldVariable);
@@ -3471,7 +3486,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     // Non-loop statements can only be break targets, not continue targets.
     TargetElement targetElement = elements[body];
-    if (targetElement === null || targetElement.statement !== body) {
+    if (targetElement == null || !identical(targetElement.statement, body)) {
       // Labeled statements with no element on the body have no breaks.
       // A different target statement only happens if the body is itself
       // a break or continue for a different target. In that case, this
@@ -3607,7 +3622,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Constant constant =
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
-          if (constant === null) {
+          if (constant == null) {
             compiler.reportWarning(match.expression,
                 MessageKind.NOT_A_COMPILE_TIME_CONSTANT.error());
             failure = true;
@@ -3763,7 +3778,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     ConstructedConstant constructedConstant = constant;
     DartType type = constructedConstant.type;
-    assert(type !== null);
+    assert(type != null);
     Element element = type.element;
     // If the type is not a class, we'll just assume it overrides
     // operator==. Typedefs do, since [Function] does.
@@ -3845,7 +3860,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         Constant constant =
             compiler.constantHandler.tryCompileNodeWithDefinitions(
                 match.expression, elements);
-        if (constant !== null) {
+        if (constant != null) {
           stack.add(graph.addConstant(constant));
         } else {
           visit(match.expression);
@@ -3980,7 +3995,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
-        if (catchBlock.exception !== null) {
+        if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);
         }
@@ -4139,7 +4154,7 @@ class StringBuilderVisitor extends Visitor {
   void visitExpression(Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
-    result = (result === null) ? expression : concat(result, expression);
+    result = (result == null) ? expression : concat(result, expression);
   }
 
   void visitStringInterpolation(StringInterpolation node) {
@@ -4219,7 +4234,7 @@ class InlineWeeder extends Visitor {
   }
 
   void visitReturn(Node node) {
-    if (seenReturn || node.getBeginToken().stringValue === 'native') {
+    if (seenReturn || identical(node.getBeginToken().stringValue, 'native')) {
       tooDifficult = true;
       return;
     }
@@ -4286,7 +4301,7 @@ class SsaBranchBuilder {
     startBranch(conditionBranch);
     visitCondition();
     checkNotAborted();
-    assert(builder.current === builder.lastOpenedBlock);
+    assert(identical(builder.current, builder.lastOpenedBlock));
     HInstruction conditionValue = builder.popBoolified();
     HIf branch = new HIf(conditionValue);
     HBasicBlock conditionExitBlock = builder.current;
@@ -4308,7 +4323,7 @@ class SsaBranchBuilder {
    * return value implies that [mayReuseFromLocals] was set to [:true:].
    */
   bool mergeLocals(SsaBranch fromBranch, SsaBranch toBranch,
-                   [bool mayReuseFromLocals]) {
+                   {bool mayReuseFromLocals}) {
     LocalsHandler fromLocals = fromBranch.exitLocals;
     if (toBranch.startLocals == null) {
       if (mayReuseFromLocals) {
@@ -4367,7 +4382,7 @@ class SsaBranchBuilder {
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
   }
 
-  void handleLogicalAndOr(void left(), void right(), [bool isAnd]) {
+  void handleLogicalAndOr(void left(), void right(), {bool isAnd}) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) {
@@ -4409,7 +4424,7 @@ class SsaBranchBuilder {
 
   void handleLogicalAndOrWithLeftNode(Node left,
                                       void visitRight(),
-                                      [bool isAnd]) {
+                                      {bool isAnd}) {
     // This method is similar to [handleLogicalAndOr] but optimizes the case
     // where left is a logical "and" or logical "or".
     //
@@ -4425,7 +4440,7 @@ class SsaBranchBuilder {
     //   result = phi(t3, false);
 
     Send send = left.asSend();
-    if (send !== null &&
+    if (send != null &&
         (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
       Node newLeft = send.receiver;
       Link<Node> link = send.argumentsNode.nodes;
@@ -4433,10 +4448,11 @@ class SsaBranchBuilder {
       Node middle = link.head;
       handleLogicalAndOrWithLeftNode(
           newLeft,
-          () => handleLogicalAndOrWithLeftNode(middle, visitRight, isAnd),
+          () => handleLogicalAndOrWithLeftNode(middle, visitRight,
+                                               isAnd: isAnd),
           isAnd: isAnd);
     } else {
-      handleLogicalAndOr(() => builder.visit(left), visitRight, isAnd);
+      handleLogicalAndOr(() => builder.visit(left), visitRight, isAnd: isAnd);
     }
   }
 

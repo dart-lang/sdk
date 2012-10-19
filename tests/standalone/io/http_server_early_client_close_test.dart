@@ -57,7 +57,7 @@ class EarlyCloseTest {
 
 void testEarlyClose() {
   List<EarlyCloseTest> tests = new List<EarlyCloseTest>();
-  void add(Object data, String exception, [bool expectRequest = false]) {
+  void add(Object data, String exception, {bool expectRequest: false}) {
     tests.add(new EarlyCloseTest(data, exception, expectRequest));
   }
   // The empty packet is valid.

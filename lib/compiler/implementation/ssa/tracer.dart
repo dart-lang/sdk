@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('tracer');
+library tracer;
 
-#import('dart:io');
-#import('ssa.dart');
-#import('../js_backend/js_backend.dart');
-#import('../leg.dart');
+import 'dart:io';
+import 'ssa.dart';
+import '../js_backend/js_backend.dart';
+import '../dart2jslib.dart';
 
 const bool GENERATE_SSA_TRACE = false;
 const String SSA_TRACE_FILTER = null;
@@ -79,7 +79,7 @@ class HTracer extends HGraphVisitor implements Tracer {
                        HInstructionList list) {
     HTypeMap types = context.types;
     for (HInstruction instruction = list.first;
-         instruction !== null;
+         instruction != null;
          instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
@@ -95,7 +95,7 @@ class HTracer extends HGraphVisitor implements Tracer {
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
         new HInstructionStringifier(context, block);
-    assert(block.id !== null);
+    assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
       printProperty("from_bci", -1);
@@ -104,7 +104,7 @@ class HTracer extends HGraphVisitor implements Tracer {
       addSuccessors(block);
       printEmptyProperty("xhandlers");
       printEmptyProperty("flags");
-      if (block.dominator !== null) {
+      if (block.dominator != null) {
         printProperty("dominator", "B${block.dominator.id}");
       }
       tag("states", () {
@@ -243,7 +243,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitBreak(HBreak node) {
     HBasicBlock target = currentBlock.successors[0];
-    if (node.label !== null) {
+    if (node.label != null) {
       return "Break ${node.label.labelName}: (B${target.id})";
     }
     return "Break: (B${target.id})";
@@ -253,7 +253,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitContinue(HContinue node) {
     HBasicBlock target = currentBlock.successors[0];
-    if (node.label !== null) {
+    if (node.label != null) {
       return "Continue ${node.label.labelName}: (B${target.id})";
     }
     return "Continue: (B${target.id})";

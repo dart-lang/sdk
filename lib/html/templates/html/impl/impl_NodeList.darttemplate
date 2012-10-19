@@ -11,6 +11,8 @@ class _ListWrapper<E> implements List<E> {
 
   Iterator<E> iterator() => _list.iterator();
 
+  bool contains(E element) => _list.contains(element);
+
   void forEach(void f(E element)) => _list.forEach(f);
 
   Collection map(f(E element)) => _list.map(f);
@@ -37,7 +39,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -126,6 +128,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     _parent.$dom_replaceChild(value, this[index]);
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -141,7 +145,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 

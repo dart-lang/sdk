@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $FACTORYPROVIDER {
-  static SharedWorker createSharedWorker(String scriptURL, [String name])
-      native '''
-        if (name == null) return new SharedWorker(scriptURL);
-        return new SharedWorker(scriptURL, name);
-      ''';
+  static SharedWorker createSharedWorker(String scriptURL, [String name]) {
+    if (name == null) return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
+    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
+  }
 }

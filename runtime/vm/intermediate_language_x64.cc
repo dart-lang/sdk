@@ -901,26 +901,29 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
                     : Location::RequiresRegister());
-  locs->set_out(Location::RequiresRegister());
+  if (representation() == kUnboxedDouble) {
+    locs->set_out(Location::RequiresXmmRegister());
+  } else {
+    locs->set_out(Location::RequiresRegister());
+  }
   return locs;
 }
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
   Location index = locs()->in(1);
-  if (index.IsRegister()) {
-    // Note that index is Smi, i.e, times 4.
-    ASSERT(kSmiTagShift == 1);
-    __ movq(result,
-            FieldAddress(array, index.reg(), TIMES_4, sizeof(RawArray)));
+
+  FieldAddress element_address = index.IsRegister() ?
+      FlowGraphCompiler::ElementAddressForRegIndex(
+          class_id(), array, index.reg()) :
+      FlowGraphCompiler::ElementAddressForIntIndex(
+          class_id(), array, Smi::Cast(index.constant()).Value());
+
+  if (representation() == kUnboxedDouble) {
+    __ movsd(locs()->out().xmm_reg(), element_address);
   } else {
-    const int64_t disp =
-        Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray);
-    ASSERT(Utils::IsInt(32, disp));
-    __ movq(result, FieldAddress(array, static_cast<int32_t>(disp)));
+    __ movq(locs()->out().reg(), element_address);
   }
 }
 
@@ -934,37 +937,44 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
                     : Location::RequiresRegister());
-  locs->set_in(2, ShouldEmitStoreBarrier()
-                    ? Location::WritableRegister()
-                    : Location::RegisterOrConstant(value()));
+  if (RequiredInputRepresentation(2) == kUnboxedDouble) {
+    // TODO(srdjan): Support Float64 constants.
+    locs->set_in(2, Location::RequiresXmmRegister());
+  } else {
+    locs->set_in(2, ShouldEmitStoreBarrier()
+                      ? Location::WritableRegister()
+                      : Location::RegisterOrConstant(value()));
+  }
   return locs;
 }
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
-
-  // Note that index is Smi, i.e, times 4.
-  ASSERT(kSmiTagShift == 1);
   Location index = locs()->in(1);
-  FieldAddress field_address = index.IsConstant()
-      ? FieldAddress(
-          array,
-          static_cast<int32_t>(
-            Smi::Cast(index.constant()).Value() * kWordSize + sizeof(RawArray)))
-      : FieldAddress(array, index.reg(), TIMES_4, sizeof(RawArray));
+  FieldAddress element_address = index.IsRegister() ?
+      FlowGraphCompiler::ElementAddressForRegIndex(
+          class_id(), array, index.reg()) :
+      FlowGraphCompiler::ElementAddressForIntIndex(
+          class_id(), array, Smi::Cast(index.constant()).Value());
+
+  if (class_id() == kFloat64ArrayCid) {
+    __ movsd(element_address, locs()->in(2).xmm_reg());
+    return;
+  }
 
   if (ShouldEmitStoreBarrier()) {
       Register value = locs()->in(2).reg();
-    __ StoreIntoObject(array, field_address, value);
+    __ StoreIntoObject(array, element_address, value);
+    return;
+  }
+
+  if (locs()->in(2).IsConstant()) {
+    const Object& constant = locs()->in(2).constant();
+    __ StoreObject(element_address, constant);
   } else {
-    if (locs()->in(2).IsConstant()) {
-      const Object& constant = locs()->in(2).constant();
-      __ StoreObject(field_address, constant);
-    } else {
-      Register value = locs()->in(2).reg();
-      __ StoreIntoObjectNoBarrier(array, field_address, value);
-    }
+    Register value = locs()->in(2).reg();
+    __ StoreIntoObjectNoBarrier(array, element_address, value);
   }
 }
 
@@ -2164,15 +2174,21 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const DeoptReasonId deopt_reason =
       (array_type() == kGrowableObjectArrayCid) ?
-      kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
+          kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         deopt_reason);
-  ASSERT(array_type() == kArrayCid ||
-         array_type() == kImmutableArrayCid ||
-         array_type() == kGrowableObjectArrayCid);
-  intptr_t length_offset = (array_type() == kGrowableObjectArrayCid)
-      ? GrowableObjectArray::length_offset()
-      : Array::length_offset();
+  ASSERT((array_type() == kArrayCid) ||
+         (array_type() == kImmutableArrayCid) ||
+         (array_type() == kGrowableObjectArrayCid) ||
+         (array_type() == kFloat64ArrayCid));
+  intptr_t length_offset = -1;
+  if (array_type() == kGrowableObjectArrayCid) {
+    length_offset = GrowableObjectArray::length_offset();
+  } else if (array_type() == kFloat64ArrayCid) {
+    length_offset = Float64Array::length_offset();
+  } else {
+    length_offset = Array::length_offset();
+  }
 
   // This case should not have created a bound check instruction.
   ASSERT(!(locs()->in(0).IsConstant() && locs()->in(1).IsConstant()));

@@ -16,7 +16,7 @@
 namespace dart {
 
 static uint16_t* GetTwoByteData(const String& str) {
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   uint16_t* two_byte_str = zone->Alloc<uint16_t>(str.Length());
   for (intptr_t i = 0; i < str.Length(); i++) {
     two_byte_str[i] = str.CharAt(i);
@@ -117,7 +117,7 @@ RawArray* Jscre::Execute(const JSRegExp& regex,
   ASSERT(jscregexp != NULL);
   const Smi& num_bracket_exprs = Smi::Handle(regex.num_bracket_expressions());
   intptr_t num_bracket_expressions = num_bracket_exprs.Value();
-  StackZone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Isolate::Current()->current_zone();
   // The jscre library rounds the passed in size to a multiple of 3 in order
   // to reuse the passed in offsets array as a temporary chunk of working
   // storage during matching, so we just pass in a size which is a multiple

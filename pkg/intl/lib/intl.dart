@@ -127,9 +127,9 @@ class Intl {
    * will be extracted automatically but for the time being it must be passed
    * explicitly in the [name] and [args] arguments.
    */
-  static String message(String message_str, [final String desc='',
-      final Map examples=const {}, String locale, String name,
-      List<String> args]) {
+  static String message(String message_str, {final String desc: '',
+      final Map examples: const {}, String locale, String name,
+      List<String> args}) {
     return messageLookup.lookupMessage(
         message_str, desc, examples, locale, name, args);
   }
@@ -159,7 +159,7 @@ class Intl {
    * [newLocale] is null it will be returned.
    */
   static String verifiedLocale(String newLocale, Function localeExists,
-                               [Function onFailure = _throwLocaleError]) {
+                               {Function onFailure: _throwLocaleError}) {
     // TODO(alanknight): Previously we kept a single verified locale on the Intl
     // object, but with different verification for different uses, that's more
     // difficult. As a result, we call this more often. Consider keeping

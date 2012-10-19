@@ -50,7 +50,7 @@ class PrettyPrinter implements Visitor {
    * of given node.
    */
   void openNode(Node node, String type, [Map params]) {
-    if (params === null) params = new Map();
+    if (params == null) params = new Map();
     addCurrentIndent();
     sb.add("<");
     addBeginAndEndTokensToParams(node, params);
@@ -63,7 +63,7 @@ class PrettyPrinter implements Visitor {
    * Adds given node to result string.
    */
   void openAndCloseNode(Node node, String type, [Map params]) {
-    if (params === null) params = new Map();
+    if (params == null) params = new Map();
     addCurrentIndent();
     sb.add("<");
     addBeginAndEndTokensToParams(node, params);
@@ -83,11 +83,11 @@ class PrettyPrinter implements Visitor {
   }
 
   void addTypeWithParams(String type, [Map params]) {
-    if (params === null) params = new Map();
+    if (params == null) params = new Map();
     sb.add("${type}");
     params.forEach((k, v) {
       String value;
-      if (v !== null) {
+      if (v != null) {
         value = v
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
@@ -233,7 +233,7 @@ class PrettyPrinter implements Visitor {
   }
 
   /** Returns token string value or [null] if token is [null]. */
-  tokenToStringOrNull(Token token) => token === null ? null : token.stringValue;
+  tokenToStringOrNull(Token token) => token == null ? null : token.stringValue;
 
   visitLiteralList(LiteralList node) {
     openNode(node, "LiteralList", {
@@ -276,7 +276,7 @@ class PrettyPrinter implements Visitor {
   visitNodeList(NodeList node) {
     var params = {
         "delimiter" :
-            node.delimiter !== null ? node.delimiter.stringValue : null
+            node.delimiter != null ? node.delimiter.stringValue : null
     };
     if (node.nodes.toList().length == 0) {
       openAndCloseNode(node, "NodeList", params);
@@ -306,7 +306,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitChildNode(Node node, String fieldName) {
-    if (node === null) return;
+    if (node == null) return;
     addCurrentIndent();
     sb.add("<$fieldName>\n");
     pushTag(fieldName);

@@ -80,11 +80,15 @@ namespace dart {
   V(_StringBase, isEmpty, String_isEmpty)                                      \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
   V(_Int8Array, [], Int8Array_getIndexed)                                      \
+  V(_Int8Array, []=, Int8Array_setIndexed)                                     \
   V(_Uint8Array, [], Uint8Array_getIndexed)                                    \
+  V(_Uint8Array, []=, Uint8Array_setIndexed)                                   \
   V(_Int16Array, [], Int16Array_getIndexed)                                    \
   V(_Uint16Array, [], Uint16Array_getIndexed)                                  \
   V(_Int32Array, [], Int32Array_getIndexed)                                    \
   V(_Uint32Array, [], Uint32Array_getIndexed)                                  \
+  V(_Int64Array, [], Int64Array_getIndexed)                                    \
+  V(_Uint64Array, [], Uint64Array_getIndexed)                                  \
   V(_Float32Array, [], Float32Array_getIndexed)                                \
   V(_Float32Array, []=, Float32Array_setIndexed)                               \
   V(_Float64Array, [], Float64Array_getIndexed)                                \

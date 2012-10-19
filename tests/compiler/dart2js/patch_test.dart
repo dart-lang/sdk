@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../lib/compiler/implementation/leg.dart");
-#import("../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../lib/compiler/implementation/tree/tree.dart");
-#import("../../../lib/compiler/implementation/util/util.dart");
-#import("mock_compiler.dart");
-#import("parser_helper.dart");
-#import("dart:uri");
+import "../../../lib/compiler/implementation/dart2jslib.dart";
+import "../../../lib/compiler/implementation/elements/elements.dart";
+import "../../../lib/compiler/implementation/tree/tree.dart";
+import "../../../lib/compiler/implementation/util/util.dart";
+import "mock_compiler.dart";
+import "parser_helper.dart";
+import "dart:uri";
 
 Compiler applyPatch(String script, String patch) {
   String core = "$DEFAULT_CORELIB\n$script";
@@ -44,11 +44,11 @@ void expectHasNoBody(compiler, Element element) {
 Element ensure(compiler,
                String name,
                Element lookup(name),
-               [bool isPatched = false,
-                bool isPatch = false,
-                bool isMethod = true,
-                bool isGetter = false,
-                bool isFound = true]) {
+               {bool isPatched: false,
+                bool isPatch: false,
+                bool isMethod: true,
+                bool isGetter: false,
+                bool isFound: true}) {
   var element = lookup(buildSourceString(name));
   if (!isFound) {
     Expect.isNull(element);

@@ -7,7 +7,7 @@
 class DirectoryInvalidArgumentsTest {
   static void testFailingList(Directory d, var recursive) {
     int errors = 0;
-    var lister = d.list(recursive);
+    var lister = d.list(recursive: recursive);
     lister.onError = (error) {
       errors += 1;
     };

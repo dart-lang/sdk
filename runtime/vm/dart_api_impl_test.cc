@@ -1242,6 +1242,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   Dart_ExitScope();
   {
+    StackZone zone(isolate);
     DARTSCOPE_NOCHECKS(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
@@ -1279,6 +1280,7 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
+  DARTSCOPE(isolate);
 
   // Start with a known persistent handle.
   Dart_Handle obj1 = Dart_True();
@@ -2192,6 +2194,7 @@ UNIT_TEST_CASE(LocalHandles) {
   ApiLocalScope* scope = state->top_scope();
   Dart_Handle handles[300];
   {
+    StackZone zone(isolate);
     DARTSCOPE_NOCHECKS(isolate);
     Smi& val = Smi::Handle();
 

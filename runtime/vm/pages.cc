@@ -31,7 +31,6 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, bool is_executable) {
   result->memory_ = memory;
   result->next_ = NULL;
   result->used_ = 0;
-  result->top_ = result->first_object_start();
   return result;
 }
 
@@ -50,8 +49,8 @@ void HeapPage::Deallocate() {
 
 
 void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
-  uword obj_addr = first_object_start();
-  uword end_addr = top();
+  uword obj_addr = object_start();
+  uword end_addr = object_end();
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
@@ -62,8 +61,8 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  uword obj_addr = first_object_start();
-  uword end_addr = top();
+  uword obj_addr = object_start();
+  uword end_addr = object_end();
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     obj_addr += raw_obj->VisitPointers(visitor);
@@ -73,8 +72,8 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 
 
 RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
-  uword obj_addr = first_object_start();
-  uword end_addr = top();
+  uword obj_addr = object_start();
+  uword end_addr = object_end();
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     if (raw_obj->FindObject(visitor)) {
@@ -99,7 +98,6 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
       pages_(NULL),
       pages_tail_(NULL),
       large_pages_(NULL),
-      bump_page_(NULL),
       max_capacity_(max_capacity),
       capacity_(0),
       in_use_(0),
@@ -125,7 +123,7 @@ intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
 }
 
 
-void PageSpace::AllocatePage() {
+HeapPage* PageSpace::AllocatePage() {
   HeapPage* page = HeapPage::Allocate(kPageSize, is_executable_);
   if (pages_ == NULL) {
     pages_ = page;
@@ -133,8 +131,9 @@ void PageSpace::AllocatePage() {
     pages_tail_->set_next(page);
   }
   pages_tail_ = page;
-  bump_page_ = NULL;  // Reenable scanning of pages for bump allocation.
   capacity_ += kPageSize;
+  page->set_object_end(page->memory_->end());
+  return page;
 }
 
 
@@ -144,6 +143,8 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
   page->set_next(large_pages_);
   large_pages_ = page;
   capacity_ += page_size;
+  // Only one object in this page.
+  page->set_object_end(page->object_start() + size);
   return page;
 }
 
@@ -186,32 +187,6 @@ void PageSpace::FreePages(HeapPage* pages) {
 }
 
 
-uword PageSpace::TryBumpAllocate(intptr_t size) {
-  if (pages_tail_ == NULL) {
-    return 0;
-  }
-  uword result = pages_tail_->TryBumpAllocate(size);
-  if (result != 0) {
-    return result;
-  }
-  if (bump_page_ == NULL) {
-    // The bump page has not yet been used: Start at the beginning of the list.
-    bump_page_ = pages_;
-  }
-  // The last page has already been attempted above.
-  while (bump_page_ != pages_tail_) {
-    ASSERT(bump_page_->next() != NULL);
-    result = bump_page_->TryBumpAllocate(size);
-    if (result != 0) {
-      return result;
-    }
-    bump_page_ = bump_page_->next();
-  }
-  // Ran through all of the pages trying to bump allocate: Give up.
-  return 0;
-}
-
-
 uword PageSpace::TryAllocate(intptr_t size) {
   return TryAllocate(size, kControlGrowth);
 }
@@ -223,16 +198,17 @@ uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
   uword result = 0;
   if (size < kAllocatablePageSize) {
     result = freelist_.TryAllocate(size);
-    if (result == 0) {
-      result = TryBumpAllocate(size);
-      if ((result == 0) &&
-          (page_space_controller_.CanGrowPageSpace(size) ||
-           growth_policy == kForceGrowth) &&
-          CanIncreaseCapacity(kPageSize)) {
-        AllocatePage();
-        result = TryBumpAllocate(size);
-        ASSERT(result != 0);
-      }
+    if ((result == 0) &&
+        (page_space_controller_.CanGrowPageSpace(size) ||
+         growth_policy == kForceGrowth) &&
+        CanIncreaseCapacity(kPageSize)) {
+      HeapPage* page = AllocatePage();
+      ASSERT(page != NULL);
+      // Start of the newly allocated page is the allocated object.
+      result = page->object_start();
+      // Enqueue the remainder in the free list.
+      uword free_start = result + size;
+      freelist_.Free(free_start, page->object_end() - free_start);
     }
   } else {
     // Large page allocation.
@@ -244,14 +220,14 @@ uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
     if (CanIncreaseCapacity(page_size)) {
       HeapPage* page = AllocateLargePage(size);
       if (page != NULL) {
-        result = page->top();
-        page->set_top(result + size);
+        result = page->object_start();
       }
     }
   }
   if (result != 0) {
     in_use_ += size;
   }
+  ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
 
@@ -281,12 +257,12 @@ void PageSpace::StartEndAddress(uword* start, uword* end) const {
   *start = static_cast<uword>(~0);
   *end = 0;
   for (HeapPage* page = pages_; page != NULL; page = page->next()) {
-    *start = Utils::Minimum(*start, page->start());
-    *end = Utils::Maximum(*end, page->end());
+    *start = Utils::Minimum(*start, page->object_start());
+    *end = Utils::Maximum(*end, page->object_end());
   }
   for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
-    *start = Utils::Minimum(*start, page->start());
-    *end = Utils::Maximum(*end, page->end());
+    *start = Utils::Minimum(*start, page->object_start());
+    *end = Utils::Maximum(*end, page->object_end());
   }
   ASSERT(*start != static_cast<uword>(~0));
   ASSERT(*end != 0);
@@ -409,7 +385,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   marker.MarkObjects(isolate, this, invoke_api_callbacks);
 
   // Reset the bump allocation page to unused.
-  bump_page_ = NULL;
   // Reset the freelists and setup sweeping.
   freelist_.Reset();
   GCSweeper sweeper(heap_);

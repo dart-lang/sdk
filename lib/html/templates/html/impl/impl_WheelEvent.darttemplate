@@ -69,12 +69,12 @@ $if DART2JS
     return this._deltaMode;
   }
 
-  num get _deltaY() native 'return this.deltaY';
-  num get _deltaX() native 'return this.deltaX';
-  num get _wheelDelta() native 'return this.wheelDelta';
-  num get _wheelDeltaX() native 'return this.wheelDeltaX';
-  num get _detail() native 'return this.detail';
-  int get _deltaMode() native 'return this.deltaMode';
+  num get _deltaY => JS('num', '#.deltaY', this);
+  num get _deltaX => JS('num', '#.deltaX', this);
+  num get _wheelDelta => JS('num', '#.wheelDelta', this);
+  num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
+  num get _detail => JS('num', '#.detail', this);
+  int get _deltaMode => JS('int', '#.deltaMode', this);
 
 $else
   num get deltaX => $dom_wheelDeltaX;

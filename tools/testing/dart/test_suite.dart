@@ -65,31 +65,36 @@ bool Contains(element, collection) => collection.indexOf(element) >= 0;
 
 void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
-    var p = Process.start(runnerPath, ["--list"]);
-    StringInputStream stdoutStream = new StringInputStream(p.stdout);
-    List<String> tests = new List<String>();
-    stdoutStream.onLine = () {
-      String line = stdoutStream.readLine();
-      while (line != null) {
-        tests.add(line);
-        line = stdoutStream.readLine();
-      }
-    };
-    p.onError = (error) {
+    void processErrorHandler(error) {
+    }
+    Future processFuture = Process.start(runnerPath, ["--list"]);
+    processFuture.then((p) {
+      StringInputStream stdoutStream = new StringInputStream(p.stdout);
+      List<String> tests = new List<String>();
+      stdoutStream.onLine = () {
+        String line = stdoutStream.readLine();
+        while (line != null) {
+          tests.add(line);
+          line = stdoutStream.readLine();
+        }
+      };
+      p.onExit = (code) {
+        if (code < 0) {
+          print("Failed to list tests: $runnerPath --list");
+          replyTo.send("");
+        }
+        for (String test in tests) {
+          replyTo.send(test);
+        }
+        replyTo.send("");
+      };
+      port.close();
+    });
+    processFuture.handleException((e) {
       print("Failed to list tests: $runnerPath --list");
       replyTo.send("");
-    };
-    p.onExit = (code) {
-      if (code < 0) {
-        print("Failed to list tests: $runnerPath --list");
-        replyTo.send("");
-      }
-      for (String test in tests) {
-        replyTo.send(test);
-      }
-      replyTo.send("");
-    };
-    port.close();
+      return true;
+    });
   });
 }
 
@@ -150,7 +155,8 @@ class CCTestSuite implements TestSuite {
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
-                          expectations));
+                          expectations,
+                          usesWebDriver: TestUtils.usesWebDriver));
     }
   }
 
@@ -224,8 +230,8 @@ class StandardTestSuite implements TestSuite {
                     this.suiteName,
                     Path suiteDirectory,
                     this.statusFilePaths,
-                    [this.isTestFilePredicate,
-                    bool recursive = false])
+                    {this.isTestFilePredicate,
+                    bool recursive: false})
   : dartDir = TestUtils.dartDir(), _listRecursive = recursive,
     suiteDir = TestUtils.dartDir().join(suiteDirectory);
 
@@ -263,7 +269,7 @@ class StandardTestSuite implements TestSuite {
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
-        (filename) => filename.endsWith('_test.dart'),
+        isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
 
@@ -452,7 +458,8 @@ class StandardTestSuite implements TestSuite {
                           completeHandler,
                           expectations,
                           isNegative: isNegative,
-                          info: info));
+                          info: info,
+                          usesWebDriver: TestUtils.usesWebDriver));
     }
   }
 
@@ -662,12 +669,14 @@ class StandardTestSuite implements TestSuite {
         expectedOutput = txtPath;
         content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
       } else {
+        final htmlLocation = new Path.fromNative(htmlPath);
         content = getHtmlContents(
           filename,
-          '$filePrefix${dartDir.append("pkg/unittest/test_controller.js")}',
-          '$filePrefix${dartDir.append("client/dart.js")}',
+          dartDir.append('pkg/unittest/test_controller.js')
+              .relativeTo(htmlLocation),
+          dartDir.append('client/dart.js').relativeTo(htmlLocation),
           scriptType,
-          '$filePrefix$scriptPath');
+          new Path.fromNative(scriptPath).relativeTo(htmlLocation));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
@@ -695,8 +704,7 @@ class StandardTestSuite implements TestSuite {
 
       // Construct the command that executes the browser test
       List<String> args;
-      if (runtime == 'ie' || runtime == 'ff' || runtime == 'chrome' ||
-          runtime == 'safari' || runtime == 'opera' || runtime == 'dartium') {
+      if (TestUtils.usesWebDriver(runtime)) {
         args = [dartDir.append('tools/testing/run_selenium.py').toNativePath(),
             '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
@@ -1202,7 +1210,8 @@ class JUnitTestSuite implements TestSuite {
                         [new Command('java', args)],
                         updatedConfiguration,
                         completeHandler,
-                        new Set<String>.from([PASS])));
+                        new Set<String>.from([PASS]),
+                        usesWebDriver: TestUtils.usesWebDriver));
     doDone();
   }
 
@@ -1408,15 +1417,16 @@ class TestUtils {
     return '$jsshellDir/$executable';
   }
 
-  static bool isBrowserRuntime(String runtime) => Contains(
-      runtime,
-      const <String>['drt',
-                     'dartium',
-                     'ie',
-                     'safari',
-                     'opera',
-                     'chrome',
-                     'ff']);
+  static bool usesWebDriver(String runtime) => Contains(
+      runtime, const <String>['dartium',
+                              'ie9',
+                              'safari',
+                              'opera',
+                              'chrome',
+                              'ff']);
+
+  static bool isBrowserRuntime(String runtime) =>
+      runtime == 'drt' || TestUtils.usesWebDriver(runtime);
 
   static bool isJsCommandLineRuntime(String runtime) =>
       Contains(runtime, const <String>['d8', 'jsshell']);

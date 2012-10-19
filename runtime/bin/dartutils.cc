@@ -343,17 +343,12 @@ static Dart_Handle ReadSource(Dart_Handle script_uri,
 
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
-                                  bool resolve_script,
                                   Dart_Handle builtin_lib) {
   Dart_Handle resolved_script_uri;
-  if (resolve_script) {
-    resolved_script_uri = ResolveScriptUri(Dart_NewString(script_uri),
-                                           builtin_lib);
-    if (Dart_IsError(resolved_script_uri)) {
-      return resolved_script_uri;
-    }
-  } else {
-    resolved_script_uri = Dart_NewString(script_uri);
+  resolved_script_uri = ResolveScriptUri(Dart_NewString(script_uri),
+                                         builtin_lib);
+  if (Dart_IsError(resolved_script_uri)) {
+    return resolved_script_uri;
   }
   Dart_Handle source = ReadSource(resolved_script_uri, builtin_lib);
   if (Dart_IsError(source)) {

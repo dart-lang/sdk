@@ -10,7 +10,7 @@ main() {
   Expect.listEquals([], list);
   list.insertRange(0, 0, 2);
   Expect.listEquals([], list);
-  list.insertRange(0, 0, initialValue: 2);
+  list.insertRange(0, 0, 2);
   Expect.listEquals([], list);
 
   expectIOORE(() { [1, 2].insertRange(-1, 1); });
@@ -20,13 +20,13 @@ main() {
   list = []; list.insertRange(0, 3);
   Expect.listEquals([null, null, null], list);
 
-  list = []; list.insertRange(0, 3, initialValue: 1);
+  list = []; list.insertRange(0, 3, 1);
   Expect.listEquals([1, 1, 1], list);
 
-  list = [1, 1]; list.insertRange(1, 1, initialValue: 2);
+  list = [1, 1]; list.insertRange(1, 1, 2);
   Expect.listEquals([1, 2, 1], list);
 
-  list = [1, 1]; list.insertRange(2, 2, initialValue: 9);
+  list = [1, 1]; list.insertRange(2, 2, 9);
   Expect.listEquals([1, 1, 9, 9], list);
 
   list = [1, 1]; list.insertRange(2, 1);

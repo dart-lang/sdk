@@ -86,6 +86,15 @@ bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
+  AssertAssignableInstr* other_assert = other->AsAssertAssignable();
+  ASSERT(other_assert != NULL);
+  // This predicate has to be commutative for DominatorBasedCSE to work.
+  // TODO(fschneider): Eliminate more asserts with subtype relation.
+  return dst_type().raw() == other_assert->dst_type().raw();
+}
+
+
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
@@ -1062,12 +1071,74 @@ RawAbstractType* NativeCallInstr::CompileType() const {
 
 
 RawAbstractType* LoadIndexedInstr::CompileType() const {
-  return Type::DynamicType();
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return Type::DynamicType();
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return Type::Double();
+    default:
+      UNIMPLEMENTED();
+      return Type::IntType();
+  }
+}
+
+
+intptr_t LoadIndexedInstr::ResultCid() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kDynamicCid;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kDoubleCid;
+    default:
+      UNIMPLEMENTED();
+      return kSmiCid;
+  }
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
 RawAbstractType* StoreIndexedInstr::CompileType() const {
   return AbstractType::null();
+}
+
+
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if ((idx == 0) || (idx == 1)) return kTagged;
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+    case kImmutableArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
@@ -1336,6 +1407,38 @@ Definition* Definition::Canonicalize() {
 }
 
 
+Definition* AssertBooleanInstr::Canonicalize() {
+  const intptr_t value_cid = value()->ResultCid();
+  return (value_cid == kBoolCid) ? value()->definition() : this;
+}
+
+
+Definition* AssertAssignableInstr::Canonicalize() {
+  // (1) Replace the assert with its input if the input has a known compatible
+  // class-id. The class-ids handled here are those that are known to be
+  // results of IL instructions.
+  intptr_t cid = value()->ResultCid();
+  bool is_redundant = false;
+  if (dst_type().IsIntType()) {
+    is_redundant = (cid == kSmiCid) || (cid == kMintCid);
+  } else if (dst_type().IsDoubleType()) {
+    is_redundant = (cid == kDoubleCid);
+  } else if (dst_type().IsBoolType()) {
+    is_redundant = (cid == kBoolCid);
+  }
+  if (is_redundant) return value()->definition();
+
+  // (2) Replace the assert with its input if the input is the result of a
+  // compatible assert itself.
+  AssertAssignableInstr* check = value()->definition()->AsAssertAssignable();
+  if ((check != NULL) && (check->dst_type().raw() == dst_type().raw())) {
+    // TODO(fschneider): Propagate type-assertions across phi-nodes.
+    // TODO(fschneider): Eliminate more asserts with subtype relation.
+    return check;
+  }
+  return this;
+}
+
 Definition* StrictCompareInstr::Canonicalize() {
   if (!right()->BindsToConstant()) return this;
   const Object& right_constant = right()->BoundConstant();
@@ -1353,10 +1456,10 @@ Definition* StrictCompareInstr::Canonicalize() {
 
 
 Instruction* CheckClassInstr::Canonicalize() {
-  const intptr_t v_cid = value()->ResultCid();
+  const intptr_t value_cid = value()->ResultCid();
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   if ((num_checks == 1) &&
-      (v_cid == unary_checks().GetReceiverClassIdAt(0))) {
+      (value_cid == unary_checks().GetReceiverClassIdAt(0))) {
     // No checks needed.
     return NULL;
   }
@@ -1707,18 +1810,32 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
+  if (compiler->is_optimizing()) {
+    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     function_name(),
+                                     ArgumentCount(),
+                                     argument_names(),
+                                     checked_argument_count(),
+                                     locs());
+    } else {
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), kDeoptInstanceCallNoICData);
+      __ jmp(deopt);
+    }
+  } else {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                                    deopt_id(),
                                    token_pos());
+    compiler->GenerateInstanceCall(deopt_id(),
+                                   token_pos(),
+                                   function_name(),
+                                   ArgumentCount(),
+                                   argument_names(),
+                                   checked_argument_count(),
+                                   locs());
   }
-  compiler->GenerateInstanceCall(deopt_id(),
-                                 token_pos(),
-                                 function_name(),
-                                 ArgumentCount(),
-                                 argument_names(),
-                                 checked_argument_count(),
-                                 locs());
 }
 
 

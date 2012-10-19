@@ -345,6 +345,8 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
   __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(ABOVE, &fall_through, Assembler::kNearJump);
@@ -361,13 +363,19 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));
-  __ movq(RBX, Address(RSP, + 1 * kWordSize));
+  Label fall_through;
+  __ movq(RBX, Address(RSP, + 1 * kWordSize));  /// Data.
+  __ testq(RBX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Data is Smi.
+  __ CompareClassId(RBX, kArrayCid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ StoreIntoObject(RAX,
                      FieldAddress(RAX, GrowableObjectArray::data_offset()),
                      RBX);
   __ ret();
-  return true;
+  __ Bind(&fall_through);
+  return false;
 }
 
 
@@ -461,6 +469,20 @@ bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -525,6 +547,47 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
                             R12,
                             TIMES_2,
                             Uint32Array::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movq(RAX, FieldAddress(RAX,
+                            R12,
+                            TIMES_4,
+                            Int64Array::data_offset()));
+  // Copy RAX into R12.
+  // We destroy R12 while testing if RAX can fit inside a Smi.
+  __ movq(R12, RAX);
+  // Verify that the signed value in RAX can fit inside a Smi.
+  __ shlq(R12, Immediate(0x1));
+  // Jump to fall_through if it can not.
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayIndex(assembler, &fall_through);
+  __ movq(RAX, FieldAddress(RAX,
+                            R12,
+                            TIMES_4,
+                            Uint64Array::data_offset()));
+  // Copy RAX into R12.
+  // We destroy R12 while testing if RAX can fit inside a Smi.
+  __ movq(R12, RAX);
+  // Verify that the unsigned value in RAX can be stored in a Smi.
+  __ shrq(R12, Immediate(kSmiBits));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Won't fit Smi.
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);

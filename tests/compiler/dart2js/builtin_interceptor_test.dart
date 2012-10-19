@@ -34,15 +34,15 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isTrue(generated.contains("return a.length;"));
 
-  generated = compile(TEST_TWO, 'foo');
+  generated = compile(TEST_TWO, entry: 'foo');
   Expect.isTrue(generated.contains("return 3;"));
 
-  generated = compile(TEST_THREE, 'foo');
+  generated = compile(TEST_THREE, entry: 'foo');
   Expect.isTrue(generated.contains("return 3;"));
 
-  generated = compile(TEST_FOUR, 'foo');
+  generated = compile(TEST_FOUR, entry: 'foo');
   Expect.isTrue(generated.contains("push(2);"));
 }

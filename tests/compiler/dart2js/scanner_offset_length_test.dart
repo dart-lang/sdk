@@ -5,7 +5,8 @@
 #import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
 #import('../../../lib/compiler/implementation/scanner/scanner_implementation.dart');
 
-Token scan(String text) => new StringScanner(text, true).tokenize();
+Token scan(String text) =>
+    new StringScanner(text, includeComments: true).tokenize();
 
 check(String text) {
   Token token = scan(text);

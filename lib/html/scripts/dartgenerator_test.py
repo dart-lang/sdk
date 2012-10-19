@@ -123,10 +123,8 @@ FILE CONTENT:
     parser = idlparser.IDLParser(idlparser.FREMONTCUT_SYNTAX)
     ast = parser.parse(content)
     idl_file = idlnode.IDLFile(ast)
-    for module in idl_file.modules:
-      module_name = module.id
-      for interface in module.interfaces:
-        db.AddInterface(interface)
+    for interface in idl_file.interfaces:
+      db.AddInterface(interface)
     db.Save()
 
     self.assertTrue(self._InDatabase('Shape'))

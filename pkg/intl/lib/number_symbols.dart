@@ -16,7 +16,7 @@ class NumberSymbols {
       MINUS_SIGN, EXP_SYMBOL, PERMILL, INFINITY, NAN, DECIMAL_PATTERN,
       SCIENTIFIC_PATTERN, PERCENT_PATTERN, CURRENCY_PATTERN, DEF_CURRENCY_CODE;
 
-  const NumberSymbols([this.NAME,
+  const NumberSymbols({this.NAME,
                        this.DECIMAL_SEP,
                        this.GROUP_SEP,
                        this.PERCENT,
@@ -31,7 +31,7 @@ class NumberSymbols {
                        this.SCIENTIFIC_PATTERN,
                        this.PERCENT_PATTERN,
                        this.CURRENCY_PATTERN,
-                       this.DEF_CURRENCY_CODE]);
+                       this.DEF_CURRENCY_CODE});
 
   toString() => NAME;
 }

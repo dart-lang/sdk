@@ -357,7 +357,6 @@ int main(int argc, char** argv) {
                                                 snapshot_buffer,
                                                 NULL,
                                                 &error);
-      free(snapshot_buffer);
       if (isolate == NULL) {
         fprintf(stderr, "%s", error);
         free(error);
@@ -380,10 +379,12 @@ int main(int argc, char** argv) {
       CHECK_RESULT(result);
 
       // Load specified script.
-      library = DartUtils::LoadScript(app_script_name, true, builtin_lib);
+      library = DartUtils::LoadScript(app_script_name, builtin_lib);
 
       // Now create and write snapshot of script.
       CreateAndWriteSnapshot(true);
+
+      free(snapshot_buffer);
     }
   } else {
     SetupForGenericSnapshotCreation();

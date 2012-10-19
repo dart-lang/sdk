@@ -8,7 +8,7 @@
 
 HttpServer setupServer() {
   HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, 5);
+  server.listen("127.0.0.1", 0, backlog: 5);
 
   void addRedirectHandler(int number, int statusCode) {
     server.addRequestHandler(

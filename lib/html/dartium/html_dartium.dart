@@ -122,7 +122,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 /// @domName HTMLAnchorElement
 abstract class AnchorElement implements Element {
 
-  factory AnchorElement([String href]) {
+  factory AnchorElement({String href}) {
     if (!?href) {
       return _Elements.createAnchorElement();
     }
@@ -198,7 +198,7 @@ abstract class AnchorElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAnchorElementImpl extends _HTMLElementImpl implements AnchorElement {
+class _AnchorElementImpl extends _ElementImpl_Merged implements AnchorElement {
 
   String get charset native "HTMLAnchorElement_charset_Getter";
 
@@ -356,7 +356,7 @@ abstract class AnimationEvent implements Event {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
+class _AnimationEventImpl extends _EventImpl implements AnimationEvent {
 
   String get animationName native "WebKitAnimationEvent_animationName_Getter";
 
@@ -369,7 +369,7 @@ class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation {
+class _AnimationImpl extends NativeFieldWrapperClass1 implements Animation {
 
   num get delay native "WebKitAnimation_delay_Getter";
 
@@ -444,7 +444,7 @@ abstract class AppletElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAppletElementImpl extends _HTMLElementImpl implements AppletElement {
+class _AppletElementImpl extends _ElementImpl_Merged implements AppletElement {
 
   String get align native "HTMLAppletElement_align_Getter";
 
@@ -550,7 +550,7 @@ abstract class AreaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
+class _AreaElementImpl extends _ElementImpl_Merged implements AreaElement {
 
   String get alt native "HTMLAreaElement_alt_Getter";
 
@@ -622,7 +622,7 @@ class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(begin, [end]) {
+  ArrayBuffer slice(/*long*/ begin, [/*long*/ end]) {
     if (?end) {
       return _slice_1(begin, end);
     }
@@ -745,7 +745,7 @@ abstract class AudioBuffer {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
+typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -836,7 +836,7 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
-  void start(when, [grainOffset, grainDuration]) {
+  void start(/*double*/ when, [/*double*/ grainOffset, /*double*/ grainDuration]) {
     if ((when is num || when === null) && !?grainOffset && !?grainDuration) {
       _start_1(when);
       return;
@@ -1008,7 +1008,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
-  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [sampleRate]) {
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [/*float*/ sampleRate]) {
     if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames === null) && (sampleRate is num || sampleRate === null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
@@ -1024,7 +1024,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
-  AudioChannelMerger createChannelMerger([numberOfInputs]) {
+  AudioChannelMerger createChannelMerger([/*unsigned long*/ numberOfInputs]) {
     if (?numberOfInputs) {
       return _createChannelMerger_1(numberOfInputs);
     }
@@ -1035,7 +1035,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioChannelMerger _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
 
-  AudioChannelSplitter createChannelSplitter([numberOfOutputs]) {
+  AudioChannelSplitter createChannelSplitter([/*unsigned long*/ numberOfOutputs]) {
     if (?numberOfOutputs) {
       return _createChannelSplitter_1(numberOfOutputs);
     }
@@ -1048,7 +1048,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
-  DelayNode createDelayNode([maxDelayTime]) {
+  DelayNode createDelayNode([/*double*/ maxDelayTime]) {
     if (?maxDelayTime) {
       return _createDelayNode_1(maxDelayTime);
     }
@@ -1063,7 +1063,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   AudioGainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
-  JavaScriptAudioNode createJavaScriptNode(bufferSize, [numberOfInputChannels, numberOfOutputChannels]) {
+  JavaScriptAudioNode createJavaScriptNode(/*unsigned long*/ bufferSize, [/*unsigned long*/ numberOfInputChannels, /*unsigned long*/ numberOfOutputChannels]) {
     if (?numberOfOutputChannels) {
       return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
@@ -1147,7 +1147,7 @@ abstract class AudioElement implements MediaElement {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAudioElementImpl extends _HTMLMediaElementImpl implements AudioElement {
+class _AudioElementImpl extends _MediaElementImpl implements AudioElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1276,7 +1276,7 @@ class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
-  void connect(destination, output, [input]) {
+  void connect(destination, /*unsigned long*/ output, [/*unsigned long*/ input]) {
     if ((destination is AudioNode || destination === null) && (output is int || output === null) && (input is int || input === null)) {
       _connect_1(destination, output, input);
       return;
@@ -1552,7 +1552,7 @@ abstract class BRElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBRElementImpl extends _HTMLElementImpl implements BRElement {
+class _BRElementImpl extends _ElementImpl_Merged implements BRElement {
 
   String get clear native "HTMLBRElement_clear_Getter";
 
@@ -1605,7 +1605,7 @@ abstract class BaseElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBaseElementImpl extends _HTMLElementImpl implements BaseElement {
+class _BaseElementImpl extends _ElementImpl_Merged implements BaseElement {
 
   String get href native "HTMLBaseElement_href_Getter";
 
@@ -1640,7 +1640,7 @@ abstract class BaseFontElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBaseFontElementImpl extends _HTMLElementImpl implements BaseFontElement {
+class _BaseFontElementImpl extends _ElementImpl_Merged implements BaseFontElement {
 
   String get color native "HTMLBaseFontElement_color_Getter";
 
@@ -1863,7 +1863,7 @@ class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
 
   String get type native "Blob_type_Getter";
 
-  Blob slice([start, end, contentType]) {
+  Blob slice([/*long long*/ start, /*long long*/ end, /*DOMString*/ contentType]) {
     if (?contentType) {
       return _slice_1(start, end, contentType);
     }
@@ -1951,7 +1951,7 @@ abstract class BodyElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLBodyElementImpl extends _HTMLElementImpl implements BodyElement {
+class _BodyElementImpl extends _ElementImpl_Merged implements BodyElement {
 
   _BodyElementEventsImpl get on =>
     new _BodyElementEventsImpl(this);
@@ -2075,7 +2075,7 @@ abstract class ButtonElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLButtonElementImpl extends _HTMLElementImpl implements ButtonElement {
+class _ButtonElementImpl extends _ElementImpl_Merged implements ButtonElement {
 
   bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
@@ -2252,7 +2252,7 @@ abstract class CSSKeyframeRule implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule {
+class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule {
 
   String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
@@ -2291,7 +2291,7 @@ abstract class CSSKeyframesRule implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
+class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule {
 
   List<CSSRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
@@ -2424,7 +2424,7 @@ abstract class CSSMatrix {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
+class _CSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
 
   num get a native "WebKitCSSMatrix_a_Getter";
 
@@ -2818,6 +2818,8 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSRule element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
@@ -2833,7 +2835,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
 
   // From List<CSSRule>:
 
-  void sort(int compare(CSSRule a, CSSRule b)) {
+  void sort([Comparator<CSSRule> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7652,7 +7654,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
 
   List<CSSRule> get rules native "CSSStyleSheet_rules_Getter";
 
-  int addRule(selector, style, [index]) {
+  int addRule(/*DOMString*/ selector, /*DOMString*/ style, [/*unsigned long*/ index]) {
     if (?index) {
       return _addRule_1(selector, style, index);
     }
@@ -7730,7 +7732,7 @@ abstract class CSSTransformValue implements List<CSSValue> {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
+class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue {
 
   int get operationType native "WebKitCSSTransformValue_operationType_Getter";
 
@@ -7832,6 +7834,8 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSValue element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
@@ -7847,7 +7851,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 
   // From List<CSSValue>:
 
-  void sort(int compare(CSSValue a, CSSValue b)) {
+  void sort([Comparator<CSSValue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -7894,7 +7898,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 /// @domName HTMLCanvasElement
 abstract class CanvasElement implements Element {
 
-  factory CanvasElement([int width, int height]) {
+  factory CanvasElement({int width, int height}) {
     if (!?width) {
       return _Elements.createCanvasElement();
     }
@@ -7922,7 +7926,7 @@ abstract class CanvasElement implements Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
+class _CanvasElementImpl extends _ElementImpl_Merged implements CanvasElement {
 
   int get height native "HTMLCanvasElement_height_Getter";
 
@@ -8328,7 +8332,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [sh]) {
+  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) && !?sh) {
       return _createImageData_1(imagedata_OR_sw);
     }
@@ -8344,7 +8348,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, repetitionType) {
+  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
     if ((canvas_OR_image is CanvasElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
@@ -8360,7 +8364,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, [sw_OR_width, height_OR_sh, dx, dy, dw, dh]) {
+  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -8418,7 +8422,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-  void drawImageFromRect(image, [sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation]) {
+  void drawImageFromRect(/*HTMLImageElement*/ image, [/*float*/ sx, /*float*/ sy, /*float*/ sw, /*float*/ sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh, /*DOMString*/ compositeOperation]) {
     if (?compositeOperation) {
       _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
       return;
@@ -8482,7 +8486,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
-  void fillText(text, x, y, [maxWidth]) {
+  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
     if (?maxWidth) {
       _fillText_1(text, x, y, maxWidth);
       return;
@@ -8506,7 +8510,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
-  void putImageData(imagedata, dx, dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
     if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _putImageData_1(imagedata, dx, dy);
       return;
@@ -8548,7 +8552,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
 
-  void setShadow(width, height, blur, [c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a]) {
+  void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
     if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_1(width, height, blur);
       return;
@@ -8598,7 +8602,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
-  void strokeRect(x, y, width, height, [lineWidth]) {
+  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
     if (?lineWidth) {
       _strokeRect_1(x, y, width, height, lineWidth);
       return;
@@ -8610,7 +8614,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
-  void strokeText(text, x, y, [maxWidth]) {
+  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
     if (?maxWidth) {
       _strokeText_1(text, x, y, maxWidth);
       return;
@@ -8628,7 +8632,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void webkitPutImageDataHD(imagedata, dx, dy, [dirtyX, dirtyY, dirtyWidth, dirtyHeight]) {
+  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
     if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
@@ -8821,6 +8825,8 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(ClientRect element) => _Collections.contains(this, element);
+
   void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
 
   Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
@@ -8836,7 +8842,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
 
   // From List<ClientRect>:
 
-  void sort(int compare(ClientRect a, ClientRect b)) {
+  void sort([Comparator<ClientRect> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9163,7 +9169,7 @@ abstract class ContentElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLContentElementImpl extends _HTMLElementImpl implements ContentElement {
+class _ContentElementImpl extends _ElementImpl_Merged implements ContentElement {
 
   String get select native "HTMLContentElement_select_Getter";
 
@@ -9364,7 +9370,7 @@ abstract class DListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
+class _DListElementImpl extends _ElementImpl_Merged implements DListElement {
 
   bool get compact native "HTMLDListElement_compact_Getter";
 
@@ -9583,7 +9589,7 @@ abstract class DOMException {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMCoreExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
+class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
   int get code native "DOMCoreException_code_Getter";
 
@@ -9773,6 +9779,8 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
@@ -9788,7 +9796,7 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
 
   // From List<DOMMimeType>:
 
-  void sort(int compare(DOMMimeType a, DOMMimeType b)) {
+  void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -9959,6 +9967,8 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMPlugin element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMPlugin element)) => _Collections.map(this, [], f);
@@ -9974,7 +9984,7 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
 
   // From List<DOMPlugin>:
 
-  void sort(int compare(DOMPlugin a, DOMPlugin b)) {
+  void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -10216,25 +10226,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DOMStringList
-abstract class DOMStringList implements List<String> {
-
-  /** @domName DOMStringList.length */
-  abstract int get length;
-
-  /** @domName DOMStringList.contains */
-  bool contains(String string);
-
-  /** @domName DOMStringList.item */
-  String item(int index);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringList {
+class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String> {
 
   int get length native "DOMStringList_length_Getter";
 
@@ -10269,6 +10261,8 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  // contains() defined by IDL.
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -10284,7 +10278,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringLi
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -10443,7 +10437,7 @@ abstract class DataListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListElement {
+class _DataListElementImpl extends _ElementImpl_Merged implements DataListElement {
 
   HTMLCollection get options native "HTMLDataListElement_options_Getter";
 
@@ -10522,7 +10516,7 @@ class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements Data
 
   int get length native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [type]) {
+  void add(data_OR_file, [/*DOMString*/ type]) {
     if ((data_OR_file is File || data_OR_file === null) && !?type) {
       _add_1(data_OR_file);
       return;
@@ -10618,7 +10612,7 @@ abstract class DataView implements ArrayBufferView {
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
-  num getFloat32(byteOffset, [littleEndian]) {
+  num getFloat32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getFloat32_1(byteOffset, littleEndian);
     }
@@ -10629,7 +10623,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(byteOffset, [littleEndian]) {
+  num getFloat64(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getFloat64_1(byteOffset, littleEndian);
     }
@@ -10640,7 +10634,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(byteOffset, [littleEndian]) {
+  int getInt16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getInt16_1(byteOffset, littleEndian);
     }
@@ -10651,7 +10645,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
-  int getInt32(byteOffset, [littleEndian]) {
+  int getInt32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getInt32_1(byteOffset, littleEndian);
     }
@@ -10664,7 +10658,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
-  int getUint16(byteOffset, [littleEndian]) {
+  int getUint16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getUint16_1(byteOffset, littleEndian);
     }
@@ -10675,7 +10669,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
-  int getUint32(byteOffset, [littleEndian]) {
+  int getUint32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       return _getUint32_1(byteOffset, littleEndian);
     }
@@ -10688,7 +10682,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
-  void setFloat32(byteOffset, value, [littleEndian]) {
+  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setFloat32_1(byteOffset, value, littleEndian);
       return;
@@ -10700,7 +10694,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(byteOffset, value, [littleEndian]) {
+  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setFloat64_1(byteOffset, value, littleEndian);
       return;
@@ -10712,7 +10706,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(byteOffset, value, [littleEndian]) {
+  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setInt16_1(byteOffset, value, littleEndian);
       return;
@@ -10724,7 +10718,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
-  void setInt32(byteOffset, value, [littleEndian]) {
+  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setInt32_1(byteOffset, value, littleEndian);
       return;
@@ -10738,7 +10732,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
-  void setUint16(byteOffset, value, [littleEndian]) {
+  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setUint16_1(byteOffset, value, littleEndian);
       return;
@@ -10750,7 +10744,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
-  void setUint32(byteOffset, value, [littleEndian]) {
+  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, [/*boolean*/ littleEndian]) {
     if (?littleEndian) {
       _setUint32_1(byteOffset, value, littleEndian);
       return;
@@ -10792,7 +10786,7 @@ abstract class Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(database);
+typedef void DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10938,7 +10932,7 @@ abstract class DetailsElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement {
+class _DetailsElementImpl extends _ElementImpl_Merged implements DetailsElement {
 
   bool get open native "HTMLDetailsElement_open_Getter";
 
@@ -11029,7 +11023,7 @@ abstract class DirectoryElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDirectoryElementImpl extends _HTMLElementImpl implements DirectoryElement {
+class _DirectoryElementImpl extends _ElementImpl_Merged implements DirectoryElement {
 
   bool get compact native "HTMLDirectoryElement_compact_Getter";
 
@@ -11067,7 +11061,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-  void getDirectory(path, [options, successCallback, errorCallback]) {
+  void getDirectory(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?options) {
       _getDirectory_1(path, options, successCallback, errorCallback);
       return;
@@ -11079,7 +11073,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   void _getDirectory_2(path) native "DirectoryEntry_getDirectory_2_Callback";
 
-  void getFile(path, [options, successCallback, errorCallback]) {
+  void getFile(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?options) {
       _getFile_1(path, options, successCallback, errorCallback);
       return;
@@ -11198,7 +11192,7 @@ abstract class DivElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDivElementImpl extends _HTMLElementImpl implements DivElement {
+class _DivElementImpl extends _ElementImpl_Merged implements DivElement {
 
   String get align native "HTMLDivElement_align_Getter";
 
@@ -11555,7 +11549,11 @@ class _FilteredElementList implements List {
     add(value);
   }
 
-  void sort(int compare(Element a, Element b)) {
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -11992,7 +11990,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
-  // TODO(jacobr): implement all Element methods not on Document. 
+  // TODO(jacobr): implement all Element methods not on Document.
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
@@ -12134,7 +12132,7 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLDocumentImpl extends _DocumentImpl implements Document {
+class _DocumentImpl_Merged extends _DocumentImpl implements Document {
 
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
@@ -12690,6 +12688,8 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  bool contains(Element element) => _childElements.contains(element);
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -12707,7 +12707,7 @@ class _ChildrenElementList implements List {
   }
 
   bool every(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (!f(element)) {
         return false;
       }
@@ -12716,7 +12716,7 @@ class _ChildrenElementList implements List {
   }
 
   bool some(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (f(element)) {
         return true;
       }
@@ -12768,7 +12768,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
 
@@ -12826,6 +12826,13 @@ class _FrozenElementList implements List {
 
   Element get first {
     return _nodeList[0];
+  }
+
+  bool contains(Element element) {
+    for (Element el in this) {
+      if (el == element) return true;
+    }
+    return false;
   }
 
   void forEach(void f(Element element)) {
@@ -12896,7 +12903,7 @@ class _FrozenElementList implements List {
     throw const UnsupportedOperationException('');
   }
 
-  void sort(int compare(Element a, Element b)) {
+  void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('');
   }
 
@@ -13488,7 +13495,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([centerIfNeeded]) {
+  void scrollIntoView([/*boolean*/ centerIfNeeded]) {
     if (?centerIfNeeded) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -13677,7 +13684,7 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLElementImpl extends _ElementImpl implements Element {
+class _ElementImpl_Merged extends _ElementImpl implements Element {
 
   HTMLCollection get $dom_children native "HTMLElement_children_Getter";
 
@@ -13822,7 +13829,7 @@ abstract class EmbedElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
+class _EmbedElementImpl extends _ElementImpl_Merged implements EmbedElement {
 
   String get align native "HTMLEmbedElement_align_Getter";
 
@@ -13855,39 +13862,6 @@ class _HTMLEmbedElementImpl extends _HTMLElementImpl implements EmbedElement {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName Entity
-abstract class Entity implements Node {
-
-  /** @domName Entity.notationName */
-  abstract String get notationName;
-
-  /** @domName Entity.publicId */
-  abstract String get publicId;
-
-  /** @domName Entity.systemId */
-  abstract String get systemId;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _EntityImpl extends _NodeImpl implements Entity {
-
-  String get notationName native "Entity_notationName_Getter";
-
-  String get publicId native "Entity_publicId_Getter";
-
-  String get systemId native "Entity_systemId_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName EntityReference
 abstract class EntityReference implements Node {
 }
@@ -13906,7 +13880,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntriesCallback(List<Entry> entries);
+typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13990,6 +13964,8 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Entry element) => _Collections.contains(this, element);
+
   void forEach(void f(Entry element)) => _Collections.forEach(this, f);
 
   Collection map(f(Entry element)) => _Collections.map(this, [], f);
@@ -14005,7 +13981,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
 
   // From List<Entry>:
 
-  void sort(int compare(Entry a, Entry b)) {
+  void sort([Comparator<Entry> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14084,6 +14060,8 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(EntrySync element) => _Collections.contains(this, element);
+
   void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
 
   Collection map(f(EntrySync element)) => _Collections.map(this, [], f);
@@ -14099,7 +14077,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
 
   // From List<EntrySync>:
 
-  void sort(int compare(EntrySync a, EntrySync b)) {
+  void sort([Comparator<EntrySync> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -14143,7 +14121,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
 
 // WARNING: Do not edit - generated code.
 
-typedef bool EntryCallback(Entry entry);
+typedef void EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14162,7 +14140,7 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   String get name native "Entry_name_Getter";
 
-  void copyTo(parent, [name, successCallback, errorCallback]) {
+  void copyTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -14178,7 +14156,7 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(parent, [name, successCallback, errorCallback]) {
+  void moveTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -14274,7 +14252,7 @@ class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool ErrorCallback(FileError error);
+typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14734,7 +14712,7 @@ abstract class FieldSetElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFieldSetElementImpl extends _HTMLElementImpl implements FieldSetElement {
+class _FieldSetElementImpl extends _ElementImpl_Merged implements FieldSetElement {
 
   bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
@@ -14785,7 +14763,7 @@ abstract class File implements Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileCallback(File file);
+typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15007,6 +14985,8 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(File element) => _Collections.contains(this, element);
+
   void forEach(void f(File element)) => _Collections.forEach(this, f);
 
   Collection map(f(File element)) => _Collections.map(this, [], f);
@@ -15022,7 +15002,7 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
 
   // From List<File>:
 
-  void sort(int compare(File a, File b)) {
+  void sort([Comparator<File> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -15159,7 +15139,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
 
-  void readAsText(blob, [encoding]) {
+  void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
       _readAsText_1(blob, encoding);
       return;
@@ -15227,7 +15207,7 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 
   String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
-  String readAsText(blob, [encoding]) {
+  String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
     if (?encoding) {
       return _readAsText_1(blob, encoding);
     }
@@ -15245,7 +15225,7 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileSystemCallback(DOMFileSystem fileSystem);
+typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15320,7 +15300,7 @@ abstract class FileWriterEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileWriterCallback(FileWriter fileWriter);
+typedef void FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15482,6 +15462,8 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -15497,7 +15479,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -15534,7 +15516,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(start, [end]) {
+  Float32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15614,6 +15596,8 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -15629,7 +15613,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   // From List<num>:
 
-  void sort(int compare(num a, num b)) {
+  void sort([Comparator<num> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -15666,7 +15650,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(start, [end]) {
+  Float64Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15702,7 +15686,7 @@ abstract class FontElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFontElementImpl extends _HTMLElementImpl implements FontElement {
+class _FontElementImpl extends _ElementImpl_Merged implements FontElement {
 
   String get color native "HTMLFontElement_color_Getter";
 
@@ -15742,7 +15726,7 @@ abstract class FormData {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements FormData {
+class _FormDataImpl extends NativeFieldWrapperClass1 implements FormData {
 
   void append(String name, String value, String filename) native "DOMFormData_append_Callback";
 
@@ -15803,7 +15787,7 @@ abstract class FormElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFormElementImpl extends _HTMLElementImpl implements FormElement {
+class _FormElementImpl extends _ElementImpl_Merged implements FormElement {
 
   String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
@@ -15907,7 +15891,7 @@ abstract class FrameElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFrameElementImpl extends _HTMLElementImpl implements FrameElement {
+class _FrameElementImpl extends _ElementImpl_Merged implements FrameElement {
 
   Window get contentWindow native "HTMLFrameElement_contentWindow_Getter";
 
@@ -16007,7 +15991,7 @@ abstract class FrameSetElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLFrameSetElementImpl extends _HTMLElementImpl implements FrameSetElement {
+class _FrameSetElementImpl extends _ElementImpl_Merged implements FrameSetElement {
 
   _FrameSetElementEventsImpl get on =>
     new _FrameSetElementEventsImpl(this);
@@ -16135,6 +16119,8 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Gamepad element) => _Collections.contains(this, element);
+
   void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
 
   Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
@@ -16150,7 +16136,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
 
   // From List<Gamepad>:
 
-  void sort(int compare(Gamepad a, Gamepad b)) {
+  void sort([Comparator<Gamepad> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16278,7 +16264,7 @@ abstract class HRElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHRElementImpl extends _HTMLElementImpl implements HRElement {
+class _HRElementImpl extends _ElementImpl_Merged implements HRElement {
 
   String get align native "HTMLHRElement_align_Getter";
 
@@ -16359,6 +16345,8 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -16374,7 +16362,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16475,6 +16463,8 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -16490,7 +16480,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -16622,7 +16612,7 @@ abstract class HeadElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHeadElementImpl extends _HTMLElementImpl implements HeadElement {
+class _HeadElementImpl extends _ElementImpl_Merged implements HeadElement {
 
   String get profile native "HTMLHeadElement_profile_Getter";
 
@@ -16659,7 +16649,7 @@ abstract class HeadingElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHeadingElementImpl extends _HTMLElementImpl implements HeadingElement {
+class _HeadingElementImpl extends _ElementImpl_Merged implements HeadingElement {
 
   String get align native "HTMLHeadingElement_align_Getter";
 
@@ -16683,7 +16673,7 @@ abstract class HtmlElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLHtmlElementImpl extends _HTMLElementImpl implements HtmlElement {
+class _HtmlElementImpl extends _ElementImpl_Merged implements HtmlElement {
 
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -16822,7 +16812,7 @@ abstract class HttpRequestException {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements HttpRequestException {
+class _HttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements HttpRequestException {
 
   int get code native "XMLHttpRequestException_code_Getter";
 
@@ -16839,7 +16829,7 @@ class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements H
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestImpl extends _EventTargetImpl implements HttpRequest {
+class _HttpRequestImpl extends _EventTargetImpl implements HttpRequest {
 
   _HttpRequestEventsImpl get on =>
     new _HttpRequestEventsImpl(this);
@@ -16926,7 +16916,7 @@ abstract class HttpRequestProgressEvent implements ProgressEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent {
+class _HttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent {
 
   int get position native "XMLHttpRequestProgressEvent_position_Getter";
 
@@ -16977,7 +16967,7 @@ abstract class HttpRequestUploadEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload {
+class _HttpRequestUploadImpl extends _EventTargetImpl implements HttpRequestUpload {
 
   _HttpRequestUploadEventsImpl get on =>
     new _HttpRequestUploadEventsImpl(this);
@@ -17082,7 +17072,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   void advance(int count) native "IDBCursor_advance_Callback";
 
-  void continueFunction([key]) {
+  void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       _continue_1(key);
       return;
@@ -17263,7 +17253,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   void close() native "IDBDatabase_close_Callback";
 
-  IDBObjectStore createObjectStore(name, [options]) {
+  IDBObjectStore createObjectStore(/*DOMString*/ name, [/*Dictionary*/ options]) {
     if (?options) {
       return _createObjectStore_1(name, options);
     }
@@ -17282,7 +17272,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
-  IDBTransaction transaction(storeName_OR_storeNames, mode) {
+  IDBTransaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
@@ -17341,11 +17331,11 @@ abstract class IDBFactory {
 
 class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 
-  int cmp(first, second) native "IDBFactory_cmp_Callback";
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) native "IDBFactory_cmp_Callback";
 
   IDBVersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  IDBOpenDBRequest open(name, [version]) {
+  IDBOpenDBRequest open(/*DOMString*/ name, [/*unsigned long long*/ version]) {
     if (?version) {
       return _open_1(name, version);
     }
@@ -17656,7 +17646,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static IDBKeyRange bound_(lower, upper, [lowerOpen, upperOpen]) {
+  static IDBKeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [/*boolean*/ lowerOpen, /*boolean*/ upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -17672,7 +17662,7 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
-  static IDBKeyRange lowerBound_(bound, [open]) {
+  static IDBKeyRange lowerBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -17683,9 +17673,9 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
-  static IDBKeyRange only_(value) native "IDBKeyRange_only__Callback";
+  static IDBKeyRange only_(/*IDBKey*/ value) native "IDBKeyRange_only__Callback";
 
-  static IDBKeyRange upperBound_(bound, [open]) {
+  static IDBKeyRange upperBound_(/*IDBKey*/ bound, [/*boolean*/ open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -17769,7 +17759,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBTransaction get transaction native "IDBObjectStore_transaction_Getter";
 
-  IDBRequest add(value, [key]) {
+  IDBRequest add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       return _add_1(value, key);
     }
@@ -17801,7 +17791,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
-  IDBIndex createIndex(name, keyPath, [options]) {
+  IDBIndex createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
     if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && !?options) {
       return _createIndex_1(name, keyPath);
     }
@@ -17906,7 +17896,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBRequest _openCursor_9(key_OR_range, direction) native "IDBObjectStore_openCursor_9_Callback";
 
-  IDBRequest put(value, [key]) {
+  IDBRequest put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       return _put_1(value, key);
     }
@@ -18300,7 +18290,7 @@ abstract class IFrameElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
+class _IFrameElementImpl extends _ElementImpl_Merged implements IFrameElement {
 
   String get align native "HTMLIFrameElement_align_Getter";
 
@@ -18359,7 +18349,7 @@ class _HTMLIFrameElementImpl extends _HTMLElementImpl implements IFrameElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
+typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18432,7 +18422,7 @@ class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 /// @domName HTMLImageElement
 abstract class ImageElement implements Element {
 
-  factory ImageElement([String src, int width, int height]) {
+  factory ImageElement({String src, int width, int height}) {
     if (!?src) {
       return _Elements.createImageElement();
     }
@@ -18508,7 +18498,7 @@ abstract class ImageElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
+class _ImageElementImpl extends _ElementImpl_Merged implements ImageElement {
 
   String get align native "HTMLImageElement_align_Getter";
 
@@ -18586,7 +18576,7 @@ class _HTMLImageElementImpl extends _HTMLElementImpl implements ImageElement {
 /// @domName HTMLInputElement
 abstract class InputElement implements Element {
 
-  factory InputElement([String type]) {
+  factory InputElement({String type}) {
     if (!?type) {
       return _Elements.createInputElement();
     }
@@ -18774,7 +18764,7 @@ abstract class InputElementEvents implements ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
+class _InputElementImpl extends _ElementImpl_Merged implements InputElement {
 
   _InputElementEventsImpl get on =>
     new _InputElementEventsImpl(this);
@@ -18969,7 +18959,7 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
-  void stepDown([n]) {
+  void stepDown([/*long*/ n]) {
     if (?n) {
       _stepDown_1(n);
       return;
@@ -18981,7 +18971,7 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
-  void stepUp([n]) {
+  void stepUp([/*long*/ n]) {
     if (?n) {
       _stepUp_1(n);
       return;
@@ -19068,6 +19058,8 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -19083,7 +19075,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19120,7 +19112,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(start, [end]) {
+  Int16Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -19200,6 +19192,8 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -19215,7 +19209,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19252,7 +19246,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(start, [end]) {
+  Int32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -19332,6 +19326,8 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -19347,7 +19343,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -19384,7 +19380,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(start, [end]) {
+  Int8Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -19641,7 +19637,7 @@ abstract class KeygenElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLKeygenElementImpl extends _HTMLElementImpl implements KeygenElement {
+class _KeygenElementImpl extends _ElementImpl_Merged implements KeygenElement {
 
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
@@ -19703,7 +19699,7 @@ abstract class LIElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLIElementImpl extends _HTMLElementImpl implements LIElement {
+class _LIElementImpl extends _ElementImpl_Merged implements LIElement {
 
   String get type native "HTMLLIElement_type_Getter";
 
@@ -19740,7 +19736,7 @@ abstract class LabelElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLabelElementImpl extends _HTMLElementImpl implements LabelElement {
+class _LabelElementImpl extends _ElementImpl_Merged implements LabelElement {
 
   Element get control native "HTMLLabelElement_control_Getter";
 
@@ -19774,7 +19770,7 @@ abstract class LegendElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLegendElementImpl extends _HTMLElementImpl implements LegendElement {
+class _LegendElementImpl extends _ElementImpl_Merged implements LegendElement {
 
   String get align native "HTMLLegendElement_align_Getter";
 
@@ -19833,7 +19829,7 @@ abstract class LinkElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLLinkElementImpl extends _HTMLElementImpl implements LinkElement {
+class _LinkElementImpl extends _ElementImpl_Merged implements LinkElement {
 
   String get charset native "HTMLLinkElement_charset_Getter";
 
@@ -19914,7 +19910,7 @@ abstract class LocalHistory implements History {
 
 // WARNING: Do not edit - generated code.
 
-class _HistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory {
+class _LocalHistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory {
 
   int get length native "History_length_Getter";
 
@@ -19988,7 +19984,7 @@ abstract class LocalLocation implements Location {
 
 // WARNING: Do not edit - generated code.
 
-class _LocationImpl extends NativeFieldWrapperClass1 implements LocalLocation {
+class _LocalLocationImpl extends NativeFieldWrapperClass1 implements LocalLocation {
 
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
@@ -20537,7 +20533,7 @@ abstract class LocalWindowEvents implements Events {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
+class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
@@ -20713,7 +20709,7 @@ class _DOMWindowImpl extends _EventTargetImpl implements LocalWindow {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
-  void postMessage(message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   void print() native "DOMWindow_print_Callback";
 
@@ -20927,7 +20923,7 @@ abstract class MapElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMapElementImpl extends _HTMLElementImpl implements MapElement {
+class _MapElementImpl extends _ElementImpl_Merged implements MapElement {
 
   HTMLCollection get areas native "HTMLMapElement_areas_Getter";
 
@@ -20990,7 +20986,7 @@ abstract class MarqueeElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMarqueeElementImpl extends _HTMLElementImpl implements MarqueeElement {
+class _MarqueeElementImpl extends _ElementImpl_Merged implements MarqueeElement {
 
   String get behavior native "HTMLMarqueeElement_behavior_Getter";
 
@@ -21380,7 +21376,7 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
+class _MediaElementImpl extends _ElementImpl_Merged implements MediaElement {
 
   _MediaElementEventsImpl get on =>
     new _MediaElementEventsImpl(this);
@@ -21479,7 +21475,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  TextTrack addTextTrack(kind, [label, language]) {
+  TextTrack addTextTrack(/*DOMString*/ kind, [/*DOMString*/ label, /*DOMString*/ language]) {
     if (?language) {
       return _addTextTrack_1(kind, label, language);
     }
@@ -21503,7 +21499,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void play() native "HTMLMediaElement_play_Callback";
 
-  void webkitAddKey(keySystem, key, [initData, sessionId]) {
+  void webkitAddKey(/*DOMString*/ keySystem, /*Uint8Array*/ key, [/*Uint8Array*/ initData, /*DOMString*/ sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -21517,7 +21513,7 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void webkitGenerateKeyRequest(keySystem, [initData]) {
+  void webkitGenerateKeyRequest(/*DOMString*/ keySystem, [/*Uint8Array*/ initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -22037,6 +22033,8 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(MediaStream element) => _Collections.contains(this, element);
+
   void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
 
   Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
@@ -22052,7 +22050,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
 
   // From List<MediaStream>:
 
-  void sort(int compare(MediaStream a, MediaStream b)) {
+  void sort([Comparator<MediaStream> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -22330,7 +22328,7 @@ abstract class MenuElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMenuElementImpl extends _HTMLElementImpl implements MenuElement {
+class _MenuElementImpl extends _ElementImpl_Merged implements MenuElement {
 
   bool get compact native "HTMLMenuElement_compact_Getter";
 
@@ -22514,7 +22512,7 @@ abstract class MetaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMetaElementImpl extends _HTMLElementImpl implements MetaElement {
+class _MetaElementImpl extends _ElementImpl_Merged implements MetaElement {
 
   String get content native "HTMLMetaElement_content_Getter";
 
@@ -22554,7 +22552,7 @@ abstract class Metadata {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MetadataCallback(Metadata metadata);
+typedef void MetadataCallback(Metadata metadata);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22606,7 +22604,7 @@ abstract class MeterElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLMeterElementImpl extends _HTMLElementImpl implements MeterElement {
+class _MeterElementImpl extends _ElementImpl_Merged implements MeterElement {
 
   num get high native "HTMLMeterElement_high_Getter";
 
@@ -22656,7 +22654,7 @@ abstract class ModElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLModElementImpl extends _HTMLElementImpl implements ModElement {
+class _ModElementImpl extends _ElementImpl_Merged implements ModElement {
 
   String get cite native "HTMLModElement_cite_Getter";
 
@@ -22803,7 +22801,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
+typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22876,14 +22874,14 @@ abstract class MutationObserver {
   List<MutationRecord> takeRecords();
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]);
+                List<String> attributeFilter});
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22898,14 +22896,14 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
 
   void observe(Node target,
-               [Map options,
+               {Map options,
                 bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter]) {
+                List<String> attributeFilter}) {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
@@ -23096,6 +23094,8 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -23111,7 +23111,7 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23299,7 +23299,7 @@ abstract class NavigatorUserMediaError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23317,7 +23317,7 @@ class _NavigatorUserMediaErrorImpl extends NativeFieldWrapperClass1 implements N
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23548,6 +23548,8 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -23565,7 +23567,7 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -23774,6 +23776,8 @@ class _ListWrapper<E> implements List<E> {
 
   Iterator<E> iterator() => _list.iterator();
 
+  bool contains(E element) => _list.contains(element);
+
   void forEach(void f(E element)) => _list.forEach(f);
 
   Collection map(f(E element)) => _list.map(f);
@@ -23800,7 +23804,7 @@ class _ListWrapper<E> implements List<E> {
 
   void addAll(Collection<E> collection) => _list.addAll(collection);
 
-  void sort(int compare(E a, E b)) => _list.sort(compare);
+  void sort([Comparator<E> compare = Comparable.compare]) => _list.sort(compare);
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -23889,6 +23893,8 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
     _parent.$dom_replaceChild(value, this[index]);
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -23904,7 +23910,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 
   // From List<Node>:
 
-  void sort(int compare(Node a, Node b)) {
+  void sort([Comparator<Node> compare = Comparable.compare]) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -24133,7 +24139,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
 // WARNING: Do not edit - generated code.
 
-typedef bool NotificationPermissionCallback(String permission);
+typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24241,7 +24247,7 @@ abstract class OListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOListElementImpl extends _HTMLElementImpl implements OListElement {
+class _OListElementImpl extends _ElementImpl_Merged implements OListElement {
 
   bool get compact native "HTMLOListElement_compact_Getter";
 
@@ -24346,7 +24352,7 @@ abstract class ObjectElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLObjectElementImpl extends _HTMLElementImpl implements ObjectElement {
+class _ObjectElementImpl extends _ElementImpl_Merged implements ObjectElement {
 
   String get align native "HTMLObjectElement_align_Getter";
 
@@ -24471,7 +24477,7 @@ abstract class OptGroupElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupElement {
+class _OptGroupElementImpl extends _ElementImpl_Merged implements OptGroupElement {
 
   bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
@@ -24534,7 +24540,7 @@ abstract class OptionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOptionElementImpl extends _HTMLElementImpl implements OptionElement {
+class _OptionElementImpl extends _ElementImpl_Merged implements OptionElement {
 
   bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
@@ -24687,7 +24693,7 @@ abstract class OutputElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLOutputElementImpl extends _HTMLElementImpl implements OutputElement {
+class _OutputElementImpl extends _ElementImpl_Merged implements OutputElement {
 
   String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
@@ -24832,7 +24838,7 @@ abstract class ParagraphElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLParagraphElementImpl extends _HTMLElementImpl implements ParagraphElement {
+class _ParagraphElementImpl extends _ElementImpl_Merged implements ParagraphElement {
 
   String get align native "HTMLParagraphElement_align_Getter";
 
@@ -24868,7 +24874,7 @@ abstract class ParamElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLParamElementImpl extends _HTMLElementImpl implements ParamElement {
+class _ParamElementImpl extends _ElementImpl_Merged implements ParamElement {
 
   String get name native "HTMLParamElement_name_Getter";
 
@@ -25023,7 +25029,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
-  void addStream(stream, [mediaStreamHints]) {
+  void addStream(/*MediaStream*/ stream, [/*Dictionary*/ mediaStreamHints]) {
     if (?mediaStreamHints) {
       _addStream_1(stream, mediaStreamHints);
       return;
@@ -25037,7 +25043,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void close() native "PeerConnection00_close_Callback";
 
-  SessionDescription createAnswer(offer, [mediaHints]) {
+  SessionDescription createAnswer(/*DOMString*/ offer, [/*Dictionary*/ mediaHints]) {
     if (?mediaHints) {
       return _createAnswer_1(offer, mediaHints);
     }
@@ -25048,7 +25054,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   SessionDescription _createAnswer_2(offer) native "PeerConnection00_createAnswer_2_Callback";
 
-  SessionDescription createOffer([mediaHints]) {
+  SessionDescription createOffer([/*Dictionary*/ mediaHints]) {
     if (?mediaHints) {
       return _createOffer_1(mediaHints);
     }
@@ -25071,7 +25077,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
 
-  void startIce([iceOptions]) {
+  void startIce([/*Dictionary*/ iceOptions]) {
     if (?iceOptions) {
       _startIce_1(iceOptions);
       return;
@@ -25318,7 +25324,7 @@ abstract class Point {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
+class _PointImpl extends NativeFieldWrapperClass1 implements Point {
 
   num get x native "WebKitPoint_x_Getter";
 
@@ -25358,7 +25364,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionCallback(Geoposition position);
+typedef void PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25386,7 +25392,7 @@ abstract class PositionError {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool PositionErrorCallback(PositionError error);
+typedef void PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25423,7 +25429,7 @@ abstract class PreElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLPreElementImpl extends _HTMLElementImpl implements PreElement {
+class _PreElementImpl extends _ElementImpl_Merged implements PreElement {
 
   int get width native "HTMLPreElement_width_Getter";
 
@@ -25498,7 +25504,7 @@ abstract class ProgressElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLProgressElementImpl extends _HTMLElementImpl implements ProgressElement {
+class _ProgressElementImpl extends _ElementImpl_Merged implements ProgressElement {
 
   List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
@@ -25564,7 +25570,7 @@ abstract class QuoteElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLQuoteElementImpl extends _HTMLElementImpl implements QuoteElement {
+class _QuoteElementImpl extends _ElementImpl_Merged implements QuoteElement {
 
   String get cite native "HTMLQuoteElement_cite_Getter";
 
@@ -25610,7 +25616,7 @@ class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCErrorCallback(String errorInformation);
+typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25855,7 +25861,7 @@ abstract class RTCSessionDescription {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCSessionDescriptionCallback(RTCSessionDescription sdp);
+typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25879,7 +25885,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 
 // WARNING: Do not edit - generated code.
 
-typedef bool RTCStatsCallback(RTCStatsResponse response);
+typedef void RTCStatsCallback(RTCStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26503,6 +26509,8 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Map element) => _Collections.contains(this, element);
+
   void forEach(void f(Map element)) => _Collections.forEach(this, f);
 
   Collection map(f(Map element)) => _Collections.map(this, [], f);
@@ -26518,7 +26526,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
   // From List<Map>:
 
-  void sort(int compare(Map a, Map b)) {
+  void sort([Comparator<Map> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -26562,14 +26570,14 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26588,14 +26596,14 @@ abstract class SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionCallback(SQLTransaction transaction);
+typedef void SQLTransactionCallback(SQLTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionErrorCallback(SQLError error);
+typedef void SQLTransactionErrorCallback(SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26625,7 +26633,7 @@ abstract class SQLTransactionSync {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
+typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27110,6 +27118,8 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
@@ -27125,7 +27135,7 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
 
   // From List<SVGAnimatedLength>:
 
-  void sort(int compare(SVGAnimatedLength a, SVGAnimatedLength b)) {
+  void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27249,6 +27259,8 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedNumber element)) => _Collections.map(this, [], f);
@@ -27264,7 +27276,7 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
 
   // From List<SVGAnimatedNumber>:
 
-  void sort(int compare(SVGAnimatedNumber a, SVGAnimatedNumber b)) {
+  void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -27444,6 +27456,8 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimateTransformElement element)) => _Collections.map(this, [], f);
@@ -27459,7 +27473,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
 
   // From List<SVGAnimateTransformElement>:
 
-  void sort(int compare(SVGAnimateTransformElement a, SVGAnimateTransformElement b)) {
+  void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -28323,6 +28337,8 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGElementInstance element)) => _Collections.map(this, [], f);
@@ -28338,7 +28354,7 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
 
   // From List<SVGElementInstance>:
 
-  void sort(int compare(SVGElementInstance a, SVGElementInstance b)) {
+  void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -30477,6 +30493,8 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
@@ -30492,7 +30510,7 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
 
   // From List<SVGLength>:
 
-  void sort(int compare(SVGLength a, SVGLength b)) {
+  void sort([Comparator<SVGLength> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -31122,6 +31140,8 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGNumber element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGNumber element)) => _Collections.map(this, [], f);
@@ -31137,7 +31157,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
 
   // From List<SVGNumber>:
 
-  void sort(int compare(SVGNumber a, SVGNumber b)) {
+  void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -32262,6 +32282,8 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
@@ -32277,7 +32299,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
 
   // From List<SVGPathSeg>:
 
-  void sort(int compare(SVGPathSeg a, SVGPathSeg b)) {
+  void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -33375,6 +33397,8 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(String element) => _Collections.contains(this, element);
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -33390,7 +33414,7 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
 
   // From List<String>:
 
-  void sort(int compare(String a, String b)) {
+  void sort([Comparator<String> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34079,6 +34103,8 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGTransform element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGTransform element)) => _Collections.map(this, [], f);
@@ -34094,7 +34120,7 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
 
   // From List<SVGTransform>:
 
-  void sort(int compare(SVGTransform a, SVGTransform b)) {
+  void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -34560,7 +34586,7 @@ abstract class ScriptElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLScriptElementImpl extends _HTMLElementImpl implements ScriptElement {
+class _ScriptElementImpl extends _ElementImpl_Merged implements ScriptElement {
 
   bool get async native "HTMLScriptElement_async_Getter";
 
@@ -34771,7 +34797,7 @@ abstract class SelectElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
+class _SelectElementImpl extends _ElementImpl_Merged implements SelectElement {
 
   bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
@@ -34879,7 +34905,7 @@ abstract class ShadowElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLShadowElementImpl extends _HTMLElementImpl implements ShadowElement {
+class _ShadowElementImpl extends _ElementImpl_Merged implements ShadowElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35133,6 +35159,8 @@ class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBu
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+
   void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
 
   Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
@@ -35148,7 +35176,7 @@ class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBu
 
   // From List<SourceBuffer>:
 
-  void sort(int compare(SourceBuffer a, SourceBuffer b)) {
+  void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35218,7 +35246,7 @@ abstract class SourceElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSourceElementImpl extends _HTMLElementImpl implements SourceElement {
+class _SourceElementImpl extends _ElementImpl_Merged implements SourceElement {
 
   String get media native "HTMLSourceElement_media_Getter";
 
@@ -35250,7 +35278,7 @@ abstract class SpanElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLSpanElementImpl extends _HTMLElementImpl implements SpanElement {
+class _SpanElementImpl extends _ElementImpl_Merged implements SpanElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35351,6 +35379,8 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
@@ -35366,7 +35396,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   // From List<SpeechGrammar>:
 
-  void sort(int compare(SpeechGrammar a, SpeechGrammar b)) {
+  void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35401,7 +35431,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(string, [weight]) {
+  void addFromString(/*DOMString*/ string, [/*float*/ weight]) {
     if (?weight) {
       _addFromString_1(string, weight);
       return;
@@ -35413,7 +35443,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
 
   void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
-  void addFromUri(src, [weight]) {
+  void addFromUri(/*DOMString*/ src, [/*float*/ weight]) {
     if (?weight) {
       _addFromUri_1(src, weight);
       return;
@@ -35520,6 +35550,8 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechInputResult element)) => _Collections.map(this, [], f);
@@ -35535,7 +35567,7 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
 
   // From List<SpeechInputResult>:
 
-  void sort(int compare(SpeechInputResult a, SpeechInputResult b)) {
+  void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -35900,6 +35932,8 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechRecognitionResult element)) => _Collections.map(this, [], f);
@@ -35915,7 +35949,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
 
   // From List<SpeechRecognitionResult>:
 
-  void sort(int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)) {
+  void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -36118,7 +36152,7 @@ abstract class StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoErrorCallback(DOMException error);
+typedef void StorageInfoErrorCallback(DOMException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36138,21 +36172,21 @@ class _StorageInfoImpl extends NativeFieldWrapperClass1 implements StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef bool StringCallback(String data);
+typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36185,7 +36219,7 @@ abstract class StyleElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLStyleElementImpl extends _HTMLElementImpl implements StyleElement {
+class _StyleElementImpl extends _ElementImpl_Merged implements StyleElement {
 
   bool get disabled native "HTMLStyleElement_disabled_Getter";
 
@@ -36330,6 +36364,8 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(StyleSheet element) => _Collections.contains(this, element);
+
   void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
 
   Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
@@ -36345,7 +36381,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
 
   // From List<StyleSheet>:
 
-  void sort(int compare(StyleSheet a, StyleSheet b)) {
+  void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -36403,7 +36439,7 @@ abstract class TableCaptionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableCaptionElementImpl extends _HTMLElementImpl implements TableCaptionElement {
+class _TableCaptionElementImpl extends _ElementImpl_Merged implements TableCaptionElement {
 
   String get align native "HTMLTableCaptionElement_align_Getter";
 
@@ -36472,7 +36508,7 @@ abstract class TableCellElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableCellElementImpl extends _HTMLElementImpl implements TableCellElement {
+class _TableCellElementImpl extends _ElementImpl_Merged implements TableCellElement {
 
   String get abbr native "HTMLTableCellElement_abbr_Getter";
 
@@ -36568,7 +36604,7 @@ abstract class TableColElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableColElementImpl extends _HTMLElementImpl implements TableColElement {
+class _TableColElementImpl extends _ElementImpl_Merged implements TableColElement {
 
   String get align native "HTMLTableColElement_align_Getter";
 
@@ -36681,7 +36717,7 @@ abstract class TableElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableElementImpl extends _HTMLElementImpl implements TableElement {
+class _TableElementImpl extends _ElementImpl_Merged implements TableElement {
 
   String get align native "HTMLTableElement_align_Getter";
 
@@ -36801,7 +36837,7 @@ abstract class TableRowElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableRowElementImpl extends _HTMLElementImpl implements TableRowElement {
+class _TableRowElementImpl extends _ElementImpl_Merged implements TableRowElement {
 
   String get align native "HTMLTableRowElement_align_Getter";
 
@@ -36870,7 +36906,7 @@ abstract class TableSectionElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTableSectionElementImpl extends _HTMLElementImpl implements TableSectionElement {
+class _TableSectionElementImpl extends _ElementImpl_Merged implements TableSectionElement {
 
   String get align native "HTMLTableSectionElement_align_Getter";
 
@@ -37010,7 +37046,7 @@ abstract class TextAreaElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaElement {
+class _TextAreaElementImpl extends _ElementImpl_Merged implements TextAreaElement {
 
   bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
@@ -37092,7 +37128,7 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
 
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setSelectionRange(start, end, [direction]) {
+  void setSelectionRange(/*long*/ start, /*long*/ end, [/*DOMString*/ direction]) {
     if (?direction) {
       _setSelectionRange_1(start, end, direction);
       return;
@@ -37427,6 +37463,8 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
@@ -37442,7 +37480,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
 
   // From List<TextTrackCue>:
 
-  void sort(int compare(TextTrackCue a, TextTrackCue b)) {
+  void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37602,6 +37640,8 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrack element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrack element)) => _Collections.map(this, [], f);
@@ -37617,7 +37657,7 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
 
   // From List<TextTrack>:
 
-  void sort(int compare(TextTrack a, TextTrack b)) {
+  void sort([Comparator<TextTrack> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -37724,7 +37764,7 @@ abstract class TitleElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTitleElementImpl extends _HTMLElementImpl implements TitleElement {
+class _TitleElementImpl extends _ElementImpl_Merged implements TitleElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37919,6 +37959,8 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Touch element) => _Collections.contains(this, element);
+
   void forEach(void f(Touch element)) => _Collections.forEach(this, f);
 
   Collection map(f(Touch element)) => _Collections.map(this, [], f);
@@ -37934,7 +37976,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 
   // From List<Touch>:
 
-  void sort(int compare(Touch a, Touch b)) {
+  void sort([Comparator<Touch> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38018,7 +38060,7 @@ abstract class TrackElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLTrackElementImpl extends _HTMLElementImpl implements TrackElement {
+class _TrackElementImpl extends _ElementImpl_Merged implements TrackElement {
 
   bool get defaultValue native "HTMLTrackElement_default_Getter";
 
@@ -38089,7 +38131,7 @@ abstract class TransitionEvent implements Event {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitTransitionEventImpl extends _EventImpl implements TransitionEvent {
+class _TransitionEventImpl extends _EventImpl implements TransitionEvent {
 
   num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
 
@@ -38267,7 +38309,7 @@ abstract class UListElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
+class _UListElementImpl extends _ElementImpl_Merged implements UListElement {
 
   bool get compact native "HTMLUListElement_compact_Getter";
 
@@ -38346,6 +38388,8 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -38361,7 +38405,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38398,7 +38442,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(start, [end]) {
+  Uint16Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38478,6 +38522,8 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -38493,7 +38539,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38530,7 +38576,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(start, [end]) {
+  Uint32Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38610,6 +38656,8 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -38625,7 +38673,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   // From List<int>:
 
-  void sort(int compare(int a, int b)) {
+  void sort([Comparator<int> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -38662,7 +38710,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(start, [end]) {
+  Uint8Array subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38717,7 +38765,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(start, [end]) {
+  Uint8ClampedArray subarray(/*long*/ start, [/*long*/ end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -38744,7 +38792,7 @@ abstract class UnknownElement implements Element {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement {
+class _UnknownElementImpl extends _ElementImpl_Merged implements UnknownElement {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38866,7 +38914,7 @@ abstract class VideoElement implements MediaElement {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElement {
+class _VideoElementImpl extends _MediaElementImpl implements VideoElement {
 
   int get height native "HTMLVideoElement_height_Getter";
 
@@ -38907,7 +38955,7 @@ class _HTMLVideoElementImpl extends _HTMLMediaElementImpl implements VideoElemen
 
 // WARNING: Do not edit - generated code.
 
-typedef bool VoidCallback();
+typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -40310,7 +40358,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
-  void bufferData(target, data_OR_size, usage) {
+  void bufferData(/*unsigned long*/ target, data_OR_size, /*unsigned long*/ usage) {
     if ((target is int || target === null) && (data_OR_size is ArrayBuffer || data_OR_size === null) && (usage is int || usage === null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
@@ -40332,7 +40380,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
-  void bufferSubData(target, offset, data) {
+  void bufferSubData(/*unsigned long*/ target, /*long long*/ offset, data) {
     if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBuffer || data === null)) {
       _bufferSubData_1(target, offset, data);
       return;
@@ -40524,7 +40572,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
+  void texImage2D(/*unsigned long*/ target, /*long*/ level, /*unsigned long*/ internalformat, /*long*/ format_OR_width, /*long*/ height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [/*unsigned long*/ format, /*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
     if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && (format is int || format === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -40562,7 +40610,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
+  void texSubImage2D(/*unsigned long*/ target, /*long*/ level, /*long*/ xoffset, /*long*/ yoffset, /*long*/ format_OR_width, /*long*/ height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [/*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
     if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
@@ -40805,6 +40853,8 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Animation element) => _Collections.contains(this, element);
+
   void forEach(void f(Animation element)) => _Collections.forEach(this, f);
 
   Collection map(f(Animation element)) => _Collections.map(this, [], f);
@@ -40820,7 +40870,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
 
   // From List<Animation>:
 
-  void sort(int compare(Animation a, Animation b)) {
+  void sort([Comparator<Animation> compare = Comparable.compare]) {
     throw const UnsupportedOperationException("Cannot sort immutable List.");
   }
 
@@ -41068,7 +41118,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
-  void close([code, reason]) {
+  void close([/*unsigned short*/ code, /*DOMString*/ reason]) {
     if (?reason) {
       _close_1(code, reason);
       return;
@@ -41338,7 +41388,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
   _WorkerEventsImpl get on =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [List messagePorts]) native "Worker_postMessage_Callback";
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
 
   void terminate() native "Worker_terminate_Callback";
 
@@ -41810,135 +41860,135 @@ class _Elements {
 
 
   static AnchorElement createAnchorElement([String href]) {
-    _HTMLAnchorElementImpl _e = _document.$dom_createElement("a");
+    _AnchorElementImpl _e = _document.$dom_createElement("a");
     if (href != null) _e.href = href;
     return _e;
   }
 
   static AreaElement createAreaElement() {
-    _HTMLAreaElementImpl _e = _document.$dom_createElement("area");
+    _AreaElementImpl _e = _document.$dom_createElement("area");
     return _e;
   }
 
   static BRElement createBRElement() {
-    _HTMLBRElementImpl _e = _document.$dom_createElement("br");
+    _BRElementImpl _e = _document.$dom_createElement("br");
     return _e;
   }
 
   static BaseElement createBaseElement() {
-    _HTMLBaseElementImpl _e = _document.$dom_createElement("base");
+    _BaseElementImpl _e = _document.$dom_createElement("base");
     return _e;
   }
 
   static BodyElement createBodyElement() {
-    _HTMLBodyElementImpl _e = _document.$dom_createElement("body");
+    _BodyElementImpl _e = _document.$dom_createElement("body");
     return _e;
   }
 
   static ButtonElement createButtonElement() {
-    _HTMLButtonElementImpl _e = _document.$dom_createElement("button");
+    _ButtonElementImpl _e = _document.$dom_createElement("button");
     return _e;
   }
 
   static CanvasElement createCanvasElement([int width, int height]) {
-    _HTMLCanvasElementImpl _e = _document.$dom_createElement("canvas");
+    _CanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
     return _e;
   }
 
   static ContentElement createContentElement() {
-    _HTMLContentElementImpl _e = _document.$dom_createElement("content");
+    _ContentElementImpl _e = _document.$dom_createElement("content");
     return _e;
   }
 
   static DListElement createDListElement() {
-    _HTMLDListElementImpl _e = _document.$dom_createElement("dl");
+    _DListElementImpl _e = _document.$dom_createElement("dl");
     return _e;
   }
 
   static DataListElement createDataListElement() {
-    _HTMLDataListElementImpl _e = _document.$dom_createElement("datalist");
+    _DataListElementImpl _e = _document.$dom_createElement("datalist");
     return _e;
   }
 
   static DetailsElement createDetailsElement() {
-    _HTMLDetailsElementImpl _e = _document.$dom_createElement("details");
+    _DetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
   }
 
   static DivElement createDivElement() {
-    _HTMLDivElementImpl _e = _document.$dom_createElement("div");
+    _DivElementImpl _e = _document.$dom_createElement("div");
     return _e;
   }
 
   static EmbedElement createEmbedElement() {
-    _HTMLEmbedElementImpl _e = _document.$dom_createElement("embed");
+    _EmbedElementImpl _e = _document.$dom_createElement("embed");
     return _e;
   }
 
   static FieldSetElement createFieldSetElement() {
-    _HTMLFieldSetElementImpl _e = _document.$dom_createElement("fieldset");
+    _FieldSetElementImpl _e = _document.$dom_createElement("fieldset");
     return _e;
   }
 
   static FormElement createFormElement() {
-    _HTMLFormElementImpl _e = _document.$dom_createElement("form");
+    _FormElementImpl _e = _document.$dom_createElement("form");
     return _e;
   }
 
   static HRElement createHRElement() {
-    _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
+    _HRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
   }
 
   static HeadElement createHeadElement() {
-    _HTMLHeadElementImpl _e = _document.$dom_createElement("head");
+    _HeadElementImpl _e = _document.$dom_createElement("head");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h1() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h1");
+    _HeadingElementImpl _e = _document.$dom_createElement("h1");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h2() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h2");
+    _HeadingElementImpl _e = _document.$dom_createElement("h2");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h3() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h3");
+    _HeadingElementImpl _e = _document.$dom_createElement("h3");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h4() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h4");
+    _HeadingElementImpl _e = _document.$dom_createElement("h4");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h5() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h5");
+    _HeadingElementImpl _e = _document.$dom_createElement("h5");
     return _e;
   }
 
   static HeadingElement createHeadingElement_h6() {
-    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h6");
+    _HeadingElementImpl _e = _document.$dom_createElement("h6");
     return _e;
   }
 
   static HtmlElement createHtmlElement() {
-    _HTMLHtmlElementImpl _e = _document.$dom_createElement("html");
+    _HtmlElementImpl _e = _document.$dom_createElement("html");
     return _e;
   }
 
   static IFrameElement createIFrameElement() {
-    _HTMLIFrameElementImpl _e = _document.$dom_createElement("iframe");
+    _IFrameElementImpl _e = _document.$dom_createElement("iframe");
     return _e;
   }
 
   static ImageElement createImageElement([String src, int width, int height]) {
-    _HTMLImageElementImpl _e = _document.$dom_createElement("img");
+    _ImageElementImpl _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
@@ -41946,163 +41996,163 @@ class _Elements {
   }
 
   static InputElement createInputElement([String type]) {
-    _HTMLInputElementImpl _e = _document.$dom_createElement("input");
+    _InputElementImpl _e = _document.$dom_createElement("input");
     if (type != null) _e.type = type;
     return _e;
   }
 
   static KeygenElement createKeygenElement() {
-    _HTMLKeygenElementImpl _e = _document.$dom_createElement("keygen");
+    _KeygenElementImpl _e = _document.$dom_createElement("keygen");
     return _e;
   }
 
   static LIElement createLIElement() {
-    _HTMLLIElementImpl _e = _document.$dom_createElement("li");
+    _LIElementImpl _e = _document.$dom_createElement("li");
     return _e;
   }
 
   static LabelElement createLabelElement() {
-    _HTMLLabelElementImpl _e = _document.$dom_createElement("label");
+    _LabelElementImpl _e = _document.$dom_createElement("label");
     return _e;
   }
 
   static LegendElement createLegendElement() {
-    _HTMLLegendElementImpl _e = _document.$dom_createElement("legend");
+    _LegendElementImpl _e = _document.$dom_createElement("legend");
     return _e;
   }
 
   static LinkElement createLinkElement() {
-    _HTMLLinkElementImpl _e = _document.$dom_createElement("link");
+    _LinkElementImpl _e = _document.$dom_createElement("link");
     return _e;
   }
 
   static MapElement createMapElement() {
-    _HTMLMapElementImpl _e = _document.$dom_createElement("map");
+    _MapElementImpl _e = _document.$dom_createElement("map");
     return _e;
   }
 
   static MenuElement createMenuElement() {
-    _HTMLMenuElementImpl _e = _document.$dom_createElement("menu");
+    _MenuElementImpl _e = _document.$dom_createElement("menu");
     return _e;
   }
 
   static MeterElement createMeterElement() {
-    _HTMLMeterElementImpl _e = _document.$dom_createElement("meter");
+    _MeterElementImpl _e = _document.$dom_createElement("meter");
     return _e;
   }
 
   static OListElement createOListElement() {
-    _HTMLOListElementImpl _e = _document.$dom_createElement("ol");
+    _OListElementImpl _e = _document.$dom_createElement("ol");
     return _e;
   }
 
   static ObjectElement createObjectElement() {
-    _HTMLObjectElementImpl _e = _document.$dom_createElement("object");
+    _ObjectElementImpl _e = _document.$dom_createElement("object");
     return _e;
   }
 
   static OptGroupElement createOptGroupElement() {
-    _HTMLOptGroupElementImpl _e = _document.$dom_createElement("optgroup");
+    _OptGroupElementImpl _e = _document.$dom_createElement("optgroup");
     return _e;
   }
 
   static OutputElement createOutputElement() {
-    _HTMLOutputElementImpl _e = _document.$dom_createElement("output");
+    _OutputElementImpl _e = _document.$dom_createElement("output");
     return _e;
   }
 
   static ParagraphElement createParagraphElement() {
-    _HTMLParagraphElementImpl _e = _document.$dom_createElement("p");
+    _ParagraphElementImpl _e = _document.$dom_createElement("p");
     return _e;
   }
 
   static ParamElement createParamElement() {
-    _HTMLParamElementImpl _e = _document.$dom_createElement("param");
+    _ParamElementImpl _e = _document.$dom_createElement("param");
     return _e;
   }
 
   static PreElement createPreElement() {
-    _HTMLPreElementImpl _e = _document.$dom_createElement("pre");
+    _PreElementImpl _e = _document.$dom_createElement("pre");
     return _e;
   }
 
   static ProgressElement createProgressElement() {
-    _HTMLProgressElementImpl _e = _document.$dom_createElement("progress");
+    _ProgressElementImpl _e = _document.$dom_createElement("progress");
     return _e;
   }
 
   static ScriptElement createScriptElement() {
-    _HTMLScriptElementImpl _e = _document.$dom_createElement("script");
+    _ScriptElementImpl _e = _document.$dom_createElement("script");
     return _e;
   }
 
   static SelectElement createSelectElement() {
-    _HTMLSelectElementImpl _e = _document.$dom_createElement("select");
+    _SelectElementImpl _e = _document.$dom_createElement("select");
     return _e;
   }
 
   static SourceElement createSourceElement() {
-    _HTMLSourceElementImpl _e = _document.$dom_createElement("source");
+    _SourceElementImpl _e = _document.$dom_createElement("source");
     return _e;
   }
 
   static SpanElement createSpanElement() {
-    _HTMLSpanElementImpl _e = _document.$dom_createElement("span");
+    _SpanElementImpl _e = _document.$dom_createElement("span");
     return _e;
   }
 
   static StyleElement createStyleElement() {
-    _HTMLStyleElementImpl _e = _document.$dom_createElement("style");
+    _StyleElementImpl _e = _document.$dom_createElement("style");
     return _e;
   }
 
   static TableCaptionElement createTableCaptionElement() {
-    _HTMLTableCaptionElementImpl _e = _document.$dom_createElement("caption");
+    _TableCaptionElementImpl _e = _document.$dom_createElement("caption");
     return _e;
   }
 
   static TableCellElement createTableCellElement() {
-    _HTMLTableCellElementImpl _e = _document.$dom_createElement("td");
+    _TableCellElementImpl _e = _document.$dom_createElement("td");
     return _e;
   }
 
   static TableColElement createTableColElement() {
-    _HTMLTableColElementImpl _e = _document.$dom_createElement("col");
+    _TableColElementImpl _e = _document.$dom_createElement("col");
     return _e;
   }
 
   static TableElement createTableElement() {
-    _HTMLTableElementImpl _e = _document.$dom_createElement("table");
+    _TableElementImpl _e = _document.$dom_createElement("table");
     return _e;
   }
 
   static TableRowElement createTableRowElement() {
-    _HTMLTableRowElementImpl _e = _document.$dom_createElement("tr");
+    _TableRowElementImpl _e = _document.$dom_createElement("tr");
     return _e;
   }
 
   static TextAreaElement createTextAreaElement() {
-    _HTMLTextAreaElementImpl _e = _document.$dom_createElement("textarea");
+    _TextAreaElementImpl _e = _document.$dom_createElement("textarea");
     return _e;
   }
 
   static TitleElement createTitleElement() {
-    _HTMLTitleElementImpl _e = _document.$dom_createElement("title");
+    _TitleElementImpl _e = _document.$dom_createElement("title");
     return _e;
   }
 
   static TrackElement createTrackElement() {
-    _HTMLTrackElementImpl _e = _document.$dom_createElement("track");
+    _TrackElementImpl _e = _document.$dom_createElement("track");
     return _e;
   }
 
   static UListElement createUListElement() {
-    _HTMLUListElementImpl _e = _document.$dom_createElement("ul");
+    _UListElementImpl _e = _document.$dom_createElement("ul");
     return _e;
   }
 
   static VideoElement createVideoElement() {
-    _HTMLVideoElementImpl _e = _document.$dom_createElement("video");
+    _VideoElementImpl _e = _document.$dom_createElement("video");
     return _e;
   }
 }
@@ -42974,6 +43024,13 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
  * method.
  */
 class _Collections {
+  static bool contains(Iterable<Object> iterable, Object element) {
+    for (final e in iterable) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
   static void forEach(Iterable<Object> iterable, void f(Object o)) {
     for (final e in iterable) {
       f(e);
@@ -43608,7 +43665,7 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
     _dummy = new DivElement();
-    _observer.observe(_dummy, {}, attributes: true);
+    _observer.observe(_dummy, attributes: true);
   }
 
   void _schedule() {

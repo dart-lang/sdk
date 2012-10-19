@@ -248,7 +248,7 @@ CODEGEN_TEST2_RUN(StaticDecCallCodegen, NativeDecCodegen, Smi::New(4))
 CODEGEN_TEST_GENERATE(SmiUnaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* a = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(12)));
-  UnaryOpNode* neg_node = new UnaryOpNode(kPos, Token::kSUB, a);
+  UnaryOpNode* neg_node = new UnaryOpNode(kPos, Token::kNEGATE, a);
   node_seq->Add(new ReturnNode(kPos, neg_node));
 }
 CODEGEN_TEST_RUN(SmiUnaryOpCodegen, Smi::New(-12))
@@ -258,7 +258,7 @@ CODEGEN_TEST_GENERATE(DoubleUnaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   LiteralNode* a =
       new LiteralNode(kPos, Double::ZoneHandle(Double::New(12.0, Heap::kOld)));
-  UnaryOpNode* neg_node = new UnaryOpNode(kPos, Token::kSUB, a);
+  UnaryOpNode* neg_node = new UnaryOpNode(kPos, Token::kNEGATE, a);
   node_seq->Add(new ReturnNode(kPos, neg_node));
 }
 CODEGEN_TEST_RUN(DoubleUnaryOpCodegen, Double::New(-12.0))

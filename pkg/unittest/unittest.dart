@@ -481,7 +481,7 @@ Function expectAsync0(Function callback, [int count = 1]) {
 
 /** Like [expectAsync0] but [callback] should take 1 positional argument. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync1(Function callback, [int count = 1]) {
+Function expectAsync1(Function callback, {int count: 1}) {
   return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke1;
 }
 
@@ -797,7 +797,7 @@ _nextBatch() {
       if (!testCase.isComplete && testCase.callbackFunctionsOutstanding == 0) {
         testCase.pass();
       }
-    }, testNum:_currentTest);
+    }, null, _currentTest);
 
     if (!testCase.isComplete &&
         testCase.callbackFunctionsOutstanding > 0) return;

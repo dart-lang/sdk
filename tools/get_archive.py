@@ -155,7 +155,7 @@ def GetDartiumRevision(name, directory, version_file, latest_pattern,
         # Test to ensure this URL exists because the dartium-archive builds can
         # have unusual numbering (a range of CL numbers) sometimes.
         result, out = Gsutil('ls', permanent_prefix % {'osname' : osname,
-            'num1': '*', 'num2': revision_num })
+            'num1': revision_num, 'num2': '*' })
         if result == 0:
           # First try to find one with the the second number the same as the
           # requested number.

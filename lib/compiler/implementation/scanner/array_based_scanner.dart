@@ -31,7 +31,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
 
   int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
     int next = advance();
-    if (next === choice) {
+    if (identical(next, choice)) {
       appendPrecedenceToken(yes);
       return advance();
     } else {
@@ -54,7 +54,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     String syntax = keyword.syntax;
 
     // Type parameters and arguments cannot contain 'this' or 'super'.
-    if (syntax === 'this' || syntax === 'super') discardOpenLt();
+    if (identical(syntax, 'this') || identical(syntax, 'super')) discardOpenLt();
     tail.next = new KeywordToken(keyword, tokenStart);
     tail = tail.next;
   }
@@ -96,21 +96,21 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     Token token = new BeginGroupToken(info, value, tokenStart);
     tail.next = token;
     tail = tail.next;
-    if (info.kind !== LT_TOKEN) discardOpenLt();
+    if (!identical(info.kind, LT_TOKEN)) discardOpenLt();
     groupingStack = groupingStack.prepend(token);
   }
 
   int appendEndGroup(PrecedenceInfo info, String value, int openKind) {
-    assert(openKind !== LT_TOKEN);
+    assert(!identical(openKind, LT_TOKEN));
     appendStringToken(info, value);
     discardOpenLt();
     if (groupingStack.isEmpty()) {
       return advance();
     }
     BeginGroupToken begin = groupingStack.head;
-    if (begin.kind !== openKind) {
-      if (openKind !== OPEN_CURLY_BRACKET_TOKEN ||
-          begin.kind !== STRING_INTERPOLATION_TOKEN) {
+    if (!identical(begin.kind, openKind)) {
+      if (!identical(openKind, OPEN_CURLY_BRACKET_TOKEN) ||
+          !identical(begin.kind, STRING_INTERPOLATION_TOKEN)) {
         // Not ending string interpolation.
         return error(new SourceString('Unmatched ${begin.stringValue}'));
       }
@@ -129,7 +129,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   void appendGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
@@ -138,11 +138,11 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   void appendGtGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
@@ -151,15 +151,15 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   void appendGtGtGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty()) return;
-    if (groupingStack.head.kind === LT_TOKEN) {
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
@@ -172,7 +172,8 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   }
 
   void discardOpenLt() {
-    while (!groupingStack.isEmpty() && groupingStack.head.kind === LT_TOKEN) {
+    while (!groupingStack.isEmpty()
+        && identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
   }

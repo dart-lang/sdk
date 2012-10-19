@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../lib/compiler/implementation/ssa/ssa.dart");
-#import("../../../lib/compiler/implementation/leg.dart");
+import "../../../lib/compiler/implementation/ssa/ssa.dart";
+import "../../../lib/compiler/implementation/dart2jslib.dart";
 
 Value instructionValue = new InstructionValue(new HReturn(null));
 Value lengthValue = new LengthValue(new HReturn(null));

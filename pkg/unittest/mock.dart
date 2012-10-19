@@ -829,10 +829,10 @@ class LogEntryList {
    *         distance: 3).toString());
    */
   LogEntryList preceding(LogEntryList keys,
-                         [mockNameFilter = null,
-                         logFilter = null,
-                         int distance = 1,
-                         bool includeKeys = false]) =>
+                         {mockNameFilter: null,
+                         logFilter: null,
+                         int distance: 1,
+                         bool includeKeys: false}) =>
       _neighboring(true, keys, mockNameFilter, logFilter,
           distance, includeKeys);
 
@@ -846,10 +846,10 @@ class LogEntryList {
    * See [preceding] for a usage example.
    */
   LogEntryList following(LogEntryList keys,
-                         [mockNameFilter = null,
-                         logFilter = null,
-                         int distance = 1,
-                         bool includeKeys = false]) =>
+                         {mockNameFilter: null,
+                         logFilter: null,
+                         int distance: 1,
+                         bool includeKeys: false}) =>
       _neighboring(false, keys, mockNameFilter, logFilter,
           distance, includeKeys);
 }
@@ -1236,10 +1236,10 @@ class Mock {
    * If [enableLogging] is false, no logging will be done initially (whether
    * or not a [log] is supplied), but [logging] can be set to true later.
    */
-  Mock.custom([this.name,
+  Mock.custom({this.name,
                this.log,
-               throwIfNoBehavior = false,
-               enableLogging = true]) : _throwIfNoBehavior = throwIfNoBehavior {
+               throwIfNoBehavior: false,
+               enableLogging: true}) : _throwIfNoBehavior = throwIfNoBehavior {
     if (log != null && name == null) {
       throw new Exception("Mocks with shared logs must have a name.");
     }

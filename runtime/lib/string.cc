@@ -14,7 +14,7 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NATIVE_ARGUMENT(Array, a, arguments->At(0));
   // TODO(srdjan): Check that parameterized type is an int.
-  StackZone* zone = isolate->current_zone();
+  Zone* zone = isolate->current_zone();
   intptr_t len = a.Length();
 
   // Unbox the array and determine the maximum element width.

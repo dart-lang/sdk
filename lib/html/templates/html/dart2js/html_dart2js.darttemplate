@@ -37,12 +37,12 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/_Lists.dart');
 
 
-LocalWindow get window() native "return window;";
-_LocalWindowImpl get _window() native "return window;";
+LocalWindow get window() => JS('LocalWindow', 'window');
+_LocalWindowImpl get _window() => JS('_LocalWindowImpl', 'window');
 
-Document get document() native "return document;";
+Document get document() => JS('Document', 'document');
 
-_DocumentImpl get _document() native "return document;";
+_DocumentImpl get _document() => JS('_DocumentImpl', 'document');
 
 Element query(String selector) => _document.query(selector);
 List<Element> queryAll(String selector) => _document.queryAll(selector);
@@ -53,12 +53,12 @@ class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
-int _getNewIsolateId() native r'''
-  if (!window.$dart$isolate$counter) {
-    window.$dart$isolate$counter = 1;
+int _getNewIsolateId() {
+  if (JS('bool', r'!window.$dart$isolate$counter')) {
+    JS('void', r'window.$dart$isolate$counter = 1');
   }
-  return window.$dart$isolate$counter++;
-''';
+  return JS('int', r'window.$dart$isolate$counter++');
+}
 
 // Fast path to invoke JS send port.
 _callPortSync(int id, message) {

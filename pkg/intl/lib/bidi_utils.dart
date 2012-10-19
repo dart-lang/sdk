@@ -315,7 +315,8 @@ class Bidi {
    * Otherwise, returns UNKNOWN, which is used to mean `neutral`.
    * Numbers and URLs are counted as weakly LTR.
    */
-  static TextDirection estimateDirectionOfText(String text, [bool isHtml=false]) {
+  static TextDirection estimateDirectionOfText(String text,
+                                               {bool isHtml: false}) {
     text = isHtml? stripHtmlIfNeeded(text) : text;
     var rtlCount = 0;
     var total = 0;
@@ -393,7 +394,7 @@ class Bidi {
    * text should be laid out in RTL direction. If [isHtml] is true, the string
    * is HTML or HTML-escaped.
    */
-  static bool detectRtlDirectionality(String str, [bool isHtml]) {
-    return estimateDirectionOfText(str, isHtml) == TextDirection.RTL;
+  static bool detectRtlDirectionality(String str, {bool isHtml: false}) {
+    return estimateDirectionOfText(str, isHtml: isHtml) == TextDirection.RTL;
   }
 }

@@ -417,6 +417,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    ASSERT(!code.IsNull());
     intptr_t pc_marker = code.EntryPoint() +
                          AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);

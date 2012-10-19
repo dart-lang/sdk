@@ -72,7 +72,7 @@ class FunctionConstant extends Constant {
 
   bool operator ==(var other) {
     if (other is !FunctionConstant) return false;
-    return other.element === element;
+    return identical(other.element, element);
   }
 
   String toString() => element.toString();
@@ -250,7 +250,7 @@ class TrueConstant extends BoolConstant {
 
   FalseConstant negate() => new FalseConstant();
 
-  bool operator ==(var other) => this === other;
+  bool operator ==(var other) => identical(this, other);
   // The magic constant is just a random value. It does not have any
   // significance.
   int hashCode() => 499;
@@ -268,7 +268,7 @@ class FalseConstant extends BoolConstant {
 
   TrueConstant negate() => new TrueConstant();
 
-  bool operator ==(var other) => this === other;
+  bool operator ==(var other) => identical(this, other);
   // The magic constant is just a random value. It does not have any
   // significance.
   int hashCode() => 536555975;
@@ -414,7 +414,7 @@ class ConstructedConstant extends ObjectConstant {
   int _hashCode;
 
   ConstructedConstant(DartType type, this.fields) : super(type) {
-    assert(type !== null);
+    assert(type != null);
     // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant field in fields) {
