@@ -21,6 +21,8 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  bool contains(Element element) => _childElements.contains(element);
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -38,7 +40,7 @@ class _ChildrenElementList implements List {
   }
 
   bool every(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (!f(element)) {
         return false;
       }
@@ -47,7 +49,7 @@ class _ChildrenElementList implements List {
   }
 
   bool some(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (f(element)) {
         return true;
       }
@@ -157,6 +159,13 @@ class _FrozenElementList implements List {
 
   Element get first {
     return _nodeList[0];
+  }
+
+  bool contains(Element element) {
+    for (Element el in this) {
+      if (el == element) return true;
+    }
+    return false;
   }
 
   void forEach(void f(Element element)) {

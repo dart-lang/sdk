@@ -46,6 +46,10 @@ class _FilteredElementList implements List {
     add(value);
   }
 
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
   void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }

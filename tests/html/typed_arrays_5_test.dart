@@ -27,4 +27,18 @@ main() {
 
       expect(a.filter((x) => x >= 1000).length, equals(24));
   });
+
+  test('contains', () {
+      var a = new Int16Array(1024);
+      for (int i = 0; i < a.length; i++) {
+        a[i] = i;
+      }
+      expect(a.contains(0), isTrue);
+      expect(a.contains(5), isTrue);
+      expect(a.contains(1023), isTrue);
+
+      expect(a.contains(-5), isFalse);
+      expect(a.contains(-1), isFalse);
+      expect(a.contains(1024), isFalse);
+    });
 }

@@ -2818,6 +2818,8 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSRule element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
@@ -7832,6 +7834,8 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSValue element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
@@ -8821,6 +8825,8 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(ClientRect element) => _Collections.contains(this, element);
+
   void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
 
   Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
@@ -9773,6 +9779,8 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
@@ -9958,6 +9966,8 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
   void addAll(Collection<DOMPlugin> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(DOMPlugin element) => _Collections.contains(this, element);
 
   void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
 
@@ -10250,6 +10260,8 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
   void addAll(Collection<String> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  // contains() defined by IDL.
 
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
@@ -11537,6 +11549,10 @@ class _FilteredElementList implements List {
     add(value);
   }
 
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
   void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
@@ -11974,7 +11990,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   void webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
-  // TODO(jacobr): implement all Element methods not on Document. 
+  // TODO(jacobr): implement all Element methods not on Document.
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
@@ -12672,6 +12688,8 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  bool contains(Element element) => _childElements.contains(element);
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -12689,7 +12707,7 @@ class _ChildrenElementList implements List {
   }
 
   bool every(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (!f(element)) {
         return false;
       }
@@ -12698,7 +12716,7 @@ class _ChildrenElementList implements List {
   }
 
   bool some(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (f(element)) {
         return true;
       }
@@ -12808,6 +12826,13 @@ class _FrozenElementList implements List {
 
   Element get first {
     return _nodeList[0];
+  }
+
+  bool contains(Element element) {
+    for (Element el in this) {
+      if (el == element) return true;
+    }
+    return false;
   }
 
   void forEach(void f(Element element)) {
@@ -13939,6 +13964,8 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Entry element) => _Collections.contains(this, element);
+
   void forEach(void f(Entry element)) => _Collections.forEach(this, f);
 
   Collection map(f(Entry element)) => _Collections.map(this, [], f);
@@ -14032,6 +14059,8 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
   void addAll(Collection<EntrySync> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(EntrySync element) => _Collections.contains(this, element);
 
   void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
 
@@ -14956,6 +14985,8 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(File element) => _Collections.contains(this, element);
+
   void forEach(void f(File element)) => _Collections.forEach(this, f);
 
   Collection map(f(File element)) => _Collections.map(this, [], f);
@@ -15431,6 +15462,8 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -15562,6 +15595,8 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   void addAll(Collection<num> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(num element) => _Collections.contains(this, element);
 
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
@@ -16084,6 +16119,8 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Gamepad element) => _Collections.contains(this, element);
+
   void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
 
   Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
@@ -16308,6 +16345,8 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -16423,6 +16462,8 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
   void addAll(Collection<Node> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(Node element) => _Collections.contains(this, element);
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
@@ -19017,6 +19058,8 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -19149,6 +19192,8 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -19280,6 +19325,8 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
   void addAll(Collection<int> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(int element) => _Collections.contains(this, element);
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
@@ -21986,6 +22033,8 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(MediaStream element) => _Collections.contains(this, element);
+
   void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
 
   Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
@@ -23045,6 +23094,8 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -23497,6 +23548,8 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -23723,6 +23776,8 @@ class _ListWrapper<E> implements List<E> {
 
   Iterator<E> iterator() => _list.iterator();
 
+  bool contains(E element) => _list.contains(element);
+
   void forEach(void f(E element)) => _list.forEach(f);
 
   Collection map(f(E element)) => _list.map(f);
@@ -23837,6 +23892,8 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
   void operator []=(int index, _NodeImpl value) {
     _parent.$dom_replaceChild(value, this[index]);
   }
+
+  bool contains(Node element) => _Collections.contains(this, element);
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
@@ -26452,6 +26509,8 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Map element) => _Collections.contains(this, element);
+
   void forEach(void f(Map element)) => _Collections.forEach(this, f);
 
   Collection map(f(Map element)) => _Collections.map(this, [], f);
@@ -27059,6 +27118,8 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
@@ -27197,6 +27258,8 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   void addAll(Collection<SVGAnimatedNumber> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
 
@@ -27392,6 +27455,8 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   void addAll(Collection<SVGAnimateTransformElement> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
 
@@ -28271,6 +28336,8 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
   void addAll(Collection<SVGElementInstance> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
 
@@ -30426,6 +30493,8 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
@@ -31070,6 +31139,8 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
   void addAll(Collection<SVGNumber> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGNumber element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
 
@@ -32211,6 +32282,8 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGPathSeg element)) => _Collections.map(this, [], f);
@@ -33324,6 +33397,8 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(String element) => _Collections.contains(this, element);
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -34027,6 +34102,8 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
   void addAll(Collection<SVGTransform> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGTransform element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
 
@@ -35082,6 +35159,8 @@ class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBu
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+
   void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
 
   Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
@@ -35300,6 +35379,8 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
@@ -35468,6 +35549,8 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
   void addAll(Collection<SpeechInputResult> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
 
   void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
 
@@ -35848,6 +35931,8 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
   void addAll(Collection<SpeechRecognitionResult> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
 
   void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
 
@@ -36278,6 +36363,8 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
   void addAll(Collection<StyleSheet> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(StyleSheet element) => _Collections.contains(this, element);
 
   void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
 
@@ -37376,6 +37463,8 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
@@ -37550,6 +37639,8 @@ class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackLi
   void addAll(Collection<TextTrack> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(TextTrack element) => _Collections.contains(this, element);
 
   void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
 
@@ -37867,6 +37958,8 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
   void addAll(Collection<Touch> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(Touch element) => _Collections.contains(this, element);
 
   void forEach(void f(Touch element)) => _Collections.forEach(this, f);
 
@@ -38295,6 +38388,8 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -38427,6 +38522,8 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -38558,6 +38655,8 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
   void addAll(Collection<int> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(int element) => _Collections.contains(this, element);
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
@@ -40754,6 +40853,8 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Animation element) => _Collections.contains(this, element);
+
   void forEach(void f(Animation element)) => _Collections.forEach(this, f);
 
   Collection map(f(Animation element)) => _Collections.map(this, [], f);
@@ -42923,6 +43024,13 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
  * method.
  */
 class _Collections {
+  static bool contains(Iterable<Object> iterable, Object element) {
+    for (final e in iterable) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
   static void forEach(Iterable<Object> iterable, void f(Object o)) {
     for (final e in iterable) {
       f(e);

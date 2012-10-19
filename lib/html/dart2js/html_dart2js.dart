@@ -2242,6 +2242,8 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSRule element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSRule element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSRule element)) => _Collections.map(this, [], f);
@@ -7210,6 +7212,8 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(CSSValue element) => _Collections.contains(this, element);
+
   void forEach(void f(CSSValue element)) => _Collections.forEach(this, f);
 
   Collection map(f(CSSValue element)) => _Collections.map(this, [], f);
@@ -7938,6 +7942,8 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(ClientRect element) => _Collections.contains(this, element);
+
   void forEach(void f(ClientRect element)) => _Collections.forEach(this, f);
 
   Collection map(f(ClientRect element)) => _Collections.map(this, [], f);
@@ -8186,7 +8192,7 @@ abstract class Console {
 
 class _ConsoleImpl
     // Console is sometimes a singleton bag-of-properties without a prototype.
-    implements Console 
+    implements Console
     native "=(typeof console == 'undefined' ? {} : console)" {
 
   final _MemoryInfoImpl memory;
@@ -8771,6 +8777,8 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(DOMMimeType element) => _Collections.contains(this, element);
+
   void forEach(void f(DOMMimeType element)) => _Collections.forEach(this, f);
 
   Collection map(f(DOMMimeType element)) => _Collections.map(this, [], f);
@@ -8938,6 +8946,8 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   void addAll(Collection<DOMPlugin> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(DOMPlugin element) => _Collections.contains(this, element);
 
   void forEach(void f(DOMPlugin element)) => _Collections.forEach(this, f);
 
@@ -9204,6 +9214,8 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   void addAll(Collection<String> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  // contains() defined by IDL.
 
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
@@ -10268,6 +10280,10 @@ class _FilteredElementList implements List {
     add(value);
   }
 
+  bool contains(Element element) {
+    return element is Element && _childNodes.contains(element);
+  }
+
   void sort([Comparator<Element> compare = Comparable.compare]) {
     throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
   }
@@ -10703,7 +10719,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   void webkitExitPointerLock() native;
 
-  // TODO(jacobr): implement all Element methods not on Document. 
+  // TODO(jacobr): implement all Element methods not on Document.
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
@@ -11372,6 +11388,8 @@ class _ChildrenElementList implements List {
     return output;
   }
 
+  bool contains(Element element) => _childElements.contains(element);
+
   void forEach(void f(Element element)) {
     for (_ElementImpl element in _childElements) {
       f(element);
@@ -11389,7 +11407,7 @@ class _ChildrenElementList implements List {
   }
 
   bool every(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (!f(element)) {
         return false;
       }
@@ -11398,7 +11416,7 @@ class _ChildrenElementList implements List {
   }
 
   bool some(bool f(Element element)) {
-    for(Element element in this) {
+    for (Element element in this) {
       if (f(element)) {
         return true;
       }
@@ -11508,6 +11526,13 @@ class _FrozenElementList implements List {
 
   Element get first {
     return _nodeList[0];
+  }
+
+  bool contains(Element element) {
+    for (Element el in this) {
+      if (el == element) return true;
+    }
+    return false;
   }
 
   void forEach(void f(Element element)) {
@@ -12623,6 +12648,8 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Entry element) => _Collections.contains(this, element);
+
   void forEach(void f(Entry element)) => _Collections.forEach(this, f);
 
   Collection map(f(Entry element)) => _Collections.map(this, [], f);
@@ -12710,6 +12737,8 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   void addAll(Collection<EntrySync> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(EntrySync element) => _Collections.contains(this, element);
 
   void forEach(void f(EntrySync element)) => _Collections.forEach(this, f);
 
@@ -13531,6 +13560,8 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(File element) => _Collections.contains(this, element);
+
   void forEach(void f(File element)) => _Collections.forEach(this, f);
 
   Collection map(f(File element)) => _Collections.map(this, [], f);
@@ -13957,6 +13988,8 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(num element) => _Collections.contains(this, element);
+
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
   Collection map(f(num element)) => _Collections.map(this, [], f);
@@ -14073,6 +14106,8 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   void addAll(Collection<num> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(num element) => _Collections.contains(this, element);
 
   void forEach(void f(num element)) => _Collections.forEach(this, f);
 
@@ -14503,6 +14538,8 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Gamepad element) => _Collections.contains(this, element);
+
   void forEach(void f(Gamepad element)) => _Collections.forEach(this, f);
 
   Collection map(f(Gamepad element)) => _Collections.map(this, [], f);
@@ -14695,6 +14732,8 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -14804,6 +14843,8 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   void addAll(Collection<Node> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(Node element) => _Collections.contains(this, element);
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
@@ -17103,6 +17144,8 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -17220,6 +17263,8 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -17336,6 +17381,8 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   void addAll(Collection<int> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(int element) => _Collections.contains(this, element);
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
@@ -19848,6 +19895,8 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(MediaStream element) => _Collections.contains(this, element);
+
   void forEach(void f(MediaStream element)) => _Collections.forEach(this, f);
 
   Collection map(f(MediaStream element)) => _Collections.map(this, [], f);
@@ -20834,6 +20883,8 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -21278,6 +21329,8 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
+  bool contains(Node element) => _Collections.contains(this, element);
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
@@ -21500,6 +21553,8 @@ class _ListWrapper<E> implements List<E> {
 
   Iterator<E> iterator() => _list.iterator();
 
+  bool contains(E element) => _list.contains(element);
+
   void forEach(void f(E element)) => _list.forEach(f);
 
   Collection map(f(E element)) => _list.map(f);
@@ -21614,6 +21669,8 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   void operator []=(int index, _NodeImpl value) {
     _parent.$dom_replaceChild(value, this[index]);
   }
+
+  bool contains(Node element) => _Collections.contains(this, element);
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
@@ -23859,6 +23916,8 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(Map element) => _Collections.contains(this, element);
+
   void forEach(void f(Map element)) => _Collections.forEach(this, f);
 
   Collection map(f(Map element)) => _Collections.map(this, [], f);
@@ -24364,6 +24423,8 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGAnimatedLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGAnimatedLength element)) => _Collections.map(this, [], f);
@@ -24488,6 +24549,8 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   void addAll(Collection<SVGAnimatedNumber> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGAnimatedNumber element)) => _Collections.forEach(this, f);
 
@@ -24657,6 +24720,8 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   void addAll(Collection<SVGAnimateTransformElement> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGAnimateTransformElement element)) => _Collections.forEach(this, f);
 
@@ -25511,6 +25576,8 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   void addAll(Collection<SVGElementInstance> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGElementInstance element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGElementInstance element)) => _Collections.forEach(this, f);
 
@@ -27532,6 +27599,8 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SVGLength element) => _Collections.contains(this, element);
+
   void forEach(void f(SVGLength element)) => _Collections.forEach(this, f);
 
   Collection map(f(SVGLength element)) => _Collections.map(this, [], f);
@@ -28125,6 +28194,8 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   void addAll(Collection<SVGNumber> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGNumber element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGNumber element)) => _Collections.forEach(this, f);
 
@@ -29040,6 +29111,8 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   void addAll(Collection<SVGPathSeg> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGPathSeg element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGPathSeg element)) => _Collections.forEach(this, f);
 
@@ -30072,6 +30145,8 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(String element) => _Collections.contains(this, element);
+
   void forEach(void f(String element)) => _Collections.forEach(this, f);
 
   Collection map(f(String element)) => _Collections.map(this, [], f);
@@ -30726,6 +30801,8 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   void addAll(Collection<SVGTransform> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SVGTransform element) => _Collections.contains(this, element);
 
   void forEach(void f(SVGTransform element)) => _Collections.forEach(this, f);
 
@@ -31666,6 +31743,8 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SourceBuffer element) => _Collections.contains(this, element);
+
   void forEach(void f(SourceBuffer element)) => _Collections.forEach(this, f);
 
   Collection map(f(SourceBuffer element)) => _Collections.map(this, [], f);
@@ -31850,6 +31929,8 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(SpeechGrammar element) => _Collections.contains(this, element);
+
   void forEach(void f(SpeechGrammar element)) => _Collections.forEach(this, f);
 
   Collection map(f(SpeechGrammar element)) => _Collections.map(this, [], f);
@@ -31980,6 +32061,8 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   void addAll(Collection<SpeechInputResult> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SpeechInputResult element) => _Collections.contains(this, element);
 
   void forEach(void f(SpeechInputResult element)) => _Collections.forEach(this, f);
 
@@ -32316,6 +32399,8 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   void addAll(Collection<SpeechRecognitionResult> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
 
   void forEach(void f(SpeechRecognitionResult element)) => _Collections.forEach(this, f);
 
@@ -32700,6 +32785,8 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   void addAll(Collection<StyleSheet> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(StyleSheet element) => _Collections.contains(this, element);
 
   void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
 
@@ -33593,6 +33680,8 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(TextTrackCue element) => _Collections.contains(this, element);
+
   void forEach(void f(TextTrackCue element)) => _Collections.forEach(this, f);
 
   Collection map(f(TextTrackCue element)) => _Collections.map(this, [], f);
@@ -33753,6 +33842,8 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
   void addAll(Collection<TextTrack> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(TextTrack element) => _Collections.contains(this, element);
 
   void forEach(void f(TextTrack element)) => _Collections.forEach(this, f);
 
@@ -34041,6 +34132,8 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   void addAll(Collection<Touch> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(Touch element) => _Collections.contains(this, element);
 
   void forEach(void f(Touch element)) => _Collections.forEach(this, f);
 
@@ -34416,6 +34509,8 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -34533,6 +34628,8 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  bool contains(int element) => _Collections.contains(this, element);
+
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
   Collection map(f(int element)) => _Collections.map(this, [], f);
@@ -34649,6 +34746,8 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   void addAll(Collection<int> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(int element) => _Collections.contains(this, element);
 
   void forEach(void f(int element)) => _Collections.forEach(this, f);
 
@@ -36636,6 +36735,8 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   void addAll(Collection<Animation> collection) {
     throw const UnsupportedOperationException("Cannot add to immutable List.");
   }
+
+  bool contains(Animation element) => _Collections.contains(this, element);
 
   void forEach(void f(Animation element)) => _Collections.forEach(this, f);
 
@@ -38852,6 +38953,13 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
  * method.
  */
 class _Collections {
+  static bool contains(Iterable<Object> iterable, Object element) {
+    for (final e in iterable) {
+      if (e == element) return true;
+    }
+    return false;
+  }
+
   static void forEach(Iterable<Object> iterable, void f(Object o)) {
     for (final e in iterable) {
       f(e);

@@ -398,7 +398,10 @@ class DartiumBackend(object):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
-    template = self._template_loader.Load(template_file)
+    has_contains = any(op.id == 'contains' for op in self._interface.operations)
+    template = self._template_loader.Load(
+        template_file,
+        {'DEFINE_CONTAINS': not has_contains})
     self._members_emitter.Emit(template, E=dart_element_type)
 
   def AmendIndexer(self, element_type):
