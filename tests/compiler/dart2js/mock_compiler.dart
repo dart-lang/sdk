@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mock_compiler');
+library mock_compiler;
 
-#import("dart:uri");
+import 'dart:uri';
 
-#import("../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../lib/compiler/implementation/leg.dart");
-#import('../../../lib/compiler/implementation/source_file.dart');
-#import("../../../lib/compiler/implementation/tree/tree.dart");
-#import("../../../lib/compiler/implementation/util/util.dart");
-#import('../../../lib/compiler/compiler.dart', prefix: 'api');
-#import("parser_helper.dart");
+import '../../../lib/compiler/compiler.dart' as api;
+import '../../../lib/compiler/implementation/dart2jslib.dart' hide TreeElementMapping;
+import '../../../lib/compiler/implementation/elements/elements.dart';
+import '../../../lib/compiler/implementation/resolution/resolution.dart';
+import '../../../lib/compiler/implementation/source_file.dart';
+import '../../../lib/compiler/implementation/tree/tree.dart';
+import '../../../lib/compiler/implementation/util/util.dart';
+import 'parser_helper.dart';
 
 class WarningMessage {
   Node node;

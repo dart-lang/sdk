@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:uri');
-#import('parser_helper.dart');
-#import('mock_compiler.dart');
-#import("../../../lib/compiler/compiler.dart");
-#import("../../../lib/compiler/implementation/leg.dart", prefix:'leg');
-#import("../../../lib/compiler/implementation/dart_backend/dart_backend.dart");
-#import("../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../lib/compiler/implementation/tree/tree.dart");
+import 'dart:uri';
+import 'parser_helper.dart';
+import 'mock_compiler.dart';
+import '../../../lib/compiler/compiler.dart';
+import '../../../lib/compiler/implementation/dart2jslib.dart' as leg;
+import '../../../lib/compiler/implementation/dart_backend/dart_backend.dart';
+import '../../../lib/compiler/implementation/elements/elements.dart';
+import '../../../lib/compiler/implementation/tree/tree.dart';
 
 const coreLib = r'''
 #library('corelib');

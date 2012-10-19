@@ -4,13 +4,13 @@
 
 // Check the validity of string literals.
 
-#library("stringvalidator");
+library stringvalidator;
 
-#import("leg.dart");
-#import("scanner/scannerlib.dart");
-#import("tree/tree.dart");
-#import("elements/elements.dart");
-#import("util/characters.dart");
+import "dart2jslib.dart";
+import "tree/tree.dart";
+import "elements/elements.dart";
+import "util/characters.dart";
+import "scanner/scannerlib.dart" show Token;
 
 class StringValidator {
   final DiagnosticListener listener;

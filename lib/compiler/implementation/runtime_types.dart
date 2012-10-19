@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('runtime_types');
+library runtime_types;
 
-#import('leg.dart');
-#import('elements/elements.dart');
-#import('tree/tree.dart');
-#import('universe/universe.dart');
-#import('util/util.dart');
+import 'dart2jslib.dart';
+import 'elements/elements.dart';
+import 'tree/tree.dart';
+import 'universe/universe.dart';
+import 'util/util.dart';
 
 class RuntimeTypeInformation {
   /**

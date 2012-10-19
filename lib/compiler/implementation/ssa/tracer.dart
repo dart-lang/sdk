@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('tracer');
+library tracer;
 
-#import('dart:io');
-#import('ssa.dart');
-#import('../js_backend/js_backend.dart');
-#import('../leg.dart');
+import 'dart:io';
+import 'ssa.dart';
+import '../js_backend/js_backend.dart';
+import '../dart2jslib.dart';
 
 const bool GENERATE_SSA_TRACE = false;
 const String SSA_TRACE_FILTER = null;

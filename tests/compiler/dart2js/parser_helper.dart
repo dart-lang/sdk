@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('parser_helper');
+library parser_helper;
 
-#import("dart:uri");
+import "dart:uri";
 
-#import("../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../lib/compiler/implementation/tree/tree.dart");
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import("../../../lib/compiler/implementation/leg.dart");
-#import("../../../lib/compiler/implementation/source_file.dart");
-#import("../../../lib/compiler/implementation/util/util.dart");
+import "../../../lib/compiler/implementation/elements/elements.dart";
+import "../../../lib/compiler/implementation/tree/tree.dart";
+import '../../../lib/compiler/implementation/scanner/scannerlib.dart';
+import "../../../lib/compiler/implementation/dart2jslib.dart" hide SourceString;
+import "../../../lib/compiler/implementation/source_file.dart";
+import "../../../lib/compiler/implementation/util/util.dart";
 
 class LoggerCanceler implements DiagnosticListener {
   void cancel(String reason, {node, token, instruction, element}) {

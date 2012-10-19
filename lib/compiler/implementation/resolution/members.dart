@@ -395,7 +395,7 @@ class ResolverTask extends CompilerTask {
         compiler.reportMessage(
           compiler.spanFromNode(from),
           MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
-          api.Diagnostic.ERROR);
+          Diagnostic.ERROR);
         cls.supertypeLoadState = STATE_DONE;
         cls.allSupertypes = const Link<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
@@ -477,7 +477,7 @@ class ResolverTask extends CompilerTask {
         compiler.reportMessage(
           compiler.spanFromElement(member),
           MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
-          api.Diagnostic.ERROR);
+          Diagnostic.ERROR);
       }
       if (member.isConstructor()) {
         final mismatchedFlagsBits =
@@ -489,7 +489,7 @@ class ResolverTask extends CompilerTask {
           compiler.reportMessage(
             compiler.spanFromElement(member),
             MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error([mismatchedFlags]),
-            api.Diagnostic.ERROR);
+            Diagnostic.ERROR);
         }
       }
       checkAbstractField(member);
@@ -525,11 +525,11 @@ class ResolverTask extends CompilerTask {
       compiler.reportMessage(
           compiler.spanFromElement(field.getter),
           MessageKind.GETTER_MISMATCH.error([mismatchedFlags]),
-          api.Diagnostic.ERROR);
+          Diagnostic.ERROR);
       compiler.reportMessage(
           compiler.spanFromElement(field.setter),
           MessageKind.SETTER_MISMATCH.error([mismatchedFlags]),
-          api.Diagnostic.ERROR);
+          Diagnostic.ERROR);
     }
   }
 
@@ -541,11 +541,11 @@ class ResolverTask extends CompilerTask {
         compiler.spanFromElement(errorneousElement),
         errorMessage.error([contextElement.name,
                             contextElement.getEnclosingClass().name]),
-        api.Diagnostic.ERROR);
+        Diagnostic.ERROR);
     compiler.reportMessage(
         compiler.spanFromElement(contextElement),
         contextMessage.error(),
-        api.Diagnostic.INFO);
+        Diagnostic.INFO);
   }
 
   void checkValidOverride(Element member, Element superMember) {
@@ -2588,7 +2588,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
         compiler.reportMessage(
           compiler.spanFromNode(node),
           MessageKind.TYPE_NAME_EXPECTED.error([]),
-          api.Diagnostic.ERROR);
+          Diagnostic.ERROR);
       }
     }
   }
@@ -2799,7 +2799,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       if (!element.isGetter()) {
         compiler.reportMessage(compiler.spanFromElement(element),
                                MessageKind.MISSING_FORMALS.error([]),
-                               api.Diagnostic.ERROR);
+                               Diagnostic.ERROR);
       }
     } else {
       if (element.isGetter()) {
@@ -2809,7 +2809,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
             // TODO(ahe): Remove the check for native keyword.
             compiler.reportMessage(compiler.spanFromNode(formalParameters),
                                    MessageKind.EXTRA_FORMALS.error([]),
-                                   api.Diagnostic.WARNING);
+                                   Diagnostic.WARNING);
           }
         }
       }

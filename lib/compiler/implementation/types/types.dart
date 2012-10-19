@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('types');
+library types;
 
-#import('../leg.dart');
-#import('../tree/tree.dart');
-#import('../elements/elements.dart');
-#import('../util/util.dart');
-#import('../scanner/scannerlib.dart');
-#import('../universe/universe.dart');
+import '../dart2jslib.dart' hide Selector;
+import '../tree/tree.dart';
+import '../elements/elements.dart';
+import '../util/util.dart';
+import '../universe/universe.dart';
 
-#source('concrete_types_inferrer.dart');
+part 'concrete_types_inferrer.dart';
 
 /**
  * The types task infers guaranteed types globally.

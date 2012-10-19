@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('leg_apiimpl');
+library leg_apiimpl;
 
-#import('dart:uri');
+import 'dart:uri';
 
-#import('../compiler.dart', prefix: 'api');
-#import('leg.dart', prefix: 'leg');
-#import('tree/tree.dart', prefix: 'tree');
-#import('elements/elements.dart', prefix: 'elements');
-#import('ssa/tracer.dart', prefix: 'ssa');
-#import('../../../lib/_internal/libraries.dart');
-#import('source_file.dart');
+import '../compiler.dart' as api;
+import 'dart2jslib.dart' as leg;
+import 'tree/tree.dart' as tree;
+import 'elements/elements.dart' as elements;
+import 'ssa/tracer.dart' as ssa;
+import '../../../lib/_internal/libraries.dart';
+import 'source_file.dart';
 
 class Compiler extends leg.Compiler {
   api.ReadStringFromUri provider;

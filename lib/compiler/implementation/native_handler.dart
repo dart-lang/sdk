@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('native');
-#import('dart:uri');
-#import('leg.dart');
-#import('elements/elements.dart');
-#import('js_backend/js_backend.dart');
-#import('scanner/scannerlib.dart');
-#import('ssa/ssa.dart');
-#import('tree/tree.dart');
-#import('util/util.dart');
+library native;
+
+import 'dart:uri';
+import 'dart2jslib.dart' hide SourceString;
+import 'elements/elements.dart';
+import 'js_backend/js_backend.dart';
+import 'scanner/scannerlib.dart';
+import 'ssa/ssa.dart';
+import 'tree/tree.dart';
+import 'util/util.dart';
 
 void processNativeClasses(Enqueuer world,
                           CodeEmitterTask emitter,

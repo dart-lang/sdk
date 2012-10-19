@@ -2,27 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors.dart2js');
+library mirrors_dart2js;
 
-#import('dart:io');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:uri';
 
-#import('../../../../../lib/compiler/compiler.dart', prefix: 'diagnostics');
-#import('../../../../../lib/compiler/implementation/elements/elements.dart');
-#import('../../../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
-#import('../../../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import('../../../../../lib/compiler/implementation/ssa/ssa.dart');
-#import('../../../../../lib/compiler/implementation/leg.dart');
-#import('../../../../../lib/compiler/implementation/filenames.dart');
-#import('../../../../../lib/compiler/implementation/source_file.dart');
-#import('../../../../../lib/compiler/implementation/tree/tree.dart');
-#import('../../../../../lib/compiler/implementation/util/util.dart');
-#import('../../../../../lib/compiler/implementation/util/uri_extras.dart');
-#import('../../../../../lib/compiler/implementation/dart2js.dart');
+import '../../../../../lib/compiler/compiler.dart' as diagnostics;
+import '../../../../../lib/compiler/implementation/elements/elements.dart';
+import '../../../../../lib/compiler/implementation/resolution/resolution.dart'
+    show ResolverTask, ResolverVisitor;
+import '../../../../../lib/compiler/implementation/apiimpl.dart' as api;
+import '../../../../../lib/compiler/implementation/scanner/scannerlib.dart';
+import '../../../../../lib/compiler/implementation/ssa/ssa.dart';
+import '../../../../../lib/compiler/implementation/dart2jslib.dart';
+import '../../../../../lib/compiler/implementation/filenames.dart';
+import '../../../../../lib/compiler/implementation/source_file.dart';
+import '../../../../../lib/compiler/implementation/tree/tree.dart';
+import '../../../../../lib/compiler/implementation/util/util.dart';
+import '../../../../../lib/compiler/implementation/util/uri_extras.dart';
+import '../../../../../lib/compiler/implementation/dart2js.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('../../mirrors.dart');
-#import('util.dart');
+import '../../mirrors.dart';
+import 'util.dart';
 
 //------------------------------------------------------------------------------
 // Utility types and functions for the dart2js mirror system

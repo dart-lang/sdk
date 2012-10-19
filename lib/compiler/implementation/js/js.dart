@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('js');
+library js;
 
-#import("precedence.dart");
-#import("../util/characters.dart", prefix: "charCodes");
+import 'precedence.dart';
+import '../util/characters.dart' as charCodes;
 
 // TODO(floitsch): remove this dependency (currently necessary for the
 // CodeBuffer).
-#import('../leg.dart', prefix: "leg");
+import '../dart2jslib.dart' as leg;
 
-#source('nodes.dart');
-#source('printer.dart');
+part 'nodes.dart';
+part 'printer.dart';

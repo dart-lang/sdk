@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:uri");
+import "dart:uri";
 
-#import('compiler_helper.dart');
-#import('parser_helper.dart');
+import 'compiler_helper.dart';
+import 'parser_helper.dart';
 
-#import('../../../lib/compiler/implementation/elements/elements.dart');
-#import('../../../lib/compiler/implementation/leg.dart');
+import '../../../lib/compiler/implementation/elements/elements.dart';
+import '../../../lib/compiler/implementation/dart2jslib.dart';
 
 void checkAnnotation(String name, String declaration,
                      {bool isTopLevelOnly: false}) {

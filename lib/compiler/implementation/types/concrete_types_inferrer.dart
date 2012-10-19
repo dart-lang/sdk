@@ -764,7 +764,6 @@ class ConcreteTypesInferrer {
    * Fail with a message and abort.
    */
   void fail(node, [reason]) {
-    throw "fail: ${node.toDebugString()}";
     String message = 'cannot infer types';
     if (reason != null) {
       message = '$message: $reason';
@@ -781,7 +780,7 @@ class ArgumentsTypes {
   final List<ConcreteType> positional;
   final Map<Identifier, ConcreteType> named;
   ArgumentsTypes(this.positional, this.named);
-  int get length() => positional.length + named.length;
+  int get length => positional.length + named.length;
   toString() => "{ positional = $positional, named = $named }";
 }
 

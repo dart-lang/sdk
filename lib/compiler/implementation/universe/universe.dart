@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('universe');
+library universe;
 
-#import('../closure.dart');
-#import('../elements/elements.dart');
-#import('../leg.dart');
-#import('../scanner/scannerlib.dart');
-#import('../runtime_types.dart');
-#import('../tree/tree.dart');
-#import('../util/util.dart');
+import '../closure.dart';
+import '../elements/elements.dart';
+import '../dart2jslib.dart';
+import '../runtime_types.dart';
+import '../tree/tree.dart';
+import '../util/util.dart';
 
-#source('function_set.dart');
-#source('partial_type_tree.dart');
-#source('selector_map.dart');
+part 'function_set.dart';
+part 'partial_type_tree.dart';
+part 'selector_map.dart';
 
 class Universe {
   /**

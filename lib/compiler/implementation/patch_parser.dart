@@ -111,15 +111,16 @@
  * - Work on function parameters is performed on the declaration of the function
  *   element.
  */
-#library("patchparser");
 
-#import("dart:uri");
-#import("tree/tree.dart", prefix: "tree");
-#import("leg.dart", prefix: 'leg');  // CompilerTask, Compiler.
-#import("apiimpl.dart");
-#import("scanner/scannerlib.dart");  // Scanner, Parsers, Listeners
-#import("elements/elements.dart");
-#import('util/util.dart');
+library patchparser;
+
+import "dart:uri";
+import "tree/tree.dart" as tree;
+import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
+import "apiimpl.dart";
+import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
+import "elements/elements.dart";
+import 'util/util.dart';
 
 class PatchParserTask extends leg.CompilerTask {
   PatchParserTask(leg.Compiler compiler): super(compiler);

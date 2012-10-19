@@ -2,17 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('elements');
+library elements;
 
-#import('dart:uri');
+import 'dart:uri';
 
 // TODO(ahe): Rename prefix to 'api' when VM bug is fixed.
-#import('../../compiler.dart', prefix: 'api_e');
-#import('../tree/tree.dart');
-#import('../scanner/scannerlib.dart');
-#import('../leg.dart');  // TODO(karlklose): we only need type.
-#import('../universe/universe.dart');
-#import('../util/util.dart');
+import '../../compiler.dart' as api_e;
+import '../tree/tree.dart';
+import '../dart2jslib.dart' show invariant,
+                                 InterfaceType,
+                                 DartType,
+                                 TypeVariableType,
+                                 TypedefType,
+                                 MessageKind,
+                                 DiagnosticListener,
+                                 Script,
+                                 FunctionType,
+                                 SourceString,
+                                 Selector,
+                                 Constant,
+                                 Compiler;
+import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
+import '../util/util.dart';
+import '../resolution/resolution.dart';
 
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;

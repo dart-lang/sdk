@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("closureToClassMapper");
+library closureToClassMapper;
 
-#import("elements/elements.dart");
-#import("leg.dart");
-#import("scanner/scannerlib.dart");
-#import("tree/tree.dart");
-#import("util/util.dart");
+import "elements/elements.dart";
+import "dart2jslib.dart";
+import "tree/tree.dart";
+import "util/util.dart";
 
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;

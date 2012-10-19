@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding.
 
-#library("compiler_helper");
+library compiler_helper;
 
-#import("dart:uri");
+import "dart:uri";
 
-#import("../../../lib/compiler/implementation/elements/elements.dart", prefix: "lego");
-#import("../../../lib/compiler/implementation/js_backend/js_backend.dart", prefix: "js");
-#import("../../../lib/compiler/implementation/leg.dart", prefix: "leg");
-#import("../../../lib/compiler/implementation/ssa/ssa.dart", prefix: "ssa");
-#import("../../../lib/compiler/implementation/util/util.dart");
-#import('../../../lib/compiler/implementation/source_file.dart');
+import "../../../lib/compiler/implementation/elements/elements.dart" as lego;
+import "../../../lib/compiler/implementation/js_backend/js_backend.dart" as js;
+import "../../../lib/compiler/implementation/dart2jslib.dart" as leg;
+import "../../../lib/compiler/implementation/ssa/ssa.dart" as ssa;
+import "../../../lib/compiler/implementation/util/util.dart";
+import '../../../lib/compiler/implementation/source_file.dart';
 
-#import("mock_compiler.dart");
-#import("parser_helper.dart");
+import "mock_compiler.dart";
+import "parser_helper.dart";
 
 String compile(String code, {String entry: 'main',
                              bool enableTypeAssertions: false,
