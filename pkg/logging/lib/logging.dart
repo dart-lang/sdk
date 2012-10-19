@@ -91,7 +91,7 @@ class Logger {
   }
 
   /** Override the level for this particular [Logger] and its children. */
-  Level set level(value) {
+  set level(value) {
     if (hierarchicalLoggingEnabled && parent != null) {
       _level = value;
     } else {
