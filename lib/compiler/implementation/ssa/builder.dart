@@ -3000,6 +3000,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
+
+      // TODO(kasperl): Try to use the general inlining infrastructure for
+      // inlining the identical function.
+      if (identical(element, compiler.identicalFunction)) {
+        pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
+        return;
+      }
+
       HInvokeStatic instruction = new HInvokeStatic(inputs);
       // TODO(ngeoffray): Only do this if knowing the return type is
       // useful.

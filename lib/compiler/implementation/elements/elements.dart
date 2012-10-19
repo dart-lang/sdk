@@ -157,7 +157,7 @@ class Element implements Spannable {
   }
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers.isFactory();
-  bool isGenerativeConstructor() => 
+  bool isGenerativeConstructor() =>
       identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);
   bool isGenerativeConstructorBody() =>
       identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
