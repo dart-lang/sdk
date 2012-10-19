@@ -21,10 +21,6 @@ _logger = logging.getLogger('databasebuilder')
 # which implements a displaced declaration.
 _VIA_ANNOTATION_ATTR_NAME = 'via'
 
-# Used in source annotations to specify the module that the interface was
-# imported from.
-_MODULE_ANNOTATION_ATTR_NAME = 'module'
-
 
 class DatabaseBuilderOptions(object):
   """Used in specifying options when importing new interfaces"""
@@ -137,7 +133,7 @@ class DatabaseBuilder(object):
     map(rename_node, idl_file.all(IDLType))
     map(rename_ext_attrs, idl_file.all(IDLExtAttrs))
 
-  def _annotate(self, interface, module_name, import_options):
+  def _annotate(self, interface, import_options):
     """Adds @ annotations based on the source and source_attributes
     members of import_options."""
 
@@ -155,7 +151,6 @@ class DatabaseBuilder(object):
         annotation['suppressed'] = None
 
     add_source_annotation(interface)
-    interface.annotations[source][_MODULE_ANNOTATION_ATTR_NAME] = module_name
 
     map(add_source_annotation, interface.parents)
     map(add_source_annotation, interface.constants)
@@ -395,11 +390,11 @@ class DatabaseBuilder(object):
     """Merges all imported interfaces and loads them into the DB."""
 
     # Step 1: Pre process imported interfaces
-    for interface, module_name, import_options in self._imported_interfaces:
-      self._annotate(interface, module_name, import_options)
+    for interface, import_options in self._imported_interfaces:
+      self._annotate(interface, import_options)
 
     # Step 2: Add all new interfaces and merge overlapping ones
-    for interface, module_name, import_options in self._imported_interfaces:
+    for interface, import_options in self._imported_interfaces:
       if not interface.is_supplemental:
         if self._database.HasInterface(interface.id):
           old_interface = self._database.GetInterface(interface.id)
@@ -409,7 +404,7 @@ class DatabaseBuilder(object):
             self._database.AddInterface(interface)
 
     # Step 3: Merge in supplemental interfaces
-    for interface, module_name, import_options in self._imported_interfaces:
+    for interface, import_options in self._imported_interfaces:
       if interface.is_supplemental:
         target_name = interface.ext_attrs['Supplemental']
         if target_name:
@@ -469,21 +464,21 @@ class DatabaseBuilder(object):
     def enabled(idl_node):
       return self._is_node_enabled(idl_node, import_options.idl_defines)
 
-    for module in idl_file.modules:
-      for interface in module.interfaces:
-        if not self._is_node_enabled(interface, import_options.idl_defines):
-          _logger.info('skipping interface %s/%s (source=%s)'
-            % (module.id, interface.id, import_options.source))
-          continue
+    for interface in idl_file.interfaces:
+      if not self._is_node_enabled(interface, import_options.idl_defines):
+        _logger.info('skipping interface %s (source=%s)'
+          % (interface.id, import_options.source))
+        continue
 
-        _logger.info('importing interface %s/%s (source=%s)'
-          % (module.id, interface.id, import_options.source))
-        interface.attributes = filter(enabled, interface.attributes)
-        interface.operations = filter(enabled, interface.operations)
-        self._imported_interfaces.append((interface, module.id, import_options))
+      _logger.info('importing interface %s (source=%s)'
+        % (interface.id, import_options.source))
+      interface.attributes = filter(enabled, interface.attributes)
+      interface.operations = filter(enabled, interface.operations)
+      self._imported_interfaces.append((interface, import_options))
 
-      for implStmt in module.implementsStatements:
-        self._impl_stmts.append((implStmt, import_options))
+    for implStmt in idl_file.implementsStatements:
+      self._impl_stmts.append((implStmt, import_options))
+
 
   def _is_node_enabled(self, node, idl_defines):
     if not 'Conditional' in node.ext_attrs:
