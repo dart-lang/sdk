@@ -138,7 +138,7 @@ class BigIntegerTest {
     bool exceptionCaught = false;
     try {
       var a = 1 << 1111111111111111111111111111;
-    } on OutOfMemoryException catch (e) {
+    } on OutOfMemoryError catch (e) {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

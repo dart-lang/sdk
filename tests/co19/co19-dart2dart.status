@@ -22,6 +22,9 @@ LibTest/core/Date/toUtc_A01_t01: Fail
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
+LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail, OK # co19 issue 263
+LibTest/core/OutOfMemoryException/toString_A01_t01: Fail, OK # co19 issue 263
+
 Language/10_Expressions/11_Instance_Creation/1_New_A13_t02: Fail # TRIAGE
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # inherited from dart2js

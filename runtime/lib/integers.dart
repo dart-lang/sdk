@@ -213,7 +213,7 @@ class _Mint extends _IntegerImplementation implements int {
     }
   }
   int _shlFromInt(int other) {
-    throw const OutOfMemoryException();
+    throw const OutOfMemoryError();
   }
 }
 
@@ -238,7 +238,7 @@ class _Bigint extends _IntegerImplementation implements int {
     }
   }
   int _shlFromInt(int other) {
-    throw const OutOfMemoryException();
+    throw const OutOfMemoryError();
   }
 
   int pow(int exponent) {

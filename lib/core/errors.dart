@@ -129,3 +129,9 @@ class NoSuchMethodError implements Error {
 
   external static String _objectToString(Object object);
 }
+
+
+class OutOfMemoryError implements Exception {
+  const OutOfMemoryError();
+  String toString() => "Out of Memory";
+}

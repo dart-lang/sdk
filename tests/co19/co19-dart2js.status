@@ -133,6 +133,8 @@ LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage t
 # Partially implemented rediriecting constructors makes this fail.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
+LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail, OK # co19 issue 263
+LibTest/core/OutOfMemoryException/toString_A01_t01: Fail, OK # co19 issue 263
 
 [ $compiler == dart2js && $unchecked ]
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
