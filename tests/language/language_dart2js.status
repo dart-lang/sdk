@@ -40,6 +40,7 @@ type_parameter_test/04: Fail # Issue 4932
 
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail
+new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
 
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
@@ -78,7 +79,6 @@ optional_named_parameters_test/09: Fail # http://dartbug.com/5519
 
 execute_finally8_test: Fail # http://dartbug.com/5643
 
-new_expression_type_args_test/02: Fail # dart2js fails to reject type variable within static member
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
