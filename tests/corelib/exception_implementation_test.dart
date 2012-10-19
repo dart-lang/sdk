@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("ExceptionImplementationTest.dart");
-#import("dart:coreimpl");
 
 main() {
   final msg = 1;
@@ -12,7 +11,6 @@ main() {
     Expect.fail("Unreachable");
   } on Exception catch (e) {
     Expect.isTrue(e is Exception);
-    Expect.isTrue(e is ExceptionImplementation);
     Expect.equals("Exception: $msg", e.toString());
   }
 }

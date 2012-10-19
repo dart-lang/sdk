@@ -20,6 +20,9 @@ LibTest/core/Date/timeZoneOffset_A01_t01: Fail
 LibTest/core/Date/toLocal_A01_t01: Fail
 LibTest/core/Date/toUtc_A01_t01: Fail
 
+LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail # co19 issue 263
+LibTest/core/OutOfMemoryException/toString_A01_t01: Fail # co19 issue 263
+
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.

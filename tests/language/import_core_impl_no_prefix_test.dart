@@ -8,6 +8,6 @@
 #import("dart:coreimpl");
 
 main() {
-  var e = new ExceptionImplementation("test, test, test");
+  var e = new SplayTreeMap();
   print('"dart:coreimpl" imported, $e allocated');
 }
