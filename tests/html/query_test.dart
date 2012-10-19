@@ -11,7 +11,7 @@ main() {
   useHtmlConfiguration();
 
   final div = new DivElement();
-  final canvas = new CanvasElement(200,200);
+  final canvas = new CanvasElement(width: 200, height: 200);
   canvas.id = 'testcanvas';
   final element =
       new Element.html("<div><br/><img/><input/><img/></div>");

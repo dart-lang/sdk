@@ -237,6 +237,7 @@ def AnalyzeOperation(interface, operations):
   info.js_name = info.declared_name
   info.type_name = operations[0].type.id   # TODO: widen.
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
+  info.requires_named_arguments = False
   return info
 
 
@@ -270,6 +271,7 @@ def AnalyzeConstructor(interface):
   info.js_name = name
   info.type_name = interface.id
   info.param_infos = args
+  info.requires_named_arguments = False
   return info
 
 def IsDartListType(type):
@@ -339,7 +341,7 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersDeclaration(self, rename_type):
+  def ParametersDeclaration(self, rename_type, force_optional=False):
     def FormatParam(param):
       dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
       return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
@@ -356,7 +358,12 @@ class OperationInfo(object):
         required.append(param_info)
     argtexts = map(FormatParam, required)
     if optional:
-      argtexts.append('[' + ', '.join(map(FormatParam, optional)) + ']')
+      needs_named = self.requires_named_arguments and not force_optional
+      left_bracket, right_bracket = '{}' if needs_named else '[]'
+      argtexts.append(
+          left_bracket +
+          ', '.join(map(FormatParam, optional)) +
+          right_bracket)
     return ', '.join(argtexts)
 
   def ParametersAsArgumentList(self, parameter_count = None):

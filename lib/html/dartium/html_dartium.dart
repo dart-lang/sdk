@@ -122,7 +122,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 /// @domName HTMLAnchorElement
 abstract class AnchorElement implements Element {
 
-  factory AnchorElement([String href]) {
+  factory AnchorElement({String href}) {
     if (!?href) {
       return _Elements.createAnchorElement();
     }
@@ -7898,7 +7898,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 /// @domName HTMLCanvasElement
 abstract class CanvasElement implements Element {
 
-  factory CanvasElement([int width, int height]) {
+  factory CanvasElement({int width, int height}) {
     if (!?width) {
       return _Elements.createCanvasElement();
     }
@@ -18422,7 +18422,7 @@ class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 /// @domName HTMLImageElement
 abstract class ImageElement implements Element {
 
-  factory ImageElement([String src, int width, int height]) {
+  factory ImageElement({String src, int width, int height}) {
     if (!?src) {
       return _Elements.createImageElement();
     }
@@ -18576,7 +18576,7 @@ class _ImageElementImpl extends _ElementImpl_Merged implements ImageElement {
 /// @domName HTMLInputElement
 abstract class InputElement implements Element {
 
-  factory InputElement([String type]) {
+  factory InputElement({String type}) {
     if (!?type) {
       return _Elements.createInputElement();
     }

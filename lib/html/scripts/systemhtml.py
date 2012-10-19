@@ -84,6 +84,7 @@ class ElementConstructorInfo(object):
     info.type_name = interface_name
     info.param_infos = map(lambda tXn: ParamInfo(tXn[1], tXn[0], True),
                            self.opt_params)
+    info.requires_named_arguments = True
     return info
 
 _html_element_constructors = {
@@ -185,7 +186,8 @@ def EmitHtmlElementFactoryConstructors(emitter, infos, typename, class_name,
         CONSTRUCTOR=constructor_info.ConstructorFactoryName(rename_type),
         CLASS=class_name,
         TAG=info.tag,
-        PARAMS=constructor_info.ParametersDeclaration(rename_type))
+        PARAMS=constructor_info.ParametersDeclaration(
+            rename_type, force_optional=True))
     for param in constructor_info.param_infos:
       inits.Emit('    if ($E != null) _e.$E = $E;\n', E=param.name)
 
