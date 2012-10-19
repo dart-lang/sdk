@@ -23,17 +23,15 @@ LibTest/core/Date/toUtc_A01_t01: Fail
 LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail # co19 issue 263
 LibTest/core/OutOfMemoryException/toString_A01_t01: Fail # co19 issue 263
 
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # issue 6060
+Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # issue 6060
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
-Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A02_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/4_External_Functions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/06_Functions/1_Function_Declaration_A02_t03: Fail # issue 6058
+Language/06_Functions/1_Function_Declaration_A03_t03: Fail # issue 6058
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 Language/07_Classes/07_Classes_A01_t20: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A02_t32: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/07_Classes_A02_t34: Fail # TODO(vm-team): Please triage this failure.

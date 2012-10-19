@@ -5783,7 +5783,7 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT_VALID(result);
 
   result = Dart_Invoke(test_script, Dart_NewString("e1"), 0, NULL);
-  EXPECT_ERROR(result, "External implementation missing");
+  EXPECT_ERROR(result, "No such method: 'unpatched'");
 
   int64_t value = 0;
   result = Dart_Invoke(test_script, Dart_NewString("m1"), 0, NULL);

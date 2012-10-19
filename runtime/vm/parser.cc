@@ -2282,11 +2282,9 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ParseNativeFunctionBlock(&params, func);
   } else if (func.is_external()) {
     // Body of an external method contains a single throw.
+    const String& function_name = String::ZoneHandle(func.name());
     current_block_->statements->Add(
-        new ThrowNode(TokenPos(),
-            new LiteralNode(TokenPos(),
-                String::ZoneHandle(
-                    Symbols::New("External implementation missing."))), NULL));
+        ThrowNoSuchMethodError(TokenPos(), function_name));
   } else {
     UnexpectedToken();
   }
