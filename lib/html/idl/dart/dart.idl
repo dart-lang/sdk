@@ -146,22 +146,22 @@ module html {
     //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
     //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
 
-    any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+    [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
 
-    any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
+    [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
 
-    any getParameter(in unsigned long pname) raises(DOMException);
+    [Custom] any getParameter(in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getParameter();
 
-    any getProgramParameter(in WebGLProgram program, in unsigned long pname) raises(DOMException);
+    [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
 
-    any getRenderbufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+    [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
 
-    any getShaderParameter(in WebGLShader shader, in unsigned long pname) raises(DOMException);
+    [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getShaderParameter() raises(DOMException);
 
     // TBD
@@ -170,13 +170,13 @@ module html {
     DOMString[] getSupportedExtensions();
     [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
-    any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+    [Custom] any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
 
-    any getUniform(in WebGLProgram program, in WebGLUniformLocation location) raises(DOMException);
+    [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getUniform();
 
-    any getVertexAttrib(in unsigned long index, in unsigned long pname) raises(DOMException);
+    [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
   };
 }
