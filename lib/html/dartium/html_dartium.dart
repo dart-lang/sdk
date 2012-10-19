@@ -15843,9 +15843,6 @@ class _FormElementImpl extends _ElementImpl_Merged implements FormElement {
 /// @domName HTMLFrameElement
 abstract class FrameElement implements Element {
 
-  /** @domName HTMLFrameElement.contentDocument */
-  abstract Document get contentDocument;
-
   /** @domName HTMLFrameElement.contentWindow */
   abstract Window get contentWindow;
 
@@ -15881,9 +15878,6 @@ abstract class FrameElement implements Element {
 
   /** @domName HTMLFrameElement.width */
   abstract int get width;
-
-  /** @domName HTMLFrameElement.getSVGDocument */
-  SVGDocument getSVGDocument();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18280,9 +18274,6 @@ abstract class IFrameElement implements Element {
 
   /** @domName HTMLIFrameElement.width */
   String width;
-
-  /** @domName HTMLIFrameElement.getSVGDocument */
-  SVGDocument getSVGDocument();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24294,9 +24285,6 @@ abstract class ObjectElement implements Element {
 
   /** @domName HTMLObjectElement.codeType */
   String codeType;
-
-  /** @domName HTMLObjectElement.contentDocument */
-  abstract Document get contentDocument;
 
   /** @domName HTMLObjectElement.data */
   String data;

@@ -439,13 +439,13 @@ class HtmlDartInterfaceGenerator(object):
   def AddAttribute(self, attribute, is_secondary=False):
     dom_name = DartDomNameOfAttribute(attribute)
     html_name = self._renamer.RenameMember(
-      self._interface.id, dom_name, 'get:')
+      self._interface.id, attribute, dom_name, 'get:')
     if not html_name or self._IsPrivate(html_name):
       return
 
 
     html_setter_name = self._renamer.RenameMember(
-        self._interface.id, dom_name, 'set:')
+        self._interface.id, attribute, dom_name, 'set:')
     read_only = (attribute.is_read_only or 'Replaceable' in attribute.ext_attrs
                  or not html_setter_name)
 
@@ -477,7 +477,13 @@ class HtmlDartInterfaceGenerator(object):
       operations - contains the overloads, one or more operations with the same
         name.
     """
-    html_name = self._renamer.RenameMember(self._interface.id, info.name)
+    # FIXME: When we pass in operations[0] below, we're assuming all
+    # overloaded operations have the same security attributes.  This
+    # is currently true, but we should consider filtering earlier or
+    # merging the relevant data into info itself.
+    html_name = self._renamer.RenameMember(self._interface.id,
+                                           info.operations[0],
+                                           info.name)
     if not html_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.

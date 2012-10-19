@@ -274,10 +274,6 @@ class DartiumBackend(object):
         TO_DART=to_dart_emitter.Fragments())
 
   def AddAttribute(self, attribute, html_name, read_only):
-    if 'CheckSecurityForNode' in attribute.ext_attrs:
-      # FIXME: exclude from interface as well.
-      return
-
     self._AddGetter(attribute, html_name)
     if not read_only:
       self._AddSetter(attribute, html_name)
@@ -444,10 +440,6 @@ class DartiumBackend(object):
     """
 
     operation = info.operations[0]
-
-    if 'CheckSecurityForNode' in operation.ext_attrs:
-      # FIXME: exclude from interface as well.
-      return
 
     is_custom = 'Custom' in operation.ext_attrs
     has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
