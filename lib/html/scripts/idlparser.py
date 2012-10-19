@@ -90,7 +90,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), 'interface', Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), ';'],
         # WebKit:
-        [OR('interface', 'exception'), MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
+        [MAYBE(ExtAttrs), OR('interface', 'exception'), MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), MAYBE(';')],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'interface',
@@ -171,8 +171,10 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Stringifier), MAYBE(ReadOnly),
          'attribute', Type, Id, MAYBE(_AttrRaises), ';'],
         # WebKit:
-        [MAYBE(Stringifier), MAYBE(Static), MAYBE(ReadOnly), 'attribute',
-         MAYBE(ExtAttrs), Type, Id, MAYBE(_AttrRaises), ';'],
+        [
+          MAYBE(Stringifier),
+          MAYBE(ExtAttrs), MAYBE(Static), MAYBE(ReadOnly), 'attribute', MAYBE(ExtAttrs),
+          Type, Id, MAYBE(_AttrRaises), ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs),
          MAYBE(_AttrGetterSetter), MAYBE(Stringifier), MAYBE(ReadOnly),
