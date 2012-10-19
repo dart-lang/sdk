@@ -776,9 +776,17 @@ RawBigint* BigintOperations::Divide(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Modulo(const Bigint& a, const Bigint& b) {
   Bigint& quotient = Bigint::Handle();
-  Bigint& modulo = Bigint::Handle();
-  DivideRemainder(a, b, &quotient, &modulo);
-  return modulo.raw();
+  Bigint& remainder = Bigint::Handle();
+  DivideRemainder(a, b, &quotient, &remainder);
+  // Emulating code in Integer::ArithmeticOp (Euclidian modulo).
+  if (remainder.IsNegative()) {
+    if (b.IsNegative()) {
+      return BigintOperations::Subtract(remainder, b);
+    } else {
+      return BigintOperations::Add(remainder, b);
+    }
+  }
+  return remainder.raw();
 }
 
 

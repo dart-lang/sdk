@@ -106,7 +106,7 @@ class BigIntegerTest {
     Expect.equals(500000000.0, b / a);
   }
 
-  static testBigintRemainder() {
+  static testBigintModulo() {
     // Bigint and Smi.
     var a = 1000000000005;
     var b = 10;
@@ -122,6 +122,15 @@ class BigIntegerTest {
     b = 100000000000;
     Expect.equals(1.0, a % b);
     Expect.equals(100000000000.0, b % a);
+    // Transitioning from Mint to Bigint.
+    var iStart = 4611686018427387900;
+    var prevX = -23 % iStart;
+    for (int i = iStart + 1; i < iStart + 10; i++) {
+      var x = -23 % i;
+      Expect.equals(1, x - prevX);
+      Expect.isTrue(x > 0);
+      prevX = x;
+    }
   }
 
   static testBigintNegate() {
@@ -150,7 +159,7 @@ class BigIntegerTest {
     testBigintAdd();
     testBigintSub();
     testBigintMul();
-    testBigintRemainder();
+    testBigintModulo();
     testBigintTruncDiv();
     testBigintDiv();
     testBigintNegate();
