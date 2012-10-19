@@ -59,6 +59,13 @@ class Listener {
   void endCompilationUnit(int count, Token token) {
   }
 
+  void beginConstructorReference(Token start) {
+  }
+
+  void endConstructorReference(Token start, Token periodBeforeName,
+                               Token endToken) {
+  }
+
   void beginDoWhileStatement(Token token) {
   }
 
@@ -266,12 +273,6 @@ class Listener {
   }
 
   void endPartOf(Token partKeyword, Token semicolon) {
-  }
-
-  void beginQualifiedList(Token start) {
-  }
-
-  void endQualifiedList(int count) {
   }
 
   void beginRedirectingFactoryBody(Token token) {
@@ -1231,14 +1232,40 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
-  void endQualifiedList(int count) {
-    pushNode(makeNodeList(count, null, null, "."));
+  void endConstructorReference(Token start, Token periodBeforeName,
+                               Token endToken) {
+    Identifier name = null;
+    if (periodBeforeName != null) {
+      name = popNode();
+    }
+    NodeList typeArguments = popNode();
+    Node classReference = popNode();
+    if (typeArguments != null) {
+      classReference = new TypeAnnotation(classReference, typeArguments);
+    } else {
+      Identifier identifier = classReference.asIdentifier();
+      Send send = classReference.asSend();
+      if (identifier != null) {
+        // TODO(ahe): Should be:
+        // classReference = new Send(null, identifier);
+        classReference = identifier;
+      } else if (send != null) {
+        classReference = send;
+      } else {
+        internalError(node: classReference);
+      }
+    }
+    Node constructor = classReference;
+    if (name != null) {
+      // Either typeName<args>.name or x.y.name.
+      constructor = new Send(classReference, name);
+    }
+    pushNode(constructor);
   }
 
   void endRedirectingFactoryBody(Token beginToken,
                                  Token endToken) {
-    NodeList qualifiedList = popNode();
-    pushNode(new Return(beginToken, endToken, qualifiedList));
+    pushNode(new Return(beginToken, endToken, popNode()));
   }
 
   void endReturnStatement(bool hasExpression,
@@ -1749,6 +1776,7 @@ class NodeListener extends ElementListener {
   }
 
   void internalError({Token token, Node node}) {
+    // TODO(ahe): This should call listener.internalError.
     listener.cancel('internal error', token: token, node: node);
     throw 'internal error';
   }

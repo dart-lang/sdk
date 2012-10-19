@@ -5,7 +5,7 @@
 abstract class TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
-  DartType getType(TypeAnnotation annotation);
+  DartType getType(Node node);
   bool isParameterChecked(Element element);
 }
 
@@ -13,13 +13,13 @@ class TreeElementMapping implements TreeElements {
   final Element currentElement;
   final Map<Node, Element> map;
   final Map<Node, Selector> selectors;
-  final Map<TypeAnnotation, DartType> types;
+  final Map<Node, DartType> types;
   final Set<Element> checkedParameters;
 
   TreeElementMapping([Element this.currentElement])
       : map = new LinkedHashMap<Node, Element>(),
         selectors = new LinkedHashMap<Node, Selector>(),
-        types = new LinkedHashMap<TypeAnnotation, DartType>(),
+        types = new LinkedHashMap<Node, DartType>(),
         checkedParameters = new Set<Element>();
 
   operator []=(Node node, Element element) {
@@ -43,11 +43,11 @@ class TreeElementMapping implements TreeElements {
   operator [](Node node) => map[node];
   void remove(Node node) { map.remove(node); }
 
-  void setType(TypeAnnotation annotation, DartType type) {
-    types[annotation] = type;
+  void setType(Node node, DartType type) {
+    types[node] = type;
   }
 
-  DartType getType(TypeAnnotation annotation) => types[annotation];
+  DartType getType(Node node) => types[node];
 
   void setSelector(Node node, Selector selector) {
     selectors[node] = selector;
@@ -1831,7 +1831,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitReturn(Return node) {
-    if (node.isRedirectingConstructorBody) {
+    if (node.isRedirectingFactoryBody) {
       unimplemented(node, 'redirecting constructors');
     }
     visit(node.expression);
@@ -3148,7 +3148,6 @@ class LocalPatchClassScope extends Scope {
     if (result != null) return result;
     return origin.lookupLocalMember(name);
   }
-
 
   Element add(Element newElement) {
     throw "Cannot add an element in a class scope";

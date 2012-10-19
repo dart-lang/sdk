@@ -750,6 +750,11 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     if (identical(node.getBeginToken().stringValue, 'native')) {
       return StatementType.RETURNING;
     }
+    if (node.isRedirectingFactoryBody) {
+      // TODO(lrn): Typecheck the body. It must refer to the constructor
+      // of a subtype.
+      return elements.getType(node);
+    }
 
     final expression = node.expression;
     final isVoidFunction = (identical(expectedReturnType, types.voidType));

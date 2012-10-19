@@ -924,7 +924,7 @@ class Return extends Statement {
 
   bool get hasExpression => expression != null;
 
-  bool get isRedirectingConstructorBody => beginToken.stringValue == '=';
+  bool get isRedirectingFactoryBody => beginToken.stringValue == '=';
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 

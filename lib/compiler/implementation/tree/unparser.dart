@@ -237,7 +237,7 @@ class Unparser implements Visitor {
   }
 
   visitReturn(Return node) {
-    if (node.isRedirectingConstructorBody) {
+    if (node.isRedirectingFactoryBody) {
       sb.add(' ');
     }
     add(node.beginToken.value);

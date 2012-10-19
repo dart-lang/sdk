@@ -656,7 +656,7 @@ class Parser {
     Link<Token> identifiers = const Link<Token>();
     while (!identical(token.kind, EOF_TOKEN)) {
       String value = token.stringValue;
-      if ((identical(value, '(')) || (identical(value, '{')) 
+      if ((identical(value, '(')) || (identical(value, '{'))
           || (identical(value, '=>'))) {
         // A method.
         return identifiers;
@@ -953,7 +953,11 @@ class Parser {
       token = parseQualifiedRestOpt(token);
       token = parseFormalParametersOpt(token);
       token = parseInitializersOpt(token);
-      token = parseFunctionBody(token, false);
+      if (optional('=', token)) {
+        token = parseRedirectingFactoryBody(token);
+      } else {
+        token = parseFunctionBody(token, false);
+      }
       listener.endMethod(getOrSet, start, token);
     }
     return token.next;
@@ -1023,7 +1027,11 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    token = parseFunctionBody(token, false);
+    if (optional('=', token)) {
+      token = parseRedirectingFactoryBody(token);
+    } else {
+      token = parseFunctionBody(token, false);
+    }
     listener.endFunction(getOrSet, token);
     return token.next;
   }
@@ -1059,23 +1067,18 @@ class Parser {
     return isBlock ? token.next : token;
   }
 
-  Token parseQualifiedList(Token token) {
-    listener.beginQualifiedList(token);
-    Token parseQualifiedPart(Token token) {
-      Token start = token;
-      token = parseIdentifier(token);
-      token = parseTypeVariablesOpt(token);
-      listener.endType(start, null);
-      return token;
+  Token parseConstructorReference(Token token) {
+    Token start = token;
+    listener.beginConstructorReference(start);
+    token = parseIdentifier(token);
+    token = parseQualifiedRestOpt(token);
+    token = parseTypeArgumentsOpt(token);
+    Token period = null;
+    if (optional('.', token)) {
+      period = token;
+      token = parseIdentifier(token.next);
     }
-    Token beginToken = token;
-    token = parseQualifiedPart(token);
-    int count = 1;
-    while (optional('.', token)) {
-      token = parseQualifiedPart(token.next);
-      count++;
-    }
-    listener.endQualifiedList(count);
+    listener.endConstructorReference(start, period, token);
     return token;
   }
 
@@ -1083,7 +1086,7 @@ class Parser {
     listener.beginRedirectingFactoryBody(token);
     assert(optional('=', token));
     Token equals = token;
-    token = parseQualifiedList(token.next);
+    token = parseConstructorReference(token.next);
     Token semicolon = token;
     expectSemicolon(token);
     listener.endRedirectingFactoryBody(equals, semicolon);

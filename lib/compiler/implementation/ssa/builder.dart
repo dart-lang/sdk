@@ -3280,6 +3280,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       native.handleSsaNative(this, node.expression);
       return;
     }
+    if (node.isRedirectingFactoryBody) {
+      compiler.internalError("Unimplemented: Redirecting factory constructor",
+                             node: node);
+    }
     HInstruction value;
     if (node.expression == null) {
       value = graph.addConstantNull(constantSystem);
