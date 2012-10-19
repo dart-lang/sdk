@@ -2157,7 +2157,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression left = pop();
     use(input);
     js.Expression right = pop();
-    // TODO(4984): Deal with infinity.
+    // TODO(4984): Deal with infinity and -0.0.
     push(new js.LiteralExpression.withData('Math.floor(#) === #',
                                            <js.Expression>[left, right]));
   }

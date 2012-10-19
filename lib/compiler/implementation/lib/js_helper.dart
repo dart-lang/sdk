@@ -539,50 +539,50 @@ class Primitives {
 
   static getYear(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCFullYear()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getFullYear()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
-      : JS('int', r'#.getMonth()', lazyAsJsDate(receiver)) + 1;
+      ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
+      : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
   static getDay(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCDate()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getDate()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCHours()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getHours()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCMinutes()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getMinutes()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCSeconds()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getSeconds()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
     return (receiver.isUtc)
-      ? JS('int', r'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getMilliseconds()', lazyAsJsDate(receiver));
+      ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+      : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
     int weekday = (receiver.isUtc)
-      ? JS('int', r'#.getUTCDay()', lazyAsJsDate(receiver))
-      : JS('int', r'#.getDay()', lazyAsJsDate(receiver));
+      ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+      : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
