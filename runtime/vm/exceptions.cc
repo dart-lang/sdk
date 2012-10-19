@@ -426,7 +426,7 @@ RawObject* Exceptions::Create(
       break;
     case kOutOfMemory:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("OutOfMemoryError");
+      class_name = Symbols::New("OutOfMemoryException");
       break;
     case kWrongArgumentCount:
       library = Library::CoreLibrary();
