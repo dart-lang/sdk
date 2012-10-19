@@ -1463,9 +1463,16 @@ AstNode* Parser::ParseSuperOperator() {
       super_op = new StaticCallNode(
           operator_pos, assign_index_operator, operator_args);
     }
-  } else if (Token::CanBeOverloaded(CurrentToken())) {
+  } else if (Token::CanBeOverloaded(CurrentToken()) ||
+             (CurrentToken() == Token::kNE)) {
     Token::Kind op = CurrentToken();
     ConsumeToken();
+
+    bool negate_result = false;
+    if (op == Token::kNE) {
+      op = Token::kEQ;
+      negate_result = true;
+    }
 
     // Resolve the operator function in the superclass.
     const String& operator_function_name =
@@ -1492,6 +1499,9 @@ AstNode* Parser::ParseSuperOperator() {
                                                 *op_arguments);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
+    if (negate_result) {
+      super_op = new UnaryOpNode(operator_pos, Token::kNOT, super_op);
+    }
   }
   return super_op;
 }
@@ -9428,7 +9438,8 @@ AstNode* Parser::ParsePrimary() {
         primary = ParseSuperFieldAccess(ident);
       }
     } else if ((CurrentToken() == Token::kLBRACK) ||
-        Token::CanBeOverloaded(CurrentToken())) {
+        Token::CanBeOverloaded(CurrentToken()) ||
+        (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
     } else {
       ErrorMsg("illegal super call");
@@ -9631,6 +9642,12 @@ void Parser::SkipPrimary() {
     case Token::kLBRACK:
     case Token::kINDEX:
       SkipCompoundLiteral();
+      break;
+    case Token::kCONDITIONAL:
+      ConsumeToken();
+      if (IsIdentifier()) {
+        ConsumeToken();
+      }
       break;
     default:
       if (IsIdentifier()) {

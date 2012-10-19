@@ -330,7 +330,6 @@ Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals ille
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
 Language/10_Expressions/21_Bitwise_Expressions_A01_t01: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/22_Equality_A01_t01: Fail # issue 2033 (super call of !=, === etc)
-Language/10_Expressions/22_Equality_A05_t01: Fail # issue 2033 (super call of !=, === etc)
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/22_Shift_A01_t01: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # issue 1288 (unary super operator call)
