@@ -22,7 +22,7 @@ recursive_import_test: Fail # http://dartbug.com/2264
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
 
-[ $compiler == dart2js ]
+[ $compiler == dartc ]
 dummy_compiler_test: Fail # http://dartbug.com/6073
 recursive_import_test: Fail # http://dartbug.com/6073
 
