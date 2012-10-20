@@ -486,7 +486,7 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitPropertyAccess(DartPropertyAccess x) {
-      switch (ElementKind.of(x.getQualifier().getElement())) {
+      switch (ElementKind.of(x.getRealTarget().getElement())) {
         case CLASS:
         case LIBRARY_PREFIX:
         case LIBRARY:
