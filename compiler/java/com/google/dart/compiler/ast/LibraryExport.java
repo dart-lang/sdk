@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
 import java.util.List;
@@ -22,21 +21,6 @@ public class LibraryExport {
     this.library = library;
     this.showNames = createCombinatorsSet(combinators, true);
     this.hideNames = createCombinatorsSet(combinators, false);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(library);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof LibraryExport) {
-      LibraryExport other = (LibraryExport) obj;
-      return Objects.equal(library, other.library) && Objects.equal(showNames, other.showNames)
-          && Objects.equal(hideNames, other.hideNames);
-    }
-    return false;
   }
 
   public LibraryUnit getLibrary() {

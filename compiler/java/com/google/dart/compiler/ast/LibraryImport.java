@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
 import java.util.List;
@@ -26,21 +25,6 @@ public class LibraryImport {
     this.hideNames = createCombinatorsSet(combinators, false);
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(prefix, library);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof LibraryImport) {
-      LibraryImport other = (LibraryImport) obj;
-      return Objects.equal(library, other.library) && Objects.equal(prefix, other.prefix)
-          && Objects.equal(showNames, other.showNames) && Objects.equal(hideNames, other.hideNames);
-    }
-    return false;
-  }
-
   public LibraryUnit getLibrary() {
     return library;
   }
@@ -48,7 +32,7 @@ public class LibraryImport {
   public String getPrefix() {
     return prefix;
   }
-  
+
   public boolean isVisible(String name) {
     if (hideNames.contains(name)) {
       return false;

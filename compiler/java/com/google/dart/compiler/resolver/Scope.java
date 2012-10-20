@@ -101,14 +101,6 @@ public class Scope {
     return false;
   }
   
-  public void markStateProgress() {
-    this.stateProgress = true;
-  }
-  
-  public boolean isStateProgress() {
-    return stateProgress;
-  }
-  
   public void markStateReady() {
     this.stateReady = true;
   }

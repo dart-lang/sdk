@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
@@ -35,6 +36,7 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Builds all class elements and types of a library. Once all libraries
@@ -63,18 +65,25 @@ public class TopLevelElementBuilder {
    * libraries.
    */
   public void fillInLibraryScope(LibraryUnit library, DartCompilerListener listener) {
+    fillInLibraryScope(library, listener, Sets.newHashSet());
+  }
+    
+    /**
+     * Fill the scope for this library, using its own top-level elements and elements from imported
+     * libraries.
+     */
+  private void fillInLibraryScope(LibraryUnit library, DartCompilerListener listener,
+      Set<Object> processedObjects) {
     Scope importScope = library.getElement().getImportScope();
     Scope scope = library.getElement().getScope();
     
-    // We are processing this library now, or already done this. 
-    if (library.getElement().getScope().isStateProgress()
-        || library.getElement().getScope().isStateReady()) {
+    // We are done with this library. 
+    if (library.getElement().getScope().isStateReady()) {
       return;
     }
-    library.getElement().getScope().markStateProgress();
 
     // Fill "library" scope.
-    {
+    if (processedObjects.add(library)) {
       List<Element> exportedElements = Lists.newArrayList();
       {
         DartUnit selfUnit = library.getSelfDartUnit();
@@ -100,8 +109,12 @@ public class TopLevelElementBuilder {
       }
     }
 
+    // Fill "import" scope.
     Map<String, LibraryPrefixElement> libraryPrefixElements = Maps.newHashMap();
     for (LibraryImport libraryImport : library.getImports()) {
+      if (!processedObjects.add(libraryImport)) {
+        continue;
+      }
       LibraryUnit lib = libraryImport.getLibrary();
       // Prepare scope for this import.
       Scope scopeForImport;
@@ -128,7 +141,7 @@ public class TopLevelElementBuilder {
         }
       }
       // Prepare "lib" scope.
-      fillInLibraryScope(lib, listener);
+      fillInLibraryScope(lib, listener, processedObjects);
       // Fill "library" scope with element exported from "lib".
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
@@ -141,10 +154,14 @@ public class TopLevelElementBuilder {
         }
       }
     }
+
     // Fill "library" export scope with re-exports.
     for (LibraryExport export : library.getExports()) {
+      if (!processedObjects.add(export)) {
+        continue;
+      }
       LibraryUnit lib = export.getLibrary();
-      fillInLibraryScope(lib, listener);
+      fillInLibraryScope(lib, listener, processedObjects);
       for (Element element : lib.getElement().getExportedElements()) {
         String name = element.getName();
         // re-export only in not defined locally
@@ -157,6 +174,7 @@ public class TopLevelElementBuilder {
         }
       }
     }
+
     // Done.
     library.getElement().getScope().markStateReady();
   }

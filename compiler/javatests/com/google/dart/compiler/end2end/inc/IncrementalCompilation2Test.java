@@ -1123,6 +1123,115 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertTrue(errors.toString().contains("libB.TypeBB"));
   }
   
+  public void test_newLibrarySyntax_export2() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "class SourceString {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libB;",
+            "import 'C.dart';",
+            "export 'A.dart' show SourceString;",
+            ""));
+    appSource.setContent(
+        "C.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libC;",
+            "import 'B.dart';",
+            "foo() {",
+            "  SourceString s;",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "import 'B.dart';",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
+  public void test_newLibrarySyntax_export3() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "class SourceString {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libB;",
+            "export 'C.dart';",
+            "export 'A.dart' show SourceString;",
+            ""));
+    appSource.setContent(
+        "C.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library libC;",
+            "import 'B.dart';",
+            "foo() {",
+            "  SourceString s;",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "import 'B.dart';",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+  
+  public void test_newLibrarySyntax_export4() throws Exception {
+    appSource.setContent(
+        "p1.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib1;",
+            "export 'p3.dart';",
+            ""));
+    appSource.setContent(
+        "p2.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib2;",
+            "export 'p3.dart';",
+            ""));
+    appSource.setContent(
+        "p3.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library lib3;",
+            "class MyClass {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "import 'p1.dart' hide MyClass;",
+            "import 'p2.dart';",
+            "MyClass topLevelField;",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+  
   public void test_newLibrarySyntax_export_hide() throws Exception {
     appSource.setContent(
         "A.dart",
