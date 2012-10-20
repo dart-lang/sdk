@@ -249,6 +249,11 @@ Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
 # negate is no longer a built-in identifier, co19 issue 260
 Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # co19 issue 260
 
+# Changed exception thrown by futures (co19 issue #269)
+LibTest/core/Completer/completeException_A01_t01: Fail, OK
+LibTest/core/Future/handleException_A01_t04: Fail, OK
+LibTest/core/Future/handleException_A01_t05: Fail, OK
+
 [ $compiler == none && $runtime == vm && $checked ]
 Language/07_Classes/07_Classes_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.

@@ -585,6 +585,11 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # Red
 
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Fail, OK # Uses deprecated factory syntax.
 
+# Changed exception thrown by futures (co19 issue #269)
+LibTest/core/Completer/completeException_A01_t01: Fail, OK
+LibTest/core/Future/handleException_A01_t04: Fail, OK
+LibTest/core/Future/handleException_A01_t05: Fail, OK
+
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
 LibTest/core/double/round_A01_t01: Fail # Result is NaN

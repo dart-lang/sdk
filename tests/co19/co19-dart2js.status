@@ -524,6 +524,11 @@ Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
+# Changed exception thrown by futures (co19 issue #269)
+LibTest/core/Completer/completeException_A01_t01: Fail, OK
+LibTest/core/Future/handleException_A01_t04: Fail, OK
+LibTest/core/Future/handleException_A01_t05: Fail, OK
+
 [ $compiler == dart2js && $browser ]
 *: Skip
 
