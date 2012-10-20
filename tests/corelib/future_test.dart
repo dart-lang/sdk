@@ -74,7 +74,7 @@ testExceptionWithCompleteHandlerBeforeComplete() {
   completer.completeException(exception);
   Expect.equals(exception, future.exception);
   Expect.equals(exception, err);
-  Expect.throws(() => future.value, (e) => e.source == exception);
+  Expect.throws(() => future.value, (e) => e == exception);
 }
 
 testCompleteWithCompleteHandlerAfterComplete() {
@@ -108,7 +108,7 @@ testExceptionWithCompleteHandlerAfterComplete() {
   });
   Expect.equals(exception, future.exception);
   Expect.equals(exception, err);
-  Expect.throws(() => future.value, (e) => e.source == exception);
+  Expect.throws(() => future.value, (e) => e == exception);
 }
 
 testCompleteWithManyCompleteHandlers() {
@@ -146,7 +146,7 @@ testExceptionWithManyCompleteHandlers() {
   Expect.equals(exception, before);
   Expect.equals(exception, after1);
   Expect.equals(exception, after2);
-  Expect.throws(() => future.value, (e) => e.source == exception);
+  Expect.throws(() => future.value, (e) => e == exception);
 }
 
 // Tests for [then]
@@ -207,7 +207,7 @@ testException() {
   future.then((_) {}); // exception is thrown if we plan to use the value
   Expect.throws(
       () { completer.completeException(ex); },
-      (e) => e.source == ex);
+      (e) => e == ex);
 }
 
 testExceptionNoSuccessListeners() {
@@ -263,7 +263,7 @@ testExceptionHandlerReturnsFalse() {
   future.handleException((e) { reached = true; return false; }); // overshadowed
   Expect.throws(
       () { completer.completeException(ex); },
-      (e) => e.source == ex);
+      (e) => e == ex);
   Expect.isTrue(reached);
 }
 
@@ -385,7 +385,7 @@ testExceptionWithCompletionAndSuccessHandlers() {
     exceptionFromCompleteHandler = f.exception;
   });
   future.then((v) => Expect.fail("Should not succeed"));
-  Expect.throws(() => completer.completeException(ex), (e) => e.source == ex);
+  Expect.throws(() => completer.completeException(ex), (e) => ex == e);
   Expect.equals(ex, exceptionFromCompleteHandler);
 }
 
@@ -438,7 +438,7 @@ testTransformTransformerFails() {
   final transformedFuture = completer.future.transform((x) { throw error; });
   Expect.isFalse(transformedFuture.isComplete);
   transformedFuture.then((v) => null);
-  Expect.throws(() => completer.complete("42"), (e) => e.source == error);
+  Expect.throws(() => completer.complete("42"), (e) => e == error);
   Expect.equals(error, transformedFuture.exception);
 }
 
@@ -478,7 +478,7 @@ testChainTransformerFails() {
   });
   chainedFuture.then((v) => null);
   Expect.isFalse(chainedFuture.isComplete);
-  Expect.throws(() => completerA.complete("42"), (e) => e.source == error);
+  Expect.throws(() => completerA.complete("42"), (e) => e == error);
   Expect.equals(error, chainedFuture.exception);
 }
 

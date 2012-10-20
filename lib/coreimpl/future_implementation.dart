@@ -57,7 +57,7 @@ class FutureImpl<T> implements Future<T> {
       throw new FutureNotCompleteException();
     }
     if (_exception !== null) {
-      throw new FutureUnhandledException(_exception, stackTrace);
+      throw _exception;
     }
     return _value;
   }
@@ -90,7 +90,7 @@ class FutureImpl<T> implements Future<T> {
     } else if (!isComplete) {
       _successListeners.add(onSuccess);
     } else if (!_exceptionHandled) {
-      throw new FutureUnhandledException(_exception, stackTrace);
+      throw _exception;
     }
   }
 
@@ -136,7 +136,7 @@ class FutureImpl<T> implements Future<T> {
         }
       } else {
         if (!_exceptionHandled && _successListeners.length > 0) {
-          throw new FutureUnhandledException(_exception, stackTrace);
+          throw _exception;
         }
       }
     } finally {
