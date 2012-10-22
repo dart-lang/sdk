@@ -10,6 +10,9 @@ inline_position_crash_test: Fail # http://www.dartbug.com/3905
 constant_javascript_semantics3_test: Fail # http://www.dartbug.com/5581
 
 # These tests need to be updated for new optional parameter syntax and semantics.
+argument_definition_test/none: Fail
+native_call_arity2_frog_test: Fail
+native_call_arity3_frog_test: Fail
 named_parameter_for_static_test: Fail
 closure3_test: Fail
 closure5_test: Fail
