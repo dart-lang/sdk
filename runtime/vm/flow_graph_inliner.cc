@@ -22,8 +22,8 @@ DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 DEFINE_FLAG(int, inlining_size_threshold, 50,
     "Inline only functions with up to threshold instructions (default 50)");
 // TODO(srdjan): set to 3 once crash in apidoc.dart is resolved.
-DEFINE_FLAG(int, inlining_depth_threshold, 1,
-    "Inline recursively up to threshold depth (default 1)");
+DEFINE_FLAG(int, inlining_depth_threshold, 3,
+    "Inline recursively up to threshold depth (default 3)");
 DEFINE_FLAG(bool, inline_control_flow, true,
     "Inline functions with control flow.");
 DECLARE_FLAG(bool, print_flow_graph);
