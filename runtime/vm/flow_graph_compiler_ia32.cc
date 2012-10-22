@@ -35,6 +35,8 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
     case kArrayCid:
     case kImmutableArrayCid:
       return FieldAddress(array, index, TIMES_2, sizeof(RawArray));
+    case kFloat32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
     case kFloat64ArrayCid:
       return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
     default:

@@ -907,6 +907,12 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
       ASSERT(Utils::IsInt(31, disp));
       return FieldAddress(array, disp);
     }
+    case kFloat32ArrayCid: {
+      const intptr_t disp =
+          offset * kFloatSize + Float32Array::data_offset();
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
     case kFloat64ArrayCid: {
       const intptr_t disp =
           offset * kDoubleSize + Float64Array::data_offset();

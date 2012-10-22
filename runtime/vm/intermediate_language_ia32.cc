@@ -964,7 +964,15 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           class_id(), array, Smi::Cast(index.constant()).Value());
 
   if (representation() == kUnboxedDouble) {
-    __ movsd(locs()->out().xmm_reg(), element_address);
+    if (class_id() == kFloat32ArrayCid) {
+      // Load single precision float.
+      __ movss(locs()->out().xmm_reg(), element_address);
+      // Promote to double.
+      __ cvtss2sd(locs()->out().xmm_reg(), locs()->out().xmm_reg());
+    } else {
+      ASSERT(class_id() == kFloat64ArrayCid);
+      __ movsd(locs()->out().xmm_reg(), element_address);
+    }
   } else {
     __ movl(locs()->out().reg(), element_address);
   }
@@ -973,9 +981,12 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = class_id() == kFloat32ArrayCid ? 1 : 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (class_id() == kFloat32ArrayCid) {
+    locs->set_temp(0, Location::RequiresXmmRegister());
+  }
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
@@ -1001,6 +1012,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           class_id(), array, index.reg()) :
       FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
+
+  if (class_id() == kFloat32ArrayCid) {
+    // Convert to single precision.
+    __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
+    // Store.
+    __ movss(element_address, locs()->temp(0).xmm_reg());
+    return;
+  }
 
   if (class_id() == kFloat64ArrayCid) {
     __ movsd(element_address, locs()->in(2).xmm_reg());
@@ -2213,12 +2232,15 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((array_type() == kArrayCid) ||
          (array_type() == kImmutableArrayCid) ||
          (array_type() == kGrowableObjectArrayCid) ||
-         (array_type() == kFloat64ArrayCid));
+         (array_type() == kFloat64ArrayCid) ||
+         (array_type() == kFloat32ArrayCid));
   intptr_t length_offset = -1;
   if (array_type() == kGrowableObjectArrayCid) {
     length_offset = GrowableObjectArray::length_offset();
   } else if (array_type() == kFloat64ArrayCid) {
     length_offset = Float64Array::length_offset();
+  } else if (array_type() == kFloat32ArrayCid) {
+    length_offset = Float32Array::length_offset();
   } else {
     length_offset = Array::length_offset();
   }

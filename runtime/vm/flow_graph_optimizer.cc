@@ -497,6 +497,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
       // Acceptable store index classes.
       break;
+    case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
@@ -538,6 +539,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
         ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
         InsertBefore(call, null_constant, NULL, Definition::kValue);
@@ -567,7 +569,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   Value* value = call->ArgumentAt(2)->value();
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
-  if (class_id == kFloat64ArrayCid) {
+  if ((class_id == kFloat32ArrayCid) || (class_id == kFloat64ArrayCid)) {
     ASSERT(!value_check.IsNull());
     InsertBefore(call,
                  new CheckClassInstr(value->Copy(),
@@ -600,6 +602,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
+    case kFloat32ArrayCid:
     case kFloat64ArrayCid:
       // Acceptable load index classes.
       break;

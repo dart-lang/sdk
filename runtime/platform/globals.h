@@ -152,6 +152,7 @@ typedef uintptr_t uword;
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
+const int kFloatSize = sizeof(float); // NOLINT
 #ifdef ARCH_IS_32_BIT
 const int kWordSizeLog2 = 2;
 const uword kUwordMax = kMaxUint32;
