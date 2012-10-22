@@ -391,6 +391,11 @@ class ErroneousElement extends Element {
   Link<MetadataAnnotation> get metadata => unsupported();
 
   getLibrary() => enclosingElement.getLibrary();
+
+  String toString() {
+    String n = targetName.slowToString();
+    return '<$n: ${messageKind.message(messageArguments)}>';
+  }
 }
 
 class ErroneousFunctionElement extends ErroneousElement
