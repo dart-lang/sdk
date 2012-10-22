@@ -609,6 +609,9 @@ class IDLTypeInfo(object):
   def has_generated_interface(self):
     raise NotImplementedError()
 
+  def list_item_type(self):
+    raise NotImplementedError()
+
   def merged_interface(self):
     return None
 
@@ -696,14 +699,25 @@ class IDLTypeInfo(object):
 
 
 class InterfaceIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data, dart_interface_name):
+  def __init__(self, idl_type, data, dart_interface_name, type_registry):
     super(InterfaceIDLTypeInfo, self).__init__(idl_type, data)
     self._dart_interface_name = dart_interface_name
+    self._type_registry = type_registry
 
   def dart_type(self):
+    # TODO(podivilov): why NodeList is special?
+    if self.idl_type() == 'NodeList':
+      return 'List<Node>'
+    if self.list_item_type() and not self.has_generated_interface():
+      return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
     return self._data.dart_type or self._dart_interface_name
 
   def narrow_dart_type(self):
+    # TODO(podivilov): why NodeList is special?
+    if self.idl_type() == 'NodeList':
+      return 'List<Node>'
+    if self.list_item_type():
+      return ImplementationClassNameForInterfaceName(self.idl_type())
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
@@ -713,9 +727,13 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return ImplementationClassNameForInterfaceName(self.interface_name())
 
   def interface_name(self):
+    if self.list_item_type() and not self.has_generated_interface():
+      return self.dart_type()
     return self._dart_interface_name
 
   def implementation_name(self):
+    if self.list_item_type():
+      return ImplementationClassNameForInterfaceName(self.idl_type())
     implementation_name = ImplementationClassNameForInterfaceName(
         self.interface_name())
     if self.merged_into():
@@ -723,7 +741,10 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return implementation_name
 
   def has_generated_interface(self):
-    return True
+    return not self._data.suppress_interface
+
+  def list_item_type(self):
+    return self._data.item_type
 
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
@@ -749,38 +770,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 class CallbackIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
-
-
-# Type info for DOM types that are converted to dart lists and therefore whose
-# actual interface generation should be suppressed. For type information, we
-# still generate the implementations though, so these types should not be
-# suppressed entirely.
-class ListLikeIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data, item_info):
-    super(ListLikeIDLTypeInfo, self).__init__(idl_type, data)
-    self._item_info = item_info
-
-  def dart_type(self):
-    return 'List<%s>' % self._item_info.dart_type()
-
-  def narrow_dart_type(self):
-    if self.has_generated_interface():
-      return self.dart_type()
-    return ImplementationClassNameForInterfaceName(self.idl_type())
-
-  def interface_name(self):
-    if self.has_generated_interface():
-      return self.idl_type()
-    return self.dart_type()
-
-  def implementation_name(self):
-    return ImplementationClassNameForInterfaceName(self.idl_type())
-
-  def has_generated_interface(self):
-    # Don't generate interfaces for list-like types.
-    # TODO(podivilov): why NodeList is special? Is it indeed a list-like type
-    # or should just implement sequence<Node>?
-    return self.idl_type() == 'NodeList'
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
@@ -868,8 +857,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
 
 class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
-  def __init__(self, idl_type, data):
-    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data, idl_type)
+  def __init__(self, idl_type, data, type_registry):
+    super(SVGTearOffIDLTypeInfo, self).__init__(
+        idl_type, data, idl_type, type_registry)
 
   def native_type(self):
     if self._data.native_type:
@@ -913,7 +903,7 @@ class TypeData(object):
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
                requires_v8_scope=False,
-               item_type=None):
+               item_type=None, suppress_interface=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -926,6 +916,7 @@ class TypeData(object):
     self.webcore_setter_name = webcore_setter_name
     self.requires_v8_scope = requires_v8_scope
     self.item_type = item_type
+    self.suppress_interface = suppress_interface
 
 
 _idl_type_registry = {
@@ -998,41 +989,79 @@ _idl_type_registry = {
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
-    'ClientRectList': TypeData(clazz='ListLike', item_type='ClientRect'),
-    'CSSRuleList': TypeData(clazz='ListLike', item_type='CSSRule'),
-    'CSSValueList': TypeData(clazz='ListLike', item_type='CSSValue'),
-    'DOMStringList': TypeData(clazz='ListLike', item_type='DOMString',
-        custom_to_native=True),
-    'EntryArray': TypeData(clazz='ListLike', item_type='Entry'),
-    'EntryArraySync': TypeData(clazz='ListLike', item_type='EntrySync'),
-    'FileList': TypeData(clazz='ListLike', item_type='File'),
-    'GamepadList': TypeData(clazz='ListLike', item_type='Gamepad'),
-    'MediaStreamList': TypeData(clazz='ListLike', item_type='MediaStream'),
-    'NodeList': TypeData(clazz='ListLike', item_type='Node'),
-    'SVGElementInstanceList': TypeData(clazz='ListLike',
-        item_type='SVGElementInstance'),
-    'SpeechInputResultList': TypeData(clazz='ListLike',
-        item_type='SpeechInputResult'),
-    'SpeechRecognitionResultList': TypeData(clazz='ListLike',
-        item_type='SpeechRecognitionResult'),
-    'StyleSheetList': TypeData(clazz='ListLike', item_type='StyleSheet'),
-    'WebKitAnimationList': TypeData(clazz='ListLike',
-        item_type='WebKitAnimation'),
+    'ClientRectList': TypeData(clazz='Interface',
+        item_type='ClientRect', suppress_interface=True),
+    'CSSRuleList': TypeData(clazz='Interface',
+        item_type='CSSRule', suppress_interface=True),
+    'CSSValueList': TypeData(clazz='Interface',
+        item_type='CSSValue', suppress_interface=True),
+    'DOMMimeTypeArray': TypeData(clazz='Interface', item_type='DOMMimeType'),
+    'DOMPluginArray': TypeData(clazz='Interface', item_type='DOMPlugin'),
+    'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
+        suppress_interface=True, custom_to_native=True),
+    'EntryArray': TypeData(clazz='Interface', item_type='Entry',
+        suppress_interface=True),
+    'EntryArraySync': TypeData(clazz='Interface', item_type='EntrySync',
+        suppress_interface=True),
+    'FileList': TypeData(clazz='Interface', item_type='File',
+        suppress_interface=True),
+    'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
+        suppress_interface=True),
+    'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
+    'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
+    'MediaStreamList': TypeData(clazz='Interface',
+        item_type='MediaStream', suppress_interface=True),
+    'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
+    'NodeList': TypeData(clazz='Interface', item_type='Node'),
+    'SVGAnimatedLengthList': TypeData(clazz='Interface',
+        item_type='SVGAnimatedLength'),
+    'SVGAnimatedNumberList': TypeData(clazz='Interface',
+        item_type='SVGAnimatedNumber'),
+    'SVGAnimatedTransformList': TypeData(clazz='Interface',
+        item_type='SVGAnimateTransformElement'),
+    'SVGElementInstanceList': TypeData(clazz='Interface',
+        item_type='SVGElementInstance', suppress_interface=True),
+    'SourceBufferList': TypeData(clazz='Interface', item_type='SourceBuffer'),
+    'SpeechGrammarList': TypeData(clazz='Interface', item_type='SpeechGrammar'),
+    'SpeechInputResultList': TypeData(clazz='Interface',
+        item_type='SpeechInputResult', suppress_interface=True),
+    'SpeechRecognitionResultList': TypeData(clazz='Interface',
+        item_type='SpeechRecognitionResult', suppress_interface=True),
+    'SQLResultSetRowList': TypeData(clazz='Interface', item_type='Dictionary'),
+    'StyleSheetList': TypeData(clazz='Interface',
+        item_type='StyleSheet', suppress_interface=True),
+    'TextTrackCueList': TypeData(clazz='Interface', item_type='TextTrackCue'),
+    'TextTrackList': TypeData(clazz='Interface', item_type='TextTrack'),
+    'TouchList': TypeData(clazz='Interface', item_type='Touch'),
+    'WebKitAnimationList': TypeData(clazz='Interface',
+        item_type='WebKitAnimation', suppress_interface=True),
+
+    'Float32Array': TypeData(clazz='Interface', item_type='double'),
+    'Float64Array': TypeData(clazz='Interface', item_type='double'),
+    'Int8Array': TypeData(clazz='Interface', item_type='int'),
+    'Int16Array': TypeData(clazz='Interface', item_type='int'),
+    'Int32Array': TypeData(clazz='Interface', item_type='int'),
+    'Uint8Array': TypeData(clazz='Interface', item_type='int'),
+    'Uint16Array': TypeData(clazz='Interface', item_type='int'),
+    'Uint32Array': TypeData(clazz='Interface', item_type='int'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
-    'SVGLengthList': TypeData(clazz='SVGTearOff'),
+    'SVGLengthList': TypeData(clazz='SVGTearOff', item_type='SVGLength'),
     'SVGMatrix': TypeData(clazz='SVGTearOff'),
     'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<float>'),
-    'SVGNumberList': TypeData(clazz='SVGTearOff'),
-    'SVGPathSegList': TypeData(clazz='SVGTearOff', native_type='SVGPathSegListPropertyTearOff'),
+    'SVGNumberList': TypeData(clazz='SVGTearOff', item_type='SVGNumber'),
+    'SVGPathSegList': TypeData(clazz='SVGTearOff', item_type='SVGPathSeg',
+        native_type='SVGPathSegListPropertyTearOff'),
     'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatPoint>'),
     'SVGPointList': TypeData(clazz='SVGTearOff'),
     'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff'),
     'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatRect>'),
-    'SVGStringList': TypeData(clazz='SVGTearOff', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
+    'SVGStringList': TypeData(clazz='SVGTearOff', item_type='DOMString',
+        native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
     'SVGTransform': TypeData(clazz='SVGTearOff'),
-    'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff'),
+    'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
+        native_type='SVGTransformListPropertyTearOff'),
 }
 
 _svg_supplemental_includes = [
@@ -1073,7 +1102,8 @@ class TypeRegistry(object):
       return InterfaceIDLTypeInfo(
           type_name,
           TypeData('Interface'),
-          self._renamer.RenameInterface(interface))
+          self._renamer.RenameInterface(interface),
+          self)
 
     type_data = _idl_type_registry.get(type_name)
 
@@ -1083,10 +1113,11 @@ class TypeRegistry(object):
             self._database.GetInterface(type_name))
       else:
         dart_interface_name = type_name
-      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name)
+      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name,
+                                  self)
 
-    if type_data.clazz == 'ListLike':
-      return ListLikeIDLTypeInfo(type_name, type_data, self.TypeInfo(type_data.item_type))
+    if type_data.clazz == 'SVGTearOff':
+      return SVGTearOffIDLTypeInfo(type_name, type_data, self)
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)
