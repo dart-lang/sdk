@@ -99,9 +99,6 @@ _renamed_html_members = {
     'SVGElement.className': '$dom_svgClassName',
     'SVGAnimatedString.className': '$dom_svgClassName',
     'SVGStylable.className': '$dom_svgClassName',
-    'LocalWindow.webkitCancelAnimationFrame': 'cancelAnimationFrame',
-    'LocalWindow.webkitCancelRequestAnimationFrame': 'cancelRequestAnimationFrame',
-    'LocalWindow.webkitRequestAnimationFrame': 'requestAnimationFrame',
 }
 
 # Members and classes from the dom that should be removed completely from
