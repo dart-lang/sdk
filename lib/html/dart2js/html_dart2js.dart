@@ -31670,7 +31670,7 @@ class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBufferList
-abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
+abstract class SourceBufferList implements EventTarget, List<SourceBuffer> {
 
   /** @domName SourceBufferList.length */
   abstract int get length;
@@ -31688,7 +31688,7 @@ abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehavior native "*SourceBufferList" {
+class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList, JavaScriptIndexingBehavior native "*SourceBufferList" {
 
   final int length;
 
@@ -33757,7 +33757,7 @@ class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-abstract class TextTrackList implements List<TextTrack>, EventTarget {
+abstract class TextTrackList implements EventTarget, List<TextTrack> {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -33785,7 +33785,7 @@ abstract class TextTrackListEvents implements Events {
   EventListenerList get addTrack;
 }
 
-class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior native "*TextTrackList" {
+class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, JavaScriptIndexingBehavior native "*TextTrackList" {
 
   _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);

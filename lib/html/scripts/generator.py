@@ -72,63 +72,6 @@ _dart2js_dom_custom_native_specs = {
 def IsRegisteredType(type_name):
   return type_name in _idl_type_registry
 
-def ListImplementationInfo(interface, database):
-  """Returns a tuple (elment_type, requires_indexer).
-  If interface do not have to implement List, element_type is None.
-  Otherwise element_type is list element type and requires_indexer
-  is true iff this interface implementation must have indexer and
-  false otherwise.  False means that interface implementation
-  inherits indexer and may just reuse it."""
-  element_type = MaybeListElementType(interface)
-  if element_type:
-    return (element_type, True)
-
-  for parent in interface.parents:
-    if database.HasInterface(parent.type.id):
-      parent_interface = database.GetInterface(parent.type.id)
-      (element_type, _) = ListImplementationInfo(parent_interface, database)
-      if element_type:
-        return (element_type, False)
-
-  return (None, None)
-
-
-def MaybeListElementType(interface):
-  """Returns the List element type T, or None in interface does not implement
-  List<T>.
-  """
-  for parent in interface.parents:
-    match = re.match(r'sequence<(\w*)>$', parent.type.id)
-    if match:
-      return match.group(1)
-  return None
-
-def MaybeTypedArrayElementType(interface):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.
-  """
-  # Typed arrays implement ArrayBufferView and List<T>.
-  for parent in interface.parents:
-    if parent.type.id == 'ArrayBufferView':
-      return MaybeListElementType(interface)
-  return None
-
-def MaybeTypedArrayElementTypeInHierarchy(interface, database):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.  Checks the whole parent hierarchy.
-  """
-  element_type = MaybeTypedArrayElementType(interface)
-  if element_type:
-    return element_type
-  for parent in interface.parents:
-    if database.HasInterface(parent.type.id):
-      parent_interface = database.GetInterface(parent.type.id)
-      element_type = MaybeTypedArrayElementType(parent_interface)
-      if element_type:
-        return element_type
-
-  return None
-
 def MakeNativeSpec(javascript_binding_name):
   if javascript_binding_name in _dart2js_dom_custom_native_specs:
     return _dart2js_dom_custom_native_specs[javascript_binding_name]
@@ -612,6 +555,9 @@ class IDLTypeInfo(object):
   def list_item_type(self):
     raise NotImplementedError()
 
+  def is_typed_array(self):
+    raise NotImplementedError()
+
   def merged_interface(self):
     return None
 
@@ -745,6 +691,9 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def list_item_type(self):
     return self._data.item_type
+
+  def is_typed_array(self):
+    return self._data.is_typed_array
 
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
@@ -903,7 +852,7 @@ class TypeData(object):
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
                requires_v8_scope=False,
-               item_type=None, suppress_interface=False):
+               item_type=None, suppress_interface=False, is_typed_array=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -917,6 +866,11 @@ class TypeData(object):
     self.requires_v8_scope = requires_v8_scope
     self.item_type = item_type
     self.suppress_interface = suppress_interface
+    self.is_typed_array = is_typed_array
+
+
+def TypedArrayTypeData(item_type):
+  return TypeData(clazz='Interface', item_type=item_type, is_typed_array=True)
 
 
 _idl_type_registry = {
@@ -1036,14 +990,14 @@ _idl_type_registry = {
     'WebKitAnimationList': TypeData(clazz='Interface',
         item_type='WebKitAnimation', suppress_interface=True),
 
-    'Float32Array': TypeData(clazz='Interface', item_type='double'),
-    'Float64Array': TypeData(clazz='Interface', item_type='double'),
-    'Int8Array': TypeData(clazz='Interface', item_type='int'),
-    'Int16Array': TypeData(clazz='Interface', item_type='int'),
-    'Int32Array': TypeData(clazz='Interface', item_type='int'),
-    'Uint8Array': TypeData(clazz='Interface', item_type='int'),
-    'Uint16Array': TypeData(clazz='Interface', item_type='int'),
-    'Uint32Array': TypeData(clazz='Interface', item_type='int'),
+    'Float32Array': TypedArrayTypeData('double'),
+    'Float64Array': TypedArrayTypeData('double'),
+    'Int8Array': TypedArrayTypeData('int'),
+    'Int16Array': TypedArrayTypeData('int'),
+    'Int32Array': TypedArrayTypeData('int'),
+    'Uint8Array': TypedArrayTypeData('int'),
+    'Uint16Array': TypedArrayTypeData('int'),
+    'Uint32Array': TypedArrayTypeData('int'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),

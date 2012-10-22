@@ -240,22 +240,14 @@ class HtmlDartInterfaceGenerator(object):
                           self._template_loader.Load('interface.darttemplate'))
 
     implements = []
-    suppressed_implements = []
-
     for parent in self._interface.parents:
       parent_type_info = self._type_registry.TypeInfo(parent.type.id)
-      parent_interface_name = parent_type_info.interface_name()
-      # TODO(vsm): Remove source_filter.
-      if MatchSourceFilter(parent):
-        # Parent is a DOM type.
-        implements.append(parent_interface_name)
-      elif '<' in parent.type.id:
-        # Parent is a Dart collection type.
-        # TODO(vsm): Make this check more robust.
-        implements.append(parent_interface_name)
-      else:
-        suppressed_implements.append('%s.%s' %
-            (self._common_prefix, parent_interface_name))
+      implements.append(parent_type_info.interface_name())
+
+    if self._interface_type_info.list_item_type():
+      item_type_info = self._type_registry.TypeInfo(
+          self._interface_type_info.list_item_type())
+      implements.append('List<%s>' % item_type_info.dart_type())
 
     if interface_name in _secure_base_types:
       implements.append(_secure_base_types[interface_name])
@@ -265,9 +257,6 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str += ' implements ' + ', '.join(implements)
       comment = ','
-    if suppressed_implements:
-      implements_str += ' /*%s %s */' % (comment,
-          ', '.join(suppressed_implements))
 
     factory_provider = None
     if interface_name in interface_factories:
@@ -337,8 +326,12 @@ class HtmlDartInterfaceGenerator(object):
       constructor_info.GenerateFactoryInvocation(
           self._DartType, self._members_emitter, factory_provider)
 
-    element_type = MaybeTypedArrayElementTypeInHierarchy(
-        self._interface, self._database)
+    element_type = None
+    for interface in self._database.Hierarchy(self._interface):
+      type_info = self._type_registry.TypeInfo(interface.id)
+      if type_info.is_typed_array():
+        element_type = type_info.list_item_type()
+        break
     if element_type:
       self._members_emitter.Emit(
           '\n'
@@ -383,13 +376,19 @@ class HtmlDartInterfaceGenerator(object):
 
     # The implementation should define an indexer if the interface directly
     # extends List.
-    (element_type, requires_indexer) = ListImplementationInfo(
-          interface, self._database)
-    if element_type:
-      if requires_indexer:
-        self.AddIndexer(element_type)
-      else:
-        self.AmendIndexer(element_type)
+    element_type = None
+    requires_indexer = False
+    if self._interface_type_info.list_item_type():
+      self.AddIndexer(self._interface_type_info.list_item_type())
+    else:
+      for parent in self._database.Hierarchy(self._interface):
+        if parent == self._interface:
+          continue
+        parent_type_info = self._type_registry.TypeInfo(parent.id)
+        if parent_type_info.list_item_type():
+          self.AmendIndexer(parent_type_info.list_item_type())
+          break
+
     # Group overloaded operations by id
     operationsById = {}
     for operation in interface.operations:
@@ -612,10 +611,10 @@ class Dart2JSBackend(object):
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
+    if self._interface_type_info.is_typed_array():
+      element_type = self._interface_type_info.list_item_type()
       implements.append('List<%s>' % self._DartType(element_type))
-    if self._HasJavaScriptIndexingBehaviour():
+    if self._interface_type_info.list_item_type():
       implements.append('JavaScriptIndexingBehavior')
     return implements
 
@@ -1040,13 +1039,6 @@ class Dart2JSBackend(object):
 
   def CustomJSMembers(self):
     return _js_custom_members
-
-  def _HasJavaScriptIndexingBehaviour(self):
-    """Returns True if the native object has an indexer and length property."""
-    (element_type, requires_indexer) = ListImplementationInfo(
-        self._interface, self._database)
-    if element_type and requires_indexer: return True
-    return False
 
   def _NarrowToImplementationType(self, type_name):
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()

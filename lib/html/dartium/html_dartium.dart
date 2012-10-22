@@ -35089,7 +35089,7 @@ class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBufferList
-abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
+abstract class SourceBufferList implements EventTarget, List<SourceBuffer> {
 
   /** @domName SourceBufferList.length */
   abstract int get length;
@@ -35112,7 +35112,7 @@ abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-class _SourceBufferListImpl extends NativeFieldWrapperClass1 implements SourceBufferList {
+class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList {
 
   int get length native "SourceBufferList_length_Getter";
 
@@ -37557,7 +37557,7 @@ class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-abstract class TextTrackList implements List<TextTrack>, EventTarget {
+abstract class TextTrackList implements EventTarget, List<TextTrack> {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -37590,7 +37590,7 @@ abstract class TextTrackListEvents implements Events {
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackList {
+class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
   _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);
