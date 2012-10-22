@@ -2474,6 +2474,15 @@ void LICM::Optimize(FlowGraph* flow_graph) {
 }
 
 
+static bool IsLoadEliminationCandidate(Definition* def) {
+  // Immutable loads (not affected by side effects) are handled
+  // in the DominatorBasedCSE pass.
+  // TODO(fschneider): Extend to other load instructions.
+  return (def->IsLoadField() && def->AffectedBySideEffect())
+      || def->IsLoadIndexed();
+}
+
+
 static intptr_t NumberLoadExpressions(FlowGraph* graph) {
   DirectChainedHashMap<Definition*> map;
   intptr_t expr_id = 0;
@@ -2485,10 +2494,7 @@ static intptr_t NumberLoadExpressions(FlowGraph* graph) {
          !instr_it.Done();
          instr_it.Advance()) {
       Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn == NULL) ||
-          !defn->IsLoadField() ||
-          !defn->AffectedBySideEffect()) {
-        // TODO(fschneider): Extend to other load instructions.
+      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
       Definition* result = map.Lookup(defn);
@@ -2533,10 +2539,7 @@ static void ComputeAvailableLoads(
         break;
       }
       Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn == NULL) ||
-          !defn->IsLoadField() ||
-          !defn->AffectedBySideEffect()) {
-        // TODO(fschneider): Extend to other load instructions.
+      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
       avail_gen[preorder_number]->Add(defn->expr_id());
@@ -2588,7 +2591,7 @@ static void ComputeAvailableLoads(
 }
 
 
-static void OptimizeLoads(
+static bool OptimizeLoads(
     BlockEntryInstr* block,
     GrowableArray<Definition*>* definitions,
     const GrowableArray<BitVector*>& avail_in) {
@@ -2603,6 +2606,7 @@ static void OptimizeLoads(
     }
   }
 
+  bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* instr = it.Current();
     if (instr->HasSideEffect()) {
@@ -2613,11 +2617,7 @@ static void OptimizeLoads(
       continue;
     }
     Definition* defn = instr->AsDefinition();
-    if ((defn == NULL) ||
-        !defn->IsLoadField() ||
-        !defn->AffectedBySideEffect()) {
-      // Immutable loads are handled in normal CSE.
-      // TODO(fschneider): Extend to other load instructions.
+    if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
       continue;
     }
     Definition* result = (*definitions)[defn->expr_id()];
@@ -2629,6 +2629,7 @@ static void OptimizeLoads(
     // Replace current with lookup result.
     defn->ReplaceUsesWith(result);
     it.RemoveCurrentFromGraph();
+    changed = true;
     if (FLAG_trace_optimization) {
       OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
                 defn->ssa_temp_index(),
@@ -2643,15 +2644,17 @@ static void OptimizeLoads(
     if (i  < num_children - 1) {
       GrowableArray<Definition*> child_defs(definitions->length());
       child_defs.AddArray(*definitions);
-      OptimizeLoads(child, &child_defs, avail_in);
+      changed = OptimizeLoads(child, &child_defs, avail_in) || changed;
     } else {
-      OptimizeLoads(child, definitions, avail_in);
+      changed = OptimizeLoads(child, definitions, avail_in) || changed;
     }
   }
+  return changed;
 }
 
 
-void DominatorBasedCSE::Optimize(FlowGraph* graph) {
+bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
+  bool changed = false;
   if (FLAG_load_cse) {
     intptr_t max_expr_id = NumberLoadExpressions(graph);
     if (max_expr_id > 0) {
@@ -2667,19 +2670,21 @@ void DominatorBasedCSE::Optimize(FlowGraph* graph) {
       for (intptr_t j = 0; j < max_expr_id ; j++) {
         definitions.Add(NULL);
       }
-
-      OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
+      changed = OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
     }
   }
 
   DirectChainedHashMap<Instruction*> map;
-  OptimizeRecursive(graph->graph_entry(), &map);
+  changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
+
+  return changed;
 }
 
 
-void DominatorBasedCSE::OptimizeRecursive(
+bool DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
     DirectChainedHashMap<Instruction*>* map) {
+  bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
     if (current->AffectedBySideEffect()) continue;
@@ -2690,6 +2695,7 @@ void DominatorBasedCSE::OptimizeRecursive(
     }
     // Replace current with lookup result.
     ReplaceCurrentInstruction(&it, current, replacement);
+    changed = true;
   }
 
   // Process children in the dominator tree recursively.
@@ -2698,11 +2704,13 @@ void DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
       DirectChainedHashMap<Instruction*> child_map(*map);  // Copy map.
-      OptimizeRecursive(child, &child_map);
+      changed = OptimizeRecursive(child, &child_map) || changed;
     } else {
-      OptimizeRecursive(child, map);  // Reuse map for the last child.
+      // Reuse map for the last child.
+      changed = OptimizeRecursive(child, map) || changed;
     }
   }
+  return changed;
 }
 
 

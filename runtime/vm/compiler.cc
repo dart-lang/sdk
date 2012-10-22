@@ -215,7 +215,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
           optimizer.OptimizeComputations();
         }
         if (FLAG_common_subexpression_elimination) {
-          DominatorBasedCSE::Optimize(flow_graph);
+          if (DominatorBasedCSE::Optimize(flow_graph)) {
+            // Do another round of CSE to take secondary effects into account:
+            // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
+            // TODO(fschneider): Change to a one-pass optimization pass.
+            DominatorBasedCSE::Optimize(flow_graph);
+          }
         }
         if (FLAG_loop_invariant_code_motion &&
             (parsed_function.function().deoptimization_counter() <

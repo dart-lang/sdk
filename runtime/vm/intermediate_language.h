@@ -2695,6 +2695,10 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
   virtual Representation representation() const;
 
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const { return true; }
+
  private:
   const intptr_t class_id_;
 

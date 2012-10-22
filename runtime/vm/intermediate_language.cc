@@ -132,6 +132,13 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
+  LoadIndexedInstr* other_load = other->AsLoadIndexed();
+  ASSERT(other_load != NULL);
+  return class_id() == other_load->class_id();
+}
+
+
 bool ConstantInstr::AttributesEqual(Instruction* other) const {
   ConstantInstr* other_constant = other->AsConstant();
   ASSERT(other_constant != NULL);
