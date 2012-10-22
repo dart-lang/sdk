@@ -53,24 +53,24 @@ class StringValidator {
       raw = true;
       quoteChar = source.next();
     }
-    assert(identical(quoteChar, $SQ) || identical(quoteChar, $DQ));
+    assert(quoteChar == $SQ || quoteChar == $DQ);
     // String has at least one quote. Check it if has three.
     // If it only have two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
-    if (source.hasNext() && identical(source.next(), quoteChar) && source.hasNext()) {
+    if (source.hasNext() && source.next() == quoteChar && source.hasNext()) {
       int code = source.next();
-      assert(identical(code, quoteChar));  // If not, there is a bug in the parser.
+      assert(code == quoteChar);  // If not, there is a bug in the parser.
       quoteLength = 3;
       // Check if a multiline string starts with a newline (CR, LF or CR+LF).
       if (source.hasNext()) {
         code = source.next();
-        if (identical(code, $CR)) {
+        if (code == $CR) {
           quoteLength += 1;
-          if (source.hasNext() && identical(source.next(), $LF)) {
+          if (source.hasNext() && source.next() == $LF) {
             quoteLength += 1;
           }
-        } else if (identical(code, $LF)) {
+        } else if (code == $LF) {
           quoteLength += 1;
         }
       }
@@ -99,7 +99,7 @@ class StringValidator {
     for(Iterator<int> iter = string.iterator(); iter.hasNext(); length++) {
       index++;
       int code = iter.next();
-      if (identical(code, $BACKSLASH)) {
+      if (code == $BACKSLASH) {
         if (quoting.raw) continue;
         containsEscape = true;
         if (!iter.hasNext()) {
@@ -108,7 +108,7 @@ class StringValidator {
         }
         index++;
         code = iter.next();
-        if (identical(code, $x)) {
+        if (code == $x) {
           for (int i = 0; i < 2; i++) {
             if (!iter.hasNext()) {
               stringParseError("Incomplete escape sequence", token, index);
@@ -124,7 +124,7 @@ class StringValidator {
           }
           // A two-byte hex escape can't generate an invalid value.
           continue;
-        } else if (identical(code, $u)) {
+        } else if (code == $u) {
           int escapeStart = index - 1;
           index++;
           code = iter.next();
