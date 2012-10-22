@@ -166,7 +166,7 @@ class LocalFunctionTest {
     exception_caught = false;
     try {
       f(1);
-    } on ObjectNotClosureException catch (e) {
+    } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
