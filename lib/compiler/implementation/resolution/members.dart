@@ -1385,9 +1385,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitIn(Node node, Scope nestedScope) {
+    Scope oldScope = scope;
     scope = nestedScope;
     Element element = visit(node);
-    scope = scope.parent;
+    scope = oldScope;
     return element;
   }
 
@@ -1452,18 +1453,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionElement function = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
+    Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
     defineElement(node, function, doAddToScope: node.name !== null);
 
     Element previousEnclosingElement = enclosingElement;
     enclosingElement = function;
     // Run the body in a fresh statement scope.
-    StatementScope oldScope = statementScope;
+    StatementScope oldStatementScope = statementScope;
     statementScope = new StatementScope();
     visit(node.body);
-    statementScope = oldScope;
+    statementScope = oldStatementScope;
 
-    scope = scope.parent;
+    scope = oldScope;
     enclosingElement = previousEnclosingElement;
   }
 
@@ -2622,7 +2624,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
                              this.definitions, this.resolver, this.kind)
       : super(compiler) {
     variables = new VariableListElement.node(
-        definitions, ElementKind.VARIABLE_LIST, resolver.scope.element);
+        definitions, ElementKind.VARIABLE_LIST, resolver.enclosingElement);
   }
 
   SourceString visitSendSet(SendSet node) {
@@ -2966,11 +2968,27 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 }
 
 abstract class Scope {
-  final Element element;
+  /**
+   * Adds [element] to this scope. This operation is only allowed on mutable
+   * scopes such as [MethodScope] and [BlockScope].
+   */
+  abstract Element add(Element element);
+
+  /**
+   * Looks up the [Element] for [name] in this scope.
+   */
+  abstract Element lookup(SourceString name);
+
+  static Scope buildEnclosingScope(Element element) {
+    return element.enclosingElement != null
+        ? element.enclosingElement.buildScope() : element.buildScope();
+  }
+}
+
+abstract class NestedScope extends Scope {
   final Scope parent;
 
-  Scope(this.parent, this.element);
-  abstract Element add(Element element);
+  NestedScope(this.parent);
 
   Element lookup(SourceString name) {
     Element result = localLookup(name);
@@ -2993,11 +3011,11 @@ abstract class Scope {
  * scope is only used for class/interface declarations during resolution of the
  * class hierarchy. In all other cases [ClassScope] is used.
  */
-class TypeDeclarationScope extends Scope {
-  TypeDeclarationElement get element => super.element;
+class TypeDeclarationScope extends NestedScope {
+  final TypeDeclarationElement element;
 
-  TypeDeclarationScope(parent, TypeDeclarationElement element)
-      : super(parent, element) {
+  TypeDeclarationScope(parent, this.element)
+      : super(parent) {
     assert(parent != null);
   }
 
@@ -3005,7 +3023,7 @@ class TypeDeclarationScope extends Scope {
     throw "Cannot add element to TypeDeclarationScope";
   }
 
-  Element localLookup(SourceString name) {
+  Element lookupTypeVariable(SourceString name) {
     Link<DartType> typeVariableLink = element.typeVariables;
     while (!typeVariableLink.isEmpty()) {
       TypeVariableType typeVariable = typeVariableLink.head;
@@ -3017,20 +3035,20 @@ class TypeDeclarationScope extends Scope {
     return null;
   }
 
+  Element localLookup(SourceString name) => lookupTypeVariable(name);
+
   String toString() =>
       'TypeDeclarationScope($element)';
 }
 
-class MethodScope extends Scope {
+abstract class MutableScope extends NestedScope {
   final Map<SourceString, Element> elements;
 
-  MethodScope(Scope parent, Element element)
-      : super(parent, element),
+  MutableScope(Scope parent)
+      : super(parent),
         this.elements = new Map<SourceString, Element>() {
     assert(parent != null);
   }
-
-  Element localLookup(SourceString name) => elements[name];
 
   Element add(Element newElement) {
     if (elements.containsKey(newElement.name)) {
@@ -3040,13 +3058,22 @@ class MethodScope extends Scope {
     return newElement;
   }
 
-  String toString() => '$element${elements.getKeys()}';
+  Element localLookup(SourceString name) => elements[name];
 }
 
-class BlockScope extends MethodScope {
-  BlockScope(Scope parent) : super(parent, parent.element);
+class MethodScope extends MutableScope {
+  final Element element;
 
-  String toString() => 'block${elements.getKeys()}';
+  MethodScope(Scope parent, this.element)
+      : super(parent);
+
+  String toString() => 'MethodScope($element${elements.getKeys()})';
+}
+
+class BlockScope extends MutableScope {
+  BlockScope(Scope parent) : super(parent);
+
+  String toString() => 'BlockScope(${elements.getKeys()})';
 }
 
 /**
@@ -3083,18 +3110,17 @@ class ClassScope extends TypeDeclarationScope {
   String toString() => 'ClassScope($element)';
 }
 
-class LibraryScope extends Scope {
-  LibraryElement get library => element;
+class LibraryScope implements Scope {
+  final LibraryElement library;
 
-  LibraryScope(LibraryElement library) : super(null, library);
+  LibraryScope(LibraryElement this.library);
 
   Element localLookup(SourceString name) => library.find(name);
   Element lookup(SourceString name) => localLookup(name);
-  Element lexicalLookup(SourceString name) => localLookup(name);
 
   Element add(Element newElement) {
     throw "Cannot add an element to a library scope";
   }
 
-  String toString() => 'LibraryScope($element)';
+  String toString() => 'LibraryScope($library)';
 }
