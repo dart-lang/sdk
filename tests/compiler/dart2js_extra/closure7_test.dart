@@ -15,14 +15,14 @@ globalTest() {
   Expect.equals(499, foo());
   foo = (x, y) => x + y;
   Expect.equals(102, bar());
-  foo = ([fun = null]) => fun(41);
+  foo = ({fun: null}) => fun(41);
   Expect.equals(42, gee((x) => x + 1));
 
   foo = () => 499;
   Expect.equals(499, foo2());
   foo = (x, y) => x + y;
   Expect.equals(102, bar2());
-  foo = ([fun = null]) => fun(41);
+  foo = ({fun: null}) => fun(41);
   Expect.equals(42, gee2((x) => x + 1));
 }
 
@@ -41,14 +41,14 @@ staticTest() {
   Expect.equals(499, A.foo());
   A.foo = (x, y) => x + y;
   Expect.equals(102, A.bar());
-  A.foo = ([fun = null]) => fun(41);
+  A.foo = ({fun: null}) => fun(41);
   Expect.equals(42, A.gee((x) => x + 1));
 
   A.foo = () => 499;
   Expect.equals(499, A.foo2());
   A.foo = (x, y) => x + y;
   Expect.equals(102, A.bar2());
-  A.foo = ([fun = null]) => fun(41);
+  A.foo = ({fun: null}) => fun(41);
   Expect.equals(42, A.gee2((x) => x + 1));
 }
 

@@ -47,9 +47,9 @@ testDynamicContext() {
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
-  Expect.equals(1, b.foo(x: 10));   // 1 = x
-  Expect.equals(2, b.foo(y: 20));   // 2 = x, y
-  Expect.equals(3, b.foo(z: 30));   // 3 = x, y, z
+  Expect.equals(1, b.foo(10));
+  Expect.equals(2, b.foo(null, 20));
+  Expect.equals(3, b.foo(null, null, 30));
   Expect.throws(() => b.foo(10, 20, 30, 40));
 }
 
@@ -67,9 +67,9 @@ testStaticContext() {
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
-  Expect.equals(1, b.foo(x: 10));
-  Expect.equals(2, b.foo(y: 20));
-  Expect.equals(3, b.foo(z: 30));
+  Expect.equals(1, b.foo(10));
+  Expect.equals(2, b.foo(null, 20));
+  Expect.equals(3, b.foo(null, null, 30));
   Expect.throws(() => b.foo(10, 20, 30, 40));
 }
 

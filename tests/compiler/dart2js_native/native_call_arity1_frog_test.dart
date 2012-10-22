@@ -7,8 +7,8 @@
 // methods can dispatch on the number of arguments.  Passing null or undefined
 // as the last argument is not the same as passing one fewer argument.
 //
-// * Named arguments are passed in the correct position, so require preceding
-// arguments to be passed.
+// * Optional positional arguments are passed in the correct position, so
+// require preceding arguments to be passed.
 
 class A native "*A" {
   int foo(int x) native;

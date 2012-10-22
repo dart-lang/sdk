@@ -4,7 +4,7 @@
 
 // Test parsing and resolution of argument definition test.
 
-int test(int a, [int b = 2, int c = 3]) {
+int test(int a, {int b: 2, int c: 3}) {
   int result = 0;
   print(?b);
   print(?result);  /// 01: compile-time error
@@ -19,7 +19,7 @@ int test(int a, [int b = 2, int c = 3]) {
   print(!?a?!?b:!?c == ?a??b:?c);
 }
 
-closure_test(int a, [int b = 2, int c = 3]) {
+closure_test(int a, {int b: 2, int c: 3}) {
   var x = 0;
   return () {
     int result = 0;
@@ -40,12 +40,12 @@ closure_test(int a, [int b = 2, int c = 3]) {
 
 main() {
   test(1);
-  test(1, 2);
-  test(1, 2, 3);
-  test(1, c:3);
+  test(1, b: 2);
+  test(1, b: 2, c: 3);
+  test(1, c: 3);
 
   closure_test(1)();
-  closure_test(1, 2)();
-  closure_test(1, 2, 3)();
-  closure_test(1, c:3)();
+  closure_test(1, b: 2)();
+  closure_test(1, b: 2, c: 3)();
+  closure_test(1, c: 3)();
 }

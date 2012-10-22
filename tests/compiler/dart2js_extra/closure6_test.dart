@@ -18,13 +18,13 @@ main() {
   Expect.equals(499, a.foo());
   a.foo = (x, y) => x + y;
   Expect.equals(102, a.bar());
-  a.foo = ([fun = null]) => fun(41);
+  a.foo = ({fun: null}) => fun(41);
   Expect.equals(42, a.gee((x) => x + 1));
 
   a.foo = () => 499;
   Expect.equals(499, a.foo2());
   a.foo = (x, y) => x + y;
   Expect.equals(102, a.bar2());
-  a.foo = ([fun = null]) => fun(41);
+  a.foo = ({fun: null}) => fun(41);
   Expect.equals(42, a.gee2((x) => x + 1));
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  foo([a, b]) {
+  foo({a, b}) {
     Expect.equals(0, a);
     Expect.equals(1, b);
   }
