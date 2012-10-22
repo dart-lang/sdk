@@ -975,7 +975,7 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
   while (!super_class.IsNull()) {
     // Check if a function of same name exists in any super class.
     function = super_class.LookupFunction(name);
-    if (!function.IsNull()) {
+    if (!function.IsNull() && !function.is_static()) {
       return super_class.raw();
     }
     super_class = super_class.SuperClass();

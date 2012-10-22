@@ -43,8 +43,6 @@ closure_with_super_field_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 
-fauxverride_test/none: Fail # Issue 3778.
-
 bad_override_test/01: Fail # Issue 3859.
 bad_override_test/02: Fail # Issue 3859.
 
@@ -382,7 +380,6 @@ closure_with_super_send_test: Fail # Issue 3197.
 closure_with_super_field_test: Fail # Issue 3197.
 constructor5_test: Fail
 constructor6_test: Fail
-fauxverride_test/none: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail

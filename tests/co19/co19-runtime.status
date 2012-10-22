@@ -103,8 +103,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # TODO(vm-team): P
 Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/4_Abstract_Instance_Members_A06_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -547,14 +545,6 @@ Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: Fail # 
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
-
-
-# function '?' of class '?' conflicts with getter 'f' of super class '?'
-Language/07_Classes/1_Instance_Methods_A05_t02: Fail
-
-
-# function '?' of class '?' conflicts with setter 'f' of super class '?'
-Language/07_Classes/1_Instance_Methods_A05_t03: Fail
 
 
 # initializer must be a compile time constant
