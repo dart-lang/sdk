@@ -1634,8 +1634,6 @@ abstract class ClassElement extends ScopeContainerElement
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
-  Scope buildLocalScope() => new LocalClassScope(this);
-
   Link<DartType> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));
   }

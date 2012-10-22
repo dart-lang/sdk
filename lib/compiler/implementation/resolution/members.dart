@@ -695,8 +695,7 @@ class InitializerResolver {
     // Lookup target field.
     Element target;
     if (isFieldInitializer(init)) {
-      Scope localScope = constructor.getEnclosingClass().buildLocalScope();
-      target = localScope.lookup(name);
+      target = constructor.getEnclosingClass().lookupLocalMember(name);
       if (target == null) {
         error(selector, MessageKind.CANNOT_RESOLVE, [name]);
       } else if (target.kind != ElementKind.FIELD) {
@@ -1537,7 +1536,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else if (identical(resolvedReceiver.kind, ElementKind.CLASS)) {
       ClassElement receiverClass = resolvedReceiver;
       receiverClass.ensureResolved(compiler);
-      target = receiverClass.buildLocalScope().lookup(name);
+      target = receiverClass.lookupLocalMember(name);
       if (target == null) {
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
         // try to resolve injected elements if [currentClass] is in the patch
@@ -3098,22 +3097,4 @@ class LibraryScope extends Scope {
   }
 
   String toString() => 'LibraryScope($element)';
-}
-
-class LocalClassScope extends Scope {
-  LocalClassScope(ClassElement element)
-      : super(null, element);
-
-  Element lookup(SourceString name) => localLookup(name);
-
-  Element localLookup(SourceString name) {
-    ClassElement cls = element;
-    return cls.lookupLocalMember(name);
-  }
-
-  Element add(Element newElement) {
-    throw "Cannot add an element in a class scope";
-  }
-
-  String toString() => 'LocalClassScope($element)';
 }
