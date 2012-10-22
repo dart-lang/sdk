@@ -27,25 +27,15 @@ main() {
   setup();
   var a = makeA();
   Expect.equals(43, a.foo1((arg1) => arg1, 43));
-  Expect.equals(43, a.foo1((arg1) => arg1, arg1: 43));
   Expect.equals(0, a.foo1((arg1) => arg1));
 
   Expect.equals(44, a.foo2((arg1, arg2) => arg1 + arg2, 21, 23));
   Expect.equals(22, a.foo2((arg1, arg2) => arg1 + arg2, 21));
-  Expect.equals(22, a.foo2((arg1, arg2) => arg1 + arg2, arg1: 21));
-  Expect.equals(21, a.foo2((arg1, arg2) => arg1 + arg2, arg2: 21));
-  Expect.equals(44, a.foo2((arg1, arg2) => arg1 + arg2, arg1: 21, arg2: 23));
-  Expect.equals(44, a.foo2((arg1, arg2) => arg1 - arg2, arg2: 22, arg1: 66));
 
   A aa = a;
   Expect.equals(43, aa.foo1((arg1) => arg1, 43));
-  Expect.equals(43, aa.foo1((arg1) => arg1, arg1: 43));
   Expect.equals(0, aa.foo1((arg1) => arg1));
 
   Expect.equals(44, aa.foo2((arg1, arg2) => arg1 + arg2, 21, 23));
   Expect.equals(22, aa.foo2((arg1, arg2) => arg1 + arg2, 21));
-  Expect.equals(22, aa.foo2((arg1, arg2) => arg1 + arg2, arg1: 21));
-  Expect.equals(21, aa.foo2((arg1, arg2) => arg1 + arg2, arg2: 21));
-  Expect.equals(44, aa.foo2((arg1, arg2) => arg1 + arg2, arg1: 21, arg2: 23));
-  Expect.equals(44, aa.foo2((arg1, arg2) => arg1 - arg2, arg2: 22, arg1: 66));
 }
