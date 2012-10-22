@@ -155,7 +155,7 @@ class Collections {
    */
   static _containsRef(Collection c, Object ref) {
     for (var e in c) {
-      if (e === ref) return true;
+      if (identical(e, ref)) return true;
     }
     return false;
   }

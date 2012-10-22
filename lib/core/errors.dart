@@ -94,7 +94,7 @@ class NoSuchMethodError implements Error {
       }
       sb.add(safeToString(_arguments[i]));
     }
-    if (_existingArgumentNames === null) {
+    if (_existingArgumentNames == null) {
       return "NoSuchMethodError : method not found: '$_functionName'\n"
           "Receiver: ${safeToString(_receiver)}\n"
           "Arguments: [$sb]";

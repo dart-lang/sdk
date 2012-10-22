@@ -45,20 +45,20 @@ class LinkedHashMapImplementation<K, V>
 
   V operator [](K key) {
     DoubleLinkedQueueEntry<KeyValuePair<K, V>> entry = _map[key];
-    if (entry === null) return null;
+    if (entry == null) return null;
     return entry.element.value;
   }
 
   V remove(K key) {
     DoubleLinkedQueueEntry<KeyValuePair<K, V>> entry = _map.remove(key);
-    if (entry === null) return null;
+    if (entry == null) return null;
     entry.remove();
     return entry.element.value;
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
     V value = this[key];
-    if ((this[key] === null) && !(containsKey(key))) {
+    if ((this[key] == null) && !(containsKey(key))) {
       value = ifAbsent();
       this[key] = value;
     }

@@ -63,28 +63,28 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
     while (true) {
       int comp = key.compareTo(current.key);
       if (comp < 0) {
-        if (current.left === null) break;
+        if (current.left == null) break;
         if (key.compareTo(current.left.key) < 0) {
           // Rotate right.
           SplayTreeNode<K, V> tmp = current.left;
           current.left = tmp.right;
           tmp.right = current;
           current = tmp;
-          if (current.left === null) break;
+          if (current.left == null) break;
         }
         // Link right.
         right.left = current;
         right = current;
         current = current.left;
       } else if (comp > 0) {
-        if (current.right === null) break;
+        if (current.right == null) break;
         if (key.compareTo(current.right.key) > 0) {
           // Rotate left.
           SplayTreeNode<K, V> tmp = current.right;
           current.right = tmp.left;
           tmp.left = current;
           current = tmp;
-          if (current.right === null) break;
+          if (current.right == null) break;
         }
         // Link left.
         left.right = current;
@@ -121,7 +121,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
 
     _count--;
     // assert(_count >= 0);
-    if (_root.left === null) {
+    if (_root.left == null) {
       _root = _root.right;
     } else {
       SplayTreeNode<K, V> right = _root.right;
@@ -173,19 +173,19 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   bool isEmpty() {
     // assert(!((_root === null) && (_count != 0)));
     // assert(!((_count == 0) && (_root !== null)));
-    return (_root === null);
+    return (_root == null);
   }
 
   void forEach(void f(K key, V value)) {
     List<SplayTreeNode<K, V>> list = new List<SplayTreeNode<K, V>>();
     SplayTreeNode<K, V> current = _root;
-    while (current !== null) {
-      if (current.left !== null) {
+    while (current != null) {
+      if (current.left != null) {
         list.add(current);
         current = current.left;
       } else {
         f(current.key, current.value);
-        while (current.right === null) {
+        while (current.right == null) {
           if (list.isEmpty()) return;
           current = list.removeLast();
           f(current.key, current.value);
@@ -215,7 +215,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   bool containsValue(V value) {
     bool found = false;
     bool visit(SplayTreeNode node) {
-      if (node === null) return false;
+      if (node == null) return false;
       if (node.value == value) return true;
       return visit(node.left) || visit(node.right);
     }
@@ -242,9 +242,9 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
    * Get the first key in the map. Returns [null] if the map is empty.
    */
   K firstKey() {
-    if (_root === null) return null;
+    if (_root == null) return null;
     SplayTreeNode<K, V> node = _root;
-    while (node.left !== null) {
+    while (node.left != null) {
       node = node.left;
     }
     // Maybe implement a splay-method that can splay the minimum without
@@ -257,9 +257,9 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
    * Get the last key in the map. Returns [null] if the map is empty.
    */
   K lastKey() {
-    if (_root === null) return null;
+    if (_root == null) return null;
     SplayTreeNode<K, V> node = _root;
-    while (node.right !== null) {
+    while (node.right != null) {
       node = node.right;
     }
     // Maybe implement a splay-method that can splay the maximum without
@@ -275,7 +275,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   K lastKeyBefore(K key) {
     splay_(key);
     K visit(SplayTreeNode node, K ifEmpty) {
-      if (node === null) return ifEmpty;
+      if (node == null) return ifEmpty;
       if (node.key.compareTo(key) >= 0) {
         return visit(node.left, ifEmpty);
       }
@@ -293,7 +293,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   K firstKeyAfter(K key) {
     splay_(key);
     K visit(SplayTreeNode node, K ifEmpty) {
-      if (node === null) return ifEmpty;
+      if (node == null) return ifEmpty;
       if (node.key.compareTo(key) > 0) {
         return visit(node.left, node.key);
       }

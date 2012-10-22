@@ -56,7 +56,7 @@ class FutureImpl<T> implements Future<T> {
     if (!isComplete) {
       throw new FutureNotCompleteException();
     }
-    if (_exception !== null) {
+    if (_exception != null) {
       throw new FutureUnhandledException(_exception, stackTrace);
     }
     return _value;
@@ -81,7 +81,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   bool get hasValue {
-    return isComplete && _exception === null;
+    return isComplete && _exception == null;
   }
 
   void then(void onSuccess(T value)) {
@@ -119,7 +119,7 @@ class FutureImpl<T> implements Future<T> {
     _isComplete = true;
 
     try {
-      if (_exception !== null) {
+      if (_exception != null) {
         for (Function handler in _exceptionHandlers) {
           // Explicitly check for true here so that if the handler returns null,
           // we don't get an exception in checked mode.
@@ -157,7 +157,7 @@ class FutureImpl<T> implements Future<T> {
   }
 
   void _setException(Object exception, Object stackTrace) {
-    if (exception === null) {
+    if (exception == null) {
       // null is not a legal value for the exception of a Future.
       throw new ArgumentError(null);
     }
