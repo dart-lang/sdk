@@ -7,6 +7,10 @@
 {
   'sources': [
     'common.cc',
+    'crypto.cc',
+    'crypto_linux.cc',
+    'crypto_macos.cc',
+    'crypto_win.cc',
     'dartutils.cc',
     'dartutils.h',
     'dbg_connection.cc',

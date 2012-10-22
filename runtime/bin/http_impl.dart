@@ -853,6 +853,16 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
 
   String get protocolVersion => _protocolVersion;
 
+  HttpSession session([init(HttpSession session)]) {
+    if (_session != null) {
+      // It's already mapped, use it.
+      return _session;
+    }
+    // Create session, store it in connection, and return.
+    var sessionManager = _httpConnection._server._sessionManager;
+    return _session = sessionManager.createSession(init);
+  }
+
   void _onRequestStart(String method, String uri, String version) {
     _method = method;
     _uri = uri;
@@ -864,6 +874,22 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _onHeadersComplete() {
+    if (_httpConnection._server._sessionManagerInstance != null) {
+      // Map to session if exists.
+      var sessionId = cookies.reduce(null, (last, cookie) {
+        if (last != null) return last;
+        return cookie.name.toUpperCase() == _DART_SESSION_ID ?
+            cookie.value : null;
+      });
+      if (sessionId != null) {
+        var sessionManager = _httpConnection._server._sessionManager;
+        _session = sessionManager.getSession(sessionId);
+        if (_session != null) {
+          _session._markSeen();
+        }
+      }
+    }
+
     _headers._mutable = false;
     // Prepare for receiving data.
     _buffer = new _BufferList();
@@ -921,6 +947,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   _BufferList _buffer;
   bool _dataEndCalled = false;
   Function _streamErrorHandler;
+  _HttpSession _session;
 }
 
 
@@ -1098,6 +1125,21 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
+    var session = _httpConnection._request._session;
+    if (session != null && !session._destroyed) {
+      // Make sure we only send the current session id.
+      bool found = false;
+      for (int i = 0; i < cookies.length; i++) {
+        if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
+          cookie.value = session.id;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        cookies.add(new Cookie(_DART_SESSION_ID, session.id));
+      }
+    }
     // Add all the cookies set to the headers.
     if (_cookies != null) {
       _cookies.forEach((cookie) {
@@ -1439,7 +1481,6 @@ class _RequestHandlerRegistration {
   Function _handler;
 }
 
-
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
@@ -1485,7 +1526,11 @@ class _HttpServer implements HttpServer {
   }
 
   void close() {
-    if (_server !== null && _closeServer) {
+    if (_sessionManagerInstance != null) {
+      _sessionManagerInstance.close();
+      _sessionManagerInstance = null;
+    }
+    if (_server != null && _closeServer) {
       _server.close();
     }
     _server = null;
@@ -1504,6 +1549,10 @@ class _HttpServer implements HttpServer {
 
   void set onError(void callback(e)) {
     _onError = callback;
+  }
+
+  int set sessionTimeout(int timeout) {
+    _sessionManager.sessionTimeout = timeout;
   }
 
   void _handleRequest(HttpRequest request, HttpResponse response) {
@@ -1532,6 +1581,14 @@ class _HttpServer implements HttpServer {
     }
   }
 
+  _HttpSessionManager get _sessionManager {
+    // Lazy init.
+    if (_sessionManagerInstance == null) {
+      _sessionManagerInstance = new _HttpSessionManager();
+    }
+    return _sessionManagerInstance;
+  }
+
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
@@ -1539,6 +1596,7 @@ class _HttpServer implements HttpServer {
   List<_RequestHandlerRegistration> _handlers;
   Object _defaultHandler;
   Function _onError;
+  _HttpSessionManager _sessionManagerInstance;
 }
 
 
