@@ -2289,7 +2289,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
 
   TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
       : this.element = element,
-        scope = element.buildEnclosingScope(),
+        scope = Scope.buildEnclosingScope(element),
         typeResolver = new TypeResolver(compiler),
         super(compiler);
 
@@ -2545,7 +2545,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   ClassElement classElement;
 
   ClassSupertypeResolver(Compiler compiler, ClassElement cls)
-    : context = cls.buildEnclosingScope(),
+    : context = Scope.buildEnclosingScope(cls),
       this.classElement = cls,
       super(compiler);
 
@@ -2980,6 +2980,11 @@ abstract class Scope {
   }
 
   abstract Element localLookup(SourceString name);
+
+  static Scope buildEnclosingScope(Element element) {
+    return element.enclosingElement != null
+        ? element.enclosingElement.buildScope() : element.buildScope();
+  }
 }
 
 /**
@@ -3079,41 +3084,20 @@ class ClassScope extends TypeDeclarationScope {
   String toString() => 'ClassScope($element)';
 }
 
-// TODO(johnniwinther): Refactor scopes to avoid class explosion.
-class PatchClassScope extends TypeDeclarationScope {
-  ClassElement get origin => element;
-  final ClassElement patch;
+class LibraryScope extends Scope {
+  LibraryElement get library => element;
 
-  PatchClassScope(Scope parentScope,
-                  ClassElement origin, ClassElement this.patch)
-      : super(parentScope, origin) {
-    assert(parent != null);
-  }
+  LibraryScope(LibraryElement library) : super(null, library);
 
-  Element localLookup(SourceString name) {
-    Element result = patch.lookupLocalMember(name);
-    if (result != null) return result;
-    result = origin.lookupLocalMember(name);
-    if (result != null) return result;
-    result = super.localLookup(name);
-    if (result != null) return result;
-    result = parent.lookup(name);
-    if (result != null) return result;
-    return result;
-  }
-
-  Element lookup(SourceString name) {
-    Element result = localLookup(name);
-    if (result != null) return result;
-    // TODO(johnniwinther): Should we support patch lookup on supertypes?
-    return origin.lookupSuperMember(name);
-  }
+  Element localLookup(SourceString name) => library.find(name);
+  Element lookup(SourceString name) => localLookup(name);
+  Element lexicalLookup(SourceString name) => localLookup(name);
 
   Element add(Element newElement) {
-    throw "Cannot add an element in a class scope";
+    throw "Cannot add an element to a library scope";
   }
 
-  String toString() => 'PatchClassScope($origin,$patch)';
+  String toString() => 'LibraryScope($element)';
 }
 
 class LocalClassScope extends Scope {
@@ -3132,68 +3116,4 @@ class LocalClassScope extends Scope {
   }
 
   String toString() => 'LocalClassScope($element)';
-}
-
-class LocalPatchClassScope extends Scope {
-  ClassElement get origin => element;
-  final ClassElement patch;
-
-  LocalPatchClassScope(ClassElement origin, ClassElement this.patch)
-      : super(null, origin);
-
-  Element lookup(SourceString name) => localLookup(name);
-
-  Element localLookup(SourceString name) {
-    Element result = patch.lookupLocalMember(name);
-    if (result != null) return result;
-    return origin.lookupLocalMember(name);
-  }
-
-  Element add(Element newElement) {
-    throw "Cannot add an element in a class scope";
-  }
-
-  String toString() => 'LocalPatchClassScope($origin,$patch)';
-}
-
-class TopScope extends Scope {
-  LibraryElement get library => element;
-
-  TopScope(LibraryElement library) : super(null, library);
-
-  Element localLookup(SourceString name) => library.find(name);
-  Element lookup(SourceString name) => localLookup(name);
-  Element lexicalLookup(SourceString name) => localLookup(name);
-
-  Element add(Element newElement) {
-    throw "Cannot add an element in the top scope";
-  }
-  String toString() => 'LibraryScope($element)';
-}
-
-class PatchLibraryScope extends Scope {
-  LibraryElement get origin => element;
-  final LibraryElement patch;
-
-  PatchLibraryScope(LibraryElement origin, LibraryElement this.patch)
-      : super(null, origin);
-
-  Element localLookup(SourceString name) {
-    Element result = patch.find(name);
-    if (result != null) {
-      return result;
-    }
-    result = origin.find(name);
-    if (result != null) {
-      return result;
-    }
-    return result;
-  }
-  Element lookup(SourceString name) => localLookup(name);
-  Element lexicalLookup(SourceString name) => localLookup(name);
-
-  Element add(Element newElement) {
-    throw "Cannot add an element in a patch library scope";
-  }
-  String toString() => 'PatchLibraryScope($origin,$patch)';
 }

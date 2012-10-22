@@ -316,20 +316,9 @@ class Element implements Spannable {
   }
 
   /**
-   * Creates the scope for this element. The scope of the
-   * enclosing element will be the parent scope.
+   * Creates the scope for this element.
    */
-  // TODO(johnniwinther): Clean up scope generation. Possibly generation scopes
-  // externally.
-  Scope buildScope({bool patchScope: false}) =>
-      buildEnclosingScope(patchScope: patchScope);
-
-  /**
-   * Creates the scope for the enclosing element.
-   */
-  // TODO(johnniwinther): Remove buildEnclosingScope as part of scope clean-up.
-  Scope buildEnclosingScope({bool patchScope: false}) =>
-      enclosingElement.buildScope(patchScope: patchScope);
+  Scope buildScope() => enclosingElement.buildScope();
 
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
@@ -705,10 +694,18 @@ class LibraryElement extends ScopeContainerElement {
    */
   Element find(SourceString elementName) {
     Element result = localScope[elementName];
-    if (result == null) {
-      result = importScope[elementName];
+    if (result != null) return result;
+    if (origin != null) {
+      result = origin.localScope[elementName];
+      if (result != null) return result;
     }
-    return result;
+    result = importScope[elementName];
+    if (result != null) return result;
+    if (origin != null) {
+      result = origin.importScope[elementName];
+      if (result != null) return result;
+    }
+    return null;
   }
 
   /** Look up a top-level element in this library, but only look for
@@ -759,16 +756,7 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildEnclosingScope({bool patchScope: false}) {
-    if (origin != null) {
-      return new PatchLibraryScope(origin, this);
-    } if (patchScope && patch != null) {
-      return new PatchLibraryScope(this, patch);
-    } else {
-      return new TopScope(this);
-    }
-  }
+  Scope buildScope() => new LibraryScope(this);
 
   bool get isPlatformLibrary => uri.scheme == "dart";
 
@@ -831,10 +819,8 @@ class TypedefElement extends Element implements TypeDeclarationElement {
 
   Link<DartType> get typeVariables => cachedType.typeArguments;
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    return new TypeDeclarationScope(
-      enclosingElement.buildScope(patchScope: patchScope), this);
+  Scope buildScope() {
+    return new TypeDeclarationScope(enclosingElement.buildScope(), this);
   }
 }
 
@@ -1646,27 +1632,9 @@ abstract class ClassElement extends ScopeContainerElement
   bool isNative() => nativeName != null;
   int get hashCode => id;
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    if (origin != null) {
-      return new PatchClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), origin, this);
-    } else if (patchScope && patch != null) {
-      return new PatchClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), this, patch);
-    } else {
-      return new ClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), this);
-    }
-  }
+  Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
-  Scope buildLocalScope() {
-    if (origin != null) {
-      return new LocalPatchClassScope(origin, this);
-    } else {
-      return new LocalClassScope(this);
-    }
-  }
+  Scope buildLocalScope() => new LocalClassScope(this);
 
   Link<DartType> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));

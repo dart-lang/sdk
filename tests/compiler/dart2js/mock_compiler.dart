@@ -155,11 +155,11 @@ class MockCompiler extends Compiler {
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
     ResolverVisitor visitor = new ResolverVisitor(this, element);
-    if (visitor.scope is TopScope) {
+    if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
-    visitor.scope = new TopScope(element.getLibrary());
+    visitor.scope = new LibraryScope(element.getLibrary());
     return visitor.mapping;
   }
 
