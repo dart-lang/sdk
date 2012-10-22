@@ -117,4 +117,9 @@ def main(args):
     return -1
 
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+  sys.stderr.write('starting make_version.py\n')
+  sys.stderr.flush()
+  exit_code = main(sys.argv)
+  sys.stderr.write('exiting make_version.py (exit code: %s)\n' % exit_code)
+  sys.stderr.flush()
+  sys.exit(exit_code)
