@@ -12,17 +12,12 @@ class CloningVisitor implements Visitor<Node> {
   visit(Node node) {
     if (node == null) return null;
     final clone = node.accept(this);
+
     final originalElement = originalTreeElements[node];
-    if (originalElement != null) {
-      cloneTreeElements[clone] = originalElement;
-    }
-    TypeAnnotation asTypeAnnotation = node.asTypeAnnotation();
-    if (asTypeAnnotation != null) {
-      final originalType = originalTreeElements.getType(asTypeAnnotation);
-      if (originalType != null) {
-        cloneTreeElements.setType(clone.asTypeAnnotation(), originalType);
-      }
-    }
+    if (originalElement != null) cloneTreeElements[clone] = originalElement;
+
+    final originalType = originalTreeElements.getType(node);
+    if (originalType != null) cloneTreeElements.setType(clone, originalType);
     return clone;
   }
 
