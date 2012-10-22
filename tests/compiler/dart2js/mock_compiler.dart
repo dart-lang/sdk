@@ -97,6 +97,10 @@ class MockCompiler extends Compiler {
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
+    // We need to make sure the Object class is resolved. When registering a
+    // dynamic invocation the ArgumentTypesRegistry eventually iterates over
+    // the interfaces of the Object class which would be 'null' if the class
+    // wasn't resolved.
     objectClass.ensureResolved(this);
   }
 
