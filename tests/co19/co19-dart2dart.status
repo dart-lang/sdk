@@ -40,6 +40,39 @@ LibTest/core/Date/timeZoneOffset_A01_t01: Fail
 LibTest/core/Date/toLocal_A01_t01: Fail
 LibTest/core/Date/toUtc_A01_t01: Fail
 
+# These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t03: Fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t01: Fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A18_t01: Fail, OK
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A18_t03: Fail, OK
+Language/10_Expressions/11_Instance_Creation/1_New_A01_t01: Fail, OK
+Language/10_Expressions/11_Instance_Creation/2_Const_A01_t01: Fail, OK
+Language/10_Expressions/11_Instance_Creation/2_Const_A08_t01: Fail, OK
+Language/10_Expressions/11_Instance_Creation/2_Const_A08_t02: Fail, OK
+Language/10_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t02: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t01: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t02: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t03: Fail, OK
+Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t04: Fail, OK
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A01_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: Fail, OK
+Language/14_Types/5_Function_Types_A01_t21: Fail, OK
+LibTest/core/Expect/approxEquals_A02_t01: Fail, OK
+LibTest/core/Expect/approxEquals_A03_t01: Fail, OK
+LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
+LibTest/core/Expect/listEquals_A03_t01: Fail, OK
+LibTest/core/Expect/notEquals_A02_t01: Fail, OK
+LibTest/core/Expect/stringEquals_A02_t01: Fail, OK
+LibTest/core/Expect/throws_A01_t01: Fail, OK
+LibTest/core/Expect/throws_A01_t03: Fail, OK
+LibTest/core/List/List_A01_t01: Fail, OK
+
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
 LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail, OK # co19 issue 263

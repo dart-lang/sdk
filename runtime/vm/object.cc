@@ -37,7 +37,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
-DEFINE_FLAG(bool, reject_named_argument_as_positional, false,
+DEFINE_FLAG(bool, reject_named_argument_as_positional, true,
     "Enforce new rules for optional parameters and disallow passing of named "
     "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
