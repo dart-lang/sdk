@@ -12,11 +12,13 @@
  
 # TODO(efortuna): Rewrite this script in Dart when the Process module has a
 # better high level API.
+import HTMLParser
 import optparse
 import os
 import platform
 import re
 import shutil
+import string
 import subprocess
 import sys
 import urllib
@@ -40,6 +42,8 @@ def parse_args():
   parser = optparse.OptionParser()
   parser.add_option('--firefox', '-f', dest='firefox',
       help="Don't install Firefox", action='store_true', default=False)
+  parser.add_option('--opera', '-o', dest='opera', default=False,
+      help="Don't install Opera", action='store_true')
   parser.add_option('--chromedriver', '-c', dest='chromedriver',
       help="Don't install chromedriver.", action='store_true', default=False)
   parser.add_option('--iedriver', '-i', dest='iedriver',
@@ -54,7 +58,7 @@ def parse_args():
   parser.add_option('--buildbot', '-b', dest='buildbot', action='store_true',
       help='Perform a buildbot selenium setup (buildbots have a different' +
       'location for their python executable).', default=False)
-  args, ignored = parser.parse_args()
+  args, _ = parser.parse_args()
   return args
 
 def find_depot_tools_location(is_buildbot):
@@ -273,6 +277,114 @@ class SeleniumBindingsInstaller(object):
     run_cmd('%s %s' % (admin_keyword, python_cmd), page.read())
     run_cmd('%s %s install -U selenium' % (admin_keyword, pip_cmd))
 
+class OperaHtmlParser(HTMLParser.HTMLParser):
+  """A helper class to parse Opera pages listing available downloads to find the
+  correct download we want."""
+
+  def initialize(self, rejection_func, accept_func):
+    """Initialize some state for our parser.
+    Arguments:
+    rejection_func: A function that accepts the value of the URL and determines
+      if it is of the type we are looking for.
+    accept_func: A function that takes the URL and the "current best" URL and 
+      determines if it is better than our current download url."""
+    self.latest = 0
+    self.rejection_func = rejection_func
+    self.accept_func = accept_func
+
+  def handle_starttag(self, tag, attrs):
+    """Find the latest version."""
+    if (tag == 'a' and attrs[0][0] == 'href' and
+        self.rejection_func(attrs[0][1])):
+      self.latest = self.better_func(attrs[0][1], self.latest)
+
+class OperaInstaller(object):
+  """Install from the Opera FTP website."""
+
+  def find_latest_version(self, download_page, rejection_func, accept_func):
+    """Get the latest non-beta version.
+    Arguments:
+    download_page: The initial page that lists all the download options.
+    rejection_func: A function that accepts the value of the URL and determines
+      if it is of the type we are looking for.
+    accept_func: A function that takes the URL and the "current best" URL and 
+      determines if it is better than our current download url."""
+    f = urllib2.urlopen(download_page)
+    parser = OperaHtmlParser()
+    parser.initialize(rejection_func, accept_func)
+    parser.feed(f.read())
+    return str(parser.latest)
+
+  def run(self):
+    """Download and install Opera."""
+    print 'Installing Opera'
+    os_str = self.get_os_str
+    download_name = 'http://ftp.opera.com/pub/opera/%s/' % os_str
+
+    def higher_revision(new_version_str, current):
+      version_string = new_version_str[:-1]
+      if int(version_string) > current:
+        return int(version_string)
+      return current
+
+    version = self.find_latest_version(
+        download_name,
+        lambda x: x[0] in string.digits and 'b' not in x and 'rc' not in x,
+        higher_revision)
+    download_name += version
+    if ('linux' in sys.platform and 
+        platform.linux_distribution()[0] == 'Ubuntu'):
+      # Last time I tried, the .deb file you download directly from opera was
+      # not installing correctly on Ubuntu. This installs Opera more nicely.
+      os.system("sudo sh -c 'wget -O - http://deb.opera.com/archive.key | "
+          "apt-key add -'")
+      os.system("""sudo sh -c 'echo "deb http://deb.opera.com/opera/ """
+          """stable non-free" > /etc/apt/sources.list.d/opera.list'""")
+      run_cmd('sudo apt-get update')
+      run_cmd('sudo apt-get install opera', stdin='y')
+    else:
+      if 'darwin' in sys.platform:
+        dotted_version = '%s.%s' % (version[:2], version[2:])
+        download_name += '/Opera_%s_Setup_Intel.dmg' % dotted_version
+        urllib.urlretrieve(download_name, 'opera.dmg')
+        run_cmd('hdiutil mount opera.dmg', stdin='qY\n')
+        run_cmd('sudo cp -R /Volumes/Opera/Opera.app /Applications')
+        run_cmd('hdiutil unmount /Volumes/Opera/')
+      elif 'win' in sys.platform:
+        download_name += '/en/Opera_%s_en_Setup.exe' % version
+        urllib.urlretrieve(download_name, 'opera_install.exe')
+        run_cmd('opera_install.exe -ms')
+      else:
+        # For all other flavors of linux, download the tar.
+        download_name += '/'
+        extension = '.tar.bz2'
+        if '64bit' in platform.architecture()[0]:
+          platform_str = '.x86_64'
+        else:
+          platform_str = '.i386'
+        def get_acceptable_file(new_version_str, current):
+          return new_version_str
+        latest = self.find_latest_version(
+            download_name,
+            lambda x: x.startswith('opera') and x.endswith(extension)
+                and platform_str in x,
+            get_acceptable_file)
+        download_name += latest
+        run_cmd('wget -O - %s | tar -C ~ -jxv' % download_name)
+        print ('PLEASE MANUALLY RUN "~/%s/install" TO COMPLETE OPERA '
+            'INSTALLATION' %
+            download_name[download_name.rfind('/') + 1:-len(extension)])
+
+  @property
+  def get_os_str(self):
+    """The strings to indicate what OS a download is."""
+    os_str = 'win'
+    if 'darwin' in sys.platform:
+      os_str = 'mac'
+    elif 'linux' in sys.platform:
+      os_str = 'linux'
+    return os_str
+
 def main():
   args = parse_args()
   if not args.python:
@@ -287,9 +399,10 @@ def main():
   if not args.iedriver and platform.system() == 'Windows':
     GoogleCodeInstaller('selenium', find_depot_tools_location(args.buildbot),
         lambda x: 'IEDriverServer_Win32_%(version)s.zip' % x).run()
-
   if not args.firefox:
     FirefoxInstaller().run()
+  if not args.opera:
+    OperaInstaller().run()
 
 if __name__ == '__main__':
   main()
