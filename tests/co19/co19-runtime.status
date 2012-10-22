@@ -26,6 +26,9 @@ LibTest/core/OutOfMemoryException/toString_A01_t01: Fail # co19 issue 263
 LibTest/core/StackOverflowException/toString_A01_t01: Fail # co19 issue 271
 LibTest/core/StackOverflowException/StackOverflowException_A01_t01: Fail # co19 issue 271
 
+LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # co19 issue 272
+LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # co19 issue 272
+
 Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # issue 6060
 Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # issue 6060
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
