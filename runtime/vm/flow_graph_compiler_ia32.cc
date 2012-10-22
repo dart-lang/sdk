@@ -1151,7 +1151,7 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 
   __ Bind(&check_identity);
   __ popl(result);
-  __ cmpl(result, Address(ESP, 1 * kWordSize));
+  __ cmpl(result, Address(ESP, 0 * kWordSize));
   Label is_false;
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
   __ LoadObject(result, bool_true());
