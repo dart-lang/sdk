@@ -5,10 +5,6 @@
 //
 // Dart test program for testing optional named parameters in type tests.
 
-// TODO(regis): The expected signatures below will change once we run this test
-// with --reject_named_argument_as_positional which is still too early to do at
-// this time.
-
 class NamedParametersTypeTest {
   static int testMain() {
     int result = 0;

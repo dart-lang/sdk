@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks --reject_named_argument_as_positional
+// VMOptions=--enable_type_checks
 //
 // Dart test for function type alias with optional parameters.
 
@@ -20,9 +20,6 @@ int baz([int a, int b, int c]) { }
 int bar({int a, int b, int c}) { }
 
 main() {
-  // TODO(regis): The expectations below will change once we run this test with
-  // --reject_named_argument_as_positional which is still too early to do at
-  // this time.
   Expect.isTrue(baz is f1);
   Expect.isFalse(baz is f3);
   Expect.isFalse(bar is f1);
