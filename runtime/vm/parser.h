@@ -28,7 +28,7 @@ struct CatchParamDesc;
 struct FieldInitExpression;
 
 // The class ParsedFunction holds the result of parsing a function.
-class ParsedFunction : public ValueObject {
+class ParsedFunction : public ZoneAllocated {
  public:
   static const int kFirstLocalSlotIndex = -2;
 

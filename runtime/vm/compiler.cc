@@ -427,18 +427,18 @@ static RawError* CompileFunctionHelper(const Function& function,
   }
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(time_compilation);
-    ParsedFunction parsed_function(function);
+    ParsedFunction* parsed_function = new ParsedFunction(function);
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos());
     }
-    Parser::ParseFunction(&parsed_function);
-    parsed_function.AllocateVariables();
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
 
     const bool success =
-        CompileParsedFunctionHelper(parsed_function, optimized);
+        CompileParsedFunctionHelper(*parsed_function, optimized);
     if (optimized && !success) {
       // Optimizer bailed out. Disable optimizations and to never try again.
       if (FLAG_trace_compiler) {
@@ -570,16 +570,16 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants
     // here.
-    ParsedFunction parsed_function(func);
-    parsed_function.SetNodeSequence(fragment);
-    parsed_function.set_default_parameter_values(Array::Handle());
-    parsed_function.set_expression_temp_var(
+    ParsedFunction* parsed_function = new ParsedFunction(func);
+    parsed_function->SetNodeSequence(fragment);
+    parsed_function->set_default_parameter_values(Array::Handle());
+    parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
-    fragment->scope()->AddVariable(parsed_function.expression_temp_var());
-    parsed_function.AllocateVariables();
+    fragment->scope()->AddVariable(parsed_function->expression_temp_var());
+    parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false);
+    CompileParsedFunctionHelper(*parsed_function, false);
 
     GrowableArray<const Object*> arguments;  // no arguments.
     const Array& kNoArgumentNames = Array::Handle();

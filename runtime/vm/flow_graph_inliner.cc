@@ -47,6 +47,54 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 }
 
 
+// TODO(zerny): Remove the following classes once we have moved the label/join
+// map for control flow out of the AST an into the flow graph builder.
+
+// Default visitor to traverse child nodes.
+class ChildrenVisitor : public AstNodeVisitor {
+ public:
+  ChildrenVisitor() { }
+#define DEFINE_VISIT(type, name)                                               \
+  virtual void Visit##type(type* node) { node->VisitChildren(this); }
+  NODE_LIST(DEFINE_VISIT);
+#undef DEFINE_VISIT
+};
+
+
+// Visitor to clear each AST node containing source labels.
+class SourceLabelResetter : public ChildrenVisitor {
+ public:
+  SourceLabelResetter() { }
+  virtual void VisitSequenceNode(SequenceNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitCaseNode(CaseNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitSwitchNode(SwitchNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitWhileNode(WhileNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitDoWhileNode(DoWhileNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitForNode(ForNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitJumpNode(JumpNode* node) {
+    Reset(node, node->label());
+  }
+  void Reset(AstNode* node, SourceLabel* lbl) {
+    node->VisitChildren(this);
+    if (lbl == NULL) return;
+    lbl->join_for_break_ = NULL;
+    lbl->join_for_continue_ = NULL;
+  }
+};
+
+
 // A collection of call sites to consider for inlining.
 class CallSites : public FlowGraphVisitor {
  public:
@@ -123,7 +171,8 @@ class CallSiteInliner : public ValueObject {
         inlined_size_(0),
         inlining_depth_(1),
         collected_call_sites_(NULL),
-        inlining_call_sites_(NULL) { }
+        inlining_call_sites_(NULL),
+        function_cache() { }
 
   void InlineCalls() {
     // If inlining depth is less then one abort.
@@ -219,9 +268,8 @@ class CallSiteInliner : public ValueObject {
     isolate->set_long_jump_base(&jump);
     if (setjmp(*jump.Set()) == 0) {
       // Parse the callee function.
-      ParsedFunction parsed_function(function);
-      Parser::ParseFunction(&parsed_function);
-      parsed_function.AllocateVariables();
+      bool in_cache;
+      ParsedFunction* parsed_function = ParseFunction(function, &in_cache);
 
       // Load IC data for the callee.
       if (function.HasCode()) {
@@ -231,7 +279,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      FlowGraphBuilder builder(parsed_function);
+      FlowGraphBuilder builder(*parsed_function);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph =
           builder.BuildGraph(FlowGraphBuilder::kValueContext);
@@ -257,7 +305,7 @@ class CallSiteInliner : public ValueObject {
 
       if (FLAG_trace_inlining && FLAG_print_flow_graph) {
         OS::Print("Callee graph for inlining %s\n",
-                  parsed_function.function().ToFullyQualifiedCString());
+                  function.ToFullyQualifiedCString());
         FlowGraphPrinter printer(*callee_graph);
         printer.PrintBlocks();
       }
@@ -308,6 +356,9 @@ class CallSiteInliner : public ValueObject {
 
       TRACE_INLINING(OS::Print("     Success\n"));
 
+      // Add the function to the cache.
+      if (!in_cache) function_cache.Add(parsed_function);
+
       // Check that inlining maintains use lists.
       DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
 
@@ -328,6 +379,26 @@ class CallSiteInliner : public ValueObject {
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       return false;
     }
+  }
+
+  // Parse a function reusing the cache if possible. Returns true if the
+  // function was in the cache.
+  ParsedFunction* ParseFunction(const Function& function, bool* in_cache) {
+    // TODO(zerny): Use a hash map for the cache.
+    for (intptr_t i = 0; i < function_cache.length(); ++i) {
+      ParsedFunction* parsed_function = function_cache[i];
+      if (parsed_function->function().raw() == function.raw()) {
+        *in_cache = true;
+        SourceLabelResetter reset;
+        parsed_function->node_sequence()->Visit(&reset);
+        return parsed_function;
+      }
+    }
+    *in_cache = false;
+    ParsedFunction* parsed_function = new ParsedFunction(function);
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+    return parsed_function;
   }
 
   void InlineStaticCalls() {
@@ -376,9 +447,11 @@ class CallSiteInliner : public ValueObject {
       const ICData& ic_data = instr->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (instr->with_checks()) {
-        TRACE_INLINING(OS::Print("     Bailout: %"Pd" checks target '%s'\n",
-                                 ic_data.NumberOfChecks(),
-                                 target.ToCString()));
+        TRACE_INLINING(OS::Print(
+          "  => %s (deopt count %d)\n     Bailout: %"Pd" checks\n",
+          target.ToCString(),
+          target.deoptimization_counter(),
+          ic_data.NumberOfChecks()));
         continue;
       }
       GrowableArray<Value*> arguments(instr->ArgumentCount());
@@ -397,6 +470,7 @@ class CallSiteInliner : public ValueObject {
   intptr_t inlining_depth_;
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
+  GrowableArray<ParsedFunction*> function_cache;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
