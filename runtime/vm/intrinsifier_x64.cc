@@ -1509,6 +1509,19 @@ bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::String_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
+  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
+  return false;
+}
+
+
 bool Intrinsifier::String_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
   __ movq(RAX, FieldAddress(RAX, String::length_offset()));
@@ -1535,19 +1548,6 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::String_hashCode(Assembler* assembler) {
-  Label fall_through;
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
-  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
-  __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ ret();
-  __ Bind(&fall_through);
-  // Hash not yet computed.
   return false;
 }
 

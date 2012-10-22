@@ -309,17 +309,17 @@ bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::String_getHashCode(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::String_getLength(Assembler* assembler) {
   return false;
 }
 
 
 bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
-  return false;
-}
-
-
-bool Intrinsifier::String_hashCode(Assembler* assembler) {
   return false;
 }
 

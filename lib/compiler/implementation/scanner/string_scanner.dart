@@ -42,7 +42,7 @@ class SubstringWrapper implements SourceString {
   const SubstringWrapper(String this.internalString,
                          int this.begin, int this.end);
 
-  int hashCode() => slowToString().hashCode();
+  int get hashCode => slowToString().hashCode;
 
   bool operator ==(other) {
     return other is SourceString && slowToString() == other.slowToString();

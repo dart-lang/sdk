@@ -54,7 +54,7 @@ class SentinelConstant extends Constant {
   List<Constant> getDependencies() => const <Constant>[];
 
   // Just use a random value.
-  int hashCode() => 24297418;
+  int get hashCode => 24297418;
 
   bool isSentinel() => true;
 
@@ -85,7 +85,7 @@ class FunctionConstant extends Constant {
     return compiler.functionClass.computeType(compiler);
   }
 
-  int hashCode() => (17 * element.hashCode()) & 0x7fffffff;
+  int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
   accept(ConstantVisitor visitor) => visitor.visitFunction(this);
 }
@@ -126,7 +126,7 @@ class NullConstant extends PrimitiveConstant {
   }
 
   // The magic constant has no meaning. It is just a random value.
-  int hashCode() => 785965825;
+  int get hashCode => 785965825;
   DartString toDartString() => const LiteralDartString("null");
 
   accept(ConstantVisitor visitor) => visitor.visitNull(this);
@@ -175,7 +175,7 @@ class IntConstant extends NumConstant {
     return value == otherInt.value;
   }
 
-  int hashCode() => value.hashCode();
+  int get hashCode => value.hashCode;
   DartString toDartString() => new DartString.literal(value.toString());
 
   accept(ConstantVisitor visitor) => visitor.visitInt(this);
@@ -221,7 +221,7 @@ class DoubleConstant extends NumConstant {
     }
   }
 
-  int hashCode() => value.hashCode();
+  int get hashCode => value.hashCode;
   DartString toDartString() => new DartString.literal(value.toString());
 
   accept(ConstantVisitor visitor) => visitor.visitDouble(this);
@@ -253,7 +253,7 @@ class TrueConstant extends BoolConstant {
   bool operator ==(var other) => identical(this, other);
   // The magic constant is just a random value. It does not have any
   // significance.
-  int hashCode() => 499;
+  int get hashCode => 499;
   DartString toDartString() => const LiteralDartString("true");
 
   accept(ConstantVisitor visitor) => visitor.visitTrue(this);
@@ -271,7 +271,7 @@ class FalseConstant extends BoolConstant {
   bool operator ==(var other) => identical(this, other);
   // The magic constant is just a random value. It does not have any
   // significance.
-  int hashCode() => 536555975;
+  int get hashCode => 536555975;
   DartString toDartString() => const LiteralDartString("false");
 
   accept(ConstantVisitor visitor) => visitor.visitFalse(this);
@@ -279,15 +279,15 @@ class FalseConstant extends BoolConstant {
 
 class StringConstant extends PrimitiveConstant {
   final DartString value;
-  int _hashCode;
+  final int hashCode;
   final Node node;
 
-  StringConstant(this.value, this.node) {
-    // TODO(floitsch): cache StringConstants.
-    // TODO(floitsch): compute hashcode without calling toString() on the
-    // DartString.
-    _hashCode = value.slowToString().hashCode();
-  }
+  // TODO(floitsch): cache StringConstants.
+  // TODO(floitsch): compute hashcode without calling toString() on the
+  // DartString.
+  StringConstant(DartString value, this.node)
+      : this.value = value,
+        this.hashCode = value.slowToString().hashCode;
   bool isString() => true;
 
   DartType computeType(Compiler compiler) {
@@ -297,10 +297,9 @@ class StringConstant extends PrimitiveConstant {
   bool operator ==(var other) {
     if (other is !StringConstant) return false;
     StringConstant otherString = other;
-    return (_hashCode == otherString._hashCode) && (value == otherString.value);
+    return (hashCode == otherString.hashCode) && (value == otherString.value);
   }
 
-  int hashCode() => _hashCode;
   DartString toDartString() => value;
   int get length => value.length;
 
@@ -317,25 +316,30 @@ abstract class ObjectConstant extends Constant {
 
   // TODO(1603): The class should be marked as abstract, but the VM doesn't
   // currently allow this.
-  abstract int hashCode();
+  abstract int get hashCode;
 }
 
 class ListConstant extends ObjectConstant {
   final List<Constant> entries;
-  int _hashCode;
+  final int hashCode;
 
-  ListConstant(DartType type, this.entries) : super(type) {
+  ListConstant(DartType type, List<Constant> entries)
+      : this.entries = entries,
+        hashCode = _computeHash(entries),
+        super(type);
+  bool isList() => true;
+
+  static int _computeHash(List<Constant> entries) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
-    for (Constant input in entries) hash ^= input.hashCode();
-    _hashCode = hash;
+    for (Constant input in entries) hash ^= input.hashCode;
+    return hash;
   }
-  bool isList() => true;
 
   bool operator ==(var other) {
     if (other is !ListConstant) return false;
     ListConstant otherList = other;
-    if (hashCode() != otherList.hashCode()) return false;
+    if (hashCode != otherList.hashCode) return false;
     // TODO(floitsch): verify that the generic types are the same.
     if (entries.length != otherList.entries.length) return false;
     for (int i = 0; i < entries.length; i++) {
@@ -343,8 +347,6 @@ class ListConstant extends ObjectConstant {
     }
     return true;
   }
-
-  int hashCode() => _hashCode;
 
   List<Constant> getDependencies() => entries;
 
@@ -373,21 +375,25 @@ class MapConstant extends ObjectConstant {
   final ListConstant keys;
   final List<Constant> values;
   final Constant protoValue;
-  int _hashCode;
+  final int hashCode;
 
-  MapConstant(DartType type, this.keys, this.values, this.protoValue)
-      : super(type) {
+  MapConstant(DartType type, this.keys, List<Constant> values, this.protoValue)
+      : this.values = values,
+        this.hashCode = computeHash(values),
+        super(type);
+  bool isMap() => true;
+
+  static int computeHash(List<Constant> values) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
-    for (Constant value in values) hash ^= value.hashCode();
-    _hashCode = hash;
+    for (Constant value in values) hash ^= value.hashCode;
+    return hash;
   }
-  bool isMap() => true;
 
   bool operator ==(var other) {
     if (other is !MapConstant) return false;
     MapConstant otherMap = other;
-    if (hashCode() != otherMap.hashCode()) return false;
+    if (hashCode != otherMap.hashCode) return false;
     // TODO(floitsch): verify that the generic types are the same.
     if (keys != otherMap.keys) return false;
     for (int i = 0; i < values.length; i++) {
@@ -395,8 +401,6 @@ class MapConstant extends ObjectConstant {
     }
     return true;
   }
-
-  int hashCode() => _hashCode;
 
   List<Constant> getDependencies() {
     List<Constant> result = <Constant>[keys];
@@ -411,24 +415,30 @@ class MapConstant extends ObjectConstant {
 
 class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
-  int _hashCode;
+  final int hashCode;
 
-  ConstructedConstant(DartType type, this.fields) : super(type) {
+  ConstructedConstant(DartType type, List<Constant> fields)
+    : this.fields = fields,
+      hashCode = computeHash(type, fields),
+      super(type) {
     assert(type != null);
+  }
+  bool isConstructedObject() => true;
+
+  static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant field in fields) {
-      hash ^= field.hashCode();
+      hash ^= field.hashCode;
     }
-    hash ^= type.element.hashCode();
-    _hashCode = hash;
+    hash ^= type.element.hashCode;
+    return hash;
   }
-  bool isConstructedObject() => true;
 
   bool operator ==(var otherVar) {
     if (otherVar is !ConstructedConstant) return false;
     ConstructedConstant other = otherVar;
-    if (hashCode() != other.hashCode()) return false;
+    if (hashCode != other.hashCode) return false;
     // TODO(floitsch): verify that the (generic) types are the same.
     if (type.element != other.type.element) return false;
     if (fields.length != other.fields.length) return false;
@@ -438,7 +448,6 @@ class ConstructedConstant extends ObjectConstant {
     return true;
   }
 
-  int hashCode() => _hashCode;
   List<Constant> getDependencies() => fields;
 
   accept(ConstantVisitor visitor) => visitor.visitConstructed(this);

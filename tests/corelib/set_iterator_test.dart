@@ -5,7 +5,7 @@
 class FixedHashCode {
   final int _hashCode;
   const FixedHashCode(this._hashCode);
-  int hashCode() { return _hashCode; }
+  int get hashCode { return _hashCode; }
 }
 
 class SetIteratorTest {

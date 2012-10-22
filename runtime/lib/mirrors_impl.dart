@@ -94,8 +94,8 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
 }
 
 abstract class _LocalMirrorImpl implements Mirror {
-  int hashCode() {
-    throw new NotImplementedException('Mirror.hashCode() is not implemented');
+  int get hashCode {
+    throw new NotImplementedException('Mirror.hashCode is not implemented');
   }
 
   // Local mirrors always return the same MirrorSystem.  This field

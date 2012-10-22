@@ -128,11 +128,6 @@ abstract class Socket {
    * [onClosed].
    */
   void close([bool halfClose = false]);
-
-  /**
-   * Socket is hashable.
-   */
-  int hashCode();
 }
 
 

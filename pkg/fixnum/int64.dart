@@ -571,7 +571,7 @@ class int64 implements intx {
   /**
    * Returns a hash code based on all the bits of this [int64].
    */
-  int hashCode() {
+  int get hashCode {
     int bottom = ((_m & 0x3ff) << _BITS) | _l;
     int top = (_h << 12) | ((_m >> 10) & 0xfff);
     return bottom ^ top;

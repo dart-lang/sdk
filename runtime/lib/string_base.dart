@@ -13,7 +13,7 @@ class _StringBase {
         "_StringBase can't be instaniated");
   }
 
-  int hashCode() native "String_hashCode";
+  int get hashCode native "String_getHashCode";
 
   /**
    *  Create the most efficient string representation for specified

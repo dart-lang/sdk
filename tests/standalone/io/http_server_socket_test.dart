@@ -109,7 +109,7 @@ class SocketMock implements Socket {
 
   OutputStream get outputStream => _outputStream;
 
-  int hashCode() => _hashCode;
+  int get hashCode => _hashCode;
 
   List<int> _read;
   bool _closed = false;

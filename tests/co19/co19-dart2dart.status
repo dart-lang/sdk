@@ -3,6 +3,26 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+
+# The following tests use hashCode() (function) instead of hashCode (getter).
+# co19 issue 273
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK
+LibTest/isolate/SendPort/hashCode_A01_t01: Fail, OK
+LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK
+LibTest/core/Map/Map_class_A01_t03: Fail, OK
+LibTest/core/Set/remove_A01_t03: Fail, OK
+LibTest/core/Set/contains_A01_t03: Fail, OK
+LibTest/core/Set/addAll_A01_t04: Fail, OK
+LibTest/core/Set/remove_A01_t04: Fail, OK
+LibTest/core/Set/addAll_A01_t03: Fail, OK
+LibTest/core/Set/removeAll_A01_t03: Fail, OK
+LibTest/core/Set/forEach_A01_t03: Fail, OK
+LibTest/core/Set/add_A01_t03: Fail, OK
+LibTest/core/Set/filter_A01_t03: Fail, OK
+LibTest/core/String/hashCode_A01_t01: Fail, OK
+LibTest/core/int/hashCode_A01_t01: Fail, OK
+
+
 # These tests need to be updated to the new Date core lib API, co19 issue 256:
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail

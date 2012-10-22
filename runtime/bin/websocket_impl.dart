@@ -468,7 +468,7 @@ class _WebSocketConnectionBase {
     _closeSent = true;
   }
 
-  int hashCode() => _hash;
+  int get hashCode => _hash;
 
   _onWebSocketMessageStart(int type) {
     _currentMessageType = type;
@@ -576,7 +576,7 @@ class _WebSocketConnectionBase {
 class _WebSocketConnection
     extends _WebSocketConnectionBase implements WebSocketConnection {
   _WebSocketConnection(DetachedSocket detached) {
-    _hash = detached.socket.hashCode();
+    _hash = detached.socket.hashCode;
     _socketConnected(detached.socket);
     _startProcessing(detached.unparsedData);
   }

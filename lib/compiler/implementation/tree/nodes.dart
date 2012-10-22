@@ -109,12 +109,10 @@ class NodeAssertionFailure implements Exception {
  * "Token".
  */
 abstract class Node implements Spannable {
-  final int _hashCode;
+  final int hashCode;
   static int _HASH_COUNTER = 0;
 
-  Node() : _hashCode = ++_HASH_COUNTER;
-
-  hashCode() => _hashCode;
+  Node() : hashCode = ++_HASH_COUNTER;
 
   abstract accept(Visitor visitor);
 

@@ -626,14 +626,14 @@ trim(receiver) {
  *
  * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
  */
-hashCode(receiver) {
+get$hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
   if (receiver == null) return 0;
   if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
   if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
   if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
-  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode());
+  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode);
   int hash = 0;
   int length = JS('int', r'#.length', receiver);
   for (int i = 0; i < length; i++) {
@@ -687,5 +687,3 @@ get$runtimeType(receiver) {
 // TODO(lrn): These getters should be generated automatically for all
 // intercepted methods.
 get$toString(receiver) => () => toString(receiver);
-
-get$hashCode(receiver) => () => hashCode(receiver);

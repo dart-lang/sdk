@@ -10,7 +10,7 @@ patch class Object {
   static Expando _hashCodeExp = new Expando("Object.hashCode");
   static Random _hashCodeRnd = new Random();
 
-  /* patch */ int hashCode() {
+  /* patch */ int get hashCode {
     var result = _hashCodeExp[this];
     if (result == null) {
       result = _hashCodeRnd.nextInt(0x40000000);  // Stay in Smi range.

@@ -273,6 +273,24 @@ Language/11_Statements/08_Switch_A06_t03: Fail, OK # out of date - case can use 
 Language/11_Statements/08_Switch_A06_t04: Fail, OK # out of date - case can use any constant expression
 
 
+# The following tests use hashCode() (function) instead of hashCode (getter).
+# co19 issue 273
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK
+LibTest/isolate/SendPort/hashCode_A01_t01: Pass, OK
+LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK
+LibTest/core/Map/Map_class_A01_t03: Fail, OK
+LibTest/core/Set/remove_A01_t03: Fail, OK
+LibTest/core/Set/contains_A01_t03: Pass, OK
+LibTest/core/Set/addAll_A01_t04: Pass, OK
+LibTest/core/Set/remove_A01_t04: Pass, OK
+LibTest/core/Set/addAll_A01_t03: Fail, OK
+LibTest/core/Set/removeAll_A01_t03: Pass, OK
+LibTest/core/Set/forEach_A01_t03: Fail, OK
+LibTest/core/Set/add_A01_t03: Fail, OK
+LibTest/core/Set/filter_A01_t03: Fail, OK
+LibTest/core/String/hashCode_A01_t01: Pass, OK
+LibTest/core/int/hashCode_A01_t01: Pass, OK
+
 # The following tests use the deprecated catch syntax
 
 LibTest/core/Expect/equals_A02_t01: Fail, OK

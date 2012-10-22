@@ -465,7 +465,7 @@ class HBasicBlock extends HInstructionList {
         dominatedBlocks = <HBasicBlock>[],
         bailoutTargets = <HBailoutTarget>[];
 
-  int hashCode() => id;
+  int get hashCode => id;
 
   bool isNew() => status == STATUS_NEW;
   bool isOpen() => status == STATUS_OPEN;
@@ -816,7 +816,7 @@ abstract class HInstruction implements Spannable {
       : id = idCounter++,
         usedBy = <HInstruction>[];
 
-  int hashCode() => id;
+  int get hashCode => id;
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
@@ -2421,7 +2421,7 @@ class HStatic extends HInstruction {
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
-  int gvnHashCode() => super.gvnHashCode() ^ element.hashCode();
+  int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
   int typeCode() => HInstruction.STATIC_TYPECODE;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;

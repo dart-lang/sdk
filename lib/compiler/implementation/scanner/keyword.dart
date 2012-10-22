@@ -94,7 +94,7 @@ class Keyword implements SourceString {
     return result;
   }
 
-  int hashCode() => syntax.hashCode();
+  int get hashCode => syntax.hashCode;
 
   bool operator ==(other) {
     return other is SourceString && toString() == other.slowToString();

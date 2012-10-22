@@ -93,7 +93,7 @@ abstract class WebSocketConnection {
   /**
    * WebSocketConnection is hashable.
    */
-  int hashCode();
+  int get hashCode;
 }
 
 
@@ -166,7 +166,7 @@ abstract class WebSocketClientConnection {
   /**
    * WebSocketClientConnection is hashable.
    */
-  int hashCode();
+  int get hashCode;
 }
 
 

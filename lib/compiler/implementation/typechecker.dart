@@ -62,7 +62,7 @@ class TypeVariableType implements DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  int hashCode() => 17 * element.hashCode();
+  int get hashCode => 17 * element.hashCode;
 
   bool operator ==(other) {
     if (other is !TypeVariableType) return false;
@@ -94,7 +94,7 @@ class StatementType implements DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  int hashCode() => 17 * stringName.hashCode();
+  int get hashCode => 17 * stringName.hashCode;
 
   bool operator ==(other) {
     if (other is !StatementType) return false;
@@ -111,7 +111,7 @@ class VoidType implements DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  int hashCode() => 1729;
+  int get hashCode => 1729;
 
   bool operator ==(other) => other is VoidType;
 
@@ -140,12 +140,12 @@ class InterfaceType implements DartType {
     return sb.toString();
   }
 
-  int hashCode() {
-    int hash = element.hashCode();
+  int get hashCode {
+    int hash = element.hashCode;
     for (Link<DartType> arguments = this.arguments;
          !arguments.isEmpty();
          arguments = arguments.tail) {
-      int argumentHash = arguments.head != null ? arguments.head.hashCode() : 0;
+      int argumentHash = arguments.head != null ? arguments.head.hashCode : 0;
       hash = 17 * hash + 3 * argumentHash;
     }
     return hash;
@@ -194,12 +194,12 @@ class FunctionType implements DartType {
     parameterTypes = other.parameterTypes;
   }
 
-  int hashCode() {
-    int hash = 17 * element.hashCode() + 3 * returnType.hashCode();
+  int get hashCode {
+    int hash = 17 * element.hashCode + 3 * returnType.hashCode;
     for (Link<DartType> parameters = parameterTypes;
          !parameters.isEmpty();
         parameters = parameters.tail) {
-      hash = 17 * hash + 3 * parameters.head.hashCode();
+      hash = 17 * hash + 3 * parameters.head.hashCode;
     }
     return hash;
   }
@@ -237,7 +237,7 @@ class TypedefType implements DartType {
     return sb.toString();
   }
 
-  int hashCode() => 17 * element.hashCode();
+  int get hashCode => 17 * element.hashCode;
 
   bool operator ==(other) {
     if (other is !TypedefType) return false;

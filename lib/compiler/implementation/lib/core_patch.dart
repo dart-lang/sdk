@@ -15,7 +15,7 @@ patch void print(var object) {
 
 // Patch for Object implementation.
 patch class Object {
-  patch int hashCode() => Primitives.objectHashCode(this);
+  patch int get hashCode => Primitives.objectHashCode(this);
 
   patch String toString() => Primitives.objectToString(this);
 

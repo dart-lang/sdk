@@ -126,7 +126,7 @@ class Version implements Comparable, VersionConstraint {
     return 0;
   }
 
-  int hashCode() => toString().hashCode();
+  int get hashCode => toString().hashCode;
 
   String toString() {
     var buffer = new StringBuffer();

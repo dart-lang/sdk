@@ -406,10 +406,10 @@ class ArithmeticTest {
     Expect.equals(true, 1.0 < max(1.0, 12.0));
 
     // Hashcode
-    Expect.equals(false, (3.4).hashCode() == (1.2).hashCode());
-    Expect.equals(true, (1.2).hashCode() == (1.2).hashCode());
-    Expect.equals(false, (3).hashCode() == (1).hashCode());
-    Expect.equals(true, (10).hashCode() == (10).hashCode());
+    Expect.equals(false, (3.4).hashCode == (1.2).hashCode);
+    Expect.equals(true, (1.2).hashCode == (1.2).hashCode);
+    Expect.equals(false, (3).hashCode == (1).hashCode);
+    Expect.equals(true, (10).hashCode == (10).hashCode);
   }
 
   static testMain() {

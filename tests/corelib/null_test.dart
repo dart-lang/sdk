@@ -15,7 +15,7 @@ main() {
   // These shouldn't throw.
   x.runtimeType;
   x.toString();
-  x.hashCode();
+  x.hashCode;
 
   // operator== is inherited from Object. It's the same as identical.
   // It's not really testable.
@@ -23,8 +23,6 @@ main() {
   Expect.isTrue(x == null);
 
   // Methods can be closurized and yields the same result.
-  var hc = x.hashCode;
-  Expect.equals(null.hashCode(), hc());
   var ts = x.toString;
   Expect.equals(null.toString(), ts());
 

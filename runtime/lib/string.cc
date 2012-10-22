@@ -62,7 +62,7 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(String_hashCode, 1) {
+DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   intptr_t hash_val = receiver.Hash();
   ASSERT(hash_val > 0);

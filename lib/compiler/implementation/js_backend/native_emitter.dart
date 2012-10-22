@@ -447,8 +447,8 @@ function(cls, desc) {
         'function() { return $toStringHelperName(this); }';
 
     // Same as above, but for hashCode.
-    String hashCodeName = backend.namer.publicInstanceMethodNameByArity(
-        const SourceString('hashCode'), 0);
+    String hashCodeName = backend.namer.publicGetterName(
+        const SourceString('hashCode'));
     objectProperties[hashCodeName] =
         'function() { return $hashCodeHelperName(this); }';
 

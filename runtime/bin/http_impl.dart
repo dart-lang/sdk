@@ -1202,8 +1202,8 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 class _HttpConnectionBase {
   _HttpConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new _HttpParser() {
-    _hashCode = _nextHashCode;
+                          _httpParser = new _HttpParser(),
+                          hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
 
@@ -1307,8 +1307,6 @@ class _HttpConnectionBase {
     }
   }
 
-  int hashCode() => _hashCode;
-
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
   bool _error = false;  // Is the socket closed due to an error?
@@ -1319,7 +1317,7 @@ class _HttpConnectionBase {
   Function onDetach;
 
   // Hash code for HTTP connection. Currently this is just a counter.
-  int _hashCode;
+  final int hashCode;
   static int _nextHashCode = 0;
 }
 
@@ -1964,7 +1962,7 @@ class _SocketConnection {
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
-  int hashCode() => _socket.hashCode();
+  int get hashCode => _socket.hashCode;
 
   String _host;
   int _port;

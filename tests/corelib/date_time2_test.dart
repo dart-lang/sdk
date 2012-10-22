@@ -10,5 +10,5 @@ main() {
   // There is no guarantee that the hashcode for these two dates is different,
   // but in the worst case we will have to fix this test.
   // The important test here is, that Date .
-  Expect.isFalse(d.hashCode() == d2.hashCode());
+  Expect.isFalse(d.hashCode == d2.hashCode);
 }

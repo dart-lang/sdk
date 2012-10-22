@@ -8,7 +8,7 @@ class _Path implements Path {
   _Path(String source) : _path = source;
   _Path.fromNative(String source) : _path = _clean(source);
 
-  int hashCode() => _path.hashCode();
+  int get hashCode => _path.hashCode;
 
   static String _clean(String source) {
     switch (Platform.operatingSystem) {

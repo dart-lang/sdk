@@ -411,7 +411,7 @@ abstract class Dart2JsElementMirror implements Dart2JsMirror {
 
   String toString() => _element.toString();
 
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 abstract class Dart2JsProxyMirror implements Dart2JsMirror {
@@ -421,7 +421,7 @@ abstract class Dart2JsProxyMirror implements Dart2JsMirror {
 
   String get displayName => simpleName;
 
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 //------------------------------------------------------------------------------
@@ -463,7 +463,7 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
   String get qualifiedName => simpleName;
 
   // TODO(johnniwinther): Hack! Dart2JsMirrorSystem need not be a Mirror.
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 abstract class Dart2JsObjectMirror extends Dart2JsElementMirror

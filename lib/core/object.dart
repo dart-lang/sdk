@@ -38,7 +38,7 @@ class Object {
    * If a subclass overrides [hashCode] it should override the
    * equality operator as well to maintain consistency.
    */
-  external int hashCode();
+  external int get hashCode;
 
   /**
    * Returns a string representation of this object.

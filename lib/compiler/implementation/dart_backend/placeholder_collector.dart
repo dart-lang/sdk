@@ -6,7 +6,7 @@ class LocalPlaceholder {
   final String identifier;
   final Set<Node> nodes;
   LocalPlaceholder(this.identifier) : nodes = new Set<Node>();
-  int hashCode() => identifier.hashCode();
+  int get hashCode => identifier.hashCode;
   String toString() =>
       'local_placeholder[id($identifier), nodes($nodes)]';
 }

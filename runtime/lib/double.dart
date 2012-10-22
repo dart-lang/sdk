@@ -5,7 +5,7 @@
 class _Double implements double {
   factory _Double.fromInteger(int value)
       native "Double_doubleFromInteger";
-  int hashCode() {
+  int get hashCode {
     try {
       return toInt();
     } on FormatException catch (e) {

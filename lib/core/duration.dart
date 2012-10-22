@@ -85,8 +85,8 @@ class Duration implements Comparable {
     return inMilliseconds == other.inMilliseconds;
   }
 
-  int hashCode() {
-    return inMilliseconds.hashCode();
+  int get hashCode {
+    return inMilliseconds.hashCode;
   }
 
   int compareTo(Duration other) {

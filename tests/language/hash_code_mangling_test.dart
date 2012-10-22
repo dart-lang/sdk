@@ -10,8 +10,8 @@ void main() {
   Foo foo = new Foo();
   foo.$identityHash = 'fisk';
   Expect.isTrue(foo.$identityHash is String);
-  int hash = foo.hashCode();
+  int hash = foo.hashCode;
   Expect.isTrue(hash is int);
   Expect.isTrue(foo.$identityHash is String);
-  Expect.equals(hash, foo.hashCode());
+  Expect.equals(hash, foo.hashCode);
 }

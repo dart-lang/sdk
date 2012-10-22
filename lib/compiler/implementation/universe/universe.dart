@@ -214,7 +214,7 @@ class Selector {
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name.stringValue, "assert");
 
-  int hashCode() => argumentCount + 1000 * namedArguments.length;
+  int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
   DartType get receiverType => null;

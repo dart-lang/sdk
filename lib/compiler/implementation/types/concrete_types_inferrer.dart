@@ -35,7 +35,7 @@ class ClassBaseType implements BaseType {
     if (other is! ClassBaseType) return false;
     return element == other.element;
   }
-  int hashCode() => element.hashCode();
+  int get hashCode => element.hashCode;
   String toString() => element.name.slowToString();
   bool isClass() => true;
   bool isUnknown() => false;
@@ -48,7 +48,7 @@ class ClassBaseType implements BaseType {
 class UnknownBaseType implements BaseType {
   const UnknownBaseType();
   bool operator ==(BaseType other) => other is UnknownBaseType;
-  int hashCode() => 0;
+  int get hashCode => 0;
   bool isClass() => false;
   bool isUnknown() => true;
   bool isNull() => false;
@@ -61,7 +61,7 @@ class UnknownBaseType implements BaseType {
 class NullBaseType implements BaseType {
   const NullBaseType();
   bool operator ==(BaseType other) => other is NullBaseType;
-  int hashCode() => 1;
+  int get hashCode => 1;
   bool isClass() => false;
   bool isUnknown() => false;
   bool isNull() => true;
@@ -110,7 +110,7 @@ class UnknownConcreteType implements ConcreteType {
   bool operator ==(ConcreteType other) => identical(this, other);
   Set<BaseType> get baseTypes =>
       new Set<BaseType>.from([const UnknownBaseType()]);
-  int hashCode() => 0;
+  int get hashCode => 0;
   ConcreteType union(ConcreteType other) => this;
   ClassElement getUniqueType() => null;
   toString() => "unknown";
@@ -136,10 +136,10 @@ class UnionType implements ConcreteType {
     return baseTypes.containsAll(other.baseTypes);
   }
 
-  int hashCode() {
+  int get hashCode {
     int result = 1;
     for (final baseType in baseTypes) {
-      result = 31 * result + baseType.hashCode();
+      result = 31 * result + baseType.hashCode;
     }
     return result;
   }
@@ -320,11 +320,11 @@ class ConcreteTypesEnvironment {
     return true;
   }
 
-  int hashCode() {
-    int result = (typeOfThis != null) ? typeOfThis.hashCode() : 1;
+  int get hashCode {
+    int result = (typeOfThis != null) ? typeOfThis.hashCode : 1;
     environment.forEach((element, concreteType) {
-      result = 31 * (31 * result + element.hashCode()) +
-          concreteType.hashCode();
+      result = 31 * (31 * result + element.hashCode) +
+          concreteType.hashCode;
     });
     return result;
   }

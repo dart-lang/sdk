@@ -296,7 +296,7 @@ class Level implements Comparable {
   bool operator >(Level other) => value > other.value;
   bool operator >=(Level other) => value >= other.value;
   int compareTo(Level other) => value - other.value;
-  int hashCode() => value;
+  int get hashCode => value;
   String toString() => name;
 }
 

@@ -19,8 +19,8 @@ main() {
 void testHashCode() {
   ReceivePort rp0 = new ReceivePort();
   ReceivePort rp1 = new ReceivePort();
-  Expect.equals(rp0.toSendPort().hashCode(), rp0.toSendPort().hashCode());
-  Expect.equals(rp1.toSendPort().hashCode(), rp1.toSendPort().hashCode());
+  Expect.equals(rp0.toSendPort().hashCode, rp0.toSendPort().hashCode);
+  Expect.equals(rp1.toSendPort().hashCode, rp1.toSendPort().hashCode);
   rp0.close();
   rp1.close();
 }

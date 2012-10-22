@@ -90,7 +90,7 @@ class DateImplementation implements Date {
   int compareTo(Date other)
       => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
 
-  int hashCode() => millisecondsSinceEpoch;
+  int get hashCode => millisecondsSinceEpoch;
 
   Date toLocal() {
     if (isUtc) {

@@ -185,7 +185,7 @@ class _Smi extends _IntegerImplementation implements int {
     throw const UnsupportedOperationException(
         "_Smi can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Smi_bitNegate";
@@ -199,7 +199,7 @@ class _Mint extends _IntegerImplementation implements int {
     throw const UnsupportedOperationException(
         "_Mint can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Mint_bitNegate";
@@ -224,7 +224,7 @@ class _Bigint extends _IntegerImplementation implements int {
     throw const UnsupportedOperationException(
         "_Bigint can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Bigint_bitNegate";

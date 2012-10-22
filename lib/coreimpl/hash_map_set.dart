@@ -70,7 +70,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   int _probeForAdding(K key) {
     if (key == null) throw const NullPointerException();
-    int hash = _firstProbe(key.hashCode(), _keys.length);
+    int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
     // insertionIndex points to a slot where a key was deleted.
@@ -104,7 +104,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   int _probeForLookup(K key) {
     if (key == null) throw const NullPointerException();
-    int hash = _firstProbe(key.hashCode(), _keys.length);
+    int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
     while (true) {

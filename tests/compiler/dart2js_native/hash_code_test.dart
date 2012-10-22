@@ -12,5 +12,5 @@ makeA = function(){return new A;};
 
 main() {
   setup();
-  Expect.isTrue(makeA().hashCode() is int);
+  Expect.isTrue(makeA().hashCode is int);
 }

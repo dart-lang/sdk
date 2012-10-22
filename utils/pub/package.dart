@@ -118,9 +118,9 @@ class PackageId implements Comparable {
 
   PackageId(this.name, this.source, this.version, this.description);
 
-  int hashCode() => name.hashCode() ^
-                    source.name.hashCode() ^
-                    version.hashCode();
+  int get hashCode => name.hashCode ^
+                      source.name.hashCode ^
+                      version.hashCode;
 
   bool operator ==(other) {
     if (other is! PackageId) return false;

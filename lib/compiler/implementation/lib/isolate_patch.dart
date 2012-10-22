@@ -650,7 +650,7 @@ class _BaseSendPort implements SendPort {
 
   abstract void send(var message, [SendPort replyTo]);
   abstract bool operator ==(var other);
-  abstract int hashCode();
+  abstract int get hashCode;
 }
 
 /** A send port that delivers messages in-memory via native JavaScript calls. */
@@ -697,7 +697,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
   bool operator ==(var other) => (other is _NativeJsSendPort) &&
       (_receivePort == other._receivePort);
 
-  int hashCode() => _receivePort._id;
+  int get hashCode => _receivePort._id;
 }
 
 /** A send port that delivers messages via worker.postMessage. */
@@ -734,7 +734,7 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
         (_receivePortId == other._receivePortId);
   }
 
-  int hashCode() {
+  int get hashCode {
     // TODO(sigmund): use a standard hash when we get one available in corelib.
     return (_workerId << 16) ^ (_isolateId << 8) ^ _receivePortId;
   }
@@ -787,7 +787,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
 
   bool operator ==(var other) =>
       other is _BufferingSendPort && _id == other._id;
-  int hashCode() => _id;
+  int get hashCode => _id;
 }
 
 /** Default factory for receive ports. */

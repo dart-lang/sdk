@@ -92,7 +92,7 @@ abstract class SendPort {
    * Returns an immutable hash code for this send port that is
    * consistent with the == operator.
    */
-  int hashCode();
+  int get hashCode;
 
 }
 

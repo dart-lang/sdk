@@ -264,7 +264,7 @@ class Element implements Spannable {
   // TODO(kasperl): This is a very bad hash code for the element and
   // there's no reason why two elements with the same name should have
   // the same hash code. Replace this with a simple id in the element?
-  int hashCode() => name == null ? 0 : name.hashCode();
+  int get hashCode => name == null ? 0 : name.hashCode;
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
@@ -1644,7 +1644,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeName != null;
-  int hashCode() => id;
+  int get hashCode => id;
 
   // TODO(johnniwinther): Rewrite to avoid the optional argument.
   Scope buildScope({bool patchScope: false}) {

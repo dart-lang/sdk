@@ -35,7 +35,7 @@ class YamlMap implements Map {
   bool isEmpty() => _map.isEmpty();
   String toString() => _map.toString();
 
-  int hashCode() => _hashCode(_map);
+  int get hashCode => _hashCode(_map);
 
   bool operator ==(other) {
     if (other is! YamlMap) return false;
@@ -67,7 +67,7 @@ class _WrappedHashKey {
 
   _WrappedHashKey(this.value);
 
-  int hashCode() => _hashCode(value);
+  int get hashCode => _hashCode(value);
 
   String toString() => value.toString();
 
@@ -107,7 +107,7 @@ int _hashCode(obj, [List parents]) {
       }
       return hash;
     }
-    return obj.hashCode();
+    return obj.hashCode;
   } finally {
     parents.removeLast();
   }

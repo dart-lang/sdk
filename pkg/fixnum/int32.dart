@@ -328,7 +328,7 @@ class int32 implements intx {
   bool isOdd() => (_i & 0x1) == 1;
   bool isZero() => _i == 0;
 
-  int hashCode() => _i;
+  int get hashCode => _i;
 
   int32 abs() => _i < 0 ? new int32.fromInt(-_i) : this;
 

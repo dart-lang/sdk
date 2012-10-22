@@ -26,7 +26,7 @@ class ByteString implements SourceString {
 
   Iterator<int> iterator() => new Utf8Decoder(bytes, offset, length);
 
-  int hashCode() {
+  int get hashCode {
     if (_hashCode == null) {
       _hashCode = computeHashCode();
     }

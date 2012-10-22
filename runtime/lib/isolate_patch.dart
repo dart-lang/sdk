@@ -91,7 +91,7 @@ class _SendPortImpl implements SendPort {
     return (other is _SendPortImpl) && _id == other._id;
   }
 
-  int hashCode() {
+  int get hashCode {
     return _id;
   }
 

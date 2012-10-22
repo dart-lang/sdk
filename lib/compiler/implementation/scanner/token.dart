@@ -200,7 +200,7 @@ class StringWrapper implements SourceString {
 
   const StringWrapper(String this.stringValue);
 
-  int hashCode() => stringValue.hashCode();
+  int get hashCode => stringValue.hashCode;
 
   bool operator ==(other) {
     return other is SourceString && toString() == other.slowToString();
