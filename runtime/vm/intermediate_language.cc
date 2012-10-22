@@ -1852,12 +1852,18 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label skip_call;
+  const String& equality_name = String::Handle(Symbols::New("=="));
+  if (function().name() == equality_name.raw()) {
+    compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
+  }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                function(),
                                ArgumentCount(),
                                argument_names(),
                                locs());
+  __ Bind(&skip_call);
 }
 
 

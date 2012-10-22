@@ -157,6 +157,9 @@ class FlowGraphCompiler : public ValueObject {
                              Register result);
 
   void EmitEqualityRegConstCompare(Register reg, const Object& obj);
+  // Implement equality: if any of the arguments is null do identity check.
+  // Fallthrough calls super equality.
+  void EmitSuperEqualityCallPrologue(Register result, Label* skip_call);
 
   intptr_t StackSize() const;
 

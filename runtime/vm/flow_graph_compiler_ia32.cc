@@ -1137,6 +1137,34 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 }
 
 
+// Implement equality spec: if any of the arguments is null do identity check.
+// Fallthrough calls super equality.
+void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
+                                                      Label* skip_call) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label check_identity, fall_through;
+  __ cmpl(Address(ESP, 0 * kWordSize), raw_null);
+  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ Bind(&check_identity);
+  __ popl(result);
+  __ cmpl(result, Address(ESP, 1 * kWordSize));
+  Label is_false;
+  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
+  __ LoadObject(result, bool_true());
+  __ Drop(1);
+  __ jmp(skip_call);
+  __ Bind(&is_false);
+  __ LoadObject(result, bool_false());
+  __ Drop(1);
+  __ jmp(skip_call);
+  __ Bind(&fall_through);
+}
+
+
 void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
                                              Register reg,
                                              Register temp,

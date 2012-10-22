@@ -3361,9 +3361,20 @@ void Function::set_is_abstract(bool value) const {
   set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
 }
 
+
 void Function::set_is_inlinable(bool value) const {
   set_kind_tag(InlinableBit::update(value, raw_ptr()->kind_tag_));
 }
+
+
+bool Function::IsInlineable() const {
+  // '==' call is handled specially.
+  const String& equality_name = String::Handle(Symbols::New("=="));
+  return InlinableBit::decode(raw_ptr()->kind_tag_) &&
+         HasCode() &&
+         name() != equality_name.raw();
+}
+
 
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();

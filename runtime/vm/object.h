@@ -1268,9 +1268,7 @@ class Function : public Object {
   bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
 
-  bool is_inlinable() const {
-    return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
-  }
+  bool IsInlineable() const;
   void set_is_inlinable(bool value) const;
 
   bool HasOptimizedCode() const;

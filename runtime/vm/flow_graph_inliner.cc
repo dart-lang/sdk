@@ -149,7 +149,7 @@ class CallSites : public FlowGraphVisitor {
   }
 
   void VisitStaticCall(StaticCallInstr* call) {
-    if (call->function().is_inlinable()) static_calls_.Add(call);
+    if (call->function().IsInlineable()) static_calls_.Add(call);
   }
 
  private:
@@ -219,7 +219,7 @@ class CallSiteInliner : public ValueObject {
                              function.deoptimization_counter()));
 
     // Abort if the inlinable bit on the function is low.
-    if (!function.is_inlinable()) {
+    if (!function.IsInlineable()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
       return false;
     }
