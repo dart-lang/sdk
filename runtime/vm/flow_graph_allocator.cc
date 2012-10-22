@@ -1353,8 +1353,9 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
 
   ASSERT(split_pos < End());
 
-  // Corner case. We need to start over to find previous interval.
-  if (interval->start() == split_pos) interval = first_use_interval_;
+  // Corner case. Split position can be inside the a lifetime hole or at its
+  // end. We need to start over to find the previous interval.
+  if (split_pos <= interval->start()) interval = first_use_interval_;
 
   UseInterval* last_before_split = NULL;
   while (interval->end() <= split_pos) {
