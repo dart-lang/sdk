@@ -74,12 +74,6 @@ class FormatException implements Exception {
 }
 
 
-class WrongArgumentCountException implements Exception {
-  const WrongArgumentCountException();
-  String toString() => "WrongArgumentCountException";
-}
-
-
 class NullPointerException implements Exception {
   const NullPointerException([this.functionName, this.arguments = const []]);
   String toString() {
