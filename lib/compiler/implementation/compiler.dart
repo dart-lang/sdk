@@ -143,7 +143,7 @@ abstract class Compiler implements DiagnosticListener {
       return f();
     } on CompilerCancelledException catch (ex) {
       throw;
-    } on StackOverflowException catch (ex) {
+    } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       throw;

@@ -55,12 +55,6 @@ class ObjectNotClosureException implements Exception {
 }
 
 
-class StackOverflowException implements Exception {
-  const StackOverflowException();
-  String toString() => "Stack Overflow";
-}
-
-
 /**
  * Exception thrown when a string or some other data does not have an expected
  * format and cannot be parsed or processed.

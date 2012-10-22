@@ -925,7 +925,7 @@ unwrapException(ex) {
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
     if (message is String && message.contains('call stack')) {
-      return new StackOverflowException();
+      return new StackOverflowError();
     }
 
     // In general, a RangeError is thrown when trying to pass a number
@@ -939,7 +939,7 @@ unwrapException(ex) {
          r"typeof InternalError == 'function' && # instanceof InternalError",
          ex)) {
     if (message is String && message == 'too much recursion') {
-      return new StackOverflowException();
+      return new StackOverflowError();
     }
   }
 

@@ -422,7 +422,7 @@ RawObject* Exceptions::Create(
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("StackOverflowException");
+      class_name = Symbols::New("StackOverflowError");
       break;
     case kOutOfMemory:
       library = Library::CoreLibrary();

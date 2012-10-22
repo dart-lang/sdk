@@ -136,6 +136,9 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail, OK # co19 issue 263
 LibTest/core/OutOfMemoryException/toString_A01_t01: Fail, OK # co19 issue 263
 
+LibTest/core/StackOverflowException/toString_A01_t01: Fail # co19 issue 271
+LibTest/core/StackOverflowException/StackOverflowException_A01_t01: Fail # co19 issue 271
+
 [ $compiler == dart2js && $unchecked ]
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.

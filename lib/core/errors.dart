@@ -17,8 +17,7 @@ class CastError implements Error {
 
 /**
  * Error thrown when a function is passed an unacceptable argument.
- */
-class ArgumentError implements Error {
+ */class ArgumentError implements Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
@@ -41,7 +40,14 @@ class IllegalArgumentException extends ArgumentError {
   const IllegalArgumentException([argument = ""]) : super(argument);
 }
 
-
+/**
+ * Error thrown when control reaches the end of a switch case.
+ *
+ * The Dart specification requires this error to be thrown when
+ * control reaches the end of a switch case (except the last case
+ * of a switch) without meeting a break or similar end of the control
+ * flow.
+ */
 class FallThroughError implements Error {
   const FallThroughError();
 }
@@ -131,7 +137,12 @@ class NoSuchMethodError implements Error {
 }
 
 
-class OutOfMemoryError implements Exception {
+class OutOfMemoryError implements Error {
   const OutOfMemoryError();
   String toString() => "Out of Memory";
+}
+
+class StackOverflowError implements Error {
+  const StackOverflowError();
+  String toString() => "Stack Overflow";
 }
