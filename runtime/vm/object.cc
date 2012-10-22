@@ -3369,7 +3369,7 @@ void Function::set_is_inlinable(bool value) const {
 
 bool Function::IsInlineable() const {
   // '==' call is handled specially.
-  const String& equality_name = String::Handle(Symbols::New("=="));
+  const String& equality_name = String::Handle(Symbols::EqualOperator());
   return InlinableBit::decode(raw_ptr()->kind_tag_) &&
          HasCode() &&
          name() != equality_name.raw();

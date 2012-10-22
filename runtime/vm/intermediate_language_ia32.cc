@@ -332,7 +332,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    token_pos);
   }
-  const String& operator_name = String::ZoneHandle(Symbols::New("=="));
+  const String& operator_name = String::ZoneHandle(Symbols::EqualOperator());
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;

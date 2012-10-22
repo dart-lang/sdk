@@ -218,8 +218,7 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
-  const String& function_name =
-      String::Handle(Symbols::New("=="));
+  const String& function_name = String::Handle(Symbols::EqualOperator());
   GrowableArray<const Object*> arguments;
   arguments.Add(&right);
   const int kNumArguments = 2;
