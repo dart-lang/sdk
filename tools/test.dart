@@ -110,8 +110,7 @@ main() {
         // [TEST_SUITE_DIRECTORIES]).
         queue.addTestSuite(new VMTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
-        // TODO http://code.google.com/p/dart/issues/detail?id=6097
-//        queue.addTestSuite(new SamplesDartcTestSuite(conf));
+        queue.addTestSuite(new SamplesDartcTestSuite(conf));
         queue.addTestSuite(new JUnitDartcTestSuite(conf));
       }
     }
