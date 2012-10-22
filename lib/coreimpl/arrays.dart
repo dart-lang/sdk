@@ -6,8 +6,8 @@
 class Arrays {
   static void copy(List src, int srcStart,
                    List dst, int dstStart, int count) {
-    if (srcStart == null) srcStart = 0;
-    if (dstStart == null) dstStart = 0;
+    if (srcStart === null) srcStart = 0;
+    if (dstStart === null) dstStart = 0;
 
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
@@ -22,13 +22,13 @@ class Arrays {
   }
 
   static bool areEqual(List a, Object b) {
-    if (identical(a, b)) return true;
+    if (a === b) return true;
     if (!(b is List)) return false;
     int length = a.length;
     if (length != b.length) return false;
 
     for (int i = 0; i < length; i++) {
-      if (!identical(a[i], b[i])) return false;
+      if (a[i] !== b[i]) return false;
     }
     return true;
   }

@@ -24,7 +24,7 @@ class StringBufferImpl implements StringBuffer {
   }
 
   bool isEmpty() {
-    return _length == 0;
+    return _length === 0;
   }
 
   /**
@@ -32,7 +32,7 @@ class StringBufferImpl implements StringBuffer {
    */
   StringBuffer add(Object obj) {
     String str = obj.toString();
-    if (str == null || str.isEmpty()) {
+    if (str === null || str.isEmpty()) {
       return this;
     }
     _buffer.add(str);
@@ -71,8 +71,8 @@ class StringBufferImpl implements StringBuffer {
    * Returns the contents of buffer as a concatenated string.
    */
   String toString() {
-    if (_buffer.length == 0) return "";
-    if (_buffer.length == 1) return _buffer[0];
+    if (_buffer.length === 0) return "";
+    if (_buffer.length === 1) return _buffer[0];
     String result = StringImplementation.concatAll(_buffer);
     _buffer.clear();
     _buffer.add(result);

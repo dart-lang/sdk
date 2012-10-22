@@ -114,7 +114,7 @@ class UnsupportedOperationException implements Exception {
 
 class NotImplementedException implements Exception {
   const NotImplementedException([String message]) : this._message = message;
-  String toString() => (this._message != null
+  String toString() => (this._message !== null
                         ? "NotImplementedException: $_message"
                         : "NotImplementedException");
   final String _message;

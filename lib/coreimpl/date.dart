@@ -20,16 +20,16 @@ class DateImplementation implements Date {
         r'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
-    if (match != null) {
+    if (match !== null) {
       int parseIntOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
-        if (matched == null || matched == "") return 0;
+        if (matched === null || matched == "") return 0;
         return int.parse(matched);
       }
 
       double parseDoubleOrZero(String matched) {
         // TODO(floitsch): we should not need to test against the empty string.
-        if (matched == null || matched == "") return 0.0;
+        if (matched === null || matched == "") return 0.0;
         return double.parse(matched);
       }
 
@@ -46,10 +46,10 @@ class DateImplementation implements Date {
         millisecond = 999;
       }
       // TODO(floitsch): we should not need to test against the empty string.
-      bool isUtc = (match[8] != null) && (match[8] != "");
+      bool isUtc = (match[8] !== null) && (match[8] != "");
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
-      if (millisecondsSinceEpoch == null) {
+      if (millisecondsSinceEpoch === null) {
         throw new ArgumentError(formattedString);
       }
       if (addOneMillisecond) millisecondsSinceEpoch++;
@@ -67,7 +67,7 @@ class DateImplementation implements Date {
     if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
       throw new ArgumentError(millisecondsSinceEpoch);
     }
-    if (isUtc == null) throw new ArgumentError(isUtc);
+    if (isUtc === null) throw new ArgumentError(isUtc);
   }
 
   bool operator ==(other) {

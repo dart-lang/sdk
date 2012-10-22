@@ -23,7 +23,7 @@ class Expect {
    * Checks whether the actual value is a bool and its value is true.
    */
   static void isTrue(var actual, [String reason = null]) {
-    if (identical(actual, true)) return;
+    if (actual === true) return;
     String msg = _getMessage(reason);
     _fail("Expect.isTrue($actual$msg) fails.");
   }
@@ -32,7 +32,7 @@ class Expect {
    * Checks whether the actual value is a bool and its value is false.
    */
   static void isFalse(var actual, [String reason = null]) {
-    if (identical(actual, false)) return;
+    if (actual === false) return;
     String msg = _getMessage(reason);
     _fail("Expect.isFalse($actual$msg) fails.");
   }
@@ -41,7 +41,7 @@ class Expect {
    * Checks whether [actual] is null.
    */
   static void isNull(actual, [String reason = null]) {
-    if (null == actual) return;
+    if (null === actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNull(actual: <$actual>$msg) fails.");
   }
@@ -50,7 +50,7 @@ class Expect {
    * Checks whether [actual] is not null.
    */
   static void isNotNull(actual, [String reason = null]) {
-    if (null != actual) return;
+    if (null !== actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
   }
@@ -80,7 +80,7 @@ class Expect {
                            num actual,
                            [num tolerance = null,
                             String reason = null]) {
-    if (tolerance == null) {
+    if (tolerance === null) {
       tolerance = (expected / 1e4).abs();
     }
     // Note: use !( <= ) rather than > so we fail on NaNs
@@ -159,7 +159,7 @@ class Expect {
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
 
     if (expected == actual) return;
-    if ((expected == null) || (actual == null)) {
+    if ((expected === null) || (actual === null)) {
       _fail('$defaultMessage');
     }
     // scan from the left until we find a mismatch
@@ -265,7 +265,7 @@ class Expect {
     try {
       f();
     } catch (e) {
-      if (check != null) {
+      if (check !== null) {
         Expect.isTrue(check(e));
       }
       return;
@@ -275,7 +275,7 @@ class Expect {
   }
 
   static String _getMessage(String reason)
-      => (reason == null) ? "" : ", '$reason'";
+      => (reason === null) ? "" : ", '$reason'";
 
   static void _fail(String message) {
     throw new ExpectException(message);
