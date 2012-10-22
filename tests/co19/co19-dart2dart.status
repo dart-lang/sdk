@@ -434,7 +434,6 @@ Language/10_Expressions/22_Equality_A01_t23: Fail # Inherited from dart2js
 Language/10_Expressions/22_Equality_A01_t24: Fail # Inherited from dart2js
 Language/10_Expressions/22_Equality_A02_t03: Fail # inherited from VM
 Language/10_Expressions/22_Equality_A03_t01: Fail # inherited from VM
-Language/10_Expressions/22_Equality_A03_t02: Fail # Inherited from dart2js
 Language/10_Expressions/22_Equality_A03_t03: Fail # inherited from VM
 Language/10_Expressions/22_Equality_A05_t01: Fail # inherited from VM
 Language/10_Expressions/22_Shift_A01_t01: Fail # inherited from VM
