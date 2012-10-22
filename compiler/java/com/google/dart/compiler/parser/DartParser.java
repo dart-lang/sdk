@@ -4878,6 +4878,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     List<DartSwitchMember> members = new ArrayList<DartSwitchMember>();
     if (peek(0) != Token.LBRACE) {
+      reportUnexpectedToken(position(), Token.LBRACE, peek(0));
       return done(new DartSwitchStatement(expr, members));
     }
     boolean foundOpenBrace = expect(Token.LBRACE);
