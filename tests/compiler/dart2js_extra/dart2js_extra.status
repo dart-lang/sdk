@@ -19,8 +19,6 @@ closure5_test: Fail
 closure6_test: Fail
 closure7_test: Fail
 named_parameter_test: Fail
-native_call_arity3_frog_test: Fail
-
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 regress/4740_test: Fail

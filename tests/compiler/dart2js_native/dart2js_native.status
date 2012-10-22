@@ -2,5 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js ]
+native_call_arity2_frog_test: Fail
+native_call_arity3_frog_test: Fail
+
 [ $compiler == dartc || $browser ]
 *: Skip
