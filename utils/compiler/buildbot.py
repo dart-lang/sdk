@@ -27,7 +27,7 @@ DART_PATH = os.path.dirname(
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
+    r'dart2js-(ie9|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
@@ -108,6 +108,9 @@ def GetBuildInfo():
     if web_pattern:
       compiler = 'dart2js'
       runtime = web_pattern.group(1)
+      # TODO(efortuna) remove this when new support lands.
+      if runtime == 'ie9':
+        runtime = 'ie'
       system = web_pattern.group(2)
       mode = 'release'
       test_set = web_pattern.group(4)
