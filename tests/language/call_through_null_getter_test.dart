@@ -19,39 +19,47 @@ class CallThroughNullGetterTest {
 
   static void testTopLevel() {
     topLevel = null;
-    expectThrowsNullPointerException(() { topLevel(); });
-    expectThrowsNullPointerException(() { (topLevel)(); });
-    expectThrowsNullPointerException(() { TOP_LEVEL_NULL(); });
-    expectThrowsNullPointerException(() { (TOP_LEVEL_NULL)(); });
+    expectThrowsObjectNotClosureException(() { topLevel(); });
+    expectThrowsObjectNotClosureException(() { (topLevel)(); });
+    expectThrowsObjectNotClosureException(() { TOP_LEVEL_NULL(); });
+    expectThrowsObjectNotClosureException(() { (TOP_LEVEL_NULL)(); });
   }
 
   static void testField() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.field(); });
-    expectThrowsNullPointerException(() { (a.field)(); });
+    expectThrowsObjectNotClosureException(() { a.field(); });
+    expectThrowsObjectNotClosureException(() { (a.field)(); });
   }
 
   static void testGetter() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.getter(); });
-    expectThrowsNullPointerException(() { (a.getter)(); });
+    expectThrowsObjectNotClosureException(() { a.getter(); });
+    expectThrowsObjectNotClosureException(() { (a.getter)(); });
   }
 
   static void testMethod() {
     A a = new A();
 
     a.field = null;
-    expectThrowsNullPointerException(() { a.method()(); });
+    expectThrowsObjectNotClosureException(() { a.method()(); });
   }
 
   static void expectThrowsNullPointerException(fn) {
     var exception = catchException(fn);
-    if (exception is! NullPointerException) {
+    if (!(exception is NullPointerException)) {
       Expect.fail("Wrong exception.  Expected: NullPointerException"
+          " got: ${exception}");
+    }
+  }
+
+  static void expectThrowsObjectNotClosureException(fn) {
+    var exception = catchException(fn);
+    if (!(exception is ObjectNotClosureException)) {
+      Expect.fail("Wrong exception.  Expected: ObjectNotClosureException"
           " got: ${exception}");
     }
   }

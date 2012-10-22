@@ -882,9 +882,17 @@ unwrapException(ex) {
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      return new NullPointerException();
+      if (name is String && name.startsWith(r'call$')) {
+        return new ObjectNotClosureException();
+      } else {
+        return new NullPointerException();
+      }
     } else if (type == 'undefined_method') {
-      return new NoSuchMethodError('', name, []);
+      if (name is String && name.startsWith(r'call$')) {
+        return new ObjectNotClosureException();
+      } else {
+        return new NoSuchMethodError('', name, []);
+      }
     }
 
     var ieErrorCode = JS('int', '#.number & 0xffff', ex);

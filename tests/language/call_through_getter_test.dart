@@ -28,10 +28,10 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
 
-    expectThrowsNoSuchMethod(() {
+    expectThrowsNotClosure(() {
       TOP_LEVEL_CONST(); /// static type warning
     });
-    expectThrowsNoSuchMethod(() {
+    expectThrowsNotClosure(() {
       (TOP_LEVEL_CONST)();  /// static type warning
     });
   }
@@ -47,8 +47,8 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.field)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() { a.field(); });
-    expectThrowsNoSuchMethod(() { (a.field)(); });
+    expectThrowsNotClosure(() { a.field(); });
+    expectThrowsNotClosure(() { (a.field)(); });
   }
 
   static void testGetter() {
@@ -62,8 +62,8 @@ class CallThroughGetterTest {
     Expect.equals(87, (a.getter)());
 
     a.field = 99;
-    expectThrowsNoSuchMethod(() { a.getter(); });
-    expectThrowsNoSuchMethod(() { (a.getter)(); });
+    expectThrowsNotClosure(() { a.getter(); });
+    expectThrowsNotClosure(() { (a.getter)(); });
   }
 
   static void testMethod() {
@@ -107,10 +107,10 @@ class CallThroughGetterTest {
     Expect.equals("gyzxf", (b.g3)(b.y, b.z, b.x));
   }
 
-  static expectThrowsNoSuchMethod(fn) {
+  static void expectThrowsNotClosure(fn) {
     var exception = catchException(fn);
-    if (exception is! NoSuchMethodError) {
-      Expect.fail("Wrong exception.  Expected: NoSuchMethodError"
+    if (!(exception is ObjectNotClosureException)) {
+      Expect.fail("Wrong exception.  Expected: ObjectNotClosureException"
           " got: ${exception}");
     }
   }
