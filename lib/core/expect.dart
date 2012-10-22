@@ -60,7 +60,7 @@ class Expect {
    * (using `===`).
    */
   static void identical(var expected, var actual, [String reason = null]) {
-    if (identical(expected, actual)) return;
+    if (expected === actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.identical(expected: <$expected>, actual: <$actual>$msg) "
           "fails.");
