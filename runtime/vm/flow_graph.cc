@@ -523,15 +523,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
-    // Attach current environment to the instruction. First, each instruction
-    // gets a full copy of the environment. Later we optimize this by
-    // eliminating unnecessary environments.
-    // TODO(zerny): Avoid creating unnecessary environments. Note that some
-    // optimizations need deoptimization info for non-deoptable instructions,
-    // eg, LICM on GOTOs.
-    current->set_env(Environment::From(*env,
-                                       num_non_copied_params_,
-                                       parsed_function_.function()));
+    // Attach current environment to the instructions that can deoptimize and
+    // at goto instructions. Optimizations like LICM expect an environment at
+    // gotos.
+    if (current->CanDeoptimize() || current->IsGoto()) {
+      current->set_env(Environment::From(*env,
+                                         num_non_copied_params_,
+                                         parsed_function_.function()));
+    }
     if (current->CanDeoptimize()) {
       current->env()->set_deopt_id(current->deopt_id());
     }
