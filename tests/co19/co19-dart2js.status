@@ -297,6 +297,7 @@ LibTest/core/Expect/listEquals_A03_t01: Fail, OK
 LibTest/core/Expect/notEquals_A02_t01: Fail, OK
 LibTest/core/Expect/stringEquals_A02_t01: Fail, OK
 LibTest/core/Expect/throws_A01_t01: Fail, OK
+LibTest/core/Expect/throws_A01_t02: Fail, OK
 LibTest/core/Expect/throws_A01_t03: Fail, OK
 LibTest/core/List/List_A01_t01: Fail, OK
 
