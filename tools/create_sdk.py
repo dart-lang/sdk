@@ -153,13 +153,18 @@ def Main(argv):
 
   HOME = dirname(dirname(realpath(__file__)))
 
-  SDK_tmp = tempfile.mkdtemp()
   SDK = argv[1]
+  SDK_tmp = '%s.tmp' % SDK
 
   # TODO(dgrove) - deal with architectures that are not ia32.
 
   if exists(SDK):
     rmtree(SDK)
+
+  if exists(SDK_tmp):
+    rmtree(SDK_tmp)
+
+  os.makedirs(SDK_tmp)
 
   # Create and populate sdk/bin.
   BIN = join(SDK_tmp, 'bin')
