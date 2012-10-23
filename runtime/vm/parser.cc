@@ -9423,8 +9423,6 @@ AstNode* Parser::ParsePrimary() {
   } else if (CurrentToken() == Token::kSUPER) {
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
-    } else if (current_function().IsLocalFunction()) {
-      ErrorMsg("cannot access superclass from local function");
     }
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
