@@ -563,7 +563,9 @@ Note: currently only implemented for dart2js.''',
           if (Contains(configuration['runtime'],
                        const ['ie9', 'ie10', 'ff', 'chrome', 'safari',
                               'opera'])) {
-            timeout *= 8; // Allow additional time for browser testing to run.
+            // TODO(ahe): Restore the timeout to 8 times the original timeout
+            // when dart2js compile-time performance has improved.
+            timeout *= 12; // Allow additional time for browser testing to run.
           }
           break;
         default:
