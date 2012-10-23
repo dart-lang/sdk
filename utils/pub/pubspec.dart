@@ -59,7 +59,13 @@ class Pubspec {
       throw new FormatException('The pubspec must be a YAML mapping.');
     }
 
-    if (parsedPubspec.containsKey('name')) name = parsedPubspec['name'];
+    if (parsedPubspec.containsKey('name')) {
+      name = parsedPubspec['name'];
+      if (name is! String) {
+        throw new FormatException(
+            'The pubspec "name" field should be a string, but was "$name".');
+      }
+    }
 
     if (parsedPubspec.containsKey('version')) {
       version = new Version.parse(parsedPubspec['version']);
@@ -70,7 +76,8 @@ class Pubspec {
       if (dependencyEntries is! Map ||
           dependencyEntries.getKeys().some((e) => e is! String)) {
         throw new FormatException(
-            'The pubspec dependencies must be a map of package names.');
+            'The pubspec dependencies should be a map of package names, but '
+            'was ${dependencyEntries}.');
       }
 
       dependencyEntries.forEach((name, spec) {
@@ -98,14 +105,15 @@ class Pubspec {
           var sourceName = only(sourceNames);
           if (sourceName is! String) {
             throw new FormatException(
-                'Source name $sourceName must be a string.');
+                'Source name $sourceName should be a string.');
           }
 
           source = sources[sourceName];
           description = spec[sourceName];
         } else {
           throw new FormatException(
-              'Dependency specification $spec must be a string or a mapping.');
+              'Dependency specification $spec should be a string or a '
+              'mapping.');
         }
 
         source.validateDescription(description, fromLockFile: false);
@@ -113,6 +121,43 @@ class Pubspec {
         dependencies.add(new PackageRef(
             name, source, versionConstraint, description));
       });
+    }
+
+    // Even though the pub app itself doesn't use these fields, we validate
+    // them here so that users find errors early before they try to upload to
+    // the server:
+
+    if (parsedPubspec.containsKey('homepage') &&
+        parsedPubspec['homepage'] is! String) {
+      throw new FormatException(
+          'The "homepage" field should be a string, but was '
+          '${parsedPubspec["homepage"]}.');
+    }
+
+    if (parsedPubspec.containsKey('author') &&
+        parsedPubspec['author'] is! String) {
+      throw new FormatException(
+          'The "author" field should be a string, but was '
+          '${parsedPubspec["author"]}.');
+    }
+
+    if (parsedPubspec.containsKey('authors')) {
+      var authors = parsedPubspec['authors'];
+      if (authors is List) {
+        // All of the elements must be strings.
+        if (!authors.every((author) => author is String)) {
+          throw new FormatException('The "authors" field should be a string '
+              'or a list of strings, but was "$authors".');
+        }
+      } else if (authors is! String) {
+        throw new FormatException('The pubspec "authors" field should be a '
+            'string or a list of strings, but was "$authors".');
+      }
+
+      if (parsedPubspec.containsKey('author')) {
+        throw new FormatException('A pubspec should not have both an "author" '
+            'and an "authors" field.');
+      }
     }
 
     return new Pubspec(name, version, dependencies);

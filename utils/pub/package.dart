@@ -27,12 +27,17 @@ class Package {
       if (!exists) throw new PubspecNotFoundException(name);
       return readTextFile(pubspecPath);
     }).transform((contents) {
-      var pubspec = new Pubspec.parse(contents, sources);
-      if (pubspec.name == null) throw new PubspecHasNoNameException(name);
-      if (name != null && pubspec.name != name) {
-        throw new PubspecNameMismatchException(name, pubspec.name);
+      try {
+        var pubspec = new Pubspec.parse(contents, sources);
+
+        if (pubspec.name == null) throw new PubspecHasNoNameException(name);
+        if (name != null && pubspec.name != name) {
+          throw new PubspecNameMismatchException(name, pubspec.name);
+        }
+        return new Package._(packageDir, pubspec);
+      } on FormatException catch (ex) {
+        throw 'Could not parse $pubspecPath:\n${ex.message}';
       }
-      return new Package._(packageDir, pubspec);
     });
   }
 
