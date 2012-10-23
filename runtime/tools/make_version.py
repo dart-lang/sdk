@@ -35,19 +35,23 @@ def getRevision():
     debugLog("Using svn to get revision")
     cmd = ['svn', 'info']
   else:
-    debugLog("Using git svn to get revision")
-    cmd = ['git', 'svn', 'info']
-  try:
-    debugLog("Running command to get revision: %s" % cmd)
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    revision = proc.communicate()[0].split('\n')[4].split(' ')[1]
-    debugLog("Got revision: %s" % revision)
-    return revision
-  except Exception:
-    # If we can't get any revision info (due to lack of tooling) return ''.
-    return ''
-
+    git_proc = subprocess.Popen(
+        ['git', 'branch', '-r'],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if 'git-svn' in git_proc.communicate()[0]:
+      debugLog("Using git svn to get revision")
+      cmd = ['git', 'svn', 'info']
+    else:
+      # Cannot get revision because we are not in svn or
+      # git svn checkout.
+      debugLog("Could not get revision: not an svn or git-svn checkout?")
+      return ''
+  debugLog("Running command to get revision: %s" % cmd)
+  proc = subprocess.Popen(cmd,
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  revision = proc.communicate()[0].split('\n')[4].split(' ')[1]
+  debugLog("Got revision: %s" % revision)
+  return revision
 
 def makeVersionString(version_file):
   id = platform.system()
