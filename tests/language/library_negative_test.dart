@@ -4,8 +4,8 @@
 // This test should fail to load because the app file references a
 // library spec file that does not exist.
 
-#library("LibraryNegativeTest.dart");
-#import("nonexisting_library.lib");
+library LibraryNegativeTest;
+import "nonexisting_library.lib";
 
 
 main(args) {

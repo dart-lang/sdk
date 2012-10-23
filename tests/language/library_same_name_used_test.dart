@@ -5,8 +5,8 @@
 // 'X' is defined as an interface in lib1 and a class implementing that
 // interface in lib2.  Use of #import prefixes should allow this.
 
-#library('main');
-#import("library_same_name_used_lib1.dart");
+library main;
+import "library_same_name_used_lib1.dart";
 
 main() {
   var x = makeX();

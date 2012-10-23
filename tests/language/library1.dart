@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library1.dart");
+library library1;
 
 var foo;

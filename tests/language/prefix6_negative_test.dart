@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("Prefix6NegativeTest.dart");
-#import("library10.dart", prefix:"lib10");
+library Prefix6NegativeTest;
+import "library10.dart" as lib10;
 
 class Prefix6NegativeTest {
   static Test1() {

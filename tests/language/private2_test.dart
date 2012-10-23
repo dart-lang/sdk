@@ -5,5 +5,5 @@
 
 library Private2Test;
 
-#import("private2_lib.lib");
-#source("private2_main.dart");
+import "private2_lib.lib";
+part "private2_main.dart";

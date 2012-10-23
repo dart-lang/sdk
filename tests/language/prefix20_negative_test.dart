@@ -4,8 +4,8 @@
 //
 // prefix: strings should only contain valid identifiers
 
-#library("Prefix18NegativeTest.dart");
-#import("library1.dart", prefix:"!lib1");
+library Prefix18NegativeTest;
+import "library1.dart" as !lib1;
 
 main() {
 }

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test explicit import of dart:core in the source code..
 
-#library("ImportCorePrefixTest.dart");
-#import("dart:core", prefix:"mycore");
+library ImportCorePrefixTest;
+import "dart:core" as mycore;
 
 void main() {
   var test = new mycore.Map<mycore.int,mycore.String>();

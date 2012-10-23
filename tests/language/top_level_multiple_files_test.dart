@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TopLevelMultipleFilesTest;
-#source('top_level_file1.dart');
-#source('top_level_file2.dart');
+part 'top_level_file1.dart';
+part 'top_level_file2.dart';
 

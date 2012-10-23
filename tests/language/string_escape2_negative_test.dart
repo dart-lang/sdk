@@ -4,9 +4,9 @@
 
 // Test that newlines cannot be escaped in source tags.
 
-#library('StringEscape2NegativeTest');
-#source('string_escape2_negative_test_helper\
-.dart');
+library StringEscape2NegativeTest;
+part 'string_escape2_negative_test_helper\
+.dart';
 
 main() {
 }

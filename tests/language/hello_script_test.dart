@@ -7,7 +7,7 @@
 // This file contains the script (aka root library).
 
 library HelloScriptTest;
-#import("hello_script_lib.dart");
+import "hello_script_lib.dart";
 
 main() {
   HelloLib.doTest();

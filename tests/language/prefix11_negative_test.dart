@@ -4,8 +4,8 @@
 //
 // Symbols in libraries imported by the prefixed library should not be visible
 
-#library("Prefix11NegativeTest.dart");
-#import("library12.dart", prefix:"lib12");
+library Prefix11NegativeTest;
+import "library12.dart" as lib12;
 
 main() {
   var obj = new lib12.Library11(1); // Error, method should not be visible

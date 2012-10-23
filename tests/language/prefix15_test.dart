@@ -4,8 +4,8 @@
 //
 // Use qualified symbols with generics at various places.
 
-#library("Prefix15Test.dart");
-#import("library12.dart", prefix:"lib12");
+library Prefix15Test;
+import "library12.dart" as lib12;
 
 typedef T myFunc<T>(T param);
 

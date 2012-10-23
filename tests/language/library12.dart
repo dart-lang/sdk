@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library12.dart");
+library library12;
 
-#import("library11.dart");
+import "library11.dart";
 class Library12 {
   Library12(this.fld);
   Library12.other(fld, multiplier) {

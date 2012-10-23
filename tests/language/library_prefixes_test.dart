@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library LibraryPrefixesTest;
-#import("library_prefixes.lib");
+import "library_prefixes.lib";
 
 class LibraryPrefixesTest {
   static testMain() {

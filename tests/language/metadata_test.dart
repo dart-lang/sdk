@@ -5,8 +5,8 @@
 // Test ensuring that compiler can parse metadata. Need to add negative
 // test cases with illegal metadata annotations.
 
-#library("metadata_test.dart");
-#import("metadata_lib.dart", prefix: "Meta");
+library metadata_test;
+import "metadata_lib.dart" as Meta;
 
 class Tag {
   final String annotation;

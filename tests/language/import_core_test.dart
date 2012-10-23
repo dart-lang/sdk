@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test explicit import of dart:core in the source code..
 
-#library("ImportCoreTest.dart");
-#import("dart:core");
+library ImportCoreTest;
+import "dart:core";
 
 void main() {
   var test = new Map<int,String>();

@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("Library5b.dart");
+library Library5b;
 
 typedef int Fun(x);

@@ -7,9 +7,9 @@
 // not an error but both library1.dart and library2.dart define 'foo' which
 // results in a duplicate definition error.
 
-#library("Prefix3NegativeTest.dart");
-#import("library1.dart", prefix: "lib2");  // defines 'foo'.
-#import("library2.dart", prefix: "lib2");  // also defines 'foo'.
+library Prefix3NegativeTest;
+import "library1.dart" as lib2;  // defines 'foo'.
+import "library2.dart" as lib2;  // also defines 'foo'.
 
 
 main() {

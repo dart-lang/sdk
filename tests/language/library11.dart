@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library11.dart");
+library library11;
 
 class Library11 {
   Library11(this.fld);

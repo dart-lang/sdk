@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for loading several dart files and resolving superclasses lazily.
 
-#library("MultiPassTest.dart");
-#source("multi_pass_a.dart");
-#source("multi_pass_b.dart");
+library MultiPassTest;
+part "multi_pass_a.dart";
+part "multi_pass_b.dart";
 
 
 class Base {

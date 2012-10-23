@@ -4,7 +4,7 @@
 // Dart test program for testing libraries.
 
 library Library1Test;
-#import("library1_lib.lib");
+import "library1_lib.lib";
 
 main() {
   Library1Test.testMain();

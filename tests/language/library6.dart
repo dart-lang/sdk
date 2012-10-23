@@ -7,8 +7,8 @@
 // another function type alias with the same name.
 // This name conflict is considered an error even if Fun is never referred to.
 
-#library("Library6NegativeTest.dart");
-#import("library5a.dart");  // Defines function type alias Fun
+library Library6NegativeTest;
+import "library5a.dart";  // Defines function type alias Fun
 
 typedef int Fun();  // Does not conflict with definition of Fun from library5a
 

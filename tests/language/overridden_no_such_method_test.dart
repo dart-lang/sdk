@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing overridden messageNotUnderstood.
 
-#library("OverriddenNoSuchMethodTest.dart");
-#source("overridden_no_such_method.dart");
+library OverriddenNoSuchMethodTest;
+part "overridden_no_such_method.dart";
 
 main() {
   OverriddenNoSuchMethod.testMain();

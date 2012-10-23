@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-#library("library10.dart");
+library library10;
 
-#import("library11.dart", prefix : "lib11");
+import "library11.dart" as lib11;
 class Library10 {
   Library10(this.fld);
   func() {

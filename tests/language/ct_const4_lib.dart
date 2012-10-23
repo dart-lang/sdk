@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // See CTConst4Test.dart
 
-#library("CTConst4Lib");
+library CTConst4Lib;
 
 const B = 1;

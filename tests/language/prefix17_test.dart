@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("Prefix17Test.dart");
-#import("library12.dart", prefix:"lib12");
+library Prefix17Test;
+import "library12.dart" as lib12;
 
 class LocalClass {
   static int static_fld;
