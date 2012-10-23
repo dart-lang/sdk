@@ -537,6 +537,10 @@ class Primitives {
     return JS('Date', r'#.date', receiver);
   }
 
+  // The getters for date and time parts below add a positive integer to ensure
+  // that the result is really an integer, because the JavaScript implementation
+  // may return -0.0 instead of 0.
+
   static getYear(receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
