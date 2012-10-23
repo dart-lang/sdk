@@ -29,7 +29,7 @@
  */
 abstract class Future<T> {
   /** A future whose value is immediately available. */
-  factory Future.immediate(T value) => new FutureImpl<T>.immediate(value);
+  factory Future.immediate(T value) => new _FutureImpl<T>.immediate(value);
 
   /** The value provided. Throws an exception if [hasValue] is false. */
   T get value;
@@ -161,7 +161,7 @@ abstract class Future<T> {
  */
 abstract class Completer<T> {
 
-  factory Completer() => new CompleterImpl<T>();
+  factory Completer() => new _CompleterImpl<T>();
 
   /** The future that will contain the value produced by this completer. */
   Future get future;

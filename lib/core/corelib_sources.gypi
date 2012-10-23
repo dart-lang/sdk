@@ -15,6 +15,7 @@
     'expando.dart',
     'expect.dart',
     'future.dart',
+    'future_impl.dart',
     'function.dart',
     'identical.dart',
     'int.dart',

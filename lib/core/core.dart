@@ -18,6 +18,7 @@
 #source("expect.dart");
 #source("function.dart");
 #source("future.dart");
+#source("future_impl.dart");
 #source("hashable.dart");
 #source("identical.dart");
 #source("int.dart");
