@@ -11,6 +11,7 @@
 *: Skip
 
 # Git on Windows is cripplingly slow (#5271).
+# Git tests do not work on Windows on buildbots (dartbug.com/6191).
 [ $system == windows ]
-install/git/*: Pass, Slow
-update/git/*: Pass, Slow
+install/git/*: Skip
+update/git/*: Skip
