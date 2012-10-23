@@ -5,35 +5,35 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-#library("dart:html");
+library html;
 
-#import("dart:isolate");
-#import("dart:json");
-#import("dart:nativewrappers");
+import 'dart:isolate';
+import 'dart:json';
+import 'dart:nativewrappers';
 
 $!GENERATED_DART_FILES
 
-#source('$AUXILIARY_DIR/CrossFrameTypes.dart');
-#source('$AUXILIARY_DIR/EventListener.dart');
-#source('$AUXILIARY_DIR/KeyLocation.dart');
-#source('$AUXILIARY_DIR/KeyName.dart');
-#source('$AUXILIARY_DIR/ReadyState.dart');
-#source('$AUXILIARY_DIR/Timer.dart');
-#source('$AUXILIARY_DIR/_Collections.dart');
-#source('$AUXILIARY_DIR/_HttpRequestUtils.dart');
-#source('$AUXILIARY_DIR/shared_FactoryProviders.dart');
-#source('$AUXILIARY_DIR/dartium_FactoryProviders.dart');
-#source('$AUXILIARY_DIR/Device.dart');
-#source('$AUXILIARY_DIR/Isolates.dart');
-#source('$AUXILIARY_DIR/Measurement.dart');
-#source('$AUXILIARY_DIR/Serialization.dart');
-#source('$AUXILIARY_DIR/dartium_MutationObserverSupported.dart');
-#source('$AUXILIARY_DIR/_Testing.dart');
-#source('$AUXILIARY_DIR/_ListIterators.dart');
-#source('$AUXILIARY_DIR/_Lists.dart');
+part '$AUXILIARY_DIR/CrossFrameTypes.dart';
+part '$AUXILIARY_DIR/EventListener.dart';
+part '$AUXILIARY_DIR/KeyLocation.dart';
+part '$AUXILIARY_DIR/KeyName.dart';
+part '$AUXILIARY_DIR/ReadyState.dart';
+part '$AUXILIARY_DIR/Timer.dart';
+part '$AUXILIARY_DIR/_Collections.dart';
+part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
+part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
+part '$AUXILIARY_DIR/dartium_FactoryProviders.dart';
+part '$AUXILIARY_DIR/Device.dart';
+part '$AUXILIARY_DIR/Isolates.dart';
+part '$AUXILIARY_DIR/Measurement.dart';
+part '$AUXILIARY_DIR/Serialization.dart';
+part '$AUXILIARY_DIR/dartium_MutationObserverSupported.dart';
+part '$AUXILIARY_DIR/_Testing.dart';
+part '$AUXILIARY_DIR/_ListIterators.dart';
+part '$AUXILIARY_DIR/_Lists.dart';
 
-#source('$AUXILIARY_DIR/native_DOMPublic.dart');
-#source('$AUXILIARY_DIR/native_DOMImplementation.dart');
+part '$AUXILIARY_DIR/native_DOMPublic.dart';
+part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
 LocalWindow __window;
 

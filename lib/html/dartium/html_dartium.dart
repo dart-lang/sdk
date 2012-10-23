@@ -1,8 +1,8 @@
-#library('dart:html');
+library html;
 
-#import('dart:isolate');
-#import('dart:json');
-#import('dart:nativewrappers');
+import 'dart:isolate';
+import 'dart:json';
+import 'dart:nativewrappers';
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -745,6 +745,7 @@ abstract class AudioBuffer {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -896,6 +897,7 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName AudioContext
 abstract class AudioContext implements EventTarget {
@@ -2878,6 +2880,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CSSStyleDeclaration
 abstract class CSSStyleDeclaration  {
@@ -7895,6 +7898,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName HTMLCanvasElement
 abstract class CanvasElement implements Element {
 
@@ -8001,6 +8005,7 @@ abstract class CanvasRenderingContext {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CanvasRenderingContext2D
 abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
@@ -9329,6 +9334,7 @@ class _CryptoImpl extends NativeFieldWrapperClass1 implements Crypto {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName CustomEvent
 abstract class CustomEvent implements Event {
@@ -10793,6 +10799,7 @@ abstract class Database {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11210,6 +11217,7 @@ class _DivElementImpl extends _ElementImpl_Merged implements DivElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName Document
 abstract class Document extends HtmlElement {
 
@@ -11477,6 +11485,7 @@ abstract class DocumentEvents implements ElementEvents {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName DocumentFragment
 abstract class DocumentFragment extends Element {
@@ -12272,6 +12281,7 @@ class _EXTTextureFilterAnisotropicImpl extends NativeFieldWrapperClass1 implemen
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /**
  * All your attribute manipulation needs in one place.
@@ -13887,6 +13897,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14128,6 +14139,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14259,6 +14271,7 @@ class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14298,6 +14311,7 @@ class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Event
 abstract class Event {
@@ -14580,6 +14594,7 @@ class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
@@ -14769,6 +14784,7 @@ abstract class File implements Blob {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15232,6 +15248,7 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15306,6 +15323,7 @@ abstract class FileWriterEvents implements Events {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16683,6 +16701,7 @@ class _HtmlElementImpl extends _ElementImpl_Merged implements HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XMLHttpRequest
 abstract class HttpRequest implements EventTarget {
   factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
@@ -17537,6 +17556,7 @@ class _IDBKeyImpl extends NativeFieldWrapperClass1 implements IDBKey {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName IDBKeyRange
 abstract class IDBKeyRange {
 
@@ -18286,6 +18306,7 @@ class _IFrameElementImpl extends _ElementImpl_Merged implements IFrameElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20003,6 +20024,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Window
 abstract class LocalWindow implements EventTarget, Window {
@@ -22500,6 +22522,7 @@ abstract class Metadata {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void MetadataCallback(Metadata metadata);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22618,6 +22641,7 @@ class _ModElementImpl extends _ElementImpl_Merged implements ModElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MouseEvent
 abstract class MouseEvent implements UIEvent {
@@ -22749,6 +22773,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22809,6 +22834,7 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MutationObserver
 abstract class MutationObserver {
@@ -23247,6 +23273,7 @@ abstract class NavigatorUserMediaError {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23265,12 +23292,14 @@ class _NavigatorUserMediaErrorImpl extends NativeFieldWrapperClass1 implements N
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Node
 abstract class Node implements EventTarget {
@@ -23697,6 +23726,7 @@ class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NodeList
 abstract class NodeList implements List<Node> {
 
@@ -24086,6 +24116,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25252,6 +25283,7 @@ class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements Perform
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebKitPoint
 abstract class Point {
 
@@ -25309,6 +25341,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25336,6 +25369,7 @@ abstract class PositionError {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25711,6 +25745,7 @@ class _RTCDataChannelEventsImpl extends _EventsImpl implements RTCDataChannelEve
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25961,6 +25996,7 @@ abstract class RTCSessionDescription {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25984,6 +26020,7 @@ class _RTCSessionDescriptionImpl extends NativeFieldWrapperClass1 implements RTC
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void RTCStatsCallback(RTCStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26431,6 +26468,7 @@ class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26670,12 +26708,14 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26696,12 +26736,14 @@ abstract class SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void SQLTransactionCallback(SQLTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void SQLTransactionErrorCallback(SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26732,6 +26774,7 @@ abstract class SQLTransactionSync {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28072,6 +28115,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGElement
 abstract class SVGElement implements Element {
@@ -33097,6 +33141,7 @@ class _SVGRenderingIntentImpl extends NativeFieldWrapperClass1 implements SVGRen
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName SVGSVGElement
 abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
   factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
@@ -35026,6 +35071,7 @@ class _ShadowElementImpl extends _ElementImpl_Merged implements ShadowElement {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ShadowRoot
 abstract class ShadowRoot implements DocumentFragment {
 
@@ -36106,6 +36152,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName Storage
 abstract class Storage implements Map<String, String> {
 
@@ -36267,6 +36314,7 @@ abstract class StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoErrorCallback(DOMException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36287,6 +36335,7 @@ class _StorageInfoImpl extends NativeFieldWrapperClass1 implements StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36294,12 +36343,14 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37051,6 +37102,7 @@ class _TableSectionElementImpl extends _ElementImpl_Merged implements TableSecti
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Text
 abstract class Text implements CharacterData {
@@ -37860,6 +37912,7 @@ class _TimeRangesImpl extends NativeFieldWrapperClass1 implements TimeRanges {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void TimeoutHandler();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39069,6 +39122,7 @@ class _VideoElementImpl extends _MediaElementImpl implements VideoElement {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41139,6 +41193,7 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebSocket
 abstract class WebSocket implements EventTarget {
 
@@ -41273,6 +41328,7 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName WheelEvent
 abstract class WheelEvent implements MouseEvent {
@@ -41970,6 +42026,7 @@ class _DataViewFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Elements {
 

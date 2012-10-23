@@ -4,6 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
+part of html;
+
 /**
  * All your attribute manipulation needs in one place.
  * Extends the regular Map interface by automatically coercing non-string

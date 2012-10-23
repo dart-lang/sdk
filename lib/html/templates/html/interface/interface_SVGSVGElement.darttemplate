@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of html;
+
 $!COMMENT
 abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
   factory SVGSVGElement() => _$(ID)FactoryProvider.createSVGSVGElement();

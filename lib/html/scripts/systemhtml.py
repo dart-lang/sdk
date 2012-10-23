@@ -1122,4 +1122,4 @@ class DartLibraryEmitter():
     for path in sorted(self._path_to_emitter.keys()):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
-          "#source('$PATH');\n", PATH=massage_path(relpath))
+          "part '$PATH';\n", PATH=massage_path(relpath))

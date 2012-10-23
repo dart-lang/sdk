@@ -4,6 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
+part of html;
+
 abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 

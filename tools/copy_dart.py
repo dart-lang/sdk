@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, exists, isabs, join
 from glob import glob
 
 re_directive = re.compile(
-    r'^#(library|import|source|native|resource)\([\'"]([^\'"]*)[\'"](.*)\);$')
+    r'^(library|import|part|native|resource)\s+(.*);$')
 
 class Library(object):
   def __init__(self, name, imports, sources, natives, code):
@@ -42,17 +42,14 @@ def parseLibrary(library):
         if directive == 'library':
           assert libraryname is None
           libraryname = match.group(2)
-        elif directive == 'source':
-          sources.append(match.group(2))
+        elif directive == 'part':
+          suffix = match.group(2)
+          if not suffix.startswith('of '):
+            sources.append(match.group(2).strip('"\''))
         elif directive == 'import':
-          imports.append((match.group(2), match.group(3)))
-        elif directive == 'native':
-          natives.append(match.group(2))
-        elif directive == 'resource':
-          # currently ignored
-          pass
+          imports.append(match.group(2))
         else:
-          raise 'unknown directive %s' % directive
+          raise Exception('unknown directive %s in %s' % (directive, line))
       else:
         inlinecode.append(line)
     fileinput.close()
@@ -64,7 +61,9 @@ def normjoin(*args):
 def mergefiles(srcs, dstfile):
   for src in srcs:
     with open(src, 'r') as s:
-      dstfile.write(s.read())
+      for line in s:
+        if not line.startswith('part of '):
+          dstfile.write(line)
 
 def copyfile(src, dst):
   if not exists(dirname(dst)):
@@ -125,25 +124,19 @@ def main(outdir = None, *inputs):
       # Create file containing all imports, and inlining all sources
       with open(outpath, 'w') as f:
         if library.name:
-          f.write("#library('%s');\n\n" % library.name)
+          f.write("library %s;\n\n" % library.name)
         else:
-          f.write("#library('%s');\n\n" % basename(lib))
-        for (importfile, optional_prefix) in library.imports:
-          f.write("#import('%s'%s);\n" % (importfile, optional_prefix))
-        for native in library.natives:
-          if isabs(native):
-            npath = native[1:]
-          else:
-            npath = native
-          f.write("#native('%s');\n" % npath)
-          copyfile(normjoin(dirname(lib), native),
-              join(dirname(outpath), npath))
+          f.write("library %s;\n\n" % basename(lib))
+        for importfile in library.imports:
+          f.write("import %s;\n" % (importfile))
         f.write('%s' % (''.join(library.code)))
         mergefiles([normjoin(dirname(lib), s) for s in library.sources], f)
 
-      for (i, prefix) in library.imports:
-        if not i.startswith('dart:'):
-          worklist.append(normjoin(dirname(lib), i));
+      for suffix in library.imports:
+        m = re.match(r'[\'"]([^\'"]+)[\'"](\s+as\s+\w+)?$', suffix)
+        uri = m.group(0)
+        if not uri.startswith('dart:'):
+          worklist.append(normjoin(dirname(lib), uri));
 
   return 0
 
