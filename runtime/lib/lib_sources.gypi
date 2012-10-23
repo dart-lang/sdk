@@ -6,6 +6,8 @@
 
 {
   'sources': [
+    'date.cc',
+    'date_patch.dart',
     'double.cc',
     'double.dart',
     'double_patch.dart',

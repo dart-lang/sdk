@@ -84,3 +84,60 @@ patch class NoSuchMethodError {
     return Primitives.objectToString(object);
   }
 }
+
+
+// Patch for Date implementation.
+patch class _DateImpl {
+  patch _DateImpl(int year,
+                  int month,
+                  int day,
+                  int hour,
+                  int minute,
+                  int second,
+                  int millisecond,
+                  bool isUtc)
+      : this.isUtc = checkNull(isUtc),
+        millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
+            year, month, day, hour, minute, second, millisecond, isUtc) {
+    Primitives.lazyAsJsDate(this);
+  }
+
+  patch _DateImpl.now()
+      : isUtc = false,
+        millisecondsSinceEpoch = Primitives.dateNow() {
+    Primitives.lazyAsJsDate(this);
+  }
+
+  patch static int _brokenDownDateToMillisecondsSinceEpoch(
+      int year, int month, int day, int hour, int minute, int second,
+      int millisecond, bool isUtc) {
+    return Primitives.valueFromDecomposedDate(
+        year, month, day, hour, minute, second, millisecond, isUtc);
+  }
+
+  patch String get timeZoneName {
+    if (isUtc) return "UTC";
+    return Primitives.getTimeZoneName(this);
+  }
+
+  patch Duration get timeZoneOffset {
+    if (isUtc) return new Duration();
+    return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
+  }
+
+  patch int get year => Primitives.getYear(this);
+
+  patch int get month => Primitives.getMonth(this);
+
+  patch int get day => Primitives.getDay(this);
+
+  patch int get hour => Primitives.getHours(this);
+
+  patch int get minute => Primitives.getMinutes(this);
+
+  patch int get second => Primitives.getSeconds(this);
+
+  patch int get millisecond => Primitives.getMilliseconds(this);
+
+  patch int get weekday => Primitives.getWeekday(this);
+}

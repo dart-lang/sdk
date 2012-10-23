@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart core library.
 
-// VM implementation of DateImplementation.
-patch class DateImplementation {
-  /* patch */ DateImplementation(int year,
-                                 int month,
-                                 int day,
-                                 int hour,
-                                 int minute,
-                                 int second,
-                                 int millisecond,
-                                 bool isUtc)
+// VM implementation of _DateImpl.
+patch class _DateImpl {
+  /* patch */ _DateImpl(int year,
+                        int month,
+                        int day,
+                        int hour,
+                        int minute,
+                        int second,
+                        int millisecond,
+                        bool isUtc)
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
             year, month, day, hour, minute, second, millisecond, isUtc) {
@@ -20,7 +20,7 @@ patch class DateImplementation {
     if (isUtc === null) throw new ArgumentError();
   }
 
-  /* patch */ DateImplementation.now()
+  /* patch */ _DateImpl.now()
       : isUtc = false,
         millisecondsSinceEpoch = _getCurrentMs() {
   }
