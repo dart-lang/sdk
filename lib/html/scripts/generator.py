@@ -33,6 +33,12 @@ _pure_interfaces = set([
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+
+_methods_with_named_formals = set([
+  'DirectoryEntry.getDirectory',
+  'DirectoryEntry.getFile',
+  ])
+
 #
 # Renames for attributes that have names that are not legal Dart names.
 #
@@ -180,7 +186,8 @@ def AnalyzeOperation(interface, operations):
   info.js_name = info.declared_name
   info.type_name = operations[0].type.id   # TODO: widen.
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
-  info.requires_named_arguments = False
+  full_name = '%s.%s' % (interface.id, info.declared_name)
+  info.requires_named_arguments = full_name in _methods_with_named_formals
   return info
 
 
