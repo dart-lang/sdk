@@ -438,6 +438,8 @@ static RawError* CompileFunctionHelper(const Function& function,
   }
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(time_compilation);
+    Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
+    per_compile_timer.Start();
     ParsedFunction* parsed_function = new ParsedFunction(function);
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
@@ -462,11 +464,13 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
 
     ASSERT(success);
+    per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: %#"Px"\n",
+      OS::Print("--> '%s' entry: %#"Px" time: %"Pd64" us\n",
                 function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).EntryPoint());
+                Code::Handle(function.CurrentCode()).EntryPoint(),
+                per_compile_timer.TotalElapsedTime());
     }
 
     if (Isolate::Current()->debugger()->IsActive()) {
