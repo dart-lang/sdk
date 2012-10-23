@@ -12,3 +12,4 @@ import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 
 part 'members.dart';
+part 'scope.dart';
