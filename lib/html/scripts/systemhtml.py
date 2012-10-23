@@ -458,7 +458,7 @@ class HtmlDartInterfaceGenerator(object):
           DOMINTERFACE=attribute.doc_js_interface_name,
           DOMNAME=dom_name)
       if read_only:
-        template = '\n  abstract $TYPE get $NAME;\n'
+        template = '\n  $TYPE get $NAME;\n'
       else:
         template = '\n  $TYPE $NAME;\n'
 

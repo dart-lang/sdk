@@ -135,7 +135,7 @@ abstract class AnchorElement implements Element {
   String name;
 
   /** @domName HTMLAnchorElement.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName HTMLAnchorElement.pathname */
   String pathname;
@@ -237,31 +237,31 @@ abstract class Animation {
   static const int FILL_NONE = 0;
 
   /** @domName WebKitAnimation.delay */
-  abstract num get delay;
+  num get delay;
 
   /** @domName WebKitAnimation.direction */
-  abstract int get direction;
+  int get direction;
 
   /** @domName WebKitAnimation.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName WebKitAnimation.elapsedTime */
   num elapsedTime;
 
   /** @domName WebKitAnimation.ended */
-  abstract bool get ended;
+  bool get ended;
 
   /** @domName WebKitAnimation.fillMode */
-  abstract int get fillMode;
+  int get fillMode;
 
   /** @domName WebKitAnimation.iterationCount */
-  abstract int get iterationCount;
+  int get iterationCount;
 
   /** @domName WebKitAnimation.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebKitAnimation.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName WebKitAnimation.pause */
   void pause();
@@ -279,10 +279,10 @@ abstract class Animation {
 abstract class AnimationEvent implements Event {
 
   /** @domName WebKitAnimationEvent.animationName */
-  abstract String get animationName;
+  String get animationName;
 
   /** @domName WebKitAnimationEvent.elapsedTime */
-  abstract num get elapsedTime;
+  num get elapsedTime;
 }
 
 class _AnimationEventImpl extends _EventImpl implements AnimationEvent native "*WebKitAnimationEvent" {
@@ -401,13 +401,13 @@ abstract class AreaElement implements Element {
   String coords;
 
   /** @domName HTMLAreaElement.hash */
-  abstract String get hash;
+  String get hash;
 
   /** @domName HTMLAreaElement.host */
-  abstract String get host;
+  String get host;
 
   /** @domName HTMLAreaElement.hostname */
-  abstract String get hostname;
+  String get hostname;
 
   /** @domName HTMLAreaElement.href */
   String href;
@@ -416,19 +416,19 @@ abstract class AreaElement implements Element {
   bool noHref;
 
   /** @domName HTMLAreaElement.pathname */
-  abstract String get pathname;
+  String get pathname;
 
   /** @domName HTMLAreaElement.ping */
   String ping;
 
   /** @domName HTMLAreaElement.port */
-  abstract String get port;
+  String get port;
 
   /** @domName HTMLAreaElement.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName HTMLAreaElement.search */
-  abstract String get search;
+  String get search;
 
   /** @domName HTMLAreaElement.shape */
   String shape;
@@ -479,7 +479,7 @@ abstract class ArrayBuffer {
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
   /** @domName ArrayBuffer.byteLength */
-  abstract int get byteLength;
+  int get byteLength;
 
   /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]);
@@ -501,13 +501,13 @@ class _ArrayBufferImpl implements ArrayBuffer native "*ArrayBuffer" {
 abstract class ArrayBufferView {
 
   /** @domName ArrayBufferView.buffer */
-  abstract ArrayBuffer get buffer;
+  ArrayBuffer get buffer;
 
   /** @domName ArrayBufferView.byteLength */
-  abstract int get byteLength;
+  int get byteLength;
 
   /** @domName ArrayBufferView.byteOffset */
-  abstract int get byteOffset;
+  int get byteOffset;
 }
 
 class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" {
@@ -528,16 +528,16 @@ class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" 
 abstract class Attr implements Node {
 
   /** @domName Attr.isId */
-  abstract bool get isId;
+  bool get isId;
 
   /** @domName Attr.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Attr.ownerElement */
-  abstract Element get ownerElement;
+  Element get ownerElement;
 
   /** @domName Attr.specified */
-  abstract bool get specified;
+  bool get specified;
 
   /** @domName Attr.value */
   String value;
@@ -565,19 +565,19 @@ class _AttrImpl extends _NodeImpl implements Attr native "*Attr" {
 abstract class AudioBuffer {
 
   /** @domName AudioBuffer.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName AudioBuffer.gain */
   num gain;
 
   /** @domName AudioBuffer.length */
-  abstract int get length;
+  int get length;
 
   /** @domName AudioBuffer.numberOfChannels */
-  abstract int get numberOfChannels;
+  int get numberOfChannels;
 
   /** @domName AudioBuffer.sampleRate */
-  abstract num get sampleRate;
+  num get sampleRate;
 
   /** @domName AudioBuffer.getChannelData */
   Float32Array getChannelData(int channelIndex);
@@ -625,7 +625,7 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   AudioBuffer buffer;
 
   /** @domName AudioBufferSourceNode.gain */
-  abstract AudioGain get gain;
+  AudioGain get gain;
 
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
@@ -634,10 +634,10 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   bool looping;
 
   /** @domName AudioBufferSourceNode.playbackRate */
-  abstract AudioParam get playbackRate;
+  AudioParam get playbackRate;
 
   /** @domName AudioBufferSourceNode.playbackState */
-  abstract int get playbackState;
+  int get playbackState;
 
   /** @domName AudioBufferSourceNode.start */
   void start(num when, [num grainOffset, num grainDuration]);
@@ -734,19 +734,19 @@ abstract class AudioContext implements EventTarget {
   AudioContextEvents get on;
 
   /** @domName AudioContext.activeSourceCount */
-  abstract int get activeSourceCount;
+  int get activeSourceCount;
 
   /** @domName AudioContext.currentTime */
-  abstract num get currentTime;
+  num get currentTime;
 
   /** @domName AudioContext.destination */
-  abstract AudioDestinationNode get destination;
+  AudioDestinationNode get destination;
 
   /** @domName AudioContext.listener */
-  abstract AudioListener get listener;
+  AudioListener get listener;
 
   /** @domName AudioContext.sampleRate */
-  abstract num get sampleRate;
+  num get sampleRate;
 
   /** @domName AudioContext.createAnalyser */
   RealtimeAnalyserNode createAnalyser();
@@ -880,7 +880,7 @@ class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents 
 abstract class AudioDestinationNode implements AudioNode {
 
   /** @domName AudioDestinationNode.numberOfChannels */
-  abstract int get numberOfChannels;
+  int get numberOfChannels;
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode native "*AudioDestinationNode" {
@@ -928,7 +928,7 @@ class _AudioGainImpl extends _AudioParamImpl implements AudioGain native "*Audio
 abstract class AudioGainNode implements AudioNode {
 
   /** @domName AudioGainNode.gain */
-  abstract AudioGain get gain;
+  AudioGain get gain;
 }
 
 class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode native "*AudioGainNode" {
@@ -982,13 +982,13 @@ class _AudioListenerImpl implements AudioListener native "*AudioListener" {
 abstract class AudioNode {
 
   /** @domName AudioNode.context */
-  abstract AudioContext get context;
+  AudioContext get context;
 
   /** @domName AudioNode.numberOfInputs */
-  abstract int get numberOfInputs;
+  int get numberOfInputs;
 
   /** @domName AudioNode.numberOfOutputs */
-  abstract int get numberOfOutputs;
+  int get numberOfOutputs;
 
   /** @domName AudioNode.connect */
   void connect(destination, int output, [int input]);
@@ -1031,7 +1031,7 @@ abstract class AudioPannerNode implements AudioNode {
   static const int SOUNDFIELD = 2;
 
   /** @domName AudioPannerNode.coneGain */
-  abstract AudioGain get coneGain;
+  AudioGain get coneGain;
 
   /** @domName AudioPannerNode.coneInnerAngle */
   num coneInnerAngle;
@@ -1043,7 +1043,7 @@ abstract class AudioPannerNode implements AudioNode {
   num coneOuterGain;
 
   /** @domName AudioPannerNode.distanceGain */
-  abstract AudioGain get distanceGain;
+  AudioGain get distanceGain;
 
   /** @domName AudioPannerNode.distanceModel */
   int distanceModel;
@@ -1108,19 +1108,19 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode nat
 abstract class AudioParam {
 
   /** @domName AudioParam.defaultValue */
-  abstract num get defaultValue;
+  num get defaultValue;
 
   /** @domName AudioParam.maxValue */
-  abstract num get maxValue;
+  num get maxValue;
 
   /** @domName AudioParam.minValue */
-  abstract num get minValue;
+  num get minValue;
 
   /** @domName AudioParam.name */
-  abstract String get name;
+  String get name;
 
   /** @domName AudioParam.units */
-  abstract int get units;
+  int get units;
 
   /** @domName AudioParam.value */
   num value;
@@ -1180,10 +1180,10 @@ class _AudioParamImpl implements AudioParam native "*AudioParam" {
 abstract class AudioProcessingEvent implements Event {
 
   /** @domName AudioProcessingEvent.inputBuffer */
-  abstract AudioBuffer get inputBuffer;
+  AudioBuffer get inputBuffer;
 
   /** @domName AudioProcessingEvent.outputBuffer */
-  abstract AudioBuffer get outputBuffer;
+  AudioBuffer get outputBuffer;
 }
 
 class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEvent native "*AudioProcessingEvent" {
@@ -1233,7 +1233,7 @@ class _BRElementImpl extends _ElementImpl implements BRElement native "*HTMLBREl
 abstract class BarInfo {
 
   /** @domName BarInfo.visible */
-  abstract bool get visible;
+  bool get visible;
 }
 
 class _BarInfoImpl implements BarInfo native "*BarInfo" {
@@ -1306,16 +1306,16 @@ abstract class BatteryManager implements EventTarget {
   BatteryManagerEvents get on;
 
   /** @domName BatteryManager.charging */
-  abstract bool get charging;
+  bool get charging;
 
   /** @domName BatteryManager.chargingTime */
-  abstract num get chargingTime;
+  num get chargingTime;
 
   /** @domName BatteryManager.dischargingTime */
-  abstract num get dischargingTime;
+  num get dischargingTime;
 
   /** @domName BatteryManager.level */
-  abstract num get level;
+  num get level;
 
   /** @domName BatteryManager.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -1379,7 +1379,7 @@ class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEve
 abstract class BeforeLoadEvent implements Event {
 
   /** @domName BeforeLoadEvent.url */
-  abstract String get url;
+  String get url;
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
@@ -1412,13 +1412,13 @@ abstract class BiquadFilterNode implements AudioNode {
   static const int PEAKING = 5;
 
   /** @domName BiquadFilterNode.Q */
-  abstract AudioParam get Q;
+  AudioParam get Q;
 
   /** @domName BiquadFilterNode.frequency */
-  abstract AudioParam get frequency;
+  AudioParam get frequency;
 
   /** @domName BiquadFilterNode.gain */
-  abstract AudioParam get gain;
+  AudioParam get gain;
 
   /** @domName BiquadFilterNode.type */
   int type;
@@ -1459,10 +1459,10 @@ abstract class Blob {
   }
 
   /** @domName Blob.size */
-  abstract int get size;
+  int get size;
 
   /** @domName Blob.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]);
@@ -1600,7 +1600,7 @@ abstract class ButtonElement implements Element {
   bool disabled;
 
   /** @domName HTMLButtonElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLButtonElement.formAction */
   String formAction;
@@ -1618,7 +1618,7 @@ abstract class ButtonElement implements Element {
   String formTarget;
 
   /** @domName HTMLButtonElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLButtonElement.name */
   String name;
@@ -1627,16 +1627,16 @@ abstract class ButtonElement implements Element {
   String type;
 
   /** @domName HTMLButtonElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLButtonElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLButtonElement.value */
   String value;
 
   /** @domName HTMLButtonElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLButtonElement.checkValidity */
   bool checkValidity();
@@ -1720,7 +1720,7 @@ class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule native 
 abstract class CSSFontFaceRule implements CSSRule {
 
   /** @domName CSSFontFaceRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule native "*CSSFontFaceRule" {
@@ -1737,13 +1737,13 @@ class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule nativ
 abstract class CSSImportRule implements CSSRule {
 
   /** @domName CSSImportRule.href */
-  abstract String get href;
+  String get href;
 
   /** @domName CSSImportRule.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName CSSImportRule.styleSheet */
-  abstract CSSStyleSheet get styleSheet;
+  CSSStyleSheet get styleSheet;
 }
 
 class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule native "*CSSImportRule" {
@@ -1767,7 +1767,7 @@ abstract class CSSKeyframeRule implements CSSRule {
   String keyText;
 
   /** @domName WebKitCSSKeyframeRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule native "*WebKitCSSKeyframeRule" {
@@ -1786,7 +1786,7 @@ class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule nativ
 abstract class CSSKeyframesRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name */
   String name;
@@ -2002,10 +2002,10 @@ class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 abstract class CSSMediaRule implements CSSRule {
 
   /** @domName CSSMediaRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName CSSMediaRule.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName CSSMediaRule.deleteRule */
   void deleteRule(int index);
@@ -2037,7 +2037,7 @@ abstract class CSSPageRule implements CSSRule {
   String selectorText;
 
   /** @domName CSSPageRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule native "*CSSPageRule" {
@@ -2114,7 +2114,7 @@ abstract class CSSPrimitiveValue implements CSSValue {
   static const int CSS_VW = 26;
 
   /** @domName CSSPrimitiveValue.primitiveType */
-  abstract int get primitiveType;
+  int get primitiveType;
 
   /** @domName CSSPrimitiveValue.getCounterValue */
   Counter getCounterValue();
@@ -2187,13 +2187,13 @@ abstract class CSSRule {
   String cssText;
 
   /** @domName CSSRule.parentRule */
-  abstract CSSRule get parentRule;
+  CSSRule get parentRule;
 
   /** @domName CSSRule.parentStyleSheet */
-  abstract CSSStyleSheet get parentStyleSheet;
+  CSSStyleSheet get parentStyleSheet;
 
   /** @domName CSSRule.type */
-  abstract int get type;
+  int get type;
 }
 
 class _CSSRuleImpl implements CSSRule native "*CSSRule" {
@@ -2312,10 +2312,10 @@ abstract class CSSStyleDeclaration  {
   String cssText;
 
   /** @domName CSSStyleDeclaration.length */
-  abstract int get length;
+  int get length;
 
   /** @domName CSSStyleDeclaration.parentRule */
-  abstract CSSRule get parentRule;
+  CSSRule get parentRule;
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
   CSSValue getPropertyCSSValue(String propertyName);
@@ -7019,7 +7019,7 @@ abstract class CSSStyleRule implements CSSRule {
   String selectorText;
 
   /** @domName CSSStyleRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CSSStyleRule" {
@@ -7038,13 +7038,13 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CS
 abstract class CSSStyleSheet implements StyleSheet {
 
   /** @domName CSSStyleSheet.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName CSSStyleSheet.ownerRule */
-  abstract CSSRule get ownerRule;
+  CSSRule get ownerRule;
 
   /** @domName CSSStyleSheet.rules */
-  abstract List<CSSRule> get rules;
+  List<CSSRule> get rules;
 
   /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
@@ -7127,7 +7127,7 @@ abstract class CSSTransformValue implements List<CSSValue> {
   static const int CSS_TRANSLATEZ = 12;
 
   /** @domName WebKitCSSTransformValue.operationType */
-  abstract int get operationType;
+  int get operationType;
 }
 
 class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue native "*WebKitCSSTransformValue" {
@@ -7167,7 +7167,7 @@ abstract class CSSValue {
   String cssText;
 
   /** @domName CSSValue.cssValueType */
-  abstract int get cssValueType;
+  int get cssValueType;
 }
 
 class _CSSValueImpl implements CSSValue native "*CSSValue" {
@@ -7355,7 +7355,7 @@ class _CanvasPatternImpl implements CanvasPattern native "*CanvasPattern" {
 abstract class CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext.canvas */
-  abstract CanvasElement get canvas;
+  CanvasElement get canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7415,7 +7415,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   String textBaseline;
 
   /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
-  abstract num get webkitBackingStorePixelRatio;
+  num get webkitBackingStorePixelRatio;
 
   /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
   bool webkitImageSmoothingEnabled;
@@ -7825,7 +7825,7 @@ abstract class CharacterData implements Node {
   String data;
 
   /** @domName CharacterData.length */
-  abstract int get length;
+  int get length;
 
   /** @domName CharacterData.appendData */
   void appendData(String data);
@@ -7874,22 +7874,22 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*Cha
 abstract class ClientRect {
 
   /** @domName ClientRect.bottom */
-  abstract num get bottom;
+  num get bottom;
 
   /** @domName ClientRect.height */
-  abstract num get height;
+  num get height;
 
   /** @domName ClientRect.left */
-  abstract num get left;
+  num get left;
 
   /** @domName ClientRect.right */
-  abstract num get right;
+  num get right;
 
   /** @domName ClientRect.top */
-  abstract num get top;
+  num get top;
 
   /** @domName ClientRect.width */
-  abstract num get width;
+  num get width;
 }
 
 class _ClientRectImpl implements ClientRect native "*ClientRect" {
@@ -8012,13 +8012,13 @@ abstract class Clipboard {
   String effectAllowed;
 
   /** @domName Clipboard.files */
-  abstract List<File> get files;
+  List<File> get files;
 
   /** @domName Clipboard.items */
-  abstract DataTransferItemList get items;
+  DataTransferItemList get items;
 
   /** @domName Clipboard.types */
-  abstract List get types;
+  List get types;
 
   /** @domName Clipboard.clearData */
   void clearData([String type]);
@@ -8063,13 +8063,13 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 abstract class CloseEvent implements Event {
 
   /** @domName CloseEvent.code */
-  abstract int get code;
+  int get code;
 
   /** @domName CloseEvent.reason */
-  abstract String get reason;
+  String get reason;
 
   /** @domName CloseEvent.wasClean */
-  abstract bool get wasClean;
+  bool get wasClean;
 }
 
 class _CloseEventImpl extends _EventImpl implements CloseEvent native "*CloseEvent" {
@@ -8102,7 +8102,7 @@ class _CommentImpl extends _CharacterDataImpl implements Comment native "*Commen
 abstract class CompositionEvent implements UIEvent {
 
   /** @domName CompositionEvent.data */
-  abstract String get data;
+  String get data;
 
   /** @domName CompositionEvent.initCompositionEvent */
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
@@ -8124,10 +8124,10 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent nat
 abstract class Console {
 
   /** @domName Console.memory */
-  abstract MemoryInfo get memory;
+  MemoryInfo get memory;
 
   /** @domName Console.profiles */
-  abstract List<ScriptProfile> get profiles;
+  List<ScriptProfile> get profiles;
 
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
@@ -8294,25 +8294,25 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode native 
 abstract class Coordinates {
 
   /** @domName Coordinates.accuracy */
-  abstract num get accuracy;
+  num get accuracy;
 
   /** @domName Coordinates.altitude */
-  abstract num get altitude;
+  num get altitude;
 
   /** @domName Coordinates.altitudeAccuracy */
-  abstract num get altitudeAccuracy;
+  num get altitudeAccuracy;
 
   /** @domName Coordinates.heading */
-  abstract num get heading;
+  num get heading;
 
   /** @domName Coordinates.latitude */
-  abstract num get latitude;
+  num get latitude;
 
   /** @domName Coordinates.longitude */
-  abstract num get longitude;
+  num get longitude;
 
   /** @domName Coordinates.speed */
-  abstract num get speed;
+  num get speed;
 }
 
 class _CoordinatesImpl implements Coordinates native "*Coordinates" {
@@ -8341,13 +8341,13 @@ class _CoordinatesImpl implements Coordinates native "*Coordinates" {
 abstract class Counter {
 
   /** @domName Counter.identifier */
-  abstract String get identifier;
+  String get identifier;
 
   /** @domName Counter.listStyle */
-  abstract String get listStyle;
+  String get listStyle;
 
   /** @domName Counter.separator */
-  abstract String get separator;
+  String get separator;
 }
 
 class _CounterImpl implements Counter native "*Counter" {
@@ -8390,7 +8390,7 @@ abstract class CustomEvent implements Event {
 
 
   /** @domName CustomEvent.detail */
-  abstract Object get detail;
+  Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
@@ -8448,7 +8448,7 @@ abstract class DOMApplicationCache implements EventTarget {
   static const int UPDATEREADY = 4;
 
   /** @domName DOMApplicationCache.status */
-  abstract int get status;
+  int get status;
 
   /** @domName DOMApplicationCache.abort */
   void abort();
@@ -8537,7 +8537,7 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
 abstract class DOMError {
 
   /** @domName DOMError.name */
-  abstract String get name;
+  String get name;
 }
 
 class _DOMErrorImpl implements DOMError native "*DOMError" {
@@ -8604,13 +8604,13 @@ abstract class DOMException {
   static const int WRONG_DOCUMENT_ERR = 4;
 
   /** @domName DOMException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName DOMException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName DOMException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMException.toString */
   String toString();
@@ -8636,10 +8636,10 @@ class _DOMExceptionImpl implements DOMException native "*DOMException" {
 abstract class DOMFileSystem {
 
   /** @domName DOMFileSystem.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMFileSystem.root */
-  abstract DirectoryEntry get root;
+  DirectoryEntry get root;
 }
 
 class _DOMFileSystemImpl implements DOMFileSystem native "*DOMFileSystem" {
@@ -8658,10 +8658,10 @@ class _DOMFileSystemImpl implements DOMFileSystem native "*DOMFileSystem" {
 abstract class DOMFileSystemSync {
 
   /** @domName DOMFileSystemSync.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMFileSystemSync.root */
-  abstract DirectoryEntrySync get root;
+  DirectoryEntrySync get root;
 }
 
 class _DOMFileSystemSyncImpl implements DOMFileSystemSync native "*DOMFileSystemSync" {
@@ -8717,16 +8717,16 @@ class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementa
 abstract class DOMMimeType {
 
   /** @domName MimeType.description */
-  abstract String get description;
+  String get description;
 
   /** @domName MimeType.enabledPlugin */
-  abstract DOMPlugin get enabledPlugin;
+  DOMPlugin get enabledPlugin;
 
   /** @domName MimeType.suffixes */
-  abstract String get suffixes;
+  String get suffixes;
 
   /** @domName MimeType.type */
-  abstract String get type;
+  String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8738,7 +8738,7 @@ abstract class DOMMimeType {
 abstract class DOMMimeTypeArray implements List<DOMMimeType> {
 
   /** @domName MimeTypeArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MimeTypeArray.item */
   DOMMimeType item(int index);
@@ -8878,16 +8878,16 @@ class _DOMParserImpl implements DOMParser native "*DOMParser" {
 abstract class DOMPlugin {
 
   /** @domName Plugin.description */
-  abstract String get description;
+  String get description;
 
   /** @domName Plugin.filename */
-  abstract String get filename;
+  String get filename;
 
   /** @domName Plugin.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Plugin.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Plugin.item */
   DOMMimeType item(int index);
@@ -8905,7 +8905,7 @@ abstract class DOMPlugin {
 abstract class DOMPluginArray implements List<DOMPlugin> {
 
   /** @domName PluginArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName PluginArray.item */
   DOMPlugin item(int index);
@@ -9035,37 +9035,37 @@ class _DOMPluginImpl implements DOMPlugin native "*Plugin" {
 abstract class DOMSelection {
 
   /** @domName Selection.anchorNode */
-  abstract Node get anchorNode;
+  Node get anchorNode;
 
   /** @domName Selection.anchorOffset */
-  abstract int get anchorOffset;
+  int get anchorOffset;
 
   /** @domName Selection.baseNode */
-  abstract Node get baseNode;
+  Node get baseNode;
 
   /** @domName Selection.baseOffset */
-  abstract int get baseOffset;
+  int get baseOffset;
 
   /** @domName Selection.extentNode */
-  abstract Node get extentNode;
+  Node get extentNode;
 
   /** @domName Selection.extentOffset */
-  abstract int get extentOffset;
+  int get extentOffset;
 
   /** @domName Selection.focusNode */
-  abstract Node get focusNode;
+  Node get focusNode;
 
   /** @domName Selection.focusOffset */
-  abstract int get focusOffset;
+  int get focusOffset;
 
   /** @domName Selection.isCollapsed */
-  abstract bool get isCollapsed;
+  bool get isCollapsed;
 
   /** @domName Selection.rangeCount */
-  abstract int get rangeCount;
+  int get rangeCount;
 
   /** @domName Selection.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Selection.addRange */
   void addRange(Range range);
@@ -9295,7 +9295,7 @@ abstract class DOMStringMap {
 abstract class DOMTokenList {
 
   /** @domName DOMTokenList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName DOMTokenList.contains */
   bool contains(String token);
@@ -9358,7 +9358,7 @@ abstract class DataListElement implements Element {
   factory DataListElement() => _Elements.createDataListElement();
 
   /** @domName HTMLDataListElement.options */
-  abstract HTMLCollection get options;
+  HTMLCollection get options;
 }
 
 class _DataListElementImpl extends _ElementImpl implements DataListElement native "*HTMLDataListElement" {
@@ -9375,10 +9375,10 @@ class _DataListElementImpl extends _ElementImpl implements DataListElement nativ
 abstract class DataTransferItem {
 
   /** @domName DataTransferItem.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName DataTransferItem.type */
-  abstract String get type;
+  String get type;
 
   /** @domName DataTransferItem.getAsFile */
   Blob getAsFile();
@@ -9412,7 +9412,7 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 abstract class DataTransferItemList {
 
   /** @domName DataTransferItemList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName DataTransferItemList.add */
   void add(data_OR_file, [String type]);
@@ -9546,7 +9546,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*Da
 abstract class Database {
 
   /** @domName Database.version */
-  abstract String get version;
+  String get version;
 
   /** @domName Database.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
@@ -9585,10 +9585,10 @@ class _DatabaseImpl implements Database native "*Database" {
 abstract class DatabaseSync {
 
   /** @domName DatabaseSync.lastErrorMessage */
-  abstract String get lastErrorMessage;
+  String get lastErrorMessage;
 
   /** @domName DatabaseSync.version */
-  abstract String get version;
+  String get version;
 
   /** @domName DatabaseSync.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
@@ -9669,7 +9669,7 @@ class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl impleme
 abstract class DelayNode implements AudioNode {
 
   /** @domName DelayNode.delayTime */
-  abstract AudioParam get delayTime;
+  AudioParam get delayTime;
 }
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayNode" {
@@ -9705,7 +9705,7 @@ class _DetailsElementImpl extends _ElementImpl implements DetailsElement native 
 abstract class DeviceMotionEvent implements Event {
 
   /** @domName DeviceMotionEvent.interval */
-  abstract num get interval;
+  num get interval;
 }
 
 class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent native "*DeviceMotionEvent" {
@@ -9722,16 +9722,16 @@ class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent nat
 abstract class DeviceOrientationEvent implements Event {
 
   /** @domName DeviceOrientationEvent.absolute */
-  abstract bool get absolute;
+  bool get absolute;
 
   /** @domName DeviceOrientationEvent.alpha */
-  abstract num get alpha;
+  num get alpha;
 
   /** @domName DeviceOrientationEvent.beta */
-  abstract num get beta;
+  num get beta;
 
   /** @domName DeviceOrientationEvent.gamma */
-  abstract num get gamma;
+  num get gamma;
 
   /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
@@ -9949,7 +9949,7 @@ abstract class Document extends HtmlElement {
   DocumentEvents get on;
 
   /** @domName HTMLDocument.activeElement */
-  abstract Element get activeElement;
+  Element get activeElement;
 
   /** @domName Document.body */
   Element body;
@@ -9961,64 +9961,64 @@ abstract class Document extends HtmlElement {
   String cookie;
 
   /** @domName Document.defaultView */
-  abstract Window get window;
+  Window get window;
 
   /** @domName Document.documentElement */
-  abstract Element get documentElement;
+  Element get documentElement;
 
   /** @domName Document.domain */
-  abstract String get domain;
+  String get domain;
 
   /** @domName Document.head */
-  abstract HeadElement get head;
+  HeadElement get head;
 
   /** @domName Document.implementation */
-  abstract DOMImplementation get implementation;
+  DOMImplementation get implementation;
 
   /** @domName Document.lastModified */
-  abstract String get lastModified;
+  String get lastModified;
 
   /** @domName Document.preferredStylesheetSet */
-  abstract String get preferredStylesheetSet;
+  String get preferredStylesheetSet;
 
   /** @domName Document.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName Document.referrer */
-  abstract String get referrer;
+  String get referrer;
 
   /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  abstract List<StyleSheet> get styleSheets;
+  List<StyleSheet> get styleSheets;
 
   /** @domName Document.title */
   String title;
 
   /** @domName Document.webkitCurrentFullScreenElement */
-  abstract Element get webkitCurrentFullScreenElement;
+  Element get webkitCurrentFullScreenElement;
 
   /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  abstract bool get webkitFullScreenKeyboardInputAllowed;
+  bool get webkitFullScreenKeyboardInputAllowed;
 
   /** @domName Document.webkitFullscreenElement */
-  abstract Element get webkitFullscreenElement;
+  Element get webkitFullscreenElement;
 
   /** @domName Document.webkitFullscreenEnabled */
-  abstract bool get webkitFullscreenEnabled;
+  bool get webkitFullscreenEnabled;
 
   /** @domName Document.webkitHidden */
-  abstract bool get webkitHidden;
+  bool get webkitHidden;
 
   /** @domName Document.webkitIsFullScreen */
-  abstract bool get webkitIsFullScreen;
+  bool get webkitIsFullScreen;
 
   /** @domName Document.webkitPointerLockElement */
-  abstract Element get webkitPointerLockElement;
+  Element get webkitPointerLockElement;
 
   /** @domName Document.webkitVisibilityState */
-  abstract String get webkitVisibilityState;
+  String get webkitVisibilityState;
 
   /** @domName Document.caretRangeFromPoint */
   Range caretRangeFromPoint(int x, int y);
@@ -10870,22 +10870,22 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 abstract class DocumentType implements Node {
 
   /** @domName DocumentType.entities */
-  abstract NamedNodeMap get entities;
+  NamedNodeMap get entities;
 
   /** @domName DocumentType.internalSubset */
-  abstract String get internalSubset;
+  String get internalSubset;
 
   /** @domName DocumentType.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DocumentType.notations */
-  abstract NamedNodeMap get notations;
+  NamedNodeMap get notations;
 
   /** @domName DocumentType.publicId */
-  abstract String get publicId;
+  String get publicId;
 
   /** @domName DocumentType.systemId */
-  abstract String get systemId;
+  String get systemId;
 
   /** @domName DocumentType.remove */
   void remove();
@@ -10917,22 +10917,22 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*Docum
 abstract class DynamicsCompressorNode implements AudioNode {
 
   /** @domName DynamicsCompressorNode.attack */
-  abstract AudioParam get attack;
+  AudioParam get attack;
 
   /** @domName DynamicsCompressorNode.knee */
-  abstract AudioParam get knee;
+  AudioParam get knee;
 
   /** @domName DynamicsCompressorNode.ratio */
-  abstract AudioParam get ratio;
+  AudioParam get ratio;
 
   /** @domName DynamicsCompressorNode.reduction */
-  abstract AudioParam get reduction;
+  AudioParam get reduction;
 
   /** @domName DynamicsCompressorNode.release */
-  abstract AudioParam get release;
+  AudioParam get release;
 
   /** @domName DynamicsCompressorNode.threshold */
-  abstract AudioParam get threshold;
+  AudioParam get threshold;
 }
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
@@ -11086,7 +11086,7 @@ abstract class Element implements Node, NodeSelector {
   ElementEvents get on;
 
   /** @domName HTMLElement.children */
-  abstract HTMLCollection get $dom_children;
+  HTMLCollection get $dom_children;
 
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
@@ -11107,13 +11107,13 @@ abstract class Element implements Node, NodeSelector {
   String innerHTML;
 
   /** @domName HTMLElement.isContentEditable */
-  abstract bool get isContentEditable;
+  bool get isContentEditable;
 
   /** @domName HTMLElement.lang */
   String lang;
 
   /** @domName HTMLElement.outerHTML */
-  abstract String get outerHTML;
+  String get outerHTML;
 
   /** @domName HTMLElement.spellcheck */
   bool spellcheck;
@@ -11145,55 +11145,55 @@ abstract class Element implements Node, NodeSelector {
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   /** @domName Element.childElementCount */
-  abstract int get $dom_childElementCount;
+  int get $dom_childElementCount;
 
   /** @domName Element.className */
   String $dom_className;
 
   /** @domName Element.clientHeight */
-  abstract int get clientHeight;
+  int get clientHeight;
 
   /** @domName Element.clientLeft */
-  abstract int get clientLeft;
+  int get clientLeft;
 
   /** @domName Element.clientTop */
-  abstract int get clientTop;
+  int get clientTop;
 
   /** @domName Element.clientWidth */
-  abstract int get clientWidth;
+  int get clientWidth;
 
   /** @domName Element.dataset */
-  abstract Map<String, String> get dataset;
+  Map<String, String> get dataset;
 
   /** @domName Element.firstElementChild */
-  abstract Element get $dom_firstElementChild;
+  Element get $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
-  abstract Element get $dom_lastElementChild;
+  Element get $dom_lastElementChild;
 
   /** @domName Element.nextElementSibling */
-  abstract Element get nextElementSibling;
+  Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  abstract int get offsetHeight;
+  int get offsetHeight;
 
   /** @domName Element.offsetLeft */
-  abstract int get offsetLeft;
+  int get offsetLeft;
 
   /** @domName Element.offsetParent */
-  abstract Element get offsetParent;
+  Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  abstract int get offsetTop;
+  int get offsetTop;
 
   /** @domName Element.offsetWidth */
-  abstract int get offsetWidth;
+  int get offsetWidth;
 
   /** @domName Element.previousElementSibling */
-  abstract Element get previousElementSibling;
+  Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  abstract int get scrollHeight;
+  int get scrollHeight;
 
   /** @domName Element.scrollLeft */
   int scrollLeft;
@@ -11202,13 +11202,13 @@ abstract class Element implements Node, NodeSelector {
   int scrollTop;
 
   /** @domName Element.scrollWidth */
-  abstract int get scrollWidth;
+  int get scrollWidth;
 
   /** @domName Element.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 
   /** @domName Element.tagName */
-  abstract String get tagName;
+  String get tagName;
 
   /** @domName Element.blur */
   void blur();
@@ -12498,19 +12498,19 @@ abstract class ElementTimeControl {
 abstract class ElementTraversal {
 
   /** @domName ElementTraversal.childElementCount */
-  abstract int get childElementCount;
+  int get childElementCount;
 
   /** @domName ElementTraversal.firstElementChild */
-  abstract Element get firstElementChild;
+  Element get firstElementChild;
 
   /** @domName ElementTraversal.lastElementChild */
-  abstract Element get lastElementChild;
+  Element get lastElementChild;
 
   /** @domName ElementTraversal.nextElementSibling */
-  abstract Element get nextElementSibling;
+  Element get nextElementSibling;
 
   /** @domName ElementTraversal.previousElementSibling */
-  abstract Element get previousElementSibling;
+  Element get previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12585,19 +12585,19 @@ typedef void EntriesCallback(List<Entry> entries);
 abstract class Entry {
 
   /** @domName Entry.filesystem */
-  abstract DOMFileSystem get filesystem;
+  DOMFileSystem get filesystem;
 
   /** @domName Entry.fullPath */
-  abstract String get fullPath;
+  String get fullPath;
 
   /** @domName Entry.isDirectory */
-  abstract bool get isDirectory;
+  bool get isDirectory;
 
   /** @domName Entry.isFile */
-  abstract bool get isFile;
+  bool get isFile;
 
   /** @domName Entry.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Entry.copyTo */
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
@@ -12839,19 +12839,19 @@ class _EntryImpl implements Entry native "*Entry" {
 abstract class EntrySync {
 
   /** @domName EntrySync.filesystem */
-  abstract DOMFileSystemSync get filesystem;
+  DOMFileSystemSync get filesystem;
 
   /** @domName EntrySync.fullPath */
-  abstract String get fullPath;
+  String get fullPath;
 
   /** @domName EntrySync.isDirectory */
-  abstract bool get isDirectory;
+  bool get isDirectory;
 
   /** @domName EntrySync.isFile */
-  abstract bool get isFile;
+  bool get isFile;
 
   /** @domName EntrySync.name */
-  abstract String get name;
+  String get name;
 
   /** @domName EntrySync.copyTo */
   EntrySync copyTo(DirectoryEntrySync parent, String name);
@@ -12913,13 +12913,13 @@ typedef void ErrorCallback(FileError error);
 abstract class ErrorEvent implements Event {
 
   /** @domName ErrorEvent.filename */
-  abstract String get filename;
+  String get filename;
 
   /** @domName ErrorEvent.lineno */
-  abstract int get lineno;
+  int get lineno;
 
   /** @domName ErrorEvent.message */
-  abstract String get message;
+  String get message;
 }
 
 class _ErrorEventImpl extends _EventImpl implements ErrorEvent native "*ErrorEvent" {
@@ -12989,40 +12989,40 @@ abstract class Event {
   static const int SELECT = 16384;
 
   /** @domName Event.bubbles */
-  abstract bool get bubbles;
+  bool get bubbles;
 
   /** @domName Event.cancelBubble */
   bool cancelBubble;
 
   /** @domName Event.cancelable */
-  abstract bool get cancelable;
+  bool get cancelable;
 
   /** @domName Event.clipboardData */
-  abstract Clipboard get clipboardData;
+  Clipboard get clipboardData;
 
   /** @domName Event.currentTarget */
-  abstract EventTarget get currentTarget;
+  EventTarget get currentTarget;
 
   /** @domName Event.defaultPrevented */
-  abstract bool get defaultPrevented;
+  bool get defaultPrevented;
 
   /** @domName Event.eventPhase */
-  abstract int get eventPhase;
+  int get eventPhase;
 
   /** @domName Event.returnValue */
   bool returnValue;
 
   /** @domName Event.srcElement */
-  abstract EventTarget get srcElement;
+  EventTarget get srcElement;
 
   /** @domName Event.target */
-  abstract EventTarget get target;
+  EventTarget get target;
 
   /** @domName Event.timeStamp */
-  abstract int get timeStamp;
+  int get timeStamp;
 
   /** @domName Event.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Event.initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
@@ -13050,13 +13050,13 @@ abstract class EventException {
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   /** @domName EventException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName EventException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName EventException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName EventException.toString */
   String toString();
@@ -13133,13 +13133,13 @@ abstract class EventSource implements EventTarget {
   static const int OPEN = 1;
 
   /** @domName EventSource.URL */
-  abstract String get URL;
+  String get URL;
 
   /** @domName EventSource.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName EventSource.url */
-  abstract String get url;
+  String get url;
 
   /** @domName EventSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -13305,25 +13305,25 @@ abstract class FieldSetElement implements Element {
   bool disabled;
 
   /** @domName HTMLFieldSetElement.elements */
-  abstract HTMLCollection get elements;
+  HTMLCollection get elements;
 
   /** @domName HTMLFieldSetElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLFieldSetElement.name */
   String name;
 
   /** @domName HTMLFieldSetElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLFieldSetElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLFieldSetElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLFieldSetElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLFieldSetElement.checkValidity */
   bool checkValidity();
@@ -13364,13 +13364,13 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 abstract class File implements Blob {
 
   /** @domName File.lastModifiedDate */
-  abstract Date get lastModifiedDate;
+  Date get lastModifiedDate;
 
   /** @domName File.name */
-  abstract String get name;
+  String get name;
 
   /** @domName File.webkitRelativePath */
-  abstract String get webkitRelativePath;
+  String get webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13457,7 +13457,7 @@ abstract class FileError {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _FileErrorImpl implements FileError native "*FileError" {
@@ -13498,13 +13498,13 @@ abstract class FileException {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName FileException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName FileException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName FileException.toString */
   String toString();
@@ -13642,13 +13642,13 @@ abstract class FileReader implements EventTarget {
   static const int LOADING = 1;
 
   /** @domName FileReader.error */
-  abstract FileError get error;
+  FileError get error;
 
   /** @domName FileReader.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName FileReader.result */
-  abstract Object get result;
+  Object get result;
 
   /** @domName FileReader.abort */
   void abort();
@@ -13795,16 +13795,16 @@ abstract class FileWriter implements EventTarget {
   static const int WRITING = 1;
 
   /** @domName FileWriter.error */
-  abstract FileError get error;
+  FileError get error;
 
   /** @domName FileWriter.length */
-  abstract int get length;
+  int get length;
 
   /** @domName FileWriter.position */
-  abstract int get position;
+  int get position;
 
   /** @domName FileWriter.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName FileWriter.abort */
   void abort();
@@ -13903,10 +13903,10 @@ class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
 abstract class FileWriterSync {
 
   /** @domName FileWriterSync.length */
-  abstract int get length;
+  int get length;
 
   /** @domName FileWriterSync.position */
-  abstract int get position;
+  int get position;
 
   /** @domName FileWriterSync.seek */
   void seek(int position);
@@ -13951,7 +13951,7 @@ abstract class Float32Array implements ArrayBufferView, List<num> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Float32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Float32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -14070,7 +14070,7 @@ abstract class Float64Array implements ArrayBufferView, List<num> {
   static const int BYTES_PER_ELEMENT = 8;
 
   /** @domName Float64Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Float64Array.setElements */
   void setElements(Object array, [int offset]);
@@ -14246,7 +14246,7 @@ abstract class FormElement implements Element {
   String enctype;
 
   /** @domName HTMLFormElement.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLFormElement.method */
   String method;
@@ -14308,13 +14308,13 @@ class _FormElementImpl extends _ElementImpl implements FormElement native "*HTML
 abstract class FrameElement implements Element {
 
   /** @domName HTMLFrameElement.contentWindow */
-  abstract Window get contentWindow;
+  Window get contentWindow;
 
   /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
 
   /** @domName HTMLFrameElement.height */
-  abstract int get height;
+  int get height;
 
   /** @domName HTMLFrameElement.location */
   String location;
@@ -14341,7 +14341,7 @@ abstract class FrameElement implements Element {
   String src;
 
   /** @domName HTMLFrameElement.width */
-  abstract int get width;
+  int get width;
 }
 
 class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HTMLFrameElement" {
@@ -14470,19 +14470,19 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 abstract class Gamepad {
 
   /** @domName Gamepad.axes */
-  abstract List<num> get axes;
+  List<num> get axes;
 
   /** @domName Gamepad.buttons */
-  abstract List<num> get buttons;
+  List<num> get buttons;
 
   /** @domName Gamepad.id */
-  abstract String get id;
+  String get id;
 
   /** @domName Gamepad.index */
-  abstract int get index;
+  int get index;
 
   /** @domName Gamepad.timestamp */
-  abstract int get timestamp;
+  int get timestamp;
 }
 
 class _GamepadImpl implements Gamepad native "*Gamepad" {
@@ -14624,10 +14624,10 @@ class _GeolocationImpl implements Geolocation native "*Geolocation" {
 abstract class Geoposition {
 
   /** @domName Geoposition.coords */
-  abstract Coordinates get coords;
+  Coordinates get coords;
 
   /** @domName Geoposition.timestamp */
-  abstract int get timestamp;
+  int get timestamp;
 }
 
 class _GeopositionImpl implements Geoposition native "*Geoposition" {
@@ -14680,7 +14680,7 @@ class _HRElementImpl extends _ElementImpl implements HRElement native "*HTMLHREl
 abstract class HTMLAllCollection implements List<Node> {
 
   /** @domName HTMLAllCollection.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLAllCollection.item */
   Node item(int index);
@@ -14795,7 +14795,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 abstract class HTMLCollection implements List<Node> {
 
   /** @domName HTMLCollection.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLCollection.item */
   Node item(int index);
@@ -14937,10 +14937,10 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 abstract class HashChangeEvent implements Event {
 
   /** @domName HashChangeEvent.newURL */
-  abstract String get newURL;
+  String get newURL;
 
   /** @domName HashChangeEvent.oldURL */
-  abstract String get oldURL;
+  String get oldURL;
 
   /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
@@ -15048,28 +15048,28 @@ abstract class HttpRequest implements EventTarget {
   static const int UNSENT = 0;
 
   /** @domName XMLHttpRequest.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName XMLHttpRequest.response */
-  abstract Object get response;
+  Object get response;
 
   /** @domName XMLHttpRequest.responseText */
-  abstract String get responseText;
+  String get responseText;
 
   /** @domName XMLHttpRequest.responseType */
   String responseType;
 
   /** @domName XMLHttpRequest.responseXML */
-  abstract Document get responseXML;
+  Document get responseXML;
 
   /** @domName XMLHttpRequest.status */
-  abstract int get status;
+  int get status;
 
   /** @domName XMLHttpRequest.statusText */
-  abstract String get statusText;
+  String get statusText;
 
   /** @domName XMLHttpRequest.upload */
-  abstract HttpRequestUpload get upload;
+  HttpRequestUpload get upload;
 
   /** @domName XMLHttpRequest.withCredentials */
   bool withCredentials;
@@ -15135,13 +15135,13 @@ abstract class HttpRequestException {
   static const int NETWORK_ERR = 101;
 
   /** @domName XMLHttpRequestException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName XMLHttpRequestException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName XMLHttpRequestException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName XMLHttpRequestException.toString */
   String toString();
@@ -15229,10 +15229,10 @@ class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
 abstract class HttpRequestProgressEvent implements ProgressEvent {
 
   /** @domName XMLHttpRequestProgressEvent.position */
-  abstract int get position;
+  int get position;
 
   /** @domName XMLHttpRequestProgressEvent.totalSize */
-  abstract int get totalSize;
+  int get totalSize;
 }
 
 class _HttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent native "*XMLHttpRequestProgressEvent" {
@@ -15337,16 +15337,16 @@ abstract class IDBCursor {
   static const int PREV_NO_DUPLICATE = 3;
 
   /** @domName IDBCursor.direction */
-  abstract String get direction;
+  String get direction;
 
   /** @domName IDBCursor.key */
-  abstract Dynamic get key;
+  Dynamic get key;
 
   /** @domName IDBCursor.primaryKey */
-  abstract Dynamic get primaryKey;
+  Dynamic get primaryKey;
 
   /** @domName IDBCursor.source */
-  abstract Dynamic get source;
+  Dynamic get source;
 
   /** @domName IDBCursor.advance */
   void advance(int count);
@@ -15405,7 +15405,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  abstract Dynamic get value;
+  Dynamic get value;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
@@ -15428,13 +15428,13 @@ abstract class IDBDatabase implements EventTarget {
   IDBDatabaseEvents get on;
 
   /** @domName IDBDatabase.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBDatabase.objectStoreNames */
-  abstract List<String> get objectStoreNames;
+  List<String> get objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  abstract Dynamic get version;
+  Dynamic get version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -15505,13 +15505,13 @@ abstract class IDBDatabaseException {
   static const int VER_ERR = 12;
 
   /** @domName IDBDatabaseException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName IDBDatabaseException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName IDBDatabaseException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBDatabaseException.toString */
   String toString();
@@ -15667,19 +15667,19 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 abstract class IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  abstract Dynamic get keyPath;
+  Dynamic get keyPath;
 
   /** @domName IDBIndex.multiEntry */
-  abstract bool get multiEntry;
+  bool get multiEntry;
 
   /** @domName IDBIndex.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBIndex.objectStore */
-  abstract IDBObjectStore get objectStore;
+  IDBObjectStore get objectStore;
 
   /** @domName IDBIndex.unique */
-  abstract bool get unique;
+  bool get unique;
 
   /** @domName IDBIndex.count */
   IDBRequest count([key_OR_range]);
@@ -15863,16 +15863,16 @@ abstract class IDBKeyRange {
 
 
   /** @domName IDBKeyRange.lower */
-  abstract Dynamic get lower;
+  Dynamic get lower;
 
   /** @domName IDBKeyRange.lowerOpen */
-  abstract bool get lowerOpen;
+  bool get lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  abstract Dynamic get upper;
+  Dynamic get upper;
 
   /** @domName IDBKeyRange.upperOpen */
-  abstract bool get upperOpen;
+  bool get upperOpen;
 
   /** @domName IDBKeyRange.bound_ */
   static final bound_ = _IDBKeyRangeImpl.bound_;
@@ -15956,19 +15956,19 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 abstract class IDBObjectStore {
 
   /** @domName IDBObjectStore.autoIncrement */
-  abstract bool get autoIncrement;
+  bool get autoIncrement;
 
   /** @domName IDBObjectStore.indexNames */
-  abstract List<String> get indexNames;
+  List<String> get indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  abstract Dynamic get keyPath;
+  Dynamic get keyPath;
 
   /** @domName IDBObjectStore.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBObjectStore.transaction */
-  abstract IDBTransaction get transaction;
+  IDBTransaction get transaction;
 
   /** @domName IDBObjectStore.add */
   IDBRequest add(Object value, [/*IDBKey*/ key]);
@@ -16203,25 +16203,25 @@ abstract class IDBRequest implements EventTarget {
   IDBRequestEvents get on;
 
   /** @domName IDBRequest.error */
-  abstract DOMError get error;
+  DOMError get error;
 
   /** @domName IDBRequest.errorCode */
-  abstract int get errorCode;
+  int get errorCode;
 
   /** @domName IDBRequest.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName IDBRequest.result */
-  abstract Dynamic get result;
+  Dynamic get result;
 
   /** @domName IDBRequest.source */
-  abstract Dynamic get source;
+  Dynamic get source;
 
   /** @domName IDBRequest.transaction */
-  abstract IDBTransaction get transaction;
+  IDBTransaction get transaction;
 
   /** @domName IDBRequest.webkitErrorMessage */
-  abstract String get webkitErrorMessage;
+  String get webkitErrorMessage;
 
   /** @domName IDBRequest.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -16295,13 +16295,13 @@ abstract class IDBTransaction implements EventTarget {
   static const int VERSION_CHANGE = 2;
 
   /** @domName IDBTransaction.db */
-  abstract IDBDatabase get db;
+  IDBDatabase get db;
 
   /** @domName IDBTransaction.error */
-  abstract DOMError get error;
+  DOMError get error;
 
   /** @domName IDBTransaction.mode */
-  abstract String get mode;
+  String get mode;
 
   /** @domName IDBTransaction.abort */
   void abort();
@@ -16369,10 +16369,10 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
 abstract class IDBUpgradeNeededEvent implements Event {
 
   /** @domName IDBVersionChangeEvent.newVersion */
-  abstract int get newVersion;
+  int get newVersion;
 
   /** @domName IDBVersionChangeEvent.oldVersion */
-  abstract int get oldVersion;
+  int get oldVersion;
 }
 
 class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent native "*IDBVersionChangeEvent" {
@@ -16391,7 +16391,7 @@ class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededE
 abstract class IDBVersionChangeEvent implements Event {
 
   /** @domName IDBVersionChangeEvent.version */
-  abstract String get version;
+  String get version;
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -16452,7 +16452,7 @@ abstract class IFrameElement implements Element {
   String align;
 
   /** @domName HTMLIFrameElement.contentWindow */
-  abstract Window get contentWindow;
+  Window get contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -16536,7 +16536,7 @@ abstract class IceCandidate {
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
   /** @domName IceCandidate.label */
-  abstract String get label;
+  String get label;
 
   /** @domName IceCandidate.toSdp */
   String toSdp();
@@ -16558,13 +16558,13 @@ class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
 abstract class ImageData {
 
   /** @domName ImageData.data */
-  abstract Uint8ClampedArray get data;
+  Uint8ClampedArray get data;
 
   /** @domName ImageData.height */
-  abstract int get height;
+  int get height;
 
   /** @domName ImageData.width */
-  abstract int get width;
+  int get width;
 }
 
 class _ImageDataImpl implements ImageData native "*ImageData" {
@@ -16607,7 +16607,7 @@ abstract class ImageElement implements Element {
   String border;
 
   /** @domName HTMLImageElement.complete */
-  abstract bool get complete;
+  bool get complete;
 
   /** @domName HTMLImageElement.crossOrigin */
   String crossOrigin;
@@ -16631,10 +16631,10 @@ abstract class ImageElement implements Element {
   String name;
 
   /** @domName HTMLImageElement.naturalHeight */
-  abstract int get naturalHeight;
+  int get naturalHeight;
 
   /** @domName HTMLImageElement.naturalWidth */
-  abstract int get naturalWidth;
+  int get naturalWidth;
 
   /** @domName HTMLImageElement.src */
   String src;
@@ -16649,10 +16649,10 @@ abstract class ImageElement implements Element {
   int width;
 
   /** @domName HTMLImageElement.x */
-  abstract int get x;
+  int get x;
 
   /** @domName HTMLImageElement.y */
-  abstract int get y;
+  int get y;
 }
 
 class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HTMLImageElement" {
@@ -16747,7 +16747,7 @@ abstract class InputElement implements Element {
   List<File> files;
 
   /** @domName HTMLInputElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLInputElement.formAction */
   String formAction;
@@ -16774,10 +16774,10 @@ abstract class InputElement implements Element {
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLInputElement.list */
-  abstract Element get list;
+  Element get list;
 
   /** @domName HTMLInputElement.max */
   String max;
@@ -16831,10 +16831,10 @@ abstract class InputElement implements Element {
   String useMap;
 
   /** @domName HTMLInputElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLInputElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLInputElement.value */
   String value;
@@ -16846,7 +16846,7 @@ abstract class InputElement implements Element {
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries */
-  abstract List<Entry> get webkitEntries;
+  List<Entry> get webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -16861,7 +16861,7 @@ abstract class InputElement implements Element {
   int width;
 
   /** @domName HTMLInputElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLInputElement.checkValidity */
   bool checkValidity();
@@ -17029,7 +17029,7 @@ abstract class Int16Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Int16Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17148,7 +17148,7 @@ abstract class Int32Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Int32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17267,7 +17267,7 @@ abstract class Int8Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Int8Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17380,7 +17380,7 @@ abstract class JavaScriptAudioNode implements AudioNode, EventTarget {
   JavaScriptAudioNodeEvents get on;
 
   /** @domName JavaScriptAudioNode.bufferSize */
-  abstract int get bufferSize;
+  int get bufferSize;
 }
 
 abstract class JavaScriptAudioNodeEvents implements Events {
@@ -17429,28 +17429,28 @@ abstract class JavaScriptCallFrame {
   static const int WITH_SCOPE = 2;
 
   /** @domName JavaScriptCallFrame.caller */
-  abstract JavaScriptCallFrame get caller;
+  JavaScriptCallFrame get caller;
 
   /** @domName JavaScriptCallFrame.column */
-  abstract int get column;
+  int get column;
 
   /** @domName JavaScriptCallFrame.functionName */
-  abstract String get functionName;
+  String get functionName;
 
   /** @domName JavaScriptCallFrame.line */
-  abstract int get line;
+  int get line;
 
   /** @domName JavaScriptCallFrame.scopeChain */
-  abstract List get scopeChain;
+  List get scopeChain;
 
   /** @domName JavaScriptCallFrame.sourceID */
-  abstract int get sourceID;
+  int get sourceID;
 
   /** @domName JavaScriptCallFrame.thisObject */
-  abstract Object get thisObject;
+  Object get thisObject;
 
   /** @domName JavaScriptCallFrame.type */
-  abstract String get type;
+  String get type;
 
   /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
@@ -17496,25 +17496,25 @@ class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScrip
 abstract class KeyboardEvent implements UIEvent {
 
   /** @domName KeyboardEvent.altGraphKey */
-  abstract bool get altGraphKey;
+  bool get altGraphKey;
 
   /** @domName KeyboardEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName KeyboardEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName KeyboardEvent.keyIdentifier */
-  abstract String get keyIdentifier;
+  String get keyIdentifier;
 
   /** @domName KeyboardEvent.keyLocation */
-  abstract int get keyLocation;
+  int get keyLocation;
 
   /** @domName KeyboardEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName KeyboardEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
@@ -17559,28 +17559,28 @@ abstract class KeygenElement implements Element {
   bool disabled;
 
   /** @domName HTMLKeygenElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLKeygenElement.keytype */
   String keytype;
 
   /** @domName HTMLKeygenElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLKeygenElement.name */
   String name;
 
   /** @domName HTMLKeygenElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLKeygenElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLKeygenElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLKeygenElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLKeygenElement.checkValidity */
   bool checkValidity();
@@ -17653,10 +17653,10 @@ abstract class LabelElement implements Element {
   factory LabelElement() => _Elements.createLabelElement();
 
   /** @domName HTMLLabelElement.control */
-  abstract Element get control;
+  Element get control;
 
   /** @domName HTMLLabelElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
@@ -17685,7 +17685,7 @@ abstract class LegendElement implements Element {
   String align;
 
   /** @domName HTMLLegendElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 }
 
 class _LegendElementImpl extends _ElementImpl implements LegendElement native "*HTMLLegendElement" {
@@ -17727,7 +17727,7 @@ abstract class LinkElement implements Element {
   String rev;
 
   /** @domName HTMLLinkElement.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName HTMLLinkElement.sizes */
   DOMSettableTokenList sizes;
@@ -17773,10 +17773,10 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTML
 abstract class LocalHistory implements History {
 
   /** @domName History.length */
-  abstract int get length;
+  int get length;
 
   /** @domName History.state */
-  abstract Dynamic get state;
+  Dynamic get state;
 
   /** @domName History.back */
   void back();
@@ -17820,7 +17820,7 @@ class _LocalHistoryImpl implements LocalHistory native "*History" {
 abstract class LocalLocation implements Location {
 
   /** @domName Location.ancestorOrigins */
-  abstract List<String> get ancestorOrigins;
+  List<String> get ancestorOrigins;
 
   /** @domName Location.hash */
   String hash;
@@ -17835,7 +17835,7 @@ abstract class LocalLocation implements Location {
   String href;
 
   /** @domName Location.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName Location.pathname */
   String pathname;
@@ -17967,19 +17967,19 @@ abstract class LocalWindow implements EventTarget, Window {
   static const int TEMPORARY = 0;
 
   /** @domName Window.applicationCache */
-  abstract DOMApplicationCache get applicationCache;
+  DOMApplicationCache get applicationCache;
 
   /** @domName Window.clientInformation */
-  abstract Navigator get clientInformation;
+  Navigator get clientInformation;
 
   /** @domName Window.closed */
-  abstract bool get closed;
+  bool get closed;
 
   /** @domName Window.console */
-  abstract Console get console;
+  Console get console;
 
   /** @domName Window.crypto */
-  abstract Crypto get crypto;
+  Crypto get crypto;
 
   /** @domName Window.defaultStatus */
   String defaultStatus;
@@ -17988,130 +17988,130 @@ abstract class LocalWindow implements EventTarget, Window {
   String defaultstatus;
 
   /** @domName Window.devicePixelRatio */
-  abstract num get devicePixelRatio;
+  num get devicePixelRatio;
 
   /** @domName Window.document */
-  abstract Document get document;
+  Document get document;
 
   /** @domName Window.event */
-  abstract Event get event;
+  Event get event;
 
   /** @domName Window.history */
-  abstract LocalHistory get history;
+  LocalHistory get history;
 
   /** @domName DOMWindow.indexedDB */
-  abstract IDBFactory get indexedDB;
+  IDBFactory get indexedDB;
 
   /** @domName Window.innerHeight */
-  abstract int get innerHeight;
+  int get innerHeight;
 
   /** @domName Window.innerWidth */
-  abstract int get innerWidth;
+  int get innerWidth;
 
   /** @domName Window.localStorage */
-  abstract Storage get localStorage;
+  Storage get localStorage;
 
   /** @domName Window.location */
   LocalLocation location;
 
   /** @domName Window.locationbar */
-  abstract BarInfo get locationbar;
+  BarInfo get locationbar;
 
   /** @domName Window.menubar */
-  abstract BarInfo get menubar;
+  BarInfo get menubar;
 
   /** @domName Window.name */
   String name;
 
   /** @domName Window.navigator */
-  abstract Navigator get navigator;
+  Navigator get navigator;
 
   /** @domName Window.offscreenBuffering */
-  abstract bool get offscreenBuffering;
+  bool get offscreenBuffering;
 
   /** @domName Window.opener */
-  abstract Window get opener;
+  Window get opener;
 
   /** @domName Window.outerHeight */
-  abstract int get outerHeight;
+  int get outerHeight;
 
   /** @domName Window.outerWidth */
-  abstract int get outerWidth;
+  int get outerWidth;
 
   /** @domName DOMWindow.pagePopupController */
-  abstract PagePopupController get pagePopupController;
+  PagePopupController get pagePopupController;
 
   /** @domName Window.pageXOffset */
-  abstract int get pageXOffset;
+  int get pageXOffset;
 
   /** @domName Window.pageYOffset */
-  abstract int get pageYOffset;
+  int get pageYOffset;
 
   /** @domName Window.parent */
-  abstract Window get parent;
+  Window get parent;
 
   /** @domName Window.performance */
-  abstract Performance get performance;
+  Performance get performance;
 
   /** @domName Window.personalbar */
-  abstract BarInfo get personalbar;
+  BarInfo get personalbar;
 
   /** @domName Window.screen */
-  abstract Screen get screen;
+  Screen get screen;
 
   /** @domName Window.screenLeft */
-  abstract int get screenLeft;
+  int get screenLeft;
 
   /** @domName Window.screenTop */
-  abstract int get screenTop;
+  int get screenTop;
 
   /** @domName Window.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName Window.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName Window.scrollX */
-  abstract int get scrollX;
+  int get scrollX;
 
   /** @domName Window.scrollY */
-  abstract int get scrollY;
+  int get scrollY;
 
   /** @domName Window.scrollbars */
-  abstract BarInfo get scrollbars;
+  BarInfo get scrollbars;
 
   /** @domName Window.self */
-  abstract Window get self;
+  Window get self;
 
   /** @domName Window.sessionStorage */
-  abstract Storage get sessionStorage;
+  Storage get sessionStorage;
 
   /** @domName Window.status */
   String status;
 
   /** @domName Window.statusbar */
-  abstract BarInfo get statusbar;
+  BarInfo get statusbar;
 
   /** @domName Window.styleMedia */
-  abstract StyleMedia get styleMedia;
+  StyleMedia get styleMedia;
 
   /** @domName Window.toolbar */
-  abstract BarInfo get toolbar;
+  BarInfo get toolbar;
 
   /** @domName Window.top */
-  abstract Window get top;
+  Window get top;
 
   /** @domName DOMWindow.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
+  IDBFactory get webkitIndexedDB;
 
   /** @domName DOMWindow.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
+  NotificationCenter get webkitNotifications;
 
   /** @domName DOMWindow.webkitStorageInfo */
-  abstract StorageInfo get webkitStorageInfo;
+  StorageInfo get webkitStorageInfo;
 
   /** @domName Window.window */
-  abstract Window get window;
+  Window get window;
 
   /** @domName Window.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -18898,7 +18898,7 @@ abstract class MapElement implements Element {
   factory MapElement() => _Elements.createMapElement();
 
   /** @domName HTMLMapElement.areas */
-  abstract HTMLCollection get areas;
+  HTMLCollection get areas;
 
   /** @domName HTMLMapElement.name */
   String name;
@@ -18999,7 +18999,7 @@ abstract class MediaController implements EventTarget {
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
   /** @domName MediaController.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName MediaController.currentTime */
   num currentTime;
@@ -19008,22 +19008,22 @@ abstract class MediaController implements EventTarget {
   num defaultPlaybackRate;
 
   /** @domName MediaController.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName MediaController.muted */
   bool muted;
 
   /** @domName MediaController.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName MediaController.playbackRate */
   num playbackRate;
 
   /** @domName MediaController.played */
-  abstract TimeRanges get played;
+  TimeRanges get played;
 
   /** @domName MediaController.seekable */
-  abstract TimeRanges get seekable;
+  TimeRanges get seekable;
 
   /** @domName MediaController.volume */
   num volume;
@@ -19112,7 +19112,7 @@ abstract class MediaElement implements Element {
   bool autoplay;
 
   /** @domName HTMLMediaElement.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName HTMLMediaElement.controller */
   MediaController controller;
@@ -19121,7 +19121,7 @@ abstract class MediaElement implements Element {
   bool controls;
 
   /** @domName HTMLMediaElement.currentSrc */
-  abstract String get currentSrc;
+  String get currentSrc;
 
   /** @domName HTMLMediaElement.currentTime */
   num currentTime;
@@ -19133,16 +19133,16 @@ abstract class MediaElement implements Element {
   num defaultPlaybackRate;
 
   /** @domName HTMLMediaElement.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName HTMLMediaElement.ended */
-  abstract bool get ended;
+  bool get ended;
 
   /** @domName HTMLMediaElement.error */
-  abstract MediaError get error;
+  MediaError get error;
 
   /** @domName HTMLMediaElement.initialTime */
-  abstract num get initialTime;
+  num get initialTime;
 
   /** @domName HTMLMediaElement.loop */
   bool loop;
@@ -19154,55 +19154,55 @@ abstract class MediaElement implements Element {
   bool muted;
 
   /** @domName HTMLMediaElement.networkState */
-  abstract int get networkState;
+  int get networkState;
 
   /** @domName HTMLMediaElement.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName HTMLMediaElement.playbackRate */
   num playbackRate;
 
   /** @domName HTMLMediaElement.played */
-  abstract TimeRanges get played;
+  TimeRanges get played;
 
   /** @domName HTMLMediaElement.preload */
   String preload;
 
   /** @domName HTMLMediaElement.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName HTMLMediaElement.seekable */
-  abstract TimeRanges get seekable;
+  TimeRanges get seekable;
 
   /** @domName HTMLMediaElement.seeking */
-  abstract bool get seeking;
+  bool get seeking;
 
   /** @domName HTMLMediaElement.src */
   String src;
 
   /** @domName HTMLMediaElement.startTime */
-  abstract num get startTime;
+  num get startTime;
 
   /** @domName HTMLMediaElement.textTracks */
-  abstract TextTrackList get textTracks;
+  TextTrackList get textTracks;
 
   /** @domName HTMLMediaElement.volume */
   num volume;
 
   /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
-  abstract int get webkitAudioDecodedByteCount;
+  int get webkitAudioDecodedByteCount;
 
   /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
   bool webkitClosedCaptionsVisible;
 
   /** @domName HTMLMediaElement.webkitHasClosedCaptions */
-  abstract bool get webkitHasClosedCaptions;
+  bool get webkitHasClosedCaptions;
 
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
-  abstract int get webkitVideoDecodedByteCount;
+  int get webkitVideoDecodedByteCount;
 
   /** @domName HTMLMediaElement.addTextTrack */
   TextTrack addTextTrack(String kind, [String label, String language]);
@@ -19291,7 +19291,7 @@ abstract class MediaElementEvents implements ElementEvents {
 abstract class MediaElementAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaElementAudioSourceNode.mediaElement */
-  abstract MediaElement get mediaElement;
+  MediaElement get mediaElement;
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -19458,7 +19458,7 @@ abstract class MediaError {
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   /** @domName MediaError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _MediaErrorImpl implements MediaError native "*MediaError" {
@@ -19487,7 +19487,7 @@ abstract class MediaKeyError {
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   /** @domName MediaKeyError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
@@ -19504,25 +19504,25 @@ class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
 abstract class MediaKeyEvent implements Event {
 
   /** @domName MediaKeyEvent.defaultURL */
-  abstract String get defaultURL;
+  String get defaultURL;
 
   /** @domName MediaKeyEvent.errorCode */
-  abstract MediaKeyError get errorCode;
+  MediaKeyError get errorCode;
 
   /** @domName MediaKeyEvent.initData */
-  abstract Uint8Array get initData;
+  Uint8Array get initData;
 
   /** @domName MediaKeyEvent.keySystem */
-  abstract String get keySystem;
+  String get keySystem;
 
   /** @domName MediaKeyEvent.message */
-  abstract Uint8Array get message;
+  Uint8Array get message;
 
   /** @domName MediaKeyEvent.sessionId */
-  abstract String get sessionId;
+  String get sessionId;
 
   /** @domName MediaKeyEvent.systemCode */
-  abstract int get systemCode;
+  int get systemCode;
 }
 
 class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*MediaKeyEvent" {
@@ -19551,7 +19551,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*Me
 abstract class MediaList {
 
   /** @domName MediaList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MediaList.mediaText */
   String mediaText;
@@ -19588,10 +19588,10 @@ class _MediaListImpl implements MediaList native "*MediaList" {
 abstract class MediaQueryList {
 
   /** @domName MediaQueryList.matches */
-  abstract bool get matches;
+  bool get matches;
 
   /** @domName MediaQueryList.media */
-  abstract String get media;
+  String get media;
 
   /** @domName MediaQueryList.addListener */
   void addListener(MediaQueryListListener listener);
@@ -19634,16 +19634,16 @@ abstract class MediaSource implements EventTarget {
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
   /** @domName MediaSource.activeSourceBuffers */
-  abstract SourceBufferList get activeSourceBuffers;
+  SourceBufferList get activeSourceBuffers;
 
   /** @domName MediaSource.duration */
   num duration;
 
   /** @domName MediaSource.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName MediaSource.sourceBuffers */
-  abstract SourceBufferList get sourceBuffers;
+  SourceBufferList get sourceBuffers;
 
   /** @domName MediaSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -19707,16 +19707,16 @@ abstract class MediaStream implements EventTarget {
   static const int LIVE = 1;
 
   /** @domName MediaStream.audioTracks */
-  abstract MediaStreamTrackList get audioTracks;
+  MediaStreamTrackList get audioTracks;
 
   /** @domName MediaStream.label */
-  abstract String get label;
+  String get label;
 
   /** @domName MediaStream.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName MediaStream.videoTracks */
-  abstract MediaStreamTrackList get videoTracks;
+  MediaStreamTrackList get videoTracks;
 
   /** @domName MediaStream.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -19742,7 +19742,7 @@ abstract class MediaStreamEvents implements Events {
 abstract class MediaStreamAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaStreamAudioSourceNode.mediaStream */
-  abstract MediaStream get mediaStream;
+  MediaStream get mediaStream;
 }
 
 class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode native "*MediaStreamAudioSourceNode" {
@@ -19759,7 +19759,7 @@ class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements Me
 abstract class MediaStreamEvent implements Event {
 
   /** @domName MediaStreamEvent.stream */
-  abstract MediaStream get stream;
+  MediaStream get stream;
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent native "*MediaStreamEvent" {
@@ -19906,13 +19906,13 @@ abstract class MediaStreamTrack implements EventTarget {
   bool enabled;
 
   /** @domName MediaStreamTrack.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName MediaStreamTrack.label */
-  abstract String get label;
+  String get label;
 
   /** @domName MediaStreamTrack.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName MediaStreamTrack.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -19942,7 +19942,7 @@ abstract class MediaStreamTrackEvents implements Events {
 abstract class MediaStreamTrackEvent implements Event {
 
   /** @domName MediaStreamTrackEvent.track */
-  abstract MediaStreamTrack get track;
+  MediaStreamTrack get track;
 }
 
 class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
@@ -19994,7 +19994,7 @@ abstract class MediaStreamTrackList implements EventTarget {
   MediaStreamTrackListEvents get on;
 
   /** @domName MediaStreamTrackList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MediaStreamTrackList.add */
   void add(MediaStreamTrack track);
@@ -20059,13 +20059,13 @@ class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStream
 abstract class MemoryInfo {
 
   /** @domName MemoryInfo.jsHeapSizeLimit */
-  abstract int get jsHeapSizeLimit;
+  int get jsHeapSizeLimit;
 
   /** @domName MemoryInfo.totalJSHeapSize */
-  abstract int get totalJSHeapSize;
+  int get totalJSHeapSize;
 
   /** @domName MemoryInfo.usedJSHeapSize */
-  abstract int get usedJSHeapSize;
+  int get usedJSHeapSize;
 }
 
 class _MemoryInfoImpl implements MemoryInfo native "*MemoryInfo" {
@@ -20107,10 +20107,10 @@ abstract class MessageChannel {
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
   /** @domName MessageChannel.port1 */
-  abstract MessagePort get port1;
+  MessagePort get port1;
 
   /** @domName MessageChannel.port2 */
-  abstract MessagePort get port2;
+  MessagePort get port2;
 }
 
 class _MessageChannelImpl implements MessageChannel native "*MessageChannel" {
@@ -20129,19 +20129,19 @@ class _MessageChannelImpl implements MessageChannel native "*MessageChannel" {
 abstract class MessageEvent implements Event {
 
   /** @domName MessageEvent.data */
-  abstract Object get data;
+  Object get data;
 
   /** @domName MessageEvent.lastEventId */
-  abstract String get lastEventId;
+  String get lastEventId;
 
   /** @domName MessageEvent.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName MessageEvent.ports */
-  abstract List get ports;
+  List get ports;
 
   /** @domName MessageEvent.source */
-  abstract Window get source;
+  Window get source;
 
   /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts);
@@ -20282,10 +20282,10 @@ class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTML
 abstract class Metadata {
 
   /** @domName Metadata.modificationTime */
-  abstract Date get modificationTime;
+  Date get modificationTime;
 
   /** @domName Metadata.size */
-  abstract int get size;
+  int get size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20316,7 +20316,7 @@ abstract class MeterElement implements Element {
   num high;
 
   /** @domName HTMLMeterElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLMeterElement.low */
   num low;
@@ -20394,61 +20394,61 @@ abstract class MouseEvent implements UIEvent {
 
 
   /** @domName MouseEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName MouseEvent.button */
-  abstract int get button;
+  int get button;
 
   /** @domName MouseEvent.clientX */
-  abstract int get clientX;
+  int get clientX;
 
   /** @domName MouseEvent.clientY */
-  abstract int get clientY;
+  int get clientY;
 
   /** @domName MouseEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName MouseEvent.dataTransfer */
-  abstract Clipboard get dataTransfer;
+  Clipboard get dataTransfer;
 
   /** @domName MouseEvent.fromElement */
-  abstract Node get fromElement;
+  Node get fromElement;
 
   /** @domName MouseEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName MouseEvent.offsetX */
-  abstract int get offsetX;
+  int get offsetX;
 
   /** @domName MouseEvent.offsetY */
-  abstract int get offsetY;
+  int get offsetY;
 
   /** @domName MouseEvent.relatedTarget */
-  abstract EventTarget get relatedTarget;
+  EventTarget get relatedTarget;
 
   /** @domName MouseEvent.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName MouseEvent.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName MouseEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName MouseEvent.toElement */
-  abstract Node get toElement;
+  Node get toElement;
 
   /** @domName MouseEvent.webkitMovementX */
-  abstract int get webkitMovementX;
+  int get webkitMovementX;
 
   /** @domName MouseEvent.webkitMovementY */
-  abstract int get webkitMovementY;
+  int get webkitMovementY;
 
   /** @domName MouseEvent.x */
-  abstract int get x;
+  int get x;
 
   /** @domName MouseEvent.y */
-  abstract int get y;
+  int get y;
 
   /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
@@ -20553,19 +20553,19 @@ abstract class MutationEvent implements Event {
   static const int REMOVAL = 3;
 
   /** @domName MutationEvent.attrChange */
-  abstract int get attrChange;
+  int get attrChange;
 
   /** @domName MutationEvent.attrName */
-  abstract String get attrName;
+  String get attrName;
 
   /** @domName MutationEvent.newValue */
-  abstract String get newValue;
+  String get newValue;
 
   /** @domName MutationEvent.prevValue */
-  abstract String get prevValue;
+  String get prevValue;
 
   /** @domName MutationEvent.relatedNode */
-  abstract Node get relatedNode;
+  Node get relatedNode;
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
@@ -20700,31 +20700,31 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
 abstract class MutationRecord {
 
   /** @domName MutationRecord.addedNodes */
-  abstract List<Node> get addedNodes;
+  List<Node> get addedNodes;
 
   /** @domName MutationRecord.attributeName */
-  abstract String get attributeName;
+  String get attributeName;
 
   /** @domName MutationRecord.attributeNamespace */
-  abstract String get attributeNamespace;
+  String get attributeNamespace;
 
   /** @domName MutationRecord.nextSibling */
-  abstract Node get nextSibling;
+  Node get nextSibling;
 
   /** @domName MutationRecord.oldValue */
-  abstract String get oldValue;
+  String get oldValue;
 
   /** @domName MutationRecord.previousSibling */
-  abstract Node get previousSibling;
+  Node get previousSibling;
 
   /** @domName MutationRecord.removedNodes */
-  abstract List<Node> get removedNodes;
+  List<Node> get removedNodes;
 
   /** @domName MutationRecord.target */
-  abstract Node get target;
+  Node get target;
 
   /** @domName MutationRecord.type */
-  abstract String get type;
+  String get type;
 }
 
 class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
@@ -20757,7 +20757,7 @@ class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
 abstract class NamedNodeMap implements List<Node> {
 
   /** @domName NamedNodeMap.length */
-  abstract int get length;
+  int get length;
 
   /** @domName NamedNodeMap.getNamedItem */
   Node getNamedItem(String name);
@@ -20892,52 +20892,52 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 abstract class Navigator {
 
   /** @domName Navigator.appCodeName */
-  abstract String get appCodeName;
+  String get appCodeName;
 
   /** @domName Navigator.appName */
-  abstract String get appName;
+  String get appName;
 
   /** @domName Navigator.appVersion */
-  abstract String get appVersion;
+  String get appVersion;
 
   /** @domName Navigator.cookieEnabled */
-  abstract bool get cookieEnabled;
+  bool get cookieEnabled;
 
   /** @domName Navigator.geolocation */
-  abstract Geolocation get geolocation;
+  Geolocation get geolocation;
 
   /** @domName Navigator.language */
-  abstract String get language;
+  String get language;
 
   /** @domName Navigator.mimeTypes */
-  abstract DOMMimeTypeArray get mimeTypes;
+  DOMMimeTypeArray get mimeTypes;
 
   /** @domName Navigator.onLine */
-  abstract bool get onLine;
+  bool get onLine;
 
   /** @domName Navigator.platform */
-  abstract String get platform;
+  String get platform;
 
   /** @domName Navigator.plugins */
-  abstract DOMPluginArray get plugins;
+  DOMPluginArray get plugins;
 
   /** @domName Navigator.product */
-  abstract String get product;
+  String get product;
 
   /** @domName Navigator.productSub */
-  abstract String get productSub;
+  String get productSub;
 
   /** @domName Navigator.userAgent */
-  abstract String get userAgent;
+  String get userAgent;
 
   /** @domName Navigator.vendor */
-  abstract String get vendor;
+  String get vendor;
 
   /** @domName Navigator.vendorSub */
-  abstract String get vendorSub;
+  String get vendorSub;
 
   /** @domName Navigator.webkitBattery */
-  abstract BatteryManager get webkitBattery;
+  BatteryManager get webkitBattery;
 
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
@@ -21017,7 +21017,7 @@ abstract class NavigatorUserMediaError {
   static const int PERMISSION_DENIED = 1;
 
   /** @domName NavigatorUserMediaError.code */
-  abstract int get code;
+  int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21100,31 +21100,31 @@ abstract class Node implements EventTarget {
   static const int TEXT_NODE = 3;
 
   /** @domName Node.attributes */
-  abstract NamedNodeMap get $dom_attributes;
+  NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  abstract List<Node> get $dom_childNodes;
+  List<Node> get $dom_childNodes;
 
   /** @domName Node.firstChild */
-  abstract Node get $dom_firstChild;
+  Node get $dom_firstChild;
 
   /** @domName Node.lastChild */
-  abstract Node get $dom_lastChild;
+  Node get $dom_lastChild;
 
   /** @domName Node.nextSibling */
-  abstract Node get nextNode;
+  Node get nextNode;
 
   /** @domName Node.nodeType */
-  abstract int get $dom_nodeType;
+  int get $dom_nodeType;
 
   /** @domName Node.ownerDocument */
-  abstract Document get document;
+  Document get document;
 
   /** @domName Node.parentNode */
-  abstract Node get parent;
+  Node get parent;
 
   /** @domName Node.previousSibling */
-  abstract Node get previousNode;
+  Node get previousNode;
 
   /** @domName Node.textContent */
   String text;
@@ -21406,22 +21406,22 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 abstract class NodeIterator {
 
   /** @domName NodeIterator.expandEntityReferences */
-  abstract bool get expandEntityReferences;
+  bool get expandEntityReferences;
 
   /** @domName NodeIterator.filter */
-  abstract NodeFilter get filter;
+  NodeFilter get filter;
 
   /** @domName NodeIterator.pointerBeforeReferenceNode */
-  abstract bool get pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode;
 
   /** @domName NodeIterator.referenceNode */
-  abstract Node get referenceNode;
+  Node get referenceNode;
 
   /** @domName NodeIterator.root */
-  abstract Node get root;
+  Node get root;
 
   /** @domName NodeIterator.whatToShow */
-  abstract int get whatToShow;
+  int get whatToShow;
 
   /** @domName NodeIterator.detach */
   void detach();
@@ -21470,7 +21470,7 @@ abstract class NodeList implements List<Node> {
 
 
   /** @domName NodeList.length */
-  abstract int get length;
+  int get length;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21666,10 +21666,10 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 abstract class Notation implements Node {
 
   /** @domName Notation.publicId */
-  abstract String get publicId;
+  String get publicId;
 
   /** @domName Notation.systemId */
-  abstract String get systemId;
+  String get systemId;
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -21703,7 +21703,7 @@ abstract class Notification implements EventTarget {
   String dir;
 
   /** @domName Notification.permission */
-  abstract String get permission;
+  String get permission;
 
   /** @domName Notification.replaceId */
   String replaceId;
@@ -21956,7 +21956,7 @@ abstract class ObjectElement implements Element {
   bool declare;
 
   /** @domName HTMLObjectElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLObjectElement.height */
   String height;
@@ -21977,10 +21977,10 @@ abstract class ObjectElement implements Element {
   String useMap;
 
   /** @domName HTMLObjectElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLObjectElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLObjectElement.vspace */
   int vspace;
@@ -21989,7 +21989,7 @@ abstract class ObjectElement implements Element {
   String width;
 
   /** @domName HTMLObjectElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLObjectElement.checkValidity */
   bool checkValidity();
@@ -22054,7 +22054,7 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
 abstract class OfflineAudioCompletionEvent implements Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
-  abstract AudioBuffer get renderedBuffer;
+  AudioBuffer get renderedBuffer;
 }
 
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
@@ -22117,10 +22117,10 @@ abstract class OptionElement implements Element {
   bool disabled;
 
   /** @domName HTMLOptionElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLOptionElement.index */
-  abstract int get index;
+  int get index;
 
   /** @domName HTMLOptionElement.label */
   String label;
@@ -22176,13 +22176,13 @@ abstract class Oscillator implements AudioSourceNode {
   static const int UNSCHEDULED_STATE = 0;
 
   /** @domName Oscillator.detune */
-  abstract AudioParam get detune;
+  AudioParam get detune;
 
   /** @domName Oscillator.frequency */
-  abstract AudioParam get frequency;
+  AudioParam get frequency;
 
   /** @domName Oscillator.playbackState */
-  abstract int get playbackState;
+  int get playbackState;
 
   /** @domName Oscillator.type */
   int type;
@@ -22228,31 +22228,31 @@ abstract class OutputElement implements Element {
   String defaultValue;
 
   /** @domName HTMLOutputElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLOutputElement.htmlFor */
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLOutputElement.name */
   String name;
 
   /** @domName HTMLOutputElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLOutputElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLOutputElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLOutputElement.value */
   String value;
 
   /** @domName HTMLOutputElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLOutputElement.checkValidity */
   bool checkValidity();
@@ -22303,13 +22303,13 @@ abstract class OverflowEvent implements Event {
   static const int VERTICAL = 1;
 
   /** @domName OverflowEvent.horizontalOverflow */
-  abstract bool get horizontalOverflow;
+  bool get horizontalOverflow;
 
   /** @domName OverflowEvent.orient */
-  abstract int get orient;
+  int get orient;
 
   /** @domName OverflowEvent.verticalOverflow */
-  abstract bool get verticalOverflow;
+  bool get verticalOverflow;
 }
 
 class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*OverflowEvent" {
@@ -22352,7 +22352,7 @@ class _PagePopupControllerImpl implements PagePopupController native "*PagePopup
 abstract class PageTransitionEvent implements Event {
 
   /** @domName PageTransitionEvent.persisted */
-  abstract bool get persisted;
+  bool get persisted;
 }
 
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
@@ -22457,22 +22457,22 @@ abstract class PeerConnection00 implements EventTarget {
   static const int SDP_PRANSWER = 0x200;
 
   /** @domName PeerConnection00.iceState */
-  abstract int get iceState;
+  int get iceState;
 
   /** @domName PeerConnection00.localDescription */
-  abstract SessionDescription get localDescription;
+  SessionDescription get localDescription;
 
   /** @domName PeerConnection00.localStreams */
-  abstract List<MediaStream> get localStreams;
+  List<MediaStream> get localStreams;
 
   /** @domName PeerConnection00.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName PeerConnection00.remoteDescription */
-  abstract SessionDescription get remoteDescription;
+  SessionDescription get remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  List<MediaStream> get remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -22625,13 +22625,13 @@ class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection0
 abstract class Performance implements EventTarget {
 
   /** @domName Performance.memory */
-  abstract MemoryInfo get memory;
+  MemoryInfo get memory;
 
   /** @domName Performance.navigation */
-  abstract PerformanceNavigation get navigation;
+  PerformanceNavigation get navigation;
 
   /** @domName Performance.timing */
-  abstract PerformanceTiming get timing;
+  PerformanceTiming get timing;
 
   /** @domName Performance.now */
   num now();
@@ -22665,10 +22665,10 @@ abstract class PerformanceNavigation {
   static const int TYPE_RESERVED = 255;
 
   /** @domName PerformanceNavigation.redirectCount */
-  abstract int get redirectCount;
+  int get redirectCount;
 
   /** @domName PerformanceNavigation.type */
-  abstract int get type;
+  int get type;
 }
 
 class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -22687,67 +22687,67 @@ class _PerformanceNavigationImpl implements PerformanceNavigation native "*Perfo
 abstract class PerformanceTiming {
 
   /** @domName PerformanceTiming.connectEnd */
-  abstract int get connectEnd;
+  int get connectEnd;
 
   /** @domName PerformanceTiming.connectStart */
-  abstract int get connectStart;
+  int get connectStart;
 
   /** @domName PerformanceTiming.domComplete */
-  abstract int get domComplete;
+  int get domComplete;
 
   /** @domName PerformanceTiming.domContentLoadedEventEnd */
-  abstract int get domContentLoadedEventEnd;
+  int get domContentLoadedEventEnd;
 
   /** @domName PerformanceTiming.domContentLoadedEventStart */
-  abstract int get domContentLoadedEventStart;
+  int get domContentLoadedEventStart;
 
   /** @domName PerformanceTiming.domInteractive */
-  abstract int get domInteractive;
+  int get domInteractive;
 
   /** @domName PerformanceTiming.domLoading */
-  abstract int get domLoading;
+  int get domLoading;
 
   /** @domName PerformanceTiming.domainLookupEnd */
-  abstract int get domainLookupEnd;
+  int get domainLookupEnd;
 
   /** @domName PerformanceTiming.domainLookupStart */
-  abstract int get domainLookupStart;
+  int get domainLookupStart;
 
   /** @domName PerformanceTiming.fetchStart */
-  abstract int get fetchStart;
+  int get fetchStart;
 
   /** @domName PerformanceTiming.loadEventEnd */
-  abstract int get loadEventEnd;
+  int get loadEventEnd;
 
   /** @domName PerformanceTiming.loadEventStart */
-  abstract int get loadEventStart;
+  int get loadEventStart;
 
   /** @domName PerformanceTiming.navigationStart */
-  abstract int get navigationStart;
+  int get navigationStart;
 
   /** @domName PerformanceTiming.redirectEnd */
-  abstract int get redirectEnd;
+  int get redirectEnd;
 
   /** @domName PerformanceTiming.redirectStart */
-  abstract int get redirectStart;
+  int get redirectStart;
 
   /** @domName PerformanceTiming.requestStart */
-  abstract int get requestStart;
+  int get requestStart;
 
   /** @domName PerformanceTiming.responseEnd */
-  abstract int get responseEnd;
+  int get responseEnd;
 
   /** @domName PerformanceTiming.responseStart */
-  abstract int get responseStart;
+  int get responseStart;
 
   /** @domName PerformanceTiming.secureConnectionStart */
-  abstract int get secureConnectionStart;
+  int get secureConnectionStart;
 
   /** @domName PerformanceTiming.unloadEventEnd */
-  abstract int get unloadEventEnd;
+  int get unloadEventEnd;
 
   /** @domName PerformanceTiming.unloadEventStart */
-  abstract int get unloadEventStart;
+  int get unloadEventStart;
 }
 
 class _PerformanceTimingImpl implements PerformanceTiming native "*PerformanceTiming" {
@@ -22828,7 +22828,7 @@ class _PointImpl implements Point native "*WebKitPoint" {
 abstract class PopStateEvent implements Event {
 
   /** @domName PopStateEvent.state */
-  abstract Object get state;
+  Object get state;
 }
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*PopStateEvent" {
@@ -22858,10 +22858,10 @@ abstract class PositionError {
   static const int TIMEOUT = 3;
 
   /** @domName PositionError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName PositionError.message */
-  abstract String get message;
+  String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22914,10 +22914,10 @@ abstract class ProcessingInstruction implements Node {
   String data;
 
   /** @domName ProcessingInstruction.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName ProcessingInstruction.target */
-  abstract String get target;
+  String get target;
 }
 
 class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruction native "*ProcessingInstruction" {
@@ -22940,13 +22940,13 @@ abstract class ProgressElement implements Element {
   factory ProgressElement() => _Elements.createProgressElement();
 
   /** @domName HTMLProgressElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLProgressElement.max */
   num max;
 
   /** @domName HTMLProgressElement.position */
-  abstract num get position;
+  num get position;
 
   /** @domName HTMLProgressElement.value */
   num value;
@@ -22972,13 +22972,13 @@ class _ProgressElementImpl extends _ElementImpl implements ProgressElement nativ
 abstract class ProgressEvent implements Event {
 
   /** @domName ProgressEvent.lengthComputable */
-  abstract bool get lengthComputable;
+  bool get lengthComputable;
 
   /** @domName ProgressEvent.loaded */
-  abstract int get loaded;
+  int get loaded;
 
   /** @domName ProgressEvent.total */
-  abstract int get total;
+  int get total;
 }
 
 class _ProgressEventImpl extends _EventImpl implements ProgressEvent native "*ProgressEvent" {
@@ -23016,13 +23016,13 @@ class _QuoteElementImpl extends _ElementImpl implements QuoteElement native "*HT
 abstract class RGBColor {
 
   /** @domName RGBColor.blue */
-  abstract CSSPrimitiveValue get blue;
+  CSSPrimitiveValue get blue;
 
   /** @domName RGBColor.green */
-  abstract CSSPrimitiveValue get green;
+  CSSPrimitiveValue get green;
 
   /** @domName RGBColor.red */
-  abstract CSSPrimitiveValue get red;
+  CSSPrimitiveValue get red;
 }
 
 class _RGBColorImpl implements RGBColor native "*RGBColor" {
@@ -23051,16 +23051,16 @@ abstract class RTCDataChannel implements EventTarget {
   String binaryType;
 
   /** @domName RTCDataChannel.bufferedAmount */
-  abstract int get bufferedAmount;
+  int get bufferedAmount;
 
   /** @domName RTCDataChannel.label */
-  abstract String get label;
+  String get label;
 
   /** @domName RTCDataChannel.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName RTCDataChannel.reliable */
-  abstract bool get reliable;
+  bool get reliable;
 
   /** @domName RTCDataChannel.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -23098,7 +23098,7 @@ abstract class RTCDataChannelEvents implements Events {
 abstract class RTCDataChannelEvent implements Event {
 
   /** @domName RTCDataChannelEvent.channel */
-  abstract RTCDataChannel get channel;
+  RTCDataChannel get channel;
 }
 
 class _RTCDataChannelEventImpl extends _EventImpl implements RTCDataChannelEvent native "*RTCDataChannelEvent" {
@@ -23162,13 +23162,13 @@ abstract class RTCIceCandidate {
   factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
 
   /** @domName RTCIceCandidate.candidate */
-  abstract String get candidate;
+  String get candidate;
 
   /** @domName RTCIceCandidate.sdpMLineIndex */
-  abstract int get sdpMLineIndex;
+  int get sdpMLineIndex;
 
   /** @domName RTCIceCandidate.sdpMid */
-  abstract String get sdpMid;
+  String get sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23180,7 +23180,7 @@ abstract class RTCIceCandidate {
 abstract class RTCIceCandidateEvent implements Event {
 
   /** @domName RTCIceCandidateEvent.candidate */
-  abstract RTCIceCandidate get candidate;
+  RTCIceCandidate get candidate;
 }
 
 class _RTCIceCandidateEventImpl extends _EventImpl implements RTCIceCandidateEvent native "*RTCIceCandidateEvent" {
@@ -23218,22 +23218,22 @@ abstract class RTCPeerConnection implements EventTarget {
   RTCPeerConnectionEvents get on;
 
   /** @domName RTCPeerConnection.iceState */
-  abstract String get iceState;
+  String get iceState;
 
   /** @domName RTCPeerConnection.localDescription */
-  abstract RTCSessionDescription get localDescription;
+  RTCSessionDescription get localDescription;
 
   /** @domName RTCPeerConnection.localStreams */
-  abstract List<MediaStream> get localStreams;
+  List<MediaStream> get localStreams;
 
   /** @domName RTCPeerConnection.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName RTCPeerConnection.remoteDescription */
-  abstract RTCSessionDescription get remoteDescription;
+  RTCSessionDescription get remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  List<MediaStream> get remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -23431,7 +23431,7 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 abstract class RTCStatsElement {
 
   /** @domName RTCStatsElement.timestamp */
-  abstract Date get timestamp;
+  Date get timestamp;
 
   /** @domName RTCStatsElement.stat */
   String stat(String name);
@@ -23453,10 +23453,10 @@ class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" 
 abstract class RTCStatsReport {
 
   /** @domName RTCStatsReport.local */
-  abstract RTCStatsElement get local;
+  RTCStatsElement get local;
 
   /** @domName RTCStatsReport.remote */
-  abstract RTCStatsElement get remote;
+  RTCStatsElement get remote;
 }
 
 class _RTCStatsReportImpl implements RTCStatsReport native "*RTCStatsReport" {
@@ -23525,22 +23525,22 @@ abstract class Range {
   static const int START_TO_START = 0;
 
   /** @domName Range.collapsed */
-  abstract bool get collapsed;
+  bool get collapsed;
 
   /** @domName Range.commonAncestorContainer */
-  abstract Node get commonAncestorContainer;
+  Node get commonAncestorContainer;
 
   /** @domName Range.endContainer */
-  abstract Node get endContainer;
+  Node get endContainer;
 
   /** @domName Range.endOffset */
-  abstract int get endOffset;
+  int get endOffset;
 
   /** @domName Range.startContainer */
-  abstract Node get startContainer;
+  Node get startContainer;
 
   /** @domName Range.startOffset */
-  abstract int get startOffset;
+  int get startOffset;
 
   /** @domName Range.cloneContents */
   DocumentFragment cloneContents();
@@ -23631,13 +23631,13 @@ abstract class RangeException {
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   /** @domName RangeException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName RangeException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName RangeException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName RangeException.toString */
   String toString();
@@ -23731,7 +23731,7 @@ abstract class RealtimeAnalyserNode implements AudioNode {
   int fftSize;
 
   /** @domName RealtimeAnalyserNode.frequencyBinCount */
-  abstract int get frequencyBinCount;
+  int get frequencyBinCount;
 
   /** @domName RealtimeAnalyserNode.maxDecibels */
   num maxDecibels;
@@ -23780,16 +23780,16 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 abstract class Rect {
 
   /** @domName Rect.bottom */
-  abstract CSSPrimitiveValue get bottom;
+  CSSPrimitiveValue get bottom;
 
   /** @domName Rect.left */
-  abstract CSSPrimitiveValue get left;
+  CSSPrimitiveValue get left;
 
   /** @domName Rect.right */
-  abstract CSSPrimitiveValue get right;
+  CSSPrimitiveValue get right;
 
   /** @domName Rect.top */
-  abstract CSSPrimitiveValue get top;
+  CSSPrimitiveValue get top;
 }
 
 class _RectImpl implements Rect native "*Rect" {
@@ -23835,10 +23835,10 @@ abstract class SQLError {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SQLError.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SQLErrorImpl implements SQLError native "*SQLError" {
@@ -23873,10 +23873,10 @@ abstract class SQLException {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SQLException.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SQLExceptionImpl implements SQLException native "*SQLException" {
@@ -23895,13 +23895,13 @@ class _SQLExceptionImpl implements SQLException native "*SQLException" {
 abstract class SQLResultSet {
 
   /** @domName SQLResultSet.insertId */
-  abstract int get insertId;
+  int get insertId;
 
   /** @domName SQLResultSet.rows */
-  abstract SQLResultSetRowList get rows;
+  SQLResultSetRowList get rows;
 
   /** @domName SQLResultSet.rowsAffected */
-  abstract int get rowsAffected;
+  int get rowsAffected;
 }
 
 class _SQLResultSetImpl implements SQLResultSet native "*SQLResultSet" {
@@ -23922,7 +23922,7 @@ class _SQLResultSetImpl implements SQLResultSet native "*SQLResultSet" {
 abstract class SQLResultSetRowList implements List<Map> {
 
   /** @domName SQLResultSetRowList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SQLResultSetRowList.item */
   Map item(int index);
@@ -24099,7 +24099,7 @@ class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransact
 abstract class SVGAElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGAElement.target */
-  abstract SVGAnimatedString get target;
+  SVGAnimatedString get target;
 }
 
 class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*SVGAElement" {
@@ -24227,7 +24227,7 @@ abstract class SVGAngle {
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   /** @domName SVGAngle.unitType */
-  abstract int get unitType;
+  int get unitType;
 
   /** @domName SVGAngle.value */
   num value;
@@ -24317,10 +24317,10 @@ class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implement
 abstract class SVGAnimatedAngle {
 
   /** @domName SVGAnimatedAngle.animVal */
-  abstract SVGAngle get animVal;
+  SVGAngle get animVal;
 
   /** @domName SVGAnimatedAngle.baseVal */
-  abstract SVGAngle get baseVal;
+  SVGAngle get baseVal;
 }
 
 class _SVGAnimatedAngleImpl implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
@@ -24339,7 +24339,7 @@ class _SVGAnimatedAngleImpl implements SVGAnimatedAngle native "*SVGAnimatedAngl
 abstract class SVGAnimatedBoolean {
 
   /** @domName SVGAnimatedBoolean.animVal */
-  abstract bool get animVal;
+  bool get animVal;
 
   /** @domName SVGAnimatedBoolean.baseVal */
   bool baseVal;
@@ -24361,7 +24361,7 @@ class _SVGAnimatedBooleanImpl implements SVGAnimatedBoolean native "*SVGAnimated
 abstract class SVGAnimatedEnumeration {
 
   /** @domName SVGAnimatedEnumeration.animVal */
-  abstract int get animVal;
+  int get animVal;
 
   /** @domName SVGAnimatedEnumeration.baseVal */
   int baseVal;
@@ -24383,7 +24383,7 @@ class _SVGAnimatedEnumerationImpl implements SVGAnimatedEnumeration native "*SVG
 abstract class SVGAnimatedInteger {
 
   /** @domName SVGAnimatedInteger.animVal */
-  abstract int get animVal;
+  int get animVal;
 
   /** @domName SVGAnimatedInteger.baseVal */
   int baseVal;
@@ -24405,10 +24405,10 @@ class _SVGAnimatedIntegerImpl implements SVGAnimatedInteger native "*SVGAnimated
 abstract class SVGAnimatedLength {
 
   /** @domName SVGAnimatedLength.animVal */
-  abstract SVGLength get animVal;
+  SVGLength get animVal;
 
   /** @domName SVGAnimatedLength.baseVal */
-  abstract SVGLength get baseVal;
+  SVGLength get baseVal;
 }
 
 class _SVGAnimatedLengthImpl implements SVGAnimatedLength native "*SVGAnimatedLength" {
@@ -24427,10 +24427,10 @@ class _SVGAnimatedLengthImpl implements SVGAnimatedLength native "*SVGAnimatedLe
 abstract class SVGAnimatedLengthList implements List<SVGAnimatedLength> {
 
   /** @domName SVGAnimatedLengthList.animVal */
-  abstract SVGLengthList get animVal;
+  SVGLengthList get animVal;
 
   /** @domName SVGAnimatedLengthList.baseVal */
-  abstract SVGLengthList get baseVal;
+  SVGLengthList get baseVal;
 }
 
 class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptIndexingBehavior native "*SVGAnimatedLengthList" {
@@ -24532,7 +24532,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 abstract class SVGAnimatedNumber {
 
   /** @domName SVGAnimatedNumber.animVal */
-  abstract num get animVal;
+  num get animVal;
 
   /** @domName SVGAnimatedNumber.baseVal */
   num baseVal;
@@ -24554,10 +24554,10 @@ class _SVGAnimatedNumberImpl implements SVGAnimatedNumber native "*SVGAnimatedNu
 abstract class SVGAnimatedNumberList implements List<SVGAnimatedNumber> {
 
   /** @domName SVGAnimatedNumberList.animVal */
-  abstract SVGNumberList get animVal;
+  SVGNumberList get animVal;
 
   /** @domName SVGAnimatedNumberList.baseVal */
-  abstract SVGNumberList get baseVal;
+  SVGNumberList get baseVal;
 }
 
 class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptIndexingBehavior native "*SVGAnimatedNumberList" {
@@ -24659,10 +24659,10 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 abstract class SVGAnimatedPreserveAspectRatio {
 
   /** @domName SVGAnimatedPreserveAspectRatio.animVal */
-  abstract SVGPreserveAspectRatio get animVal;
+  SVGPreserveAspectRatio get animVal;
 
   /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
-  abstract SVGPreserveAspectRatio get baseVal;
+  SVGPreserveAspectRatio get baseVal;
 }
 
 class _SVGAnimatedPreserveAspectRatioImpl implements SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
@@ -24681,10 +24681,10 @@ class _SVGAnimatedPreserveAspectRatioImpl implements SVGAnimatedPreserveAspectRa
 abstract class SVGAnimatedRect {
 
   /** @domName SVGAnimatedRect.animVal */
-  abstract SVGRect get animVal;
+  SVGRect get animVal;
 
   /** @domName SVGAnimatedRect.baseVal */
-  abstract SVGRect get baseVal;
+  SVGRect get baseVal;
 }
 
 class _SVGAnimatedRectImpl implements SVGAnimatedRect native "*SVGAnimatedRect" {
@@ -24703,7 +24703,7 @@ class _SVGAnimatedRectImpl implements SVGAnimatedRect native "*SVGAnimatedRect" 
 abstract class SVGAnimatedString {
 
   /** @domName SVGAnimatedString.animVal */
-  abstract String get animVal;
+  String get animVal;
 
   /** @domName SVGAnimatedString.baseVal */
   String baseVal;
@@ -24725,10 +24725,10 @@ class _SVGAnimatedStringImpl implements SVGAnimatedString native "*SVGAnimatedSt
 abstract class SVGAnimatedTransformList implements List<SVGAnimateTransformElement> {
 
   /** @domName SVGAnimatedTransformList.animVal */
-  abstract SVGTransformList get animVal;
+  SVGTransformList get animVal;
 
   /** @domName SVGAnimatedTransformList.baseVal */
-  abstract SVGTransformList get baseVal;
+  SVGTransformList get baseVal;
 }
 
 class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScriptIndexingBehavior native "*SVGAnimatedTransformList" {
@@ -24830,7 +24830,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 abstract class SVGAnimationElement implements SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
   /** @domName SVGAnimationElement.targetElement */
-  abstract SVGElement get targetElement;
+  SVGElement get targetElement;
 
   /** @domName SVGAnimationElement.getCurrentTime */
   num getCurrentTime();
@@ -24886,13 +24886,13 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 abstract class SVGCircleElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGCircleElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGCircleElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
 
   /** @domName SVGCircleElement.r */
-  abstract SVGAnimatedLength get r;
+  SVGAnimatedLength get r;
 }
 
 class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement native "*SVGCircleElement" {
@@ -24960,7 +24960,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 abstract class SVGClipPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGClipPathElement.clipPathUnits */
-  abstract SVGAnimatedEnumeration get clipPathUnits;
+  SVGAnimatedEnumeration get clipPathUnits;
 }
 
 class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElement native "*SVGClipPathElement" {
@@ -25032,10 +25032,10 @@ abstract class SVGColor implements CSSValue {
   static const int SVG_COLORTYPE_UNKNOWN = 0;
 
   /** @domName SVGColor.colorType */
-  abstract int get colorType;
+  int get colorType;
 
   /** @domName SVGColor.rgbColor */
-  abstract RGBColor get rgbColor;
+  RGBColor get rgbColor;
 
   /** @domName SVGColor.setColor */
   void setColor(int colorType, String rgbColor, String iccColor);
@@ -25081,25 +25081,25 @@ abstract class SVGComponentTransferFunctionElement implements SVGElement {
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   /** @domName SVGComponentTransferFunctionElement.amplitude */
-  abstract SVGAnimatedNumber get amplitude;
+  SVGAnimatedNumber get amplitude;
 
   /** @domName SVGComponentTransferFunctionElement.exponent */
-  abstract SVGAnimatedNumber get exponent;
+  SVGAnimatedNumber get exponent;
 
   /** @domName SVGComponentTransferFunctionElement.intercept */
-  abstract SVGAnimatedNumber get intercept;
+  SVGAnimatedNumber get intercept;
 
   /** @domName SVGComponentTransferFunctionElement.offset */
-  abstract SVGAnimatedNumber get offset;
+  SVGAnimatedNumber get offset;
 
   /** @domName SVGComponentTransferFunctionElement.slope */
-  abstract SVGAnimatedNumber get slope;
+  SVGAnimatedNumber get slope;
 
   /** @domName SVGComponentTransferFunctionElement.tableValues */
-  abstract SVGAnimatedNumberList get tableValues;
+  SVGAnimatedNumberList get tableValues;
 
   /** @domName SVGComponentTransferFunctionElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 }
 
 class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
@@ -25128,10 +25128,10 @@ class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implement
 abstract class SVGCursorElement implements SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
 
   /** @domName SVGCursorElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGCursorElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement native "*SVGCursorElement" {
@@ -25254,7 +25254,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 abstract class SVGDocument implements Document {
 
   /** @domName SVGDocument.rootElement */
-  abstract SVGSVGElement get rootElement;
+  SVGSVGElement get rootElement;
 
   /** @domName SVGDocument.createEvent */
   Event $dom_createEvent(String eventType);
@@ -25285,10 +25285,10 @@ abstract class SVGElement implements Element {
   String id;
 
   /** @domName SVGElement.ownerSVGElement */
-  abstract SVGSVGElement get ownerSVGElement;
+  SVGSVGElement get ownerSVGElement;
 
   /** @domName SVGElement.viewportElement */
-  abstract SVGElement get viewportElement;
+  SVGElement get viewportElement;
 
   /** @domName SVGElement.xmlbase */
   String xmlbase;
@@ -25376,28 +25376,28 @@ abstract class SVGElementInstance implements EventTarget {
   SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
-  abstract List<SVGElementInstance> get childNodes;
+  List<SVGElementInstance> get childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
-  abstract SVGElement get correspondingElement;
+  SVGElement get correspondingElement;
 
   /** @domName SVGElementInstance.correspondingUseElement */
-  abstract SVGUseElement get correspondingUseElement;
+  SVGUseElement get correspondingUseElement;
 
   /** @domName SVGElementInstance.firstChild */
-  abstract SVGElementInstance get firstChild;
+  SVGElementInstance get firstChild;
 
   /** @domName SVGElementInstance.lastChild */
-  abstract SVGElementInstance get lastChild;
+  SVGElementInstance get lastChild;
 
   /** @domName SVGElementInstance.nextSibling */
-  abstract SVGElementInstance get nextSibling;
+  SVGElementInstance get nextSibling;
 
   /** @domName SVGElementInstance.parentNode */
-  abstract SVGElementInstance get parentNode;
+  SVGElementInstance get parentNode;
 
   /** @domName SVGElementInstance.previousSibling */
-  abstract SVGElementInstance get previousSibling;
+  SVGElementInstance get previousSibling;
 }
 
 abstract class SVGElementInstanceEvents implements Events {
@@ -25688,16 +25688,16 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 abstract class SVGEllipseElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGEllipseElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGEllipseElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
 
   /** @domName SVGEllipseElement.rx */
-  abstract SVGAnimatedLength get rx;
+  SVGAnimatedLength get rx;
 
   /** @domName SVGEllipseElement.ry */
-  abstract SVGAnimatedLength get ry;
+  SVGAnimatedLength get ry;
 }
 
 class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElement native "*SVGEllipseElement" {
@@ -25773,13 +25773,13 @@ abstract class SVGException {
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   /** @domName SVGException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SVGException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName SVGException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName SVGException.toString */
   String toString();
@@ -25805,7 +25805,7 @@ class _SVGExceptionImpl implements SVGException native "*SVGException" {
 abstract class SVGExternalResourcesRequired {
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  abstract SVGAnimatedBoolean get externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25829,13 +25829,13 @@ abstract class SVGFEBlendElement implements SVGElement, SVGFilterPrimitiveStanda
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   /** @domName SVGFEBlendElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEBlendElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFEBlendElement.mode */
-  abstract SVGAnimatedEnumeration get mode;
+  SVGAnimatedEnumeration get mode;
 }
 
 class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement native "*SVGFEBlendElement" {
@@ -25887,13 +25887,13 @@ abstract class SVGFEColorMatrixElement implements SVGElement, SVGFilterPrimitive
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFEColorMatrixElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEColorMatrixElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 
   /** @domName SVGFEColorMatrixElement.values */
-  abstract SVGAnimatedNumberList get values;
+  SVGAnimatedNumberList get values;
 }
 
 class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
@@ -25935,7 +25935,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 abstract class SVGFEComponentTransferElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEComponentTransferElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGFEComponentTransferElement native "*SVGFEComponentTransferElement" {
@@ -25987,25 +25987,25 @@ abstract class SVGFECompositeElement implements SVGElement, SVGFilterPrimitiveSt
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   /** @domName SVGFECompositeElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFECompositeElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFECompositeElement.k1 */
-  abstract SVGAnimatedNumber get k1;
+  SVGAnimatedNumber get k1;
 
   /** @domName SVGFECompositeElement.k2 */
-  abstract SVGAnimatedNumber get k2;
+  SVGAnimatedNumber get k2;
 
   /** @domName SVGFECompositeElement.k3 */
-  abstract SVGAnimatedNumber get k3;
+  SVGAnimatedNumber get k3;
 
   /** @domName SVGFECompositeElement.k4 */
-  abstract SVGAnimatedNumber get k4;
+  SVGAnimatedNumber get k4;
 
   /** @domName SVGFECompositeElement.operator */
-  abstract SVGAnimatedEnumeration get operator;
+  SVGAnimatedEnumeration get operator;
 }
 
 class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement native "*SVGFECompositeElement" {
@@ -26063,40 +26063,40 @@ abstract class SVGFEConvolveMatrixElement implements SVGElement, SVGFilterPrimit
   static const int SVG_EDGEMODE_WRAP = 2;
 
   /** @domName SVGFEConvolveMatrixElement.bias */
-  abstract SVGAnimatedNumber get bias;
+  SVGAnimatedNumber get bias;
 
   /** @domName SVGFEConvolveMatrixElement.divisor */
-  abstract SVGAnimatedNumber get divisor;
+  SVGAnimatedNumber get divisor;
 
   /** @domName SVGFEConvolveMatrixElement.edgeMode */
-  abstract SVGAnimatedEnumeration get edgeMode;
+  SVGAnimatedEnumeration get edgeMode;
 
   /** @domName SVGFEConvolveMatrixElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
-  abstract SVGAnimatedNumberList get kernelMatrix;
+  SVGAnimatedNumberList get kernelMatrix;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
-  abstract SVGAnimatedNumber get kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
-  abstract SVGAnimatedNumber get kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEConvolveMatrixElement.orderX */
-  abstract SVGAnimatedInteger get orderX;
+  SVGAnimatedInteger get orderX;
 
   /** @domName SVGFEConvolveMatrixElement.orderY */
-  abstract SVGAnimatedInteger get orderY;
+  SVGAnimatedInteger get orderY;
 
   /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
-  abstract SVGAnimatedBoolean get preserveAlpha;
+  SVGAnimatedBoolean get preserveAlpha;
 
   /** @domName SVGFEConvolveMatrixElement.targetX */
-  abstract SVGAnimatedInteger get targetX;
+  SVGAnimatedInteger get targetX;
 
   /** @domName SVGFEConvolveMatrixElement.targetY */
-  abstract SVGAnimatedInteger get targetY;
+  SVGAnimatedInteger get targetY;
 }
 
 class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
@@ -26156,19 +26156,19 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 abstract class SVGFEDiffuseLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
-  abstract SVGAnimatedNumber get diffuseConstant;
+  SVGAnimatedNumber get diffuseConstant;
 
   /** @domName SVGFEDiffuseLightingElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
-  abstract SVGAnimatedNumber get kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
-  abstract SVGAnimatedNumber get kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEDiffuseLightingElement.surfaceScale */
-  abstract SVGAnimatedNumber get surfaceScale;
+  SVGAnimatedNumber get surfaceScale;
 }
 
 class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFEDiffuseLightingElement native "*SVGFEDiffuseLightingElement" {
@@ -26224,19 +26224,19 @@ abstract class SVGFEDisplacementMapElement implements SVGElement, SVGFilterPrimi
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   /** @domName SVGFEDisplacementMapElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDisplacementMapElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFEDisplacementMapElement.scale */
-  abstract SVGAnimatedNumber get scale;
+  SVGAnimatedNumber get scale;
 
   /** @domName SVGFEDisplacementMapElement.xChannelSelector */
-  abstract SVGAnimatedEnumeration get xChannelSelector;
+  SVGAnimatedEnumeration get xChannelSelector;
 
   /** @domName SVGFEDisplacementMapElement.yChannelSelector */
-  abstract SVGAnimatedEnumeration get yChannelSelector;
+  SVGAnimatedEnumeration get yChannelSelector;
 }
 
 class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
@@ -26282,10 +26282,10 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 abstract class SVGFEDistantLightElement implements SVGElement {
 
   /** @domName SVGFEDistantLightElement.azimuth */
-  abstract SVGAnimatedNumber get azimuth;
+  SVGAnimatedNumber get azimuth;
 
   /** @domName SVGFEDistantLightElement.elevation */
-  abstract SVGAnimatedNumber get elevation;
+  SVGAnimatedNumber get elevation;
 }
 
 class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDistantLightElement native "*SVGFEDistantLightElement" {
@@ -26304,19 +26304,19 @@ class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDist
 abstract class SVGFEDropShadowElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDropShadowElement.dx */
-  abstract SVGAnimatedNumber get dx;
+  SVGAnimatedNumber get dx;
 
   /** @domName SVGFEDropShadowElement.dy */
-  abstract SVGAnimatedNumber get dy;
+  SVGAnimatedNumber get dy;
 
   /** @domName SVGFEDropShadowElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDropShadowElement.stdDeviationX */
-  abstract SVGAnimatedNumber get stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEDropShadowElement.stdDeviationY */
-  abstract SVGAnimatedNumber get stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEDropShadowElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -26448,13 +26448,13 @@ class _SVGFEFuncRElementImpl extends _SVGComponentTransferFunctionElementImpl im
 abstract class SVGFEGaussianBlurElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEGaussianBlurElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationX */
-  abstract SVGAnimatedNumber get stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationY */
-  abstract SVGAnimatedNumber get stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEGaussianBlurElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -26501,7 +26501,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 abstract class SVGFEImageElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEImageElement.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 }
 
 class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElement native "*SVGFEImageElement" {
@@ -26586,7 +26586,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 abstract class SVGFEMergeNodeElement implements SVGElement {
 
   /** @domName SVGFEMergeNodeElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
@@ -26609,16 +26609,16 @@ abstract class SVGFEMorphologyElement implements SVGElement, SVGFilterPrimitiveS
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   /** @domName SVGFEMorphologyElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEMorphologyElement.operator */
-  abstract SVGAnimatedEnumeration get operator;
+  SVGAnimatedEnumeration get operator;
 
   /** @domName SVGFEMorphologyElement.radiusX */
-  abstract SVGAnimatedNumber get radiusX;
+  SVGAnimatedNumber get radiusX;
 
   /** @domName SVGFEMorphologyElement.radiusY */
-  abstract SVGAnimatedNumber get radiusY;
+  SVGAnimatedNumber get radiusY;
 
   /** @domName SVGFEMorphologyElement.setRadius */
   void setRadius(num radiusX, num radiusY);
@@ -26667,13 +26667,13 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 abstract class SVGFEOffsetElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEOffsetElement.dx */
-  abstract SVGAnimatedNumber get dx;
+  SVGAnimatedNumber get dx;
 
   /** @domName SVGFEOffsetElement.dy */
-  abstract SVGAnimatedNumber get dy;
+  SVGAnimatedNumber get dy;
 
   /** @domName SVGFEOffsetElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElement native "*SVGFEOffsetElement" {
@@ -26715,13 +26715,13 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 abstract class SVGFEPointLightElement implements SVGElement {
 
   /** @domName SVGFEPointLightElement.x */
-  abstract SVGAnimatedNumber get x;
+  SVGAnimatedNumber get x;
 
   /** @domName SVGFEPointLightElement.y */
-  abstract SVGAnimatedNumber get y;
+  SVGAnimatedNumber get y;
 
   /** @domName SVGFEPointLightElement.z */
-  abstract SVGAnimatedNumber get z;
+  SVGAnimatedNumber get z;
 }
 
 class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
@@ -26742,16 +26742,16 @@ class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointL
 abstract class SVGFESpecularLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFESpecularLightingElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFESpecularLightingElement.specularConstant */
-  abstract SVGAnimatedNumber get specularConstant;
+  SVGAnimatedNumber get specularConstant;
 
   /** @domName SVGFESpecularLightingElement.specularExponent */
-  abstract SVGAnimatedNumber get specularExponent;
+  SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpecularLightingElement.surfaceScale */
-  abstract SVGAnimatedNumber get surfaceScale;
+  SVGAnimatedNumber get surfaceScale;
 }
 
 class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFESpecularLightingElement native "*SVGFESpecularLightingElement" {
@@ -26795,28 +26795,28 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 abstract class SVGFESpotLightElement implements SVGElement {
 
   /** @domName SVGFESpotLightElement.limitingConeAngle */
-  abstract SVGAnimatedNumber get limitingConeAngle;
+  SVGAnimatedNumber get limitingConeAngle;
 
   /** @domName SVGFESpotLightElement.pointsAtX */
-  abstract SVGAnimatedNumber get pointsAtX;
+  SVGAnimatedNumber get pointsAtX;
 
   /** @domName SVGFESpotLightElement.pointsAtY */
-  abstract SVGAnimatedNumber get pointsAtY;
+  SVGAnimatedNumber get pointsAtY;
 
   /** @domName SVGFESpotLightElement.pointsAtZ */
-  abstract SVGAnimatedNumber get pointsAtZ;
+  SVGAnimatedNumber get pointsAtZ;
 
   /** @domName SVGFESpotLightElement.specularExponent */
-  abstract SVGAnimatedNumber get specularExponent;
+  SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpotLightElement.x */
-  abstract SVGAnimatedNumber get x;
+  SVGAnimatedNumber get x;
 
   /** @domName SVGFESpotLightElement.y */
-  abstract SVGAnimatedNumber get y;
+  SVGAnimatedNumber get y;
 
   /** @domName SVGFESpotLightElement.z */
-  abstract SVGAnimatedNumber get z;
+  SVGAnimatedNumber get z;
 }
 
 class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
@@ -26847,7 +26847,7 @@ class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLig
 abstract class SVGFETileElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFETileElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement native "*SVGFETileElement" {
@@ -26897,22 +26897,22 @@ abstract class SVGFETurbulenceElement implements SVGElement, SVGFilterPrimitiveS
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyX */
-  abstract SVGAnimatedNumber get baseFrequencyX;
+  SVGAnimatedNumber get baseFrequencyX;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyY */
-  abstract SVGAnimatedNumber get baseFrequencyY;
+  SVGAnimatedNumber get baseFrequencyY;
 
   /** @domName SVGFETurbulenceElement.numOctaves */
-  abstract SVGAnimatedInteger get numOctaves;
+  SVGAnimatedInteger get numOctaves;
 
   /** @domName SVGFETurbulenceElement.seed */
-  abstract SVGAnimatedNumber get seed;
+  SVGAnimatedNumber get seed;
 
   /** @domName SVGFETurbulenceElement.stitchTiles */
-  abstract SVGAnimatedEnumeration get stitchTiles;
+  SVGAnimatedEnumeration get stitchTiles;
 
   /** @domName SVGFETurbulenceElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 }
 
 class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
@@ -26960,28 +26960,28 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 abstract class SVGFilterElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGFilterElement.filterResX */
-  abstract SVGAnimatedInteger get filterResX;
+  SVGAnimatedInteger get filterResX;
 
   /** @domName SVGFilterElement.filterResY */
-  abstract SVGAnimatedInteger get filterResY;
+  SVGAnimatedInteger get filterResY;
 
   /** @domName SVGFilterElement.filterUnits */
-  abstract SVGAnimatedEnumeration get filterUnits;
+  SVGAnimatedEnumeration get filterUnits;
 
   /** @domName SVGFilterElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGFilterElement.primitiveUnits */
-  abstract SVGAnimatedEnumeration get primitiveUnits;
+  SVGAnimatedEnumeration get primitiveUnits;
 
   /** @domName SVGFilterElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGFilterElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGFilterElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 
   /** @domName SVGFilterElement.setFilterRes */
   void setFilterRes(int filterResX, int filterResY);
@@ -27040,19 +27040,19 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  abstract SVGAnimatedString get result;
+  SVGAnimatedString get result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27064,10 +27064,10 @@ abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 abstract class SVGFitToViewBox {
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  abstract SVGAnimatedRect get viewBox;
+  SVGAnimatedRect get viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27151,16 +27151,16 @@ class _SVGFontFaceUriElementImpl extends _SVGElementImpl implements SVGFontFaceU
 abstract class SVGForeignObjectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGForeignObjectElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGForeignObjectElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGForeignObjectElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGForeignObjectElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeignObjectElement native "*SVGForeignObjectElement" {
@@ -27364,13 +27364,13 @@ abstract class SVGGradientElement implements SVGElement, SVGURIReference, SVGExt
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   /** @domName SVGGradientElement.gradientTransform */
-  abstract SVGAnimatedTransformList get gradientTransform;
+  SVGAnimatedTransformList get gradientTransform;
 
   /** @domName SVGGradientElement.gradientUnits */
-  abstract SVGAnimatedEnumeration get gradientUnits;
+  SVGAnimatedEnumeration get gradientUnits;
 
   /** @domName SVGGradientElement.spreadMethod */
-  abstract SVGAnimatedEnumeration get spreadMethod;
+  SVGAnimatedEnumeration get spreadMethod;
 }
 
 class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement native "*SVGGradientElement" {
@@ -27420,19 +27420,19 @@ class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement na
 abstract class SVGImageElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGImageElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGImageElement.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGImageElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGImageElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGImageElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement native "*SVGImageElement" {
@@ -27545,7 +27545,7 @@ abstract class SVGLength {
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   /** @domName SVGLength.unitType */
-  abstract int get unitType;
+  int get unitType;
 
   /** @domName SVGLength.value */
   num value;
@@ -27587,7 +27587,7 @@ class _SVGLengthImpl implements SVGLength native "*SVGLength" {
 abstract class SVGLengthList implements List<SVGLength> {
 
   /** @domName SVGLengthList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGLengthList.appendItem */
   SVGLength appendItem(SVGLength item);
@@ -27722,16 +27722,16 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 abstract class SVGLineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGLineElement.x1 */
-  abstract SVGAnimatedLength get x1;
+  SVGAnimatedLength get x1;
 
   /** @domName SVGLineElement.x2 */
-  abstract SVGAnimatedLength get x2;
+  SVGAnimatedLength get x2;
 
   /** @domName SVGLineElement.y1 */
-  abstract SVGAnimatedLength get y1;
+  SVGAnimatedLength get y1;
 
   /** @domName SVGLineElement.y2 */
-  abstract SVGAnimatedLength get y2;
+  SVGAnimatedLength get y2;
 }
 
 class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement native "*SVGLineElement" {
@@ -27801,16 +27801,16 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 abstract class SVGLinearGradientElement implements SVGGradientElement {
 
   /** @domName SVGLinearGradientElement.x1 */
-  abstract SVGAnimatedLength get x1;
+  SVGAnimatedLength get x1;
 
   /** @domName SVGLinearGradientElement.x2 */
-  abstract SVGAnimatedLength get x2;
+  SVGAnimatedLength get x2;
 
   /** @domName SVGLinearGradientElement.y1 */
-  abstract SVGAnimatedLength get y1;
+  SVGAnimatedLength get y1;
 
   /** @domName SVGLinearGradientElement.y2 */
-  abstract SVGAnimatedLength get y2;
+  SVGAnimatedLength get y2;
 }
 
 class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements SVGLinearGradientElement native "*SVGLinearGradientElement" {
@@ -27833,10 +27833,10 @@ class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements S
 abstract class SVGLocatable {
 
   /** @domName SVGLocatable.farthestViewportElement */
-  abstract SVGElement get farthestViewportElement;
+  SVGElement get farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  abstract SVGElement get nearestViewportElement;
+  SVGElement get nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
   SVGRect getBBox();
@@ -27892,25 +27892,25 @@ abstract class SVGMarkerElement implements SVGElement, SVGLangSpace, SVGExternal
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   /** @domName SVGMarkerElement.markerHeight */
-  abstract SVGAnimatedLength get markerHeight;
+  SVGAnimatedLength get markerHeight;
 
   /** @domName SVGMarkerElement.markerUnits */
-  abstract SVGAnimatedEnumeration get markerUnits;
+  SVGAnimatedEnumeration get markerUnits;
 
   /** @domName SVGMarkerElement.markerWidth */
-  abstract SVGAnimatedLength get markerWidth;
+  SVGAnimatedLength get markerWidth;
 
   /** @domName SVGMarkerElement.orientAngle */
-  abstract SVGAnimatedAngle get orientAngle;
+  SVGAnimatedAngle get orientAngle;
 
   /** @domName SVGMarkerElement.orientType */
-  abstract SVGAnimatedEnumeration get orientType;
+  SVGAnimatedEnumeration get orientType;
 
   /** @domName SVGMarkerElement.refX */
-  abstract SVGAnimatedLength get refX;
+  SVGAnimatedLength get refX;
 
   /** @domName SVGMarkerElement.refY */
-  abstract SVGAnimatedLength get refY;
+  SVGAnimatedLength get refY;
 
   /** @domName SVGMarkerElement.setOrientToAngle */
   void setOrientToAngle(SVGAngle angle);
@@ -27974,22 +27974,22 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 abstract class SVGMaskElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGMaskElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGMaskElement.maskContentUnits */
-  abstract SVGAnimatedEnumeration get maskContentUnits;
+  SVGAnimatedEnumeration get maskContentUnits;
 
   /** @domName SVGMaskElement.maskUnits */
-  abstract SVGAnimatedEnumeration get maskUnits;
+  SVGAnimatedEnumeration get maskUnits;
 
   /** @domName SVGMaskElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGMaskElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGMaskElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement native "*SVGMaskElement" {
@@ -28183,7 +28183,7 @@ class _SVGNumberImpl implements SVGNumber native "*SVGNumber" {
 abstract class SVGNumberList implements List<SVGNumber> {
 
   /** @domName SVGNumberList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGNumberList.appendItem */
   SVGNumber appendItem(SVGNumber item);
@@ -28338,10 +28338,10 @@ abstract class SVGPaint implements SVGColor {
   static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   /** @domName SVGPaint.paintType */
-  abstract int get paintType;
+  int get paintType;
 
   /** @domName SVGPaint.uri */
-  abstract String get uri;
+  String get uri;
 
   /** @domName SVGPaint.setPaint */
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
@@ -28370,19 +28370,19 @@ class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint native "*SVGPaint"
 abstract class SVGPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
-  abstract SVGPathSegList get animatedNormalizedPathSegList;
+  SVGPathSegList get animatedNormalizedPathSegList;
 
   /** @domName SVGPathElement.animatedPathSegList */
-  abstract SVGPathSegList get animatedPathSegList;
+  SVGPathSegList get animatedPathSegList;
 
   /** @domName SVGPathElement.normalizedPathSegList */
-  abstract SVGPathSegList get normalizedPathSegList;
+  SVGPathSegList get normalizedPathSegList;
 
   /** @domName SVGPathElement.pathLength */
-  abstract SVGAnimatedNumber get pathLength;
+  SVGAnimatedNumber get pathLength;
 
   /** @domName SVGPathElement.pathSegList */
-  abstract SVGPathSegList get pathSegList;
+  SVGPathSegList get pathSegList;
 
   /** @domName SVGPathElement.createSVGPathSegArcAbs */
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
@@ -28604,10 +28604,10 @@ abstract class SVGPathSeg {
   static const int PATHSEG_UNKNOWN = 0;
 
   /** @domName SVGPathSeg.pathSegType */
-  abstract int get pathSegType;
+  int get pathSegType;
 
   /** @domName SVGPathSeg.pathSegTypeAsLetter */
-  abstract String get pathSegTypeAsLetter;
+  String get pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29100,7 +29100,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 abstract class SVGPathSegList implements List<SVGPathSeg> {
 
   /** @domName SVGPathSegList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGPathSegList.appendItem */
   SVGPathSeg appendItem(SVGPathSeg newItem);
@@ -29279,25 +29279,25 @@ class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMove
 abstract class SVGPatternElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
   /** @domName SVGPatternElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGPatternElement.patternContentUnits */
-  abstract SVGAnimatedEnumeration get patternContentUnits;
+  SVGAnimatedEnumeration get patternContentUnits;
 
   /** @domName SVGPatternElement.patternTransform */
-  abstract SVGAnimatedTransformList get patternTransform;
+  SVGAnimatedTransformList get patternTransform;
 
   /** @domName SVGPatternElement.patternUnits */
-  abstract SVGAnimatedEnumeration get patternUnits;
+  SVGAnimatedEnumeration get patternUnits;
 
   /** @domName SVGPatternElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGPatternElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGPatternElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElement native "*SVGPatternElement" {
@@ -29392,7 +29392,7 @@ class _SVGPointImpl implements SVGPoint native "*SVGPoint" {
 abstract class SVGPointList {
 
   /** @domName SVGPointList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGPointList.appendItem */
   SVGPoint appendItem(SVGPoint item);
@@ -29444,10 +29444,10 @@ class _SVGPointListImpl implements SVGPointList native "*SVGPointList" {
 abstract class SVGPolygonElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolygonElement.animatedPoints */
-  abstract SVGPointList get animatedPoints;
+  SVGPointList get animatedPoints;
 
   /** @domName SVGPolygonElement.points */
-  abstract SVGPointList get points;
+  SVGPointList get points;
 }
 
 class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElement native "*SVGPolygonElement" {
@@ -29513,10 +29513,10 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 abstract class SVGPolylineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolylineElement.animatedPoints */
-  abstract SVGPointList get animatedPoints;
+  SVGPointList get animatedPoints;
 
   /** @domName SVGPolylineElement.points */
-  abstract SVGPointList get points;
+  SVGPointList get points;
 }
 
 class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElement native "*SVGPolylineElement" {
@@ -29632,22 +29632,22 @@ class _SVGPreserveAspectRatioImpl implements SVGPreserveAspectRatio native "*SVG
 abstract class SVGRadialGradientElement implements SVGGradientElement {
 
   /** @domName SVGRadialGradientElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGRadialGradientElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
 
   /** @domName SVGRadialGradientElement.fr */
-  abstract SVGAnimatedLength get fr;
+  SVGAnimatedLength get fr;
 
   /** @domName SVGRadialGradientElement.fx */
-  abstract SVGAnimatedLength get fx;
+  SVGAnimatedLength get fx;
 
   /** @domName SVGRadialGradientElement.fy */
-  abstract SVGAnimatedLength get fy;
+  SVGAnimatedLength get fy;
 
   /** @domName SVGRadialGradientElement.r */
-  abstract SVGAnimatedLength get r;
+  SVGAnimatedLength get r;
 }
 
 class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements SVGRadialGradientElement native "*SVGRadialGradientElement" {
@@ -29695,22 +29695,22 @@ abstract class SVGRect {
 abstract class SVGRectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGRectElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGRectElement.rx */
-  abstract SVGAnimatedLength get rx;
+  SVGAnimatedLength get rx;
 
   /** @domName SVGRectElement.ry */
-  abstract SVGAnimatedLength get ry;
+  SVGAnimatedLength get ry;
 
   /** @domName SVGRectElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGRectElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGRectElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement native "*SVGRectElement" {
@@ -29828,40 +29828,40 @@ abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpac
   num currentScale;
 
   /** @domName SVGSVGElement.currentTranslate */
-  abstract SVGPoint get currentTranslate;
+  SVGPoint get currentTranslate;
 
   /** @domName SVGSVGElement.currentView */
-  abstract SVGViewSpec get currentView;
+  SVGViewSpec get currentView;
 
   /** @domName SVGSVGElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterX */
-  abstract num get pixelUnitToMillimeterX;
+  num get pixelUnitToMillimeterX;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterY */
-  abstract num get pixelUnitToMillimeterY;
+  num get pixelUnitToMillimeterY;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterX */
-  abstract num get screenPixelToMillimeterX;
+  num get screenPixelToMillimeterX;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterY */
-  abstract num get screenPixelToMillimeterY;
+  num get screenPixelToMillimeterY;
 
   /** @domName SVGSVGElement.useCurrentView */
-  abstract bool get useCurrentView;
+  bool get useCurrentView;
 
   /** @domName SVGSVGElement.viewport */
-  abstract SVGRect get viewport;
+  SVGRect get viewport;
 
   /** @domName SVGSVGElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGSVGElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGSVGElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 
   /** @domName SVGSVGElement.animationsPaused */
   bool animationsPaused();
@@ -30112,7 +30112,7 @@ class _SVGSetElementImpl extends _SVGAnimationElementImpl implements SVGSetEleme
 abstract class SVGStopElement implements SVGElement, SVGStylable {
 
   /** @domName SVGStopElement.offset */
-  abstract SVGAnimatedNumber get offset;
+  SVGAnimatedNumber get offset;
 }
 
 class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement native "*SVGStopElement" {
@@ -30138,7 +30138,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 abstract class SVGStringList implements List<String> {
 
   /** @domName SVGStringList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGStringList.appendItem */
   String appendItem(String item);
@@ -30273,10 +30273,10 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 abstract class SVGStylable {
 
   /** @domName SVGStylable.className */
-  abstract SVGAnimatedString get $dom_svgClassName;
+  SVGAnimatedString get $dom_svgClassName;
 
   /** @domName SVGStylable.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
@@ -30458,13 +30458,13 @@ class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVG
 abstract class SVGTests {
 
   /** @domName SVGTests.requiredExtensions */
-  abstract SVGStringList get requiredExtensions;
+  SVGStringList get requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  abstract SVGStringList get requiredFeatures;
+  SVGStringList get requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  abstract SVGStringList get systemLanguage;
+  SVGStringList get systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
@@ -30485,10 +30485,10 @@ abstract class SVGTextContentElement implements SVGElement, SVGTests, SVGLangSpa
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   /** @domName SVGTextContentElement.lengthAdjust */
-  abstract SVGAnimatedEnumeration get lengthAdjust;
+  SVGAnimatedEnumeration get lengthAdjust;
 
   /** @domName SVGTextContentElement.textLength */
-  abstract SVGAnimatedLength get textLength;
+  SVGAnimatedLength get textLength;
 
   /** @domName SVGTextContentElement.getCharNumAtPosition */
   int getCharNumAtPosition(SVGPoint point);
@@ -30623,13 +30623,13 @@ abstract class SVGTextPathElement implements SVGTextContentElement, SVGURIRefere
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   /** @domName SVGTextPathElement.method */
-  abstract SVGAnimatedEnumeration get method;
+  SVGAnimatedEnumeration get method;
 
   /** @domName SVGTextPathElement.spacing */
-  abstract SVGAnimatedEnumeration get spacing;
+  SVGAnimatedEnumeration get spacing;
 
   /** @domName SVGTextPathElement.startOffset */
-  abstract SVGAnimatedLength get startOffset;
+  SVGAnimatedLength get startOffset;
 }
 
 class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement native "*SVGTextPathElement" {
@@ -30654,19 +30654,19 @@ class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGT
 abstract class SVGTextPositioningElement implements SVGTextContentElement {
 
   /** @domName SVGTextPositioningElement.dx */
-  abstract SVGAnimatedLengthList get dx;
+  SVGAnimatedLengthList get dx;
 
   /** @domName SVGTextPositioningElement.dy */
-  abstract SVGAnimatedLengthList get dy;
+  SVGAnimatedLengthList get dy;
 
   /** @domName SVGTextPositioningElement.rotate */
-  abstract SVGAnimatedNumberList get rotate;
+  SVGAnimatedNumberList get rotate;
 
   /** @domName SVGTextPositioningElement.x */
-  abstract SVGAnimatedLengthList get x;
+  SVGAnimatedLengthList get x;
 
   /** @domName SVGTextPositioningElement.y */
-  abstract SVGAnimatedLengthList get y;
+  SVGAnimatedLengthList get y;
 }
 
 class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
@@ -30732,13 +30732,13 @@ abstract class SVGTransform {
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   /** @domName SVGTransform.angle */
-  abstract num get angle;
+  num get angle;
 
   /** @domName SVGTransform.matrix */
-  abstract SVGMatrix get matrix;
+  SVGMatrix get matrix;
 
   /** @domName SVGTransform.type */
-  abstract int get type;
+  int get type;
 
   /** @domName SVGTransform.setMatrix */
   void setMatrix(SVGMatrix matrix);
@@ -30789,7 +30789,7 @@ class _SVGTransformImpl implements SVGTransform native "*SVGTransform" {
 abstract class SVGTransformList implements List<SVGTransform> {
 
   /** @domName SVGTransformList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGTransformList.appendItem */
   SVGTransform appendItem(SVGTransform item);
@@ -30934,7 +30934,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 abstract class SVGTransformable implements SVGLocatable {
 
   /** @domName SVGTransformable.transform */
-  abstract SVGAnimatedTransformList get transform;
+  SVGAnimatedTransformList get transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30946,7 +30946,7 @@ abstract class SVGTransformable implements SVGLocatable {
 abstract class SVGURIReference {
 
   /** @domName SVGURIReference.href */
-  abstract SVGAnimatedString get href;
+  SVGAnimatedString get href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30976,22 +30976,22 @@ class _SVGUnitTypesImpl implements SVGUnitTypes native "*SVGUnitTypes" {
 abstract class SVGUseElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGUseElement.animatedInstanceRoot */
-  abstract SVGElementInstance get animatedInstanceRoot;
+  SVGElementInstance get animatedInstanceRoot;
 
   /** @domName SVGUseElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGUseElement.instanceRoot */
-  abstract SVGElementInstance get instanceRoot;
+  SVGElementInstance get instanceRoot;
 
   /** @domName SVGUseElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGUseElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGUseElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native "*SVGUseElement" {
@@ -31081,7 +31081,7 @@ class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement na
 abstract class SVGViewElement implements SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
   /** @domName SVGViewElement.viewTarget */
-  abstract SVGStringList get viewTarget;
+  SVGStringList get viewTarget;
 }
 
 class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement native "*SVGViewElement" {
@@ -31112,28 +31112,28 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement nati
 abstract class SVGViewSpec {
 
   /** @domName SVGViewSpec.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
-  abstract String get preserveAspectRatioString;
+  String get preserveAspectRatioString;
 
   /** @domName SVGViewSpec.transform */
-  abstract SVGTransformList get transform;
+  SVGTransformList get transform;
 
   /** @domName SVGViewSpec.transformString */
-  abstract String get transformString;
+  String get transformString;
 
   /** @domName SVGViewSpec.viewBox */
-  abstract SVGAnimatedRect get viewBox;
+  SVGAnimatedRect get viewBox;
 
   /** @domName SVGViewSpec.viewBoxString */
-  abstract String get viewBoxString;
+  String get viewBoxString;
 
   /** @domName SVGViewSpec.viewTarget */
-  abstract SVGElement get viewTarget;
+  SVGElement get viewTarget;
 
   /** @domName SVGViewSpec.viewTargetString */
-  abstract String get viewTargetString;
+  String get viewTargetString;
 
   /** @domName SVGViewSpec.zoomAndPan */
   int zoomAndPan;
@@ -31187,19 +31187,19 @@ abstract class SVGZoomAndPan {
 abstract class SVGZoomEvent implements UIEvent {
 
   /** @domName SVGZoomEvent.newScale */
-  abstract num get newScale;
+  num get newScale;
 
   /** @domName SVGZoomEvent.newTranslate */
-  abstract SVGPoint get newTranslate;
+  SVGPoint get newTranslate;
 
   /** @domName SVGZoomEvent.previousScale */
-  abstract num get previousScale;
+  num get previousScale;
 
   /** @domName SVGZoomEvent.previousTranslate */
-  abstract SVGPoint get previousTranslate;
+  SVGPoint get previousTranslate;
 
   /** @domName SVGZoomEvent.zoomRectScreen */
-  abstract SVGRect get zoomRectScreen;
+  SVGRect get zoomRectScreen;
 }
 
 class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SVGZoomEvent" {
@@ -31224,28 +31224,28 @@ class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SV
 abstract class Screen {
 
   /** @domName Screen.availHeight */
-  abstract int get availHeight;
+  int get availHeight;
 
   /** @domName Screen.availLeft */
-  abstract int get availLeft;
+  int get availLeft;
 
   /** @domName Screen.availTop */
-  abstract int get availTop;
+  int get availTop;
 
   /** @domName Screen.availWidth */
-  abstract int get availWidth;
+  int get availWidth;
 
   /** @domName Screen.colorDepth */
-  abstract int get colorDepth;
+  int get colorDepth;
 
   /** @domName Screen.height */
-  abstract int get height;
+  int get height;
 
   /** @domName Screen.pixelDepth */
-  abstract int get pixelDepth;
+  int get pixelDepth;
 
   /** @domName Screen.width */
-  abstract int get width;
+  int get width;
 }
 
 class _ScreenImpl implements Screen native "*Screen" {
@@ -31330,13 +31330,13 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*
 abstract class ScriptProfile {
 
   /** @domName ScriptProfile.head */
-  abstract ScriptProfileNode get head;
+  ScriptProfileNode get head;
 
   /** @domName ScriptProfile.title */
-  abstract String get title;
+  String get title;
 
   /** @domName ScriptProfile.uid */
-  abstract int get uid;
+  int get uid;
 }
 
 class _ScriptProfileImpl implements ScriptProfile native "*ScriptProfile" {
@@ -31357,28 +31357,28 @@ class _ScriptProfileImpl implements ScriptProfile native "*ScriptProfile" {
 abstract class ScriptProfileNode {
 
   /** @domName ScriptProfileNode.callUID */
-  abstract int get callUID;
+  int get callUID;
 
   /** @domName ScriptProfileNode.functionName */
-  abstract String get functionName;
+  String get functionName;
 
   /** @domName ScriptProfileNode.lineNumber */
-  abstract int get lineNumber;
+  int get lineNumber;
 
   /** @domName ScriptProfileNode.numberOfCalls */
-  abstract int get numberOfCalls;
+  int get numberOfCalls;
 
   /** @domName ScriptProfileNode.selfTime */
-  abstract num get selfTime;
+  num get selfTime;
 
   /** @domName ScriptProfileNode.totalTime */
-  abstract num get totalTime;
+  num get totalTime;
 
   /** @domName ScriptProfileNode.url */
-  abstract String get url;
+  String get url;
 
   /** @domName ScriptProfileNode.visible */
-  abstract bool get visible;
+  bool get visible;
 
   /** @domName ScriptProfileNode.children */
   List<ScriptProfileNode> children();
@@ -31422,10 +31422,10 @@ abstract class SelectElement implements Element {
   bool disabled;
 
   /** @domName HTMLSelectElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLSelectElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLSelectElement.length */
   int length;
@@ -31437,7 +31437,7 @@ abstract class SelectElement implements Element {
   String name;
 
   /** @domName HTMLSelectElement.options */
-  abstract HTMLOptionsCollection get options;
+  HTMLOptionsCollection get options;
 
   /** @domName HTMLSelectElement.required */
   bool required;
@@ -31446,25 +31446,25 @@ abstract class SelectElement implements Element {
   int selectedIndex;
 
   /** @domName HTMLSelectElement.selectedOptions */
-  abstract HTMLCollection get selectedOptions;
+  HTMLCollection get selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
 
   /** @domName HTMLSelectElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLSelectElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLSelectElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLSelectElement.value */
   String value;
 
   /** @domName HTMLSelectElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLSelectElement.checkValidity */
   bool checkValidity();
@@ -31591,7 +31591,7 @@ abstract class ShadowRoot implements DocumentFragment {
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /** @domName ShadowRoot.activeElement */
-  abstract Element get activeElement;
+  Element get activeElement;
 
   /** @domName ShadowRoot.applyAuthorStyles */
   bool applyAuthorStyles;
@@ -31665,7 +31665,7 @@ abstract class SharedWorker implements AbstractWorker {
   }
 
   /** @domName SharedWorker.port */
-  abstract MessagePort get port;
+  MessagePort get port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31682,7 +31682,7 @@ abstract class SharedWorkerContext implements WorkerContext {
   SharedWorkerContextEvents get on;
 
   /** @domName SharedWorkerContext.name */
-  abstract String get name;
+  String get name;
 }
 
 abstract class SharedWorkerContextEvents implements WorkerContextEvents {
@@ -31718,7 +31718,7 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker nati
 abstract class SourceBuffer {
 
   /** @domName SourceBuffer.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName SourceBuffer.timestampOffset */
   num timestampOffset;
@@ -31750,7 +31750,7 @@ class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
 abstract class SourceBufferList implements EventTarget, List<SourceBuffer> {
 
   /** @domName SourceBufferList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SourceBufferList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -31939,7 +31939,7 @@ abstract class SpeechGrammarList implements List<SpeechGrammar> {
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /** @domName SpeechGrammarList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SpeechGrammarList.addFromString */
   void addFromString(String string, [num weight]);
@@ -32054,7 +32054,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 abstract class SpeechInputEvent implements Event {
 
   /** @domName SpeechInputEvent.results */
-  abstract List<SpeechInputResult> get results;
+  List<SpeechInputResult> get results;
 }
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
@@ -32071,10 +32071,10 @@ class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent nativ
 abstract class SpeechInputResult {
 
   /** @domName SpeechInputResult.confidence */
-  abstract num get confidence;
+  num get confidence;
 
   /** @domName SpeechInputResult.utterance */
-  abstract String get utterance;
+  String get utterance;
 }
 
 class _SpeechInputResultImpl implements SpeechInputResult native "*SpeechInputResult" {
@@ -32257,10 +32257,10 @@ abstract class SpeechRecognitionEvents implements Events {
 abstract class SpeechRecognitionAlternative {
 
   /** @domName SpeechRecognitionAlternative.confidence */
-  abstract num get confidence;
+  num get confidence;
 
   /** @domName SpeechRecognitionAlternative.transcript */
-  abstract String get transcript;
+  String get transcript;
 }
 
 class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -32297,10 +32297,10 @@ abstract class SpeechRecognitionError implements Event {
   static const int SERVICE_NOT_ALLOWED = 6;
 
   /** @domName SpeechRecognitionError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SpeechRecognitionError.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
@@ -32319,13 +32319,13 @@ class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitio
 abstract class SpeechRecognitionEvent implements Event {
 
   /** @domName SpeechRecognitionEvent.result */
-  abstract SpeechRecognitionResult get result;
+  SpeechRecognitionResult get result;
 
   /** @domName SpeechRecognitionEvent.resultHistory */
-  abstract List<SpeechRecognitionResult> get resultHistory;
+  List<SpeechRecognitionResult> get resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex */
-  abstract int get resultIndex;
+  int get resultIndex;
 }
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
@@ -32400,13 +32400,13 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
 abstract class SpeechRecognitionResult {
 
   /** @domName SpeechRecognitionResult.emma */
-  abstract Document get emma;
+  Document get emma;
 
   /** @domName SpeechRecognitionResult.finalValue */
-  abstract bool get finalValue;
+  bool get finalValue;
 
   /** @domName SpeechRecognitionResult.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SpeechRecognitionResult.item */
   SpeechRecognitionAlternative item(int index);
@@ -32520,7 +32520,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 abstract class Storage implements Map<String, String> {
 
   /** @domName Storage.length */
-  abstract int get $dom_length;
+  int get $dom_length;
 
   /** @domName Storage.clear */
   void $dom_clear();
@@ -32548,19 +32548,19 @@ abstract class Storage implements Map<String, String> {
 abstract class StorageEvent implements Event {
 
   /** @domName StorageEvent.key */
-  abstract String get key;
+  String get key;
 
   /** @domName StorageEvent.newValue */
-  abstract String get newValue;
+  String get newValue;
 
   /** @domName StorageEvent.oldValue */
-  abstract String get oldValue;
+  String get oldValue;
 
   /** @domName StorageEvent.storageArea */
-  abstract Storage get storageArea;
+  Storage get storageArea;
 
   /** @domName StorageEvent.url */
-  abstract String get url;
+  String get url;
 
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
@@ -32721,7 +32721,7 @@ abstract class StyleElement implements Element {
   bool scoped;
 
   /** @domName HTMLStyleElement.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName HTMLStyleElement.type */
   String type;
@@ -32749,7 +32749,7 @@ class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HT
 abstract class StyleMedia {
 
   /** @domName StyleMedia.type */
-  abstract String get type;
+  String get type;
 
   /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery);
@@ -32774,22 +32774,22 @@ abstract class StyleSheet {
   bool disabled;
 
   /** @domName StyleSheet.href */
-  abstract String get href;
+  String get href;
 
   /** @domName StyleSheet.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName StyleSheet.ownerNode */
-  abstract Node get ownerNode;
+  Node get ownerNode;
 
   /** @domName StyleSheet.parentStyleSheet */
-  abstract StyleSheet get parentStyleSheet;
+  StyleSheet get parentStyleSheet;
 
   /** @domName StyleSheet.title */
-  abstract String get title;
+  String get title;
 
   /** @domName StyleSheet.type */
-  abstract String get type;
+  String get type;
 }
 
 class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
@@ -32941,7 +32941,7 @@ abstract class TableCellElement implements Element {
   String bgColor;
 
   /** @domName HTMLTableCellElement.cellIndex */
-  abstract int get cellIndex;
+  int get cellIndex;
 
   /** @domName HTMLTableCellElement.ch */
   String ch;
@@ -33083,7 +33083,7 @@ abstract class TableElement implements Element {
   String frame;
 
   /** @domName HTMLTableElement.rows */
-  abstract HTMLCollection get rows;
+  HTMLCollection get rows;
 
   /** @domName HTMLTableElement.rules */
   String rules;
@@ -33092,7 +33092,7 @@ abstract class TableElement implements Element {
   String summary;
 
   /** @domName HTMLTableElement.tBodies */
-  abstract HTMLCollection get tBodies;
+  HTMLCollection get tBodies;
 
   /** @domName HTMLTableElement.tFoot */
   TableSectionElement tFoot;
@@ -33210,7 +33210,7 @@ abstract class TableRowElement implements Element {
   String bgColor;
 
   /** @domName HTMLTableRowElement.cells */
-  abstract HTMLCollection get cells;
+  HTMLCollection get cells;
 
   /** @domName HTMLTableRowElement.ch */
   String ch;
@@ -33219,10 +33219,10 @@ abstract class TableRowElement implements Element {
   String chOff;
 
   /** @domName HTMLTableRowElement.rowIndex */
-  abstract int get rowIndex;
+  int get rowIndex;
 
   /** @domName HTMLTableRowElement.sectionRowIndex */
-  abstract int get sectionRowIndex;
+  int get sectionRowIndex;
 
   /** @domName HTMLTableRowElement.vAlign */
   String vAlign;
@@ -33275,7 +33275,7 @@ abstract class TableSectionElement implements Element {
   String chOff;
 
   /** @domName HTMLTableSectionElement.rows */
-  abstract HTMLCollection get rows;
+  HTMLCollection get rows;
 
   /** @domName HTMLTableSectionElement.vAlign */
   String vAlign;
@@ -33315,7 +33315,7 @@ abstract class Text implements CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
   /** @domName Text.wholeText */
-  abstract String get wholeText;
+  String get wholeText;
 
   /** @domName Text.replaceWholeText */
   Text replaceWholeText(String content);
@@ -33347,10 +33347,10 @@ abstract class TextAreaElement implements Element {
   bool disabled;
 
   /** @domName HTMLTextAreaElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLTextAreaElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
@@ -33380,22 +33380,22 @@ abstract class TextAreaElement implements Element {
   int selectionStart;
 
   /** @domName HTMLTextAreaElement.textLength */
-  abstract int get textLength;
+  int get textLength;
 
   /** @domName HTMLTextAreaElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLTextAreaElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLTextAreaElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLTextAreaElement.value */
   String value;
 
   /** @domName HTMLTextAreaElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLTextAreaElement.wrap */
   String wrap;
@@ -33477,7 +33477,7 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
 abstract class TextEvent implements UIEvent {
 
   /** @domName TextEvent.data */
-  abstract String get data;
+  String get data;
 
   /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
@@ -33508,7 +33508,7 @@ class _TextImpl extends _CharacterDataImpl implements Text native "*Text" {
 abstract class TextMetrics {
 
   /** @domName TextMetrics.width */
-  abstract num get width;
+  num get width;
 }
 
 class _TextMetricsImpl implements TextMetrics native "*TextMetrics" {
@@ -33530,19 +33530,19 @@ abstract class TextTrack implements EventTarget {
   TextTrackEvents get on;
 
   /** @domName TextTrack.activeCues */
-  abstract TextTrackCueList get activeCues;
+  TextTrackCueList get activeCues;
 
   /** @domName TextTrack.cues */
-  abstract TextTrackCueList get cues;
+  TextTrackCueList get cues;
 
   /** @domName TextTrack.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName TextTrack.label */
-  abstract String get label;
+  String get label;
 
   /** @domName TextTrack.language */
-  abstract String get language;
+  String get language;
 
   /** @domName TextTrack.mode */
   String mode;
@@ -33614,7 +33614,7 @@ abstract class TextTrackCue implements EventTarget {
   String text;
 
   /** @domName TextTrackCue.track */
-  abstract TextTrack get track;
+  TextTrack get track;
 
   /** @domName TextTrackCue.vertical */
   String vertical;
@@ -33694,7 +33694,7 @@ class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents 
 abstract class TextTrackCueList implements List<TextTrackCue> {
 
   /** @domName TextTrackCueList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TextTrackCueList.getCueById */
   TextTrackCue getCueById(String id);
@@ -33843,7 +33843,7 @@ abstract class TextTrackList implements EventTarget, List<TextTrack> {
   TextTrackListEvents get on;
 
   /** @domName TextTrackList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TextTrackList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -33977,7 +33977,7 @@ class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvent
 abstract class TimeRanges {
 
   /** @domName TimeRanges.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TimeRanges.end */
   num end(int index);
@@ -34025,40 +34025,40 @@ class _TitleElementImpl extends _ElementImpl implements TitleElement native "*HT
 abstract class Touch {
 
   /** @domName Touch.clientX */
-  abstract int get clientX;
+  int get clientX;
 
   /** @domName Touch.clientY */
-  abstract int get clientY;
+  int get clientY;
 
   /** @domName Touch.identifier */
-  abstract int get identifier;
+  int get identifier;
 
   /** @domName Touch.pageX */
-  abstract int get pageX;
+  int get pageX;
 
   /** @domName Touch.pageY */
-  abstract int get pageY;
+  int get pageY;
 
   /** @domName Touch.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName Touch.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName Touch.target */
-  abstract EventTarget get target;
+  EventTarget get target;
 
   /** @domName Touch.webkitForce */
-  abstract num get webkitForce;
+  num get webkitForce;
 
   /** @domName Touch.webkitRadiusX */
-  abstract int get webkitRadiusX;
+  int get webkitRadiusX;
 
   /** @domName Touch.webkitRadiusY */
-  abstract int get webkitRadiusY;
+  int get webkitRadiusY;
 
   /** @domName Touch.webkitRotationAngle */
-  abstract num get webkitRotationAngle;
+  num get webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34070,25 +34070,25 @@ abstract class Touch {
 abstract class TouchEvent implements UIEvent {
 
   /** @domName TouchEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName TouchEvent.changedTouches */
-  abstract TouchList get changedTouches;
+  TouchList get changedTouches;
 
   /** @domName TouchEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName TouchEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName TouchEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName TouchEvent.targetTouches */
-  abstract TouchList get targetTouches;
+  TouchList get targetTouches;
 
   /** @domName TouchEvent.touches */
-  abstract TouchList get touches;
+  TouchList get touches;
 
   /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -34150,7 +34150,7 @@ class _TouchImpl implements Touch native "*Touch" {
 abstract class TouchList implements List<Touch> {
 
   /** @domName TouchList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TouchList.item */
   Touch item(int index);
@@ -34274,7 +34274,7 @@ abstract class TrackElement implements Element {
   String label;
 
   /** @domName HTMLTrackElement.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName HTMLTrackElement.src */
   String src;
@@ -34283,7 +34283,7 @@ abstract class TrackElement implements Element {
   String srclang;
 
   /** @domName HTMLTrackElement.track */
-  abstract TextTrack get track;
+  TextTrack get track;
 }
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
@@ -34316,7 +34316,7 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
 abstract class TrackEvent implements Event {
 
   /** @domName TrackEvent.track */
-  abstract Object get track;
+  Object get track;
 }
 
 class _TrackEventImpl extends _EventImpl implements TrackEvent native "*TrackEvent" {
@@ -34333,10 +34333,10 @@ class _TrackEventImpl extends _EventImpl implements TrackEvent native "*TrackEve
 abstract class TransitionEvent implements Event {
 
   /** @domName WebKitTransitionEvent.elapsedTime */
-  abstract num get elapsedTime;
+  num get elapsedTime;
 
   /** @domName WebKitTransitionEvent.propertyName */
-  abstract String get propertyName;
+  String get propertyName;
 }
 
 class _TransitionEventImpl extends _EventImpl implements TransitionEvent native "*WebKitTransitionEvent" {
@@ -34358,16 +34358,16 @@ abstract class TreeWalker {
   Node currentNode;
 
   /** @domName TreeWalker.expandEntityReferences */
-  abstract bool get expandEntityReferences;
+  bool get expandEntityReferences;
 
   /** @domName TreeWalker.filter */
-  abstract NodeFilter get filter;
+  NodeFilter get filter;
 
   /** @domName TreeWalker.root */
-  abstract Node get root;
+  Node get root;
 
   /** @domName TreeWalker.whatToShow */
-  abstract int get whatToShow;
+  int get whatToShow;
 
   /** @domName TreeWalker.firstChild */
   Node firstChild();
@@ -34427,31 +34427,31 @@ class _TreeWalkerImpl implements TreeWalker native "*TreeWalker" {
 abstract class UIEvent implements Event {
 
   /** @domName UIEvent.charCode */
-  abstract int get charCode;
+  int get charCode;
 
   /** @domName UIEvent.detail */
-  abstract int get detail;
+  int get detail;
 
   /** @domName UIEvent.keyCode */
-  abstract int get keyCode;
+  int get keyCode;
 
   /** @domName UIEvent.layerX */
-  abstract int get layerX;
+  int get layerX;
 
   /** @domName UIEvent.layerY */
-  abstract int get layerY;
+  int get layerY;
 
   /** @domName UIEvent.pageX */
-  abstract int get pageX;
+  int get pageX;
 
   /** @domName UIEvent.pageY */
-  abstract int get pageY;
+  int get pageY;
 
   /** @domName UIEvent.view */
-  abstract Window get view;
+  Window get view;
 
   /** @domName UIEvent.which */
-  abstract int get which;
+  int get which;
 
   /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail);
@@ -34525,7 +34525,7 @@ abstract class Uint16Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Uint16Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34644,7 +34644,7 @@ abstract class Uint32Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Uint32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34763,7 +34763,7 @@ abstract class Uint8Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Uint8Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34880,7 +34880,7 @@ abstract class Uint8ClampedArray implements Uint8Array {
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   /** @domName Uint8ClampedArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint8ClampedArray.setElements */
   void setElements(Object array, [int offset]);
@@ -34920,31 +34920,31 @@ class _UnknownElementImpl extends _ElementImpl implements UnknownElement native 
 abstract class ValidityState {
 
   /** @domName ValidityState.customError */
-  abstract bool get customError;
+  bool get customError;
 
   /** @domName ValidityState.patternMismatch */
-  abstract bool get patternMismatch;
+  bool get patternMismatch;
 
   /** @domName ValidityState.rangeOverflow */
-  abstract bool get rangeOverflow;
+  bool get rangeOverflow;
 
   /** @domName ValidityState.rangeUnderflow */
-  abstract bool get rangeUnderflow;
+  bool get rangeUnderflow;
 
   /** @domName ValidityState.stepMismatch */
-  abstract bool get stepMismatch;
+  bool get stepMismatch;
 
   /** @domName ValidityState.tooLong */
-  abstract bool get tooLong;
+  bool get tooLong;
 
   /** @domName ValidityState.typeMismatch */
-  abstract bool get typeMismatch;
+  bool get typeMismatch;
 
   /** @domName ValidityState.valid */
-  abstract bool get valid;
+  bool get valid;
 
   /** @domName ValidityState.valueMissing */
-  abstract bool get valueMissing;
+  bool get valueMissing;
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {
@@ -34985,22 +34985,22 @@ abstract class VideoElement implements MediaElement {
   String poster;
 
   /** @domName HTMLVideoElement.videoHeight */
-  abstract int get videoHeight;
+  int get videoHeight;
 
   /** @domName HTMLVideoElement.videoWidth */
-  abstract int get videoWidth;
+  int get videoWidth;
 
   /** @domName HTMLVideoElement.webkitDecodedFrameCount */
-  abstract int get webkitDecodedFrameCount;
+  int get webkitDecodedFrameCount;
 
   /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
-  abstract bool get webkitDisplayingFullscreen;
+  bool get webkitDisplayingFullscreen;
 
   /** @domName HTMLVideoElement.webkitDroppedFrameCount */
-  abstract int get webkitDroppedFrameCount;
+  int get webkitDroppedFrameCount;
 
   /** @domName HTMLVideoElement.webkitSupportsFullscreen */
-  abstract bool get webkitSupportsFullscreen;
+  bool get webkitSupportsFullscreen;
 
   /** @domName HTMLVideoElement.width */
   int width;
@@ -35092,13 +35092,13 @@ class _WaveTableImpl implements WaveTable native "*WaveTable" {
 abstract class WebGLActiveInfo {
 
   /** @domName WebGLActiveInfo.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebGLActiveInfo.size */
-  abstract int get size;
+  int get size;
 
   /** @domName WebGLActiveInfo.type */
-  abstract int get type;
+  int get type;
 }
 
 class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
@@ -35193,7 +35193,7 @@ class _WebGLContextAttributesImpl implements WebGLContextAttributes native "*Web
 abstract class WebGLContextEvent implements Event {
 
   /** @domName WebGLContextEvent.statusMessage */
-  abstract String get statusMessage;
+  String get statusMessage;
 }
 
 class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent native "*WebGLContextEvent" {
@@ -35905,10 +35905,10 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   static const int ZERO = 0;
 
   /** @domName WebGLRenderingContext.drawingBufferHeight */
-  abstract int get drawingBufferHeight;
+  int get drawingBufferHeight;
 
   /** @domName WebGLRenderingContext.drawingBufferWidth */
-  abstract int get drawingBufferWidth;
+  int get drawingBufferWidth;
 
   /** @domName WebGLRenderingContext.activeTexture */
   void activeTexture(int texture);
@@ -36705,13 +36705,13 @@ class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
 abstract class WebGLShaderPrecisionFormat {
 
   /** @domName WebGLShaderPrecisionFormat.precision */
-  abstract int get precision;
+  int get precision;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMax */
-  abstract int get rangeMax;
+  int get rangeMax;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMin */
-  abstract int get rangeMin;
+  int get rangeMin;
 }
 
 class _WebGLShaderPrecisionFormatImpl implements WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
@@ -36882,7 +36882,7 @@ abstract class WebKitCSSFilterValue implements List<CSSValue> {
   static const int CSS_FILTER_SEPIA = 3;
 
   /** @domName WebKitCSSFilterValue.operationType */
-  abstract int get operationType;
+  int get operationType;
 }
 
 class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
@@ -36899,13 +36899,13 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
 abstract class WebKitNamedFlow implements EventTarget {
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
-  abstract int get firstEmptyRegionIndex;
+  int get firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebKitNamedFlow.overset */
-  abstract bool get overset;
+  bool get overset;
 
   /** @domName WebKitNamedFlow.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -36971,25 +36971,25 @@ abstract class WebSocket implements EventTarget {
   static const int OPEN = 1;
 
   /** @domName WebSocket.URL */
-  abstract String get URL;
+  String get URL;
 
   /** @domName WebSocket.binaryType */
   String binaryType;
 
   /** @domName WebSocket.bufferedAmount */
-  abstract int get bufferedAmount;
+  int get bufferedAmount;
 
   /** @domName WebSocket.extensions */
-  abstract String get extensions;
+  String get extensions;
 
   /** @domName WebSocket.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName WebSocket.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName WebSocket.url */
-  abstract String get url;
+  String get url;
 
   /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -37067,13 +37067,13 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 abstract class WheelEvent implements MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
-  abstract bool get webkitDirectionInvertedFromDevice;
+  bool get webkitDirectionInvertedFromDevice;
 
   /** @domName WheelEvent.wheelDeltaX */
-  abstract int get $dom_wheelDeltaX;
+  int get $dom_wheelDeltaX;
 
   /** @domName WheelEvent.wheelDeltaY */
-  abstract int get $dom_wheelDeltaY;
+  int get $dom_wheelDeltaY;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -37216,22 +37216,22 @@ abstract class WorkerContext implements EventTarget {
   static const int TEMPORARY = 0;
 
   /** @domName WorkerContext.indexedDB */
-  abstract IDBFactory get indexedDB;
+  IDBFactory get indexedDB;
 
   /** @domName WorkerContext.location */
-  abstract WorkerLocation get location;
+  WorkerLocation get location;
 
   /** @domName WorkerContext.navigator */
-  abstract WorkerNavigator get navigator;
+  WorkerNavigator get navigator;
 
   /** @domName WorkerContext.self */
-  abstract WorkerContext get self;
+  WorkerContext get self;
 
   /** @domName WorkerContext.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
+  IDBFactory get webkitIndexedDB;
 
   /** @domName WorkerContext.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
+  NotificationCenter get webkitNotifications;
 
   /** @domName WorkerContext.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -37374,28 +37374,28 @@ class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvent
 abstract class WorkerLocation {
 
   /** @domName WorkerLocation.hash */
-  abstract String get hash;
+  String get hash;
 
   /** @domName WorkerLocation.host */
-  abstract String get host;
+  String get host;
 
   /** @domName WorkerLocation.hostname */
-  abstract String get hostname;
+  String get hostname;
 
   /** @domName WorkerLocation.href */
-  abstract String get href;
+  String get href;
 
   /** @domName WorkerLocation.pathname */
-  abstract String get pathname;
+  String get pathname;
 
   /** @domName WorkerLocation.port */
-  abstract String get port;
+  String get port;
 
   /** @domName WorkerLocation.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName WorkerLocation.search */
-  abstract String get search;
+  String get search;
 
   /** @domName WorkerLocation.toString */
   String toString();
@@ -37431,19 +37431,19 @@ class _WorkerLocationImpl implements WorkerLocation native "*WorkerLocation" {
 abstract class WorkerNavigator {
 
   /** @domName WorkerNavigator.appName */
-  abstract String get appName;
+  String get appName;
 
   /** @domName WorkerNavigator.appVersion */
-  abstract String get appVersion;
+  String get appVersion;
 
   /** @domName WorkerNavigator.onLine */
-  abstract bool get onLine;
+  bool get onLine;
 
   /** @domName WorkerNavigator.platform */
-  abstract String get platform;
+  String get platform;
 
   /** @domName WorkerNavigator.userAgent */
-  abstract String get userAgent;
+  String get userAgent;
 }
 
 class _WorkerNavigatorImpl implements WorkerNavigator native "*WorkerNavigator" {
@@ -37520,13 +37520,13 @@ abstract class XPathException {
   static const int TYPE_ERR = 52;
 
   /** @domName XPathException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName XPathException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName XPathException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName XPathException.toString */
   String toString();
@@ -37606,25 +37606,25 @@ abstract class XPathResult {
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   /** @domName XPathResult.booleanValue */
-  abstract bool get booleanValue;
+  bool get booleanValue;
 
   /** @domName XPathResult.invalidIteratorState */
-  abstract bool get invalidIteratorState;
+  bool get invalidIteratorState;
 
   /** @domName XPathResult.numberValue */
-  abstract num get numberValue;
+  num get numberValue;
 
   /** @domName XPathResult.resultType */
-  abstract int get resultType;
+  int get resultType;
 
   /** @domName XPathResult.singleNodeValue */
-  abstract Node get singleNodeValue;
+  Node get singleNodeValue;
 
   /** @domName XPathResult.snapshotLength */
-  abstract int get snapshotLength;
+  int get snapshotLength;
 
   /** @domName XPathResult.stringValue */
-  abstract String get stringValue;
+  String get stringValue;
 
   /** @domName XPathResult.iterateNext */
   Node iterateNext();
