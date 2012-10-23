@@ -1531,6 +1531,29 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
+  if (node->function().name() == Symbols::Identical()) {
+    // Attempt to replace identical with strcit equal early on.
+    // TODO(hausner): Evaluate if this can happen at AST building time.
+    const Class& cls = Class::Handle(node->function().Owner());
+    if (cls.IsTopLevel()) {
+      const Library& core_lib = Library::Handle(Library::CoreLibrary());
+      if (cls.library() == core_lib.raw()) {
+        ASSERT(node->arguments()->length() == 2);
+        ValueGraphVisitor for_left_value(owner(), temp_index());
+        node->arguments()->NodeAt(0)->Visit(&for_left_value);
+        Append(for_left_value);
+        ValueGraphVisitor for_right_value(owner(), temp_index());
+        node->arguments()->NodeAt(1)->Visit(&for_right_value);
+        Append(for_right_value);
+        StrictCompareInstr* comp = new StrictCompareInstr(
+            Token::kEQ_STRICT,
+            for_left_value.value(),
+            for_right_value.value());
+        ReturnDefinition(comp);
+        return;
+      }
+    }
+  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
   BuildPushArguments(*node->arguments(), arguments);
