@@ -511,9 +511,8 @@ bool Process::Kill(intptr_t id, int signal) {
                                                 &process_handle,
                                                 &wait_handle,
                                                 &exit_pipe);
-  if (!success) {
-    return true;  // The process has already died.  Report a successful kill.
-  }
+  // The process is already dead.
+  if (!success) return false;
   BOOL result = TerminateProcess(process_handle, -1);
   return result ? true : false;
 }
