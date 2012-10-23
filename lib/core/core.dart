@@ -21,6 +21,7 @@
 #source("hashable.dart");
 #source("identical.dart");
 #source("int.dart");
+#source("invocation_mirror.dart");
 #source("iterable.dart");
 #source("iterator.dart");
 #source("list.dart");
