@@ -889,7 +889,7 @@ class Dart2JSBackend(object):
       if conversion:
         return conversion.input_type
       else:
-        return self._NarrowInputType(type_name) if type_name else 'Dynamic'
+        return self._NarrowInputType(type_name) if type_name else 'dynamic'
 
     body = self._members_emitter.Emit(
         '\n'
@@ -950,7 +950,7 @@ class Dart2JSBackend(object):
         # be conservative.
         if param_type == verified_type:
           if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'Dynamic'
+            param_type = 'dynamic'
         target_parameters.append(
             '%s%s' % (TypeOrNothing(param_type), param_name))
 
@@ -981,7 +981,7 @@ class Dart2JSBackend(object):
         argument = operation.arguments[i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
-        if test_type in ['Dynamic', 'Object']:
+        if test_type in ['dynamic', 'Object']:
           checks[i] = '?%s' % parameter_name
         elif test_type == parameter_types[i]:
           checks[i] = 'true'

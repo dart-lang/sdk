@@ -8006,7 +8006,7 @@ abstract class CanvasRenderingContext {
 abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.fillStyle */
-  Dynamic fillStyle;
+  dynamic fillStyle;
 
   /** @domName CanvasRenderingContext2D.font */
   String font;
@@ -8045,7 +8045,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   num shadowOffsetY;
 
   /** @domName CanvasRenderingContext2D.strokeStyle */
-  Dynamic strokeStyle;
+  dynamic strokeStyle;
 
   /** @domName CanvasRenderingContext2D.textAlign */
   String textAlign;
@@ -8238,9 +8238,9 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D {
 
-  Dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
+  dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
-  void set fillStyle(Dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
+  void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
 
   String get font native "CanvasRenderingContext2D_font_Getter";
 
@@ -8290,9 +8290,9 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
 
-  Dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
+  dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
-  void set strokeStyle(Dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
+  void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
   String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
 
@@ -14616,7 +14616,7 @@ class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
   // _EventTargetImpl or EventTarget
-  final Dynamic _ptr;
+  final _ptr;
 
   _EventsImpl(this._ptr);
 
@@ -14628,7 +14628,7 @@ class _EventsImpl implements Events {
 class _EventListenerListImpl implements EventListenerList {
 
   // TODO(jacobr): make this _EventTargetImpl
-  final Dynamic _ptr;
+  final _ptr;
   final String _type;
 
   _EventListenerListImpl(this._ptr, this._type);
@@ -17035,13 +17035,13 @@ abstract class IDBCursor {
   String get direction;
 
   /** @domName IDBCursor.key */
-  Dynamic get key;
+  dynamic get key;
 
   /** @domName IDBCursor.primaryKey */
-  Dynamic get primaryKey;
+  dynamic get primaryKey;
 
   /** @domName IDBCursor.source */
-  Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBCursor.advance */
   void advance(int count);
@@ -17065,11 +17065,11 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   String get direction native "IDBCursor_direction_Getter";
 
-  Dynamic get key native "IDBCursor_key_Getter";
+  dynamic get key native "IDBCursor_key_Getter";
 
-  Dynamic get primaryKey native "IDBCursor_primaryKey_Getter";
+  dynamic get primaryKey native "IDBCursor_primaryKey_Getter";
 
-  Dynamic get source native "IDBCursor_source_Getter";
+  dynamic get source native "IDBCursor_source_Getter";
 
   void advance(int count) native "IDBCursor_advance_Callback";
 
@@ -17100,7 +17100,7 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  Dynamic get value;
+  dynamic get value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17110,7 +17110,7 @@ abstract class IDBCursorWithValue implements IDBCursor {
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue {
 
-  Dynamic get value native "IDBCursorWithValue_value_Getter";
+  dynamic get value native "IDBCursorWithValue_value_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17134,7 +17134,7 @@ abstract class IDBDatabase implements EventTarget {
   List<String> get objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  Dynamic get version;
+  dynamic get version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -17248,7 +17248,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   List<String> get objectStoreNames native "IDBDatabase_objectStoreNames_Getter";
 
-  Dynamic get version native "IDBDatabase_version_Getter";
+  dynamic get version native "IDBDatabase_version_Getter";
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
 
@@ -17360,7 +17360,7 @@ class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 abstract class IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBIndex.multiEntry */
   bool get multiEntry;
@@ -17397,7 +17397,7 @@ abstract class IDBIndex {
 
 class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 
-  Dynamic get keyPath native "IDBIndex_keyPath_Getter";
+  dynamic get keyPath native "IDBIndex_keyPath_Getter";
 
   bool get multiEntry native "IDBIndex_multiEntry_Getter";
 
@@ -17414,7 +17414,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null)) {
+    if ((key_OR_range is dynamic || key_OR_range == null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -17430,7 +17430,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is Dynamic || key == null)) {
+    if ((key is dynamic || key == null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17444,7 +17444,7 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key is IDBKeyRange || key == null)) {
       return _getKey_1(key);
     }
-    if ((key is Dynamic || key == null)) {
+    if ((key is dynamic || key == null)) {
       return _getKey_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17464,10 +17464,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17493,10 +17493,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17568,13 +17568,13 @@ abstract class IDBKeyRange {
 
 
   /** @domName IDBKeyRange.lower */
-  Dynamic get lower;
+  dynamic get lower;
 
   /** @domName IDBKeyRange.lowerOpen */
   bool get lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  Dynamic get upper;
+  dynamic get upper;
 
   /** @domName IDBKeyRange.upperOpen */
   bool get upperOpen;
@@ -17599,11 +17599,11 @@ abstract class IDBKeyRange {
 
 class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
-  Dynamic get lower native "IDBKeyRange_lower_Getter";
+  dynamic get lower native "IDBKeyRange_lower_Getter";
 
   bool get lowerOpen native "IDBKeyRange_lowerOpen_Getter";
 
-  Dynamic get upper native "IDBKeyRange_upper_Getter";
+  dynamic get upper native "IDBKeyRange_upper_Getter";
 
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
@@ -17664,7 +17664,7 @@ abstract class IDBObjectStore {
   List<String> get indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBObjectStore.name */
   String get name;
@@ -17714,7 +17714,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   List<String> get indexNames native "IDBObjectStore_indexNames_Getter";
 
-  Dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
+  dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
 
   String get name native "IDBObjectStore_name_Getter";
 
@@ -17740,7 +17740,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null)) {
+    if ((key_OR_range is dynamic || key_OR_range == null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -17780,7 +17780,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    if ((key_OR_keyRange is Dynamic || key_OR_keyRange == null)) {
+    if ((key_OR_keyRange is dynamic || key_OR_keyRange == null)) {
       return _delete_2(key_OR_keyRange);
     }
     throw "Incorrect number or type of arguments";
@@ -17796,7 +17796,7 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is Dynamic || key == null)) {
+    if ((key is dynamic || key == null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17818,10 +17818,10 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((key_OR_range is dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17920,10 +17920,10 @@ abstract class IDBRequest implements EventTarget {
   String get readyState;
 
   /** @domName IDBRequest.result */
-  Dynamic get result;
+  dynamic get result;
 
   /** @domName IDBRequest.source */
-  Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBRequest.transaction */
   IDBTransaction get transaction;
@@ -17964,9 +17964,9 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   String get readyState native "IDBRequest_readyState_Getter";
 
-  Dynamic get result native "IDBRequest_result_Getter";
+  dynamic get result native "IDBRequest_result_Getter";
 
-  Dynamic get source native "IDBRequest_source_Getter";
+  dynamic get source native "IDBRequest_source_Getter";
 
   IDBTransaction get transaction native "IDBRequest_transaction_Getter";
 
@@ -19825,7 +19825,7 @@ abstract class LocalHistory implements History {
   int get length;
 
   /** @domName History.state */
-  Dynamic get state;
+  dynamic get state;
 
   /** @domName History.back */
   void back();
@@ -19852,7 +19852,7 @@ class _LocalHistoryImpl extends NativeFieldWrapperClass1 implements LocalHistory
 
   int get length native "History_length_Getter";
 
-  Dynamic get state native "History_state_Getter";
+  dynamic get state native "History_state_Getter";
 
   void back() native "History_back_Callback";
 
@@ -42521,9 +42521,7 @@ abstract class Window {
   void focus();
   void blur();
   void close();
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-		   [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
 
 abstract class Location {
@@ -42534,7 +42532,8 @@ abstract class History {
   void back();
   void forward();
   void go(int distance);
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -44021,7 +44020,7 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 
@@ -44031,7 +44030,7 @@ class _Deserializer {
 
   deserialize(x) {
     if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    // TODO(floitsch): this should be new HashMap<int, dynamic>()
     _deserialized = new HashMap();
     return _deserializeHelper(x);
   }
@@ -44361,7 +44360,7 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
 get _printClosure => (s) {
   try {
     window.console.log(s);
-  } on Dynamic catch(_) {
+  } catch (_) {
     _Utils.print(s);
   }
 };

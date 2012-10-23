@@ -258,11 +258,11 @@ def TypeOrNothing(dart_type, comment=None):
   where a type may be omitted.
   The string is empty or has a trailing space.
   """
-  if dart_type == 'Dynamic':
+  if dart_type == 'dynamic':
     if comment:
       return '/*%s*/ ' % comment   # Just a comment foo(/*T*/ x)
     else:
-      return ''                    # foo(x) looks nicer than foo(Dynamic x)
+      return ''                    # foo(x) looks nicer than foo(var|dynamic x)
   else:
     return dart_type + ' '
 
@@ -270,7 +270,7 @@ def TypeOrNothing(dart_type, comment=None):
 def TypeOrVar(dart_type, comment=None):
   """Returns string for declaring something with |dart_type| in a context
   where if a type is omitted, 'var' must be used instead."""
-  if dart_type == 'Dynamic':
+  if dart_type == 'dynamic':
     if comment:
       return 'var /*%s*/' % comment   # e.g.  var /*T*/ x;
     else:
@@ -293,7 +293,7 @@ class OperationInfo(object):
 
   def ParametersDeclaration(self, rename_type, force_optional=False):
     def FormatParam(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
+      dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
       return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
 
     required = []
@@ -387,7 +387,7 @@ class OperationInfo(object):
 
 
   def CopyAndWidenDefaultParameters(self):
-    """Returns equivalent OperationInfo, but default parameters are Dynamic."""
+    """Returns equivalent OperationInfo, but default parameters are dynamic."""
     info = copy.copy(self)
     info.param_infos = [param.Copy() for param in self.param_infos]
     for param in info.param_infos:
@@ -427,7 +427,7 @@ def IndentText(text, indent):
 # name
 def TypeName(type_ids, interface):
   # Dynamically type this field for now.
-  return 'Dynamic'
+  return 'dynamic'
 
 def ImplementationClassNameForInterfaceName(interface_name):
   return '_%sImpl' % interface_name
@@ -457,7 +457,7 @@ class Conversion(object):
 #
 
 _serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
-                           'Dynamic', 'Dynamic')
+                           'dynamic', 'dynamic')
 
 dart2js_conversions = {
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
@@ -473,19 +473,19 @@ dart2js_conversions = {
                  'EventTarget'),
 
     'IDBKey get':
-      Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBKey', 'dynamic', 'dynamic'),
     'IDBKey set':
-      Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
+      Conversion('_convertDartToNative_IDBKey', 'dynamic', 'dynamic'),
 
     'ImageData get':
-      Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+      Conversion('_convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
-      Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic'),
+      Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
-      Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+      Conversion('_convertNativeToDart_Dictionary', 'dynamic', 'Map'),
     'Dictionary set':
-      Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+      Conversion('_convertDartToNative_Dictionary', 'Map', 'dynamic'),
 
     'DOMString[] set':
       Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
@@ -503,21 +503,21 @@ dart2js_conversions = {
     # receiving message via MessageEvent
     'DOMObject get MessageEvent.data':
       Conversion('_convertNativeToDart_SerializedScriptValue',
-                 'Dynamic', 'Dynamic'),
+                 'dynamic', 'dynamic'),
 
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require
     # serialized script value processing.
     'IDBAny get IDBCursorWithValue.value':
-      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # This is problematic.  The result property of IDBRequest is used for
     # all requests.  Read requests like IDBDataStore.getObject need
     # conversion, but other requests like opening a database return
     # something that does not need conversion.
     'IDBAny get IDBRequest.result':
-      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # "source: On getting, returns the IDBObjectStore or IDBIndex that the
     # cursor is iterating. ...".  So we should not try to convert it.
@@ -906,7 +906,7 @@ _idl_type_registry = {
 
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue', requires_v8_scope=True),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
-    'custom': TypeData(clazz='Primitive', dart_type='Dynamic'),
+    'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
     'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
@@ -923,7 +923,7 @@ _idl_type_registry = {
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
-    'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='Dynamic'),
+    'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='dynamic'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': TypeData(clazz='Primitive', dart_type='Object'),
@@ -943,8 +943,8 @@ _idl_type_registry = {
     'HTMLDocument': TypeData(clazz='Interface', merged_into='Document'),
     'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
         custom_to_dart=True),
-    'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
-    'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'IDBAny': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
+    'IDBKey': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),

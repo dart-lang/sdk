@@ -32,9 +32,7 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-                   [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {

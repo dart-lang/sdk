@@ -450,7 +450,7 @@ class DartiumBackend(object):
         SecureOutputType(self, info.type_name),
         html_name,
         info.ParametersDeclaration(
-            (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
+            (lambda x: 'dynamic') if needs_dispatcher else self._DartType))
 
     if not needs_dispatcher:
       # Bind directly to native implementation

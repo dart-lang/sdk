@@ -7367,7 +7367,7 @@ abstract class CanvasRenderingContext {
 abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.fillStyle */
-  Dynamic fillStyle;
+  dynamic fillStyle;
 
   /** @domName CanvasRenderingContext2D.font */
   String font;
@@ -7406,7 +7406,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   num shadowOffsetY;
 
   /** @domName CanvasRenderingContext2D.strokeStyle */
-  Dynamic strokeStyle;
+  dynamic strokeStyle;
 
   /** @domName CanvasRenderingContext2D.textAlign */
   String textAlign;
@@ -7599,7 +7599,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
-  Dynamic fillStyle;
+  dynamic fillStyle;
 
   String font;
 
@@ -7625,7 +7625,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   num shadowOffsetY;
 
-  Dynamic strokeStyle;
+  dynamic strokeStyle;
 
   String textAlign;
 
@@ -13234,7 +13234,7 @@ class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
   // _EventTargetImpl or EventTarget
-  final Dynamic _ptr;
+  final _ptr;
 
   _EventsImpl(this._ptr);
 
@@ -13246,7 +13246,7 @@ class _EventsImpl implements Events {
 class _EventListenerListImpl implements EventListenerList {
 
   // TODO(jacobr): make this _EventTargetImpl
-  final Dynamic _ptr;
+  final _ptr;
   final String _type;
 
   _EventListenerListImpl(this._ptr, this._type);
@@ -15340,13 +15340,13 @@ abstract class IDBCursor {
   String get direction;
 
   /** @domName IDBCursor.key */
-  Dynamic get key;
+  dynamic get key;
 
   /** @domName IDBCursor.primaryKey */
-  Dynamic get primaryKey;
+  dynamic get primaryKey;
 
   /** @domName IDBCursor.source */
-  Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBCursor.advance */
   void advance(int count);
@@ -15365,13 +15365,13 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  Dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key => JS("Dynamic", "#.key", this);
+  dynamic get key => _convertNativeToDart_IDBKey(this._key);
+  dynamic get _key => JS("dynamic", "#.key", this);
 
-  Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey => JS("Dynamic", "#.primaryKey", this);
+  dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
+  dynamic get _primaryKey => JS("dynamic", "#.primaryKey", this);
 
-  final Dynamic source;
+  final dynamic source;
 
   void advance(int count) native;
 
@@ -15405,13 +15405,13 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  Dynamic get value;
+  dynamic get value;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  Dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value => JS("Dynamic", "#.value", this);
+  dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  dynamic get _value => JS("dynamic", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15434,7 +15434,7 @@ abstract class IDBDatabase implements EventTarget {
   List<String> get objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  Dynamic get version;
+  dynamic get version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -15582,7 +15582,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final _DOMStringListImpl objectStoreNames;
 
-  final Dynamic version;
+  final dynamic version;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -15667,7 +15667,7 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 abstract class IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBIndex.multiEntry */
   bool get multiEntry;
@@ -15699,7 +15699,7 @@ abstract class IDBIndex {
 
 class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
-  final Dynamic keyPath;
+  final dynamic keyPath;
 
   final bool multiEntry;
 
@@ -15863,13 +15863,13 @@ abstract class IDBKeyRange {
 
 
   /** @domName IDBKeyRange.lower */
-  Dynamic get lower;
+  dynamic get lower;
 
   /** @domName IDBKeyRange.lowerOpen */
   bool get lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  Dynamic get upper;
+  dynamic get upper;
 
   /** @domName IDBKeyRange.upperOpen */
   bool get upperOpen;
@@ -15889,13 +15889,13 @@ abstract class IDBKeyRange {
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower => JS("Dynamic", "#.lower", this);
+  dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
+  dynamic get _lower => JS("dynamic", "#.lower", this);
 
   final bool lowerOpen;
 
-  Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper => JS("Dynamic", "#.upper", this);
+  dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
+  dynamic get _upper => JS("dynamic", "#.upper", this);
 
   final bool upperOpen;
 
@@ -15962,7 +15962,7 @@ abstract class IDBObjectStore {
   List<String> get indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBObjectStore.name */
   String get name;
@@ -16007,7 +16007,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _DOMStringListImpl indexNames;
 
-  final Dynamic keyPath;
+  final dynamic keyPath;
 
   final String name;
 
@@ -16212,10 +16212,10 @@ abstract class IDBRequest implements EventTarget {
   String get readyState;
 
   /** @domName IDBRequest.result */
-  Dynamic get result;
+  dynamic get result;
 
   /** @domName IDBRequest.source */
-  Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBRequest.transaction */
   IDBTransaction get transaction;
@@ -16251,10 +16251,10 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final String readyState;
 
-  Dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result => JS("Dynamic", "#.result", this);
+  dynamic get result => _convertNativeToDart_IDBAny(this._result);
+  dynamic get _result => JS("dynamic", "#.result", this);
 
-  final Dynamic source;
+  final dynamic source;
 
   final _IDBTransactionImpl transaction;
 
@@ -17776,7 +17776,7 @@ abstract class LocalHistory implements History {
   int get length;
 
   /** @domName History.state */
-  Dynamic get state;
+  dynamic get state;
 
   /** @domName History.back */
   void back();
@@ -17798,7 +17798,7 @@ class _LocalHistoryImpl implements LocalHistory native "*History" {
 
   final int length;
 
-  final Dynamic state;
+  final dynamic state;
 
   void back() native;
 
@@ -20152,8 +20152,8 @@ abstract class MessageEvent implements Event {
 
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
-  Dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
-  Dynamic get _data => JS("Dynamic", "#.data", this);
+  dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
+  dynamic get _data => JS("dynamic", "#.data", this);
 
   final String lastEventId;
 
@@ -38393,9 +38393,7 @@ abstract class Window {
   void focus();
   void blur();
   void close();
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-		   [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
 
 abstract class Location {
@@ -38406,7 +38404,8 @@ abstract class History {
   void back();
   void forward();
   void go(int distance);
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39630,7 +39629,7 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 
@@ -39640,7 +39639,7 @@ class _Deserializer {
 
   deserialize(x) {
     if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    // TODO(floitsch): this should be new HashMap<int, dynamic>()
     _deserialized = new HashMap();
     return _deserializeHelper(x);
   }
@@ -40290,9 +40289,7 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-                   [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {

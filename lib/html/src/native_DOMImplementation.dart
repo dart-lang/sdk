@@ -109,7 +109,7 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
 get _printClosure => (s) {
   try {
     window.console.log(s);
-  } on Dynamic catch(_) {
+  } catch (_) {
     _Utils.print(s);
   }
 };

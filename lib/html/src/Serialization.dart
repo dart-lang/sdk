@@ -141,7 +141,7 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 
@@ -151,7 +151,7 @@ class _Deserializer {
 
   deserialize(x) {
     if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    // TODO(floitsch): this should be new HashMap<int, dynamic>()
     _deserialized = new HashMap();
     return _deserializeHelper(x);
   }
