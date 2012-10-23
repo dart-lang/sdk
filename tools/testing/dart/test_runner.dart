@@ -610,8 +610,11 @@ class RunningProcess {
     process = null;
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
-    if (timedOut) {
-      // Test timed out before it could complete.
+    if (timedOut &&
+        !(testCase.usesWebDriver && !testCase.configuration['noBatch'])) {
+      // Non-webdriver test timed out before it could complete. Webdriver tests
+      // run their own timeouts by timing from the launch of the browser (which
+      // could be delayed).
       testComplete(0, true);
     } else if (currentStep == totalSteps) {
       // Done with all test commands.
