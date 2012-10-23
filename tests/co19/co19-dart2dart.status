@@ -90,83 +90,79 @@ LibTest/math/tan_A01_t01: Fail # TODO(dart2dart-team): Please triage this failur
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
-# The following tests use isOdd/isEven/isNegative functions instead of getters.
-LibTest/core/int/isOdd_A01_t01: Fail, OK
-LibTest/core/int/isEven_A01_t01: Fail, OK
+LibTest/core/int/isOdd_A01_t01: Fail, OK  # co19 issue 277
+LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 
-# The following tests use isInfinite() (function) instead of isInfinite (getter).
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK
-LibTest/core/double/INFINITY_A01_t01: Fail, OK
-LibTest/core/double/isInfinite_A01_t03: Fail, OK
-LibTest/core/double/isInfinite_A01_t02: Fail, OK
-LibTest/core/double/isInfinite_A01_t01: Fail, OK
-LibTest/core/int/isInfinite_A01_t01: Fail, OK
+LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK # co19 issue 278
+LibTest/core/double/INFINITY_A01_t01: Fail, OK # co19 issue 278
+LibTest/core/double/isInfinite_A01_t03: Fail, OK # co19 issue 278
+LibTest/core/double/isInfinite_A01_t02: Fail, OK # co19 issue 278
+LibTest/core/double/isInfinite_A01_t01: Fail, OK # co19 issue 278
+LibTest/core/int/isInfinite_A01_t01: Fail, OK # co19 issue 278
 
-# The following tests use isNegative() (function) instead of isNegative (getter).
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK
-LibTest/core/double/INFINITY_A01_t01: Fail, OK
-LibTest/core/double/isNegative_A01_t01: Fail, OK
-LibTest/core/double/operator_unary_minus_A01_t01: Fail, OK
-LibTest/core/double/operator_unary_minus_A01_t03: Fail, OK
-LibTest/core/double/isNegative_A01_t02: Fail, OK
-LibTest/core/int/isNegative_A01_t01: Fail, OK
+LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK # co19 issue 279
+LibTest/core/double/INFINITY_A01_t01: Fail, OK # co19 issue 279
+LibTest/core/double/isNegative_A01_t01: Fail, OK # co19 issue 279
+LibTest/core/double/operator_unary_minus_A01_t01: Fail, OK # co19 issue 279
+LibTest/core/double/operator_unary_minus_A01_t03: Fail, OK # co19 issue 279
+LibTest/core/double/isNegative_A01_t02: Fail, OK # co19 issue 279
+LibTest/core/int/isNegative_A01_t01: Fail, OK # co19 issue 279
 
-# The following tests use isNaN() (function) instead of isNaN (getter).
-LibTest/math/sqrt_A01_t02: Fail, OK
-LibTest/math/tan_A01_t02: Fail, OK
-LibTest/math/atan_A01_t02: Fail, OK
-LibTest/math/sqrt_A01_t03: Fail, OK
-LibTest/math/acos_A01_t02: Fail, OK
-LibTest/math/max_A01_t02: Fail, OK
-LibTest/math/cos_A01_t02: Fail, OK
-LibTest/math/pow_A12_t01: Fail, OK
-LibTest/math/pow_A02_t01: Fail, OK
-LibTest/math/acos_A01_t03: Fail, OK
-LibTest/math/log_A01_t02: Fail, OK
-LibTest/math/asin_A01_t03: Fail, OK
-LibTest/math/pow_A18_t01: Fail, OK
-LibTest/math/atan2_A01_t02: Fail, OK
-LibTest/math/exp_A01_t02: Fail, OK
-LibTest/math/parseDouble_A01_t01: Fail, OK
-LibTest/math/min_A01_t02: Fail, OK
-LibTest/math/log_A01_t03: Fail, OK
-LibTest/math/sin_A01_t02: Fail, OK
-LibTest/math/asin_A01_t02: Fail, OK
-LibTest/core/double/isNaN_A01_t03: Fail, OK
-LibTest/core/double/operator_multiplication_A01_t03: Fail, OK
-LibTest/core/double/toDouble_A01_t02: Fail, OK
-LibTest/core/double/operator_truncating_division_A01_t01: Fail, OK
-LibTest/core/double/operator_division_A01_t06: Fail, OK
-LibTest/core/double/operator_subtraction_A01_t01: Fail, OK
-LibTest/core/double/operator_remainder_A01_t05: Fail, OK
-LibTest/core/double/operator_division_A01_t01: Fail, OK
-LibTest/core/double/operator_subtraction_A01_t03: Fail, OK
-LibTest/core/double/operator_truncating_division_A01_t04: Fail, OK
-LibTest/core/double/operator_unary_minus_A01_t02: Fail, OK
-LibTest/core/double/remainder_A01_t02: Fail, OK
-LibTest/core/double/remainder_A01_t03: Fail, OK
-LibTest/core/double/abs_A01_t04: Fail, OK
-LibTest/core/double/truncate_A01_t03: Fail, OK
-LibTest/core/double/isNaN_A01_t01: Fail, OK
-LibTest/core/double/round_A01_t02: Fail, OK
-LibTest/core/double/operator_addition_A01_t04: Fail, OK
-LibTest/core/double/operator_remainder_A01_t02: Fail, OK
-LibTest/core/double/operator_multiplication_A01_t01: Fail, OK
-LibTest/core/double/remainder_A01_t05: Fail, OK
-LibTest/core/double/operator_division_A01_t04: Fail, OK
-LibTest/core/double/ceil_A01_t03: Fail, OK
-LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK
-LibTest/core/double/floor_A01_t03: Fail, OK
-LibTest/core/double/operator_addition_A01_t01: Fail, OK
-LibTest/core/double/isNaN_A01_t02: Fail, OK
-LibTest/core/double/operator_remainder_A01_t03: Fail, OK
-LibTest/core/double/NAN_A01_t01: Fail, OK
-LibTest/core/int/operator_subtraction_A01_t01: Fail, OK
-LibTest/core/int/operator_division_A01_t02: Fail, OK
-LibTest/core/int/remainder_A01_t02: Fail, OK
-LibTest/core/int/isNaN_A01_t01: Fail, OK
-LibTest/core/int/operator_remainder_A01_t02: Fail, OK
-LibTest/core/int/operator_addition_A01_t01: Fail, OK
+LibTest/math/sqrt_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/tan_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/atan_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/sqrt_A01_t03: Fail, OK # co19 issue 280
+LibTest/math/acos_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/max_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/cos_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/pow_A12_t01: Fail, OK # co19 issue 280
+LibTest/math/pow_A02_t01: Fail, OK # co19 issue 280
+LibTest/math/acos_A01_t03: Fail, OK # co19 issue 280
+LibTest/math/log_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/asin_A01_t03: Fail, OK # co19 issue 280
+LibTest/math/pow_A18_t01: Fail, OK # co19 issue 280
+LibTest/math/atan2_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/exp_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 280
+LibTest/math/min_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/log_A01_t03: Fail, OK # co19 issue 280
+LibTest/math/sin_A01_t02: Fail, OK # co19 issue 280
+LibTest/math/asin_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/isNaN_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/operator_multiplication_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/toDouble_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/operator_truncating_division_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/operator_division_A01_t06: Fail, OK # co19 issue 280
+LibTest/core/double/operator_subtraction_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/operator_remainder_A01_t05: Fail, OK # co19 issue 280
+LibTest/core/double/operator_division_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/operator_subtraction_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/operator_truncating_division_A01_t04: Fail, OK # co19 issue 280
+LibTest/core/double/operator_unary_minus_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/remainder_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/abs_A01_t04: Fail, OK # co19 issue 280
+LibTest/core/double/truncate_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/isNaN_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/round_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/operator_addition_A01_t04: Fail, OK # co19 issue 280
+LibTest/core/double/operator_remainder_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/operator_multiplication_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/remainder_A01_t05: Fail, OK # co19 issue 280
+LibTest/core/double/operator_division_A01_t04: Fail, OK # co19 issue 280
+LibTest/core/double/ceil_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK # co19 issue 280
+LibTest/core/double/floor_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/operator_addition_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/double/isNaN_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/double/operator_remainder_A01_t03: Fail, OK # co19 issue 280
+LibTest/core/double/NAN_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/int/operator_division_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/int/remainder_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/int/isNaN_A01_t01: Fail, OK # co19 issue 280
+LibTest/core/int/operator_remainder_A01_t02: Fail, OK # co19 issue 280
+LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 280
 
 
 # The following tests use hashCode() (function) instead of hashCode (getter).
