@@ -65,13 +65,6 @@ def mergefiles(srcs, dstfile):
         if not line.startswith('part of '):
           dstfile.write(line)
 
-def copyfile(src, dst):
-  if not exists(dirname(dst)):
-    os.makedirs(dirname(dst))
-  with open(src, 'r') as s:
-    with open(dst, 'w') as d:
-      d.write(s.read())
-
 def main(outdir = None, *inputs):
   if not outdir or not inputs:
     print "Usage: %s OUTDIR INPUTS" % args[0]
