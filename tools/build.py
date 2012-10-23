@@ -316,7 +316,9 @@ def Main():
               print k + " = " + v
 
         print ' '.join(args)
-        process = subprocess.Popen(args)
+        # We redirect stderr to sys.stdout bacause the buildbot is not
+        # collecting stderr output.
+        process = subprocess.Popen(args, stderr=sys.stdout)
         process.wait()
         if process.returncode != 0:
           print "BUILD FAILED"
