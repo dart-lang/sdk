@@ -11050,10 +11050,10 @@ abstract class DirectoryEntry implements Entry {
   DirectoryReader createReader();
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
@@ -11068,7 +11068,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-  void getDirectory(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void getDirectory(/*DOMString*/ path, {/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback}) {
     if (?options) {
       _getDirectory_1(path, options, successCallback, errorCallback);
       return;
@@ -11080,7 +11080,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   void _getDirectory_2(path) native "DirectoryEntry_getDirectory_2_Callback";
 
-  void getFile(/*DOMString*/ path, [/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void getFile(/*DOMString*/ path, {/*Dictionary*/ options, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback}) {
     if (?options) {
       _getFile_1(path, options, successCallback, errorCallback);
       return;

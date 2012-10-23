@@ -9779,10 +9779,10 @@ abstract class DirectoryEntry implements Entry {
   DirectoryReader createReader();
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
@@ -9792,7 +9792,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [options, successCallback, errorCallback]) {
+  void getDirectory(String path, {options, successCallback, errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9816,7 +9816,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
   void _getDirectory_3(path, options) native "getDirectory";
   void _getDirectory_4(path) native "getDirectory";
 
-  void getFile(String path, [options, successCallback, errorCallback]) {
+  void getFile(String path, {options, successCallback, errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
