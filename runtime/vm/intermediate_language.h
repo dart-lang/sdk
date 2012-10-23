@@ -1914,7 +1914,8 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return value()->ResultCid(); }
+  virtual intptr_t GetPropagatedCid();
 
   virtual Definition* Canonicalize();
 

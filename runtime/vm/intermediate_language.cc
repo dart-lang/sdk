@@ -649,6 +649,11 @@ intptr_t ParameterInstr::GetPropagatedCid() {
 }
 
 
+intptr_t AssertAssignableInstr::GetPropagatedCid() {
+  return propagated_cid();
+}
+
+
 // ==== Postorder graph traversal.
 static bool IsMarked(BlockEntryInstr* block,
                      GrowableArray<BlockEntryInstr*>* preorder) {
