@@ -1675,15 +1675,14 @@ class _HttpClientRequest
     // Send the path for direct connections and the whole URL for
     // proxy connections.
     if (!_connection._usingProxy) {
-      String path;
+      String path = _uri.path;
+      if (path.length == 0) path = "/";
       if (_uri.query != "") {
         if (_uri.fragment != "") {
-          path = "${_uri.path}?${_uri.query}#${_uri.fragment}";
+          path = "${path}?${_uri.query}#${_uri.fragment}";
         } else {
-          path = "${_uri.path}?${_uri.query}";
+          path = "${path}?${_uri.query}";
         }
-      } else {
-         path = _uri.path;
       }
       data = path.charCodes();
     } else {

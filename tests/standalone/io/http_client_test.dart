@@ -25,25 +25,31 @@ void testGoogle() {
   conn.onError = (error) => Expect.fail("Unexpected IO error");
 }
 
+int testGoogleUrlCount = 0;
 void testGoogleUrl() {
   HttpClient client = new HttpClient();
 
   void testUrl(String url) {
-    var conn = client.getUrl(new Uri.fromString(url));
+    var requestUri = new Uri.fromString(url);
+    var conn = client.getUrl(requestUri);
 
     conn.onRequest = (HttpClientRequest request) {
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
+      testGoogleUrlCount++;
       Expect.isTrue(response.statusCode < 500);
+      if (requestUri.path.length == 0) {
+        Expect.isTrue(response.statusCode != 404);
+      }
       response.inputStream.onData = () {
         response.inputStream.read();
       };
       response.inputStream.onClosed = () {
-        client.shutdown();
+        if (testGoogleUrlCount == 5) client.shutdown();
       };
     };
-    conn.onError = (error) => Expect.fail("Unexpected IO error");
+    conn.onError = (error) => Expect.fail("Unexpected IO error $error");
   }
 
   testUrl('http://www.google.com');

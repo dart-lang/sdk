@@ -775,15 +775,14 @@ class _WebSocket implements WebSocket {
       throw new WebSocketException("Unsupported user info ${uri.userInfo}");
     }
     int port = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
-    String path;
+    String path = uri.path;
+    if (path.length == 0) path = "/";
     if (uri.query != "") {
       if (uri.fragment != "") {
-        path = "${uri.path}?${uri.query}#${uri.fragment}";
+        path = "${path}?${uri.query}#${uri.fragment}";
       } else {
-        path = "${uri.path}?${uri.query}";
+        path = "${path}?${uri.query}";
       }
-    } else {
-      path = uri.path;
     }
 
     HttpClient client = new HttpClient();
