@@ -134,24 +134,24 @@
  *       });
  *
  */
-#library('unittest');
+library unittest;
 
-#import('dart:isolate');
+import 'dart:isolate';
 
-#source('collection_matchers.dart');
-#source('config.dart');
-#source('core_matchers.dart');
-#source('description.dart');
-#source('expect.dart');
-#source('future_matchers.dart');
-#source('interfaces.dart');
-#source('map_matchers.dart');
-#source('matcher.dart');
-#source('mock.dart');
-#source('numeric_matchers.dart');
-#source('operator_matchers.dart');
-#source('string_matchers.dart');
-#source('test_case.dart');
+part 'collection_matchers.dart';
+part 'config.dart';
+part 'core_matchers.dart';
+part 'description.dart';
+part 'expect.dart';
+part 'future_matchers.dart';
+part 'interfaces.dart';
+part 'map_matchers.dart';
+part 'matcher.dart';
+part 'mock.dart';
+part 'numeric_matchers.dart';
+part 'operator_matchers.dart';
+part 'string_matchers.dart';
+part 'test_case.dart';
 
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;

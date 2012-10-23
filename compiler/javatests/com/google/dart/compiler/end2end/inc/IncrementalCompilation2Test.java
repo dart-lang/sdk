@@ -91,9 +91,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "part 'B.dart';",
             "part 'C.dart';",
             ""));
-    appSource.setContent("A.dart", "");
-    appSource.setContent("B.dart", "");
-    appSource.setContent("C.dart", "");
+    appSource.setContent("A.dart", "part of application;");
+    appSource.setContent("B.dart", "part of application;");
+    appSource.setContent("C.dart", "part of application;");
   }
 
   @Override
@@ -114,6 +114,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  int not_hole;",
             "}",
@@ -122,6 +123,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "C.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  int bar() {",
             "    return super.not_hole;", // qualified reference
@@ -135,6 +137,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "int not_hole;",
             ""));
     compile();
@@ -157,6 +160,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  int foo() {",
             "    return hole;", // no such field
@@ -164,12 +168,13 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "}",
             ""));
     compile();
-    assertErrors(errors, errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 12, 4));
+    assertErrors(errors, errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 12, 4));
     // Update units and compile.
     appSource.setContent(
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "int hole;",
             ""));
     compile();
@@ -190,6 +195,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  foo() {}",
             "}",
@@ -198,6 +204,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "C.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  int bar() {",
             "    foo();", // unqualified invocation
@@ -212,6 +219,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
           "A.dart",
           makeCode(
               "// filler filler filler filler filler filler filler filler filler filler filler",
+              "part of application;",
               "foo() {}",
               ""));
       compile();
@@ -226,7 +234,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     Thread.sleep(5);
     // Remove top-level foo(), so invocation of foo() in B should be bound to the super class.
     {
-      appSource.setContent("A.dart", "");
+      appSource.setContent("A.dart", "part of application;");
       compile();
       // B should be compiled because it also declares foo(), so produces "shadow" conflict.
       // C should be compiled because it has unqualified invocation which was declared in A.
@@ -245,6 +253,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  foo() {}",
             "}",
@@ -253,6 +262,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "C.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  int bar() {",
             "    super.foo();", // qualified invocation
@@ -267,6 +277,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
           "A.dart",
           makeCode(
               "// filler filler filler filler filler filler filler filler filler filler filler",
+              "part of application;",
               "foo() {}",
               ""));
       compile();
@@ -288,6 +299,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  var foo;",
             "}",
@@ -296,6 +308,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "C.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  int bar() {",
             "    foo = 0;", // unqualified access
@@ -310,6 +323,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
           "A.dart",
           makeCode(
               "// filler filler filler filler filler filler filler filler filler filler filler",
+              "part of application;",
               "var foo;",
               ""));
       compile();
@@ -324,7 +338,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     Thread.sleep(5);
     // Remove top-level "foo", so access to "foo" in B should be bound to the super class.
     {
-      appSource.setContent("A.dart", "");
+      appSource.setContent("A.dart", "part of application;");
       compile();
       // B should be compiled because it also declares "foo", so produces "shadow" conflict.
       // C should be compiled because it has unqualified access which was declared in A.
@@ -343,6 +357,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  var foo;",
             "}",
@@ -351,6 +366,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "C.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  int bar() {",
             "    super.foo = 0;", // qualified access
@@ -365,6 +381,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
           "A.dart",
           makeCode(
               "// filler filler filler filler filler filler filler filler filler filler filler",
+              "part of application;",
               "var foo;",
               ""));
       compile();
@@ -382,6 +399,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "methodB() {",
             "  var symbolDependency_foo;",
             "}"));
@@ -392,6 +410,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "var symbolDependency_foo;"));
     compile();
     // Now there is top-level declarations conflict between A and B.
@@ -406,17 +425,19 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "var duplicate;"));
     appSource.setContent(
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "bar() {",
             "  var duplicate;",
             "}"));
     compile();
     // Update units and compile.
-    appSource.setContent("A.dart", "");
+    appSource.setContent("A.dart", "part of application;");
     compile();
     // Top-level declaration in A was removed, so no conflict.
     // So:
@@ -434,11 +455,13 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "var duplicate;"));
     appSource.setContent(
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "bar() {",
             "  var duplicate;",
             "}"));
@@ -465,6 +488,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "}",
             ""));
@@ -472,6 +496,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class B extends A {",
             "  foo() {",
             "    var bar;",
@@ -485,6 +510,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "class A {",
             "  var bar;",
             "}",
@@ -500,6 +526,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "var conflict;",
             ""));
     compile();
@@ -509,6 +536,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             "var conflict;",
             ""));
     compile();
@@ -516,8 +544,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // Both A and B have errors.
     assertErrors(
         errors,
-        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 8),
-        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 8));
+        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 8),
+        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 8));
   }
 
   /**
@@ -797,6 +825,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of application;",
             ""));
     appSource.setContent(
         APP,
@@ -1478,6 +1507,74 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
+   * Part should have one and only one directive - "part of".
+   */
+  public void test_partDirectives_otherThenPartOf() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library application;",
+            "part 'A.dart';",
+            ""));
+    // do compile
+    compile();
+    assertErrors(errors, errEx(DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, 2, 1, 10));
+  }
+  
+  /**
+   * Part should have one and only one directive - "part of".
+   */
+  public void test_partDirectives_noPartOf() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library application;",
+            "part 'A.dart';",
+            ""));
+    // do compile
+    compile();
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE, -1, -1, 0));
+  }
+  
+  /**
+   * Part should have one and only one directive - "part of".
+   */
+  public void test_partDirectives_wrongNameInPartOf() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "part of Z;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library application;",
+            "part 'A.dart';",
+            ""));
+    // do compile
+    compile();
+    assertErrors(
+        errors,
+        errEx(DartCompilerErrorCode.WRONG_PART_OF_NAME, 2, 1, 10),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 2, 9, 1));
+  }
+
+  /**
    * Internals of Dart use "dart-ext:" import scheme, and these libraries are allowed to use
    * "native". New import syntax.
    */
@@ -1496,7 +1593,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * Internals of Dart use "dart-ext:" import scheme, and these libraries are allowed to use
    * "native". Obsolete import syntax.

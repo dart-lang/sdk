@@ -9,14 +9,14 @@
  * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
  */
-#library('interactive_config');
+library interactive_config;
 
 // TODO(gram) - add options for: remove IFrame on done/keep
 // IFrame for failed tests/keep IFrame for all tests.
 
-#import('dart:html');
-#import('dart:math');
-#import('unittest.dart');
+import 'dart:html';
+import 'dart:math';
+import 'unittest.dart';
 
 /** The messages exchanged between parent and child. */
 

@@ -1,3 +1,5 @@
+part of webdriver;
+
 /**
  * A simple base64 decoder class, used to decode web browser screenshots
  * returned by WebDriver.

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('classify');
+library classify;
 
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
+import '../../../lib/compiler/implementation/scanner/scannerlib.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('markdown.dart', prefix: 'md');
+import 'markdown.dart' as md;
 
 /**
  * Kinds of tokens that we care to highlight differently. The values of the

@@ -6,14 +6,14 @@
  * This file should be imported, along with date_format.dart in order to read
  * locale data via http requests to a web server..
  */
-#library('date_symbol_data_json');
+library date_symbol_data_json;
 
-#import("date_symbols.dart");
-#import("src/lazy_locale_data.dart");
-#import('src/date_format_internal.dart');
-#import('src/http_request_data_reader.dart');
+import "date_symbols.dart";
+import "src/lazy_locale_data.dart";
+import 'src/date_format_internal.dart';
+import 'src/http_request_data_reader.dart';
 
-#source("src/data/dates/localeList.dart");
+part "src/data/dates/localeList.dart";
 
 /**
  * This should be called for at least one [locale] before any date formatting

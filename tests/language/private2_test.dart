@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields across class hierarchies.
 
-#library("Private2Test");
+library Private2Test;
 
 #import("private2_lib.lib");
 #source("private2_main.dart");

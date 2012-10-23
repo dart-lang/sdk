@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors');
+library mirrors;
 
-#import('dart:io');
-#import('dart:uri');
+import 'dart:io';
+import 'dart:uri';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('src/mirrors/dart2js_mirror.dart');
+import 'src/mirrors/dart2js_mirror.dart';
 
 /**
  * [Compilation] encapsulates the compilation of a program.

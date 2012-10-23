@@ -4,11 +4,11 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-#library('number_format_test');
+library number_format_test;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../lib/number_format.dart');
-#import('../lib/intl.dart');
+import '../../../pkg/unittest/unittest.dart';
+import '../lib/number_format.dart';
+import '../lib/intl.dart';
 
 /**
  * Tests the Numeric formatting library in dart.

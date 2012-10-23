@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 /**
  * A [Value] represents both symbolic values like the value of a
  * parameter, or the length of an array, and concrete values, like

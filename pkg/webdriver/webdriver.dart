@@ -1,9 +1,9 @@
-#library('webdriver');
-#import('dart:json');
-#import('dart:uri');
-#import('dart:io');
-#import('dart:math');
-#source('base64decoder.dart');
+library webdriver;
+import 'dart:json';
+import 'dart:uri';
+import 'dart:io';
+import 'dart:math';
+part 'base64decoder.dart';
 
 /**
  * WebDriver bindings for Dart.

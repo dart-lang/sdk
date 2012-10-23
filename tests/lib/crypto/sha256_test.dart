@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to allow Dartium to run the tests.
-#library('sha256_test');
+library sha256_test;
 
-#import("dart:crypto");
+import "dart:crypto";
 
-#source('sha256_long_test_vectors.dart');
-#source('sha256_short_test_vectors.dart');
+part 'sha256_long_test_vectors.dart';
+part 'sha256_short_test_vectors.dart';
 
 List<int> createTestArr(int len) {
   var arr = new List<int>(len);

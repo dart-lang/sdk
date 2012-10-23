@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('mirrors.util');
+library mirrors_util;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#import('mirrors.dart');
-#import('../../../lib/compiler/implementation/util/characters.dart');
+import 'mirrors.dart';
+import '../../../lib/compiler/implementation/util/characters.dart';
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API

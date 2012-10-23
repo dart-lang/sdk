@@ -2,5 +2,5 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('top_level_entry_test.dart');
+library top_level_entry_test;
 #source('top_level_entry.dart');

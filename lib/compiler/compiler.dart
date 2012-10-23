@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('compiler');
+library compiler;
 
-#import('dart:uri');
-#import('implementation/apiimpl.dart');
+import 'dart:uri';
+import 'implementation/apiimpl.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in a NullPointerException being

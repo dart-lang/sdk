@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to allow the test to run on Dartium.
-#library('base64_test');
+library base64_test;
 
-#import("dart:crypto");
+import "dart:crypto";
 
 // Data from http://tools.ietf.org/html/rfc4648.
 var inputs =

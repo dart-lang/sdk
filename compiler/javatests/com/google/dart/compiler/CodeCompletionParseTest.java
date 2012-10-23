@@ -13,7 +13,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 public class CodeCompletionParseTest extends CompilerTestCase {
 
   public void test1() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "class CellLocation {",
         "  int _field1;",
         "  String _field2;",
@@ -29,7 +29,7 @@ public class CodeCompletionParseTest extends CompilerTestCase {
   }
 
   public void test2() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "doFoo() {",
         "  new ", // cursor
         "}"));
@@ -38,7 +38,7 @@ public class CodeCompletionParseTest extends CompilerTestCase {
   }
 
   public void test3() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "class Foo {",
         "  static final Bar b = const ", // cursor
         "}",
@@ -51,7 +51,7 @@ public class CodeCompletionParseTest extends CompilerTestCase {
   }
 
   public void test4() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "foo() {",
         "  int SEED;",
         "  for (int i = 0; i < S)", // cursor before )
@@ -61,7 +61,7 @@ public class CodeCompletionParseTest extends CompilerTestCase {
   }
 
   public void test5() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "ckass Sunflower {",
         "  static final int SEED_RADIUS = 2;",
         "  static final int SCALE_FACTOR = 4;",
@@ -73,7 +73,7 @@ public class CodeCompletionParseTest extends CompilerTestCase {
   }
 
   public void test6() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary("foo", makeCode(
+    AnalyzeLibraryResult result = analyzeLibrary(makeCode(
         "class Sunflower {",
         "  static final int SEED_RADIUS = 2;",
         "  static final int SCALE_FACTOR = 4;",

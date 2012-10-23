@@ -5,13 +5,13 @@
 /**
  * Tests internationalization of messages using the basic example as a template.
  */
-#library('intl_message_test_2');
+library intl_message_test_2;
 
-#import('../lib/date_symbol_data_local.dart');
-#import('../lib/intl.dart');
-#import('../lib/message_lookup_local.dart');
-#import('../example/basic/basic_example.dart');
-#import('../../unittest/unittest.dart');
+import '../lib/date_symbol_data_local.dart';
+import '../lib/intl.dart';
+import '../lib/message_lookup_local.dart';
+import '../example/basic/basic_example.dart';
+import '../../unittest/unittest.dart';
 
 List list;
 

@@ -14,27 +14,26 @@
  * members, finds the associated doc comments and builds crosslinked docs from
  * them.
  */
-#library('dartdoc');
+library dartdoc;
 
-#import('dart:io');
-#import('dart:math');
-#import('dart:uri');
-#import('dart:json');
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-#import('mirrors.dart');
-#import('mirrors_util.dart');
-#import('src/mirrors/dart2js_mirror.dart', prefix: 'dart2js');
-#import('classify.dart');
-#import('markdown.dart', prefix: 'md');
-#import('../../../lib/compiler/implementation/scanner/scannerlib.dart',
-        prefix: 'dart2js');
-#import('../../../lib/_internal/libraries.dart');
+import 'dart:io';
+import 'dart:math';
+import 'dart:uri';
+import 'dart:json';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-#source('src/dartdoc/comment_map.dart');
-#source('src/dartdoc/nav.dart');
-#source('src/dartdoc/utils.dart');
+import 'mirrors.dart';
+import 'mirrors_util.dart';
+import 'src/mirrors/dart2js_mirror.dart' as dart2js;
+import 'classify.dart';
+import 'markdown.dart' as md;
+import '../../../lib/compiler/implementation/scanner/scannerlib.dart' as dart2js;
+import '../../../lib/_internal/libraries.dart';
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+part 'src/dartdoc/comment_map.dart';
+part 'src/dartdoc/nav.dart';
+part 'src/dartdoc/utils.dart';
 
 /**
  * Generates completely static HTML containing everything you need to browse

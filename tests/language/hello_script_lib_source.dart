@@ -5,6 +5,8 @@
 // Testing a simple script importing a library.
 // This file contains a source file included from the library.
 
+part of HelloScriptTest;
+
 // A top-level variable being accessed both from the library and the importer.
 
 var x;

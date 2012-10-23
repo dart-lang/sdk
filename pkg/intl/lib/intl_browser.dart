@@ -9,10 +9,10 @@
  * ability to find the default locale from the browser.
  */
 
-#library("intl_browser");
+library intl_browser;
 
-#import("dart:html");
-#import("intl.dart");
+import "dart:html";
+import "intl.dart";
 
 // TODO(alanknight): The need to do this by forcing the user to specially
 // import a particular library is a horrible hack, only done because there

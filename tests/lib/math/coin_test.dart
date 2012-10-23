@@ -5,9 +5,9 @@
 // Test that a coin toss with Random.nextBool() is fair.
 
 // Library tag to allow Dartium to run the test.
-#library("coin_test");
+library coin_test;
 
-#import("dart:math");
+import "dart:math";
 
 main() {
   var seed = new Random().nextInt((1<<32) - 1);

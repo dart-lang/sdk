@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing libraries.
 
-#library("Library1Test.dart");
+library Library1Test;
 #import("library1_lib.lib");
 
 main() {

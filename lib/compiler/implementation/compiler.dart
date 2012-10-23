@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart2js;
+
 
 /**
  * If true, print a warning for each method that was resolved, but not

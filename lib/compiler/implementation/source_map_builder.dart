@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('source_map_builder');
+library source_map_builder;
 
-#import('dart:json');
+import 'dart:json';
 
-#import('scanner/scannerlib.dart');
-#import('source_file.dart');
+import 'scanner/scannerlib.dart';
+import 'source_file.dart';
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;

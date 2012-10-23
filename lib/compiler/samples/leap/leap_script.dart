@@ -1,3 +1,5 @@
+part of leap;
+
 class LeapScript {
   final text;
   LeapScript(this.text);

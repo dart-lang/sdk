@@ -8,12 +8,12 @@
  * be run on its own, but rather to be imported and run from another test file.
  */
 
-#library('date_time_format_tests');
+library date_time_format_tests;
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('date_time_format_test_data.dart');
-#import('../lib/intl.dart');
-#import('../lib/src/date_format_internal.dart');
+import '../../../pkg/unittest/unittest.dart';
+import 'date_time_format_test_data.dart';
+import '../lib/intl.dart';
+import '../lib/src/date_format_internal.dart';
 
 var formatsToTest = const [
   DateFormat.DAY,

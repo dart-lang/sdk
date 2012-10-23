@@ -4,7 +4,7 @@
 // Dart test for loading several dart files and resolving superclasses lazily.
 // Same as MultiPassTest, except that the file order is reversed.
 
-#library("MultiPass2Test.dart");
+library MultiPass2Test;
 #source("multi_pass_a.dart");
 #source("multi_pass_b.dart");
 

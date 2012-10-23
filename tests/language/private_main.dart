@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields.
+part of Private3Test;
 
 main() {
   PrivateMain.main();
