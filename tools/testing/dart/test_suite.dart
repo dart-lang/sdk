@@ -1420,7 +1420,6 @@ class TestUtils {
   static bool usesWebDriver(String runtime) => Contains(
       runtime, const <String>['dartium',
                               'ie9',
-                              'ie10',
                               'safari',
                               'opera',
                               'chrome',
