@@ -184,13 +184,13 @@ class IntConstant extends NumConstant {
 class DoubleConstant extends NumConstant {
   final double value;
   factory DoubleConstant(double value) {
-    if (value.isNaN()) {
+    if (value.isNaN) {
       return const DoubleConstant._internal(double.NAN);
     } else if (value == double.INFINITY) {
       return const DoubleConstant._internal(double.INFINITY);
     } else if (value == -double.INFINITY) {
       return const DoubleConstant._internal(-double.INFINITY);
-    } else if (value == 0.0 && !value.isNegative()) {
+    } else if (value == 0.0 && !value.isNegative) {
       return const DoubleConstant._internal(0.0);
     } else if (value == 1.0) {
       return const DoubleConstant._internal(1.0);
@@ -200,9 +200,9 @@ class DoubleConstant extends NumConstant {
   }
   const DoubleConstant._internal(this.value);
   bool isDouble() => true;
-  bool isNaN() => value.isNaN();
+  bool isNaN() => value.isNaN;
   // We need to check for the negative sign since -0.0 == 0.0.
-  bool isMinusZero() => value == 0.0 && value.isNegative();
+  bool isMinusZero() => value == 0.0 && value.isNegative;
 
   DartType computeType(Compiler compiler) {
     return compiler.doubleClass.computeType(compiler);
@@ -213,9 +213,9 @@ class DoubleConstant extends NumConstant {
     DoubleConstant otherDouble = other;
     double otherValue = otherDouble.value;
     if (value == 0.0 && otherValue == 0.0) {
-      return value.isNegative() == otherValue.isNegative();
-    } else if (value.isNaN()) {
-      return otherValue.isNaN();
+      return value.isNegative == otherValue.isNegative;
+    } else if (value.isNaN) {
+      return otherValue.isNaN;
     } else {
       return value == otherValue;
     }

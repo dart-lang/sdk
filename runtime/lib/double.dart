@@ -49,7 +49,7 @@ class _Double implements double {
   double operator -() {
     if (this == 0.0) {
       // -0.0 is canonicalized by the VM's parser, therefore no cycles.
-      return isNegative() ? 0.0 : -0.0;
+      return isNegative ? 0.0 : -0.0;
     }
     return 0.0 - this;
   }
@@ -93,9 +93,9 @@ class _Double implements double {
   bool _greaterThanFromInteger(int other)
       native "Double_greaterThanFromInteger";
 
-  bool isNegative() native "Double_isNegative";
-  bool isInfinite() native "Double_isInfinite";
-  bool isNaN() native "Double_isNaN";
+  bool get isNegative native "Double_getIsNegative";
+  bool get isInfinite native "Double_getIsInfinite";
+  bool get isNaN native "Double_getIsNaN";
 
   double abs() {
     // Handle negative 0.0.
@@ -116,7 +116,7 @@ class _Double implements double {
     }
     // Throw NullPointerException if exponent is null.
     double doubleExponent = exponent.toDouble();
-    if (isNaN() || exponent.isNaN()) {
+    if (isNaN || exponent.isNaN) {
       return double.NAN;
     }
     return _pow(doubleExponent);
@@ -136,7 +136,7 @@ class _Double implements double {
     double x = this;
 
     // Step 4.
-    if (isNaN()) return "NaN";
+    if (isNaN) return "NaN";
 
     // Step 5 and 6 skipped. Will be dealt with by native function.
 
@@ -163,7 +163,7 @@ class _Double implements double {
       throw "Range error";
     }
 
-    if (isNaN()) return "NaN";
+    if (isNaN) return "NaN";
     if (this == double.INFINITY) return "Infinity";
     if (this == -double.INFINITY) return "-Infinity";
 
@@ -189,7 +189,7 @@ class _Double implements double {
       throw "Range error";
     }
 
-    if (isNaN()) return "NaN";
+    if (isNaN) return "NaN";
     if (this == double.INFINITY) return "Infinity";
     if (this == -double.INFINITY) return "-Infinity";
 
@@ -211,8 +211,8 @@ class _Double implements double {
       return GREATER;
     } else if (this == other) {
       if (this == 0.0) {
-        bool thisIsNegative = isNegative();
-        bool otherIsNegative = other.isNegative();
+        bool thisIsNegative = isNegative;
+        bool otherIsNegative = other.isNegative;
         if (thisIsNegative == otherIsNegative) {
           return EQUAL;
         }
@@ -220,8 +220,8 @@ class _Double implements double {
       } else {
         return EQUAL;
       }
-    } else if (isNaN()) {
-      return other.isNaN() ? EQUAL : GREATER;
+    } else if (isNaN) {
+      return other.isNaN ? EQUAL : GREATER;
     } else {
       // Other is NaN.
       return LESS;

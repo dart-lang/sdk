@@ -116,15 +116,15 @@ compareTo(a, b) {
       return 1;
     } else if (a == b) {
       if (a == 0) {
-        bool aIsNegative = a.isNegative();
-        bool bIsNegative = b.isNegative();
+        bool aIsNegative = a.isNegative;
+        bool bIsNegative = b.isNegative;
         if (aIsNegative == bIsNegative) return 0;
         if (aIsNegative) return -1;
         return 1;
       }
       return 0;
-    } else if (a.isNaN()) {
-      if (b.isNaN()) {
+    } else if (a.isNaN) {
+      if (b.isNaN) {
         return 0;
       }
       return 1;
@@ -373,19 +373,19 @@ sort$1(receiver, compare) {
   DualPivotQuicksort.sort(receiver, compare);
 }
 
-isNegative(receiver) {
+get$isNegative(receiver) {
   if (receiver is num) {
     return (receiver == 0) ? (1 / receiver) < 0 : receiver < 0;
   } else {
-    return UNINTERCEPTED(receiver.isNegative());
+    return UNINTERCEPTED(receiver.isNegative);
   }
 }
 
-isNaN(receiver) {
+get$isNaN(receiver) {
   if (receiver is num) {
     return JS('bool', r'isNaN(#)', receiver);
   } else {
-    return UNINTERCEPTED(receiver.isNaN());
+    return UNINTERCEPTED(receiver.isNaN);
   }
 }
 
@@ -406,9 +406,9 @@ abs(receiver) {
 toInt(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
-  if (receiver.isNaN()) throw new FormatException('NaN');
+  if (receiver.isNaN) throw new FormatException('NaN');
 
-  if (receiver.isInfinite()) throw new FormatException('Infinity');
+  if (receiver.isInfinite) throw new FormatException('Infinity');
 
   var truncated = receiver.truncate();
   return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
@@ -426,8 +426,8 @@ floor(receiver) {
   return JS('num', r'Math.floor(#)', receiver);
 }
 
-isInfinite(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
+get$isInfinite(receiver) {
+  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite);
 
   return JS('bool', r'# == Infinity', receiver)
     || JS('bool', r'# == -Infinity', receiver);
@@ -462,7 +462,7 @@ toStringAsFixed(receiver, fractionDigits) {
   checkNum(fractionDigits);
 
   String result = JS('String', r'#.toFixed(#)', receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -477,7 +477,7 @@ toStringAsExponential(receiver, fractionDigits) {
   } else {
     result = JS('String', r'#.toExponential()', receiver);
   }
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -489,7 +489,7 @@ toStringAsPrecision(receiver, fractionDigits) {
 
   String result = JS('String', r'#.toPrecision(#)',
                      receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -656,13 +656,13 @@ charCodes(receiver) {
   return result;
 }
 
-isEven(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isEven());
+get$isEven(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isEven);
   return (receiver & 1) == 0;
 }
 
-isOdd(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd());
+get$isOdd(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd);
   return (receiver & 1) == 1;
 }
 

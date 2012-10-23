@@ -48,11 +48,11 @@ namespace dart {
   V(_Double, -, Double_sub)                                                    \
   V(_Double, *, Double_mul)                                                    \
   V(_Double, /, Double_div)                                                    \
+  V(_Double, get:isNaN, Double_getIsNaN)                                       \
+  V(_Double, get:isNegative, Double_getIsNegative)                             \
   V(_Double, toDouble, Double_toDouble)                                        \
   V(_Double, _mulFromInteger, Double_mulFromInteger)                           \
   V(_Double, .fromInteger, Double_fromInteger)                                 \
-  V(_Double, isNaN, Double_isNaN)                                              \
-  V(_Double, isNegative, Double_isNegative)                                    \
   V(_Double, toInt, Double_toInt)                                              \
   V(_ObjectArray, ., ObjectArray_Allocate)                                     \
   V(_ObjectArray, get:length, Array_getLength)                                 \

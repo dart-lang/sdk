@@ -321,12 +321,12 @@ class int32 implements intx {
     return _i >= _convert(other);
   }
 
-  bool isEven() => (_i & 0x1) == 0;
-  bool isMaxValue() => _i == 2147483647;
-  bool isMinValue() => _i == -2147483648;
-  bool isNegative() => _i < 0;
-  bool isOdd() => (_i & 0x1) == 1;
-  bool isZero() => _i == 0;
+  bool get isEven => (_i & 0x1) == 0;
+  bool get isMaxValue => _i == 2147483647;
+  bool get isMinValue => _i == -2147483648;
+  bool get isNegative => _i < 0;
+  bool get isOdd => (_i & 0x1) == 1;
+  bool get isZero => _i == 0;
 
   int get hashCode => _i;
 

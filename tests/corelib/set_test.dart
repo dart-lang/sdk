@@ -76,7 +76,7 @@ class SetTest {
 
     // Test Set.filter.
     testFilter(int val) {
-      return val.isEven();
+      return val.isEven;
     }
 
     Set filtered = set.filter(testFilter);

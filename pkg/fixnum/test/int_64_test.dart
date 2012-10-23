@@ -267,7 +267,7 @@ void testDiv() {
 void testFactorial() {
 
   int64 _fact(int64 n) {
-    if (n.isZero()) {
+    if (n.isZero) {
       return new int64.fromInt(1);
     } else {
       return n * _fact(n - new int64.fromInt(1));

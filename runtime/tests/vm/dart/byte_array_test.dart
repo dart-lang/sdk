@@ -882,8 +882,8 @@ class ByteArrayTest {
     Expect.equals(0xFFFFFFFF, byte_array.getUint32(0));
     Expect.equals(-1, byte_array.getInt64(0));
     Expect.equals(0xFFFFFFFFFFFFFFFF, byte_array.getUint64(0));
-    Expect.isTrue(byte_array.getFloat32(0).isNaN());
-    Expect.isTrue(byte_array.getFloat64(0).isNaN());
+    Expect.isTrue(byte_array.getFloat32(0).isNaN);
+    Expect.isTrue(byte_array.getFloat64(0).isNaN);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF - i;
     }

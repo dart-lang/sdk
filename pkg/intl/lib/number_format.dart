@@ -90,8 +90,8 @@ class NumberFormat {
   String format(num number) {
     // TODO(alanknight): Do we have to do anything for printing numbers bidi?
     // Or are they always printed left to right?
-    if (number.isNaN()) return symbols.NAN;
-    if (number.isInfinite()) return "${_signPrefix(number)}${symbols.INFINITY}";
+    if (number.isNaN) return symbols.NAN;
+    if (number.isInfinite) return "${_signPrefix(number)}${symbols.INFINITY}";
 
     _newBuffer();
     _add(_signPrefix(number));
@@ -268,7 +268,7 @@ class NumberFormat {
    * In en_US this would be '' and '-' respectively.
    */
   String _signPrefix(num x) {
-    return x.isNegative() ? _negativePrefix : _positivePrefix;
+    return x.isNegative ? _negativePrefix : _positivePrefix;
   }
 
   /**
@@ -276,6 +276,6 @@ class NumberFormat {
    * In en_US there are no suffixes for positive or negative.
    */
   String _signSuffix(num x) {
-    return x.isNegative() ? _negativeSuffix : _positiveSuffix;
+    return x.isNegative ? _negativeSuffix : _positiveSuffix;
   }
 }

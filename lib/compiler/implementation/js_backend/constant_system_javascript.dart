@@ -196,7 +196,7 @@ class JavaScriptConstantSystem implements ConstantSystem {
     } else if (constant.isDouble()) {
       DoubleConstant doubleResult = constant;
       double doubleValue = doubleResult.value;
-      if (!doubleValue.isInfinite() && !doubleValue.isNaN() &&
+      if (!doubleValue.isInfinite && !doubleValue.isNaN &&
           !constant.isMinusZero()) {
         int intValue = doubleValue.toInt();
         if (intValue == doubleValue && integerFitsIntoDouble(intValue)) {

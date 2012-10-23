@@ -63,7 +63,7 @@ class ConstantEmitter implements ConstantVisitor {
 
   void visitDouble(DoubleConstant constant) {
     double value = constant.value;
-    if (value.isNaN()) {
+    if (value.isNaN) {
       buffer.add("(0/0)");
     } else if (value == double.INFINITY) {
       buffer.add("(1/0)");

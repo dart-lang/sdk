@@ -22,7 +22,7 @@ class DivByZeroTest {
   }
 
   static void testMain() {
-    Expect.isTrue(divBy(0, 0).isNaN());
+    Expect.isTrue(divBy(0, 0).isNaN);
     Expect.isTrue(moustacheDivBy(0, 0));
   }
 }

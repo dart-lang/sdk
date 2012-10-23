@@ -25,11 +25,11 @@ void main() {
   Expect.equals(0.0, parseDouble("0"));
   Expect.equals(0.0, parseDouble("+0"));
   Expect.equals(-0.0, parseDouble("-0"));
-  Expect.equals(true, parseDouble("-0").isNegative());
+  Expect.equals(true, parseDouble("-0").isNegative);
   Expect.equals(0.0, parseDouble("   0   "));
   Expect.equals(0.0, parseDouble("   +0   "));
   Expect.equals(-0.0, parseDouble("   -0   "));
-  Expect.equals(true, parseDouble("   -0   ").isNegative());
+  Expect.equals(true, parseDouble("   -0   ").isNegative);
   Expect.equals(1.0 * 0x1234567890, parseDouble("0x1234567890"));
   Expect.equals(1.0 * -0x1234567890, parseDouble("-0x1234567890"));
   Expect.equals(1.0 * 0x1234567890, parseDouble("   0x1234567890   "));

@@ -7,18 +7,18 @@
 #import('dart:math');
 
 testIsNegative() {
-  Expect.isFalse((12.0).isNegative());
-  Expect.isTrue((-12.0).isNegative());
-  Expect.isFalse((double.NAN).isNegative());
-  Expect.isFalse((0.0).isNegative());
-  Expect.isTrue((-0.0).isNegative());
-  Expect.isFalse((double.INFINITY).isNegative());
-  Expect.isTrue((double.NEGATIVE_INFINITY).isNegative());
+  Expect.isFalse((12.0).isNegative);
+  Expect.isTrue((-12.0).isNegative);
+  Expect.isFalse((double.NAN).isNegative);
+  Expect.isFalse((0.0).isNegative);
+  Expect.isTrue((-0.0).isNegative);
+  Expect.isFalse((double.INFINITY).isNegative);
+  Expect.isTrue((double.NEGATIVE_INFINITY).isNegative);
 }
 
 testIsNaN() {
-  Expect.isFalse((1.0).isNaN());
-  Expect.isTrue((double.NAN).isNaN());
+  Expect.isFalse((1.0).isNaN);
+  Expect.isTrue((double.NAN).isNaN);
 }
 
 

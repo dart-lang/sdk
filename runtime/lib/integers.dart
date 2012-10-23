@@ -89,11 +89,11 @@ class _IntegerImplementation {
   int abs() {
     return this < 0 ? -this : this;
   }
-  bool isEven() { return ((this & 1) === 0); }
-  bool isOdd() { return !isEven(); }
-  bool isNaN() { return false; }
-  bool isNegative() { return this < 0; }
-  bool isInfinite() { return false; }
+  bool get isEven => ((this & 1) == 0);
+  bool get isOdd => !isEven;
+  bool get isNaN => false;
+  bool get isNegative => this < 0;
+  bool get isInfinite => false;
 
   int compareTo(num other) {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
@@ -102,10 +102,10 @@ class _IntegerImplementation {
       int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
       int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
       double d = other;
-      if (d.isInfinite()) {
+      if (d.isInfinite) {
         return d == double.NEGATIVE_INFINITY ? GREATER : LESS;
       }
-      if (d.isNaN()) {
+      if (d.isNaN) {
         return LESS;
       }
       if (MIN_EXACT_INT_TO_DOUBLE <= this && this <= MAX_EXACT_INT_TO_DOUBLE) {
@@ -136,7 +136,7 @@ class _IntegerImplementation {
 
   int pow(int exponent) {
     double res = this.toDouble().pow(exponent);
-    if (res.isInfinite()) {
+    if (res.isInfinite) {
       // Use Bigint instead.
       throw "_IntegerImplementation.pow not implemented for large integers.";
     }

@@ -182,7 +182,7 @@ class TestReport {
   }
 
   static String _stringifyDoubleAsInt(double val) {
-    if (val.isInfinite() || val.isNaN()) {
+    if (val.isInfinite || val.isNaN) {
       return "NaN";
     } else {
       return val.toInt().toString();

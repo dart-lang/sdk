@@ -39,12 +39,12 @@ abstract class intx implements Comparable {
   bool operator >=(other);
 
   // Testers.
-  bool isEven();
-  bool isMaxValue();
-  bool isMinValue();
-  bool isNegative();
-  bool isOdd();
-  bool isZero();
+  bool get isEven;
+  bool get isMaxValue;
+  bool get isMinValue;
+  bool get isNegative;
+  bool get isOdd;
+  bool get isZero;
 
   int get hashCode;
 

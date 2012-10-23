@@ -35,6 +35,9 @@ namespace dart {
   V(Smi_bitNegate, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
   V(Bigint_bitNegate, 1)                                                       \
+  V(Double_getIsNegative, 1)                                                   \
+  V(Double_getIsInfinite, 1)                                                   \
+  V(Double_getIsNaN, 1)                                                        \
   V(Double_add, 2)                                                             \
   V(Double_sub, 2)                                                             \
   V(Double_mul, 2)                                                             \
@@ -46,9 +49,6 @@ namespace dart {
   V(Double_equalToInteger, 2)                                                  \
   V(Double_greaterThan, 2)                                                     \
   V(Double_equal, 2)                                                           \
-  V(Double_isNegative, 1)                                                      \
-  V(Double_isInfinite, 1)                                                      \
-  V(Double_isNaN, 1)                                                           \
   V(Double_doubleFromInteger, 2)                                               \
   V(Double_round, 1)                                                           \
   V(Double_floor, 1)                                                           \

@@ -71,6 +71,6 @@ bool _mapEquals(Map map1, Map map2, List parents1, List parents2) {
  * that it considers NaN to be equal to itself.
  */
 bool _doubleEquals(double d1, double d2) {
-  if (d1.isNaN() && d2.isNaN()) return true;
+  if (d1.isNaN && d2.isNaN) return true;
   return d1 == d2;
 }

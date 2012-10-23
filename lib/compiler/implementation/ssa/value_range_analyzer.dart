@@ -20,8 +20,8 @@ abstract class Value {
     if (other == const MinIntValue()) return other;
     if (other == const MaxIntValue()) return this;
     Value value = this - other;
-    if (value.isPositive()) return other;
-    if (value.isNegative()) return this;
+    if (value.isPositive) return other;
+    if (value.isNegative) return this;
     return const UnknownValue();
   }
 
@@ -30,14 +30,14 @@ abstract class Value {
     if (other == const MinIntValue()) return this;
     if (other == const MaxIntValue()) return other;
     Value value = this - other;
-    if (value.isPositive()) return this;
-    if (value.isNegative()) return other;
+    if (value.isPositive) return this;
+    if (value.isNegative) return other;
     return const UnknownValue();
   }
 
-  bool isNegative() => false;
-  bool isPositive() => false;
-  bool isZero() => false;
+  bool get isNegative => false;
+  bool get isPositive => false;
+  bool get isZero => false;
 }
 
 /**
@@ -48,26 +48,26 @@ class IntValue extends Value {
   const IntValue(this.value);
 
   Value operator +(other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (other is !IntValue) return other + this;
     return new IntValue(value + other.value);
   }
 
   Value operator -(other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (other is !IntValue) return -other + this;
     return new IntValue(value - other.value);
   }
 
   Value operator -() {
-    if (isZero()) return this;
+    if (isZero) return this;
     return new IntValue(-value);
   }
 
   Value operator &(other) {
     if (other is !IntValue) {
-      if (isPositive()) return this;
-      if (other.isPositive()) return new IntValue(-value);
+      if (isPositive) return this;
+      if (other.isPositive) return new IntValue(-value);
       return const UnknownValue();
     }
     return new IntValue(value & other.value);
@@ -89,9 +89,9 @@ class IntValue extends Value {
   }
 
   String toString() => 'IntValue $value';
-  bool isNegative() => value < 0;
-  bool isPositive() => value >= 0;
-  bool isZero() => value == 0;
+  bool get isNegative => value < 0;
+  bool get isPositive => value >= 0;
+  bool get isZero => value == 0;
 }
 
 /**
@@ -104,15 +104,15 @@ class MaxIntValue extends Value {
   Value operator -(Value other) => this;
   Value operator -() => const MinIntValue();
   Value operator &(Value other) {
-    if (other.isPositive()) return other;
-    if (other.isNegative()) return const IntValue(0);
+    if (other.isPositive) return other;
+    if (other.isNegative) return const IntValue(0);
     return this;
   }
   Value min(Value other) => other;
   Value max(Value other) => this;
   String toString() => 'Max';
-  bool isNegative() => false;
-  bool isPositive() => true;
+  bool get isNegative => false;
+  bool get isPositive => true;
 }
 
 /**
@@ -125,14 +125,14 @@ class MinIntValue extends Value {
   Value operator -(Value other) => this;
   Value operator -() => const MaxIntValue();
   Value operator &(Value other) {
-    if (other.isPositive()) return const IntValue(0);
+    if (other.isPositive) return const IntValue(0);
     return this;
   }
   Value min(Value other) => this;
   Value max(Value other) => other;
   String toString() => 'Min';
-  bool isNegative() => true;
-  bool isPositive() => false;
+  bool get isNegative => true;
+  bool get isPositive => false;
 }
 
 /**
@@ -147,8 +147,8 @@ class UnknownValue extends Value {
   Value operator &(Value other) => const UnknownValue();
   Value min(Value other) => const UnknownValue();
   Value max(Value other) => const UnknownValue();
-  bool isNegative() => false;
-  bool isPositive() => false;
+  bool get isNegative => false;
+  bool get isPositive => false;
   String toString() => 'Unknown';
 }
 
@@ -165,9 +165,9 @@ class InstructionValue extends Value {
   }
 
   Value operator +(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (other is IntValue) {
-      if (other.isNegative()) {
+      if (other.isNegative) {
         return new SubtractValue(this, -other);
       }
       return new AddValue(this, other);
@@ -179,10 +179,10 @@ class InstructionValue extends Value {
   }
 
   Value operator -(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (this == other) return const IntValue(0);
     if (other is IntValue) {
-      if (other.isNegative()) {
+      if (other.isNegative) {
         return new AddValue(this, -other);
       }
       return new SubtractValue(this, other);
@@ -202,8 +202,8 @@ class InstructionValue extends Value {
     return this;
   }
 
-  bool isNegative() => false;
-  bool isPositive() => false;
+  bool get isNegative => false;
+  bool get isPositive => false;
 
   String toString() => 'Instruction: $instruction';
 }
@@ -215,7 +215,7 @@ class InstructionValue extends Value {
  */
 class LengthValue extends InstructionValue {
   LengthValue(HInstruction instruction) : super(instruction);
-  bool isPositive() => true;
+  bool get isPositive => true;
   String toString() => 'Length: $instruction';
 }
 
@@ -246,7 +246,7 @@ class AddValue extends BinaryOperationValue {
   Value operator -() => -left - right;
 
   Value operator +(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     Value value = left + other;
     if (value != const UnknownValue() && value is! BinaryOperationValue) {
       return value + right;
@@ -261,7 +261,7 @@ class AddValue extends BinaryOperationValue {
   }
 
   Value operator -(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     Value value = left - other;
     if (value != const UnknownValue() && value is! BinaryOperationValue) {
       return value + right;
@@ -275,8 +275,8 @@ class AddValue extends BinaryOperationValue {
     return const UnknownValue();
   }
 
-  bool isNegative() => left.isNegative() && right.isNegative();
-  bool isPositive() => left.isPositive() && right.isPositive();
+  bool get isNegative => left.isNegative && right.isNegative;
+  bool get isPositive => left.isPositive && right.isPositive;
   String toString() => '$left + $right';
 }
 
@@ -292,7 +292,7 @@ class SubtractValue extends BinaryOperationValue {
   Value operator -() => right - left;
 
   Value operator +(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     Value value = left + other;
     if (value != const UnknownValue() && value is! BinaryOperationValue) {
       return value - right;
@@ -307,7 +307,7 @@ class SubtractValue extends BinaryOperationValue {
   }
 
   Value operator -(Value other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     Value value = left - other;
     if (value != const UnknownValue() && value is! BinaryOperationValue) {
       return value - right;
@@ -321,8 +321,8 @@ class SubtractValue extends BinaryOperationValue {
     return const UnknownValue();
   }
 
-  bool isNegative() => left.isNegative() && right.isPositive();
-  bool isPositive() => left.isPositive() && right.isNegative();
+  bool get isNegative => left.isNegative && right.isPositive;
+  bool get isPositive => left.isPositive && right.isNegative;
   String toString() => '$left - $right';
 }
 
@@ -336,11 +336,11 @@ class NegateValue extends OperationValue {
   }
 
   Value operator +(other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (other == value) return const IntValue(0);
     if (other is NegateValue) return this - other.value;
     if (other is IntValue) {
-      if (other.isNegative()) {
+      if (other.isNegative) {
         return new SubtractValue(this, -other);
       }
       return new SubtractValue(other, value);
@@ -354,9 +354,9 @@ class NegateValue extends OperationValue {
   Value operator &(Value other) => const UnknownValue();
 
   Value operator -(other) {
-    if (other.isZero()) return this;
+    if (other.isZero) return this;
     if (other is IntValue) {
-      if (other.isNegative()) {
+      if (other.isNegative) {
         return new SubtractValue(-other, value);
       }
       return new SubtractValue(this, other);
@@ -370,8 +370,8 @@ class NegateValue extends OperationValue {
 
   Value operator -() => value;
 
-  bool isNegative() => value.isPositive();
-  bool isPositive() => value.isNegative();
+  bool get isNegative => value.isPositive;
+  bool get isPositive => value.isNegative;
   String toString() => '-$value';
 }
 
@@ -430,13 +430,13 @@ class Range {
   }
 
   Range operator &(Range other) {
-    if (isSingleValue()
-        && other.isSingleValue()
+    if (isSingleValue
+        && other.isSingleValue
         && lower is IntValue
         && other.lower is IntValue) {
       return new Range(lower & other.lower, upper & other.upper);
     }
-    if (isPositive() && other.isPositive()) {
+    if (isPositive && other.isPositive) {
       Value up = upper.min(other.upper);
       if (up == const UnknownValue()) {
         // If we could not find a trivial bound, just try to use the
@@ -447,9 +447,9 @@ class Range {
         if (up is! IntValue && upper != other.upper) up = const MaxIntValue();
       }
       return new Range(const IntValue(0), up);
-    } else if (isPositive()) {
+    } else if (isPositive) {
       return new Range(const IntValue(0), upper);
-    } else if (other.isPositive()) {
+    } else if (other.isPositive) {
       return new Range(const IntValue(0), other.upper);
     } else {
       return const Range.unbound();
@@ -477,9 +477,9 @@ class Range {
     return lower.max(other.upper) == lower;
   }
 
-  bool isNegative() => upper.isNegative();
-  bool isPositive() => lower.isPositive();
-  bool isSingleValue() => lower == upper;
+  bool get isNegative => upper.isNegative;
+  bool get isPositive => lower.isPositive;
+  bool get isSingleValue => lower == upper;
 
   String toString() => '[$lower, $upper]';
 }
@@ -609,21 +609,21 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     belowLength = belowLength
         || (indexRange.upper != lengthRange.lower
             && indexRange.upper.min(lengthRange.lower) == indexRange.upper);
-    if (indexRange.isPositive() && belowLength) {
+    if (indexRange.isPositive && belowLength) {
       check.block.rewrite(check, check.index);
       check.block.remove(check);
-    } else if (indexRange.isNegative() || lengthRange < indexRange) {
+    } else if (indexRange.isNegative || lengthRange < indexRange) {
       check.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       // The check is always false, and whatever instruction it
       // dominates is dead code.
       return indexRange;
-    } else if (indexRange.isPositive()) {
+    } else if (indexRange.isPositive) {
       check.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
     } else if (belowLength) {
       check.staticChecks = HBoundsCheck.ALWAYS_BELOW_LENGTH;
     }
 
-    if (indexRange.isPositive()) {
+    if (indexRange.isPositive) {
       // If the test passes, we know the lower bound of the length is
       // greater or equal than the lower bound of the index.
       Value low = lengthRange.lower.max(indexRange.lower);
@@ -674,7 +674,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   void handleEqualityCheck(HRelational node) {
     Range right = ranges[node.right];
     Range left = ranges[node.left];
-    if (left.isSingleValue() && right.isSingleValue() && left == right) {
+    if (left.isSingleValue && right.isSingleValue && left == right) {
       node.block.rewrite(
           node, graph.addConstantBool(true, constantSystem));
       node.block.remove(node);
@@ -705,9 +705,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
     Range tryComputeRange(HInstruction instruction) {
       Range range = ranges[instruction];
-      if (range.isPositive()) {
+      if (range.isPositive) {
         return new Range(const IntValue(0), range.upper);
-      } else if (range.isNegative()) {
+      } else if (range.isNegative) {
         return new Range(range.lower, const IntValue(0));
       }
       return const Range.unbound();
@@ -855,9 +855,9 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     Range range = getRangeForRecognizableOperation(operation);
     if (range == null) return const Range.unbound();
     Range initial = ranges[loopPhi.inputs[0]];
-    if (range.isPositive()) {
+    if (range.isPositive) {
       return new Range(initial.lower, const MaxIntValue());
-    } else if (range.isNegative()) {
+    } else if (range.isNegative) {
       return new Range(const MinIntValue(), initial.upper);
     }
     return const Range.unbound();
@@ -867,9 +867,9 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     Range range = getRangeForRecognizableOperation(operation);
     if (range == null) return const Range.unbound();
     Range initial = ranges[loopPhi.inputs[0]];
-    if (range.isPositive()) {
+    if (range.isPositive) {
       return new Range(const MinIntValue(), initial.upper);
-    } else if (range.isNegative()) {
+    } else if (range.isNegative) {
       return new Range(initial.lower, const MaxIntValue());
     }
     return const Range.unbound();

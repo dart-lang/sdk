@@ -36,10 +36,10 @@ abstract class int extends num {
   int operator >>(int shiftAmount);
 
   /** Returns true if and only if this integer is even. */
-  bool isEven();
+  bool get isEven;
 
   /** Returns true if and only if this integer is odd. */
-  bool isOdd();
+  bool get isOdd;
 
   /** Negate operator. Negating an integer produces an integer. */
   int operator -();

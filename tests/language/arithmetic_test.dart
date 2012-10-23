@@ -127,27 +127,27 @@ class ArithmeticTest {
     big = 123456789012345;
     // -- isNegative --.
     // Smi.
-    Expect.equals(false, (0).isNegative());
-    Expect.equals(false, (1).isNegative());
-    Expect.equals(true, (-1).isNegative());
+    Expect.equals(false, (0).isNegative);
+    Expect.equals(false, (1).isNegative);
+    Expect.equals(true, (-1).isNegative);
     // Big.
-    Expect.equals(false, big.isNegative());
-    Expect.equals(true, (-big).isNegative());
+    Expect.equals(false, big.isNegative);
+    Expect.equals(true, (-big).isNegative);
     // Double.
     // TODO(srdjan): enable the following test once isNegative works.
-    // Expect.equals(true, (-0.0).isNegative());
-    Expect.equals(false, (0.0).isNegative());
-    Expect.equals(false, (2.0).isNegative());
-    Expect.equals(true, (-2.0).isNegative());
+    // Expect.equals(true, (-0.0).isNegative);
+    Expect.equals(false, (0.0).isNegative);
+    Expect.equals(false, (2.0).isNegative);
+    Expect.equals(true, (-2.0).isNegative);
 
     double negateDouble(double x) {
       return -x;
     }
 
-    Expect.isTrue(negateDouble(0.0).isNegative());
-    Expect.isFalse(negateDouble(-0.0).isNegative());
-    Expect.isTrue(negateDouble(3.5e3).isNegative());
-    Expect.isFalse(negateDouble(-3.5e3).isNegative());
+    Expect.isTrue(negateDouble(0.0).isNegative);
+    Expect.isFalse(negateDouble(-0.0).isNegative);
+    Expect.isTrue(negateDouble(3.5e3).isNegative);
+    Expect.isFalse(negateDouble(-3.5e3).isNegative);
 
 
     // Constants.
@@ -156,32 +156,32 @@ class ArithmeticTest {
 
     // -- isInfinite --.
     // Smi.
-    Expect.equals(false, (0).isInfinite());
-    Expect.equals(false, (1).isInfinite());
-    Expect.equals(false, (-1).isInfinite());
+    Expect.equals(false, (0).isInfinite);
+    Expect.equals(false, (1).isInfinite);
+    Expect.equals(false, (-1).isInfinite);
     // Big.
-    Expect.equals(false, big.isInfinite());
-    Expect.equals(false, (-big).isInfinite());
+    Expect.equals(false, big.isInfinite);
+    Expect.equals(false, (-big).isInfinite);
     // Double.
-    Expect.equals(false, (0.0).isInfinite());
-    Expect.equals(true, infinity.isInfinite());
-    Expect.equals(true, (-infinity).isInfinite());
-    Expect.equals(false, (12.0).isInfinite());
-    Expect.equals(false, (-12.0).isInfinite());
-    Expect.equals(false, nan.isInfinite());
+    Expect.equals(false, (0.0).isInfinite);
+    Expect.equals(true, infinity.isInfinite);
+    Expect.equals(true, (-infinity).isInfinite);
+    Expect.equals(false, (12.0).isInfinite);
+    Expect.equals(false, (-12.0).isInfinite);
+    Expect.equals(false, nan.isInfinite);
 
     // -- isNaN --.
     // Smi.
-    Expect.equals(false, (0).isNaN());
-    Expect.equals(false, (1).isNaN());
-    Expect.equals(false, (-1).isNaN());
+    Expect.equals(false, (0).isNaN);
+    Expect.equals(false, (1).isNaN);
+    Expect.equals(false, (-1).isNaN);
     // Big.
-    Expect.equals(false, big.isNaN());
-    Expect.equals(false, (-big).isNaN());
+    Expect.equals(false, big.isNaN);
+    Expect.equals(false, (-big).isNaN);
     // Double.
-    Expect.equals(true, nan.isNaN());
-    Expect.equals(false, (12.0).isNaN());
-    Expect.equals(false, infinity.isNaN());
+    Expect.equals(true, nan.isNaN);
+    Expect.equals(false, (12.0).isNaN);
+    Expect.equals(false, infinity.isNaN);
 
     // -- abs --.
     // Smi.
@@ -192,8 +192,8 @@ class ArithmeticTest {
     Expect.equals(big, big.abs());
     Expect.equals(big, (-big).abs());
     // Double.
-    Expect.equals(false, (0.0).abs().isNegative());
-    Expect.equals(false, (-0.0).abs().isNegative());
+    Expect.equals(false, (0.0).abs().isNegative);
+    Expect.equals(false, (-0.0).abs().isNegative);
     Expect.equals(2.0, (2.0).abs());
     Expect.equals(2.0, (-2.0).abs());
 
@@ -207,13 +207,13 @@ class ArithmeticTest {
     Expect.equals(-big, (-big).ceil());
     // Double.
     Expect.equals(0.0, (0.0).ceil());
-    Expect.equals(false, (0.0).ceil().isNegative());
+    Expect.equals(false, (0.0).ceil().isNegative);
     Expect.equals(1.0, (0.1).ceil());
     Expect.equals(-0.0, (-0.0).ceil());
     Expect.equals(-0.0, (-0.3).ceil());
     // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).ceil().isNegative());
-    // Expect.equals(true, (-0.3).ceil().isNegative());
+    // Expect.equals(true, (-0.0).ceil().isNegative);
+    // Expect.equals(true, (-0.3).ceil().isNegative);
     Expect.equals(3.0, (2.1).ceil());
     Expect.equals(-2.0, (-2.1).ceil());
 
@@ -228,11 +228,11 @@ class ArithmeticTest {
     // Double.
     Expect.equals(0.0, (0.0).floor());
     Expect.equals(0.0, (0.1).floor());
-    Expect.equals(false, (0.0).floor().isNegative());
-    Expect.equals(false, (0.1).floor().isNegative());
+    Expect.equals(false, (0.0).floor().isNegative);
+    Expect.equals(false, (0.1).floor().isNegative);
     Expect.equals(-0.0, (-0.0).floor());
     // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).floor().isNegative());
+    // Expect.equals(true, (-0.0).floor().isNegative);
     Expect.equals(-1.0, (-0.1).floor());
     Expect.equals(2.0, (2.1).floor());
     Expect.equals(-3.0, (-2.1).floor());
@@ -248,13 +248,13 @@ class ArithmeticTest {
     // Double.
     Expect.equals(0.0, (0.0).truncate());
     Expect.equals(0.0, (0.1).truncate());
-    Expect.equals(false, (0.0).truncate().isNegative());
-    Expect.equals(false, (0.1).truncate().isNegative());
+    Expect.equals(false, (0.0).truncate().isNegative);
+    Expect.equals(false, (0.1).truncate().isNegative);
     Expect.equals(-0.0, (-0.0).truncate());
     Expect.equals(-0.0, (-0.3).truncate());
     // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).truncate().isNegative());
-    // Expect.equals(true, (-0.3).truncate().isNegative());
+    // Expect.equals(true, (-0.0).truncate().isNegative);
+    // Expect.equals(true, (-0.3).truncate().isNegative);
     Expect.equals(2.0, (2.1).truncate());
     Expect.equals(-2.0, (-2.1).truncate());
 
@@ -275,8 +275,8 @@ class ArithmeticTest {
     Expect.equals(-3.0, (-2.6).round());
     Expect.equals(0.0, (0.0).round());
     Expect.equals(0.0, (0.1).round());
-    Expect.equals(false, (0.0).round().isNegative());
-    Expect.equals(false, (0.1).round().isNegative());
+    Expect.equals(false, (0.0).round().isNegative);
+    Expect.equals(false, (0.1).round().isNegative);
     Expect.equals(-0.0, (-0.0).round());
     Expect.equals(-0.0, (-0.3).round());
     Expect.equals(2.0, (2.1).round());
@@ -286,9 +286,9 @@ class ArithmeticTest {
     // b/4539188.
     // Expect.equals(-0.0, (-0.5).round());
     // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).round().isNegative());
-    // Expect.equals(true, (-0.3).round().isNegative());
-    // Expect.equals(true, (-0.5).round().isNegative());
+    // Expect.equals(true, (-0.0).round().isNegative);
+    // Expect.equals(true, (-0.3).round().isNegative);
+    // Expect.equals(true, (-0.5).round().isNegative);
     Expect.equals(2.0, (1.5).round());
     // TODO(floitsch): enable or adapt test, once we reached conclusion on
     // b/4539188.
@@ -377,16 +377,16 @@ class ArithmeticTest {
     Expect.equals(true, exceptionCaughtParseDouble("alpha"));
     Expect.equals(true, exceptionCaughtParseDouble("-alpha"));
 
-    Expect.equals(false, parseDouble("1.2").isNaN());
-    Expect.equals(false, parseDouble("1.2").isInfinite());
+    Expect.equals(false, parseDouble("1.2").isNaN);
+    Expect.equals(false, parseDouble("1.2").isInfinite);
 
-    Expect.equals(true, parseDouble("NaN").isNaN());
-    Expect.equals(true, parseDouble("Infinity").isInfinite());
-    Expect.equals(true, parseDouble("-Infinity").isInfinite());
+    Expect.equals(true, parseDouble("NaN").isNaN);
+    Expect.equals(true, parseDouble("Infinity").isInfinite);
+    Expect.equals(true, parseDouble("-Infinity").isInfinite);
 
-    Expect.equals(false, parseDouble("NaN").isNegative());
-    Expect.equals(false, parseDouble("Infinity").isNegative());
-    Expect.equals(true, parseDouble("-Infinity").isNegative());
+    Expect.equals(false, parseDouble("NaN").isNegative);
+    Expect.equals(false, parseDouble("Infinity").isNegative);
+    Expect.equals(true, parseDouble("-Infinity").isNegative);
 
     Expect.equals("NaN", parseDouble("NaN").toString());
     Expect.equals("Infinity", parseDouble("Infinity").toString());

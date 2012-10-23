@@ -409,7 +409,7 @@ class Primitives {
     var base = 10;
     if (match[1] != null) base = 16;
     var result = JS('num', r'parseInt(#, #)', string, base);
-    if (result.isNaN()) throw new FormatException(string);
+    if (result.isNaN) throw new FormatException(string);
     return result;
   }
 
@@ -427,7 +427,7 @@ class Primitives {
       throw new FormatException(string);
     }
     var result = JS('num', r'parseFloat(#)', string);
-    if (result.isNaN() && string != 'NaN') {
+    if (result.isNaN && string != 'NaN') {
       throw new FormatException(string);
     }
     return result;
@@ -509,7 +509,7 @@ class Primitives {
       value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN() ||
+    if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
       throw new ArgumentError();
@@ -595,7 +595,7 @@ class Primitives {
     checkNull(str);
     if (str is !String) throw new ArgumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN()) throw new ArgumentError(str);
+    if (value.isNaN) throw new ArgumentError(str);
     return value;
   }
 
@@ -761,7 +761,7 @@ class MathNatives {
       base = 16;
     }
     var ret = JS('num', r'parseInt(#, #)', trimmed, base);
-    if (ret.isNaN()) throw new FormatException(str);
+    if (ret.isNaN) throw new FormatException(str);
     return ret;
   }
 
@@ -772,7 +772,7 @@ class MathNatives {
       // TODO(ahe): This is unspecified, but tested by co19.
       ret = JS('num', r'parseInt(#)', str);
     }
-    if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
+    if (ret.isNaN && str != 'NaN' && str != '-NaN') {
       throw new FormatException(str);
     }
     return ret;

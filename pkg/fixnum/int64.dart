@@ -366,10 +366,10 @@ class int64 implements intx {
   }
 
   int64 operator %(other) {
-    if (other.isZero()) {
+    if (other.isZero) {
       throw new IntegerDivisionByZeroException();
     }
-    if (this.isZero()) {
+    if (this.isZero) {
       return ZERO;
     }
     int64 o = _promote(other).abs();
@@ -381,7 +381,7 @@ class int64 implements intx {
 
   // int64 remainder(other) => this - (this ~/ other) * other;
   int64 remainder(other) {
-    if (other.isZero()) {
+    if (other.isZero) {
       throw new IntegerDivisionByZeroException();
     }
     int64 o = _promote(other).abs();
@@ -561,12 +561,12 @@ class int64 implements intx {
     return this.compareTo(other) >= 0;
   }
 
-  bool isEven() => (_l & 0x1) == 0;
-  bool isMaxValue() => (_h == _MASK_2 >> 1) && _m == _MASK && _l == _MASK;
-  bool isMinValue() => _h == _SIGN_BIT_VALUE && _m == 0 && _l == 0;
-  bool isNegative() => (_h >> (_BITS2 - 1)) != 0;
-  bool isOdd() => (_l & 0x1) == 1;
-  bool isZero() => _h == 0 && _m == 0 && _l == 0;
+  bool get isEven => (_l & 0x1) == 0;
+  bool get isMaxValue => (_h == _MASK_2 >> 1) && _m == _MASK && _l == _MASK;
+  bool get isMinValue => _h == _SIGN_BIT_VALUE && _m == 0 && _l == 0;
+  bool get isNegative => (_h >> (_BITS2 - 1)) != 0;
+  bool get isOdd => (_l & 0x1) == 1;
+  bool get isZero => _h == 0 && _m == 0 && _l == 0;
 
   /**
    * Returns a hash code based on all the bits of this [int64].
@@ -674,22 +674,22 @@ class int64 implements intx {
   // TODO(rice) - Make this faster by converting several digits at once.
   String toString() {
     int64 a = this;
-    if (a.isZero()) {
+    if (a.isZero) {
       return "0";
     }
-    if (a.isMinValue()) {
+    if (a.isMinValue) {
       return "-9223372036854775808";
     }
 
     String result = "";
     bool negative = false;
-    if (a.isNegative()) {
+    if (a.isNegative) {
       negative = true;
       a = -a;
     }
 
     int64 ten = new int64._bits(10, 0, 0);
-    while (!a.isZero()) {
+    while (!a.isZero) {
       a = _divMod(a, ten, true);
       result = "${_remainder._l}$result";
     }
@@ -702,12 +702,12 @@ class int64 implements intx {
   // TODO(rice) - Make this faster by avoiding arithmetic.
   String toHexString() {
     int64 x = new int64._copy(this);
-    if (isZero()) {
+    if (isZero) {
       return "0";
     }
     String hexStr = "";
     int64 digit_f = new int64.fromInt(0xf);
-    while (!x.isZero()) {
+    while (!x.isZero) {
       int digit = x._l & 0xf;
       hexStr = "${_hexDigit(digit)}$hexStr";
       x = x.shiftRightUnsigned(4);
@@ -720,22 +720,22 @@ class int64 implements intx {
       throw "Bad radix: $radix";
     }
     int64 a = this;
-    if (a.isZero()) {
+    if (a.isZero) {
       return "0";
     }
-    if (a.isMinValue()) {
+    if (a.isMinValue) {
       return _minValues[radix];
     }
 
     String result = "";
     bool negative = false;
-    if (a.isNegative()) {
+    if (a.isNegative) {
       negative = true;
       a = -a;
     }
 
     int64 r = new int64._bits(radix, 0, 0);
-    while (!a.isZero()) {
+    while (!a.isZero) {
       a = _divMod(a, r, true);
       result = "${_hexDigit(_remainder._l)}$result";
     }
@@ -876,7 +876,7 @@ class int64 implements intx {
       bool gte = _trialSubtract(a, bshift);
       if (gte) {
         quotient._setBit(shift);
-        if (a.isZero()) {
+        if (a.isZero) {
           break;
         }
       }
@@ -906,7 +906,7 @@ class int64 implements intx {
   int64 _divModByMinValue(bool computeRemainder) {
     // MIN_VALUE / MIN_VALUE == 1, remainder = 0
     // (x != MIN_VALUE) / MIN_VALUE == 0, remainder == x
-    if (isMinValue()) {
+    if (isMinValue) {
       if (computeRemainder) {
         _remainder = ZERO;
       }
@@ -996,23 +996,23 @@ class int64 implements intx {
   }
 
   int64 _divMod(int64 a, int64 b, bool computeRemainder) {
-    if (b.isZero()) {
+    if (b.isZero) {
       throw new IntegerDivisionByZeroException();
     }
-    if (a.isZero()) {
+    if (a.isZero) {
       if (computeRemainder) {
         _remainder = ZERO;
       }
       return ZERO;
     }
     // MIN_VALUE / MIN_VALUE = 1, anything other a / MIN_VALUE is 0.
-    if (b.isMinValue()) {
+    if (b.isMinValue) {
       return a._divModByMinValue(computeRemainder);
     }
     // Normalize b to abs(b), keeping track of the parity in 'negative'.
     // We can do this because we have already ensured that b != MIN_VALUE.
     bool negative = false;
-    if (b.isNegative()) {
+    if (b.isNegative) {
       b = -b;
       negative = !negative;
     }
@@ -1042,7 +1042,7 @@ class int64 implements intx {
      * modify its value.
      */
     bool aIsCopy = false;
-    if (a.isMinValue()) {
+    if (a.isMinValue) {
       aIsMinValue = true;
       aIsNegative = true;
       // If b is not a power of two, treat -a as MAX_VALUE (instead of the
@@ -1062,7 +1062,7 @@ class int64 implements intx {
         }
         return c;
       }
-    } else if (a.isNegative()) {
+    } else if (a.isNegative) {
       aIsNegative = true;
       a = -a;
       aIsCopy = true;

@@ -269,12 +269,12 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   return false;
 }
 
 
-bool Intrinsifier::Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   return false;
 }
 

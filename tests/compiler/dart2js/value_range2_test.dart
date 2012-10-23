@@ -46,16 +46,16 @@ checkSubRange(Range one, Range two, [lower, upper]) {
   buildBound(one, two) {
     // Create a bound just like our current implementation in dart2js does.
     if (two is IntValue) {
-      if (two.isNegative()) {
+      if (two.isNegative) {
         return new AddValue(one, -two);
-      } else if (two.isZero()) {
+      } else if (two.isZero) {
         return one;
       }
     }
     if (one is IntValue) {
-      if (one.isNegative()) {
+      if (one.isNegative) {
         return new SubtractValue(-two, -one);
-      } else if (one.isZero()) {
+      } else if (one.isZero) {
         return -two;
       }
     }

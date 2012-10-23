@@ -1256,7 +1256,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_true;
@@ -1273,7 +1273,7 @@ bool Intrinsifier::Double_isNaN(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_false, is_true, is_zero;

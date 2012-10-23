@@ -141,8 +141,8 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Determine correct behavior for mixing ints and floats.
   static testIntegerMethods() {
     var y = 9;
-    assertEquals(y.isEven(), false);
-    assertEquals(y.isOdd(), true);
+    assertEquals(y.isEven, false);
+    assertEquals(y.isOdd, true);
     assertEquals(y.toRadixString(2), '1001');
     assertEquals(y.toRadixString(3), '100');
     assertEquals(y.toRadixString(16), '9');

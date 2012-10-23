@@ -177,7 +177,7 @@ List<String> allLocales() => DateFormat.allLocalesWithSymbols();
  */
 List oddLocales() {
   int i = 1;
-  return allLocales().filter((x) => (i++).isOdd());
+  return allLocales().filter((x) => (i++).isOdd);
 }
 
 /**
@@ -193,7 +193,7 @@ List smallSetOfLocales() {
  */
 List evenLocales() {
   int i = 1;
-  return allLocales().filter((x) => !((i++).isOdd()));
+  return allLocales().filter((x) => !((i++).isOdd));
 }
 
 // TODO(alanknight): Run specific tests for the en_ISO locale which isn't
