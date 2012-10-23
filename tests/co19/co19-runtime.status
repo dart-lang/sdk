@@ -288,7 +288,6 @@ LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/cos_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
