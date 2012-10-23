@@ -465,8 +465,10 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
         identifier.IsNull() ? target_class_name : target_name;
     // Replace the type with a malformed type and compile a throw when called.
     type = NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
+        kTryResolve,  // No compile-time error.
         "class '%s' has no constructor or factory named '%s'",
         target_class_name.ToCString(),
         user_visible_target_name.ToCString());
@@ -478,8 +480,10 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Verify that the target is compatible with the redirecting factory.
   if (!target.HasCompatibleParametersWith(factory)) {
     type = NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
         cls,
         factory.token_pos(),
+        kTryResolve,  // No compile-time error.
         "constructor '%s' has incompatible parameters with "
         "redirecting factory '%s'",
         String::Handle(target.name()).ToCString(),
@@ -537,6 +541,9 @@ void ClassFinalizer::ResolveType(const Class& cls,
                                  const AbstractType& type,
                                  FinalizationKind finalization) {
   if (type.IsResolved() || type.IsFinalized()) {
+    if ((finalization == kCanonicalizeWellFormed) && type.IsMalformed()) {
+      ReportError(Error::Handle(type.malformed_error()));
+    }
     return;
   }
   if (FLAG_trace_type_finalization) {
@@ -676,9 +683,16 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                               const AbstractType& type,
                                               FinalizationKind finalization) {
   if (type.IsFinalized()) {
-    // Ensure type is canonical if canonicalization is requested.
+    // Ensure type is canonical if canonicalization is requested, unless type is
+    // malformed.
     if (finalization >= kCanonicalize) {
-      return type.Canonicalize();
+      if (type.IsMalformed()) {
+        if (finalization == kCanonicalizeWellFormed) {
+          ReportError(Error::Handle(type.malformed_error()));
+        }
+      } else {
+        return type.Canonicalize();
+      }
     }
     return type.raw();
   }
@@ -1535,9 +1549,12 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
 }
 
 
-RawType* ClassFinalizer::NewFinalizedMalformedType(const Class& cls,
-                                                   intptr_t type_pos,
-                                                   const char* format, ...) {
+RawType* ClassFinalizer::NewFinalizedMalformedType(
+    const Error& prev_error,
+    const Class& cls,
+    intptr_t type_pos,
+    FinalizationKind finalization,
+    const char* format, ...) {
   va_list args;
   va_start(args, format);
   const String& no_name = String::Handle(Symbols::Empty());
@@ -1545,7 +1562,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Class& cls,
       UnresolvedClass::New(LibraryPrefix::Handle(), no_name, type_pos));
   const Type& type = Type::Handle(
       Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
-  ReportMalformedType(Error::Handle(), cls, type, kTryResolve, format, args);
+  ReportMalformedType(prev_error, cls, type, finalization, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
   return type.raw();

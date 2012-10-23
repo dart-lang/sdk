@@ -135,6 +135,11 @@ class Parser : public ValueObject {
                                const char* message_header,
                                const char* format,
                                va_list args);
+  static RawError* FormatErrorMsg(const Script& script,
+                                  intptr_t token_pos,
+                                  const char* message_header,
+                                  const char* format, ...)
+    PRINTF_ATTRIBUTE(4, 5);
 
   // Same as FormatError, but appends the new error to the 'prev_error'.
   static RawError* FormatErrorWithAppend(const Error& prev_error,
@@ -504,28 +509,32 @@ class Parser : public ValueObject {
   static const bool kResolveLocally = true;
   static const bool kResolveIncludingImports = false;
 
-  // Resolve a primary identifier in the libary or prefix scope and
+  // Resolve a primary identifier in the library or prefix scope and
   // generate the corresponding AstNode.
+  AstNode* ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
+                                             const String& ident);
   AstNode* ResolveIdentInPrefixScope(intptr_t ident_pos,
                                      const LibraryPrefix& prefix,
                                      const String& ident);
-  AstNode* ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
-                                             const String& ident);
 
   // Find class with the given name in the library or prefix scope.
   RawClass* ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
-                                              const String& name);
+                                              const String& name,
+                                              Error* error);
   RawClass* ResolveClassInPrefixScope(intptr_t ident_pos,
                                       const LibraryPrefix& prefix,
-                                      const String& name);
+                                      const String& name,
+                                      Error* error);
 
   // Find name in the library or prefix scope and return the corresponding
   // object (field, class, function etc).
   RawObject* ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
-                                              const String& ident);
+                                              const String& ident,
+                                              Error* error);
   RawObject* ResolveNameInPrefixScope(intptr_t ident_pos,
                                       const LibraryPrefix& prefix,
-                                      const String& name);
+                                      const String& name,
+                                      Error* error);
 
   AstNode* ResolveIdent(intptr_t ident_pos,
                         const String& ident,

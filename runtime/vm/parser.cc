@@ -2515,8 +2515,10 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     if (type.IsTypeParameter() || type.IsDynamicType()) {
       // Replace the type with a malformed type and compile a throw when called.
       redirection_type = ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
           current_class(),
           type_pos,
+          ClassFinalizer::kTryResolve,  // No compile-time error.
           "factory '%s' may not redirect to %s'%s'",
           method->name->ToCString(),
           type.IsTypeParameter() ? "type parameter " : "",
@@ -6446,6 +6448,19 @@ RawError* Parser::FormatError(const Script& script,
 }
 
 
+RawError* Parser::FormatErrorMsg(const Script& script,
+                                 intptr_t token_pos,
+                                 const char* message_header,
+                                 const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  const Error& error = Error::Handle(
+      FormatError(script, token_pos, message_header, format, args));
+  va_end(args);
+  return error.raw();
+}
+
+
 RawString* Parser::FormatMessage(const Script& script,
                                  intptr_t token_pos,
                                  const char* message_header,
@@ -7637,37 +7652,67 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
             *type = ClassFinalizer::NewFinalizedMalformedType(
+                Error::Handle(),  // No previous error.
                 scope_class,
                 type->token_pos(),
+                finalization,
                 "type parameter '%s' cannot be referenced "
                 "from static member",
                 String::Handle(type_parameter.name()).ToCString());
             return;
           }
-          // TODO(regis): Should this be a malformed type as well?
-          // A type parameter cannot be parameterized, so report an error if
-          // type arguments have previously been parsed.
+          // A type parameter cannot be parameterized, so make the type
+          // malformed if type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
-            ErrorMsg(type_parameter.token_pos(),
-                     "type parameter '%s' cannot be parameterized",
-                     String::Handle(type_parameter.name()).ToCString());
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                Error::Handle(),  // No previous error.
+                scope_class,
+                type_parameter.token_pos(),
+                finalization,
+                "type parameter '%s' cannot be parameterized",
+                String::Handle(type_parameter.name()).ToCString());
+            return;
           }
           *type = type_parameter.raw();
           return;
         }
       }
       // Resolve classname in the scope of the current library.
+      Error& error = Error::Handle();
       resolved_type_class =
           ResolveClassInCurrentLibraryScope(unresolved_class.token_pos(),
-                                            unresolved_class_name);
+                                            unresolved_class_name,
+                                            &error);
+      if (!error.IsNull()) {
+        *type = ClassFinalizer::NewFinalizedMalformedType(
+            error,
+            scope_class,
+            unresolved_class.token_pos(),
+            finalization,
+            "cannot resolve class '%s'",
+            unresolved_class_name.ToCString());
+        return;
+      }
     } else {
       LibraryPrefix& lib_prefix =
           LibraryPrefix::Handle(unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
+      Error& error = Error::Handle();
       resolved_type_class =
           ResolveClassInPrefixScope(unresolved_class.token_pos(),
-                                   lib_prefix,
-                                   unresolved_class_name);
+                                    lib_prefix,
+                                    unresolved_class_name,
+                                    &error);
+      if (!error.IsNull()) {
+        *type = ClassFinalizer::NewFinalizedMalformedType(
+            error,
+            scope_class,
+            unresolved_class.token_pos(),
+            finalization,
+            "cannot resolve class '%s'",
+            unresolved_class_name.ToCString());
+        return;
+      }
     }
     // At this point, we can only have a parameterized_type.
     Type& parameterized_type = Type::Handle();
@@ -8135,7 +8180,8 @@ static RawObject* LookupNameInImport(const Namespace& ns, const String& name) {
 // of the current library, but is defined in more than one imported
 // library, i.e. if the name cannot be resolved unambiguously.
 RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name) {
+                                                    const String& name,
+                                                    Error* error) {
   TRACE_PARSER("ResolveNameInCurrentLibraryScope");
   Object& obj = Object::Handle(LookupNameInLibrary(library_, name));
   if (obj.IsNull()) {
@@ -8152,20 +8198,30 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
         const Library& lib = Library::Handle(import.library());
         if (!first_lib_url.IsNull()) {
           // Found duplicate definition.
+          Error& ambiguous_ref_error = Error::Handle();
           if (first_lib_url.raw() == lib.url()) {
-            ErrorMsg(ident_pos,
-                     "ambiguous reference: "
-                     "'%s' as library '%s' is imported multiple times",
-                     name.ToCString(),
-                     first_lib_url.ToCString());
+            ambiguous_ref_error = FormatErrorMsg(
+                script_, ident_pos, "Error",
+                "ambiguous reference: "
+                "'%s' as library '%s' is imported multiple times",
+                name.ToCString(),
+                first_lib_url.ToCString());
           } else {
-            ErrorMsg(ident_pos,
-                     "ambiguous reference: "
-                     "'%s' is defined in library '%s' and also in '%s'",
-                     name.ToCString(),
-                     first_lib_url.ToCString(),
-                     String::Handle(lib.url()).ToCString());
+            ambiguous_ref_error = FormatErrorMsg(
+                script_, ident_pos, "Error",
+                "ambiguous reference: "
+                "'%s' is defined in library '%s' and also in '%s'",
+                name.ToCString(),
+                first_lib_url.ToCString(),
+                String::Handle(lib.url()).ToCString());
           }
+          if (error == NULL) {
+            // Report a compile time error since the caller is not interested
+            // in the error.
+            ErrorMsg(ambiguous_ref_error);
+          }
+          *error = ambiguous_ref_error.raw();
+          return Object::null();
         } else {
           first_lib_url = lib.url();
           obj = imported_obj.raw();
@@ -8178,9 +8234,10 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
 
 
 RawClass* Parser::ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
-                                                    const String& name) {
+                                                    const String& name,
+                                                    Error* error) {
   const Object& obj =
-      Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, name));
+      Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, name, error));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8198,7 +8255,7 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
   const Object& obj =
-    Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, ident));
+    Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, ident, NULL));
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -8229,7 +8286,8 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
 
 RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
                                             const LibraryPrefix& prefix,
-                                            const String& name) {
+                                            const String& name,
+                                            Error* error) {
   TRACE_PARSER("ResolveNameInPrefixScope");
   Namespace& import = Namespace::Handle();
   String& first_lib_url = String::Handle();
@@ -8246,19 +8304,29 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
         first_lib_url = lib.url();
       } else {
         // Found duplicate definition.
+        Error& ambiguous_ref_error = Error::Handle();
         if (first_lib_url.raw() == lib.url()) {
-          ErrorMsg(ident_pos,
-                   "ambiguous reference: '%s.%s' is imported multiple times",
-                   String::Handle(prefix.name()).ToCString(),
-                   name.ToCString());
+          ambiguous_ref_error = FormatErrorMsg(
+              script_, ident_pos, "Error",
+              "ambiguous reference: '%s.%s' is imported multiple times",
+              String::Handle(prefix.name()).ToCString(),
+              name.ToCString());
         } else {
-          ErrorMsg(ident_pos,
-                   "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
-                   String::Handle(prefix.name()).ToCString(),
-                   name.ToCString(),
-                   first_lib_url.ToCString(),
-                   String::Handle(lib.url()).ToCString());
+          ambiguous_ref_error = FormatErrorMsg(
+              script_, ident_pos, "Error",
+              "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
+              String::Handle(prefix.name()).ToCString(),
+              name.ToCString(),
+              first_lib_url.ToCString(),
+              String::Handle(lib.url()).ToCString());
         }
+        if (error == NULL) {
+          // Report a compile time error since the caller is not interested
+          // in the error.
+          ErrorMsg(ambiguous_ref_error);
+        }
+        *error = ambiguous_ref_error.raw();
+        return Object::null();
       }
     }
   }
@@ -8268,9 +8336,10 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
 
 RawClass* Parser::ResolveClassInPrefixScope(intptr_t ident_pos,
                                             const LibraryPrefix& prefix,
-                                            const String& name) {
+                                            const String& name,
+                                            Error* error) {
   const Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, name));
+      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, name, error));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8287,7 +8356,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
   Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, ident));
+      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, ident, NULL));
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
     ErrorMsg(ident_pos, "identifier '%s.%s' cannot be resolved",
@@ -8886,10 +8955,13 @@ AstNode* Parser::ParseNewOperator() {
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (type.IsTypeParameter() || type.IsDynamicType()) {
+    ASSERT(!type.IsMalformed());
     // Replace the type with a malformed type.
     type = ClassFinalizer::NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
         current_class(),
         type_pos,
+        ClassFinalizer::kTryResolve,  // No compile-time error.
         "%s'%s' cannot be instantiated",
         type.IsTypeParameter() ? "type parameter " : "",
         type.IsTypeParameter() ?
@@ -8953,8 +9025,10 @@ AstNode* Parser::ParseNewOperator() {
       // Replace the type with a malformed type and compile a throw or report
       // a compile-time error if the constructor is const.
       type = ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
           current_class(),
           call_pos,
+          ClassFinalizer::kTryResolve,  // No compile-time error.
           "interface '%s' has no constructor named '%s'",
           type_class_name.ToCString(),
           external_constructor_name.ToCString());
@@ -9021,8 +9095,10 @@ AstNode* Parser::ParseNewOperator() {
       // Replace the type with a malformed type and compile a throw or report a
       // compile-time error if the constructor is const.
       type = ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
           current_class(),
           call_pos,
+          ClassFinalizer::kTryResolve,  // No compile-time error.
           "class '%s' has no constructor or factory named '%s'",
           String::Handle(constructor_class.Name()).ToCString(),
           external_constructor_name.ToCString());

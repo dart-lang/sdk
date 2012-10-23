@@ -49,12 +49,15 @@ class ClassFinalizer : public AllStatic {
                                        FinalizationKind finalization);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
-  // in class cls at the given token position. Build the error message from the
-  // format string and its arguments.
-  static RawType* NewFinalizedMalformedType(const Class& cls,
+  // in class cls at the given token position.
+  // If not null, prepend prev_error to the error message built from the format
+  // string and its arguments.
+  static RawType* NewFinalizedMalformedType(const Error& prev_error,
+                                            const Class& cls,
                                             intptr_t type_pos,
+                                            FinalizationKind finalization,
                                             const char* format, ...)
-       PRINTF_ATTRIBUTE(3, 4);
+       PRINTF_ATTRIBUTE(5, 6);
 
   // Depending on the given type, finalization mode, and execution mode, mark
   // the given type as malformed or report a compile time error.
