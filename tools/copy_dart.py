@@ -93,9 +93,6 @@ def main(outdir = None, *inputs):
 
       seen.add(lib)
 
-      if lib.startswith('dart:'):
-        continue
-
       if (dirname(dirname(lib)).endswith('dom/generated/src')
           or dirname(lib).endswith('dom/src')):
         continue
@@ -127,7 +124,7 @@ def main(outdir = None, *inputs):
 
       for suffix in library.imports:
         m = re.match(r'[\'"]([^\'"]+)[\'"](\s+as\s+\w+)?$', suffix)
-        uri = m.group(0)
+        uri = m.group(1)
         if not uri.startswith('dart:'):
           worklist.append(normjoin(dirname(lib), uri));
 
