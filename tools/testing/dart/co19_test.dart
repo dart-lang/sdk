@@ -31,8 +31,8 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
     const <String>['-mrelease', '-rnone', '-cdartc'],
     const <String>['-mrelease', '-rvm', '-cdart2dart'],
-    const <String>['-mrelease', '-rd8', '-cdart2js'],
-    const <String>['-mrelease', '-rd8', '-cdart2js', '--checked']];
+    const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
+    const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk', '--checked']];
 
 void main() {
   File scriptFile = new File(new Options().script);
