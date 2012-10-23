@@ -21,6 +21,9 @@ intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
 
+[ $runtime == ie9 && $compiler == dart2js ]
+intl/test/find_default_locale_browser_test: Skip # Issue 6176
+
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
