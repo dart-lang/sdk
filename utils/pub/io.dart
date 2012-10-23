@@ -655,12 +655,6 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     tempDir = temp;
     return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
   }).chain((_) {
-    // TODO(rnystrom): Hack. We get intermittent "file already in use" errors.
-    // It looks like the 7zip process is starting up before the file has
-    // finished being written. So we'll just sleep for a couple of seconds
-    // here. :(
-    return sleep(2000);
-  }).chain((_) {
     // 7zip can't unarchive from gzip -> tar -> destination all in one step
     // first we un-gzip it to a tar file.
     // Note: Setting the working directory instead of passing in a full file
