@@ -142,10 +142,6 @@ LibTest/core/StackOverflowException/StackOverflowException_A01_t01: Fail # co19 
 LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # co19 issue 272
 LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # co19 issue 272
 
-LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 274
-LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 274
-LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 274
-LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 274
 LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 274
 LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 274
 LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 274
@@ -159,6 +155,11 @@ LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 274
 Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(ahe): Please triage this failure.
 
+# These tests do noting in checked mode, and therefore cannot fail.
+LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 274
+LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 274
+LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 274
+LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 274
 
 [ $compiler == dart2js && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail # http://dartbug.com/5348
