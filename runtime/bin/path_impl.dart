@@ -41,13 +41,14 @@ class _Path implements Path {
     //    base.join(relative) == this.canonicalize.
     // Throws an exception if no such path exists, or the case is not
     // implemented yet.
-    if (base.isAbsolute && _path.startsWith(base._path)) {
-      if (_path == base._path) return new Path('.');
+    var basePath = base.toString();
+    if (base.isAbsolute && _path.startsWith(basePath)) {
+      if (_path == basePath) return new Path('.');
       if (base.hasTrailingSeparator) {
-        return new Path(_path.substring(base._path.length));
+        return new Path(_path.substring(basePath.length));
       }
-      if (_path[base._path.length] == '/') {
-        return new Path(_path.substring(base._path.length + 1));
+      if (_path[basePath.length] == '/') {
+        return new Path(_path.substring(basePath.length + 1));
       }
     } else if (base.isAbsolute && isAbsolute) {
       List<String> baseSegments = base.canonicalize().segments();
@@ -89,9 +90,9 @@ class _Path implements Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      return new Path('$_path${further._path}').canonicalize();
+      return new Path('$_path${further}').canonicalize();
     }
-    return new Path('$_path/${further._path}').canonicalize();
+    return new Path('$_path/${further}').canonicalize();
   }
 
   // Note: The URI RFC names for these operations are normalize, resolve, and
