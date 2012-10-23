@@ -16,6 +16,7 @@ class DirectoryTest {
     Directory subDirectory = new Directory("${directory.path}/subdir");
     Expect.isFalse(subDirectory.existsSync());
     subDirectory.createSync();
+    Expect.isTrue(subDirectory.existsSync());
     File f = new File('${subDirectory.path}/file.txt');
     Expect.isFalse(f.existsSync());
     f.createSync();
@@ -459,6 +460,83 @@ testCreateTempError() {
 }
 
 
+testCreateExistingSync() {
+  // Test that creating an existing directory succeeds.
+  var d = new Directory('');
+  var temp = d.createTempSync();
+  var subDir = new Directory('${temp.path}/flaf');
+  Expect.isFalse(subDir.existsSync());
+  subDir.createSync();
+  Expect.isTrue(subDir.existsSync());
+  subDir.createSync();
+  Expect.isTrue(subDir.existsSync());
+  temp.deleteRecursivelySync();
+}
+
+
+testCreateExisting() {
+  // Test that creating an existing directory succeeds.
+  var port = new ReceivePort();
+  var d = new Directory('');
+  d.createTemp().then((temp) {
+    var subDir = new Directory('${temp.path}/flaf');
+    subDir.exists().then((dirExists) {
+      Expect.isFalse(dirExists);
+      subDir.create().then((_) {
+        subDir.exists().then((dirExists) {
+          Expect.isTrue(dirExists);
+          subDir.create().then((_) {
+            subDir.exists().then((dirExists) {
+              Expect.isTrue(dirExists);
+              temp.deleteRecursively().then((_) {
+                port.close();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
+
+testCreateDirExistingFileSync() {
+  // Test that creating an existing directory succeeds.
+  var d = new Directory('');
+  var temp = d.createTempSync();
+  var path = '${temp.path}/flaf';
+  var file = new File(path);
+  file.createSync();
+  Expect.isTrue(file.existsSync());
+  Expect.throws(new Directory(path).createSync,
+                (e) => e is DirectoryIOException);
+  temp.deleteRecursivelySync();
+}
+
+
+testCreateDirExistingFile() {
+  // Test that creating an existing directory succeeds.
+  var port = new ReceivePort();
+  var d = new Directory('');
+  d.createTemp().then((temp) {
+    var path = '${temp.path}/flaf';
+    var file = new File(path);
+    var subDir = new Directory(path);
+    file.create().then((_) {
+      subDir.create()
+        ..then((_) { Expect.fail("dir create should fail on existing file"); })
+        ..handleException((e) {
+            Expect.isTrue(e is DirectoryIOException);
+            temp.deleteRecursively().then((_) {
+              port.close();
+            });
+            return true;
+          });
+    });
+  });
+}
+
+
 testRename() {
   var d = new Directory('');
   var temp1 = d.createTempSync();
@@ -483,5 +561,9 @@ main() {
   NestedTempDirectoryTest.testMain();
   testCreateTempErrorSync();
   testCreateTempError();
+  testCreateExistingSync();
+  testCreateExisting();
+  testCreateDirExistingFileSync();
+  testCreateDirExistingFile();
   testRename();
 }

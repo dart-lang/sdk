@@ -348,6 +348,9 @@ char* Directory::Current() {
 
 
 bool Directory::Create(const char* dir_name) {
+  // If the directory already exists and is a directory do not
+  // attempt to create it again and treat it as a success.
+  if (Exists(dir_name) == EXISTS) return true;
   return (CreateDirectory(dir_name, NULL) != 0);
 }
 
