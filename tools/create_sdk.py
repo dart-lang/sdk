@@ -87,7 +87,7 @@ def Copy(src, dest):
 # TODO(zundel): this excludes the analyzer from the sdk build until builders
 # have all prerequisite software installed.  Also update dart.gyp.
 def ShouldCopyAnalyzer():
-  os = utils.GuessOS();
+  os = utils.GuessOS()
   return os == 'linux' or os == 'macos'
 
 
@@ -116,9 +116,9 @@ def CopyDart2Js(build_dir, sdk_root, version):
     Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
     # TODO(dgrove) - fix this once issue 4788 is addressed.
     ReplaceInFiles([dart2js],
-                   [(r'%SCRIPTPATH%\.\.\\\.\.\\lib', r'%SCRIPTPATH%..\\pkg')]);
+                   [(r'%SCRIPTPATH%\.\.\\\.\.\\lib', r'%SCRIPTPATH%..\\pkg')])
     ReplaceInFiles([dartdoc],
-                   [(r'%SCRIPTPATH%\.\.\\\.\.\\pkg', r'%SCRIPTPATH%..\\pkg')]);
+                   [(r'%SCRIPTPATH%\.\.\\\.\.\\pkg', r'%SCRIPTPATH%..\\pkg')])
   else:
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
@@ -314,11 +314,11 @@ def Main(argv):
                    join("guava", "r09", "guava-r09.jar"),
                    join("json", "r2_20080312", "json.jar") ]
     for jarToCopy in jarsToCopy:
-        dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
-        os.makedirs(dest_dir)
-        dest_file = join (ANALYZER_DEST, jarToCopy)
-        src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
-        copyfile(src_file, dest_file)
+      dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
+      os.makedirs(dest_dir)
+      dest_file = join (ANALYZER_DEST, jarToCopy)
+      src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
+      copyfile(src_file, dest_file)
 
   # Create and populate util/pub.
   copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
@@ -342,9 +342,14 @@ def Main(argv):
   # Copy dart2js.
   CopyDart2Js(build_dir, SDK_tmp, version)
 
-  revision = utils.GetSVNRevision()
+  # Write the 'version' file
+  versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')
+  versionFile.write(version + '\n')
+  versionFile.close()
 
   # Write the 'revision' file
+  revision = utils.GetSVNRevision()
+
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
       f.write(revision + '\n')
