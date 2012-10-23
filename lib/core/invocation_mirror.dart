@@ -36,15 +36,13 @@ abstract class InvocationMirror {
    */
   bool get isSetter;
 
-  /**
-   * Whether the invocation was a getter or a setter call.
-   */
+  /** Whether the invocation was a getter or a setter call. */
   bool get isAccessor => isGetter || isSetter;
 
   /**
    * Perform the invocation on the provided object.
    *
-   * If the object doesn't support the invocation, it's [noSuchMethod]
+   * If the object doesn't support the invocation, its [noSuchMethod]
    * method will be called with either this [InvocationMirror] or another
    * equivalent [InvocationMirror].
    */
