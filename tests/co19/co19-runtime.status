@@ -184,13 +184,11 @@ LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # TODO(vm-team):
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/exp_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/parseDouble_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/sin_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/math/tan_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
@@ -285,11 +283,11 @@ LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
 [ $compiler == none && $runtime == vm ]
-LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail, OK # Issue co19 - 44
 
 
 [ $compiler == none && $runtime == vm && $system == macos ]
+LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
 LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
@@ -300,7 +298,6 @@ LibTest/math/exp_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
 LibTest/math/sin_A01_t01: Fail
-LibTest/math/tan_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
