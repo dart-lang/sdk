@@ -3,92 +3,25 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == none && $runtime == vm ]
-# These tests need to be updated to the new Date core lib API, co19 issue 256:
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail
-LibTest/core/Date/Date_A01_t04: Fail
-LibTest/core/Date/Date_A01_t05: Fail
-LibTest/core/Date/isUtc_A01_t01: Fail
-LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail
-LibTest/core/Date/operator_GE_A01_t01: Fail
-LibTest/core/Date/operator_GT_A01_t01: Fail
-LibTest/core/Date/operator_LE_A01_t01: Fail
-LibTest/core/Date/operator_LT_A01_t01: Fail
-LibTest/core/Date/operator_equality_A01_t01: Fail
-LibTest/core/Date/timeZoneName_A01_t01: Fail
-LibTest/core/Date/timeZoneOffset_A01_t01: Fail
-LibTest/core/Date/toLocal_A01_t01: Fail
-LibTest/core/Date/toUtc_A01_t01: Fail
-
 # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail, OK
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t03: Fail, OK
-Language/07_Classes/1_Instance_Methods_A02_t03: Fail, OK
-Language/07_Classes/1_Instance_Methods_A02_t04: Fail, OK
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK
 Language/07_Classes/1_Instance_Methods_A02_t06: Fail, OK
-Language/07_Classes/4_Abstract_Instance_Members_A04_t04: Fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t01: Fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A18_t01: Fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A18_t03: Fail, OK
-Language/10_Expressions/11_Instance_Creation/1_New_A01_t01: Fail, OK
-Language/10_Expressions/11_Instance_Creation/2_Const_A01_t01: Fail, OK
-Language/10_Expressions/11_Instance_Creation/2_Const_A08_t01: Fail, OK
-Language/10_Expressions/11_Instance_Creation/2_Const_A08_t02: Fail, OK
-Language/10_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail, OK
-Language/10_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t02: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t01: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t02: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t03: Fail, OK
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t04: Fail, OK
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
-Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: Fail, OK
-Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A01_t01: Fail, OK
-Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: Fail, OK
 Language/14_Types/5_Function_Types_A01_t21: Fail, OK
-LibTest/core/Expect/approxEquals_A02_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A03_t01: Fail, OK
-LibTest/core/Expect/approxEquals_A04_t01: Fail, OK
-LibTest/core/Expect/listEquals_A03_t01: Fail, OK
-LibTest/core/Expect/notEquals_A02_t01: Fail, OK
-LibTest/core/Expect/stringEquals_A02_t01: Fail, OK
-LibTest/core/Expect/throws_A01_t01: Fail, OK
-LibTest/core/Expect/throws_A01_t02: Fail, OK
-LibTest/core/Expect/throws_A01_t03: Fail, OK
-LibTest/core/List/List_A01_t01: Fail, OK
 
-LibTest/core/OutOfMemoryException/OutOfMemoryException_A01_t01: Fail # co19 issue 263
-LibTest/core/OutOfMemoryException/toString_A01_t01: Fail # co19 issue 263
+Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # TODO(vm-team): Please triage this crash.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # TODO(vm-team): Please triage this crash.
 
-LibTest/core/StackOverflowException/toString_A01_t01: Fail # co19 issue 271
-LibTest/core/StackOverflowException/StackOverflowException_A01_t01: Fail # co19 issue 271
-
-LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # co19 issue 272
-LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # co19 issue 272
-
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Crash # issue 6060
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Crash # issue 6060
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
-
-Language/06_Functions/06_Functions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/06_Functions/1_Function_Declaration_A02_t03: Fail # issue 6058
-Language/06_Functions/1_Function_Declaration_A03_t03: Fail # issue 6058
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
-Language/07_Classes/07_Classes_A01_t20: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t32: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A02_t34: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/07_Classes_A09_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A03_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A03_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A03_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A03_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/05_Variables_A03_t15: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/2_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/3_Setters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/3_Setters_A04_t03: Fail # TODO(vm-team): Please triage this failure.
@@ -103,61 +36,37 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # TODO(vm-team): P
 Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A06_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A06_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A07_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A05_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/07_Classes/8_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A19_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/01_Constants_A19_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t39: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t41: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t43: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t45: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t47: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A02_t49: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/05_Strings_A12_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/08_Throw_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/08_Throw_A03_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/08_Throw_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/08_Throw_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/08_Throw_A05_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/09_Function_Expressions_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/09_Function_Expressions_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/09_Function_Expressions_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A06_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A13_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/13_Property_Extraction_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/17_Getter_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/18_Assignment_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -181,148 +90,135 @@ Language/10_Expressions/21_Bitwise_Expressions_A01_t14: Fail # TODO(vm-team): Pl
 Language/10_Expressions/21_Bitwise_Expressions_A01_t15: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t18: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t19: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t20: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t21: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/22_Equality_A01_t23: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/22_Equality_A01_t24: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t09: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t13: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/22_Shift_A01_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t07: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t08: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t13: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t19: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/26_Postfix_Expressions_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/26_Postfix_Expressions_A01_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A06_t13: Fail, OK # co19 issue 257
-Language/10_Expressions/28_Identifier_Reference_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/29_Type_Test_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/29_Type_Test_A01_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/29_Type_Test_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/29_Type_Test_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/29_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t09: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t10: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/02_Expression_Statements_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/03_Variable_Declaration_A01_t10: Fail # co19 issue 234
-Language/11_Statements/03_Variable_Declaration_A02_t04: Fail # co19 issue 234
-Language/11_Statements/05_For/2_For_in_A01_t02: Fail # Issue 5629
-Language/11_Statements/05_For/2_For_in_A01_t04: Fail # Issue 5629
-Language/11_Statements/07_Do_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A06_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Switch_A07_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A01_t18: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Try_A06_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t18: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t19: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t20: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t21: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t22: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/23_Relational_Expressions_A01_t23: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t10: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t12: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/24_Shift_A01_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t07: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t12: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/25_Additive_Expressions_A01_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t10: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t14: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t15: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t16: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/26_Multiplicative_Expressions_A01_t17: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t12: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t13: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t17: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t18: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t19: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t20: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t21: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/27_Unary_Expressions_A01_t22: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/28_Postfix_Expressions_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/28_Postfix_Expressions_A01_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/28_Postfix_Expressions_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Assignable_Expressions_A01_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Assignable_Expressions_A01_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/29_Assignable_Expressions_A01_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A05_t08: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A06_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A07_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/30_Identifier_Reference_A08_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/31_Type_Test_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/31_Type_Test_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/31_Type_Test_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/31_Type_Test_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/31_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/32_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/32_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/06_For/2_For_in_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/06_For/2_For_in_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/06_For_A01_t11: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/08_Do_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A06_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A06_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A07_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/10_Try_A05_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t19: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t21: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A02_t22: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t12: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t22: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t22: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t42: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t62: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/15_Reference/1_Lexical_Rules_A01_t06: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/RegExp/hasMatch_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/double/INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/double/NEGATIVE_INFINITY_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t03: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t04: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/exp_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/parseDouble_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/pow_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/pow_A11_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/pow_A13_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/sin_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/math/tan_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 
-# Failures related to assert being a reserved word now. co19 issue 218.
-Language/10_Expressions/28_Identifier_Reference_A04_t07: Fail, OK
+LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
-# negate is no longer a built-in identifier, co19 issue 260
-Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # co19 issue 260
+Language/06_Functions/1_Function_Declaration_A02_t03: Fail # issue 6058
+Language/06_Functions/1_Function_Declaration_A03_t03: Fail # issue 6058
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
-# Changed exception thrown by futures (co19 issue #269)
-LibTest/core/Completer/completeException_A01_t01: Fail, OK
-LibTest/core/Future/handleException_A01_t04: Fail, OK
-LibTest/core/Future/handleException_A01_t05: Fail, OK
 
 [ $compiler == none && $runtime == vm && $checked ]
-Language/07_Classes/07_Classes_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A13_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/13_Libraries_and_Scripts/2_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t21: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t41: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A03_t61: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
 
 Language/10_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 234
-Language/13_Libraries_and_Scripts/2_Imports_A03_t11: Fail # Issue 5736
-Language/13_Libraries_and_Scripts/2_Imports_A03_t21: Fail # Issue 5736
 
 
 [ $compiler == none && $runtime == vm && $unchecked ]
-Language/10_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A11_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/20_Logical_Boolean_Expressions_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/30_Type_Cast_A05_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 
 
 [ $compiler == none && $runtime == vm ]
@@ -331,23 +227,6 @@ Language/10_Expressions/01_Constants_A16_t01: Fail
 Language/10_Expressions/01_Constants_A16_t02: Fail
 
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail # issue 392, potentially constant expression analysis
-Language/10_Expressions/01_Constants_A16_t03: Fail # issue 392
-
-# These tests fail after the deprecation of the corelib
-# Math object in favor of the dart:math library.
-# issue co19 - ???
-Language/05_Variables/05_Variables_A03_t03: Fail # Missing compile-time error on assignment to final variable
-Language/05_Variables/05_Variables_A03_t07: Fail # Missing compile-time error on assignment to final variable
-Language/05_Variables/05_Variables_A03_t10: Fail # Missing compile-time error on assignment to final variable
-LibTest/core/Math/random_A01_t01: Fail, OK
-LibTest/core/Math/log_A01_t01: Fail, OK
-LibTest/core/Math/atan2_A01_t01: Fail, OK
-LibTest/core/Math/sqrt_A01_t01: Fail, OK
-
-# Rename "BadNumberFormatException" to "FormatException"
-# TODO(rnystrom): These can be enabled when
-# http://code.google.com/p/co19/issues/detail?id=167 is fixed.
-LibTest/core/Math/parseDouble_A02_t01: Fail
 
 Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in compile-time constant expression)
 Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
@@ -376,19 +255,10 @@ Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
-Language/10_Expressions/21_Bitwise_Expressions_A01_t01: Fail # issue 1286 (function literals vs. function statements)
-Language/10_Expressions/22_Equality_A01_t01: Fail # issue 2033 (super call of !=, === etc)
-Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # issue 1286 (function literals vs. function statements)
-Language/10_Expressions/22_Shift_A01_t01: Fail # issue 1286 (function literals vs. function statements)
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # issue 1288 (unary super operator call)
-Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # issue 2037 (super.x is assignable)
-Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # issue 1288 (unary super operator call)
-Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # issue 1288 (unary super operator call)
-Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # co19 issue 91: map literals illegal at statement beginning.
-Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # issue 1286 (function literals vs. function statements)
-Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # co19 issue 91: map literals illegal at statement beginning.
-Language/11_Statements/09_Try_A05_t06: Fail # issue 430
-LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
+Language/10_Expressions/27_Unary_Expressions_A01_t01: Fail # issue 1288 (unary super operator call)
+Language/10_Expressions/27_Unary_Expressions_A01_t10: Fail # issue 2037 (super.x is assignable)
+Language/10_Expressions/27_Unary_Expressions_A08_t01: Fail # issue 1288 (unary super operator call)
+Language/10_Expressions/28_Postfix_Expressions_A01_t01: Fail # co19 issue 91: map literals illegal at statement beginning.
 
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
@@ -408,39 +278,17 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
-LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
-LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
-LibTest/core/Math/pow_A13_t01: Fail  # Issue 449
-LibTest/core/Math/max_A01_t03: Fail  # Issue co19 - 157
-LibTest/core/Math/min_A01_t03: Fail  # Issue co19 - 157
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
-[ $compiler == none && $runtime == vm ]
-LibTest/core/Math/acos_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/asin_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/atan_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/cos_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/exp_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/sin_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/core/Math/tan_A01_t01: Fail, OK  # Issue co19 - 44
-
-[ $compiler == none && $runtime == vm && $system == linux ]
-LibTest/core/Math/exp_A01_t01: Fail
-
-[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
-LibTest/core/Math/sin_A01_t01: Fail
-LibTest/core/Math/tan_A01_t01: Fail
-
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $compiler == none && $runtime == vm && $system == windows ]
-LibTest/core/Math/atan2_A01_t03: Fail # http://dartbug.com/5407
 LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/round_A01_t01: Fail # http://dartbug.com/5407
@@ -455,45 +303,23 @@ LibTest/core/int/remainder_A01_t02: Fail # http://dartbug.com/5407
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/year_A01_t01: Fail, OK
 
-# The following tests use hashCode() (function) instead of hashCode (getter).
-# co19 issue 273
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK
-LibTest/isolate/SendPort/hashCode_A01_t01: Fail, OK
-LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK
-LibTest/core/Map/Map_class_A01_t03: Fail, OK
-LibTest/core/Set/remove_A01_t03: Fail, OK
-LibTest/core/Set/contains_A01_t03: Fail, OK
-LibTest/core/Set/addAll_A01_t04: Fail, OK
-LibTest/core/Set/remove_A01_t04: Fail, OK
-LibTest/core/Set/addAll_A01_t03: Fail, OK
-LibTest/core/Set/removeAll_A01_t03: Fail, OK
-LibTest/core/Set/forEach_A01_t03: Fail, OK
-LibTest/core/Set/add_A01_t03: Fail, OK
-LibTest/core/Set/filter_A01_t03: Fail, OK
-LibTest/core/String/hashCode_A01_t01: Fail, OK
-LibTest/core/int/hashCode_A01_t01: Fail, OK
+Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issue 273
+LibTest/isolate/SendPort/hashCode_A01_t01: Fail, OK # co19 issue 273
+LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK # co19 issue 273
+LibTest/core/Map/Map_class_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/Set/remove_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/Set/addAll_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/Set/forEach_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/Set/add_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/Set/filter_A01_t03: Fail, OK # co19 issue 273
+LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
+LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
 
 
 [ $compiler == none && $runtime == vm ]
-Language/11_Statements/09_Try_A01_t01: Fail, OK # co19 issue 194
-Language/11_Statements/09_Try_A02_t03: Fail, OK # co19 issue 194
-Language/11_Statements/09_Try_A04_t01: Fail, OK # co19 issue 194
-Language/11_Statements/09_Try_A05_t03: Fail, OK # co19 issue 194
-LibTest/core/Expect/equals_A02_t01: Fail, OK # co19 issue 194
-LibTest/core/List/removeRange_A06_t01: Fail, OK # co19 issue 194
-LibTest/core/Set/addAll_A01_t04: Fail, OK # co19 issue 194
-LibTest/core/Set/containsAll_A01_t03: Fail, OK # co19 issue 194
-LibTest/core/Set/contains_A01_t03: Fail, OK # co19 issue 194
-LibTest/core/Set/removeAll_A01_t03: Fail, OK # co19 issue 194
-LibTest/core/Set/remove_A01_t04: Fail, OK # co19 issue 194
-
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 
-Language/07_Classes/6_Constructors/2_Factories_A05_t02: Fail
 LibTest/core/String/contains_A01_t02: Fail
-LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
-LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
-
 
 Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
@@ -517,17 +343,11 @@ Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t02: Fail #
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t03: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A05_t01: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Issue 1604, exception should be NoSuchMethodException instead of ObjectNotClosureException
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail
-Language/11_Statements/08_Switch_A02_t01: Fail
 LibTest/core/Future/handleException_A01_t07: Fail
 LibTest/core/Future/then_A01_t05: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
-
-
-# 'case' or '}' expected
-Language/11_Statements/08_Switch_A01_t01: Fail
 
 
 # class '?' overrides function '?' of super class '?' with incompatible parameters
@@ -548,34 +368,22 @@ Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # 
 
 
 # initializer must be a compile time constant
-Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail
+Language/10_Expressions/30_Identifier_Reference_A05_t09: Fail
 
 
 # invalid operator overloading
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t01: Fail
-Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail
-Language/10_Expressions/22_Equality_A02_t03: Fail
-Language/10_Expressions/22_Equality_A03_t01: Fail # issue 265
-Language/10_Expressions/22_Equality_A03_t03: Fail # issue 265
 
 
 # parameter name or type expected
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail
 
 
-# using 'x' in this context is invalid
-Language/11_Statements/05_For_A01_t11: Fail
-
-
-[ $compiler == none && $runtime == vm ]
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
-
-
 [ $compiler == none && $runtime == vm && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail
 
 
-[ $compiler == none && $runtime == vm && $mode == debug && $unchecked ]
+[ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 
 [ $compiler == none && $arch == simarm ]

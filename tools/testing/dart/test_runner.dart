@@ -678,7 +678,7 @@ class RunningProcess {
       }
       // If the timeout fired in between two commands, kill the just
       // started process immediately.
-      if (timedOut) process.kill();
+      if (timedOut) safeKill(process);
     });
     processFuture.handleException((e) {
       print("Process error:");
@@ -691,7 +691,17 @@ class RunningProcess {
 
   void timeoutHandler(Timer unusedTimer) {
     timedOut = true;
-    if (process != null) process.kill();
+    safeKill(process);
+  }
+
+  void safeKill(Process p) {
+    if (p != null) {
+      try {
+        p.kill();
+      } on ProcessException {
+        // Hopefully, this means that the process died on its own.
+      }
+    }
   }
 }
 

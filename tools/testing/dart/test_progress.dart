@@ -404,6 +404,9 @@ class DiffProgressIndicator extends ColorProgressIndicator {
     List<String> configs =
         statusToConfigs.putIfAbsent(status, () => <String>[]);
     configs.add(test.configurationString);
+    if (test.output.hasTimedOut) {
+      print('\n${test.displayName} timed out on ${test.configurationString}');
+    }
   }
 
   String _extractRuntime(String configuration) {
