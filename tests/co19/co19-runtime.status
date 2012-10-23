@@ -284,11 +284,28 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
+[ $compiler == none && $runtime == vm ]
+LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/cos_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/sin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
+
+[ $compiler == none && $runtime == vm && $system == linux ]
+LibTest/math/exp_A01_t01: Fail
+
+[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
+LibTest/math/sin_A01_t01: Fail
+LibTest/math/tan_A01_t01: Fail
+
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $compiler == none && $runtime == vm && $system == windows ]
+LibTest/math/atan2_A01_t03: Fail # http://dartbug.com/5407
 LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/round_A01_t01: Fail # http://dartbug.com/5407
