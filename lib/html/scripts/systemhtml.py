@@ -986,7 +986,7 @@ class Dart2JSBackend(object):
         elif test_type == parameter_types[i]:
           checks[i] = 'true'
         else:
-          checks[i] = '(%s is %s || %s === null)' % (
+          checks[i] = '(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name)
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.

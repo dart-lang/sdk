@@ -53,7 +53,7 @@ $endif
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf($E element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 

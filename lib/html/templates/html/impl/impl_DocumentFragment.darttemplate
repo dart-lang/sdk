@@ -94,7 +94,7 @@ class _FilteredElementList implements List {
     _filtered.indexOf(element, start);
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
 

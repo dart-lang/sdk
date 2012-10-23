@@ -199,7 +199,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
@@ -298,7 +298,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         for ( ; i < length; i++) {
           var element = e[i];
           var elementCopy = walk(element);
-          if (elementCopy !== element) {
+          if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
               copy = JS('List', 'new Array(#)', length);
@@ -364,7 +364,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);

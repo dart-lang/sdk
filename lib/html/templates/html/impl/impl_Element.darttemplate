@@ -126,7 +126,7 @@ class _ChildrenElementList implements List {
   }
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -609,7 +609,7 @@ class _SimpleClientRect implements ClientRect {
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
   bool operator ==(ClientRect other) {
-    return other !== null && left == other.left && top == other.top
+    return other != null && left == other.left && top == other.top
         && width == other.width && height == other.height;
   }
 
@@ -842,7 +842,7 @@ class _ElementFactoryProvider {
     String parentTag = 'div';
     String tag;
     final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
+    if (match != null) {
       tag = match.group(1).toLowerCase();
       if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];

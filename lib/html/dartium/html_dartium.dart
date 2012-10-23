@@ -19,7 +19,7 @@
 LocalWindow __window;
 
 LocalWindow get window {
-  if (__window !== null) {
+  if (__window != null) {
     return __window;
   }
   __window = _Utils.window();
@@ -31,7 +31,7 @@ LocalWindow get _window native "Utils_window";
 Document __document;
 
 Document get document {
-  if (__document !== null) {
+  if (__document != null) {
     return __document;
   }
   __document = _document;
@@ -837,11 +837,11 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
   void start(/*double*/ when, [/*double*/ grainOffset, /*double*/ grainDuration]) {
-    if ((when is num || when === null) && !?grainOffset && !?grainDuration) {
+    if ((when is num || when == null) && !?grainOffset && !?grainDuration) {
       _start_1(when);
       return;
     }
-    if ((when is num || when === null) && (grainOffset is num || grainOffset === null) && (grainDuration is num || grainDuration === null)) {
+    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && (grainDuration is num || grainDuration == null)) {
       _start_2(when, grainOffset, grainDuration);
       return;
     }
@@ -1009,10 +1009,10 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [/*float*/ sampleRate]) {
-    if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames === null) && (sampleRate is num || sampleRate === null)) {
+    if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (sampleRate is num || sampleRate == null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
-    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels === null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames === null) && !?sampleRate) {
+    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
     throw "Incorrect number or type of arguments";
@@ -1277,11 +1277,11 @@ class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
   void connect(destination, /*unsigned long*/ output, [/*unsigned long*/ input]) {
-    if ((destination is AudioNode || destination === null) && (output is int || output === null) && (input is int || input === null)) {
+    if ((destination is AudioNode || destination == null) && (output is int || output == null) && (input is int || input == null)) {
       _connect_1(destination, output, input);
       return;
     }
-    if ((destination is AudioParam || destination === null) && (output is int || output === null) && !?input) {
+    if ((destination is AudioParam || destination == null) && (output is int || output == null) && !?input) {
       _connect_2(destination, output);
       return;
     }
@@ -2843,7 +2843,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSRule element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -4768,7 +4768,7 @@ abstract class CSSStyleDeclaration  {
 String _cachedBrowserPrefix;
 
 String get _browserPrefix {
-  if (_cachedBrowserPrefix === null) {
+  if (_cachedBrowserPrefix == null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
     } else if (_Device.isIE) {
@@ -7859,7 +7859,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSValue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -8333,10 +8333,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
   ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) && !?sh) {
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
       return _createImageData_1(imagedata_OR_sw);
     }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw === null) && (sh is num || sh === null)) {
+    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) && (sh is num || sh == null)) {
       return _createImageData_2(imagedata_OR_sw, sh);
     }
     throw "Incorrect number or type of arguments";
@@ -8349,10 +8349,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
   CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
-    if ((canvas_OR_image is CanvasElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
+    if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
-    if ((canvas_OR_image is ImageElement || canvas_OR_image === null) && (repetitionType is String || repetitionType === null)) {
+    if ((canvas_OR_image is ImageElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
       return _createPattern_2(canvas_OR_image, repetitionType);
     }
     throw "Incorrect number or type of arguments";
@@ -8365,39 +8365,39 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
   void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
+    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
       _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
+    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
       _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video === null) && (sx_OR_x is num || sx_OR_x === null) && (sy_OR_y is num || sy_OR_y === null) && (sw_OR_width is num || sw_OR_width === null) && (height_OR_sh is num || height_OR_sh === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dw is num || dw === null) && (dh is num || dh === null)) {
+    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
       _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
@@ -8511,11 +8511,11 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
   void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _putImageData_1(imagedata, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dirtyX is num || dirtyX === null) && (dirtyY is num || dirtyY === null) && (dirtyWidth is num || dirtyWidth === null) && (dirtyHeight is num || dirtyHeight === null)) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
       _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -8553,31 +8553,31 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void setMiterLimit(num limit) native "CanvasRenderingContext2D_setMiterLimit_Callback";
 
   void setShadow(/*float*/ width, /*float*/ height, /*float*/ blur, [c_OR_color_OR_grayLevel_OR_r, /*float*/ alpha_OR_g_OR_m, /*float*/ b_OR_y, /*float*/ a_OR_k, /*float*/ a]) {
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && !?c_OR_color_OR_grayLevel_OR_r && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_1(width, height, blur);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_2(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is String || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_3(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && !?alpha_OR_g_OR_m && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_4(width, height, blur, c_OR_color_OR_grayLevel_OR_r);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && !?b_OR_y && !?a_OR_k && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && !?b_OR_y && !?a_OR_k && !?a) {
       _setShadow_5(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && !?a) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && !?a) {
       _setShadow_6(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k);
       return;
     }
-    if ((width is num || width === null) && (height is num || height === null) && (blur is num || blur === null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r === null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m === null) && (b_OR_y is num || b_OR_y === null) && (a_OR_k is num || a_OR_k === null) && (a is num || a === null)) {
+    if ((width is num || width == null) && (height is num || height == null) && (blur is num || blur == null) && (c_OR_color_OR_grayLevel_OR_r is num || c_OR_color_OR_grayLevel_OR_r == null) && (alpha_OR_g_OR_m is num || alpha_OR_g_OR_m == null) && (b_OR_y is num || b_OR_y == null) && (a_OR_k is num || a_OR_k == null) && (a is num || a == null)) {
       _setShadow_7(width, height, blur, c_OR_color_OR_grayLevel_OR_r, alpha_OR_g_OR_m, b_OR_y, a_OR_k, a);
       return;
     }
@@ -8633,11 +8633,11 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
   void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata === null) && (dx is num || dx === null) && (dy is num || dy === null) && (dirtyX is num || dirtyX === null) && (dirtyY is num || dirtyY === null) && (dirtyWidth is num || dirtyWidth === null) && (dirtyHeight is num || dirtyHeight === null)) {
+    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
       _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -8850,7 +8850,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ClientRect element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -9811,7 +9811,7 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMMimeType element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -9999,7 +9999,7 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMPlugin element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -10293,7 +10293,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -10403,13 +10403,13 @@ abstract class DOMURL {
 class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 
   static String createObjectURL(blob_OR_source_OR_stream) {
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream === null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream === null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream === null)) {
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
     throw "Incorrect number or type of arguments";
@@ -10524,11 +10524,11 @@ class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements Data
   int get length native "DataTransferItemList_length_Getter";
 
   void add(data_OR_file, [/*DOMString*/ type]) {
-    if ((data_OR_file is File || data_OR_file === null) && !?type) {
+    if ((data_OR_file is File || data_OR_file == null) && !?type) {
       _add_1(data_OR_file);
       return;
     }
-    if ((data_OR_file is String || data_OR_file === null) && (type is String || type === null)) {
+    if ((data_OR_file is String || data_OR_file == null) && (type is String || type == null)) {
       _add_2(data_OR_file, type);
       return;
     }
@@ -11604,7 +11604,7 @@ class _FilteredElementList implements List {
     _filtered.indexOf(element, start);
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
 
@@ -12800,7 +12800,7 @@ class _ChildrenElementList implements List {
   }
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -13283,7 +13283,7 @@ class _SimpleClientRect implements ClientRect {
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
   bool operator ==(ClientRect other) {
-    return other !== null && left == other.left && top == other.top
+    return other != null && left == other.left && top == other.top
         && width == other.width && height == other.height;
   }
 
@@ -13556,7 +13556,7 @@ class _ElementFactoryProvider {
     String parentTag = 'div';
     String tag;
     final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
+    if (match != null) {
       tag = match.group(1).toLowerCase();
       if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -13996,7 +13996,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Entry element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14092,7 +14092,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(EntrySync element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -15017,7 +15017,7 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(File element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -15494,7 +15494,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -15628,7 +15628,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -16145,7 +16145,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Gamepad element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -16371,7 +16371,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -16489,7 +16489,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -17274,13 +17274,13 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
   IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
   IDBTransaction transaction(storeName_OR_storeNames, /*DOMString*/ mode) {
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_2(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
+    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
       return _transaction_3(storeName_OR_storeNames, mode);
     }
     throw "Incorrect number or type of arguments";
@@ -17411,10 +17411,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null)) {
+    if ((key_OR_range is Dynamic || key_OR_range == null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -17427,10 +17427,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
   IDBRequest _count_3(key_OR_range) native "IDBIndex_count_3_Callback";
 
   IDBRequest get(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is Dynamic || key === null)) {
+    if ((key is Dynamic || key == null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17441,10 +17441,10 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
   IDBRequest _get_2(key) native "IDBIndex_get_2_Callback";
 
   IDBRequest getKey(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _getKey_1(key);
     }
-    if ((key is Dynamic || key === null)) {
+    if ((key is Dynamic || key == null)) {
       return _getKey_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17458,16 +17458,16 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17487,16 +17487,16 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if (!?key_OR_range && !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
       return _openKeyCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -17737,10 +17737,10 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null)) {
+    if ((key_OR_range is Dynamic || key_OR_range == null)) {
       return _count_3(key_OR_range);
     }
     throw "Incorrect number or type of arguments";
@@ -17753,16 +17753,16 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
   IDBIndex createIndex(/*DOMString*/ name, keyPath, [/*Dictionary*/ options]) {
-    if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && !?options) {
+    if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && !?options) {
       return _createIndex_1(name, keyPath);
     }
-    if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && (options is Map || options === null)) {
+    if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_2(name, keyPath, options);
     }
-    if ((name is String || name === null) && (keyPath is String || keyPath === null) && !?options) {
+    if ((name is String || name == null) && (keyPath is String || keyPath == null) && !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((name is String || name === null) && (keyPath is String || keyPath === null) && (options is Map || options === null)) {
+    if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_4(name, keyPath, options);
     }
     throw "Incorrect number or type of arguments";
@@ -17777,10 +17777,10 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   IDBIndex _createIndex_4(name, keyPath, options) native "IDBObjectStore_createIndex_4_Callback";
 
   IDBRequest delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange === null)) {
+    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    if ((key_OR_keyRange is Dynamic || key_OR_keyRange === null)) {
+    if ((key_OR_keyRange is Dynamic || key_OR_keyRange == null)) {
       return _delete_2(key_OR_keyRange);
     }
     throw "Incorrect number or type of arguments";
@@ -17793,10 +17793,10 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
   IDBRequest getObject(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
-    if ((key is Dynamic || key === null)) {
+    if ((key is Dynamic || key == null)) {
       return _get_2(key);
     }
     throw "Incorrect number or type of arguments";
@@ -17812,16 +17812,16 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && !?direction) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && !?direction) {
       return _openCursor_4(key_OR_range);
     }
-    if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
+    if ((key_OR_range is Dynamic || key_OR_range == null) && (direction is String || direction == null)) {
       return _openCursor_5(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
@@ -19021,7 +19021,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -19155,7 +19155,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -19289,7 +19289,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -22006,7 +22006,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(MediaStream element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -22859,7 +22859,7 @@ class _MutationObserverImpl extends NativeFieldWrapperClass1 implements Mutation
     if (options != null) {
       options.forEach((k, v) {
           if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true === v);
+            _add(parsedOptions, k, true == v);
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
@@ -23067,7 +23067,7 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -25665,19 +25665,19 @@ class _RTCDataChannelImpl extends _EventTargetImpl implements RTCDataChannel {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
-    if ((data is ArrayBuffer || data === null)) {
+    if ((data is ArrayBuffer || data == null)) {
       _send_1(data);
       return;
     }
-    if ((data is ArrayBufferView || data === null)) {
+    if ((data is ArrayBufferView || data == null)) {
       _send_2(data);
       return;
     }
-    if ((data is Blob || data === null)) {
+    if ((data is Blob || data == null)) {
       _send_3(data);
       return;
     }
-    if ((data is String || data === null)) {
+    if ((data is String || data == null)) {
       _send_4(data);
       return;
     }
@@ -26634,7 +26634,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Map element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -27243,7 +27243,7 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -27384,7 +27384,7 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -27581,7 +27581,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -28113,7 +28113,7 @@ class _AttributeClassSet extends _CssClassSet {
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement {
   CSSClassSet get classes {
-    if (_cssClassSet === null) {
+    if (_cssClassSet == null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;
@@ -28462,7 +28462,7 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGElementInstance element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -30618,7 +30618,7 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -31265,7 +31265,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -32407,7 +32407,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGPathSeg element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -33527,7 +33527,7 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -34233,7 +34233,7 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGTransform element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -35296,7 +35296,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SourceBuffer element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -35516,7 +35516,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechGrammar element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -35687,7 +35687,7 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechInputResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -36072,7 +36072,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechRecognitionResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -36504,7 +36504,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(StyleSheet element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -37603,7 +37603,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrackCue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -37780,7 +37780,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrack element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -38099,7 +38099,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Touch element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -38528,7 +38528,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -38662,7 +38662,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -38796,7 +38796,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -40474,15 +40474,15 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
   void bufferData(/*unsigned long*/ target, data_OR_size, /*unsigned long*/ usage) {
-    if ((target is int || target === null) && (data_OR_size is ArrayBuffer || data_OR_size === null) && (usage is int || usage === null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target === null) && (data_OR_size is ArrayBufferView || data_OR_size === null) && (usage is int || usage === null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target === null) && (data_OR_size is int || data_OR_size === null) && (usage is int || usage === null)) {
+    if ((target is int || target == null) && (data_OR_size is int || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_3(target, data_OR_size, usage);
       return;
     }
@@ -40496,11 +40496,11 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
   void bufferSubData(/*unsigned long*/ target, /*long long*/ offset, data) {
-    if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBuffer || data === null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if ((target is int || target === null) && (offset is int || offset === null) && (data is ArrayBufferView || data === null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data == null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
@@ -40688,23 +40688,23 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
   void texImage2D(/*unsigned long*/ target, /*long*/ level, /*unsigned long*/ internalformat, /*long*/ format_OR_width, /*long*/ height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [/*unsigned long*/ format, /*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
-    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && (format is int || format === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && !?format && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && !?format && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && !?format && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (internalformat is int || internalformat === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) && !?format && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
@@ -40726,23 +40726,23 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
   void texSubImage2D(/*unsigned long*/ target, /*long*/ level, /*long*/ xoffset, /*long*/ yoffset, /*long*/ format_OR_width, /*long*/ height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [/*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
-    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && (type is int || type === null) && (pixels is ArrayBufferView || pixels === null)) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target === null) && (level is int || level === null) && (xoffset is int || xoffset === null) && (yoffset is int || yoffset === null) && (format_OR_width is int || format_OR_width === null) && (height_OR_type is int || height_OR_type === null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) && !?type && !?pixels) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
@@ -40993,7 +40993,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Animation element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -43641,7 +43641,7 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener === null) {
+    if (_listener == null) {
       _listener = (Event e) {
         var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
@@ -43655,7 +43655,7 @@ class ReceivePortSync {
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener !== null) window.on[_listenerName].remove(_listener);
+    if (_listener != null) window.on[_listenerName].remove(_listener);
   }
 
   SendPortSync toSendPort() {
@@ -43813,7 +43813,7 @@ void _maybeScheduleMeasurementFrame() {
  * no measurements were actually requested.
  */
 void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks === null) {
+  if (_pendingMeasurementFrameCallbacks == null) {
     _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -43830,7 +43830,7 @@ void _addMeasurementFrameCallback(TimeoutHandler callback) {
  */
 Future _createMeasurementFuture(ComputeValue computeValue,
                                 Completer completer) {
-  if (_pendingRequests === null) {
+  if (_pendingRequests == null) {
     _pendingRequests = <_MeasurementRequest>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -43846,7 +43846,7 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests !== null) {
+  if (_pendingRequests != null) {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
@@ -43861,7 +43861,7 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests !== null) {
+  if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
         request.completer.completeException(request.value);
@@ -43871,7 +43871,7 @@ void _completeMeasurementFutures() {
     }
   }
 
-  if (readyMeasurementFrameCallbacks !== null) {
+  if (readyMeasurementFrameCallbacks != null) {
     for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
       // TODO(jacobr): wrap each call to a handler in a try-catch block.
       handler();
@@ -43940,7 +43940,7 @@ class _MessageTraverser {
   }
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
@@ -43952,7 +43952,7 @@ class _Copier extends _MessageTraverser {
 
   List visitList(List list) {
     List copy = _visited[list];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     int len = list.length;
 
@@ -43967,7 +43967,7 @@ class _Copier extends _MessageTraverser {
 
   Map visitMap(Map map) {
     Map copy = _visited[map];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     // TODO(floitsch): we loose the generic type of the map.
     copy = new Map();
@@ -43988,7 +43988,7 @@ class _Serializer extends _MessageTraverser {
 
   visitList(List list) {
     int copyId = _visited[list];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[list] = id;
@@ -43999,7 +43999,7 @@ class _Serializer extends _MessageTraverser {
 
   visitMap(Map map) {
     int copyId = _visited[map];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
@@ -44026,7 +44026,7 @@ class _Deserializer {
   _Deserializer();
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 
   deserialize(x) {
@@ -44051,7 +44051,7 @@ class _Deserializer {
   _deserializeRef(List x) {
     int id = x[1];
     var result = _deserialized[id];
-    assert(result !== null);
+    assert(result != null);
     return result;
   }
 
@@ -44234,7 +44234,7 @@ spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLe
 var _testRunner;
 
 TestRunner get testRunner {
-  if (_testRunner === null)
+  if (_testRunner == null)
     _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
   return _testRunner;
 }

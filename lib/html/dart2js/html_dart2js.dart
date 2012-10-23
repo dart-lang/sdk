@@ -2267,7 +2267,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSRule element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -4191,7 +4191,7 @@ abstract class CSSStyleDeclaration  {
 String _cachedBrowserPrefix;
 
 String get _browserPrefix {
-  if (_cachedBrowserPrefix === null) {
+  if (_cachedBrowserPrefix == null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
     } else if (_Device.isIE) {
@@ -7237,7 +7237,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSValue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -7656,13 +7656,13 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void closePath() native;
 
   ImageData createImageData(imagedata_OR_sw, [sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) &&
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
         !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
       return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
     }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw === null) &&
-        (sh is num || sh === null)) {
+    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) &&
+        (sh is num || sh == null)) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
     throw const Exception("Incorrect number or type of arguments");
@@ -7710,10 +7710,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX === null) &&
-        (dirtyY is num || dirtyY === null) &&
-        (dirtyWidth is num || dirtyWidth === null) &&
-        (dirtyHeight is num || dirtyHeight === null)) {
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -7777,10 +7777,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _webkitPutImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX === null) &&
-        (dirtyY is num || dirtyY === null) &&
-        (dirtyWidth is num || dirtyWidth === null) &&
-        (dirtyHeight is num || dirtyHeight === null)) {
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -7967,7 +7967,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ClientRect element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -8807,7 +8807,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMMimeType element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -8977,7 +8977,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMPlugin element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -9245,7 +9245,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -10333,7 +10333,7 @@ class _FilteredElementList implements List {
     _filtered.indexOf(element, start);
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
 
@@ -11498,7 +11498,7 @@ class _ChildrenElementList implements List {
   }
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -11981,7 +11981,7 @@ class _SimpleClientRect implements ClientRect {
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
   bool operator ==(ClientRect other) {
-    return other !== null && left == other.left && top == other.top
+    return other != null && left == other.left && top == other.top
         && width == other.width && height == other.height;
   }
 
@@ -12322,7 +12322,7 @@ class _ElementFactoryProvider {
     String parentTag = 'div';
     String tag;
     final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
+    if (match != null) {
       tag = match.group(1).toLowerCase();
       if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -12678,7 +12678,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Entry element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -12768,7 +12768,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(EntrySync element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -13590,7 +13590,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(File element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14018,7 +14018,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14137,7 +14137,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14558,7 +14558,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Gamepad element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14752,7 +14752,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -14864,7 +14864,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -15713,7 +15713,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -15727,7 +15727,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _count_3(key) native "count";
 
   _IDBRequestImpl get(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
     if (?key) {
@@ -15740,7 +15740,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _get_2(key) native "get";
 
   _IDBRequestImpl getKey(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -15757,12 +15757,12 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -15771,7 +15771,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       return _openCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -15788,12 +15788,12 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -15802,7 +15802,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       return _openKeyCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
     }
@@ -16031,7 +16031,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -16045,23 +16045,23 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _count_3(key) native "count";
 
   _IDBIndexImpl createIndex(String name, keyPath, [options]) {
-    if ((keyPath is List<String> || keyPath === null) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         !?options) {
       List keyPath_1 = _convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath === null) &&
-        (options is Map || options === null)) {
+    if ((keyPath is List<String> || keyPath == null) &&
+        (options is Map || options == null)) {
       List keyPath_2 = _convertDartToNative_StringArray(keyPath);
       var options_3 = _convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
-    if ((keyPath is String || keyPath === null) &&
+    if ((keyPath is String || keyPath == null) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath === null) &&
-        (options is Map || options === null)) {
+    if ((keyPath is String || keyPath == null) &&
+        (options is Map || options == null)) {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
@@ -16073,7 +16073,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBIndexImpl _createIndex_4(name, String keyPath, options) native "createIndex";
 
   _IDBRequestImpl delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange === null)) {
+    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -16088,7 +16088,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   void deleteIndex(String name) native;
 
   _IDBRequestImpl getObject(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -16107,12 +16107,12 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -16121,7 +16121,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       return _openCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
@@ -17096,7 +17096,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -17215,7 +17215,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -17334,7 +17334,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -18691,7 +18691,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
       return;
     }
     if (?message &&
-        (messagePorts is List || messagePorts === null)) {
+        (messagePorts is List || messagePorts == null)) {
       var message_2 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
@@ -19853,7 +19853,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(MediaStream element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -20645,7 +20645,7 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
     if (options != null) {
       options.forEach((k, v) {
           if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true === v);
+            _add(parsedOptions, k, true == v);
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
@@ -20841,7 +20841,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -23988,7 +23988,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Map element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -24495,7 +24495,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -24622,7 +24622,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -24793,7 +24793,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -25310,7 +25310,7 @@ class _AttributeClassSet extends _CssClassSet {
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGElement" {
   CSSClassSet get classes {
-    if (_cssClassSet === null) {
+    if (_cssClassSet == null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;
@@ -25649,7 +25649,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGElementInstance element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -27671,7 +27671,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -28267,7 +28267,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -29184,7 +29184,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGPathSeg element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -30222,7 +30222,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -30879,7 +30879,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGTransform element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -31825,7 +31825,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SourceBuffer element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -32011,7 +32011,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechGrammar element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -32144,7 +32144,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechInputResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -32483,7 +32483,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechRecognitionResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -32869,7 +32869,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(StyleSheet element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -33763,7 +33763,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrackCue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -33926,7 +33926,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrack element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -34216,7 +34216,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Touch element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -34592,7 +34592,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -34711,7 +34711,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -34830,7 +34830,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -36533,14 +36533,14 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
-        (format is int || format === null) &&
-        (type is int || type === null) &&
-        (pixels is ArrayBufferView || pixels === null)) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        (format is int || format == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -36548,21 +36548,21 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -36582,32 +36582,32 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
-        (type is int || type === null) &&
-        (pixels is ArrayBufferView || pixels === null)) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
@@ -36819,7 +36819,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Animation element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -39250,7 +39250,7 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener === null) {
+    if (_listener == null) {
       _listener = (Event e) {
         var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
@@ -39264,7 +39264,7 @@ class ReceivePortSync {
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener !== null) window.on[_listenerName].remove(_listener);
+    if (_listener != null) window.on[_listenerName].remove(_listener);
   }
 
   SendPortSync toSendPort() {
@@ -39422,7 +39422,7 @@ void _maybeScheduleMeasurementFrame() {
  * no measurements were actually requested.
  */
 void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks === null) {
+  if (_pendingMeasurementFrameCallbacks == null) {
     _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -39439,7 +39439,7 @@ void _addMeasurementFrameCallback(TimeoutHandler callback) {
  */
 Future _createMeasurementFuture(ComputeValue computeValue,
                                 Completer completer) {
-  if (_pendingRequests === null) {
+  if (_pendingRequests == null) {
     _pendingRequests = <_MeasurementRequest>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -39455,7 +39455,7 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests !== null) {
+  if (_pendingRequests != null) {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
@@ -39470,7 +39470,7 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests !== null) {
+  if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
         request.completer.completeException(request.value);
@@ -39480,7 +39480,7 @@ void _completeMeasurementFutures() {
     }
   }
 
-  if (readyMeasurementFrameCallbacks !== null) {
+  if (readyMeasurementFrameCallbacks != null) {
     for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
       // TODO(jacobr): wrap each call to a handler in a try-catch block.
       handler();
@@ -39549,7 +39549,7 @@ class _MessageTraverser {
   }
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
@@ -39561,7 +39561,7 @@ class _Copier extends _MessageTraverser {
 
   List visitList(List list) {
     List copy = _visited[list];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     int len = list.length;
 
@@ -39576,7 +39576,7 @@ class _Copier extends _MessageTraverser {
 
   Map visitMap(Map map) {
     Map copy = _visited[map];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     // TODO(floitsch): we loose the generic type of the map.
     copy = new Map();
@@ -39597,7 +39597,7 @@ class _Serializer extends _MessageTraverser {
 
   visitList(List list) {
     int copyId = _visited[list];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[list] = id;
@@ -39608,7 +39608,7 @@ class _Serializer extends _MessageTraverser {
 
   visitMap(Map map) {
     int copyId = _visited[map];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
@@ -39635,7 +39635,7 @@ class _Deserializer {
   _Deserializer();
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 
   deserialize(x) {
@@ -39660,7 +39660,7 @@ class _Deserializer {
   _deserializeRef(List x) {
     int id = x[1];
     var result = _deserialized[id];
-    assert(result !== null);
+    assert(result != null);
     return result;
   }
 
@@ -40017,7 +40017,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
@@ -40116,7 +40116,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         for ( ; i < length; i++) {
           var element = e[i];
           var elementCopy = walk(element);
-          if (elementCopy !== element) {
+          if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
               copy = JS('List', 'new Array(#)', length);
@@ -40182,7 +40182,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
@@ -40304,7 +40304,7 @@ class _DOMWindowCrossFrameImpl implements Window {
   _DOMWindowCrossFrameImpl(this._window);
 
   static Window _createSafe(w) {
-    if (w === window) {
+    if (identical(w, window)) {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -40328,7 +40328,7 @@ class _LocationCrossFrameImpl implements Location {
   _LocationCrossFrameImpl(this._location);
 
   static Location _createSafe(location) {
-    if (location === window.location) {
+    if (identical(location, window.location)) {
       return location;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -40353,7 +40353,7 @@ class _HistoryCrossFrameImpl implements History {
   _HistoryCrossFrameImpl(this._history);
 
   static History _createSafe(h) {
-    if (h === window.history) {
+    if (identical(h, window.history)) {
       return h;
     } else {
       // TODO(vsm): Cache or implement equality.

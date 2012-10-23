@@ -503,7 +503,7 @@ class DartiumBackend(object):
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         argument_name = argument_names[i]
-        checks[i] = '(%s is %s || %s === null)' % (
+        checks[i] = '(%s is %s || %s == null)' % (
             argument_name, self._DartType(argument.type.id), argument_name)
       GenerateCall(operation, argument_count, checks)
 

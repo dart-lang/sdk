@@ -5,7 +5,7 @@
 String _cachedBrowserPrefix;
 
 String get _browserPrefix {
-  if (_cachedBrowserPrefix === null) {
+  if (_cachedBrowserPrefix == null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
     } else if (_Device.isIE) {

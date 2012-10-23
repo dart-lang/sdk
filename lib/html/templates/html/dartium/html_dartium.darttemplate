@@ -38,7 +38,7 @@ $!GENERATED_DART_FILES
 LocalWindow __window;
 
 LocalWindow get window {
-  if (__window !== null) {
+  if (__window != null) {
     return __window;
   }
   __window = _Utils.window();
@@ -50,7 +50,7 @@ LocalWindow get _window native "Utils_window";
 Document __document;
 
 Document get document {
-  if (__document !== null) {
+  if (__document != null) {
     return __document;
   }
   __document = _document;

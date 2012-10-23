@@ -60,7 +60,7 @@ class _MessageTraverser {
   }
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
@@ -72,7 +72,7 @@ class _Copier extends _MessageTraverser {
 
   List visitList(List list) {
     List copy = _visited[list];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     int len = list.length;
 
@@ -87,7 +87,7 @@ class _Copier extends _MessageTraverser {
 
   Map visitMap(Map map) {
     Map copy = _visited[map];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     // TODO(floitsch): we loose the generic type of the map.
     copy = new Map();
@@ -108,7 +108,7 @@ class _Serializer extends _MessageTraverser {
 
   visitList(List list) {
     int copyId = _visited[list];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[list] = id;
@@ -119,7 +119,7 @@ class _Serializer extends _MessageTraverser {
 
   visitMap(Map map) {
     int copyId = _visited[map];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
@@ -146,7 +146,7 @@ class _Deserializer {
   _Deserializer();
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 
   deserialize(x) {
@@ -171,7 +171,7 @@ class _Deserializer {
   _deserializeRef(List x) {
     int id = x[1];
     var result = _deserialized[id];
-    assert(result !== null);
+    assert(result != null);
     return result;
   }
 
