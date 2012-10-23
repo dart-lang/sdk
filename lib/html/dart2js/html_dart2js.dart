@@ -15,12 +15,12 @@
 
 
 
-LocalWindow get window() => JS('LocalWindow', 'window');
-_LocalWindowImpl get _window() => JS('_LocalWindowImpl', 'window');
+LocalWindow get window => JS('LocalWindow', 'window');
+_LocalWindowImpl get _window => JS('_LocalWindowImpl', 'window');
 
-Document get document() => JS('Document', 'document');
+Document get document => JS('Document', 'document');
 
-_DocumentImpl get _document() => JS('_DocumentImpl', 'document');
+_DocumentImpl get _document => JS('_DocumentImpl', 'document');
 
 Element query(String selector) => _document.query(selector);
 List<Element> queryAll(String selector) => _document.queryAll(selector);
@@ -10626,7 +10626,7 @@ class _DocumentImpl extends _NodeImpl implements Document
   String cookie;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() => JS("Window", "#.defaultView", this);
+  Window get _window => JS("Window", "#.defaultView", this);
 
   final _ElementImpl documentElement;
 
@@ -12172,7 +12172,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
-  _HTMLCollectionImpl get $dom_children() => JS("_HTMLCollectionImpl", "#.children", this);
+  _HTMLCollectionImpl get $dom_children => JS("_HTMLCollectionImpl", "#.children", this);
 
   String contentEditable;
 
@@ -12204,9 +12204,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void click() native;
 
-  int get $dom_childElementCount() => JS("int", "#.childElementCount", this);
+  int get $dom_childElementCount => JS("int", "#.childElementCount", this);
 
-  String get $dom_className() => JS("String", "#.className", this);
+  String get $dom_className => JS("String", "#.className", this);
 
   void set $dom_className(String value) {
     JS("void", "#.className = #", this, value);
@@ -12222,9 +12222,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   final Map<String, String> dataset;
 
-  _ElementImpl get $dom_firstElementChild() => JS("_ElementImpl", "#.firstElementChild", this);
+  _ElementImpl get $dom_firstElementChild => JS("_ElementImpl", "#.firstElementChild", this);
 
-  _ElementImpl get $dom_lastElementChild() => JS("_ElementImpl", "#.lastElementChild", this);
+  _ElementImpl get $dom_lastElementChild => JS("_ElementImpl", "#.lastElementChild", this);
 
   final _ElementImpl nextElementSibling;
 
@@ -13084,7 +13084,7 @@ class _EventImpl implements Event native "*Event" {
   final _ClipboardImpl clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  EventTarget get _currentTarget() => JS("EventTarget", "#.currentTarget", this);
+  EventTarget get _currentTarget => JS("EventTarget", "#.currentTarget", this);
 
   final bool defaultPrevented;
 
@@ -13093,10 +13093,10 @@ class _EventImpl implements Event native "*Event" {
   bool returnValue;
 
   EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  EventTarget get _srcElement() => JS("EventTarget", "#.srcElement", this);
+  EventTarget get _srcElement => JS("EventTarget", "#.srcElement", this);
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() => JS("EventTarget", "#.target", this);
+  EventTarget get _target => JS("EventTarget", "#.target", this);
 
   final int timeStamp;
 
@@ -14347,7 +14347,7 @@ abstract class FrameElement implements Element {
 class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HTMLFrameElement" {
 
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
+  Window get _contentWindow => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -14917,7 +14917,7 @@ abstract class HTMLOptionsCollection implements HTMLCollection {
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  int get length() => JS("int", "#.length", this);
+  int get length => JS("int", "#.length", this);
 
   void set length(int value) {
     JS("void", "#.length = #", this, value);
@@ -15366,10 +15366,10 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
   final String direction;
 
   Dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key() => JS("Dynamic", "#.key", this);
+  Dynamic get _key => JS("Dynamic", "#.key", this);
 
   Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey() => JS("Dynamic", "#.primaryKey", this);
+  Dynamic get _primaryKey => JS("Dynamic", "#.primaryKey", this);
 
   final Dynamic source;
 
@@ -15411,7 +15411,7 @@ abstract class IDBCursorWithValue implements IDBCursor {
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
   Dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value() => JS("Dynamic", "#.value", this);
+  Dynamic get _value => JS("Dynamic", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15890,12 +15890,12 @@ abstract class IDBKeyRange {
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
   Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower() => JS("Dynamic", "#.lower", this);
+  Dynamic get _lower => JS("Dynamic", "#.lower", this);
 
   final bool lowerOpen;
 
   Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper() => JS("Dynamic", "#.upper", this);
+  Dynamic get _upper => JS("Dynamic", "#.upper", this);
 
   final bool upperOpen;
 
@@ -16252,7 +16252,7 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
   final String readyState;
 
   Dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result() => JS("Dynamic", "#.result", this);
+  Dynamic get _result => JS("Dynamic", "#.result", this);
 
   final Dynamic source;
 
@@ -16493,7 +16493,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String align;
 
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
+  Window get _contentWindow => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -18398,7 +18398,7 @@ abstract class LocalWindowEvents implements Events {
 
 class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@*DOMWindow" {
 
-  _DocumentImpl get document() => JS('_DocumentImpl', '#.document', this);
+  _DocumentImpl get document => JS('_DocumentImpl', '#.document', this);
 
   Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
@@ -18448,7 +18448,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   var _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location() => JS('Location', '#.location', this);
+  Location get _location => JS('Location', '#.location', this);
   void set _location(Location value) {
     JS('void', '#.location = #', this, value);
   }
@@ -18583,7 +18583,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final bool offscreenBuffering;
 
   Window get opener => _convertNativeToDart_Window(this._opener);
-  Window get _opener() => JS("Window", "#.opener", this);
+  Window get _opener => JS("Window", "#.opener", this);
 
   final int outerHeight;
 
@@ -18596,7 +18596,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final int pageYOffset;
 
   Window get parent => _convertNativeToDart_Window(this._parent);
-  Window get _parent() => JS("Window", "#.parent", this);
+  Window get _parent => JS("Window", "#.parent", this);
 
   final _PerformanceImpl performance;
 
@@ -18619,7 +18619,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl scrollbars;
 
   Window get self => _convertNativeToDart_Window(this._self);
-  Window get _self() => JS("Window", "#.self", this);
+  Window get _self => JS("Window", "#.self", this);
 
   final _StorageImpl sessionStorage;
 
@@ -18632,7 +18632,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl toolbar;
 
   Window get top => _convertNativeToDart_Window(this._top);
-  Window get _top() => JS("Window", "#.top", this);
+  Window get _top => JS("Window", "#.top", this);
 
   final _IDBFactoryImpl webkitIndexedDB;
 
@@ -18641,7 +18641,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _StorageInfoImpl webkitStorageInfo;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() => JS("Window", "#.window", this);
+  Window get _window => JS("Window", "#.window", this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -20153,7 +20153,7 @@ abstract class MessageEvent implements Event {
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
   Dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
-  Dynamic get _data() => JS("Dynamic", "#.data", this);
+  Dynamic get _data => JS("Dynamic", "#.data", this);
 
   final String lastEventId;
 
@@ -20162,7 +20162,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
   final List ports;
 
   Window get source => _convertNativeToDart_Window(this._source);
-  Window get _source() => JS("Window", "#.source", this);
+  Window get _source => JS("Window", "#.source", this);
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List messagePorts) native;
 
@@ -20476,7 +20476,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   final bool metaKey;
 
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  EventTarget get _relatedTarget() => JS("EventTarget", "#.relatedTarget", this);
+  EventTarget get _relatedTarget => JS("EventTarget", "#.relatedTarget", this);
 
   final int screenX;
 
@@ -21351,25 +21351,25 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   }
 
 
-  _NamedNodeMapImpl get $dom_attributes() => JS("_NamedNodeMapImpl", "#.attributes", this);
+  _NamedNodeMapImpl get $dom_attributes => JS("_NamedNodeMapImpl", "#.attributes", this);
 
-  List<Node> get $dom_childNodes() => JS("List<Node>", "#.childNodes", this);
+  List<Node> get $dom_childNodes => JS("List<Node>", "#.childNodes", this);
 
-  _NodeImpl get $dom_firstChild() => JS("_NodeImpl", "#.firstChild", this);
+  _NodeImpl get $dom_firstChild => JS("_NodeImpl", "#.firstChild", this);
 
-  _NodeImpl get $dom_lastChild() => JS("_NodeImpl", "#.lastChild", this);
+  _NodeImpl get $dom_lastChild => JS("_NodeImpl", "#.lastChild", this);
 
-  _NodeImpl get nextNode() => JS("_NodeImpl", "#.nextSibling", this);
+  _NodeImpl get nextNode => JS("_NodeImpl", "#.nextSibling", this);
 
-  int get $dom_nodeType() => JS("int", "#.nodeType", this);
+  int get $dom_nodeType => JS("int", "#.nodeType", this);
 
-  _DocumentImpl get document() => JS("_DocumentImpl", "#.ownerDocument", this);
+  _DocumentImpl get document => JS("_DocumentImpl", "#.ownerDocument", this);
 
-  _NodeImpl get parent() => JS("_NodeImpl", "#.parentNode", this);
+  _NodeImpl get parent => JS("_NodeImpl", "#.parentNode", this);
 
-  _NodeImpl get previousNode() => JS("_NodeImpl", "#.previousSibling", this);
+  _NodeImpl get previousNode => JS("_NodeImpl", "#.previousSibling", this);
 
-  String get text() => JS("String", "#.textContent", this);
+  String get text => JS("String", "#.textContent", this);
 
   void set text(String value) {
     JS("void", "#.textContent = #", this, value);
@@ -24132,7 +24132,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24925,7 +24925,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24989,7 +24989,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25192,7 +25192,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25237,7 +25237,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25348,7 +25348,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 
   // Shadowing definition.
-  String get id() => JS("String", "#.id", this);
+  String get id => JS("String", "#.id", this);
 
   void set id(String value) {
     JS("void", "#.id = #", this, value);
@@ -25732,7 +25732,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25860,7 +25860,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25918,7 +25918,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25956,7 +25956,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26038,7 +26038,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26139,7 +26139,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26197,7 +26197,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26265,7 +26265,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26350,7 +26350,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26383,7 +26383,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26484,7 +26484,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26536,7 +26536,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26569,7 +26569,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26650,7 +26650,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26698,7 +26698,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26778,7 +26778,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26868,7 +26868,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26943,7 +26943,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27023,7 +27023,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27195,7 +27195,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27254,7 +27254,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27339,7 +27339,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27391,7 +27391,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27473,7 +27473,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27766,7 +27766,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27951,7 +27951,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -28028,7 +28028,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -28529,7 +28529,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29342,7 +29342,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29478,7 +29478,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29547,7 +29547,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29749,7 +29749,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30034,7 +30034,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30121,7 +30121,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30310,7 +30310,7 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   String media;
 
   // Shadowing definition.
-  String get title() => JS("String", "#.title", this);
+  String get title => JS("String", "#.title", this);
 
   void set title(String value) {
     JS("void", "#.title = #", this, value);
@@ -30358,7 +30358,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30407,7 +30407,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30564,7 +30564,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30701,7 +30701,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -31034,7 +31034,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -31525,11 +31525,11 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
-  List<OptionElement> get options() {
+  List<OptionElement> get options {
     return this.elements.filter((e) => e is OptionElement);
   }
 
-  List<OptionElement> get selectedOptions() {
+  List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       return this.options.filter((o) => o.selected);
@@ -32416,7 +32416,7 @@ class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*S
 
   final _DocumentImpl emma;
 
-  bool get finalValue() => JS("bool", "#.final", this);
+  bool get finalValue => JS("bool", "#.final", this);
 
   final int length;
 
@@ -32633,7 +32633,7 @@ class _StorageImpl implements Storage native "*Storage" {
 
   bool isEmpty() => $dom_key(0) == null;
 
-  int get $dom_length() => JS("int", "#.length", this);
+  int get $dom_length => JS("int", "#.length", this);
 
   void $dom_clear() native "clear";
 
@@ -34130,7 +34130,7 @@ class _TouchImpl implements Touch native "*Touch" {
   final int screenY;
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() => JS("EventTarget", "#.target", this);
+  EventTarget get _target => JS("EventTarget", "#.target", this);
 
   final num webkitForce;
 
@@ -34288,7 +34288,7 @@ abstract class TrackElement implements Element {
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
 
-  bool get defaultValue() => JS("bool", "#.default", this);
+  bool get defaultValue => JS("bool", "#.default", this);
 
   void set defaultValue(bool value) {
     JS("void", "#.default = #", this, value);
@@ -34474,7 +34474,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
   final int pageY;
 
   Window get view => _convertNativeToDart_Window(this._view);
-  Window get _view() => JS("Window", "#.view", this);
+  Window get _view => JS("Window", "#.view", this);
 
   final int which;
 

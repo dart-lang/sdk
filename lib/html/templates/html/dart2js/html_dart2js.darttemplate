@@ -37,12 +37,12 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/_Lists.dart');
 
 
-LocalWindow get window() => JS('LocalWindow', 'window');
-_LocalWindowImpl get _window() => JS('_LocalWindowImpl', 'window');
+LocalWindow get window => JS('LocalWindow', 'window');
+_LocalWindowImpl get _window => JS('_LocalWindowImpl', 'window');
 
-Document get document() => JS('Document', 'document');
+Document get document => JS('Document', 'document');
 
-_DocumentImpl get _document() => JS('_DocumentImpl', 'document');
+_DocumentImpl get _document => JS('_DocumentImpl', 'document');
 
 Element query(String selector) => _document.query(selector);
 List<Element> queryAll(String selector) => _document.queryAll(selector);

@@ -85,7 +85,7 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the change to break the isolate abstraction.
-_Manager get _globalState() => JS("Object", r"$globalState");
+_Manager get _globalState => JS("Object", r"$globalState");
 set _globalState(_Manager val) {
   JS("void", r"$globalState = #", val);
 }
@@ -409,7 +409,7 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() => JS("String", r"$thisScriptUrl");
+  static String get _thisScript => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) => JS("Object", r"new Worker(#)", url);

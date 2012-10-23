@@ -780,7 +780,7 @@ class Dart2JSBackend(object):
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  $TYPE get $HTML_NAME() => JS("$TYPE", "#.$NAME", this);'
+        '\n  $TYPE get $HTML_NAME => JS("$TYPE", "#.$NAME", this);'
         '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
@@ -804,7 +804,7 @@ class Dart2JSBackend(object):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME() =>'
+        '\n  $NATIVE_TYPE get _$HTML_NAME =>'
         ' JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         CONVERT=conversion.function_name,
