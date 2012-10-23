@@ -2100,7 +2100,7 @@ class _HttpClient implements HttpClient {
                              Uri uri,
                              [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
-    if (method == null || uri.domain.isEmpty() == null) {
+    if (method == null || uri.domain.isEmpty()) {
       throw new ArgumentError(null);
     }
     return _prepareHttpClientConnection(method, uri, connection);
