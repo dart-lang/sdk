@@ -25,8 +25,6 @@ DEFINE_FLAG(int, inlining_size_threshold, 50,
 // TODO(srdjan): set to 3 once crash in apidoc.dart is resolved.
 DEFINE_FLAG(int, inlining_depth_threshold, 3,
     "Inline recursively up to threshold depth (default 3)");
-DEFINE_FLAG(bool, inline_control_flow, true,
-    "Inline functions with control flow.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
@@ -174,7 +172,7 @@ class CallSiteInliner : public ValueObject {
         inlining_depth_(1),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
-        function_cache() { }
+        function_cache_() { }
 
   void InlineCalls() {
     // If inlining depth is less then one abort.
@@ -276,7 +274,7 @@ class CallSiteInliner : public ValueObject {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_parse_timer,
                          isolate);
-        parsed_function = ParseFunction(function, &in_cache);
+        parsed_function = GetParsedFunction(function, &in_cache);
       }
 
       // Load IC data for the callee.
@@ -295,16 +293,6 @@ class CallSiteInliner : public ValueObject {
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
         callee_graph = builder.BuildGraph(FlowGraphBuilder::kValueContext);
-      }
-
-      // Abort if the callee graph contains control flow.
-      if (!FLAG_inline_control_flow &&
-          (callee_graph->preorder().length() != 2)) {
-        function.set_is_inlinable(false);
-        isolate->set_long_jump_base(base);
-        isolate->set_ic_data_array(prev_ic_data.raw());
-        TRACE_INLINING(OS::Print("     Bailout: control flow\n"));
-        return false;
       }
 
       {
@@ -386,7 +374,7 @@ class CallSiteInliner : public ValueObject {
       TRACE_INLINING(OS::Print("     Success\n"));
 
       // Add the function to the cache.
-      if (!in_cache) function_cache.Add(parsed_function);
+      if (!in_cache) function_cache_.Add(parsed_function);
 
       // Check that inlining maintains use lists.
       DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
@@ -412,10 +400,10 @@ class CallSiteInliner : public ValueObject {
 
   // Parse a function reusing the cache if possible. Returns true if the
   // function was in the cache.
-  ParsedFunction* ParseFunction(const Function& function, bool* in_cache) {
+  ParsedFunction* GetParsedFunction(const Function& function, bool* in_cache) {
     // TODO(zerny): Use a hash map for the cache.
-    for (intptr_t i = 0; i < function_cache.length(); ++i) {
-      ParsedFunction* parsed_function = function_cache[i];
+    for (intptr_t i = 0; i < function_cache_.length(); ++i) {
+      ParsedFunction* parsed_function = function_cache_[i];
       if (parsed_function->function().raw() == function.raw()) {
         *in_cache = true;
         SourceLabelResetter reset;
@@ -499,7 +487,7 @@ class CallSiteInliner : public ValueObject {
   intptr_t inlining_depth_;
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
-  GrowableArray<ParsedFunction*> function_cache;
+  GrowableArray<ParsedFunction*> function_cache_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
