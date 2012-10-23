@@ -259,7 +259,7 @@ testGetters() {
       class A {
         var x;
         A(this.x);
-        get y() => x;
+        get y => x;
       }
       main() {
         var a = new A(42);

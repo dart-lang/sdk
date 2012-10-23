@@ -41,12 +41,12 @@ class Platform {
 const htmlLib = r'''
 #library('html');
 Window __window;
-Window get window() => __window;
+Window get window => __window;
 abstract class Window {
-  abstract Navigator get navigator;
+  Navigator get navigator;
 }
 abstract class Navigator {
-  abstract String get userAgent;
+  String get userAgent;
 }
 ''';
 
