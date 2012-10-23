@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library find_default_locale_browser_test;
+#library('find_default_locale_browser_test');
 
-import '../lib/intl.dart';
-import '../lib/intl_standalone.dart';
-import '../../unittest/unittest.dart';
+#import('../lib/intl.dart');
+#import('../lib/intl_standalone.dart');
+#import('../../unittest/unittest.dart');
 
 main() {
   test("Find system locale standalone", () {

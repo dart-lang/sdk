@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fixnum;
-import 'dart:math' as Math;
-part 'intx.dart';
-part 'int32.dart';
-part 'int64.dart';
+#library('fixnum');
+#import('dart:math', prefix: 'Math');
+#source('intx.dart');
+#source('int32.dart');
+#source('int64.dart');

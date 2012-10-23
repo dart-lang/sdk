@@ -4,8 +4,8 @@
 //
 // Dart test for top level declarations involving an imported type.
 
-library main;
-import "library11.dart" as lib11;
+#library("main");
+#import("library11.dart", prefix : "lib11");
 
 lib11.Library11 variable = null;
 

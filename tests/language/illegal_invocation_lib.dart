@@ -1,2 +1,2 @@
-library foo;
+#library("foo");
 foo() { }

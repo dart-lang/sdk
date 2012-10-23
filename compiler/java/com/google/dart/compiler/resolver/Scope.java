@@ -27,6 +27,7 @@ public class Scope {
   private final String name;
   private List<LabelElement> labels;
   private LibraryElement library;
+  private boolean stateProgress;
   private boolean stateReady;
 
   @VisibleForTesting

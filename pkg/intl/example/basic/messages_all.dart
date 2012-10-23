@@ -8,7 +8,7 @@
  * all of them. In this example there's only one program file, so it doesn't
  * make very much difference.
  */
-library messages_all;
+#library('messages_all.dart');
 
-import 'messages_th_th.dart' as th_TH;
-import 'messages_de.dart' as de;
+#import('messages_th_th.dart', prefix: 'th_TH');
+#import('messages_de.dart', prefix: 'de');

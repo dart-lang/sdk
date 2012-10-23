@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library matcherTest;
-import '../../../pkg/unittest/unittest.dart';
-part 'test_utils.dart';
+#library('matcherTest');
+#import('../../../pkg/unittest/unittest.dart');
+#source('test_utils.dart');
 
 doesNotThrow() {}
 doesThrow() { throw 'X'; }

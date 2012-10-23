@@ -5,12 +5,12 @@
 /**
  * A simple unit test library for running tests in a browser.
  */
-library unittest;
+#library('unittest');
 
-import 'dart:html';
-import 'unittest.dart';
+#import('dart:html');
+#import('unittest.dart');
 
-part 'html_print.dart';
+#source('html_print.dart');
 
 class HtmlConfiguration extends Configuration {
   /** Whether this is run within dartium layout tests. */

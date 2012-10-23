@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 
-library intrinsified_methods_test;
-import 'dart:math';
+#library('intrinsified_methods_test');
+#import('dart:math');
 
 testIsNegative() {
   Expect.isFalse((12.0).isNegative());

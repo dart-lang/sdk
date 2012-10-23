@@ -18,54 +18,54 @@
  * sockets, processes, HTTP servers and clients, and more.
  */
 #library("dart:io");
-import "dart:coreimpl";
-import "dart:math";
-import "dart:isolate";
+#import("dart:coreimpl");
+#import("dart:math");
+#import("dart:isolate");
 // TODO(ahe): Should Leg support this library?
 // #import("dart:nativewrappers");
-import "dart:uri";
-import "dart:crypto";
-import "dart:utf";
-part '../../../../runtime/bin/buffer_list.dart';
+#import("dart:uri");
+#import("dart:crypto");
+#import("dart:utf");
+#source('../../../../runtime/bin/buffer_list.dart');
 // Uses native keyword.
 //#source('../../../../runtime/bin/common.dart');
-part '../../../../runtime/bin/chunked_stream.dart';
-part '../../../../runtime/bin/directory.dart';
+#source('../../../../runtime/bin/chunked_stream.dart');
+#source('../../../../runtime/bin/directory.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/directory_impl.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/eventhandler.dart');
-part '../../../../runtime/bin/file.dart';
+#source('../../../../runtime/bin/file.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/file_impl.dart');
-part '../../../../runtime/bin/http.dart';
-part '../../../../runtime/bin/http_impl.dart';
-part '../../../../runtime/bin/http_parser.dart';
-part '../../../../runtime/bin/http_utils.dart';
-part '../../../../runtime/bin/input_stream.dart';
-part '../../../../runtime/bin/list_stream.dart';
-part '../../../../runtime/bin/list_stream_impl.dart';
-part '../../../../runtime/bin/output_stream.dart';
-part '../../../../runtime/bin/path.dart';
-part '../../../../runtime/bin/path_impl.dart';
-part '../../../../runtime/bin/platform.dart';
+#source('../../../../runtime/bin/http.dart');
+#source('../../../../runtime/bin/http_impl.dart');
+#source('../../../../runtime/bin/http_parser.dart');
+#source('../../../../runtime/bin/http_utils.dart');
+#source('../../../../runtime/bin/input_stream.dart');
+#source('../../../../runtime/bin/list_stream.dart');
+#source('../../../../runtime/bin/list_stream_impl.dart');
+#source('../../../../runtime/bin/output_stream.dart');
+#source('../../../../runtime/bin/path.dart');
+#source('../../../../runtime/bin/path_impl.dart');
+#source('../../../../runtime/bin/platform.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/platform_impl.dart');
-part '../../../../runtime/bin/process.dart';
+#source('../../../../runtime/bin/process.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/process_impl.dart');
-part '../../../../runtime/bin/socket.dart';
+#source('../../../../runtime/bin/socket.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/socket_impl.dart');
-part '../../../../runtime/bin/socket_stream.dart';
-part '../../../../runtime/bin/socket_stream_impl.dart';
+#source('../../../../runtime/bin/socket_stream.dart');
+#source('../../../../runtime/bin/socket_stream_impl.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/stdio.dart');
-part '../../../../runtime/bin/stream_util.dart';
-part '../../../../runtime/bin/string_stream.dart';
-part '../../../../runtime/bin/timer_impl.dart';
-part '../../../../runtime/bin/websocket.dart';
-part '../../../../runtime/bin/websocket_impl.dart';
+#source('../../../../runtime/bin/stream_util.dart');
+#source('../../../../runtime/bin/string_stream.dart');
+#source('../../../../runtime/bin/timer_impl.dart');
+#source('../../../../runtime/bin/websocket.dart');
+#source('../../../../runtime/bin/websocket_impl.dart');
 
 /**
   * An [OSError] object holds information about an error from the

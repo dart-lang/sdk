@@ -7,7 +7,7 @@
  * rather than confined to specific parts of it.
  */
 
-library intl_helpers;
+#library("intl_helpers");
 
 /**
  * This is used as a marker for a locale data map that hasn't been initialized,

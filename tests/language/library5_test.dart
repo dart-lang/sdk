@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-library Library5Test;
-import "library5a.dart" as lib5a;
-import "library5b.dart" as lib5b;
+#library("Library5Test.dart");
+#import("library5a.dart", prefix : "lib5a");
+#import("library5b.dart", prefix : "lib5b");
 
 int foo(lib5a.Fun f) {
   return f();

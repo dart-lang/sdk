@@ -5,8 +5,8 @@
 // Testing a simple script importing a library.
 // This file contains the library.
 
-library HelloScriptLib;
-part "hello_script_lib_source.dart";
+#library("HelloScriptLib");
+#source("hello_script_lib_source.dart");
 
 class HelloLib {
 

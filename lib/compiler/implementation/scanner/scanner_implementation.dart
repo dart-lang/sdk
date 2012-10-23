@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library scanner_implementation;
-import 'scannerlib.dart';
-import '../util/util.dart';
-import '../util/characters.dart';
-part 'array_based_scanner.dart';
+#library('scanner_implementation');
+#import('scannerlib.dart');
+#import('../util/util.dart');
+#import('../util/characters.dart');
+#source('array_based_scanner.dart');

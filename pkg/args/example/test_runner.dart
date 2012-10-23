@@ -7,11 +7,11 @@
  * It shows what it looks like to build an [ArgParser] and then, when the code
  * is run, demonstrates what the generated usage text looks like.
  */
-library example;
+#library('example');
 
-import 'dart:io';
+#import('dart:io');
 
-import 'package:args/args.dart';
+#import('package:args/args.dart');
 
 main() {
   var parser = new ArgParser();

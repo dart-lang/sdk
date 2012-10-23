@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_helper;
+#library('dart:_js_helper');
 
-import 'dart:coreimpl';
+#import('dart:coreimpl');
 
-part 'constant_map.dart';
-part 'native_helper.dart';
-part 'regexp_helper.dart';
-part 'string_helper.dart';
+#source('constant_map.dart');
+#source('native_helper.dart');
+#source('regexp_helper.dart');
+#source('string_helper.dart');
 
 // Performance critical helper methods.
 add(var a, var b) => (a is num && b is num)

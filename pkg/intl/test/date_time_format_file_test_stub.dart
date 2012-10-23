@@ -7,14 +7,14 @@
  * local file system.
  */
 
-library date_time_format_file_test;
+#library('date_time_format_file_test');
 
-import '../lib/intl.dart';
-import '../lib/date_symbol_data_file.dart';
-import 'dart:io';
-import 'date_time_format_test_core.dart';
-import 'data_directory.dart';
-import '../../../pkg/unittest/unittest.dart';
+#import('../lib/intl.dart');
+#import('../lib/date_symbol_data_file.dart');
+#import('dart:io');
+#import('date_time_format_test_core.dart');
+#import('data_directory.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 runWith([Function getSubset]) {
   // Initialize one locale just so we know what the list is.

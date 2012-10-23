@@ -5,9 +5,9 @@
 // TODO(rmacnak): Move the existing mirror tests here (a place for 
 // cross-implementation tests).
 
-library MirrorsTest;
-import "dart:mirrors";
-import "../../../pkg/unittest/unittest.dart";
+#library("MirrorsTest.dart");
+#import("dart:mirrors");
+#import("../../../pkg/unittest/unittest.dart");
 
 var topLevelField;
 

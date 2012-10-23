@@ -6,8 +6,8 @@
 // Testing a simple script importing a library.
 // This file contains the script (aka root library).
 
-library HelloScriptTest;
-import "hello_script_lib.dart";
+#library("HelloScriptTest.dart");
+#import("hello_script_lib.dart");
 
 main() {
   HelloLib.doTest();

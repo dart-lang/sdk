@@ -4,8 +4,8 @@
 // Dart test for a closure result type test that cannot be eliminated at compile
 // time.
 
-library closure_type_test;
-import 'dart:math' as math;
+#library('closure_type_test');
+#import('dart:math', prefix: 'math');
 
 class Math {
   static int sqrt(x) => math.sqrt(x);

@@ -4,10 +4,8 @@
 
 package com.google.dart.compiler;
 
-import com.google.common.base.Joiner;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.end2end.inc.MemoryLibrarySource;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.LibraryElement;
@@ -15,6 +13,7 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.testing.TestCompilerConfiguration;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.testing.TestDartArtifactProvider;
+import com.google.dart.compiler.testing.TestLibrarySource;
 import com.google.dart.compiler.util.DartSourceString;
 
 import junit.framework.TestCase;
@@ -27,13 +26,10 @@ public class DeltaAnalyzerTest extends TestCase {
   private final DartArtifactProvider provider = new TestDartArtifactProvider();
 
   public void testNoChangeSingleFile() throws IOException {
-    MemoryLibrarySource librarySource = new MemoryLibrarySource("App.dart");
-    librarySource.setContent("App.dart", "library App; part 'before.dart';");
-    librarySource.setContent("before.dart",
-        Joiner.on("\n").join(new String[] {
-                            "part of App;",
+    TestLibrarySource librarySource = new TestLibrarySource(getName());
+    librarySource.addSource("before.dart",
                             "class Foo {}",
-                            "m() {}"}));
+                            "m() {}");
     DartUnit change = analyzeNoChange(librarySource);
     assertEquals(2, change.getTopLevelNodes().size());
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
@@ -49,17 +45,12 @@ public class DeltaAnalyzerTest extends TestCase {
   }
 
   public void testNoChangeTwoFiles() throws IOException {
-    MemoryLibrarySource librarySource = new MemoryLibrarySource("App.dart");
-    librarySource.setContent("App.dart", "library App; part 'before.dart'; part 'common.dart';");
-    librarySource.setContent("before.dart",
-        Joiner.on("\n").join(new String[] {
-                            "part of App;",
+    TestLibrarySource librarySource = new TestLibrarySource(getName());
+    librarySource.addSource("before.dart",
                             "class Foo extends Bar {}",
-                            "m() {}"}));
-    librarySource.setContent("common.dart",
-        Joiner.on("\n").join(new String[] {
-                            "part of App;",
-                            "class Bar {}"}));
+                            "m() {}");
+    librarySource.addSource("common.dart",
+                            "class Bar {}");
     DartUnit change = analyzeNoChange(librarySource);
     assertEquals(2, change.getTopLevelNodes().size());
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
@@ -76,14 +67,12 @@ public class DeltaAnalyzerTest extends TestCase {
   }
 
   public void testChangeSingleFile() throws IOException {
-    MemoryLibrarySource librarySource = new MemoryLibrarySource("App.dart");
-    librarySource.setContent("App.dart", "library App;");
-    librarySource.setContent(
-        "before.dart",
-        Joiner.on("\n").join(new String[] {"part of App;", "class Foo {}", "m() {}"}));
+    TestLibrarySource librarySource = new TestLibrarySource(getName());
+    librarySource.addSource("before.dart",
+                            "class Foo {}",
+                            "m() {}");
     DartSource sourceBefore = librarySource.getSourceFor("before.dart");
-    DartSource sourceAfter = new DartSourceString("after.dart", Joiner.on("\n").join(
-        new String[] {"part of App;", "class Foo {}", ""}));
+    DartSource sourceAfter = new DartSourceString("after.dart", "class Foo {}");
     DartUnit change = analyze(librarySource, sourceBefore, sourceAfter);
     assertEquals(1, change.getTopLevelNodes().size());
     Element element = change.getLibrary().getElement().lookupLocalElement("m");
@@ -96,19 +85,14 @@ public class DeltaAnalyzerTest extends TestCase {
   }
 
   public void testChangeTwoFiles() throws IOException {
-    MemoryLibrarySource librarySource = new MemoryLibrarySource("App.dart");
-    librarySource.setContent("App.dart", "library App; part 'before.dart'; part 'common.dart';");
-    librarySource.setContent("before.dart",
-        Joiner.on("\n").join(new String[] {
-                            "part of App;",
+    TestLibrarySource librarySource = new TestLibrarySource(getName());
+    librarySource.addSource("before.dart",
                             "class Foo extends Bar {}",
-                            "m() {}"}));
-    librarySource.setContent("common.dart",
-        Joiner.on("\n").join(new String[] {
-                            "part of App;",
-                            "class Bar {}"}));
+                            "m() {}");
+    librarySource.addSource("common.dart",
+                            "class Bar {}");
     DartSource sourceBefore = librarySource.getSourceFor("before.dart");
-    DartSource sourceAfter = new DartSourceString("after.dart", "part of App; class Foo extends Bar {}");
+    DartSource sourceAfter = new DartSourceString("after.dart", "class Foo extends Bar {}");
     DartUnit change = analyze(librarySource, sourceBefore, sourceAfter);
     assertEquals(1, change.getTopLevelNodes().size());
     assertNull(change.getLibrary().getElement().lookupLocalElement("m"));

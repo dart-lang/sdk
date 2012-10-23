@@ -22,20 +22,17 @@ import java.util.Map;
 public class MemoryLibrarySource implements LibrarySource {
   public static final String IO_EXCEPTION_CONTENT = "simulate-IOException";
   private final String libName;
-  private final Map<String, DartSource> sourceMap;
   private final Map<String, String> sourceContentMap;
   private final Map<String, Long> sourceLastModifiedMap;
 
   public MemoryLibrarySource(String libName) {
     this.libName = libName;
-    sourceMap = Maps.newHashMap();
     sourceContentMap = Maps.newHashMap();
     sourceLastModifiedMap = Maps.newHashMap();
   }
 
   private MemoryLibrarySource(String libName, MemoryLibrarySource parent) {
     this.libName = libName;
-    sourceMap = parent.sourceMap;
     sourceContentMap = parent.sourceContentMap;
     sourceLastModifiedMap = parent.sourceLastModifiedMap;
   }
@@ -78,33 +75,17 @@ public class MemoryLibrarySource implements LibrarySource {
   }
 
   @Override
-  public LibrarySource getImportFor(String relPath) throws IOException {
-    if (!sourceContentMap.containsKey(relPath)) {
-      return null;
-    }
+  public LibrarySource getImportFor(final String relPath) throws IOException {
     return new MemoryLibrarySource(relPath, this);
   }
 
   @Override
   public DartSource getSourceFor(final String relPath) {
-    DartSource result;
-    // check cache
-    {
-      result = sourceMap.get(relPath);
-      if (result != null) {
-        return result;
-      }
-    }
-    // prepare content
     final String content = sourceContentMap.get(relPath);
     final Long sourceLastModified = sourceLastModifiedMap.get(relPath);
-    // may be does not exist
-    if (content == null) {
-      return null;
-    }
     // Return fake UrlDateSource with in-memory content.
     final URI uri = URI.create(relPath);
-    result = new UrlDartSource(uri, relPath, this) {
+    return new UrlDartSource(uri, relPath, this) {
       @Override
       public String getName() {
         return relPath;
@@ -130,15 +111,12 @@ public class MemoryLibrarySource implements LibrarySource {
         return new StringReader(content);
       }
     };
-    sourceMap.put(relPath, result);
-    return result;
   }
 
   /**
    * Sets the given content for the source.
    */
   public void setContent(String relPath, String content) {
-    sourceMap.remove(relPath);
     sourceContentMap.put(relPath, content);
     sourceLastModifiedMap.put(relPath, System.currentTimeMillis());
   }

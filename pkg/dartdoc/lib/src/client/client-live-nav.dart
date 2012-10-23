@@ -3,20 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Provides client-side behavior for generated docs. */
-library client_live_nav;
+#library('client-live-nav');
 
-import 'dart:html';
-import 'dart:json';
-import '../../../../../lib/compiler/implementation/source_file.dart';
+#import('dart:html');
+#import('dart:json');
+#import('../../../../../lib/compiler/implementation/source_file.dart');
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../classify.dart';
-import '../../markdown.dart' as md;
+#import('../../classify.dart');
+#import('../../markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part 'dropdown.dart';
-part 'search.dart';
-part '../dartdoc/nav.dart';
-part 'client-shared.dart';
+#source('dropdown.dart');
+#source('search.dart');
+#source('../dartdoc/nav.dart');
+#source('client-shared.dart');
 
 main() {
   setup();

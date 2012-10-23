@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // All things regarding constant variables.
 
-library const_var;
+#library('const_var');
 
-import 'const_var_helper.dart' as foo;
+#import('const_var_helper.dart', prefix: 'foo');
 
 const untypedTopLevel = 1;
 const int typedTopLevel = 2;

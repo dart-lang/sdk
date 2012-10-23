@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
-
 /**
  * A function element that represents a closure call. The signature is copied
  * from the given element.

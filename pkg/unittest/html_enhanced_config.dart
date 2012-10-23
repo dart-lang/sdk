@@ -8,10 +8,10 @@
  * Provides enhanced HTML output with collapsible group headers
  * and other at-a-glance information about the test results.
  */
-library unittest;
+#library('unittest');
 
-import 'dart:html';
-import 'unittest.dart';
+#import('dart:html');
+#import('unittest.dart');
 
 
 class HtmlEnhancedConfiguration extends Configuration {

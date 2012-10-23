@@ -2,26 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library parser;
+#library('parser');
 
-import 'dart:io';
-import 'dart:scalarlist';
+#import('dart:io');
+#import('dart:scalarlist');
 
-import '../../../utf/utf.dart';
+#import('../../../utf/utf.dart');
 
-import '../elements/elements.dart';
-import '../scanner/scanner_implementation.dart';
-import '../scanner/scannerlib.dart';
-import '../tree/tree.dart';
-import '../util/characters.dart';
-import '../source_file.dart';
-import '../ssa/ssa.dart';
+#import('../elements/elements.dart');
+#import('../scanner/scanner_implementation.dart');
+#import('../scanner/scannerlib.dart');
+#import('../tree/tree.dart');
+#import('../util/characters.dart');
+#import('../source_file.dart');
+#import('../ssa/ssa.dart');
 
-import '../../compiler.dart' as api;
+#import('../../compiler.dart', prefix: 'api');
 
-part '../diagnostic_listener.dart';
-part '../scanner/byte_array_scanner.dart';
-part '../scanner/byte_strings.dart';
+#source('../diagnostic_listener.dart');
+#source('../scanner/byte_array_scanner.dart');
+#source('../scanner/byte_strings.dart');
 
 int charCount = 0;
 Stopwatch stopwatch;

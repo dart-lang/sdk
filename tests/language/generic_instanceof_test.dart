@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that instanceof works correctly with type variables.
 
-library GenericInstanceofTest;
-part "generic_instanceof.dart";
+#library("GenericInstanceofTest.dart");
+#source("generic_instanceof.dart");
 
 main() {
   // Repeat type checks so that inlined tests can be tested as well.

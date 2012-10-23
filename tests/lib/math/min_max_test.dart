@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing Math.min and Math.max.
 
-library min_max_test;
-import 'dart:math';
+#library('min_max_test');
+#import('dart:math');
 
 testMin() {
   Expect.equals(0, min(0, 2));

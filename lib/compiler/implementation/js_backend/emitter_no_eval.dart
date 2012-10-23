@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of js_backend;
-
 class CodeEmitterNoEvalTask extends CodeEmitterTask {
   CodeEmitterNoEvalTask(Compiler compiler,
                         Namer namer,

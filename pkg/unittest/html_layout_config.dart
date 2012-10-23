@@ -9,11 +9,11 @@
  * recreated the IFrame for each test, here the IFrames are preserved.
  * Furthermore we post a message on completion.
  */
-library html_layout_config;
+#library('html_layout_config');
 
-import 'dart:html';
-import 'dart:math';
-import 'unittest.dart';
+#import('dart:html');
+#import('dart:math');
+#import('unittest.dart');
 
 /** The messages exchanged between parent and child. */
 // TODO(gram) At some point postMessage was supposed to support

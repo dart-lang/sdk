@@ -4,6 +4,6 @@
 //
 // Dart test library checking that library privacy can be disabled.
 
-library DisablePrivacyLib;
+#library("DisablePrivacyLib");
 
 var _fooForTesting = 1;

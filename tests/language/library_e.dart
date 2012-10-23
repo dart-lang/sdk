@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
-library libraryE;
-import "library_c.dart";
-import "library_f.dart";
+#library("libraryE.dart");
+#import("library_c.dart");
+#import("library_f.dart");
 
 var fooE = 0;

@@ -9,8 +9,8 @@
  * up based on a naming convention.
  */
 
-library messages_th_TH;
-import '../../lib/intl.dart';
+#library('messages_th_TH');
+#import('../../lib/intl.dart');
 
 runAt(time, day) =>
     Intl.message('วิ่ง $time on $day.', name: 'runAt', args: [time, day]);

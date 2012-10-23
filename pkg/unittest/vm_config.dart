@@ -5,10 +5,10 @@
 /**
  * A simple unit test library for running tests on the VM.
  */
-library unittest;
+#library('unittest');
 
-import 'dart:io';
-import 'unittest.dart';
+#import('dart:io');
+#import('unittest.dart');
 
 class VmConfiguration extends Configuration {
   void onDone(int passed, int failed, int errors, List<TestCase> results,

@@ -4,8 +4,8 @@
 
 // Dart test program for testing default factories defined across libraries
 
-library test;
-import "default_factory_library.dart" as lib;
+#library("test");
+#import("default_factory_library.dart", prefix:"lib");
 
 class B implements lib.A {
   int methodA() { return 1; }

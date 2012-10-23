@@ -4,8 +4,8 @@
 
 // Dart test program importing the core library explicitly.
 
-library ImportCoreNoPrefixTest;
-import "dart:core";
+#library("ImportCoreNoPrefixTest.dart");
+#import("dart:core");
 
 main() {
   print('"dart:core" imported.');

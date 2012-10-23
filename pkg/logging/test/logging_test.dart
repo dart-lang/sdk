@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-library logging_test;
+#library('logging_test');
 
 // TODO(rnystrom): Use "package:" import when test.dart supports it (#4968).
-import '../lib/logging.dart';
-import '../../../pkg/unittest/unittest.dart';
+#import('../lib/logging.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 main() {
   test('level comparison is a valid comparator', () {

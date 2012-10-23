@@ -11,7 +11,7 @@
 // TODO(alanknight): Test more locales and a wider variety of test data,
 // possibly by generating test data out of ICU.
 
-library date_time_format_test_data;
+#library('date_time_format_test_data');
 
 var English = const {
   "DAY" : "27",

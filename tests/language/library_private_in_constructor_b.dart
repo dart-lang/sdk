@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library LibraryPrivateInConstructorB;
-import "library_private_in_constructor_a.dart";
+#library('LibraryPrivateInConstructorB');
+#import("library_private_in_constructor_a.dart");
 
 class PrivateB {
   const PrivateB();

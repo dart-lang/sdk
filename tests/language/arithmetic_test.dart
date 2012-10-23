@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
-library arithmetic_test;
-import 'dart:math';
+#library('arithmetic_test');
+#import('dart:math');
 
 class ArithmeticTest {
 

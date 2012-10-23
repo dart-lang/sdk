@@ -14,13 +14,13 @@
  * members, finds the associated doc comments and builds crosslinked docs from
  * them.
  */
-library dartdoc;
+#library('dartdoc');
 
-import 'dart:io';
+#import('dart:io');
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../lib/dartdoc.dart';
-import '../../args/lib/args.dart';
+#import('../lib/dartdoc.dart');
+#import('../../args/lib/args.dart');
 
 /**
  * Run this from the `pkg/dartdoc` directory.

@@ -4,9 +4,9 @@
 
 // Imported library has wrong order of import and source tags.
 
-library Script1NegativeLib;
-part "script_source.dart";
-import "script_lib.dart";
+#library("Script1NegativeLib");
+#source("script_source.dart");
+#import("script_lib.dart");
 
 class A {
   var a;

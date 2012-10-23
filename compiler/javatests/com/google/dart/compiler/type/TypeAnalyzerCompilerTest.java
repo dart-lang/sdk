@@ -3,17 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
+import com.google.dart.compiler.MockArtifactProvider;
+import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -50,6 +54,11 @@ import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
@@ -243,6 +252,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_resolveClassMethod() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
                 "class Object {}",
                 "class Test {",
                 "  foo() {",
@@ -250,7 +261,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  }",
                 "  f() {",
                 "  }",
-                "}");
+                "}"));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // find f() invocation
     DartInvocation invocation = findInvocationSimple(unit, "f()");
@@ -276,14 +287,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_resolveLocalFunction() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class Object {}",
-            "class Test {",
-            "  foo() {",
-            "    f() {",
-            "    }",
-            "    f();",
-            "  }",
-            "}");
+            "Test.dart",
+            Joiner.on("\n").join(
+                "class Object {}",
+                "class Test {",
+                "  foo() {",
+                "    f() {",
+                "    }",
+                "    f();",
+                "  }",
+                "}"));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // find f() invocation
     DartInvocation invocation = findInvocationSimple(unit, "f()");
@@ -477,7 +490,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=345
    */
   public void test_badTopLevelFactory() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary("factory foo() {}");
+    AnalyzeLibraryResult libraryResult = analyzeLibrary("Test.dart", "factory foo() {}");
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
     assertNotNull(factory);
@@ -536,17 +549,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "interface I default F {",
-            "  I.foo(int a, [int b, int c]);",
-            "}",
-            "class F implements I {",
-            "  factory F.foo(num any, [bool b, Object c]) {}",
-            "}",
-            "class Test {",
-            "  foo() {",
-            "    new I.foo(0);",
-            "  }",
-            "}");
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I default F {",
+                "  I.foo(int a, [int b, int c]);",
+                "}",
+                "class F implements I {",
+                "  factory F.foo(num any, [bool b, Object c]) {}",
+                "}",
+                "class Test {",
+                "  foo() {",
+                "    new I.foo(0);",
+                "  }",
+                "}"));
     // No compilation errors.
     assertErrors(libraryResult.getCompilationErrors());
     // Check type warnings.
@@ -574,13 +589,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "interface I default F {",
-            "  I(int a);",
-            "}",
-            "class F implements I {",
-            "  int a;",
-            "  F(this.a) {}",
-            "}");
+            "Test.dart",
+            Joiner.on("\n").join(
+                "interface I default F {",
+                "  I(int a);",
+                "}",
+                "class F implements I {",
+                "  int a;",
+                "  F(this.a) {}",
+                "}"));
     // Check that parameter has resolved type.
     {
       DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
@@ -602,18 +619,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "interface Foo {",
-            "  int fooA;",
-            "  void fooB();",
-            "}",
-            "interface Bar {",
-            "  void barA();",
-            "}",
-            "class A implements Foo, Bar {",
-            "}",
-            "main() {",
-            "  new A();",
-            "}");
+            getName(),
+            makeCode(
+                "interface Foo {",
+                "  int fooA;",
+                "  void fooB();",
+                "}",
+                "interface Bar {",
+                "  void barA();",
+                "}",
+                "class A implements Foo, Bar {",
+                "}",
+                "main() {",
+                "  new A();",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
@@ -636,6 +655,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
+            getName(),
+            makeCode(
                 "abstract class A {",
                 "  abstract void foo();",
                 "}",
@@ -643,7 +664,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}",
                 "main() {",
                 "  new B();",
-                "}");
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
@@ -663,12 +684,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  abstract void foo();",
-            "}",
-            "main() {",
-            "  new A();",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  abstract void foo();",
+                "}",
+                "main() {",
+                "  new A();",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
@@ -684,12 +707,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  abstract get x();",
-            "}",
-            "main() {",
-            "  new A();",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  abstract get x();",
+                "}",
+                "main() {",
+                "  new A();",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
@@ -763,12 +788,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "abstract class A {",
-            "  abstract void bar();",
-            "}",
-            "main() {",
-            "  new A();",
-            "}");
+            getName(),
+            makeCode(
+                "abstract class A {",
+                "  abstract void bar();",
+                "}",
+                "main() {",
+                "  new A();",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 5, 7, 1));
@@ -781,18 +808,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    */
   public void test_warnAbstract_onAbstractClass_whenInstantiate_factoryConstructor()
       throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "abstract class A {", // explicitly abstract
-        "  factory A() {",
-        "    return null;",
-        "  }",
-        "}",
-        "class C {",
-        "  foo() {",
-        "    return new A();", // no error - factory constructor
-        "  }",
-        "}");
-    assertErrors(libraryResult.getTypeErrors());
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "abstract class A {",  // explicitly abstract
+                "  factory A() {",
+                "    return null;",
+                "  }",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",  // no error - factory constructor
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors());
   }
 
   /**
@@ -804,18 +835,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "abstract class A {", // class is abstract
-            "  factory A() {",
-            "    return null;",
-            "  }",
-            "  abstract method();",
-            "}",
-            "class C {",
-            "  foo() {",
-            "    return new A();",  // no error, factory constructor
-            "  }",
-            "}");
-    assertErrors(libraryResult.getTypeErrors());
+            getName(),
+            makeCode(
+                "abstract class A {", // class is abstract
+                "  factory A() {",
+                "    return null;",
+                "  }",
+                "  abstract method();",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",  // no error, factory constructor
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors());
   }
 
   /**
@@ -824,12 +858,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void testWarnOnNonVoidSetter() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  void set foo(bool a) {}",
-            "  set bar(bool a) {}",
-            "  Dynamic set baz(bool a) {}",
-            "  bool set bob(bool a) {}",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  void set foo(bool a) {}",
+                "  set bar(bool a) {}",
+                "  Dynamic set baz(bool a) {}",
+                "  bool set bob(bool a) {}",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.SETTER_RETURN_TYPE, 4, 3, 7),
@@ -854,12 +890,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_callFunctionFromField() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class WorkElement {",
-            "  Function run;",
-            "}",
-            "foo(WorkElement e) {",
-            "  e.run();",
-            "}");
+            getName(),
+            makeCode(
+                "class WorkElement {",
+                "  Function run;",
+                "}",
+                "foo(WorkElement e) {",
+                "  e.run();",
+                "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
 
@@ -887,14 +925,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    */
   public void test_doubleGetterAccess_inForEach() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "class Test {",
-        "  Iterable get iter() {}",
-        "}",
-        "Test get test() {}",
-        "f() {",
-        "  for (var v in test.iter) {}",
-        "}",
-        "");
+        getName(),
+        makeCode(
+            "class Test {",
+            "  Iterable get iter() {}",
+            "}",
+            "Test get test() {}",
+            "f() {",
+            "  for (var v in test.iter) {}",
+            "}",
+            ""));
     assertErrors(libraryResult.getTypeErrors());
   }
 
@@ -905,34 +945,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_invocationArguments() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "/* 01 */ foo() {",
-            "/* 02 */   f_0_0();",
-            "/* 03 */   f_0_0(-1);",
-            "/* 04 */",
-            "/* 05 */   f_1_0();",
-            "/* 06 */   f_1_0(-1);",
-            "/* 07 */   f_1_0(-1, -2, -3);",
-            "/* 08 */",
-            "/* 09 */   f_2_0();",
-            "/* 10 */",
-            "/* 11 */   f_0_1();",
-            "/* 12 */   f_0_1(1);",
-            "/* 13 */   f_0_1(0, 0);",
-            "/* 14 */   f_0_1(n1: 1);",
-            "/* 15 */   f_0_1(x: 1);",
-            "/* 16 */   f_0_1(n1: 1, n1: 2);",
-            "/* 17 */",
-            "/* 18 */   f_1_3(-1, 1, n3: 2);",
-            "/* 19 */   f_1_3(-1, 1, n1: 1);",
-            "}",
-            "",
-            "f_0_0() {}",
-            "f_1_0(r1) {}",
-            "f_2_0(r1, r2) {}",
-            "f_0_1([n1]) {}",
-            "f_0_2([n1, n2]) {}",
-            "f_1_3(r1, [n1, n2, n3]) {}",
-            "");
+            getName(),
+            makeCode(
+                "/* 01 */ foo() {",
+                "/* 02 */   f_0_0();",
+                "/* 03 */   f_0_0(-1);",
+                "/* 04 */",
+                "/* 05 */   f_1_0();",
+                "/* 06 */   f_1_0(-1);",
+                "/* 07 */   f_1_0(-1, -2, -3);",
+                "/* 08 */",
+                "/* 09 */   f_2_0();",
+                "/* 10 */",
+                "/* 11 */   f_0_1();",
+                "/* 12 */   f_0_1(1);",
+                "/* 13 */   f_0_1(0, 0);",
+                "/* 14 */   f_0_1(n1: 1);",
+                "/* 15 */   f_0_1(x: 1);",
+                "/* 16 */   f_0_1(n1: 1, n1: 2);",
+                "/* 17 */",
+                "/* 18 */   f_1_3(-1, 1, n3: 2);",
+                "/* 19 */   f_1_3(-1, 1, n1: 1);",
+                "}",
+                "",
+                "f_0_0() {}",
+                "f_1_0(r1) {}",
+                "f_2_0(r1, r2) {}",
+                "f_0_1([n1]) {}",
+                "f_0_2([n1, n2]) {}",
+                "f_1_3(r1, [n1, n2, n3]) {}",
+                ""));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 3, 18, 2),
@@ -954,24 +996,27 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_DartNewExpression_getType() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  A() {}",
-            "  A.foo() {}",
-            "}",
-            "var a1 = new A();",
-            "var a2 = new A.foo();",
-            "");
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "class A {",
+                "  A() {}",
+                "  A.foo() {}",
+                "}",
+                "var a1 = new A();",
+                "var a2 = new A.foo();",
+                ""));
     assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // new A()
     {
-      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(testUnit, 1);
+      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(unit, 1);
       Type newType = newExpression.getType();
       assertEquals("A", newType.getElement().getName());
     }
     // new A.foo()
     {
-      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(testUnit, 2);
+      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(unit, 2);
       Type newType = newExpression.getType();
       assertEquals("A", newType.getElement().getName());
     }
@@ -996,23 +1041,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_setterOnlyProperty_noGetter() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class SetOnly {",
-            "  set foo(arg) {}",
-            "}",
-            "class SetOnlyWrapper {",
-            "  SetOnly setOnly;",
-            "}",
-            "",
-            "main() {",
-            "  SetOnly setOnly = new SetOnly();",
-            "  setOnly.foo = 1;", // 10: OK, use setter
-            "  setOnly.foo += 2;", // 11: ERR, no getter
-            "  print(setOnly.foo);", // 12: ERR, no getter
-            "  var bar;",
-            "  bar = setOnly.foo;", // 14: ERR, assignment, but we are not LHS
-            "  bar = new SetOnlyWrapper().setOnly.foo;", // 15: ERR, even in chained expression
-            "  new SetOnlyWrapper().setOnly.foo = 3;", // 16: OK
-            "}");
+            getName(),
+            makeCode(
+                "class SetOnly {",
+                "  set foo(arg) {}",
+                "}",
+                "class SetOnlyWrapper {",
+                "  SetOnly setOnly;",
+                "}",
+                "",
+                "main() {",
+                "  SetOnly setOnly = new SetOnly();",
+                "  setOnly.foo = 1;", // 10: OK, use setter
+                "  setOnly.foo += 2;", // 11: ERR, no getter
+                "  print(setOnly.foo);", // 12: ERR, no getter
+                "  var bar;",
+                "  bar = setOnly.foo;", // 14: ERR, assignment, but we are not LHS
+                "  bar = new SetOnlyWrapper().setOnly.foo;", // 15: ERR, even in chained expression
+                "  new SetOnlyWrapper().setOnly.foo = 3;", // 16: OK
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.FIELD_HAS_NO_GETTER, 11, 11, 3),
@@ -1024,54 +1071,60 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_setterOnlyProperty_normalField() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  var foo;",
-            "}",
-            "",
-            "main() {",
-            "  A a = new A();",
-            "  a.foo = 1;",
-            "  a.foo += 2;",
-            "  print(a.foo);",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  var foo;",
+                "}",
+                "",
+                "main() {",
+                "  A a = new A();",
+                "  a.foo = 1;",
+                "  a.foo += 2;",
+                "  print(a.foo);",
+                "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
 
   public void test_setterOnlyProperty_getterInSuper() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  get foo() {}",
-            "}",
-            "class B extends A {",
-            "  set foo(arg) {}",
-            "}",
-            "",
-            "main() {",
-            "  B b = new B();",
-            "  b.foo = 1;",
-            "  b.foo += 2;",
-            "  print(b.foo);",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  get foo() {}",
+                "}",
+                "class B extends A {",
+                "  set foo(arg) {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
 
   public void test_setterOnlyProperty_getterInInterface() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "interface A {",
-            "  get foo() {}",
-            "}",
-            "abstract class B implements A {",
-            "  set foo(arg) {}",
-            "}",
-            "",
-            "main() {",
-            "  B b = new B();",
-            "  b.foo = 1;",
-            "  b.foo += 2;",
-            "  print(b.foo);",
-            "}");
+            getName(),
+            makeCode(
+                "interface A {",
+                "  get foo() {}",
+                "}",
+                "abstract class B implements A {",
+                "  set foo(arg) {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 13, 1));
@@ -1080,23 +1133,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_getterOnlyProperty_noSetter() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class GetOnly {",
-            "  get foo() {}",
-            "}",
-            "class GetOnlyWrapper {",
-            "  GetOnly getOnly;",
-            "}",
-            "",
-            "main() {",
-            "  GetOnly getOnly = new GetOnly();",
-            "  print(getOnly.foo);", // 10: OK, use getter
-            "  getOnly.foo = 1;", // 11: ERR, no setter
-            "  getOnly.foo += 2;", // 12: ERR, no setter
-            "  var bar;",
-            "  bar = getOnly.foo;", // 14: OK, use getter
-            "  new GetOnlyWrapper().getOnly.foo = 3;", // 15: ERR, no setter
-            "  bar = new GetOnlyWrapper().getOnly.foo;", // 16: OK, use getter
-            "}");
+            getName(),
+            makeCode(
+                "class GetOnly {",
+                "  get foo() {}",
+                "}",
+                "class GetOnlyWrapper {",
+                "  GetOnly getOnly;",
+                "}",
+                "",
+                "main() {",
+                "  GetOnly getOnly = new GetOnly();",
+                "  print(getOnly.foo);", // 10: OK, use getter
+                "  getOnly.foo = 1;", // 11: ERR, no setter
+                "  getOnly.foo += 2;", // 12: ERR, no setter
+                "  var bar;",
+                "  bar = getOnly.foo;", // 14: OK, use getter
+                "  new GetOnlyWrapper().getOnly.foo = 3;", // 15: ERR, no setter
+                "  bar = new GetOnlyWrapper().getOnly.foo;", // 16: OK, use getter
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 11, 11, 3),
@@ -1107,38 +1162,42 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_getterOnlyProperty_setterInSuper() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "class A {",
-            "  set foo(arg) {}",
-            "}",
-            "class B extends A {",
-            "  get foo() {}",
-            "}",
-            "",
-            "main() {",
-            "  B b = new B();",
-            "  b.foo = 1;",
-            "  b.foo += 2;",
-            "  print(b.foo);",
-            "}");
+            getName(),
+            makeCode(
+                "class A {",
+                "  set foo(arg) {}",
+                "}",
+                "class B extends A {",
+                "  get foo() {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
 
   public void test_getterOnlyProperty_setterInInterface() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "interface A {",
-            "  set foo(arg) {}",
-            "}",
-            "abstract class B implements A {",
-            "  get foo() {}",
-            "}",
-            "",
-            "main() {",
-            "  B b = new B();",
-            "  b.foo = 1;",
-            "  b.foo += 2;",
-            "  print(b.foo);",
-            "}");
+            getName(),
+            makeCode(
+                "interface A {",
+                "  set foo(arg) {}",
+                "}",
+                "abstract class B implements A {",
+                "  get foo() {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, 9, 13, 1));
@@ -1222,16 +1281,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   public void test_finalField_inClass() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  final f;",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  a.f = 0;", // 6: ERR, is final
-        "  a.f += 1;", // 7: ERR, is final
-        "  print(a.f);", // 8: OK, can read
-        "}");
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  final f;",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a.f = 0;", // 6: ERR, is final
+            "  a.f += 1;", // 7: ERR, is final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 7, 5, 1),
@@ -1240,19 +1301,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   public void test_finalField_inInterface() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I default A {",
-        "  final f;",
-        "}",
-        "class A implements I {",
-        "  var f;",
-        "}",
-        "main() {",
-        "  I a = new I();",
-        "  a.f = 0;", // 6: ERR, is final
-        "  a.f += 1;", // 7: ERR, is final
-        "  print(a.f);", // 8: OK, can read
-        "}");
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I default A {",
+            "  final f;",
+            "}",
+            "class A implements I {",
+            "  var f;",
+            "}",
+            "main() {",
+            "  I a = new I();",
+            "  a.f = 0;", // 6: ERR, is final
+            "  a.f += 1;", // 7: ERR, is final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 10, 5, 1),
@@ -1261,39 +1324,43 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   public void test_notFinalField() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I default A {",
-        "  var f;",
-        "}",
-        "class A implements I {",
-        "  var f;",
-        "}",
-        "main() {",
-        "  I a = new I();",
-        "  a.f = 0;", // 6: OK, field "f" is not final
-        "  a.f += 1;", // 7: OK, field "f" is not final
-        "  print(a.f);", // 8: OK, can read
-        "}");
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I default A {",
+            "  var f;",
+            "}",
+            "class A implements I {",
+            "  var f;",
+            "}",
+            "main() {",
+            "  I a = new I();",
+            "  a.f = 0;", // 6: OK, field "f" is not final
+            "  a.f += 1;", // 7: OK, field "f" is not final
+            "  print(a.f);", // 8: OK, can read
+            "}"));
     assertErrors(libraryResult.getTypeErrors());
   }
 
   public void test_constField() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "const f = 1;",
-        "class A {",
-        "  const f = 1;",
-        "  method() {",
-        "    f = 2;",
-        "    this.f = 2;",
-        "  }",
-        "}",
-        "main() {",
-        "  f = 2;",
-        "  A a = new A();",
-        "  a.f = 2;",
-        "}",
-        "");
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const f = 1;",
+            "class A {",
+            "  const f = 1;",
+            "  method() {",
+            "    f = 2;",
+            "    this.f = 2;",
+            "  }",
+            "}",
+            "main() {",
+            "  f = 2;",
+            "  A a = new A();",
+            "  a.f = 2;",
+            "}",
+            ""));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1),
@@ -1304,11 +1371,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   
   public void test_identicalFunction() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "const A = 1;",
-        "const B = 2;",
-        "const C = identical(A, B);",
-        "");
+        getName(),
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "const A = 1;",
+            "const B = 2;",
+            "const C = identical(A, B);",
+            ""));
     assertErrors(libraryResult.getErrors());
   }
 
@@ -1398,48 +1467,55 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_methodReturnTypes() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "int fA() {}",
-            "Dynamic fB() {}",
-            "void fC() {}",
-            "fD() {}",
-            "");
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "int fA() {}",
+                "Dynamic fB() {}",
+                "void fC() {}",
+                "fD() {}",
+                ""));
     assertErrors(libraryResult.getTypeErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     {
-      DartMethodDefinition fA = (DartMethodDefinition) testUnit.getTopLevelNodes().get(0);
+      DartMethodDefinition fA = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
       assertEquals("int", fA.getElement().getReturnType().getElement().getName());
     }
     {
-      DartMethodDefinition fB = (DartMethodDefinition) testUnit.getTopLevelNodes().get(1);
+      DartMethodDefinition fB = (DartMethodDefinition) unit.getTopLevelNodes().get(1);
       assertEquals("Dynamic", fB.getElement().getReturnType().getElement().getName());
     }
     {
-      DartMethodDefinition fC = (DartMethodDefinition) testUnit.getTopLevelNodes().get(2);
+      DartMethodDefinition fC = (DartMethodDefinition) unit.getTopLevelNodes().get(2);
       assertEquals("void", fC.getElement().getReturnType().getElement().getName());
     }
     {
-      DartMethodDefinition fD = (DartMethodDefinition) testUnit.getTopLevelNodes().get(3);
+      DartMethodDefinition fD = (DartMethodDefinition) unit.getTopLevelNodes().get(3);
       assertEquals("Dynamic", fD.getElement().getReturnType().getElement().getName());
     }
   }
 
   public void test_bindToLibraryFunctionFirst() throws Exception {
-    analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "class A {",
-        " foo() {}",
-        "}",
-        "class B extends A {",
-        "  bar() {",
-        "    foo();",
-        "  }",
-        "}",
-        "");
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "foo() {}",
+                "class A {",
+                " foo() {}",
+                "}",
+                "class B extends A {",
+                "  bar() {",
+                "    foo();",
+                "  }",
+                "}",
+                ""));
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // Find foo() invocation.
     DartUnqualifiedInvocation invocation;
     {
-      DartClass classB = (DartClass) testUnit.getTopLevelNodes().get(2);
+      DartClass classB = (DartClass) unit.getTopLevelNodes().get(2);
       DartMethodDefinition methodBar = (DartMethodDefinition) classB.getMembers().get(0);
       DartExprStmt stmt = (DartExprStmt) methodBar.getFunction().getBody().getStatements().get(0);
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
@@ -1447,7 +1523,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // Check that unqualified foo() invocation is resolved to the top-level (library) function.
     NodeElement element = invocation.getTarget().getElement();
     assertNotNull(element);
-    assertSame(testUnit, element.getNode().getParent());
+    assertSame(unit, element.getNode().getParent());
   }
 
   /**
@@ -1455,12 +1531,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * as an exception.
    */
   public void test_invalidImportUri() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library test;",
-        "import 'badURI';",
-        "");
-    assertErrors(libraryResult.getErrors(), errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 16));
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library test;",
+            "import 'badURI';",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 16));
   }
 
   /**
@@ -1468,20 +1545,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * as an exception.
    */
   public void test_invalidSourceUri() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library test;",
-        "part 'badURI';",
-        "");
-    assertErrors(libraryResult.getErrors(), errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 14));
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library test;",
+            "part 'badURI';",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 14));
+  }
+
+  /**
+   * Analyzes source for given library and returns {@link DartCompilationError}s.
+   */
+  private static List<DartCompilationError> analyzeLibrarySourceErrors(final String code)
+      throws Exception {
+    MockLibrarySource lib = new MockLibrarySource() {
+      @Override
+      public Reader getSourceReader() {
+        return new StringReader(code);
+      }
+    };
+    DartArtifactProvider provider = new MockArtifactProvider();
+    final List<DartCompilationError> errors = Lists.newArrayList();
+    DartCompiler.analyzeLibrary(
+        lib,
+        Maps.<URI, DartUnit>newHashMap(),
+        CHECK_ONLY_CONFIGURATION,
+        provider,
+        new DartCompilerListener.Empty() {
+          @Override
+          public void onError(DartCompilationError event) {
+            errors.add(event);
+          }
+        });
+    return errors;
   }
 
   public void test_mapLiteralKeysUnique() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var m = {'a' : 0, 'b': 1, 'a': 2};",
-        "");
-    assertErrors(libraryResult.getErrors(), errEx(TypeErrorCode.MAP_LITERAL_KEY_UNIQUE, 2, 27, 3));
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var m = {'a' : 0, 'b': 1, 'a': 2};",
+            ""));
+    assertErrors(errors, errEx(TypeErrorCode.MAP_LITERAL_KEY_UNIQUE, 2, 27, 3));
   }
 
   /**
@@ -3314,8 +3420,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}",
             "");
     assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     // find == expression
-    DartExpression expression = findNodeBySource(testUnit, "new C() == new C()");
+    DartExpression expression = findNodeBySource(unit, "new C() == new C()");
     assertNotNull(expression);
     // validate == element
     MethodElement equalsElement = (MethodElement) expression.getElement();
@@ -4374,13 +4481,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3084
    */
   public void test_unresolvedIdentifier_inStatic_notPropertyAccess() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "process(x) {}",
         "main() {",
         "  unknown = 0;",
         "  process(unknown);",
-        "}");
+        "}"));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
@@ -4394,7 +4501,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3084
    */
   public void test_unresolvedIdentifier_inInstance_notPropertyAccess() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "process(x) {}",
         "class A {",
@@ -4402,7 +4509,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "    unknown = 0;",
         "    process(unknown);",
         "  }",
-        "}");
+        "}"));
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 7),
@@ -4414,13 +4521,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3084
    */
   public void test_unresolvedIdentifier_inStatic_inPropertyAccess() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "process(x) {}",
         "main() {",
         "  Unknown.foo = 0;",
         "  process(Unknown.foo);",
-        "}");
+        "}"));
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
@@ -4433,7 +4540,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3800
    */
   public void test_unresolvedConstructor() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "main() {",
@@ -4441,7 +4548,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  new A.noSuchConstructor(); // warning",
         "  new B(); // warning",
         "  new B.noSuchConstructor(); // warning",
-        "}");
+        "}"));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
@@ -4471,7 +4578,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * many other points in the Editor.
    */
   public void test_typeForEveryExpression_variable() throws Exception {
-    analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "process(x) {}",
@@ -4479,7 +4586,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  A aaa = new A();",
         "  process(aaa);",
         "}");
-    testUnit.accept(new ASTVisitor<Void>() {
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
       public Void visitIdentifier(DartIdentifier node) {
         // ignore declaration
         if (node.getParent() instanceof DartDeclaration) {
@@ -4501,7 +4609,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * many other points in the Editor.
    */
   public void test_typeForEveryExpression_typeNode() throws Exception {
-    analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class AAA {",
         "  static foo() {}",
@@ -4509,7 +4617,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "main() {",
         "  AAA.foo();",
         "}");
-    testUnit.accept(new ASTVisitor<Void>() {
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
       public Void visitIdentifier(DartIdentifier node) {
         // ignore declaration
         if (node.getParent() instanceof DartDeclaration) {
@@ -4580,6 +4689,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  method(10, 20, 30, 40);",
         "}");
     assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     new ArgumentsBindingTester() {
       @Override
       void checkArgs(int invocationIndex) {
@@ -4604,7 +4714,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           }
         }
       }
-    }.doTest(testUnit);
+    }.doTest(unit);
   }
   
   public void test_formalParameters_positional_named() throws Exception {
@@ -4618,6 +4728,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  method(10, 20, d: 40, c: 30);",
         "}");
     assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
     new ArgumentsBindingTester() {
       @Override
       void checkArgs(int invocationIndex) {
@@ -4648,7 +4759,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           }
         }
       }
-    }.doTest(testUnit);
+    }.doTest(unit);
   }
 
   /**
@@ -4659,12 +4770,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3989
    */
   public void test_constructorName_sameAsMemberName() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  A.foo() {}",
         "  foo() {}",
-        "}");
+        "}"));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
@@ -4675,13 +4786,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3904
    */
   public void test_reifiedClasses() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "process(x) {}",
         "main() {",
         "  process(A);",
-        "}");
+        "}"));
     assertErrors(libraryResult.getErrors());
   }
 
@@ -4690,7 +4801,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3968
    */
   public void test_redirectingFactoryConstructor() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  A() {}",
@@ -4701,7 +4812,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  factory B.foo() = A;",
         "  factory B.bar() = A.named;",
         "}",
-        "");
+        ""));
     assertErrors(libraryResult.getErrors());
     // prepare "class A"
     ClassElement elementA = findNode(DartClass.class, "class A").getElement();
@@ -4726,7 +4837,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   public void test_redirectingFactoryConstructor_cycle() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  factory A.nameA() = C.nameC;",
@@ -4737,7 +4848,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "class C {",
         "  factory C.nameC() = B.nameB;",
         "}",
-        "");
+        ""));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_CYCLE, 3, 11, 7),
@@ -4746,7 +4857,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   public void test_redirectingFactoryConstructor_notConst_fromConst() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  A.named() {}",
@@ -4755,7 +4866,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "class B {",
         "  const factory B.bar() = A.named;",
         "}",
-        "");
+        ""));
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST, 7, 29, 5));
@@ -4766,7 +4877,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=4778
    */
   public void test_unqualifiedAccessToGenericTypeField() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Game {}",
         "class GameRenderer<G extends Game> {",
@@ -4780,7 +4891,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "    var a = game.score;",
         "  }",
         "}",
-        "");
+        ""));
     assertErrors(libraryResult.getErrors());
   }
 

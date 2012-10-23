@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library LibraryPrivateInConstructor;
-import "library_private_in_constructor_a.dart";
-import "library_private_in_constructor_b.dart";
+#library('LibraryPrivateInConstructor');
+#import("library_private_in_constructor_a.dart");
+#import("library_private_in_constructor_b.dart");
 
 main() {
   var b = new B();

@@ -4,7 +4,7 @@
 
 // Patch file for the dart:isolate library.
 
-import "dart:uri";
+#import("dart:uri");
 
 /**
  * Called by the compiler to support switching

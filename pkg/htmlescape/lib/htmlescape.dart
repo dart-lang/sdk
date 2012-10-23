@@ -6,7 +6,7 @@
  * This library contains functions to escape strings for safe inclusion
  * in HTML source.
  */
-library htmlescape;
+#library("htmlescape");
 
 /**
  * Escapes HTML-special characters of [text] so that the result can be

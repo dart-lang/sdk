@@ -7,12 +7,12 @@
  * directly in the program as a constant.
  */
 
-library date_time_format_test;
+#library('date_time_format_test');
 
-import '../lib/intl.dart';
-import '../lib/date_time_patterns.dart';
-import '../lib/date_symbol_data_local.dart';
-import 'date_time_format_test_core.dart';
+#import('../lib/intl.dart');
+#import('../lib/date_time_patterns.dart');
+#import('../lib/date_symbol_data_local.dart');
+#import('date_time_format_test_core.dart');
 
 runWith([Function getSubset]) {
   // Initialize one locale just so we know what the list is.

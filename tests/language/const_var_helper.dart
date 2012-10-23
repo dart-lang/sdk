@@ -4,7 +4,7 @@
 // All things regarding constant variables.
 
 /** Helper library for 'const_var_test.dart' */
-library const_var_helper;
+#library('const_var_helper');
 
 class Foo<E> {
   const Foo();

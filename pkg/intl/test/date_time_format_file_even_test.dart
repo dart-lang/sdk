@@ -8,9 +8,9 @@
  * of them takes long enough that it may cause timeouts in the test bots.
  */
 
-library date_time_format_file_test_2;
-import 'date_time_format_file_test_stub.dart';
-import 'date_time_format_test_core.dart';
+#library('date_time_format_file_test_2');
+#import('date_time_format_file_test_stub.dart');
+#import('date_time_format_test_core.dart');
 
 main() {
   runWith(evenLocales);

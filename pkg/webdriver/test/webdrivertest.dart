@@ -1,6 +1,6 @@
-library webdriver_test;
-import '../webdriver.dart';
-import '../../../pkg/unittest/unittest.dart';
+#library('webdriver_test');
+#import('../webdriver.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 WebDriver web_driver;
 

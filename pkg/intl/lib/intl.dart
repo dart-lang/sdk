@@ -14,18 +14,18 @@
  * There is also a simple example application that can be found in the
  * `example/basic` directory.
  */
-library intl;
+#library('intl');
 
-import 'src/intl_helpers.dart';
-import 'dart:math';
-import 'date_symbols.dart';
-import 'src/date_format_internal.dart';
+#import('src/intl_helpers.dart');
+#import('dart:math');
+#import('date_symbols.dart');
+#import('src/date_format_internal.dart');
 
-part 'date_format.dart';
-part 'src/date_format_field.dart';
-part 'src/date_format_helpers.dart';
-part 'bidi_formatter.dart';
-part 'bidi_utils.dart';
+#source('date_format.dart');
+#source('src/date_format_field.dart');
+#source('src/date_format_helpers.dart');
+#source('bidi_formatter.dart');
+#source('bidi_utils.dart');
 
 /**
  * The Intl class provides a common entry point for internationalization

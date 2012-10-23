@@ -4,9 +4,9 @@
 
 #library("dart:mirrors");
 
-import "dart:isolate";
+#import("dart:isolate");
 
-part "../../../mirrors/mirrors.dart";
+#source("../../../mirrors/mirrors.dart");
 
 /**
  * Stub class for the mirror system.

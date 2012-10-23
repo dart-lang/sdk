@@ -7,15 +7,15 @@
  * locale data from files in the file system.
  */
 
-library date_symbol_data_json;
+#library('date_symbol_data_json');
 
-import "date_symbols.dart";
-import "src/lazy_locale_data.dart";
-import 'src/date_format_internal.dart';
-import 'src/file_data_reader.dart';
-import 'dart:io';
+#import("date_symbols.dart");
+#import("src/lazy_locale_data.dart");
+#import('src/date_format_internal.dart');
+#import('src/file_data_reader.dart');
+#import('dart:io');
 
-part "src/data/dates/localeList.dart";
+#source("src/data/dates/localeList.dart");
 
 /**
  * This should be called for at least one [locale] before any date formatting

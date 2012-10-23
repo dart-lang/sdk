@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library tree;
+#library('tree');
 
-import 'dart:math';
+#import('dart:math');
 
-import '../scanner/scannerlib.dart';
-import '../util/util.dart';
-import '../util/characters.dart';
+#import('../scanner/scannerlib.dart');
+#import('../util/util.dart');
+#import('../util/characters.dart');
 
-part 'dartstring.dart';
-part 'nodes.dart';
-part 'prettyprint.dart';
-part 'unparser.dart';
-part 'visitors.dart';
+#source('dartstring.dart');
+#source('nodes.dart');
+#source('prettyprint.dart');
+#source('unparser.dart');
+#source('visitors.dart');

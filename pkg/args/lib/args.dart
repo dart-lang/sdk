@@ -188,12 +188,12 @@
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
  */
-library args;
+#library('args');
 
-import 'dart:math';
+#import('dart:math');
 
 // TODO(rnystrom): Use "package:" URL here when test.dart can handle pub.
-import 'src/utils.dart';
+#import('src/utils.dart');
 
 /**
  * A class for taking a list of raw command line arguments and parsing out

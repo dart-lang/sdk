@@ -5,8 +5,8 @@
 // Dart test for function type alias with an imported result type that happens
 // to have the same name as a type parameter.
 
-library main;
-import "library11.dart" as lib11;
+#library("main");
+#import("library11.dart", prefix : "lib11");
 
 typedef lib11.Library111<Library111>
     F<Library111>(lib11.Library111<Library111> a, Library111 b);

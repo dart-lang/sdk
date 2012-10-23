@@ -4,4 +4,4 @@
 
 // An empty library, imported by string_escape3_negative_test.dart.
 
-library empty;
+#library('empty');

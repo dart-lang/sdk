@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Parses text in a markdown-like format and renders to HTML.
-library markdown;
+#library('markdown');
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part 'src/markdown/ast.dart';
-part 'src/markdown/block_parser.dart';
-part 'src/markdown/html_renderer.dart';
-part 'src/markdown/inline_parser.dart';
+#source('src/markdown/ast.dart');
+#source('src/markdown/block_parser.dart');
+#source('src/markdown/html_renderer.dart');
+#source('src/markdown/inline_parser.dart');
 
 /// Converts the given string of markdown to HTML.
 String markdownToHtml(String markdown) {

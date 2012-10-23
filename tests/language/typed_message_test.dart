@@ -5,8 +5,8 @@
 // typed objects.
 // VMOptions=--checked
 
-library TypedMessageTest;
-import "dart:isolate";
+#library("TypedMessageTest");
+#import("dart:isolate");
 
 void logMessages() {
   print("Starting log server.");

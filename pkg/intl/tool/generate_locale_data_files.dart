@@ -12,13 +12,13 @@
  * which is sourced by the date_symbol_data... files.
  */
 
-import '../lib/date_symbols.dart';
-import '../lib/date_symbol_data_local.dart';
-import '../lib/date_time_patterns.dart';
-import '../lib/intl.dart';
-import 'dart:io';
-import 'dart:json';
-import '../test/data_directory.dart';
+#import('../lib/date_symbols.dart');
+#import('../lib/date_symbol_data_local.dart');
+#import('../lib/date_time_patterns.dart');
+#import('../lib/intl.dart');
+#import('dart:io');
+#import('dart:json');
+#import('../test/data_directory.dart');
 
 main() {
   initializeDateFormatting("en_IGNORED", null);

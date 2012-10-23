@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library TopLevelMultipleFilesTest;
-part 'top_level_file1.dart';
-part 'top_level_file2.dart';
+#library('TopLevelMultipleFilesTest.dart');
+#source('top_level_file1.dart');
+#source('top_level_file2.dart');
 

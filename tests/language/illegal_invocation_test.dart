@@ -6,7 +6,7 @@
 // Test for issue 1393.  Invoking a type alias or library prefix name caused
 // an internal error in dartc
 //
-import "illegal_invocation_lib.dart" as foo;  /// 02: compile-time error
+#import("illegal_invocation_lib.dart", prefix:"foo");  /// 02: compile-time error
 
 typedef void a();                 /// 01: compile-time error
 

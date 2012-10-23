@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
-
 const int EOF_TOKEN = 0;
 
 const int KEYWORD_TOKEN = $k;

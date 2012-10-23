@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartdoc_search_test;
+#library('dartdoc_search_test');
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part '../lib/src/dartdoc/nav.dart';
-part '../lib/src/client/search.dart';
+#source('../lib/src/dartdoc/nav.dart');
+#source('../lib/src/client/search.dart');
 
 const String URL = 'dummy-url';
 

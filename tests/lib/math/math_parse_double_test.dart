@@ -5,9 +5,9 @@
 // We temporarily test both the new math library and the old Math
 // class. This can easily be simplified once we get rid of the Math
 // class entirely.
-library math_parse_double_test;
+#library('math_parse_double_test');
 
-import 'dart:math';
+#import('dart:math');
 
 void parseDoubleThrowsFormatException(str) {
   Expect.throws(() => parseDouble(str), (e) => e is FormatException);

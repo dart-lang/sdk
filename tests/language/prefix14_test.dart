@@ -4,8 +4,8 @@
 //
 // Use qualified symbols at various places.
 
-library Prefix14Test;
-import "library12.dart" as lib12;
+#library("Prefix14Test.dart");
+#import("library12.dart", prefix:"lib12");
 
 typedef lib12.Library12 myFunc(lib12.Library12 param);
 

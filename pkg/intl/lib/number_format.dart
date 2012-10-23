@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library number_format;
+#library("number_format");
 
-import 'dart:math';
+#import('dart:math');
 
-import "intl.dart";
-import "number_symbols.dart";
-import "number_symbols_data.dart";
+#import("intl.dart");
+#import("number_symbols.dart");
+#import("number_symbols_data.dart");
 
 class NumberFormat {
   /** Variables to determine how number printing behaves. */

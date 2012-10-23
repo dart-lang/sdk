@@ -7,7 +7,7 @@
  * that as a library that can also be run by tests.
  */
 
-import 'basic_example.dart';
+#import('basic_example.dart');
 
 main() {
   setup(runProgram, print);

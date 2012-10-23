@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to allow the test to run on Dartium.
-library hmac_md5_test;
+#library('hmac_md5_test');
 
-import "dart:crypto";
+#import("dart:crypto");
 
 // Data from http://tools.ietf.org/html/rfc2202.
 var hmac_md5_inputs =

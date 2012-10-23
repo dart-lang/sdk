@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-library bidi_utils_test;
+#library('bidi_utils_test');
 
-import '../lib/intl.dart';
-import '../../../pkg/unittest/unittest.dart';
+#import('../lib/intl.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 /**
  * Tests the bidi utilities library.

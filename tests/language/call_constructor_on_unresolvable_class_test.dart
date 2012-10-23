@@ -5,7 +5,7 @@
 // Check that calling a constructor of a class that cannot be resolved causes
 // a runtime error.
 
-import 'dart:math';
+#import('dart:math');
 
 never() {
   Random r = new Random();

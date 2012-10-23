@@ -13,11 +13,11 @@
  */
  //TODO(efortuna): documentation example involving the offset parameter?
 
-library message_lookup_local;
+#library('message_lookup_local');
 
-import 'intl.dart';
-import 'src/intl_helpers.dart';
-import 'dart:mirrors';
+#import('intl.dart');
+#import('src/intl_helpers.dart');
+#import('dart:mirrors');
 
 /**
  * Initialize the user messages for [localeName]. Note that this is an ASYNC
