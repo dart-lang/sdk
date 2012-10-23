@@ -417,8 +417,6 @@ LibTest/core/int/operator_addition_A01_t01: Fail, OK
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 
 LibTest/core/String/contains_A01_t02: Fail
-
-Language/03_Overview/2_Privacy_A01_t11: Fail # Related to issue 978
 Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
 
 

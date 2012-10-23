@@ -1542,6 +1542,16 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
   const Function& super_getter = Function::ZoneHandle(
       Resolver::ResolveDynamicAnyArgs(super_class, getter_name));
   if (super_getter.IsNull()) {
+    const String& setter_name =
+        String::ZoneHandle(Field::SetterName(field_name));
+    const Function& super_setter = Function::ZoneHandle(
+        Resolver::ResolveDynamicAnyArgs(super_class, setter_name));
+    if (!super_setter.IsNull()) {
+      return new StaticGetterNode(
+          field_pos, implicit_argument, true, super_class, field_name);
+    }
+  }
+  if (super_getter.IsNull()) {
     // Check if this is an access to an implicit closure using 'super'.
     // If a function exists of the specified field_name then try
     // accessing it as a getter, at runtime we will handle this by

@@ -199,7 +199,6 @@ Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t07: Fail # inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t12: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t06: Fail # New import syntax
-Language/03_Overview/2_Privacy_A01_t11: Fail # inherited from dart2js
 Language/03_Overview/2_Privacy_A01_t14: Fail # inherited from dart2js
 Language/05_Variables/05_Variables_A01_t04: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t05: Fail # http://dartbug.com/5519
