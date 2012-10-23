@@ -8249,11 +8249,16 @@ abstract class ContentElement implements Element {
 
   factory ContentElement() => _Elements.createContentElement();
 
+  /** @domName HTMLContentElement.resetStyleInheritance */
+  bool resetStyleInheritance;
+
   /** @domName HTMLContentElement.select */
   String select;
 }
 
 class _ContentElementImpl extends _ElementImpl implements ContentElement native "*HTMLContentElement" {
+
+  bool resetStyleInheritance;
 
   String select;
 }
@@ -15686,10 +15691,10 @@ abstract class IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]);
+  IDBRequest openCursor([key_OR_range, String direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, direction]);
+  IDBRequest openKeyCursor([key_OR_range, String direction]);
 }
 
 class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
@@ -15770,23 +15775,6 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_9(key_3, direction);
-    }
     throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openCursor_1() native "openCursor";
@@ -15794,10 +15782,6 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
   _IDBRequestImpl _openCursor_4(key) native "openCursor";
   _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
-  _IDBRequestImpl _openCursor_6() native "openCursor";
-  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
-  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
-  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
   _IDBRequestImpl openKeyCursor([key_OR_range, direction]) {
     if (!?key_OR_range &&
@@ -15822,23 +15806,6 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
     }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openKeyCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openKeyCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openKeyCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_9(key_3, direction);
-    }
     throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openKeyCursor_1() native "openKeyCursor";
@@ -15846,10 +15813,6 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _openKeyCursor_3(_IDBKeyRangeImpl range, String direction) native "openKeyCursor";
   _IDBRequestImpl _openKeyCursor_4(key) native "openKeyCursor";
   _IDBRequestImpl _openKeyCursor_5(key, String direction) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_6() native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_7(_IDBKeyRangeImpl range) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_8(_IDBKeyRangeImpl range, int direction) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_9(key, int direction) native "openKeyCursor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16032,7 +15995,7 @@ abstract class IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]);
+  IDBRequest openCursor([key_OR_range, String direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(Object value, [/*IDBKey*/ key]);
@@ -16162,23 +16125,6 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
     }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_9(key_3, direction);
-    }
     throw const Exception("Incorrect number or type of arguments");
   }
   _IDBRequestImpl _openCursor_1() native "openCursor";
@@ -16186,10 +16132,6 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
   _IDBRequestImpl _openCursor_4(key) native "openCursor";
   _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
-  _IDBRequestImpl _openCursor_6() native "openCursor";
-  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
-  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
-  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
   _IDBRequestImpl put(/*any*/ value, [key]) {
     if (?key) {
@@ -18186,6 +18128,9 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName Window.btoa */
   String btoa(String string);
 
+  /** @domName Window.cancelAnimationFrame */
+  void cancelAnimationFrame(int id);
+
   /** @domName Window.captureEvents */
   void captureEvents();
 
@@ -18249,6 +18194,9 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName Window.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName Window.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
   /** @domName Window.resizeBy */
   void resizeBy(num x, num y);
 
@@ -18277,7 +18225,7 @@ abstract class LocalWindow implements EventTarget, Window {
   void stop();
 
   /** @domName Window.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
+  void webkitCancelAnimationFrame(int id);
 
   /** @domName Window.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
@@ -18286,7 +18234,7 @@ abstract class LocalWindow implements EventTarget, Window {
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
   /** @domName Window.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
@@ -18705,6 +18653,8 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   String btoa(String string) native;
 
+  void cancelAnimationFrame(int id) native;
+
   void captureEvents() native;
 
   void clearInterval(int handle) native;
@@ -18760,6 +18710,8 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   void releaseEvents() native;
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void resizeBy(num x, num y) native;
 
@@ -22685,8 +22637,8 @@ abstract class Performance implements EventTarget {
   /** @domName Performance.timing */
   abstract PerformanceTiming get timing;
 
-  /** @domName Performance.webkitNow */
-  num webkitNow();
+  /** @domName Performance.now */
+  num now();
 }
 
 class _PerformanceImpl extends _EventTargetImpl implements Performance native "*Performance" {
@@ -22697,7 +22649,7 @@ class _PerformanceImpl extends _EventTargetImpl implements Performance native "*
 
   final _PerformanceTimingImpl timing;
 
-  num webkitNow() native;
+  num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23091,6 +23043,116 @@ class _RGBColorImpl implements RGBColor native "*RGBColor" {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RTCDataChannel
+abstract class RTCDataChannel implements EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  RTCDataChannelEvents get on;
+
+  /** @domName RTCDataChannel.binaryType */
+  String binaryType;
+
+  /** @domName RTCDataChannel.bufferedAmount */
+  abstract int get bufferedAmount;
+
+  /** @domName RTCDataChannel.label */
+  abstract String get label;
+
+  /** @domName RTCDataChannel.readyState */
+  abstract String get readyState;
+
+  /** @domName RTCDataChannel.reliable */
+  abstract bool get reliable;
+
+  /** @domName RTCDataChannel.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCDataChannel.close */
+  void close();
+
+  /** @domName RTCDataChannel.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName RTCDataChannel.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCDataChannel.send */
+  void send(data);
+}
+
+abstract class RTCDataChannelEvents implements Events {
+
+  EventListenerList get close;
+
+  EventListenerList get error;
+
+  EventListenerList get message;
+
+  EventListenerList get open;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCDataChannelEvent
+abstract class RTCDataChannelEvent implements Event {
+
+  /** @domName RTCDataChannelEvent.channel */
+  abstract RTCDataChannel get channel;
+}
+
+class _RTCDataChannelEventImpl extends _EventImpl implements RTCDataChannelEvent native "*RTCDataChannelEvent" {
+
+  final _RTCDataChannelImpl channel;
+}
+
+class _RTCDataChannelImpl extends _EventTargetImpl implements RTCDataChannel native "*RTCDataChannel" {
+
+  _RTCDataChannelEventsImpl get on =>
+    new _RTCDataChannelEventsImpl(this);
+
+  String binaryType;
+
+  final int bufferedAmount;
+
+  final String label;
+
+  final String readyState;
+
+  final bool reliable;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  void close() native;
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+
+  void send(data) native;
+}
+
+class _RTCDataChannelEventsImpl extends _EventsImpl implements RTCDataChannelEvents {
+  _RTCDataChannelEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23192,6 +23254,9 @@ abstract class RTCPeerConnection implements EventTarget {
   /** @domName RTCPeerConnection.createAnswer */
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
+  /** @domName RTCPeerConnection.createDataChannel */
+  RTCDataChannel createDataChannel(String label, Map options);
+
   /** @domName RTCPeerConnection.createOffer */
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
 
@@ -23270,6 +23335,12 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
     return;
   }
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
+
+  _RTCDataChannelImpl createDataChannel(String label, Map options) {
+    var options_1 = _convertDartToNative_Dictionary(options);
+    return _createDataChannel_1(label, options_1);
+  }
+  _RTCDataChannelImpl _createDataChannel_1(label, options) native "createDataChannel";
 
   void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
     var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
@@ -23364,7 +23435,7 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 abstract class RTCStatsElement {
 
   /** @domName RTCStatsElement.timestamp */
-  abstract int get timestamp;
+  abstract Date get timestamp;
 
   /** @domName RTCStatsElement.stat */
   String stat(String name);
@@ -23372,7 +23443,7 @@ abstract class RTCStatsElement {
 
 class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" {
 
-  final int timestamp;
+  final Date timestamp;
 
   String stat(String name) native;
 }
@@ -23386,17 +23457,17 @@ class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" 
 abstract class RTCStatsReport {
 
   /** @domName RTCStatsReport.local */
-  List<RTCStatsElement> local();
+  abstract RTCStatsElement get local;
 
   /** @domName RTCStatsReport.remote */
-  List<RTCStatsElement> remote();
+  abstract RTCStatsElement get remote;
 }
 
 class _RTCStatsReportImpl implements RTCStatsReport native "*RTCStatsReport" {
 
-  List<RTCStatsElement> local() native;
+  final _RTCStatsElementImpl local;
 
-  List<RTCStatsElement> remote() native;
+  final _RTCStatsElementImpl remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23741,7 +23812,7 @@ class _RectImpl implements Rect native "*Rect" {
 
 // WARNING: Do not edit - generated code.
 
-typedef void RequestAnimationFrameCallback(int time);
+typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29570,6 +29641,9 @@ abstract class SVGRadialGradientElement implements SVGGradientElement {
   /** @domName SVGRadialGradientElement.cy */
   abstract SVGAnimatedLength get cy;
 
+  /** @domName SVGRadialGradientElement.fr */
+  abstract SVGAnimatedLength get fr;
+
   /** @domName SVGRadialGradientElement.fx */
   abstract SVGAnimatedLength get fx;
 
@@ -29585,6 +29659,8 @@ class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements S
   final _SVGAnimatedLengthImpl cx;
 
   final _SVGAnimatedLengthImpl cy;
+
+  final _SVGAnimatedLengthImpl fr;
 
   final _SVGAnimatedLengthImpl fx;
 
@@ -31498,9 +31574,14 @@ class _SessionDescriptionImpl implements SessionDescription native "*SessionDesc
 
 /// @domName HTMLShadowElement
 abstract class ShadowElement implements Element {
+
+  /** @domName HTMLShadowElement.resetStyleInheritance */
+  bool resetStyleInheritance;
 }
 
 class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*HTMLShadowElement" {
+
+  bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32118,6 +32199,9 @@ abstract class SpeechRecognition implements EventTarget {
   /** @domName SpeechRecognition.grammars */
   SpeechGrammarList grammars;
 
+  /** @domName SpeechRecognition.interimResults */
+  bool interimResults;
+
   /** @domName SpeechRecognition.lang */
   String lang;
 
@@ -32156,8 +32240,6 @@ abstract class SpeechRecognitionEvents implements Events {
   EventListenerList get noMatch;
 
   EventListenerList get result;
-
-  EventListenerList get resultDeleted;
 
   EventListenerList get soundEnd;
 
@@ -32268,6 +32350,8 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   _SpeechGrammarListImpl grammars;
 
+  bool interimResults;
+
   String lang;
 
   int maxAlternatives;
@@ -32299,8 +32383,6 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
   EventListenerList get noMatch => this['nomatch'];
 
   EventListenerList get result => this['result'];
-
-  EventListenerList get resultDeleted => this['resultdeleted'];
 
   EventListenerList get soundEnd => this['soundend'];
 
@@ -36001,7 +36083,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
   /** @domName WebGLRenderingContext.getAttachedShaders */
-  List<Object> getAttachedShaders(WebGLProgram program);
+  void getAttachedShaders(WebGLProgram program);
 
   /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
@@ -36016,7 +36098,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   int getError();
 
   /** @domName WebGLRenderingContext.getExtension */
-  Object getExtension(String name);
+  void getExtension(String name);
 
   /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
@@ -36362,7 +36444,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   _WebGLActiveInfoImpl getActiveUniform(_WebGLProgramImpl program, int index) native;
 
-  List<Object> getAttachedShaders(_WebGLProgramImpl program) native;
+  void getAttachedShaders(_WebGLProgramImpl program) native;
 
   int getAttribLocation(_WebGLProgramImpl program, String name) native;
 
@@ -36372,7 +36454,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   int getError() native;
 
-  Object getExtension(String name) native;
+  void getExtension(String name) native;
 
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
