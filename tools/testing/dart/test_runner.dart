@@ -627,8 +627,8 @@ class RunningProcess {
       stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
-        // Note: processQueue will always be non-null for runtime == ie9, ff,
-        // safari, chrome, opera. (It is only null for runtime == vm)
+        // Note: processQueue will always be non-null for runtime == ie9, ie10,
+        // ff, safari, chrome, opera. (It is only null for runtime == vm)
         // This RunningProcess object is done, and hands over control to
         // BatchRunner.startTest(), which handles reporting, etc.
         timeoutTimer.cancel();
