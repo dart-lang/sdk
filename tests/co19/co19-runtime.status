@@ -298,6 +298,7 @@ LibTest/math/exp_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
 LibTest/math/sin_A01_t01: Fail
+LibTest/math/tan_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
