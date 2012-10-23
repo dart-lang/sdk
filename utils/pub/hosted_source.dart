@@ -86,16 +86,7 @@ class HostedSource extends Source {
       // Now that the install has succeeded, move it to the real location in
       // the cache. This ensures that we don't leave half-busted ghost
       // directories in the user's pub cache if an install fails.
-
-      if (io.Platform.operatingSystem == "windows") {
-        // TODO(rnystrom): Awful hack. On Windows, we see cases where the
-        // extract has not finished by the time we get here, so the rename fails
-        // with a "directory in use" error. So, we will just wait a couple of
-        // seconds before we start.
-        return sleep(2000).chain((_) => renameDir(tempDir, destPath));
-      } else {
-        return renameDir(tempDir, destPath);
-      }
+      return renameDir(tempDir, destPath);
     }).transform((_) => true);
   }
 
