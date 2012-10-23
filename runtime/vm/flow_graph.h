@@ -113,6 +113,7 @@ class FlowGraph : public ZoneAllocated {
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
   void InlineCall(Definition* call, FlowGraph* callee_graph);
+  void RepairGraphAfterInlining();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
@@ -150,6 +151,9 @@ class FlowGraph : public ZoneAllocated {
 
   void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
 
+  void ReplacePredecessor(BlockEntryInstr* old_block,
+                          BlockEntryInstr* new_block);
+
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
   GrowableArray<intptr_t> parent_;
@@ -168,6 +172,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   ZoneGrowableArray<ReturnInstr*>* exits_;
+  bool invalid_dominator_tree_;
 };
 
 }  // namespace dart

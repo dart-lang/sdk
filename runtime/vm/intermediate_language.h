@@ -1002,6 +1002,7 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
+  friend class FlowGraph;  // Access to predecessor_ when inlining.
   virtual void ClearPredecessors() { predecessor_ = NULL; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
     ASSERT(predecessor_ == NULL);

@@ -30,7 +30,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     preorder_(),
     postorder_(),
     reverse_postorder_(),
-    exits_(NULL) {
+    exits_(NULL),
+    invalid_dominator_tree_(true) {
   DiscoverBlocks();
 }
 
@@ -304,6 +305,7 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
 //     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraph::ComputeDominators(
     GrowableArray<BitVector*>* dominance_frontier) {
+  invalid_dominator_tree_ = false;
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
   // that eliminates a pass by using nearest-common ancestor (NCA) to
@@ -724,37 +726,69 @@ void FlowGraph::Bailout(const char* reason) const {
 }
 
 
-// Helper to reorder phis after splitting a block.  The last instruction(s) of
-// the split block will now have a larger block id than any previously known
-// blocks. If the last instruction jumps to a join, we must reorder phi inputs
-// according to the block order, ie, we move this predecessor to the end.
-static void ReorderPhis(BlockEntryInstr* block) {
-  GotoInstr* jump = block->last_instruction()->AsGoto();
-  if (jump == NULL) return;
-  JoinEntryInstr* join = jump->successor();
-  intptr_t pred_index = join->IndexOfPredecessor(block);
-  intptr_t pred_count = join->PredecessorCount();
-  ASSERT(pred_index >= 0);
-  ASSERT(pred_index < pred_count);
-  // If the predecessor index is the last index there is nothing to update.
-  if ((join->phis() == NULL) || (pred_index + 1 == pred_count)) return;
-  // Otherwise, move the predecessor use to the end in each phi.
-  for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-    PhiInstr* phi = (*join->phis())[i];
-    if (phi == NULL) continue;
-    ASSERT(pred_count == phi->InputCount());
-    // Save the predecessor use.
-    Value* pred_use = phi->InputAt(pred_index);
-    // Move each of the following uses back by one.
-    ASSERT(pred_index < pred_count - 1);  // Will move at least one index.
-    for (intptr_t i = pred_index; i < pred_count - 1; ++i) {
-      Value* use = phi->InputAt(i + 1);
-      phi->SetInputAt(i, use);
-      use->set_use_index(i);
+// Helper to replace a predecessor block. For each successor of 'old_block', the
+// predecessors will be reordered to preserve block-order sorting of the
+// predecessors as well as the phis if the successor is a join.
+void FlowGraph::ReplacePredecessor(BlockEntryInstr* old_block,
+                                   BlockEntryInstr* new_block) {
+  // Set the last instruction of the new block to that of the old block.
+  Instruction* last = old_block->last_instruction();
+  new_block->set_last_instruction(last);
+  // For each successor, update the predecessors.
+  for (intptr_t sidx = 0; sidx < last->SuccessorCount(); ++sidx) {
+    // If the successor is a target, update its predecessor.
+    TargetEntryInstr* target = last->SuccessorAt(sidx)->AsTargetEntry();
+    if (target != NULL) {
+      target->predecessor_ = new_block;
+      continue;
     }
-    // Write the predecessor use at the end.
-    phi->SetInputAt(pred_count - 1, pred_use);
-    pred_use->set_use_index(pred_count - 1);
+    // If the successor is a join, update each predecessor and the phis.
+    JoinEntryInstr* join = last->SuccessorAt(sidx)->AsJoinEntry();
+    ASSERT(join != NULL);
+    // Find the old predecessor index.
+    intptr_t old_index = join->IndexOfPredecessor(old_block);
+    intptr_t pred_count = join->PredecessorCount();
+    ASSERT(old_index >= 0);
+    ASSERT(old_index < pred_count);
+    // Find the new predecessor index while reordering the predecessors.
+    intptr_t new_id = new_block->block_id();
+    intptr_t new_index = old_index;
+    if (old_block->block_id() < new_id) {
+      // Search upwards, bubbling down intermediate predecessors.
+      for (; new_index < pred_count - 1; ++new_index) {
+        if (join->predecessors_[new_index + 1]->block_id() > new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index + 1];
+      }
+    } else {
+      // Search downwards, bubbling up intermediate predecessors.
+      for (; new_index > 0; --new_index) {
+        if (join->predecessors_[new_index - 1]->block_id() < new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index - 1];
+      }
+    }
+    join->predecessors_[new_index] = new_block;
+    // If the new and old predecessor index match there is nothing to update.
+    if ((join->phis() == NULL) || (old_index == new_index)) return;
+    // Otherwise, reorder the predecessor uses in each phi.
+    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+      PhiInstr* phi = (*join->phis())[i];
+      if (phi == NULL) continue;
+      ASSERT(pred_count == phi->InputCount());
+      // Save the predecessor use.
+      Value* pred_use = phi->InputAt(old_index);
+      // Move uses between old and new.
+      intptr_t step = (old_index < new_index) ? 1 : -1;
+      for (intptr_t use_idx = old_index;
+           use_idx != new_index;
+           use_idx += step) {
+        Value* use = phi->InputAt(use_idx + step);
+        phi->SetInputAt(use_idx, use);
+        use->set_use_index(use_idx);
+      }
+      // Write the predecessor use.
+      phi->SetInputAt(new_index, pred_use);
+      pred_use->set_use_index(new_index);
+    }
   }
 }
 
@@ -819,15 +853,35 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
     call->ReplaceUsesWith(exit->value()->definition());
     call->previous()->LinkTo(callee_entry->next());
     exit->previous()->LinkTo(call->next());
-    // In case of control flow, locally update the dominator tree.
+    // In case of control flow, locally update the predecessors, phis and
+    // dominator tree.
+    // TODO(zerny): should we leave the dominator tree since we recompute it
+    // after a full inlining pass?
     if (callee_graph->preorder().length() > 2) {
-      // The caller block is split and the new block id is that of the exit
-      // block. If the caller block had outgoing edges, reorder the phis so they
-      // are still ordered by block id.
-      ReorderPhis(caller_entry);
-      // The callee return is now the immediate dominator of blocks whose
-      // immediate dominator was the caller entry.
       BlockEntryInstr* exit_block = exit->GetBlock();
+      // Pictorially, the graph structure is:
+      //
+      //   Bc : caller_entry    Bi : callee_entry
+      //     before_call          inlined_head
+      //     call               ... other blocks ...
+      //     after_call         Be : exit_block
+      //                          inlined_foot
+      // And becomes:
+      //
+      //   Bc : caller_entry
+      //     before_call
+      //     inlined_head
+      //   ... other blocks ...
+      //   Be : exit_block
+      //    inlined_foot
+      //    after_call
+      //
+      // For 'after_call', caller entry (Bc) is replaced by callee exit (Be).
+      ReplacePredecessor(caller_entry, exit_block);
+      // For 'inlined_head', callee entry (Bi) is replaced by caller entry (Bc).
+      ReplacePredecessor(callee_entry, caller_entry);
+      // The callee exit is now the immediate dominator of blocks whose
+      // immediate dominator was the caller entry.
       ASSERT(exit_block->dominated_blocks().is_empty());
       for (intptr_t i = 0; i < caller_entry->dominated_blocks().length(); ++i) {
         BlockEntryInstr* block = caller_entry->dominated_blocks()[i];
@@ -842,8 +896,6 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
         block->set_dominator(caller_entry);
         caller_entry->AddDominatedBlock(block);
       }
-      // Recompute the block orders.
-      DiscoverBlocks();
     }
   } else {
     // Sort the list of exits by block id.
@@ -883,16 +935,27 @@ void FlowGraph::InlineCall(Definition* call, FlowGraph* callee_graph) {
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
     }
-    //  Remove the call from the graph.
+    // Remove the call from the graph.
     call->previous()->LinkTo(callee_entry->next());
     join->LinkTo(call->next());
-    // The caller block is split and the new block id is that of the join
-    // block. If the caller block had outgoing edges, reorder the phis so they
-    // are still ordered by block id.
-    ReorderPhis(caller_entry);
-    // Adjust pre/post orders and update the dominator tree.
-    DiscoverBlocks();
+    // Replace the blocks after splitting (see comment in the len=1 case above).
+    ReplacePredecessor(caller_entry, join);
+    ReplacePredecessor(callee_entry, caller_entry);
+    // Update the last instruction pointers on each exit (ie, to the new goto).
+    for (intptr_t i = 0; i < exits.length(); ++i) {
+      exits[i]->set_last_instruction(
+          exits[i]->last_instruction()->previous()->next());
+    }
+    // Mark that the dominator tree is invalid.
     // TODO(zerny): Compute the dominator frontier locally.
+    invalid_dominator_tree_ = true;
+  }
+}
+
+
+void FlowGraph::RepairGraphAfterInlining() {
+  DiscoverBlocks();
+  if (invalid_dominator_tree_) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&dominance_frontier);
   }

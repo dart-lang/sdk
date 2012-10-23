@@ -499,6 +499,7 @@ void FlowGraphInliner::Inline() {
   inliner.InlineCalls();
 
   if (inliner.inlined()) {
+    flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph) {
