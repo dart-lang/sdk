@@ -156,95 +156,106 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function);
       flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining);
+    }
 
-      // Transform to SSA.
-      if (optimized) flow_graph->ComputeSSA(0);  // Start at virtual register 0.
+    // Transform to SSA.
+    if (optimized) {
+      TimerScope timer(FLAG_compiler_stats,
+                       &CompilerStats::ssa_timer,
+                       isolate);
+      flow_graph->ComputeSSA(0);  // Start at virtual register 0.
+    }
 
-      if (FLAG_print_flow_graph) {
-        OS::Print("Before Optimizations\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
+    if (FLAG_print_flow_graph) {
+      OS::Print("Before Optimizations\n");
+      FlowGraphPrinter printer(*flow_graph);
+      printer.PrintBlocks();
+    }
+
+    if (optimized) {
+      TimerScope timer(FLAG_compiler_stats,
+                       &CompilerStats::graphoptimizer_timer,
+                       isolate);
+
+      flow_graph->ComputeUseLists();
+
+      FlowGraphOptimizer optimizer(flow_graph);
+      optimizer.ApplyICData();
+
+      // Compute the use lists.
+      flow_graph->ComputeUseLists();
+
+      // Inlining (mutates the flow graph)
+      if (FLAG_use_inlining) {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_timer);
+        FlowGraphInliner inliner(flow_graph);
+        inliner.Inline();
+        // Use lists are maintained and validated by the inliner.
       }
 
-      if (optimized) {
+      // Propagate types and eliminate more type tests.
+      if (FLAG_propagate_types) {
+        FlowGraphTypePropagator propagator(flow_graph);
+        propagator.PropagateTypes();
+      }
+
+      // Verify that the use lists are still valid.
+      DEBUG_ASSERT(flow_graph->ValidateUseLists());
+
+      // Propagate sminess from CheckSmi to phis.
+      optimizer.PropagateSminess();
+
+      // Use propagated class-ids to optimize further.
+      optimizer.ApplyClassIds();
+
+      // Do optimizations that depend on the propagated type information.
+      // TODO(srdjan): Should this be called CanonicalizeComputations?
+      optimizer.OptimizeComputations();
+
+      // Unbox doubles.
+      flow_graph->ComputeUseLists();
+      optimizer.SelectRepresentations();
+
+      if (FLAG_constant_propagation ||
+          FLAG_common_subexpression_elimination) {
         flow_graph->ComputeUseLists();
-
-        FlowGraphOptimizer optimizer(flow_graph);
-        optimizer.ApplyICData();
-
-        // Compute the use lists.
-        flow_graph->ComputeUseLists();
-
-        // Inlining (mutates the flow graph)
-        if (FLAG_use_inlining) {
-          FlowGraphInliner inliner(flow_graph);
-          inliner.Inline();
-          // Use lists are maintained and validated by the inliner.
-        }
-
-        // Propagate types and eliminate more type tests.
-        if (FLAG_propagate_types) {
-          FlowGraphTypePropagator propagator(flow_graph);
-          propagator.PropagateTypes();
-        }
-
-        // Verify that the use lists are still valid.
-        DEBUG_ASSERT(flow_graph->ValidateUseLists());
-
-        // Propagate sminess from CheckSmi to phis.
-        optimizer.PropagateSminess();
-
-        // Use propagated class-ids to optimize further.
-        optimizer.ApplyClassIds();
-
-        // Do optimizations that depend on the propagated type information.
-        // TODO(srdjan): Should this be called CanonicalizeComputations?
+      }
+      if (FLAG_constant_propagation) {
+        ConstantPropagator::Optimize(flow_graph);
+        // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.OptimizeComputations();
+      }
+      if (FLAG_common_subexpression_elimination) {
+        if (DominatorBasedCSE::Optimize(flow_graph)) {
+          // Do another round of CSE to take secondary effects into account:
+          // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
+          // TODO(fschneider): Change to a one-pass optimization pass.
+          DominatorBasedCSE::Optimize(flow_graph);
+        }
+      }
+      if (FLAG_loop_invariant_code_motion &&
+          (parsed_function.function().deoptimization_counter() <
+           (FLAG_deoptimization_counter_threshold - 1))) {
+        LICM::Optimize(flow_graph);
+      }
 
-        // Unbox doubles.
+      if (FLAG_range_analysis) {
+        // We have to perform range analysis after LICM because it
+        // optimistically moves CheckSmi through phis into loop preheaders
+        // making some phis smi.
         flow_graph->ComputeUseLists();
-        optimizer.SelectRepresentations();
+        optimizer.InferSmiRanges();
+      }
 
-        if (FLAG_constant_propagation ||
-            FLAG_common_subexpression_elimination) {
-          flow_graph->ComputeUseLists();
-        }
-        if (FLAG_constant_propagation) {
-          ConstantPropagator::Optimize(flow_graph);
-          // A canonicalization pass to remove e.g. smi checks on smi constants.
-          optimizer.OptimizeComputations();
-        }
-        if (FLAG_common_subexpression_elimination) {
-          if (DominatorBasedCSE::Optimize(flow_graph)) {
-            // Do another round of CSE to take secondary effects into account:
-            // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
-            // TODO(fschneider): Change to a one-pass optimization pass.
-            DominatorBasedCSE::Optimize(flow_graph);
-          }
-        }
-        if (FLAG_loop_invariant_code_motion &&
-            (parsed_function.function().deoptimization_counter() <
-             (FLAG_deoptimization_counter_threshold - 1))) {
-          LICM::Optimize(flow_graph);
-        }
+      // Perform register allocation on the SSA graph.
+      FlowGraphAllocator allocator(*flow_graph);
+      allocator.AllocateRegisters();
 
-        if (FLAG_range_analysis) {
-          // We have to perform range analysis after LICM because it
-          // optimistically moves CheckSmi through phis into loop preheaders
-          // making some phis smi.
-          flow_graph->ComputeUseLists();
-          optimizer.InferSmiRanges();
-        }
-
-        // Perform register allocation on the SSA graph.
-        FlowGraphAllocator allocator(*flow_graph);
-        allocator.AllocateRegisters();
-
-        if (FLAG_print_flow_graph) {
-          OS::Print("After Optimizations:\n");
-          FlowGraphPrinter printer(*flow_graph);
-          printer.PrintBlocks();
-        }
+      if (FLAG_print_flow_graph) {
+        OS::Print("After Optimizations:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
       }
     }
 

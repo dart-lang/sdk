@@ -14,6 +14,7 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/timer.h"
 
 namespace dart {
 
@@ -29,6 +30,7 @@ DEFINE_FLAG(bool, inline_control_flow, true,
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
+DECLARE_FLAG(bool, compiler_stats);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -269,7 +271,13 @@ class CallSiteInliner : public ValueObject {
     if (setjmp(*jump.Set()) == 0) {
       // Parse the callee function.
       bool in_cache;
-      ParsedFunction* parsed_function = ParseFunction(function, &in_cache);
+      ParsedFunction* parsed_function;
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_parse_timer,
+                         isolate);
+        parsed_function = ParseFunction(function, &in_cache);
+      }
 
       // Load IC data for the callee.
       if (function.HasCode()) {
@@ -281,8 +289,13 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       FlowGraphBuilder builder(*parsed_function);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
-      FlowGraph* callee_graph =
-          builder.BuildGraph(FlowGraphBuilder::kValueContext);
+      FlowGraph* callee_graph;
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_build_timer,
+                         isolate);
+        callee_graph = builder.BuildGraph(FlowGraphBuilder::kValueContext);
+      }
 
       // Abort if the callee graph contains control flow.
       if (!FLAG_inline_control_flow &&
@@ -294,14 +307,24 @@ class CallSiteInliner : public ValueObject {
         return false;
       }
 
-      // Compute SSA on the callee graph, catching bailouts.
-      callee_graph->ComputeSSA(next_ssa_temp_index_);
-      callee_graph->ComputeUseLists();
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_ssa_timer,
+                         isolate);
+        // Compute SSA on the callee graph, catching bailouts.
+        callee_graph->ComputeSSA(next_ssa_temp_index_);
+        callee_graph->ComputeUseLists();
+      }
 
-      // TODO(zerny): Do more optimization passes on the callee graph.
-      FlowGraphOptimizer optimizer(callee_graph);
-      optimizer.ApplyICData();
-      callee_graph->ComputeUseLists();
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_opt_timer,
+                         isolate);
+        // TODO(zerny): Do more optimization passes on the callee graph.
+        FlowGraphOptimizer optimizer(callee_graph);
+        optimizer.ApplyICData();
+        callee_graph->ComputeUseLists();
+      }
 
       if (FLAG_trace_inlining && FLAG_print_flow_graph) {
         OS::Print("Callee graph for inlining %s\n",
@@ -327,32 +350,38 @@ class CallSiteInliner : public ValueObject {
         collected_call_sites_->FindCallSites(callee_graph);
       }
 
-      // Plug result in the caller graph.
-      caller_graph_->InlineCall(call, callee_graph);
-      next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_subst_timer,
+                         isolate);
 
-      // Remove push arguments of the call.
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->ArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
+        // Plug result in the caller graph.
+        caller_graph_->InlineCall(call, callee_graph);
+        next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
-      // Replace formal parameters with actuals.
-      intptr_t arg_index = 0;
-      GrowableArray<Definition*>* defns =
-          callee_graph->graph_entry()->initial_definitions();
-      for (intptr_t i = 0; i < defns->length(); ++i) {
-        ParameterInstr* param = (*defns)[i]->AsParameter();
-        if (param != NULL) {
-          param->ReplaceUsesWith((*arguments)[arg_index++]->definition());
+        // Remove push arguments of the call.
+        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+          PushArgumentInstr* push = call->ArgumentAt(i);
+          push->ReplaceUsesWith(push->value()->definition());
+          push->RemoveFromGraph();
         }
-      }
-      ASSERT(arg_index == arguments->length());
 
-      // Replace callee's null constant with caller's null constant.
-      callee_graph->graph_entry()->constant_null()->ReplaceUsesWith(
-          caller_graph_->graph_entry()->constant_null());
+        // Replace formal parameters with actuals.
+        intptr_t arg_index = 0;
+        GrowableArray<Definition*>* defns =
+            callee_graph->graph_entry()->initial_definitions();
+        for (intptr_t i = 0; i < defns->length(); ++i) {
+          ParameterInstr* param = (*defns)[i]->AsParameter();
+          if (param != NULL) {
+            param->ReplaceUsesWith((*arguments)[arg_index++]->definition());
+          }
+        }
+        ASSERT(arg_index == arguments->length());
+
+        // Replace callee's null constant with caller's null constant.
+        callee_graph->graph_entry()->constant_null()->ReplaceUsesWith(
+            caller_graph_->graph_entry()->constant_null());
+      }
 
       TRACE_INLINING(OS::Print("     Success\n"));
 
