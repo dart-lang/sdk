@@ -18653,8 +18653,6 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
 
   String btoa(String string) native;
 
-  void cancelAnimationFrame(int id) native;
-
   void captureEvents() native;
 
   void clearInterval(int handle) native;
@@ -18710,8 +18708,6 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   void releaseEvents() native;
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void resizeBy(num x, num y) native;
 
