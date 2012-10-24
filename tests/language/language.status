@@ -62,6 +62,8 @@ call_through_null_getter_test: Fail # issue 6124
 local_function_test: Fail # issue 6124
 naming_test: Fail # issue 6124
 
+[ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
+gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
