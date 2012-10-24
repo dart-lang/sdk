@@ -58,6 +58,7 @@ history_test: Fail
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
+canvasrenderingcontext2d_test: Fail
 contentelement_test: Fail
 css_test: Fail
 element_test: Fail
@@ -74,10 +75,12 @@ js_interop_2_test: Fail
 js_interop_3_test: Fail
 js_interop_4_test: Fail
 localstorage_test: Fail
+measurement_test: Fail
 messageevent_test: Fail
 mutationobserver_test: Fail
 node_test: Fail
 serialized_script_value_test: Fail
+storage_test: Fail
 svgelement2_test: Fail
 svgelement_test: Fail
 svg_3_test: Fail
