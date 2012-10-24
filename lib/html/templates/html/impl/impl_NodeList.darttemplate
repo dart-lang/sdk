@@ -23,7 +23,7 @@ class _ListWrapper<E> implements List<E> {
 
   bool some(bool f(E element)) => _list.some(f);
 
-  bool isEmpty() => _list.isEmpty();
+  bool get isEmpty => _list.isEmpty;
 
   int get length => _list.length;
 
@@ -141,7 +141,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 

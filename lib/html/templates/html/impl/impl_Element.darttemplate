@@ -65,7 +65,7 @@ class _ChildrenElementList implements List {
     return out;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
@@ -208,7 +208,7 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  bool isEmpty() => _nodeList.isEmpty();
+  bool get isEmpty => _nodeList.isEmpty;
 
   int get length => _nodeList.length;
 
@@ -382,7 +382,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty() {
+  bool get isEmpty {
     return length == 0;
   }
 }
@@ -453,7 +453,7 @@ class _DataAttributeMap implements AttributeMap {
   int get length => getKeys().length;
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   // Helpers.
   String _attr(String key) => 'data-$key';
@@ -486,7 +486,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool some(bool f(String element)) => _read().some(f);
 
-  bool isEmpty() => _read().isEmpty();
+  bool get isEmpty => _read().isEmpty;
 
   bool get frozen => false;
 
@@ -570,7 +570,7 @@ class _CssClassSet implements CSSClassSet {
     Set<String> s = new Set<String>();
     for (String name in _classname().split(' ')) {
       String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
+      if (!trimmed.isEmpty) {
         s.add(trimmed);
       }
     }

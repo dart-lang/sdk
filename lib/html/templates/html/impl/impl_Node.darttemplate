@@ -69,7 +69,7 @@ $endif
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 

@@ -84,7 +84,7 @@ class _FilteredElementList implements List {
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
-  bool isEmpty() => _filtered.isEmpty();
+  bool get isEmpty => _filtered.isEmpty;
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
