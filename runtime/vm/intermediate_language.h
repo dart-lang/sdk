@@ -1484,8 +1484,8 @@ class ControlInstruction : public Instruction {
 
 class BranchInstr : public ControlInstruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison)
-      : comparison_(comparison) { }
+  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false)
+      : comparison_(comparison), is_checked_(is_checked) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -1499,6 +1499,8 @@ class BranchInstr : public ControlInstruction {
 
   ComparisonInstr* comparison() const { return comparison_; }
   void set_comparison(ComparisonInstr* value) { comparison_ = value; }
+
+  bool is_checked() const { return is_checked_; }
 
   virtual LocationSummary* locs();
   virtual intptr_t DeoptimizationTarget() const;
@@ -1514,6 +1516,7 @@ class BranchInstr : public ControlInstruction {
 
  private:
   ComparisonInstr* comparison_;
+  const bool is_checked_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

@@ -191,26 +191,35 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary() const {
 }
 
 
+static void EmitAssertBoolean(Register reg,
+                              intptr_t token_pos,
+                              LocationSummary* locs,
+                              FlowGraphCompiler* compiler) {
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  ASSERT(locs->always_calls());
+  Label done;
+  __ CompareObject(reg, compiler->bool_true());
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ CompareObject(reg, compiler->bool_false());
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  __ pushl(reg);  // Push the source object.
+  compiler->GenerateCallRuntime(token_pos,
+                                kConditionTypeErrorRuntimeEntry,
+                                locs);
+  // We should never return here.
+  __ int3();
+  __ Bind(&done);
+}
+
+
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
   if (!is_eliminated()) {
-    // Check that the type of the value is allowed in conditional context.
-    // Call the runtime if the object is not bool::true or bool::false.
-    Label done;
-    __ CompareObject(obj, compiler->bool_true());
-    __ j(EQUAL, &done, Assembler::kNearJump);
-    __ CompareObject(obj, compiler->bool_false());
-    __ j(EQUAL, &done, Assembler::kNearJump);
-
-    __ pushl(obj);  // Push the source object.
-    compiler->GenerateCallRuntime(token_pos(),
-                                  kConditionTypeErrorRuntimeEntry,
-                                  locs());
-    // We should never return here.
-    __ int3();
-    __ Bind(&done);
+    EmitAssertBoolean(obj, token_pos(), locs(), compiler);
   }
   ASSERT(obj == result);
 }
@@ -457,6 +466,9 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
           __ jmp(&done);
         }
       } else {
+        if (branch->is_checked()) {
+          EmitAssertBoolean(EAX, token_pos, locs, compiler);
+        }
         __ CompareObject(EAX, compiler->bool_true());
         branch->EmitBranchOnCondition(compiler, cond);
       }
@@ -777,6 +789,9 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              token_pos(),
                              Token::kEQ,  // kNE reverse occurs at branch.
                              locs());
+  if (branch->is_checked()) {
+    EmitAssertBoolean(EAX, token_pos(), locs(), compiler);
+  }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   __ CompareObject(EAX, compiler->bool_true());
   branch->EmitBranchOnCondition(compiler, branch_condition);

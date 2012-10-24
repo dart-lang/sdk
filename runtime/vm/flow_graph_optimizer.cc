@@ -2367,7 +2367,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
               current->DebugName(),
-              current->deopt_id(),
+              current->GetDeoptId(),
               current->GetBlock()->block_id(),
               pre_header->block_id());
   }

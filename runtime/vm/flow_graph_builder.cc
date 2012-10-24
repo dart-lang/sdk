@@ -366,7 +366,6 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 
 
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
-  ASSERT(!FLAG_enable_type_checks);
   ControlInstruction* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
     branch = new BranchInstr(new StrictCompareInstr(comp->kind(),
@@ -380,7 +379,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         comp->left(),
         comp->right()));
   } else {
-    branch = new BranchInstr(comp);
+    branch = new BranchInstr(comp, FLAG_enable_type_checks);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -403,12 +402,12 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
 
 
 void TestGraphVisitor::ReturnDefinition(Definition* definition) {
+  ComparisonInstr* comp = definition->AsComparison();
+  if (comp != NULL) {
+    MergeBranchWithComparison(comp);
+    return;
+  }
   if (!FLAG_enable_type_checks) {
-    ComparisonInstr* comp = definition->AsComparison();
-    if (comp != NULL) {
-      MergeBranchWithComparison(comp);
-      return;
-    }
     BooleanNegateInstr* neg = definition->AsBooleanNegate();
     if (neg != NULL) {
       MergeBranchWithNegate(neg);
