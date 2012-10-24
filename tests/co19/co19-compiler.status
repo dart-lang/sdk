@@ -239,6 +239,16 @@ LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
 
+LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
+LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
+
 # The following tests use the deprecated catch syntax
 
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK
