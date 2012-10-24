@@ -40,20 +40,20 @@ interface List<E> extends Collection<E>, Sequence<E>
   /**
    * Changes the length of the list. If [newLength] is greater than
    * the current [length], entries are initialized to [:null:]. Throws
-   * an [UnsupportedOperationException] if the list is not extendable.
+   * an [UnsupportedError] if the list is not extendable.
    */
   void set length(int newLength);
 
   /**
    * Adds [value] at the end of the list, extending the length by
-   * one. Throws an [UnsupportedOperationException] if the list is not
+   * one. Throws an [UnsupportedError] if the list is not
    * extendable.
    */
   void add(E value);
 
   /**
    * Adds [value] at the end of the list, extending the length by
-   * one. Throws an [UnsupportedOperationException] if the list is not
+   * one. Throws an [UnsupportedError] if the list is not
    * extendable.
    */
   void addLast(E value);
@@ -61,7 +61,7 @@ interface List<E> extends Collection<E>, Sequence<E>
   /**
    * Appends all elements of the [collection] to the end of this list.
    * Extends the length of the list by the number of elements in [collection].
-   * Throws an [UnsupportedOperationException] if this list is not
+   * Throws an [UnsupportedError] if this list is not
    * extendable.
    */
   void addAll(Collection<E> collection);
@@ -96,7 +96,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * Removes all elements in the list.
    *
    * The length of the list becomes zero.
-   * Throws an [UnsupportedOperationException], and retains all elements, if the
+   * Throws an [UnsupportedError], and retains all elements, if the
    * length of the list cannot be changed.
    */
   void clear();
@@ -110,14 +110,14 @@ interface List<E> extends Collection<E>, Sequence<E>
    * Throws an [ArgumentError] if [index] is not an [int].
    * Throws an [IndexOutOfRangeException] if the [index] does not point inside
    * the list.
-   * Throws an [UnsupportedOperationException], and doesn't remove the element,
+   * Throws an [UnsupportedError], and doesn't remove the element,
    * if the length of the list cannot be changed.
    */
   E removeAt(int index);
 
   /**
    * Pops and returns the last element of the list.
-   * Throws a [UnsupportedOperationException] if the length of the
+   * Throws a [UnsupportedError] if the length of the
    * list cannot be changed.
    */
   E removeLast();
@@ -151,7 +151,7 @@ interface List<E> extends Collection<E>, Sequence<E>
 
   /**
    * Removes [length] elements from the list, beginning at [start].
-   * Throws an [UnsupportedOperationException] if the list is
+   * Throws an [UnsupportedError] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
    * Throws an [ArgumentError] if [length] is negative.
@@ -163,7 +163,7 @@ interface List<E> extends Collection<E>, Sequence<E>
   /**
    * Inserts a new range into the list, starting from [start] to
    * [:start + length - 1:]. The entries are filled with [initialValue].
-   * Throws an [UnsupportedOperationException] if the list is
+   * Throws an [UnsupportedError] if the list is
    * not extendable.
    * If [length] is 0, this method does not do anything.
    * If [start] is the length of the list, this method inserts the

@@ -72,19 +72,19 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   void operator []=(K key, V value) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot set value in unmodifiable Map");
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot set value in unmodifiable Map");
   }
 
   void clear() {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot clear unmodifiable Map");
   }
 
   V remove(K key) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot remove from unmodifiable Map");
   }
 
   String toString() {

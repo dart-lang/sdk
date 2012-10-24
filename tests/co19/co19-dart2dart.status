@@ -206,6 +206,19 @@ LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A
 Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 
+LibTest/core/IllegalAccessException/IllegalAccessException_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/IllegalAccessException/toString_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
+LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
+LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
+
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519

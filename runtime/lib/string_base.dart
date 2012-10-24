@@ -9,7 +9,7 @@
 class _StringBase {
 
   factory _StringBase._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_StringBase can't be instaniated");
   }
 
@@ -356,7 +356,7 @@ class _StringBase {
 
 class _OneByteString extends _StringBase implements String {
   factory _OneByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
   }
 
@@ -374,7 +374,7 @@ class _OneByteString extends _StringBase implements String {
 
 class _TwoByteString extends _StringBase implements String {
   factory _TwoByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
   }
 
@@ -391,7 +391,7 @@ class _TwoByteString extends _StringBase implements String {
 
 class _FourByteString extends _StringBase implements String {
   factory _FourByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_FourByteString can only be allocated by the VM");
   }
 
@@ -408,7 +408,7 @@ class _FourByteString extends _StringBase implements String {
 
 class _ExternalOneByteString extends _StringBase implements String {
   factory _ExternalOneByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");
   }
 
@@ -425,7 +425,7 @@ class _ExternalOneByteString extends _StringBase implements String {
 
 class _ExternalTwoByteString extends _StringBase implements String {
   factory ExternalTwoByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");
   }
 
@@ -442,7 +442,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
 
 class _ExternalFourByteString extends _StringBase implements String {
   factory _ExternalFourByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "ExternalFourByteString can only be allocated by the VM");
   }
 

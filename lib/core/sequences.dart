@@ -128,62 +128,62 @@ class SequenceList<E> extends SequenceCollection<E> implements List<E> {
   }
 
   void operator []=(int index, E value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
   }
 
   void set length(int newLength) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot change the length of an unmodifiable list");
   }
 
   void add(E value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
 
   void addLast(E value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
 
   void addAll(Collection<E> collection) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
 
   void sort([Comparator<E> compare]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
   }
 
   void clear() {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot clear an unmodifiable list");
   }
 
   E removeAt(int index) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove in an unmodifiable list");
   }
 
   E removeLast() {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove in an unmodifiable list");
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
   }
 
   void removeRange(int start, int length) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove in an unmodifiable list");
   }
 
   void insertRange(int start, int length, [E initialValue]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insert range in an unmodifiable list");
   }
 }

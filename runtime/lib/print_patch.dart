@@ -9,7 +9,7 @@ patch void print(Object obj) {
 }
 
 void _unsupportedPrint(Object obj) {
-  throw const UnsupportedOperationException("'print' is not supported");
+  throw new UnsupportedError("'print' is not supported");
 }
 
 // _printClosure can be overwritten by the embedder to supply a different

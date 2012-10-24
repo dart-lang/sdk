@@ -90,7 +90,7 @@ class ListTest {
     var exception = null;
     try {
       list.clear();
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

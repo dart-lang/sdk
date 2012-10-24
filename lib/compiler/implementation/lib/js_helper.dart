@@ -323,13 +323,13 @@ void indexSet$slow(var a, var index, var value) {
 
 checkMutable(list, reason) {
   if (JS('bool', r'!!(#.immutable$list)', list)) {
-    throw new UnsupportedOperationException(reason);
+    throw new UnsupportedError(reason);
   }
 }
 
 checkGrowable(list, reason) {
   if (JS('bool', r'!!(#.fixed$length)', list)) {
-    throw new UnsupportedOperationException(reason);
+    throw new UnsupportedError(reason);
   }
 }
 
@@ -1048,7 +1048,7 @@ abstract class Dynamic_ {
  */
 class Null {
   factory Null() {
-    throw new UnsupportedOperationException('new Null()');
+    throw new UnsupportedError('new Null()');
   }
 }
 

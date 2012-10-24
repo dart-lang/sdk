@@ -28,21 +28,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -112,21 +112,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -184,21 +184,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -268,21 +268,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -340,21 +340,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -430,21 +430,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -505,21 +505,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -596,21 +596,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1 + i;
     }
@@ -671,21 +671,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0.0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
@@ -733,21 +733,21 @@ class ByteArrayTest {
     Expect.throws(() { array[10] = 0.0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < array.length; ++i) {
       array[i] = 1.0 + i;
     }
@@ -968,21 +968,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1096,21 +1096,21 @@ class ByteArrayTest {
     Expect.throws(() { view[view.length] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1203,21 +1203,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1338,21 +1338,21 @@ class ByteArrayTest {
     Expect.throws(() { view[view.length] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1450,21 +1450,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1609,21 +1609,21 @@ class ByteArrayTest {
     Expect.throws(() { view[view.length] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1738,21 +1738,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -1937,21 +1937,21 @@ class ByteArrayTest {
     Expect.throws(() { view[view.length] = 0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { view.add(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.removeRange(0, view.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1 + i;
     }
@@ -2091,21 +2091,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0.0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }
@@ -2194,21 +2194,21 @@ class ByteArrayTest {
     Expect.throws(() { view[10] = 0.0; },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { array.add(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.length = 0; },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeLast(); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.removeRange(0, array.length - 1); },
-                  (e) { return e is UnsupportedOperationException; });
+                  (e) { return e is UnsupportedError; });
     for (int i = 0; i < view.length; ++i) {
       view[i] = 1.0 + i;
     }

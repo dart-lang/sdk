@@ -106,7 +106,7 @@ patch ReceivePort get port {
 patch SendPort spawnFunction(void topLevelFunction()) {
   final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
   if (name == null) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "only top-level functions can be spawned.");
   }
   return _IsolateNatives._spawn(name, null, false);
@@ -561,7 +561,7 @@ class _IsolateNatives {
   static SendPort _startNonWorker(
       String functionName, String uri, SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
-    if (uri != null) throw new UnsupportedOperationException(
+    if (uri != null) throw new UnsupportedError(
             "Currently spawnUri is not supported without web workers.");
     _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);

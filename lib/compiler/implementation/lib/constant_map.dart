@@ -40,13 +40,13 @@ class ConstantMap<V> implements Map<String, V> {
 
   String toString() => Maps.mapToString(this);
 
-  _throwImmutable() {
-    throw const IllegalAccessException();
+  _throwUnmodifiable() {
+    throw new UnsupportedError("Cannot modify unmodifiable Map");
   }
-  void operator []=(String key, V val) => _throwImmutable();
-  V putIfAbsent(String key, V ifAbsent()) => _throwImmutable();
-  V remove(String key) => _throwImmutable();
-  void clear() => _throwImmutable();
+  void operator []=(String key, V val) => _throwUnmodifiable();
+  V putIfAbsent(String key, V ifAbsent()) => _throwUnmodifiable();
+  V remove(String key) => _throwUnmodifiable();
+  void clear() => _throwUnmodifiable();
 }
 
 // This class has no constructor. This is on purpose since the instantiation

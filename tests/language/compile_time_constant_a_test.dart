@@ -10,7 +10,7 @@ const m5 = const { '': 499 };
 const m6 = const { 'a': 499 };
 const m7 = const {};
 
-bool isIllegalAccessException(o) => o is IllegalAccessException;
+bool isUnsupportedError(o) => o is UnsupportedError;
 
 main() {
   Expect.equals(499, m1['a']);
@@ -32,15 +32,13 @@ main() {
   Expect.listEquals([499], seenValues);
   Expect.isFalse(m1.isEmpty());
   Expect.equals(1, m1.length);
-  Expect.throws(() => m1.remove('a'), isIllegalAccessException);
-  Expect.throws(() => m1.remove('b'), isIllegalAccessException);
-  Expect.throws(() => m1.clear(), isIllegalAccessException);
-  Expect.throws(() => m1['b'] = 42, isIllegalAccessException);
-  Expect.throws(() => m1['a'] = 499, isIllegalAccessException);
-  Expect.throws(() => m1.putIfAbsent('a', () => 499),
-                isIllegalAccessException);
-  Expect.throws(() => m1.putIfAbsent('z', () => 499),
-                isIllegalAccessException);
+  Expect.throws(() => m1.remove('a'), isUnsupportedError);
+  Expect.throws(() => m1.remove('b'), isUnsupportedError);
+  Expect.throws(() => m1.clear(), isUnsupportedError);
+  Expect.throws(() => m1['b'] = 42, isUnsupportedError);
+  Expect.throws(() => m1['a'] = 499, isUnsupportedError);
+  Expect.throws(() => m1.putIfAbsent('a', () => 499), isUnsupportedError);
+  Expect.throws(() => m1.putIfAbsent('z', () => 499), isUnsupportedError);
 
   Expect.equals(499, m2['a']);
   Expect.equals(42, m2['b']);
@@ -64,18 +62,16 @@ main() {
   Expect.listEquals([499, 42], seenValues);
   Expect.isFalse(m2.isEmpty());
   Expect.equals(2, m2.length);
-  Expect.throws(() => m2.remove('a'), isIllegalAccessException);
-  Expect.throws(() => m2.remove('b'), isIllegalAccessException);
-  Expect.throws(() => m2.remove('c'), isIllegalAccessException);
-  Expect.throws(() => m2.clear(), isIllegalAccessException);
-  Expect.throws(() => m2['a'] = 499, isIllegalAccessException);
-  Expect.throws(() => m2['b'] = 42, isIllegalAccessException);
-  Expect.throws(() => m2['c'] = 499, isIllegalAccessException);
-  Expect.throws(() => m2.putIfAbsent('a', () => 499),
-                isIllegalAccessException);
-  Expect.throws(() => m2.putIfAbsent('z', () => 499),
-                isIllegalAccessException);
-  Expect.throws(() => m2['a'] = 499, isIllegalAccessException);
+  Expect.throws(() => m2.remove('a'), isUnsupportedError);
+  Expect.throws(() => m2.remove('b'), isUnsupportedError);
+  Expect.throws(() => m2.remove('c'), isUnsupportedError);
+  Expect.throws(() => m2.clear(), isUnsupportedError);
+  Expect.throws(() => m2['a'] = 499, isUnsupportedError);
+  Expect.throws(() => m2['b'] = 42, isUnsupportedError);
+  Expect.throws(() => m2['c'] = 499, isUnsupportedError);
+  Expect.throws(() => m2.putIfAbsent('a', () => 499), isUnsupportedError);
+  Expect.throws(() => m2.putIfAbsent('z', () => 499), isUnsupportedError);
+  Expect.throws(() => m2['a'] = 499, isUnsupportedError);
 
   Expect.isTrue(m3['m1'] === m1);
   Expect.isTrue(m3['m2'] === m2);
@@ -114,13 +110,13 @@ main() {
   });
   Expect.listEquals([], seenKeys);
   Expect.listEquals([], seenValues);
-  Expect.throws(() => m7.remove('a'), isIllegalAccessException);
-  Expect.throws(() => m7.remove('b'), isIllegalAccessException);
-  Expect.throws(() => m7.clear(), isIllegalAccessException);
-  Expect.throws(() => m7['b'] = 42, isIllegalAccessException);
-  Expect.throws(() => m7['a'] = 499, isIllegalAccessException);
+  Expect.throws(() => m7.remove('a'), isUnsupportedError);
+  Expect.throws(() => m7.remove('b'), isUnsupportedError);
+  Expect.throws(() => m7.clear(), isUnsupportedError);
+  Expect.throws(() => m7['b'] = 42, isUnsupportedError);
+  Expect.throws(() => m7['a'] = 499, isUnsupportedError);
   Expect.throws(() => m7.putIfAbsent('a', () => 499),
-                isIllegalAccessException);
+                isUnsupportedError);
   Expect.throws(() => m7.putIfAbsent('z', () => 499),
-                isIllegalAccessException);
+                isUnsupportedError);
 }

@@ -155,15 +155,15 @@ void main() {
             "NullPointerException.");
     });
 
-    test('throwsUnsupportedOperationException', () {
-      shouldPass(() { throw new UnsupportedOperationException(''); },
-          throwsUnsupportedOperationException);
+    test('throwsUnsupportedError', () {
+      shouldPass(() { throw new UnsupportedError(''); },
+          throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
-          throwsUnsupportedOperationException,
+          throwsUnsupportedError,
         "Expected: throws an exception which matches "
-            "UnsupportedOperationException "
+            "UnsupportedError "
         "but:  exception <Exception> does not match "
-            "UnsupportedOperationException.");
+            "UnsupportedError.");
     });
 
     test('returnsNormally', () {

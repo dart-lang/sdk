@@ -96,7 +96,7 @@ class Logger {
       _level = value;
     } else {
       if (parent != null) {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedError(
             'Please set "hierarchicalLoggingEnabled" to true if you want to '
             'change the level on a non-root logger.');
       }

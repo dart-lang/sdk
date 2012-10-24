@@ -10,7 +10,7 @@ main() {
   bool failed = false;
   try {
     new Timer(0, (_) { });
-  } on UnsupportedOperationException catch (e) {
+  } on UnsupportedError catch (e) {
     failed = true;
   }
   Expect.isTrue(failed);
@@ -18,7 +18,7 @@ main() {
   try {
     var t = new Timer.repeating(10, (_) { });
     t.cancel();
-  } on UnsupportedOperationException catch (e) {
+  } on UnsupportedError catch (e) {
     failed = true;
   }
   Expect.isTrue(failed);

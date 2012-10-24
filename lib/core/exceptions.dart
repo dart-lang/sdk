@@ -34,13 +34,6 @@ class IndexOutOfRangeException implements Exception {
   final _value;
 }
 
-/**
- * Exception thrown because of attempt to modify an immutable object.
- */
-class IllegalAccessException implements Exception {
-  const IllegalAccessException();
-  String toString() => "Attempt to modify an immutable object";
-}
 
 /**
  * Exception thrown when a string or some other data does not have an expected
@@ -89,13 +82,6 @@ class NoMoreElementsException implements Exception {
 class EmptyQueueException implements Exception {
   const EmptyQueueException();
   String toString() => "EmptyQueueException";
-}
-
-
-class UnsupportedOperationException implements Exception {
-  const UnsupportedOperationException(String this._message);
-  String toString() => "UnsupportedOperationException: $_message";
-  final String _message;
 }
 
 

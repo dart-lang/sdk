@@ -83,7 +83,7 @@ class _ChildrenElementList implements List {
 
    void set length(int newLength) {
      // TODO(jacobr): remove children when length is reduced.
-     throw const UnsupportedOperationException('');
+     throw new UnsupportedError('');
    }
 
   Element add(_ElementImpl value) {
@@ -102,7 +102,7 @@ class _ChildrenElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -215,7 +215,7 @@ class _FrozenElementList implements List {
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void set length(int newLength) {
@@ -223,33 +223,33 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void addLast(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Iterator<Element> iterator() => new _FrozenElementListIterator(this);
 
   void addAll(Collection<Element> collection) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   List<Element> getRange(int start, int rangeLength) =>
@@ -262,11 +262,11 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element removeLast() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element last() => _nodeList.last();

@@ -34,7 +34,7 @@ syn keyword dartErrors         AssertionError TypeError FallThroughError
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static abstract
 syn keyword dartExceptions     throw try catch finally
-syn keyword dartExceptions     FormatException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException ArgumentError IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException OutOfMemoryError StackOverflowException UnsupportedOperationException
+syn keyword dartExceptions     FormatException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException./b ArgumentError IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodError NotImplementedException NullPointerException OutOfMemoryError StackOverflowException StateError UnsupportedError
 syn keyword dartExceptions_DEPRECATED     BadNumberFormatException
 syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface

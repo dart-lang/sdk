@@ -6,18 +6,28 @@ class Error {
   const Error();
 }
 
+/**
+ * Error thrown by the runtime system when an assert statement fails.
+ */
 class AssertionError implements Error {
 }
 
+/**
+ * Error thrown by the runtime system when a type assertion fails.
+ */
 class TypeError implements AssertionError {
 }
 
+/**
+ * Error thrown by the runtime system when a cast operation fails.
+ */
 class CastError implements Error {
 }
 
 /**
  * Error thrown when a function is passed an unacceptable argument.
- */class ArgumentError implements Error {
+ */
+ class ArgumentError implements Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
@@ -134,6 +144,31 @@ class NoSuchMethodError implements Error {
   }
 
   external static String _objectToString(Object object);
+}
+
+
+/**
+ * The operation was not allowed by the object.
+ *
+ * This [Error] is thrown when a class cannot implement
+ * one of the methods in its signature.
+ */
+class UnsupportedError implements Error {
+  final String message;
+  UnsupportedError(this.message);
+  String toString() => message;
+}
+
+/**
+ * The operation was not allowed by the current state of the object.
+ *
+ * This is a generic error used for a variety of different erroneous
+ * actions. The message should be descriptive.
+ */
+class StateError implements Error {
+  final String message;
+  StateError(this.message);
+  String toString() => message;
 }
 
 

@@ -52,7 +52,7 @@ class Process {
   /**
    * Returns an input stream of the process stdout.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract InputStream get stdout;
@@ -60,7 +60,7 @@ class Process {
   /**
    * Returns an input stream of the process stderr.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract InputStream get stderr;
@@ -68,7 +68,7 @@ class Process {
   /**
    * Returns an output stream to the process stdin.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract OutputStream get stdin;
@@ -77,7 +77,7 @@ class Process {
    * Sets an exit handler which gets invoked when the process
    * terminates.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract void set onExit(void callback(int exitCode));

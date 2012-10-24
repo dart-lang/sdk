@@ -699,7 +699,7 @@ class Dart2JSBackend(object):
         self._members_emitter.Emit(
             '\n'
             '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
             '  }\n',
             TYPE=self._NarrowInputType(element_type))
 

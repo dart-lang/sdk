@@ -757,7 +757,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   bool get isDeclaration => true;
 
   List<TypeMirror> get typeArguments {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         'Declarations do not have type arguments');
   }
 
@@ -840,7 +840,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   bool get isTypedef => true;
 
   List<TypeMirror> get typeArguments {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         'Declarations do not have type arguments');
   }
 

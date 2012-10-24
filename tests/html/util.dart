@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void expectUnsupported(void fn()) =>
-  Expect.throws(fn, (e) => e is UnsupportedOperationException);
+  Expect.throws(fn, (e) => e is UnsupportedError);
 
 void expectEmptyRect(ClientRect rect) {
   Expect.equals(0, rect.bottom);

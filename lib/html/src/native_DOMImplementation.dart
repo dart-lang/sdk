@@ -28,7 +28,7 @@ class _Utils {
   static Map createMap() => {};
 
   static makeNotImplementedException(String fileName, int lineNo) {
-    return new UnsupportedOperationException('[info: $fileName:$lineNo]');
+    return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 
   static window() native "Utils_window";

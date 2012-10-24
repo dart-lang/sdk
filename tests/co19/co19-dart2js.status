@@ -217,6 +217,19 @@ LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A
 Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 
+LibTest/core/IllegalAccessException/IllegalAccessException_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/IllegalAccessException/toString_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
+LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
+LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
@@ -422,11 +435,11 @@ Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # 
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Runtime error: TypeError: Cannot call method '$call$2' of undefined
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Runtime error: TypeError: Object #<A> has no method '$call$0'
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # Runtime error: TypeError: Object 1 has no method '$call$0'
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
-LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 
 LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Expects negative result from bit-operation.

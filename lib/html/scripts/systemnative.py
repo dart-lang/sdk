@@ -383,7 +383,7 @@ class DartiumBackend(object):
         self._members_emitter.Emit(
             '\n'
             '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
             '  }\n',
             TYPE=dart_element_type)
 

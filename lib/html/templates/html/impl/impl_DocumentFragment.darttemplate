@@ -51,7 +51,7 @@ class _FilteredElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -120,7 +120,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   _FrozenCSSClassSet() : super(null);
 
   void _write(Set s) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'frozen class set cannot be modified');
   }
   Set<String> _read() => new Set<String>();
@@ -263,97 +263,97 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
   void set attributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Attributes can't be set for document fragments.");
   }
 
   void set classes(Collection<String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Classes can't be set for document fragments.");
   }
 
   void set dataAttributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Data attributes can't be set for document fragments.");
   }
 
   void set contentEditable(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Content editable can't be set for document fragments.");
   }
 
   String get dir {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set dir(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set draggable(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Draggable can't be set for document fragments.");
   }
 
   void set hidden(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Hidden can't be set for document fragments.");
   }
 
   void set id(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "ID can't be set for document fragments.");
   }
 
   String get lang {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set lang(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set scrollLeft(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set scrollTop(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set spellcheck(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set translate(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set tabIndex(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Tab index can't be set for document fragments.");
   }
 
   void set title(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Title can't be set for document fragments.");
   }
 
   void set webkitdropzone(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit drop zone can't be set for document fragments.");
   }
 
   void set webkitRegionOverflow(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit region overflow can't be set for document fragments.");
   }
 

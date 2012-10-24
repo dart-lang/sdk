@@ -1116,7 +1116,7 @@ class TarFileDescriptor extends Descriptor {
   }
 
   Future delete(dir) {
-    throw new UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   /**

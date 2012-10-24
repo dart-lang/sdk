@@ -260,10 +260,10 @@ class ArchiveEntry {
    */
   InputStream openInputStream() {
     if (_archiveId == null) {
-      throw new UnsupportedOperationException("Cannot open input stream for "
+      throw new UnsupportedError("Cannot open input stream for "
           "archive entry $pathname.");
     } else if (_input != null) {
-      throw new UnsupportedOperationException("An input stream has already been"
+      throw new UnsupportedError("An input stream has already been"
           "opened for archive entry $pathname.");
     }
 

@@ -6,7 +6,7 @@
 // - shift amount must be a Smi.
 class _IntegerImplementation {
   factory _IntegerImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_IntegerImplementation can only be allocated by the VM");
   }
   num operator +(num other) {
@@ -182,7 +182,7 @@ class _IntegerImplementation {
 
 class _Smi extends _IntegerImplementation implements int {
   factory _Smi._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Smi can only be allocated by the VM");
   }
   int get hashCode {
@@ -196,7 +196,7 @@ class _Smi extends _IntegerImplementation implements int {
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class _Mint extends _IntegerImplementation implements int {
   factory _Mint._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Mint can only be allocated by the VM");
   }
   int get hashCode {
@@ -221,7 +221,7 @@ class _Mint extends _IntegerImplementation implements int {
 // Bigint.
 class _Bigint extends _IntegerImplementation implements int {
   factory _Bigint._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Bigint can only be allocated by the VM");
   }
   int get hashCode {

@@ -12,7 +12,7 @@ $!MEMBERS
       // Firefox does not support offsetX.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
       return this.clientX - this.target.getBoundingClientRect().left;
@@ -26,7 +26,7 @@ $!MEMBERS
       // Firefox does not support offsetY.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetY is only supported on elements');
       }
       return this.clientY - this.target.getBoundingClientRect().top;

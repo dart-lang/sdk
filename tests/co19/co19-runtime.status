@@ -224,6 +224,21 @@ LibTest/core/ClosureArgumentMismatchException/toString_A01_t01: Fail, OK # co19 
 LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A01_t01: Fail, OK # co19 issue 276
 Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
 
+LibTest/core/IllegalAccessException/IllegalAccessException_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/IllegalAccessException/toString_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
+LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
+LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
+LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
+
+
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail, OK # co19 issue 283
 Language/10_Expressions/09_Function_Expressions_A04_t02: Fail, OK # co19 issue 283

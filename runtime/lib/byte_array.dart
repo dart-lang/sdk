@@ -164,22 +164,22 @@ abstract class _ByteArrayBase {
   // Methods implementing the List interface.
 
   set length(newLength) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot resize a non-extendable array");
   }
 
   void add(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addLast(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addAll(Collection value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
@@ -197,12 +197,12 @@ abstract class _ByteArrayBase {
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   int removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
@@ -211,12 +211,12 @@ abstract class _ByteArrayBase {
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   void insertRange(int start, int length, [initialValue]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
@@ -1642,22 +1642,22 @@ class _ByteArrayViewBase {
   // Methods implementing the List interface.
 
   set length(newLength) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot resize a non-extendable array");
   }
 
   void add(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addLast(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addAll(Collection value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
@@ -1675,12 +1675,12 @@ class _ByteArrayViewBase {
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   int removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
@@ -1689,12 +1689,12 @@ class _ByteArrayViewBase {
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   void insertRange(int start, int length, [initialValue]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 }

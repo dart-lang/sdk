@@ -231,11 +231,11 @@ class Element implements Spannable {
   Element get declaration => isPatch ? origin : this;
 
   Element get patch {
-    throw new UnsupportedOperationException('patch is not supported on $this');
+    throw new UnsupportedError('patch is not supported on $this');
   }
 
   Element get origin {
-    throw new UnsupportedOperationException('origin is not supported on $this');
+    throw new UnsupportedError('origin is not supported on $this');
   }
 
   // TODO(johnniwinther): This breaks for libraries (for which enclosing

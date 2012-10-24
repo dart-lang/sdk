@@ -2216,7 +2216,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   _CSSRuleImpl operator[](int index) => JS("_CSSRuleImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSRuleImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSRule> mixins.
   // CSSRule is the element type.
@@ -2233,15 +2233,15 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   // From Collection<CSSRule>:
 
   void add(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSRule> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSRule element) => _Collections.contains(this, element);
@@ -2262,7 +2262,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   // From List<CSSRule>:
 
   void sort([Comparator<CSSRule> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSRule element, [int start = 0]) =>
@@ -2276,19 +2276,19 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   CSSRule last() => this[length - 1];
 
   CSSRule removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSRule> getRange(int start, int rangeLength) =>
@@ -7187,7 +7187,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   _CSSValueImpl operator[](int index) => JS("_CSSValueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSValueImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSValue> mixins.
   // CSSValue is the element type.
@@ -7204,15 +7204,15 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   // From Collection<CSSValue>:
 
   void add(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSValue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSValue element) => _Collections.contains(this, element);
@@ -7233,7 +7233,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   // From List<CSSValue>:
 
   void sort([Comparator<CSSValue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSValue element, [int start = 0]) =>
@@ -7247,19 +7247,19 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   CSSValue last() => this[length - 1];
 
   CSSValue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSValue> getRange(int start, int rangeLength) =>
@@ -7919,7 +7919,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   _ClientRectImpl operator[](int index) => JS("_ClientRectImpl", "#[#]", this, index);
 
   void operator[]=(int index, _ClientRectImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<ClientRect> mixins.
   // ClientRect is the element type.
@@ -7936,15 +7936,15 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   // From Collection<ClientRect>:
 
   void add(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<ClientRect> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(ClientRect element) => _Collections.contains(this, element);
@@ -7965,7 +7965,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   // From List<ClientRect>:
 
   void sort([Comparator<ClientRect> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ClientRect element, [int start = 0]) =>
@@ -7979,19 +7979,19 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   ClientRect last() => this[length - 1];
 
   ClientRect removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<ClientRect> getRange(int start, int rangeLength) =>
@@ -8760,7 +8760,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   _DOMMimeTypeImpl operator[](int index) => JS("_DOMMimeTypeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMMimeTypeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMMimeType> mixins.
   // DOMMimeType is the element type.
@@ -8777,15 +8777,15 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   // From Collection<DOMMimeType>:
 
   void add(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMMimeType> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMMimeType element) => _Collections.contains(this, element);
@@ -8806,7 +8806,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   // From List<DOMMimeType>:
 
   void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMMimeType element, [int start = 0]) =>
@@ -8820,19 +8820,19 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   DOMMimeType last() => this[length - 1];
 
   DOMMimeType removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMMimeType> getRange(int start, int rangeLength) =>
@@ -8930,7 +8930,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   _DOMPluginImpl operator[](int index) => JS("_DOMPluginImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMPluginImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMPlugin> mixins.
   // DOMPlugin is the element type.
@@ -8947,15 +8947,15 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   // From Collection<DOMPlugin>:
 
   void add(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMPlugin> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMPlugin element) => _Collections.contains(this, element);
@@ -8976,7 +8976,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   // From List<DOMPlugin>:
 
   void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMPlugin element, [int start = 0]) =>
@@ -8990,19 +8990,19 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   DOMPlugin last() => this[length - 1];
 
   DOMPlugin removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMPlugin> getRange(int start, int rangeLength) =>
@@ -9198,7 +9198,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -9215,15 +9215,15 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   // contains() defined by IDL.
@@ -9244,7 +9244,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -9258,19 +9258,19 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   String last() => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -10299,7 +10299,7 @@ class _FilteredElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -10368,7 +10368,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   _FrozenCSSClassSet() : super(null);
 
   void _write(Set s) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'frozen class set cannot be modified');
   }
   Set<String> _read() => new Set<String>();
@@ -10511,97 +10511,97 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
   void set attributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Attributes can't be set for document fragments.");
   }
 
   void set classes(Collection<String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Classes can't be set for document fragments.");
   }
 
   void set dataAttributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Data attributes can't be set for document fragments.");
   }
 
   void set contentEditable(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Content editable can't be set for document fragments.");
   }
 
   String get dir {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set dir(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set draggable(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Draggable can't be set for document fragments.");
   }
 
   void set hidden(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Hidden can't be set for document fragments.");
   }
 
   void set id(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "ID can't be set for document fragments.");
   }
 
   String get lang {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set lang(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set scrollLeft(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set scrollTop(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set spellcheck(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set translate(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set tabIndex(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Tab index can't be set for document fragments.");
   }
 
   void set title(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Title can't be set for document fragments.");
   }
 
   void set webkitdropzone(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit drop zone can't be set for document fragments.");
   }
 
   void set webkitRegionOverflow(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit region overflow can't be set for document fragments.");
   }
 
@@ -11465,7 +11465,7 @@ class _ChildrenElementList implements List {
 
    void set length(int newLength) {
      // TODO(jacobr): remove children when length is reduced.
-     throw const UnsupportedOperationException('');
+     throw new UnsupportedError('');
    }
 
   Element add(_ElementImpl value) {
@@ -11484,7 +11484,7 @@ class _ChildrenElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -11597,7 +11597,7 @@ class _FrozenElementList implements List {
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void set length(int newLength) {
@@ -11605,33 +11605,33 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void addLast(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Iterator<Element> iterator() => new _FrozenElementListIterator(this);
 
   void addAll(Collection<Element> collection) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   List<Element> getRange(int start, int rangeLength) =>
@@ -11644,11 +11644,11 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element removeLast() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element last() => _nodeList.last();
@@ -12636,7 +12636,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   _EntryImpl operator[](int index) => JS("_EntryImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntryImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Entry> mixins.
   // Entry is the element type.
@@ -12653,15 +12653,15 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   // From Collection<Entry>:
 
   void add(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Entry> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Entry element) => _Collections.contains(this, element);
@@ -12682,7 +12682,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   // From List<Entry>:
 
   void sort([Comparator<Entry> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Entry element, [int start = 0]) =>
@@ -12696,19 +12696,19 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   Entry last() => this[length - 1];
 
   Entry removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Entry initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Entry> getRange(int start, int rangeLength) =>
@@ -12726,7 +12726,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   _EntrySyncImpl operator[](int index) => JS("_EntrySyncImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntrySyncImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<EntrySync> mixins.
   // EntrySync is the element type.
@@ -12743,15 +12743,15 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   // From Collection<EntrySync>:
 
   void add(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<EntrySync> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(EntrySync element) => _Collections.contains(this, element);
@@ -12772,7 +12772,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   // From List<EntrySync>:
 
   void sort([Comparator<EntrySync> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(EntrySync element, [int start = 0]) =>
@@ -12786,19 +12786,19 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   EntrySync last() => this[length - 1];
 
   EntrySync removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<EntrySync> getRange(int start, int rangeLength) =>
@@ -13553,7 +13553,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   _FileImpl operator[](int index) => JS("_FileImpl", "#[#]", this, index);
 
   void operator[]=(int index, _FileImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<File> mixins.
   // File is the element type.
@@ -13570,15 +13570,15 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   // From Collection<File>:
 
   void add(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<File> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(File element) => _Collections.contains(this, element);
@@ -13599,7 +13599,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   // From List<File>:
 
   void sort([Comparator<File> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(File element, [int start = 0]) =>
@@ -13613,19 +13613,19 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   File last() => this[length - 1];
 
   File removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<File> getRange(int start, int rangeLength) =>
@@ -14000,15 +14000,15 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -14029,7 +14029,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -14043,19 +14043,19 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   num last() => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -14119,15 +14119,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -14148,7 +14148,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -14162,19 +14162,19 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   num last() => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -14523,7 +14523,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   _GamepadImpl operator[](int index) => JS("_GamepadImpl", "#[#]", this, index);
 
   void operator[]=(int index, _GamepadImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Gamepad> mixins.
   // Gamepad is the element type.
@@ -14540,15 +14540,15 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   // From Collection<Gamepad>:
 
   void add(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Gamepad> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Gamepad element) => _Collections.contains(this, element);
@@ -14569,7 +14569,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   // From List<Gamepad>:
 
   void sort([Comparator<Gamepad> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Gamepad element, [int start = 0]) =>
@@ -14583,19 +14583,19 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   Gamepad last() => this[length - 1];
 
   Gamepad removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Gamepad> getRange(int start, int rangeLength) =>
@@ -14717,7 +14717,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -14734,15 +14734,15 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -14763,7 +14763,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -14777,19 +14777,19 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -14829,7 +14829,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -14846,15 +14846,15 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -14875,7 +14875,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -14889,19 +14889,19 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -17081,15 +17081,15 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17110,7 +17110,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -17124,19 +17124,19 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -17200,15 +17200,15 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17229,7 +17229,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -17243,19 +17243,19 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -17319,15 +17319,15 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17348,7 +17348,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -17362,19 +17362,19 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -19822,7 +19822,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   _MediaStreamImpl operator[](int index) => JS("_MediaStreamImpl", "#[#]", this, index);
 
   void operator[]=(int index, _MediaStreamImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<MediaStream> mixins.
   // MediaStream is the element type.
@@ -19839,15 +19839,15 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   // From Collection<MediaStream>:
 
   void add(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<MediaStream> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(MediaStream element) => _Collections.contains(this, element);
@@ -19868,7 +19868,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   // From List<MediaStream>:
 
   void sort([Comparator<MediaStream> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(MediaStream element, [int start = 0]) =>
@@ -19882,19 +19882,19 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   MediaStream last() => this[length - 1];
 
   MediaStream removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<MediaStream> getRange(int start, int rangeLength) =>
@@ -20533,7 +20533,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
       // Firefox does not support offsetX.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
       return this.clientX - this.target.getBoundingClientRect().left;
@@ -20547,7 +20547,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
       // Firefox does not support offsetY.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetY is only supported on elements');
       }
       return this.clientY - this.target.getBoundingClientRect().top;
@@ -20814,7 +20814,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -20831,15 +20831,15 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -20860,7 +20860,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -20874,19 +20874,19 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -21311,7 +21311,7 @@ class _ChildNodeListLazy implements List {
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -21322,15 +21322,15 @@ class _ChildNodeListLazy implements List {
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
@@ -21651,7 +21651,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -21665,13 +21665,13 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   // FIXME: implement thesee.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
@@ -23973,7 +23973,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   Map operator[](int index) => JS("Map", "#[#]", this, index);
 
   void operator[]=(int index, Map value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Map> mixins.
   // Map is the element type.
@@ -23990,15 +23990,15 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   // From Collection<Map>:
 
   void add(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Map> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Map element) => _Collections.contains(this, element);
@@ -24019,7 +24019,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   // From List<Map>:
 
   void sort([Comparator<Map> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Map element, [int start = 0]) =>
@@ -24033,19 +24033,19 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   Map last() => this[length - 1];
 
   Map removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Map> getRange(int start, int rangeLength) =>
@@ -24485,7 +24485,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   _SVGAnimatedLengthImpl operator[](int index) => JS("_SVGAnimatedLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedLengthImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedLength> mixins.
   // SVGAnimatedLength is the element type.
@@ -24502,15 +24502,15 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   // From Collection<SVGAnimatedLength>:
 
   void add(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
@@ -24531,7 +24531,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   // From List<SVGAnimatedLength>:
 
   void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedLength element, [int start = 0]) =>
@@ -24545,19 +24545,19 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   SVGAnimatedLength last() => this[length - 1];
 
   SVGAnimatedLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
@@ -24612,7 +24612,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   _SVGAnimatedNumberImpl operator[](int index) => JS("_SVGAnimatedNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedNumberImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedNumber> mixins.
   // SVGAnimatedNumber is the element type.
@@ -24629,15 +24629,15 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   // From Collection<SVGAnimatedNumber>:
 
   void add(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
@@ -24658,7 +24658,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   // From List<SVGAnimatedNumber>:
 
   void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
@@ -24672,19 +24672,19 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   SVGAnimatedNumber last() => this[length - 1];
 
   SVGAnimatedNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
@@ -24783,7 +24783,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   _SVGAnimateTransformElementImpl operator[](int index) => JS("_SVGAnimateTransformElementImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimateTransformElementImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimateTransformElement> mixins.
   // SVGAnimateTransformElement is the element type.
@@ -24800,15 +24800,15 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   // From Collection<SVGAnimateTransformElement>:
 
   void add(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimateTransformElement> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
@@ -24829,7 +24829,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   // From List<SVGAnimateTransformElement>:
 
   void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
@@ -24843,19 +24843,19 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   SVGAnimateTransformElement last() => this[length - 1];
 
   SVGAnimateTransformElement removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
@@ -25640,7 +25640,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   _SVGElementInstanceImpl operator[](int index) => JS("_SVGElementInstanceImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGElementInstanceImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGElementInstance> mixins.
   // SVGElementInstance is the element type.
@@ -25657,15 +25657,15 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   // From Collection<SVGElementInstance>:
 
   void add(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGElementInstance> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGElementInstance element) => _Collections.contains(this, element);
@@ -25686,7 +25686,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   // From List<SVGElementInstance>:
 
   void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGElementInstance element, [int start = 0]) =>
@@ -25700,19 +25700,19 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   SVGElementInstance last() => this[length - 1];
 
   SVGElementInstance removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGElementInstance> getRange(int start, int rangeLength) =>
@@ -27662,7 +27662,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   _SVGLengthImpl operator[](int index) => JS("_SVGLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGLengthImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGLength> mixins.
   // SVGLength is the element type.
@@ -27679,15 +27679,15 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   // From Collection<SVGLength>:
 
   void add(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGLength element) => _Collections.contains(this, element);
@@ -27708,7 +27708,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   // From List<SVGLength>:
 
   void sort([Comparator<SVGLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGLength element, [int start = 0]) =>
@@ -27722,19 +27722,19 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   SVGLength last() => this[length - 1];
 
   SVGLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGLength> getRange(int start, int rangeLength) =>
@@ -28258,7 +28258,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   _SVGNumberImpl operator[](int index) => JS("_SVGNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGNumberImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGNumber> mixins.
   // SVGNumber is the element type.
@@ -28275,15 +28275,15 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   // From Collection<SVGNumber>:
 
   void add(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGNumber element) => _Collections.contains(this, element);
@@ -28304,7 +28304,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   // From List<SVGNumber>:
 
   void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGNumber element, [int start = 0]) =>
@@ -28318,19 +28318,19 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   SVGNumber last() => this[length - 1];
 
   SVGNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGNumber> getRange(int start, int rangeLength) =>
@@ -29175,7 +29175,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   _SVGPathSegImpl operator[](int index) => JS("_SVGPathSegImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGPathSegImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGPathSeg> mixins.
   // SVGPathSeg is the element type.
@@ -29192,15 +29192,15 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   // From Collection<SVGPathSeg>:
 
   void add(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGPathSeg> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGPathSeg element) => _Collections.contains(this, element);
@@ -29221,7 +29221,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   // From List<SVGPathSeg>:
 
   void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGPathSeg element, [int start = 0]) =>
@@ -29235,19 +29235,19 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   SVGPathSeg last() => this[length - 1];
 
   SVGPathSeg removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGPathSeg> getRange(int start, int rangeLength) =>
@@ -30214,7 +30214,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -30231,15 +30231,15 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(String element) => _Collections.contains(this, element);
@@ -30260,7 +30260,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -30274,19 +30274,19 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   String last() => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -30871,7 +30871,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   _SVGTransformImpl operator[](int index) => JS("_SVGTransformImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGTransformImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGTransform> mixins.
   // SVGTransform is the element type.
@@ -30888,15 +30888,15 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   // From Collection<SVGTransform>:
 
   void add(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGTransform> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGTransform element) => _Collections.contains(this, element);
@@ -30917,7 +30917,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   // From List<SVGTransform>:
 
   void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGTransform element, [int start = 0]) =>
@@ -30931,19 +30931,19 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   SVGTransform last() => this[length - 1];
 
   SVGTransform removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGTransform> getRange(int start, int rangeLength) =>
@@ -31818,7 +31818,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   _SourceBufferImpl operator[](int index) => JS("_SourceBufferImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SourceBufferImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SourceBuffer> mixins.
   // SourceBuffer is the element type.
@@ -31835,15 +31835,15 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   // From Collection<SourceBuffer>:
 
   void add(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SourceBuffer> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SourceBuffer element) => _Collections.contains(this, element);
@@ -31864,7 +31864,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   // From List<SourceBuffer>:
 
   void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SourceBuffer element, [int start = 0]) =>
@@ -31878,19 +31878,19 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   SourceBuffer last() => this[length - 1];
 
   SourceBuffer removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SourceBuffer> getRange(int start, int rangeLength) =>
@@ -32004,7 +32004,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   _SpeechGrammarImpl operator[](int index) => JS("_SpeechGrammarImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechGrammarImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechGrammar> mixins.
   // SpeechGrammar is the element type.
@@ -32021,15 +32021,15 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   // From Collection<SpeechGrammar>:
 
   void add(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechGrammar> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechGrammar element) => _Collections.contains(this, element);
@@ -32050,7 +32050,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   // From List<SpeechGrammar>:
 
   void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechGrammar element, [int start = 0]) =>
@@ -32064,19 +32064,19 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   SpeechGrammar last() => this[length - 1];
 
   SpeechGrammar removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
@@ -32137,7 +32137,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   _SpeechInputResultImpl operator[](int index) => JS("_SpeechInputResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechInputResultImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechInputResult> mixins.
   // SpeechInputResult is the element type.
@@ -32154,15 +32154,15 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   // From Collection<SpeechInputResult>:
 
   void add(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechInputResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechInputResult element) => _Collections.contains(this, element);
@@ -32183,7 +32183,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   // From List<SpeechInputResult>:
 
   void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechInputResult element, [int start = 0]) =>
@@ -32197,19 +32197,19 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   SpeechInputResult last() => this[length - 1];
 
   SpeechInputResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
@@ -32476,7 +32476,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   _SpeechRecognitionResultImpl operator[](int index) => JS("_SpeechRecognitionResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechRecognitionResultImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechRecognitionResult> mixins.
   // SpeechRecognitionResult is the element type.
@@ -32493,15 +32493,15 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   // From Collection<SpeechRecognitionResult>:
 
   void add(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechRecognitionResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
@@ -32522,7 +32522,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   // From List<SpeechRecognitionResult>:
 
   void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
@@ -32536,19 +32536,19 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   SpeechRecognitionResult last() => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
@@ -32867,7 +32867,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   _StyleSheetImpl operator[](int index) => JS("_StyleSheetImpl", "#[#]", this, index);
 
   void operator[]=(int index, _StyleSheetImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<StyleSheet> mixins.
   // StyleSheet is the element type.
@@ -32884,15 +32884,15 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<StyleSheet> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(StyleSheet element) => _Collections.contains(this, element);
@@ -32913,7 +32913,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   // From List<StyleSheet>:
 
   void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
@@ -32927,19 +32927,19 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   StyleSheet last() => this[length - 1];
 
   StyleSheet removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
@@ -33762,7 +33762,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   _TextTrackCueImpl operator[](int index) => JS("_TextTrackCueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackCueImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrackCue> mixins.
   // TextTrackCue is the element type.
@@ -33779,15 +33779,15 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   // From Collection<TextTrackCue>:
 
   void add(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrackCue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrackCue element) => _Collections.contains(this, element);
@@ -33808,7 +33808,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   // From List<TextTrackCue>:
 
   void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrackCue element, [int start = 0]) =>
@@ -33822,19 +33822,19 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   TextTrackCue last() => this[length - 1];
 
   TextTrackCue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrackCue> getRange(int start, int rangeLength) =>
@@ -33925,7 +33925,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
   _TextTrackImpl operator[](int index) => JS("_TextTrackImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrack> mixins.
   // TextTrack is the element type.
@@ -33942,15 +33942,15 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
   // From Collection<TextTrack>:
 
   void add(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrack> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrack element) => _Collections.contains(this, element);
@@ -33971,7 +33971,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
   // From List<TextTrack>:
 
   void sort([Comparator<TextTrack> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrack element, [int start = 0]) =>
@@ -33985,19 +33985,19 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
   TextTrack last() => this[length - 1];
 
   TextTrack removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrack> getRange(int start, int rangeLength) =>
@@ -34216,7 +34216,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   _TouchImpl operator[](int index) => JS("_TouchImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TouchImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Touch> mixins.
   // Touch is the element type.
@@ -34233,15 +34233,15 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Touch> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Touch element) => _Collections.contains(this, element);
@@ -34262,7 +34262,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   // From List<Touch>:
 
   void sort([Comparator<Touch> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
@@ -34276,19 +34276,19 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   Touch last() => this[length - 1];
 
   Touch removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
@@ -34609,15 +34609,15 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34638,7 +34638,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -34652,19 +34652,19 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -34728,15 +34728,15 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34757,7 +34757,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -34771,19 +34771,19 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -34847,15 +34847,15 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34876,7 +34876,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -34890,19 +34890,19 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -36820,7 +36820,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   _AnimationImpl operator[](int index) => JS("_AnimationImpl", "#[#]", this, index);
 
   void operator[]=(int index, _AnimationImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Animation> mixins.
   // Animation is the element type.
@@ -36837,15 +36837,15 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   // From Collection<Animation>:
 
   void add(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Animation> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Animation element) => _Collections.contains(this, element);
@@ -36866,7 +36866,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   // From List<Animation>:
 
   void sort([Comparator<Animation> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Animation element, [int start = 0]) =>
@@ -36880,19 +36880,19 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   Animation last() => this[length - 1];
 
   Animation removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Animation initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Animation> getRange(int start, int rangeLength) =>
@@ -37178,7 +37178,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaY is not supported');
   }
 
@@ -37206,7 +37206,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaX is not supported');
   }
 

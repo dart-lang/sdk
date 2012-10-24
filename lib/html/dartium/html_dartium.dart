@@ -2792,7 +2792,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
   CSSRule operator[](int index) native "CSSRuleList_item_Callback";
 
   void operator[]=(int index, CSSRule value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSRule> mixins.
   // CSSRule is the element type.
@@ -2809,15 +2809,15 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
   // From Collection<CSSRule>:
 
   void add(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSRule> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSRule element) => _Collections.contains(this, element);
@@ -2838,7 +2838,7 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
   // From List<CSSRule>:
 
   void sort([Comparator<CSSRule> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSRule element, [int start = 0]) =>
@@ -2852,19 +2852,19 @@ class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements List<CSSRule>
   CSSRule last() => this[length - 1];
 
   CSSRule removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSRule> getRange(int start, int rangeLength) =>
@@ -7809,7 +7809,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
   CSSValue operator[](int index) native "CSSValueList_item_Callback";
 
   void operator[]=(int index, CSSValue value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSValue> mixins.
   // CSSValue is the element type.
@@ -7826,15 +7826,15 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
   // From Collection<CSSValue>:
 
   void add(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSValue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSValue element) => _Collections.contains(this, element);
@@ -7855,7 +7855,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
   // From List<CSSValue>:
 
   void sort([Comparator<CSSValue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSValue element, [int start = 0]) =>
@@ -7869,19 +7869,19 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue> {
   CSSValue last() => this[length - 1];
 
   CSSValue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSValue> getRange(int start, int rangeLength) =>
@@ -8802,7 +8802,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
   ClientRect operator[](int index) native "ClientRectList_item_Callback";
 
   void operator[]=(int index, ClientRect value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<ClientRect> mixins.
   // ClientRect is the element type.
@@ -8819,15 +8819,15 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
   // From Collection<ClientRect>:
 
   void add(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<ClientRect> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(ClientRect element) => _Collections.contains(this, element);
@@ -8848,7 +8848,7 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
   // From List<ClientRect>:
 
   void sort([Comparator<ClientRect> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ClientRect element, [int start = 0]) =>
@@ -8862,19 +8862,19 @@ class _ClientRectListImpl extends NativeFieldWrapperClass1 implements List<Clien
   ClientRect last() => this[length - 1];
 
   ClientRect removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<ClientRect> getRange(int start, int rangeLength) =>
@@ -9764,7 +9764,7 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
   DOMMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
 
   void operator[]=(int index, DOMMimeType value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMMimeType> mixins.
   // DOMMimeType is the element type.
@@ -9781,15 +9781,15 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
   // From Collection<DOMMimeType>:
 
   void add(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMMimeType> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMMimeType element) => _Collections.contains(this, element);
@@ -9810,7 +9810,7 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
   // From List<DOMMimeType>:
 
   void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMMimeType element, [int start = 0]) =>
@@ -9824,19 +9824,19 @@ class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeT
   DOMMimeType last() => this[length - 1];
 
   DOMMimeType removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMMimeType> getRange(int start, int rangeLength) =>
@@ -9952,7 +9952,7 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
   DOMPlugin operator[](int index) native "DOMPluginArray_item_Callback";
 
   void operator[]=(int index, DOMPlugin value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMPlugin> mixins.
   // DOMPlugin is the element type.
@@ -9969,15 +9969,15 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
   // From Collection<DOMPlugin>:
 
   void add(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMPlugin> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMPlugin element) => _Collections.contains(this, element);
@@ -9998,7 +9998,7 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
   // From List<DOMPlugin>:
 
   void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMPlugin element, [int start = 0]) =>
@@ -10012,19 +10012,19 @@ class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginA
   DOMPlugin last() => this[length - 1];
 
   DOMPlugin removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMPlugin> getRange(int start, int rangeLength) =>
@@ -10246,7 +10246,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
   String operator[](int index) native "DOMStringList_item_Callback";
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -10263,15 +10263,15 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   // contains() defined by IDL.
@@ -10292,7 +10292,7 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -10306,19 +10306,19 @@ class _DOMStringListImpl extends NativeFieldWrapperClass1 implements List<String
   String last() => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -11570,7 +11570,7 @@ class _FilteredElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -11639,7 +11639,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   _FrozenCSSClassSet() : super(null);
 
   void _write(Set s) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'frozen class set cannot be modified');
   }
   Set<String> _read() => new Set<String>();
@@ -11782,97 +11782,97 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
   void set attributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Attributes can't be set for document fragments.");
   }
 
   void set classes(Collection<String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Classes can't be set for document fragments.");
   }
 
   void set dataAttributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Data attributes can't be set for document fragments.");
   }
 
   void set contentEditable(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Content editable can't be set for document fragments.");
   }
 
   String get dir {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set dir(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set draggable(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Draggable can't be set for document fragments.");
   }
 
   void set hidden(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Hidden can't be set for document fragments.");
   }
 
   void set id(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "ID can't be set for document fragments.");
   }
 
   String get lang {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set lang(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set scrollLeft(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set scrollTop(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set spellcheck(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set translate(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set tabIndex(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Tab index can't be set for document fragments.");
   }
 
   void set title(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Title can't be set for document fragments.");
   }
 
   void set webkitdropzone(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit drop zone can't be set for document fragments.");
   }
 
   void set webkitRegionOverflow(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit region overflow can't be set for document fragments.");
   }
 
@@ -12767,7 +12767,7 @@ class _ChildrenElementList implements List {
 
    void set length(int newLength) {
      // TODO(jacobr): remove children when length is reduced.
-     throw const UnsupportedOperationException('');
+     throw new UnsupportedError('');
    }
 
   Element add(_ElementImpl value) {
@@ -12786,7 +12786,7 @@ class _ChildrenElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -12899,7 +12899,7 @@ class _FrozenElementList implements List {
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void set length(int newLength) {
@@ -12907,33 +12907,33 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void addLast(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Iterator<Element> iterator() => new _FrozenElementListIterator(this);
 
   void addAll(Collection<Element> collection) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   List<Element> getRange(int start, int rangeLength) =>
@@ -12946,11 +12946,11 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element removeLast() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element last() => _nodeList.last();
@@ -13954,7 +13954,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
   Entry operator[](int index) native "EntryArray_item_Callback";
 
   void operator[]=(int index, Entry value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Entry> mixins.
   // Entry is the element type.
@@ -13971,15 +13971,15 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
   // From Collection<Entry>:
 
   void add(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Entry> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Entry element) => _Collections.contains(this, element);
@@ -14000,7 +14000,7 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
   // From List<Entry>:
 
   void sort([Comparator<Entry> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Entry element, [int start = 0]) =>
@@ -14014,19 +14014,19 @@ class _EntryArrayImpl extends NativeFieldWrapperClass1 implements List<Entry> {
   Entry last() => this[length - 1];
 
   Entry removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Entry initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Entry> getRange(int start, int rangeLength) =>
@@ -14050,7 +14050,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
   EntrySync operator[](int index) native "EntryArraySync_item_Callback";
 
   void operator[]=(int index, EntrySync value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<EntrySync> mixins.
   // EntrySync is the element type.
@@ -14067,15 +14067,15 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
   // From Collection<EntrySync>:
 
   void add(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<EntrySync> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(EntrySync element) => _Collections.contains(this, element);
@@ -14096,7 +14096,7 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
   // From List<EntrySync>:
 
   void sort([Comparator<EntrySync> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(EntrySync element, [int start = 0]) =>
@@ -14110,19 +14110,19 @@ class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements List<Entry
   EntrySync last() => this[length - 1];
 
   EntrySync removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<EntrySync> getRange(int start, int rangeLength) =>
@@ -14980,7 +14980,7 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
   File operator[](int index) native "FileList_item_Callback";
 
   void operator[]=(int index, File value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<File> mixins.
   // File is the element type.
@@ -14997,15 +14997,15 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
   // From Collection<File>:
 
   void add(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<File> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(File element) => _Collections.contains(this, element);
@@ -15026,7 +15026,7 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
   // From List<File>:
 
   void sort([Comparator<File> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(File element, [int start = 0]) =>
@@ -15040,19 +15040,19 @@ class _FileListImpl extends NativeFieldWrapperClass1 implements List<File> {
   File last() => this[length - 1];
 
   File removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<File> getRange(int start, int rangeLength) =>
@@ -15476,15 +15476,15 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -15505,7 +15505,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -15519,19 +15519,19 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
   num last() => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -15610,15 +15610,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -15639,7 +15639,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
@@ -15653,19 +15653,19 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   num last() => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -16110,7 +16110,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
   Gamepad operator[](int index) native "GamepadList_item_Callback";
 
   void operator[]=(int index, Gamepad value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Gamepad> mixins.
   // Gamepad is the element type.
@@ -16127,15 +16127,15 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
   // From Collection<Gamepad>:
 
   void add(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Gamepad> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Gamepad element) => _Collections.contains(this, element);
@@ -16156,7 +16156,7 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
   // From List<Gamepad>:
 
   void sort([Comparator<Gamepad> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Gamepad element, [int start = 0]) =>
@@ -16170,19 +16170,19 @@ class _GamepadListImpl extends NativeFieldWrapperClass1 implements List<Gamepad>
   Gamepad last() => this[length - 1];
 
   Gamepad removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Gamepad> getRange(int start, int rangeLength) =>
@@ -16336,7 +16336,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
   Node operator[](int index) native "HTMLAllCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -16353,15 +16353,15 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -16382,7 +16382,7 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -16396,19 +16396,19 @@ class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAll
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -16454,7 +16454,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
   Node operator[](int index) native "HTMLCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -16471,15 +16471,15 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -16500,7 +16500,7 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -16514,19 +16514,19 @@ class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollec
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -19006,15 +19006,15 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -19035,7 +19035,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -19049,19 +19049,19 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -19140,15 +19140,15 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -19169,7 +19169,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -19183,19 +19183,19 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -19274,15 +19274,15 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -19303,7 +19303,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -19317,19 +19317,19 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -21975,7 +21975,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
   MediaStream operator[](int index) native "MediaStreamList_item_Callback";
 
   void operator[]=(int index, MediaStream value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<MediaStream> mixins.
   // MediaStream is the element type.
@@ -21992,15 +21992,15 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
   // From Collection<MediaStream>:
 
   void add(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<MediaStream> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(MediaStream element) => _Collections.contains(this, element);
@@ -22021,7 +22021,7 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
   // From List<MediaStream>:
 
   void sort([Comparator<MediaStream> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(MediaStream element, [int start = 0]) =>
@@ -22035,19 +22035,19 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements List<Medi
   MediaStream last() => this[length - 1];
 
   MediaStream removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<MediaStream> getRange(int start, int rangeLength) =>
@@ -23040,7 +23040,7 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
   Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -23057,15 +23057,15 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -23086,7 +23086,7 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -23100,19 +23100,19 @@ class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap
   Node last() => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -23545,7 +23545,7 @@ class _ChildNodeListLazy implements List {
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -23556,15 +23556,15 @@ class _ChildNodeListLazy implements List {
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
@@ -23889,7 +23889,7 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -23903,13 +23903,13 @@ class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
 
   // FIXME: implement thesee.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
@@ -26619,7 +26619,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
   Map operator[](int index) native "SQLResultSetRowList_item_Callback";
 
   void operator[]=(int index, Map value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Map> mixins.
   // Map is the element type.
@@ -26636,15 +26636,15 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
   // From Collection<Map>:
 
   void add(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Map> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Map element) => _Collections.contains(this, element);
@@ -26665,7 +26665,7 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
   // From List<Map>:
 
   void sort([Comparator<Map> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Map element, [int start = 0]) =>
@@ -26679,19 +26679,19 @@ class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLRe
   Map last() => this[length - 1];
 
   Map removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Map> getRange(int start, int rangeLength) =>
@@ -27233,7 +27233,7 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGAnimatedLength operator[](int index) native "SVGAnimatedLengthList_item_Callback";
 
   void operator[]=(int index, SVGAnimatedLength value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedLength> mixins.
   // SVGAnimatedLength is the element type.
@@ -27250,15 +27250,15 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
   // From Collection<SVGAnimatedLength>:
 
   void add(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
@@ -27279,7 +27279,7 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
   // From List<SVGAnimatedLength>:
 
   void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedLength element, [int start = 0]) =>
@@ -27293,19 +27293,19 @@ class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGAnimatedLength last() => this[length - 1];
 
   SVGAnimatedLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
@@ -27374,7 +27374,7 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGAnimatedNumber operator[](int index) native "SVGAnimatedNumberList_item_Callback";
 
   void operator[]=(int index, SVGAnimatedNumber value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedNumber> mixins.
   // SVGAnimatedNumber is the element type.
@@ -27391,15 +27391,15 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   // From Collection<SVGAnimatedNumber>:
 
   void add(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
@@ -27420,7 +27420,7 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   // From List<SVGAnimatedNumber>:
 
   void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
@@ -27434,19 +27434,19 @@ class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVG
   SVGAnimatedNumber last() => this[length - 1];
 
   SVGAnimatedNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
@@ -27571,7 +27571,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   SVGAnimateTransformElement operator[](int index) native "SVGAnimatedTransformList_item_Callback";
 
   void operator[]=(int index, SVGAnimateTransformElement value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimateTransformElement> mixins.
   // SVGAnimateTransformElement is the element type.
@@ -27588,15 +27588,15 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   // From Collection<SVGAnimateTransformElement>:
 
   void add(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimateTransformElement> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
@@ -27617,7 +27617,7 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   // From List<SVGAnimateTransformElement>:
 
   void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
@@ -27631,19 +27631,19 @@ class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements 
   SVGAnimateTransformElement last() => this[length - 1];
 
   SVGAnimateTransformElement removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
@@ -28453,7 +28453,7 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
   SVGElementInstance operator[](int index) native "SVGElementInstanceList_item_Callback";
 
   void operator[]=(int index, SVGElementInstance value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGElementInstance> mixins.
   // SVGElementInstance is the element type.
@@ -28470,15 +28470,15 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
   // From Collection<SVGElementInstance>:
 
   void add(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGElementInstance> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGElementInstance element) => _Collections.contains(this, element);
@@ -28499,7 +28499,7 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
   // From List<SVGElementInstance>:
 
   void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGElementInstance element, [int start = 0]) =>
@@ -28513,19 +28513,19 @@ class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements Li
   SVGElementInstance last() => this[length - 1];
 
   SVGElementInstance removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGElementInstance> getRange(int start, int rangeLength) =>
@@ -30609,7 +30609,7 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
   SVGLength operator[](int index) native "SVGLengthList_item_Callback";
 
   void operator[]=(int index, SVGLength value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGLength> mixins.
   // SVGLength is the element type.
@@ -30626,15 +30626,15 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
   // From Collection<SVGLength>:
 
   void add(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGLength element) => _Collections.contains(this, element);
@@ -30655,7 +30655,7 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
   // From List<SVGLength>:
 
   void sort([Comparator<SVGLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGLength element, [int start = 0]) =>
@@ -30669,19 +30669,19 @@ class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthLi
   SVGLength last() => this[length - 1];
 
   SVGLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGLength> getRange(int start, int rangeLength) =>
@@ -31256,7 +31256,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
   SVGNumber operator[](int index) native "SVGNumberList_item_Callback";
 
   void operator[]=(int index, SVGNumber value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGNumber> mixins.
   // SVGNumber is the element type.
@@ -31273,15 +31273,15 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
   // From Collection<SVGNumber>:
 
   void add(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGNumber element) => _Collections.contains(this, element);
@@ -31302,7 +31302,7 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
   // From List<SVGNumber>:
 
   void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGNumber element, [int start = 0]) =>
@@ -31316,19 +31316,19 @@ class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberLi
   SVGNumber last() => this[length - 1];
 
   SVGNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGNumber> getRange(int start, int rangeLength) =>
@@ -32398,7 +32398,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
   SVGPathSeg operator[](int index) native "SVGPathSegList_item_Callback";
 
   void operator[]=(int index, SVGPathSeg value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGPathSeg> mixins.
   // SVGPathSeg is the element type.
@@ -32415,15 +32415,15 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
   // From Collection<SVGPathSeg>:
 
   void add(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGPathSeg> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGPathSeg element) => _Collections.contains(this, element);
@@ -32444,7 +32444,7 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
   // From List<SVGPathSeg>:
 
   void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGPathSeg element, [int start = 0]) =>
@@ -32458,19 +32458,19 @@ class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSeg
   SVGPathSeg last() => this[length - 1];
 
   SVGPathSeg removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGPathSeg> getRange(int start, int rangeLength) =>
@@ -33519,7 +33519,7 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
   String operator[](int index) native "SVGStringList_item_Callback";
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -33536,15 +33536,15 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(String element) => _Collections.contains(this, element);
@@ -33565,7 +33565,7 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
@@ -33579,19 +33579,19 @@ class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringLi
   String last() => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -34225,7 +34225,7 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
   SVGTransform operator[](int index) native "SVGTransformList_item_Callback";
 
   void operator[]=(int index, SVGTransform value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGTransform> mixins.
   // SVGTransform is the element type.
@@ -34242,15 +34242,15 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
   // From Collection<SVGTransform>:
 
   void add(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGTransform> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGTransform element) => _Collections.contains(this, element);
@@ -34271,7 +34271,7 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
   // From List<SVGTransform>:
 
   void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGTransform element, [int start = 0]) =>
@@ -34285,19 +34285,19 @@ class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTrans
   SVGTransform last() => this[length - 1];
 
   SVGTransform removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGTransform> getRange(int start, int rangeLength) =>
@@ -35289,7 +35289,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   SourceBuffer operator[](int index) native "SourceBufferList_item_Callback";
 
   void operator[]=(int index, SourceBuffer value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SourceBuffer> mixins.
   // SourceBuffer is the element type.
@@ -35306,15 +35306,15 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   // From Collection<SourceBuffer>:
 
   void add(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SourceBuffer> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SourceBuffer element) => _Collections.contains(this, element);
@@ -35335,7 +35335,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   // From List<SourceBuffer>:
 
   void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SourceBuffer element, [int start = 0]) =>
@@ -35349,19 +35349,19 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
   SourceBuffer last() => this[length - 1];
 
   SourceBuffer removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SourceBuffer> getRange(int start, int rangeLength) =>
@@ -35509,7 +35509,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
   SpeechGrammar operator[](int index) native "SpeechGrammarList_item_Callback";
 
   void operator[]=(int index, SpeechGrammar value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechGrammar> mixins.
   // SpeechGrammar is the element type.
@@ -35526,15 +35526,15 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
   // From Collection<SpeechGrammar>:
 
   void add(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechGrammar> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechGrammar element) => _Collections.contains(this, element);
@@ -35555,7 +35555,7 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
   // From List<SpeechGrammar>:
 
   void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechGrammar element, [int start = 0]) =>
@@ -35569,19 +35569,19 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
   SpeechGrammar last() => this[length - 1];
 
   SpeechGrammar removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
@@ -35680,7 +35680,7 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
   SpeechInputResult operator[](int index) native "SpeechInputResultList_item_Callback";
 
   void operator[]=(int index, SpeechInputResult value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechInputResult> mixins.
   // SpeechInputResult is the element type.
@@ -35697,15 +35697,15 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
   // From Collection<SpeechInputResult>:
 
   void add(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechInputResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechInputResult element) => _Collections.contains(this, element);
@@ -35726,7 +35726,7 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
   // From List<SpeechInputResult>:
 
   void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechInputResult element, [int start = 0]) =>
@@ -35740,19 +35740,19 @@ class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements Lis
   SpeechInputResult last() => this[length - 1];
 
   SpeechInputResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
@@ -36065,7 +36065,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
   SpeechRecognitionResult operator[](int index) native "SpeechRecognitionResultList_item_Callback";
 
   void operator[]=(int index, SpeechRecognitionResult value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechRecognitionResult> mixins.
   // SpeechRecognitionResult is the element type.
@@ -36082,15 +36082,15 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
   // From Collection<SpeechRecognitionResult>:
 
   void add(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechRecognitionResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
@@ -36111,7 +36111,7 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
   // From List<SpeechRecognitionResult>:
 
   void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
@@ -36125,19 +36125,19 @@ class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implemen
   SpeechRecognitionResult last() => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
@@ -36502,7 +36502,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
   StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
 
   void operator[]=(int index, StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<StyleSheet> mixins.
   // StyleSheet is the element type.
@@ -36519,15 +36519,15 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<StyleSheet> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(StyleSheet element) => _Collections.contains(this, element);
@@ -36548,7 +36548,7 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
   // From List<StyleSheet>:
 
   void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
@@ -36562,19 +36562,19 @@ class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements List<Style
   StyleSheet last() => this[length - 1];
 
   StyleSheet removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
@@ -37602,7 +37602,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   TextTrackCue operator[](int index) native "TextTrackCueList_item_Callback";
 
   void operator[]=(int index, TextTrackCue value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrackCue> mixins.
   // TextTrackCue is the element type.
@@ -37619,15 +37619,15 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   // From Collection<TextTrackCue>:
 
   void add(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrackCue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrackCue element) => _Collections.contains(this, element);
@@ -37648,7 +37648,7 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   // From List<TextTrackCue>:
 
   void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrackCue element, [int start = 0]) =>
@@ -37662,19 +37662,19 @@ class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrac
   TextTrackCue last() => this[length - 1];
 
   TextTrackCue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrackCue> getRange(int start, int rangeLength) =>
@@ -37779,7 +37779,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   TextTrack operator[](int index) native "TextTrackList_item_Callback";
 
   void operator[]=(int index, TextTrack value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrack> mixins.
   // TextTrack is the element type.
@@ -37796,15 +37796,15 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   // From Collection<TextTrack>:
 
   void add(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrack> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrack element) => _Collections.contains(this, element);
@@ -37825,7 +37825,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   // From List<TextTrack>:
 
   void sort([Comparator<TextTrack> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrack element, [int start = 0]) =>
@@ -37839,19 +37839,19 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   TextTrack last() => this[length - 1];
 
   TextTrack removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrack> getRange(int start, int rangeLength) =>
@@ -38099,7 +38099,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
   Touch operator[](int index) native "TouchList_item_Callback";
 
   void operator[]=(int index, Touch value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Touch> mixins.
   // Touch is the element type.
@@ -38116,15 +38116,15 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Touch> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Touch element) => _Collections.contains(this, element);
@@ -38145,7 +38145,7 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
   // From List<Touch>:
 
   void sort([Comparator<Touch> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
@@ -38159,19 +38159,19 @@ class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
   Touch last() => this[length - 1];
 
   Touch removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
@@ -38545,15 +38545,15 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -38574,7 +38574,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -38588,19 +38588,19 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -38679,15 +38679,15 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -38708,7 +38708,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -38722,19 +38722,19 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -38813,15 +38813,15 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -38842,7 +38842,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
@@ -38856,19 +38856,19 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
   int last() => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -40994,7 +40994,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
   Animation operator[](int index) native "WebKitAnimationList_item_Callback";
 
   void operator[]=(int index, Animation value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Animation> mixins.
   // Animation is the element type.
@@ -41011,15 +41011,15 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
   // From Collection<Animation>:
 
   void add(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Animation> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Animation element) => _Collections.contains(this, element);
@@ -41040,7 +41040,7 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
   // From List<Animation>:
 
   void sort([Comparator<Animation> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Animation element, [int start = 0]) =>
@@ -41054,19 +41054,19 @@ class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements List<
   Animation last() => this[length - 1];
 
   Animation removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Animation initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Animation> getRange(int start, int rangeLength) =>
@@ -44336,7 +44336,7 @@ class _Utils {
   static Map createMap() => {};
 
   static makeNotImplementedException(String fileName, int lineNo) {
-    return new UnsupportedOperationException('[info: $fileName:$lineNo]');
+    return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 
   static window() native "Utils_window";

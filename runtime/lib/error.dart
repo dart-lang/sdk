@@ -6,7 +6,7 @@
 
 class AssertionErrorImplementation implements AssertionError {
   factory AssertionErrorImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "AssertionError can only be allocated by the VM");
   }
   static _throwNew(int assertionStart, int assertionEnd)
@@ -25,7 +25,7 @@ class TypeErrorImplementation
     extends AssertionErrorImplementation
     implements TypeError {
   factory TypeErrorImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "TypeError can only be allocated by the VM");
   }
   static _throwNew(int location,
@@ -54,7 +54,7 @@ class CastErrorImplementation
     extends TypeErrorImplementation
     implements CastError {
   factory CastError._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "CastError can only be allocated by the VM");
   }
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
@@ -73,7 +73,7 @@ class CastErrorImplementation
 
 class FallThroughErrorImplementation implements FallThroughError {
   factory FallThroughErrorImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "FallThroughError can only be allocated by the VM");
   }
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
@@ -94,7 +94,7 @@ class InternalError {
 // TODO(regis): This class will change once mirrors are available.
 class NoSuchMethodErrorImplementation implements NoSuchMethodError {
   factory NoSuchMethodErrorImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "NoSuchMethodError can only be allocated by the VM");
   }
 
@@ -116,7 +116,7 @@ class AbstractClassInstantiationErrorImplementation
     implements AbstractClassInstantiationError {
 
   factory AbstractClassInstantiationErrorImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "AbstractClassInstantiationError can only be allocated by the VM");
   }
 

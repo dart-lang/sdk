@@ -495,18 +495,18 @@ class _NullPointerException extends ExceptionMatcher {
   bool matches(item, MatchState matchState) => item is NullPointerException;
 }
 
-/** A matcher for UnsupportedOperationExceptions. */
-const isUnsupportedOperationException = const _UnsupportedOperationException();
+/** A matcher for UnsupportedErrors. */
+const isUnsupportedError = const _UnsupportedError();
 
-/** A matcher for functions that throw UnsupportedOperationException */
-const Matcher throwsUnsupportedOperationException =
-    const Throws(isUnsupportedOperationException);
+/** A matcher for functions that throw UnsupportedError */
+const Matcher throwsUnsupportedError =
+    const Throws(isUnsupportedError);
 
-class _UnsupportedOperationException extends ExceptionMatcher {
-  const _UnsupportedOperationException() :
-      super("UnsupportedOperationException");
+class _UnsupportedError extends ExceptionMatcher {
+  const _UnsupportedError() :
+      super("UnsupportedError");
   bool matches(item, MatchState matchState) =>
-      item is UnsupportedOperationException;
+      item is UnsupportedError;
 }
 
 /**

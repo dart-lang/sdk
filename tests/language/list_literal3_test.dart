@@ -19,7 +19,7 @@ class ListLiteral3Test {
     bool caughtException = false;
     try {
       joke[0] = "sock";
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -41,7 +41,7 @@ class ListLiteral3Test {
     try {
       caughtException = false;
       a[0][0] = 42;
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -53,7 +53,7 @@ class ListLiteral3Test {
     try {
       caughtException = false;
       b[0][0] = 42.0;
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);

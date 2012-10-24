@@ -28,7 +28,7 @@ main() {
     try {
       fn();
     } catch (e) {
-      if (e is IllegalAccessException || e is UnsupportedOperationException) {
+      if (e is UnsupportedError) {
         return;
       }
     }
