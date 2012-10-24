@@ -5,7 +5,7 @@
 class ListIteratorsTest {
   static void checkListIterator(List a) {
     Iterator it = a.iterator();
-    Expect.equals(false, it.hasNext == a.isEmpty());
+    Expect.equals(false, it.hasNext == a.isEmpty);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(true, it.hasNext);
       var elem = it.next();

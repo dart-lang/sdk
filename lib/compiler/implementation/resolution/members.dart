@@ -114,7 +114,7 @@ class ResolverTask extends CompilerTask {
     if (node == null) return null;
     if (node.initializers == null) return null;
     Link<Node> initializers = node.initializers.nodes;
-    if (!initializers.isEmpty() &&
+    if (!initializers.isEmpty &&
         Initializers.isConstructorRedirect(initializers.head)) {
       final ClassElement classElement = constructor.getEnclosingClass();
       Selector selector;
@@ -151,7 +151,7 @@ class ResolverTask extends CompilerTask {
   void checkMatchingPatchParameters(FunctionElement origin,
                                     Link<Element> originParameters,
                                     Link<Element> patchParameters) {
-    while (!originParameters.isEmpty()) {
+    while (!originParameters.isEmpty) {
       Element originParameter = originParameters.head;
       Element patchParameter = patchParameters.head;
       // Hack: Use unparser to test parameter equality. This only works because
@@ -624,7 +624,7 @@ class ResolverTask extends CompilerTask {
                                    FunctionSignature signature) {
     LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
     for (Link<Element> link = signature.requiredParameters;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
        parameterTypes.addLast(link.head.computeType(compiler));
        // TODO(karlklose): optional parameters.
@@ -839,7 +839,7 @@ class InitializerResolver {
                                      FunctionExpression functionNode) {
     if (functionNode.initializers == null) return null;
     Link<Node> link = functionNode.initializers.nodes;
-    if (!link.isEmpty() && Initializers.isConstructorRedirect(link.head)) {
+    if (!link.isEmpty && Initializers.isConstructorRedirect(link.head)) {
       return resolveSuperOrThisForSend(constructor, functionNode, link.head);
     }
     return null;
@@ -870,7 +870,7 @@ class InitializerResolver {
     FunctionElement result;
     bool resolvedSuper = false;
     for (Link<Node> link = initializers;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       if (link.head.asSendSet() != null) {
         final SendSet init = link.head.asSendSet();
@@ -889,7 +889,7 @@ class InitializerResolver {
             error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }
           // Check that there are no other initializers.
-          if (!initializers.tail.isEmpty()) {
+          if (!initializers.tail.isEmpty) {
             error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           }
           return resolveSuperOrThisForSend(constructor, functionNode, call);
@@ -1001,10 +1001,10 @@ class StatementScope {
   }
 
   TargetElement currentBreakTarget() =>
-    breakTargetStack.isEmpty() ? null : breakTargetStack.head;
+    breakTargetStack.isEmpty ? null : breakTargetStack.head;
 
   TargetElement currentContinueTarget() =>
-    continueTargetStack.isEmpty() ? null : continueTargetStack.head;
+    continueTargetStack.isEmpty ? null : continueTargetStack.head;
 
   void enterLabelScope(Map<String, LabelElement> elements) {
     labels = new LabeledStatementLabelScope(labels, elements);
@@ -1126,7 +1126,7 @@ class TypeResolver {
         Link<DartType> arguments =
             resolveTypeArguments(node, cls.typeVariables, scope,
                                  onFailure, whenResolved);
-        if (cls.typeVariables.isEmpty() && arguments.isEmpty()) {
+        if (cls.typeVariables.isEmpty && arguments.isEmpty) {
           // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
@@ -1140,7 +1140,7 @@ class TypeResolver {
         Link<DartType> arguments = resolveTypeArguments(
             node, typdef.typeVariables,
             scope, onFailure, whenResolved);
-        if (typdef.typeVariables.isEmpty() && arguments.isEmpty()) {
+        if (typdef.typeVariables.isEmpty && arguments.isEmpty) {
           // Return the canonical type if it has no type parameters.
           type = typdef.computeType(compiler);
         } else {
@@ -1165,9 +1165,9 @@ class TypeResolver {
     }
     var arguments = new LinkBuilder<DartType>();
     for (Link<Node> typeArguments = node.typeArguments.nodes;
-         !typeArguments.isEmpty();
+         !typeArguments.isEmpty;
          typeArguments = typeArguments.tail) {
-      if (typeVariables.isEmpty()) {
+      if (typeVariables.isEmpty) {
         onFailure(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
       }
       DartType argType = resolveTypeAnnotationInContext(scope,
@@ -1175,11 +1175,11 @@ class TypeResolver {
                                                     onFailure,
                                                     whenResolved);
       arguments.addLast(argType);
-      if (!typeVariables.isEmpty()) {
+      if (!typeVariables.isEmpty) {
         typeVariables = typeVariables.tail;
       }
     }
-    if (!typeVariables.isEmpty()) {
+    if (!typeVariables.isEmpty) {
       onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
     }
     return arguments.toLink();
@@ -1590,7 +1590,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           identical(string, '>>>')) {
         return null;
       }
-      return node.arguments.isEmpty()
+      return node.arguments.isEmpty
           ? new Selector.unaryOperator(source)
           : new Selector.binaryOperator(source);
     }
@@ -1607,7 +1607,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     int arity = 0;
     List<SourceString> named = <SourceString>[];
     for (Link<Node> link = node.argumentsNode.nodes;
-        !link.isEmpty();
+        !link.isEmpty;
         link = link.tail) {
       Expression argument = link.head;
       NamedArgument namedArgument = argument.asNamedArgument();
@@ -1633,7 +1633,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void resolveArguments(NodeList list) {
     if (list == null) return;
     bool seenNamedArgument = false;
-    for (Link<Node> link = list.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = list.nodes; !link.isEmpty; link = link.tail) {
       Expression argument = link.head;
       visit(argument);
       if (argument.asNamedArgument() != null) {
@@ -1662,7 +1662,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (identical(operatorString, 'is') || identical(operatorString, 'as')) {
-        assert(node.arguments.tail.isEmpty());
+        assert(node.arguments.tail.isEmpty);
         DartType type = resolveTypeTest(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type);
@@ -1822,7 +1822,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitNodeList(NodeList node) {
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       visit(link.head);
     }
   }
@@ -1991,11 +1991,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     NodeList arguments = node.typeArguments;
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
-      if (nodes.isEmpty()) {
+      if (nodes.isEmpty) {
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT, []);
       } else {
         resolveTypeRequired(nodes.head);
-        for (nodes = nodes.tail; !nodes.isEmpty(); nodes = nodes.tail) {
+        for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
           error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT, []);
           resolveTypeRequired(nodes.head);
         }
@@ -2101,7 +2101,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if ((declaration is !Send || declaration.asSend().selector is !Identifier
         || declaration.asSend().receiver != null)
         && (declaration is !VariableDefinitions ||
-        !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty()))
+        !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty))
     {
       // The variable declaration is either not an identifier, not a
       // declaration, or it's declaring more than one variable.
@@ -2158,7 +2158,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     TargetElement breakElement = getOrCreateTargetElement(node);
     Map<String, LabelElement> continueLabels = <String, LabelElement>{};
     Link<Node> cases = node.cases.nodes;
-    while (!cases.isEmpty()) {
+    while (!cases.isEmpty) {
       SwitchCase switchCase = cases.head;
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is! Label) continue;
@@ -2194,7 +2194,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       cases = cases.tail;
       // Test that only the last case, if any, is a default case.
-      if (switchCase.defaultKeyword != null && !cases.isEmpty()) {
+      if (switchCase.defaultKeyword != null && !cases.isEmpty) {
         error(switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
     }
@@ -2225,7 +2225,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitTryStatement(TryStatement node) {
     visit(node.tryBlock);
-    if (node.catchBlocks.isEmpty() && node.finallyBlock == null) {
+    if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
       // TODO(ngeoffray): The precise location is
       // node.getEndtoken.next. Adjust when issue #1581 is fixed.
       error(node, MessageKind.NO_CATCH_NOR_FINALLY);
@@ -2238,11 +2238,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     if (node.formals != null) {
-      if (node.formals.isEmpty()) {
+      if (node.formals.isEmpty) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
       }
-      if (!node.formals.nodes.tail.isEmpty() &&
-          !node.formals.nodes.tail.tail.isEmpty()) {
+      if (!node.formals.nodes.tail.isEmpty &&
+          !node.formals.nodes.tail.tail.isEmpty) {
         for (Node extra in node.formals.nodes.tail.tail) {
           error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
         }
@@ -2251,7 +2251,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // Check that the formals aren't optional and that they have no
       // modifiers or type.
       for (Link<Node> link = node.formals.nodes;
-           !link.isEmpty();
+           !link.isEmpty;
            link = link.tail) {
         // If the formal parameter is a node list, it means that it is a
         // sequence of optional parameters.
@@ -2306,7 +2306,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
     // Resolve the bounds of type variables.
     Link<DartType> typeLink = element.typeVariables;
     Link<Node> nodeLink = node.nodes;
-    while (!nodeLink.isEmpty()) {
+    while (!nodeLink.isEmpty) {
       TypeVariableType typeVariable = typeLink.head;
       SourceString typeName = typeVariable.name;
       TypeVariable typeNode = nodeLink.head;
@@ -2336,7 +2336,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       nodeLink = nodeLink.tail;
       typeLink = typeLink.tail;
     }
-    assert(typeLink.isEmpty());
+    assert(typeLink.isEmpty);
   }
 }
 
@@ -2414,7 +2414,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(element.interfaces == null);
     Link<DartType> interfaces = const Link<DartType>();
     for (Link<Node> link = node.interfaces.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       DartType interfaceType = visit(link.head);
       if (interfaceType != null && interfaceType.element.isExtendable()) {
@@ -2495,7 +2495,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       assert(superSupertypes != null);
       Link<DartType> supertypes = superSupertypes.prepend(supertype);
       for (Link<DartType> interfaces = cls.interfaces;
-           !interfaces.isEmpty();
+           !interfaces.isEmpty;
            interfaces = interfaces.tail) {
         ClassElement element = interfaces.head.element;
         Link<DartType> interfaceSupertypes = element.allSupertypes;
@@ -2569,7 +2569,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       node.superclass.accept(this);
     }
     for (Link<Node> link = node.interfaces.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       link.head.accept(this);
     }
@@ -2633,7 +2633,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   }
 
   SourceString visitSendSet(SendSet node) {
-    assert(node.arguments.tail.isEmpty()); // Sanity check
+    assert(node.arguments.tail.isEmpty); // Sanity check
     resolver.visit(node.arguments.head);
     return visit(node.selector);
   }
@@ -2641,7 +2641,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   SourceString visitIdentifier(Identifier node) => node.source;
 
   visitNodeList(NodeList node) {
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       SourceString name = visit(link.head);
       VariableElement element =
           new VariableElement(name, variables, kind, link.head);
@@ -2677,11 +2677,11 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   Element visitVariableDefinitions(VariableDefinitions node) {
     Link<Node> definitions = node.definitions.nodes;
-    if (definitions.isEmpty()) {
+    if (definitions.isEmpty) {
       cancel(node, 'internal error: no parameter definition');
       return null;
     }
-    if (!definitions.tail.isEmpty()) {
+    if (!definitions.tail.isEmpty) {
       cancel(definitions.tail.head, 'internal error: extra definition');
       return null;
     }
@@ -2774,14 +2774,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {
     LinkBuilder<Element> elements = new LinkBuilder<Element>();
-    for (; !link.isEmpty(); link = link.tail) {
+    for (; !link.isEmpty; link = link.tail) {
       Element element = link.head.accept(this);
       if (element != null) {
         elements.addLast(element);
       } else {
         // If parameter is null, the current node should be the last,
         // and a list of optional named parameters.
-        if (!link.tail.isEmpty() || (link.head is !NodeList)) {
+        if (!link.tail.isEmpty || (link.head is !NodeList)) {
           internalError(link.head, "expected optional parameters");
         }
       }

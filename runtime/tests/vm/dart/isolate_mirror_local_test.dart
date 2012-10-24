@@ -20,7 +20,7 @@ void testDone(String test) {
     throw "Unexpected test name '$test'";
   }
   expectedTests.remove(test);
-  if (expectedTests.isEmpty()) {
+  if (expectedTests.isEmpty) {
     // All tests are done.
     exit_port.close();
   }

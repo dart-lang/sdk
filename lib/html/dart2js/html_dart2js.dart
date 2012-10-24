@@ -2257,7 +2257,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
   bool some(bool f(CSSRule element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<CSSRule>:
 
@@ -7228,7 +7228,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 
   bool some(bool f(CSSValue element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<CSSValue>:
 
@@ -7960,7 +7960,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
 
   bool some(bool f(ClientRect element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
 
@@ -8801,7 +8801,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
 
   bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<DOMMimeType>:
 
@@ -8971,7 +8971,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
 
   bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<DOMPlugin>:
 
@@ -9239,7 +9239,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
 
   bool some(bool f(String element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<String>:
 
@@ -10332,7 +10332,7 @@ class _FilteredElementList implements List {
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
-  bool isEmpty() => _filtered.isEmpty();
+  bool get isEmpty => _filtered.isEmpty;
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
@@ -11447,7 +11447,7 @@ class _ChildrenElementList implements List {
     return out;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
@@ -11590,7 +11590,7 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  bool isEmpty() => _nodeList.isEmpty();
+  bool get isEmpty => _nodeList.isEmpty;
 
   int get length => _nodeList.length;
 
@@ -11764,7 +11764,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty() {
+  bool get isEmpty {
     return length == 0;
   }
 }
@@ -11835,7 +11835,7 @@ class _DataAttributeMap implements AttributeMap {
   int get length => getKeys().length;
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   // Helpers.
   String _attr(String key) => 'data-$key';
@@ -11868,7 +11868,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool some(bool f(String element)) => _read().some(f);
 
-  bool isEmpty() => _read().isEmpty();
+  bool get isEmpty => _read().isEmpty;
 
   bool get frozen => false;
 
@@ -11952,7 +11952,7 @@ class _CssClassSet implements CSSClassSet {
     Set<String> s = new Set<String>();
     for (String name in _classname().split(' ')) {
       String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
+      if (!trimmed.isEmpty) {
         s.add(trimmed);
       }
     }
@@ -12677,7 +12677,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
 
   bool some(bool f(Entry element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
 
@@ -12767,7 +12767,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
   bool some(bool f(EntrySync element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
 
@@ -13594,7 +13594,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
 
   bool some(bool f(File element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<File>:
 
@@ -14024,7 +14024,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   bool some(bool f(num element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<num>:
 
@@ -14143,7 +14143,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   bool some(bool f(num element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<num>:
 
@@ -14564,7 +14564,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
 
   bool some(bool f(Gamepad element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
 
@@ -14758,7 +14758,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
@@ -14870,7 +14870,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
@@ -17105,7 +17105,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -17224,7 +17224,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -17343,7 +17343,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -19863,7 +19863,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
 
   bool some(bool f(MediaStream element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
 
@@ -20855,7 +20855,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
@@ -21304,7 +21304,7 @@ class _ChildNodeListLazy implements List {
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
@@ -21528,7 +21528,7 @@ class _ListWrapper<E> implements List<E> {
 
   bool some(bool f(E element)) => _list.some(f);
 
-  bool isEmpty() => _list.isEmpty();
+  bool get isEmpty => _list.isEmpty;
 
   int get length => _list.length;
 
@@ -21646,7 +21646,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
@@ -24014,7 +24014,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
   bool some(bool f(Map element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Map>:
 
@@ -24526,7 +24526,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 
   bool some(bool f(SVGAnimatedLength element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimatedLength>:
 
@@ -24653,7 +24653,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 
   bool some(bool f(SVGAnimatedNumber element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimatedNumber>:
 
@@ -24824,7 +24824,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 
   bool some(bool f(SVGAnimateTransformElement element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimateTransformElement>:
 
@@ -25681,7 +25681,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 
   bool some(bool f(SVGElementInstance element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGElementInstance>:
 
@@ -27703,7 +27703,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 
   bool some(bool f(SVGLength element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGLength>:
 
@@ -28299,7 +28299,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
 
   bool some(bool f(SVGNumber element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGNumber>:
 
@@ -29216,7 +29216,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
 
   bool some(bool f(SVGPathSeg element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGPathSeg>:
 
@@ -30255,7 +30255,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 
   bool some(bool f(String element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<String>:
 
@@ -30912,7 +30912,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 
   bool some(bool f(SVGTransform element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGTransform>:
 
@@ -31859,7 +31859,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
 
   bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
 
@@ -32045,7 +32045,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 
   bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
 
@@ -32178,7 +32178,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
 
   bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
 
@@ -32517,7 +32517,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 
   bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
 
@@ -32678,7 +32678,7 @@ class _StorageImpl implements Storage native "*Storage" {
 
   int get length => $dom_length;
 
-  bool isEmpty() => $dom_key(0) == null;
+  bool get isEmpty => $dom_key(0) == null;
 
   int get $dom_length => JS("int", "#.length", this);
 
@@ -32908,7 +32908,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
 
   bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
 
@@ -33803,7 +33803,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
 
   bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
 
@@ -33966,7 +33966,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
 
   bool some(bool f(TextTrack element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
 
@@ -34257,7 +34257,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
 
   bool some(bool f(Touch element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
 
@@ -34633,7 +34633,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -34752,7 +34752,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -34871,7 +34871,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
@@ -36861,7 +36861,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   bool some(bool f(Animation element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
 

@@ -144,7 +144,7 @@ void testPostfix() {
   testNode(sendSet.receiver, "a", text);
   testNode(sendSet.selector, "b", text);
   testNode(sendSet.assignmentOperator, "++", text);
-  Expect.isTrue(sendSet.arguments.isEmpty());
+  Expect.isTrue(sendSet.arguments.isEmpty);
 
   text = "++a[b]";
   // TODO(johnniwinther): SendSet generates the wrong end token in the following

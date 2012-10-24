@@ -365,13 +365,13 @@ class HInstructionList {
   HInstruction first = null;
   HInstruction last = null;
 
-  bool isEmpty() {
+  bool get isEmpty {
     return first == null;
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
-      assert(isEmpty());
+      assert(isEmpty);
       first = last = instruction;
     } else if (identical(cursor, last)) {
       last.next = instruction;
@@ -387,7 +387,7 @@ class HInstructionList {
 
   void addBefore(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
-      assert(isEmpty());
+      assert(isEmpty);
       first = last = instruction;
     } else if (identical(cursor, first)) {
       first.previous = instruction;
@@ -419,7 +419,7 @@ class HInstructionList {
   }
 
   void remove(HInstruction instruction) {
-    assert(instruction.usedBy.isEmpty());
+    assert(instruction.usedBy.isEmpty);
     detach(instruction);
   }
 
@@ -488,7 +488,7 @@ class HBasicBlock extends HInstructionList {
     return parentLoopHeader;
   }
 
-  bool hasBailoutTargets() => !bailoutTargets.isEmpty();
+  bool hasBailoutTargets() => !bailoutTargets.isEmpty;
 
   void open() {
     assert(isNew());
@@ -581,7 +581,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addSuccessor(HBasicBlock block) {
-    if (successors.isEmpty()) {
+    if (successors.isEmpty) {
       successors = [block];
     } else {
       successors.add(block);
@@ -623,7 +623,7 @@ class HBasicBlock extends HInstructionList {
       }
     }
 
-    if (better.isEmpty()) return rewrite(from, to);
+    if (better.isEmpty) return rewrite(from, to);
 
     L1: for (HInstruction user in from.usedBy) {
       for (HCheck check in better) {
@@ -985,7 +985,7 @@ abstract class HInstruction implements Spannable {
 
   void notifyRemovedFromBlock() {
     assert(isInBasicBlock());
-    assert(usedBy.isEmpty());
+    assert(usedBy.isEmpty);
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
@@ -2974,7 +2974,7 @@ class HSwitchBlockInformation implements HStatementInformation {
   HBasicBlock get start => expression.start;
   HBasicBlock get end {
     // We don't create a switch block if there are no cases.
-    assert(!statements.isEmpty());
+    assert(!statements.isEmpty);
     return statements.last().end;
   }
 

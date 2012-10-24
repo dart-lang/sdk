@@ -24,7 +24,7 @@ testTwo() {
     // This used to introduce x_0.
     var x = new Set();
     Expect.equals(0, x.length);
-    Expect.isTrue(x.isEmpty());
+    Expect.isTrue(x.isEmpty);
   }
   Expect.isTrue(x is List);
   Expect.isTrue(x_0 is List);

@@ -30,7 +30,7 @@ class ArchiveOptions {
   ArchiveOptions() : _options = <String, ArchiveOption>{};
 
   /** Returns whether any options have been set. */
-  bool get isEmpty => _options.isEmpty();
+  bool get isEmpty => _options.isEmpty;
 
   /**
    * Sets an option. [value] should either be a bool or something with a

@@ -22,7 +22,7 @@ abstract class StringBuffer {
   /**
    * Returns whether the buffer is empty.
    */
-  bool isEmpty();
+  bool get isEmpty;
 
   /**
    * Converts [obj] to a string and adds it to the buffer. Returns [:this:].
@@ -67,7 +67,7 @@ class _StringBufferImpl implements StringBuffer {
     return _length;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _length === 0;
   }
 
@@ -76,7 +76,7 @@ class _StringBufferImpl implements StringBuffer {
    */
   StringBuffer add(Object obj) {
     String str = obj.toString();
-    if (str === null || str.isEmpty()) {
+    if (str === null || str.isEmpty) {
       return this;
     }
     _buffer.add(str);

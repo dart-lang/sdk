@@ -130,8 +130,8 @@ main() {
     Expect.equals(4, someChecked.length);
     Expect.equals(0, emptyDiv.length);
 
-    Expect.isFalse(someChecked.isEmpty());
-    Expect.isTrue(emptyDiv.isEmpty());
+    Expect.isFalse(someChecked.isEmpty);
+    Expect.isTrue(emptyDiv.isEmpty);
 
     root.remove();
   });

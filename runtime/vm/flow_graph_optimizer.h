@@ -90,7 +90,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                bool is_immutable);
   void InlineGArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
-  void InlineStringIsEmptyTester(InstanceCallInstr* call);
+  void InlineStringIsEmptyGetter(InstanceCallInstr* call);
 
   FlowGraph* flow_graph_;
 

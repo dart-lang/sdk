@@ -78,7 +78,7 @@ class GitSource extends Source {
     description.remove('ref');
     if (fromLockFile) description.remove('resolved-ref');
 
-    if (!description.isEmpty()) {
+    if (!description.isEmpty) {
       var plural = description.length > 1;
       var keys = Strings.join(description.getKeys(), ', ');
       throw new FormatException("Invalid key${plural ? 's' : ''}: $keys.");

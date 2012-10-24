@@ -89,8 +89,8 @@ main() {
   });
 
   test('isEmpty', () {
-    Expect.isFalse(makeClassSet().isEmpty());
-    Expect.isTrue(makeElement().classes.isEmpty());
+    Expect.isFalse(makeClassSet().isEmpty);
+    Expect.isTrue(makeElement().classes.isEmpty);
   });
 
   test('length', () {

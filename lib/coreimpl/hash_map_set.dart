@@ -219,7 +219,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
     return null;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _numberOfEntries == 0;
   }
 
@@ -375,8 +375,8 @@ class HashSetImplementation<E > implements HashSet<E> {
     return keys.some(f);
   }
 
-  bool isEmpty() {
-    return _backingMap.isEmpty();
+  bool get isEmpty {
+    return _backingMap.isEmpty;
   }
 
   int get length {

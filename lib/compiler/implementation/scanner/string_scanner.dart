@@ -69,7 +69,7 @@ class SubstringWrapper implements SourceString {
                                 begin + initial, end - terminal);
   }
 
-  bool isEmpty() => begin == end;
+  bool get isEmpty => begin == end;
 
-  bool isPrivate() => !isEmpty() && identical(internalString.charCodeAt(begin), $_);
+  bool isPrivate() => !isEmpty && identical(internalString.charCodeAt(begin), $_);
 }

@@ -14,8 +14,8 @@ class CodeBuffer implements StringBuffer {
 
   int get length => buffer.length;
 
-  bool isEmpty() {
-    return buffer.isEmpty();
+  bool get isEmpty {
+    return buffer.isEmpty;
   }
 
   /**

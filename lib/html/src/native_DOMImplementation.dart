@@ -103,7 +103,7 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
   Collection<String> getValues() => Maps.getValues(this);
   int get length => Maps.length(this);
-  bool isEmpty() => Maps.isEmpty(this);
+  bool get isEmpty => Maps.isEmpty(this);
 }
 
 get _printClosure => (s) {

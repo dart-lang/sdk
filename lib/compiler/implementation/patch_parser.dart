@@ -181,7 +181,7 @@ class PatchParserTask extends leg.CompilerTask {
       Token token = parser.parseTopLevelDeclaration(element.beginToken);
       assert(identical(token, element.endToken.next));
       element.cachedNode = listener.popNode();
-      assert(listener.nodes.isEmpty());
+      assert(listener.nodes.isEmpty);
 
       Link<Element> patches = element.localMembers;
       applyContainerPatch(element.origin, patches);
@@ -190,7 +190,7 @@ class PatchParserTask extends leg.CompilerTask {
 
   void applyContainerPatch(ScopeContainerElement original,
                            Link<Element> patches) {
-    while (!patches.isEmpty()) {
+    while (!patches.isEmpty) {
       Element patchElement = patches.head;
       Element originalElement = original.localLookup(patchElement.name);
       if (patchElement.isAccessor() && originalElement != null) {
@@ -221,7 +221,7 @@ class PatchParserTask extends leg.CompilerTask {
   bool isPatchElement(Element element) {
     // TODO(lrn): More checks needed if we introduce metadata for real.
     // In that case, it must have the identifier "native" as metadata.
-    for (Link link = element.metadata; !link.isEmpty(); link = link.tail) {
+    for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
       if (link.head is PatchMetadataAnnotation) return true;
     }
     return false;

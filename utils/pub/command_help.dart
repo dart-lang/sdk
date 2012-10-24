@@ -13,7 +13,7 @@ class HelpCommand extends PubCommand {
   bool get requiresEntrypoint => false;
 
   Future onRun() {
-    if (commandOptions.rest.isEmpty()) {
+    if (commandOptions.rest.isEmpty) {
       printUsage();
     } else {
       pubCommands[commandOptions.rest[0]].printUsage();

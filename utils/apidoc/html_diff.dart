@@ -103,7 +103,7 @@ class HtmlDiff {
     }
     for (InterfaceMirror htmlType in htmlLib.types.getValues()) {
       final domTypes = htmlToDomTypes(htmlType);
-      if (domTypes.isEmpty()) continue;
+      if (domTypes.isEmpty) continue;
 
       htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
           () => new Set()).addAll(domTypes);
@@ -121,7 +121,7 @@ class HtmlDiff {
    */
   void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
-    if (htmlMember == null && !domMembers.isEmpty()) {
+    if (htmlMember == null && !domMembers.isEmpty) {
       warn('$HTML_LIBRARY_NAME member '
            '${htmlMember.surroundingDeclaration.simpleName}.'
            '${htmlMember.simpleName} has no corresponding '
@@ -129,7 +129,7 @@ class HtmlDiff {
     }
 
     if (htmlMember == null) return;
-    if (!domMembers.isEmpty()) {
+    if (!domMembers.isEmpty) {
       htmlToDom[htmlMember.qualifiedName] = domMembers;
     }
   }
@@ -172,7 +172,7 @@ class HtmlDiff {
       final members = new Set();
       domNames.forEach((name) {
         var nameMembers = _membersFromName(name, domTypes);
-        if (nameMembers.isEmpty()) {
+        if (nameMembers.isEmpty) {
           if (name.contains('.')) {
             warn('no member $name');
           } else {
@@ -202,7 +202,7 @@ class HtmlDiff {
    */
   Set<String> _membersFromName(String name, List<String> defaultTypes) {
     if (!name.contains('.', 0)) {
-      if (defaultTypes.isEmpty()) {
+      if (defaultTypes.isEmpty) {
         warn('no default type for $name');
         return new Set();
       }

@@ -209,7 +209,7 @@ class Enqueuer {
       cls.ensureResolved(compiler);
 
       for (Link<DartType> supertypes = cls.allSupertypesAndSelf;
-           !supertypes.isEmpty(); supertypes = supertypes.tail) {
+           !supertypes.isEmpty; supertypes = supertypes.tail) {
         cls = supertypes.head.element;
         if (seenClasses.contains(cls)) continue;
         seenClasses.add(cls);
@@ -278,7 +278,7 @@ class Enqueuer {
     Link<Element> members = instanceMembersByName[memberName];
     if (members != null) {
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
-      for (; !members.isEmpty(); members = members.tail) {
+      for (; !members.isEmpty; members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
       }
       instanceMembersByName[memberName] = remaining.toLink();
@@ -355,7 +355,7 @@ class Enqueuer {
   }
 
   void forEach(f(WorkItem work)) {
-    while (!queue.isEmpty()) {
+    while (!queue.isEmpty) {
       f(queue.removeLast()); // TODO(kasperl): Why isn't this removeFirst?
     }
   }

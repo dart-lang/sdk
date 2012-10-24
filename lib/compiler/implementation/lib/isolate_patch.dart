@@ -208,7 +208,7 @@ $globalThis.onmessage = function (e) {
 
   /** Close the worker running this code if all isolates are done. */
   void maybeCloseWorker() {
-    if (isolates.isEmpty()) {
+    if (isolates.isEmpty) {
       mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
@@ -269,7 +269,7 @@ class _IsolateContext {
   /** Unregister a port on this isolate. */
   void unregister(int portId) {
     ports.remove(portId);
-    if (ports.isEmpty()) {
+    if (ports.isEmpty) {
       _globalState.isolates.remove(id); // indicate this isolate is not active
     }
   }
@@ -286,7 +286,7 @@ class _EventLoop {
   }
 
   _IsolateEvent dequeue() {
-    if (events.isEmpty()) return null;
+    if (events.isEmpty) return null;
     return events.removeFirst();
   }
 
@@ -300,7 +300,7 @@ class _EventLoop {
                  _globalState.isolates.containsKey(
                      _globalState.rootContext.id) &&
                  _globalState.fromCommandLine &&
-                 _globalState.rootContext.ports.isEmpty()) {
+                 _globalState.rootContext.ports.isEmpty) {
         // We want to reach here only on the main [_Manager] and only
         // on the command-line.  In the browser the isolate might
         // still be alive due to DOM callbacks, but the presumption is

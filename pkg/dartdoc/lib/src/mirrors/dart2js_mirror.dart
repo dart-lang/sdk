@@ -40,13 +40,13 @@ List<ParameterMirror> _parametersFromFunctionSignature(
     FunctionSignature signature) {
   var parameters = <ParameterMirror>[];
   Link<Element> link = signature.requiredParameters;
-  while (!link.isEmpty()) {
+  while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
         system, method, link.head, false));
     link = link.tail;
   }
   link = signature.optionalParameters;
-  while (!link.isEmpty()) {
+  while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
         system, method, link.head, true));
     link = link.tail;
@@ -737,7 +737,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   List<InterfaceMirror> get interfaces {
     var list = <InterfaceMirror>[];
     Link<DartType> link = _class.interfaces;
-    while (!link.isEmpty()) {
+    while (!link.isEmpty) {
       var type = _convertTypeToTypeMirror(system, link.head,
                                           system.compiler.types.dynamicType);
       list.add(type);

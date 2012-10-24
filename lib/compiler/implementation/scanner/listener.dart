@@ -654,7 +654,7 @@ class ElementListener extends Listener {
     // Library tags are only allowed in the library file itself, not
     // in sourced files.
     LibraryElement library = compilationUnitElement.getLibrary();
-    return compilationUnitElement.localMembers.isEmpty()
+    return compilationUnitElement.localMembers.isEmpty
       && library.entryCompilationUnit == compilationUnitElement;
   }
 
@@ -842,7 +842,7 @@ class ElementListener extends Listener {
                                                  modifiers,
                                                  enclosingElement);
     for (Link<Node> variableNodes = variables.nodes;
-         !variableNodes.isEmpty();
+         !variableNodes.isEmpty;
          variableNodes = variableNodes.tail) {
       Expression initializedIdentifier = variableNodes.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
@@ -990,7 +990,7 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
-    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+    for (Link link = metadata; !link.isEmpty; link = link.tail) {
       element.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
@@ -1019,7 +1019,7 @@ class ElementListener extends Listener {
   }
 
   Node popNode() {
-    assert(!nodes.isEmpty());
+    assert(!nodes.isEmpty);
     Node node = nodes.head;
     nodes = nodes.tail;
     if (VERBOSE) log("pop $nodes");
@@ -1027,7 +1027,7 @@ class ElementListener extends Listener {
   }
 
   Node peekNode() {
-    assert(!nodes.isEmpty());
+    assert(!nodes.isEmpty);
     Node node = nodes.head;
     if (VERBOSE) log("peek $node");
     return node;
@@ -1913,6 +1913,6 @@ Node parse(DiagnosticListener diagnosticListener,
   NodeListener listener = new NodeListener(diagnosticListener, element);
   doParse(new Parser(listener));
   Node node = listener.popNode();
-  assert(listener.nodes.isEmpty());
+  assert(listener.nodes.isEmpty);
   return node;
 }

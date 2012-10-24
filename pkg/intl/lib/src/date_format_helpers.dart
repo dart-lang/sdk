@@ -133,7 +133,7 @@ class _Stream {
   var digitMatcher = const RegExp(r'\d+');
   int nextInteger() {
     var string = digitMatcher.stringMatch(rest());
-    if (string == null || string.isEmpty()) return null;
+    if (string == null || string.isEmpty) return null;
     read(string.length);
     return int.parse(string);
   }

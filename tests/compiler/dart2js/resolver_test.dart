@@ -88,7 +88,7 @@ testTypeVariables() {
                   length(type.arguments));
     int index = 0;
     Link<DartType> arguments = type.arguments;
-    while (!arguments.isEmpty()) {
+    while (!arguments.isEmpty) {
       Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], arguments.head.element);
       index++;
@@ -436,8 +436,8 @@ testSuperclass() {
   ClassElement barElement = compiler.mainApp.find(buildSourceString('Bar'));
   Expect.equals(barElement.computeType(compiler),
                 fooElement.supertype);
-  Expect.isTrue(fooElement.interfaces.isEmpty());
-  Expect.isTrue(barElement.interfaces.isEmpty());
+  Expect.isTrue(fooElement.interfaces.isEmpty);
+  Expect.isTrue(barElement.interfaces.isEmpty);
 }
 
 testVarSuperclass() {
@@ -471,7 +471,7 @@ testOneInterface() {
   ClassElement barElement = compiler.mainApp.find(buildSourceString('Bar'));
 
   Expect.equals(null, barElement.supertype);
-  Expect.isTrue(barElement.interfaces.isEmpty());
+  Expect.isTrue(barElement.interfaces.isEmpty);
 
   Expect.equals(barElement.computeType(compiler),
                 fooElement.interfaces.head);
@@ -733,7 +733,7 @@ at(Link link, int index) => (index == 0) ? link.head : at(link.tail, index - 1);
 
 List<String> asSortedStrings(Link link) {
   List<String> result = <String>[];
-  for (; !link.isEmpty(); link = link.tail) result.add(link.head.toString());
+  for (; !link.isEmpty; link = link.tail) result.add(link.head.toString());
   result.sort((s1, s2) => s1.compareTo(s2));
   return result;
 }

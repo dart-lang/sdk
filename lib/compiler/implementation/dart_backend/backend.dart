@@ -85,7 +85,7 @@ class FunctionBodyRewriter extends CloningVisitor {
     rewiteStatement(Statement statement) {
       if (statement is Block) {
         Link statements = statement.statements.nodes;
-        if (!statements.isEmpty() && statements.tail.isEmpty()) {
+        if (!statements.isEmpty && statements.tail.isEmpty) {
           Statement single = statements.head;
           bool isDeclaration =
               single is VariableDefinitions || single is FunctionDeclaration;
@@ -154,7 +154,7 @@ class DartBackend extends Backend {
       }
     }
 
-    while (!workQueue.isEmpty()) {
+    while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
       if (processedTypes.contains(type)) continue;
       processedTypes.add(type);
@@ -343,7 +343,7 @@ class DartBackend extends Backend {
       for (Element member in classMembers[classElement]) {
         if (member.isConstructor()) continue NextClassElement;
       }
-      if (classElement.constructors.isEmpty()) continue NextClassElement;
+      if (classElement.constructors.isEmpty) continue NextClassElement;
 
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---

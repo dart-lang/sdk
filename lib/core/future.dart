@@ -228,7 +228,7 @@ class Futures {
    * returned future will be a list of all the values that were produced.)
    */
   static Future<List> wait(List<Future> futures) {
-    if (futures.isEmpty()) {
+    if (futures.isEmpty) {
       return new Future<List>.immediate(const []);
     }
 

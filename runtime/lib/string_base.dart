@@ -42,7 +42,7 @@ class _StringBase {
 
   int get length native "String_getLength";
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -84,7 +84,7 @@ class _StringBase {
   }
 
   bool _substringMatches(int start, String other) {
-    if (other.isEmpty()) return true;
+    if (other.isEmpty) return true;
     if ((start < 0) || (start >= this.length)) {
       return false;
     }
@@ -109,7 +109,7 @@ class _StringBase {
   }
 
   int indexOf(String other, [int start = 0]) {
-    if (other.isEmpty()) {
+    if (other.isEmpty) {
       return start < this.length ? start : this.length;
     }
     if ((start < 0) || (start >= this.length)) {
@@ -126,7 +126,7 @@ class _StringBase {
 
   int lastIndexOf(String other, [int start = null]) {
     if (start == null) start = length - 1;
-    if (other.isEmpty()) {
+    if (other.isEmpty) {
       return min(this.length, start);
     }
     if (start >= this.length) {

@@ -540,7 +540,7 @@ class CompilationUnitElement extends ContainerElement {
           api_e.Diagnostic.WARNING);
       return;
     }
-    if (!localMembers.isEmpty()) {
+    if (!localMembers.isEmpty) {
       listener.reportMessage(
           listener.spanFromNode(tag),
           MessageKind.BEFORE_TOP_LEVEL.error(),
@@ -841,7 +841,7 @@ class VariableElement extends Element {
     if (cachedNode != null) return cachedNode;
     VariableDefinitions definitions = variables.parseNode(listener);
     for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty(); link = link.tail) {
+         !link.isEmpty; link = link.tail) {
       Expression initializedIdentifier = link.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
       if (identifier == null) {
@@ -925,9 +925,9 @@ class VariableListElement extends Element {
       } else {
         // Is node.definitions exactly one FunctionExpression?
         Link<Node> link = node.definitions.nodes;
-        if (!link.isEmpty() &&
+        if (!link.isEmpty &&
             link.head.asFunctionExpression() != null &&
-            link.tail.isEmpty()) {
+            link.tail.isEmpty) {
           FunctionExpression functionExpression = link.head;
           // We found exactly one FunctionExpression
           functionSignature =
@@ -1031,7 +1031,7 @@ class FunctionSignature {
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       function(link.head);
     }
@@ -1039,7 +1039,7 @@ class FunctionSignature {
 
   void forEachOptionalParameter(void function(Element parameter)) {
     for (Link<Element> link = optionalParameters;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       function(link.head);
     }
@@ -1270,7 +1270,7 @@ abstract class TypeDeclarationElement implements Element {
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<DartType>();
-    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link link = parameters.nodes; !link.isEmpty; link = link.tail) {
       TypeVariable node = link.head;
       SourceString variableName = node.name.source;
       TypeVariableElement variableElement =

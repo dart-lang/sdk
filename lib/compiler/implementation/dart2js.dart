@@ -173,7 +173,7 @@ void compile(List<String> argv) {
     helpAndFail('Error: --force-strip may only be used with '
         '--output-type=dart');
   }
-  if (arguments.isEmpty()) {
+  if (arguments.isEmpty) {
     helpAndFail('Error: No Dart file specified.');
   }
   if (arguments.length > 1) {

@@ -21,7 +21,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return null;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return kvPairs_.length === 0;
   }
 

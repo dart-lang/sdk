@@ -102,7 +102,7 @@ class VersionSolver {
     Future processNextWorkItem(_) {
       while (true) {
         // Stop if we are done.
-        if (_work.isEmpty()) return new Future.immediate(buildResults());
+        if (_work.isEmpty) return new Future.immediate(buildResults());
 
         // If we appear to be stuck in a loop, then we probably have an unstable
         // graph, bail. We guess this based on a rough heuristic that it should
@@ -545,7 +545,7 @@ class Dependency {
    * one. If `false`, then it means this package is not part of the dependency
    * graph and should be omitted.
    */
-  bool get isDependedOn => !_refs.isEmpty();
+  bool get isDependedOn => !_refs.isEmpty;
 
   /** The names of all the packages that depend on this dependency. */
   Collection<String> get dependers => _refs.getKeys();
@@ -556,7 +556,7 @@ class Dependency {
    * package is in the process of being added to the graph), returns `null`.
    */
   VersionConstraint get constraint {
-    if (_refs.isEmpty()) return null;
+    if (_refs.isEmpty) return null;
     return new VersionConstraint.intersect(
         _refs.getValues().map((ref) => ref.constraint));
   }
@@ -580,7 +580,7 @@ class Dependency {
   /// [RootSource], that will be used; otherwise, it will be the source and
   /// description that all dependencies agree upon.
   PackageRef _canonicalRef() {
-    if (_refs.isEmpty()) return null;
+    if (_refs.isEmpty) return null;
     var refs = _refs.getValues();
     for (var ref in refs) {
       if (ref is RootSource) return ref;
@@ -624,7 +624,7 @@ class Dependency {
   /// required to match. Returns null if there are no requirements on new
   /// constraints.
   PackageRef _requiredRef() {
-    if (_refs.isEmpty()) return null;
+    if (_refs.isEmpty) return null;
     var refs = _refs.getValues();
     var first = refs[0];
     if (refs.length == 1) {

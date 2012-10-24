@@ -126,7 +126,7 @@ main() {
         'default. Specify a comma-separated list of\n'
         'library names, or call this option multiple times.',
       callback: (incLibs) {
-        if(!incLibs.isEmpty()) {
+        if(!incLibs.isEmpty) {
           List<String> allLibs = new List<String>();
           for(final lst in incLibs) {
             var someLibs = lst.split(',');
@@ -145,7 +145,7 @@ main() {
         'comma-separated list of library names, or call\n'
         'this option multiple times.',
       callback: (excLibs) {
-        if(!excLibs.isEmpty()) {
+        if(!excLibs.isEmpty) {
           List<String> allLibs = new List<String>();
           for(final lst in excLibs) {
             var someLibs = lst.split(',');
@@ -168,7 +168,7 @@ main() {
 
   dartdoc.dartdocPath = libPath.append('pkg/dartdoc');
 
-  if (args.isEmpty()) {
+  if (args.isEmpty) {
     print('No arguments provided.');
     print(USAGE);
     print(argParser.getUsage());
@@ -188,7 +188,7 @@ main() {
     return;
   }
 
-  if (entrypoints.isEmpty()) {
+  if (entrypoints.isEmpty) {
     print('No entrypoints provided.');
     print(argParser.getUsage());
     return;

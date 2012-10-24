@@ -258,7 +258,7 @@ class Dartdoc {
     }
     var includeByDefault = true;
     String libraryName = library.simpleName;
-    if (!includedLibraries.isEmpty()) {
+    if (!includedLibraries.isEmpty) {
       includeByDefault = false;
       if (includedLibraries.indexOf(libraryName) != -1) {
         return true;
@@ -572,7 +572,7 @@ class Dartdoc {
     var libraryInfo = {};
     libraryInfo[NAME] = library.simpleName;
     final List members = docMembersJson(library.declaredMembers);
-    if (!members.isEmpty()) {
+    if (!members.isEmpty) {
       libraryInfo[MEMBERS] = members;
     }
 
@@ -591,11 +591,11 @@ class Dartdoc {
         typeInfo[KIND] = TYPEDEF;
       }
       final List typeMembers = docMembersJson(type.declaredMembers);
-      if (!typeMembers.isEmpty()) {
+      if (!typeMembers.isEmpty) {
         typeInfo[MEMBERS] = typeMembers;
       }
 
-      if (!type.declaration.typeVariables.isEmpty()) {
+      if (!type.declaration.typeVariables.isEmpty) {
         final typeVariables = [];
         for (final typeVariable in type.declaration.typeVariables) {
           typeVariables.add(typeVariable.displayName);
@@ -604,7 +604,7 @@ class Dartdoc {
       }
       types.add(typeInfo);
     }
-    if (!types.isEmpty()) {
+    if (!types.isEmpty) {
       libraryInfo[TYPES] = types;
     }
 
@@ -630,7 +630,7 @@ class Dartdoc {
         } else {
           memberInfo[KIND] = METHOD;
         }
-        if (method.parameters.isEmpty()) {
+        if (method.parameters.isEmpty) {
           memberInfo[NO_PARAMS] = true;
         }
       }
@@ -1130,7 +1130,7 @@ class Dartdoc {
                      Map<String,MemberMirror> getters,
                      Map<String,MemberMirror> setters,
                      {bool allInherited}) {
-    if (getters.isEmpty() && setters.isEmpty()) return;
+    if (getters.isEmpty && setters.isEmpty) return;
 
     var nameSet = new Set<String>.from(getters.getKeys());
     nameSet.addAll(setters.getKeys());
@@ -1658,7 +1658,7 @@ class Dartdoc {
           typeParams.add(typeParam.simpleName);
         }
       }
-      if (typeParams.isEmpty()) {
+      if (typeParams.isEmpty) {
         return type.simpleName;
       }
       final params = Strings.join(typeParams, ', ');
@@ -1848,7 +1848,7 @@ class DocComment {
   final InterfaceMirror inheritedFrom;
 
   DocComment(this.text, [this.inheritedFrom = null]) {
-    assert(text != null && !text.trim().isEmpty());
+    assert(text != null && !text.trim().isEmpty);
   }
 
   String get html => md.markdownToHtml(text);

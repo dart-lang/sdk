@@ -81,7 +81,7 @@ class SsaOptimizerTask extends CompilerTask {
           // propagated the type array for a call to the List constructor.
           new SsaCheckInserter(backend, types, context.boundsChecked)];
       runPhases(graph, phases);
-      return !work.guards.isEmpty();
+      return !work.guards.isEmpty;
     });
   }
 
@@ -739,7 +739,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   bool isDeadCode(HInstruction instruction) {
     return !instruction.hasSideEffects(types)
-           && instruction.usedBy.isEmpty()
+           && instruction.usedBy.isEmpty
            // A dynamic getter that has no side effect can still throw
            // a NoSuchMethodError or a NullPointerException.
            && instruction is !HInvokeDynamicGetter
@@ -785,7 +785,7 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
     }
 
     // Process the worklist by propagating liveness to phi inputs.
-    while (!worklist.isEmpty()) {
+    while (!worklist.isEmpty) {
       HPhi phi = worklist.removeLast();
       for (final input in phi.inputs) {
         if (input is HPhi && !livePhis.contains(input)) {
@@ -809,7 +809,7 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
         next = current.next;
         if (!livePhis.contains(current)
             // TODO(ahe): Not sure the following is correct.
-            && current.usedBy.isEmpty()) {
+            && current.usedBy.isEmpty) {
           block.removePhi(current);
         }
         current = next;
@@ -829,7 +829,7 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
       block.forEachPhi((HPhi phi) => worklist.add(phi));
     }
 
-    while (!worklist.isEmpty()) {
+    while (!worklist.isEmpty) {
       HPhi phi = worklist.removeLast();
 
       // If the phi has already been processed, continue.
@@ -972,7 +972,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       // any path from the current block to the dominated block so we
       // don't have to do anything either.
       assert(block.id < dominated.id);
-      if (!successorValues.isEmpty() && block.id + 1 < dominated.id) {
+      if (!successorValues.isEmpty && block.id + 1 < dominated.id) {
         visited.clear();
         int changesFlags = getChangesFlagsForDominatedBlock(block, dominated);
         successorValues.kill(changesFlags);
@@ -1083,7 +1083,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
         instructions = instructions.intersection(other);
       }
 
-      if (!instructions.isEmpty()) {
+      if (!instructions.isEmpty) {
         List<HInstruction> list = instructions.toList();
         for (HInstruction instruction in list) {
           // Move the instruction to the current block.
@@ -1158,7 +1158,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
                              HInstruction input,
                              HType convertedType) {
     Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
-    if (dominatedUsers.isEmpty()) return;
+    if (dominatedUsers.isEmpty) return;
 
     HTypeConversion newInput = new HTypeConversion(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
@@ -1185,7 +1185,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
       }
     }
 
-    if (ifUsers.isEmpty() && notIfUsers.isEmpty()) return;
+    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

@@ -530,8 +530,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isTrue(makeElement().elements.isEmpty());
-      Expect.isFalse(makeElementWithChildren().elements.isEmpty());
+      Expect.isTrue(makeElement().elements.isEmpty);
+      Expect.isFalse(makeElementWithChildren().elements.isEmpty);
     });
 
     test('length', () {
@@ -672,8 +672,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isTrue(getEmptyQueryAll().isEmpty());
-      Expect.isFalse(getQueryAll().isEmpty());
+      Expect.isTrue(getEmptyQueryAll().isEmpty);
+      Expect.isFalse(getQueryAll().isEmpty);
     });
 
     test('length', () {

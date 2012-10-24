@@ -375,7 +375,7 @@ class Apidoc extends doc.Dartdoc {
     String strippedText =
         text.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
                         '').trim();
-    if (strippedText.isEmpty()) return null;
+    if (strippedText.isEmpty) return null;
     return super.createDocComment(strippedText, inheritedFrom);
   }
 
@@ -481,7 +481,7 @@ class Apidoc extends doc.Dartdoc {
     if (mdnType == null) return null;
     if (mdnType['skipped'] != null) return null;
     if (mdnType['summary'] == null) return null;
-    if (mdnType['summary'].trim().isEmpty()) return null;
+    if (mdnType['summary'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
     return new MdnComment(mdnType['summary'], mdnType['srcUrl']);
@@ -531,7 +531,7 @@ class Apidoc extends doc.Dartdoc {
 
     if (mdnMember == null) return null;
     if (mdnMember['help'] == null) return null;
-    if (mdnMember['help'].trim().isEmpty()) return null;
+    if (mdnMember['help'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
     return new MdnComment(mdnMember['help'], mdnType['srcUrl']);

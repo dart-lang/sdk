@@ -153,7 +153,7 @@ abstract class _ByteArrayBase {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -1633,7 +1633,7 @@ class _ByteArrayViewBase {
     return Collections.some(this, f);;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 

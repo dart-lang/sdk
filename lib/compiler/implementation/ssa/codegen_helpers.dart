@@ -132,7 +132,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
     bool findInInputsAndPopNonMatching(HInstruction instruction) {
-      while (!expectedInputs.isEmpty()) {
+      while (!expectedInputs.isEmpty) {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
@@ -162,14 +162,14 @@ class SsaInstructionMerger extends HBaseVisitor {
       if (findInInputsAndPopNonMatching(instruction)) {
         tryGenerateAtUseSite(instruction);
       } else {
-        assert(expectedInputs.isEmpty());
+        assert(expectedInputs.isEmpty);
       }
       instruction.accept(this);
     }
 
     if (block.predecessors.length == 1
         && isBlockSinglePredecessor(block.predecessors[0])) {
-      assert(block.phis.isEmpty());
+      assert(block.phis.isEmpty);
       tryMergingExpressions(block.predecessors[0]);
     } else {
       expectedInputs = null;
@@ -276,7 +276,7 @@ class SsaConditionMerger extends HGraphVisitor {
     //             phi(phi1, true|false)
 
     if (end == null) return;
-    if (end.phis.isEmpty()) return;
+    if (end.phis.isEmpty) return;
     if (!identical(end.phis.first, end.phis.last)) return;
     HBasicBlock elseBlock = startIf.elseBlock;
 
@@ -308,7 +308,7 @@ class SsaConditionMerger extends HGraphVisitor {
         if (otherJoin.first != otherJoin.last) return;
         if (otherJoin.successors.length != 1) return;
         if (otherJoin.successors[0] != end) return;
-        if (otherJoin.phis.isEmpty()) return;
+        if (otherJoin.phis.isEmpty) return;
         if (!identical(otherJoin.phis.first, otherJoin.phis.last)) return;
         HPhi otherPhi = otherJoin.phis.first;
         if (thenInput != otherPhi) return;

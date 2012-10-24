@@ -12,7 +12,7 @@ class ListTest {
   static void expectValues(list, val1, val2, val3, val4) {
     Expect.equals(true, list.length == 4);
     Expect.equals(true, list.length == 4);
-    Expect.equals(true, !list.isEmpty());
+    Expect.equals(true, !list.isEmpty);
     Expect.equals(list[0], val1);
     Expect.equals(list[1], val2);
     Expect.equals(list[2], val3);
@@ -98,11 +98,11 @@ class ListTest {
 
   static void testExpandableList() {
     List list = new List();
-    Expect.equals(true, list.isEmpty());
+    Expect.equals(true, list.isEmpty);
     Expect.equals(list.length, 0);
     list.add(4);
     Expect.equals(1, list.length);
-    Expect.equals(true, !list.isEmpty());
+    Expect.equals(true, !list.isEmpty);
     Expect.equals(list.length, 1);
     Expect.equals(list.length, 1);
     Expect.equals(list.removeLast(), 4);
@@ -139,7 +139,7 @@ class ListTest {
     list.clear();
     Expect.equals(list.length, 0);
     Expect.equals(list.length, 0);
-    Expect.equals(true, list.isEmpty());
+    Expect.equals(true, list.isEmpty);
   }
 }
 

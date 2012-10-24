@@ -136,8 +136,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isFalse(makeClassSet().isEmpty());
-      Expect.isTrue(makeElement().classes.isEmpty());
+      Expect.isFalse(makeClassSet().isEmpty);
+      Expect.isTrue(makeElement().classes.isEmpty);
     });
 
     test('length', () {
@@ -570,7 +570,7 @@ main() {
         expectEmptyRect(rect.offset);
         expectEmptyRect(rect.scroll);
         expectEmptyRect(rect.bounding);
-        Expect.isTrue(rect.clientRects.isEmpty());
+        Expect.isTrue(rect.clientRects.isEmpty);
       }));
   });
 }

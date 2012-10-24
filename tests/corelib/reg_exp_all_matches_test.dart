@@ -87,9 +87,9 @@ class RegExpAllMatchesTest {
 
   static testIsEmpty() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(false, matches.isEmpty());
+    Expect.equals(false, matches.isEmpty);
     matches = new RegExp("fooo").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.isEmpty());
+    Expect.equals(true, matches.isEmpty);
   }
 
   static testGetCount() {

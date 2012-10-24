@@ -75,7 +75,7 @@ void main() {
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.
   var arguments = new Options().arguments;
-  if (arguments.isEmpty()) {
+  if (arguments.isEmpty) {
     testTestRunner();
   } else {
     switch (arguments[0]) {

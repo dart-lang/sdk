@@ -55,7 +55,7 @@ String doUnparse(String source) {
   Parser parser = new Parser(listener);
   parser.parseUnit(beginToken);
   Node node = listener.popNode();
-  Expect.isTrue(listener.nodes.isEmpty());
+  Expect.isTrue(listener.nodes.isEmpty);
   return unparse(node);
 }
 

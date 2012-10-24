@@ -210,7 +210,6 @@ Language/10_Expressions/23_Relational_Expressions_A01_t21: Fail # language chang
 Language/10_Expressions/24_Shift_A01_t11: Fail # language change 3368
 Language/10_Expressions/24_Shift_A01_t12: Fail # language change 3368
 
-
 # The following tests use hashCode() (function) instead of hashCode (getter).
 # co19 issue 273
 Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK

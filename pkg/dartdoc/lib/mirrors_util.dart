@@ -119,7 +119,7 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
 
   InterfaceMirror next() {
     InterfaceMirror type;
-    if (queue.isEmpty()) {
+    if (queue.isEmpty) {
       if (object === null) {
         throw new NoMoreElementsException();
       }
@@ -131,5 +131,5 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  bool get hasNext => !queue.isEmpty() || object !== null;
+  bool get hasNext => !queue.isEmpty || object !== null;
 }

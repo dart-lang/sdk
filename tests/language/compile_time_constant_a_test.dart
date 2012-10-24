@@ -30,7 +30,7 @@ main() {
   });
   Expect.listEquals(['a'], seenKeys);
   Expect.listEquals([499], seenValues);
-  Expect.isFalse(m1.isEmpty());
+  Expect.isFalse(m1.isEmpty);
   Expect.equals(1, m1.length);
   Expect.throws(() => m1.remove('a'), isUnsupportedError);
   Expect.throws(() => m1.remove('b'), isUnsupportedError);
@@ -60,7 +60,7 @@ main() {
   });
   Expect.listEquals(['a', 'b'], seenKeys);
   Expect.listEquals([499, 42], seenValues);
-  Expect.isFalse(m2.isEmpty());
+  Expect.isFalse(m2.isEmpty);
   Expect.equals(2, m2.length);
   Expect.throws(() => m2.remove('a'), isUnsupportedError);
   Expect.throws(() => m2.remove('b'), isUnsupportedError);
@@ -93,7 +93,7 @@ main() {
 
   Expect.isTrue(m1 === m6);
 
-  Expect.isTrue(m7.isEmpty());
+  Expect.isTrue(m7.isEmpty);
   Expect.equals(0, m7.length);
   Expect.equals(null, m7['b']);
   Expect.listEquals([], m7.getKeys());

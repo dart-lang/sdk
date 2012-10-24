@@ -51,7 +51,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
    * "Self-adjusting Binary Search Trees" by Sleator and Tarjan.
    */
   void splay_(K key) {
-    if (isEmpty()) return;
+    if (isEmpty) return;
 
     // The right child of the dummy node will hold
     // the L tree of the algorithm.  The left child of the dummy node
@@ -106,7 +106,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   }
 
   V operator [](K key) {
-    if (!isEmpty()) {
+    if (!isEmpty) {
       splay_(key);
       if (_root.key.compareTo(key) == 0) return _root.value;
     }
@@ -114,7 +114,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   }
 
   V remove(K key) {
-    if (isEmpty()) return null;
+    if (isEmpty) return null;
     splay_(key);
     if (_root.key.compareTo(key) != 0) return null;
     V value = _root.value;
@@ -136,7 +136,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   }
 
   void operator []=(K key, V value) {
-    if (isEmpty()) {
+    if (isEmpty) {
       _count++;
       _root = new SplayTreeNode(key, value);
       return;
@@ -170,7 +170,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
     return value;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     // assert(!((_root === null) && (_count != 0)));
     // assert(!((_count == 0) && (_root !== null)));
     return (_root === null);
@@ -186,7 +186,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
       } else {
         f(current.key, current.value);
         while (current.right === null) {
-          if (list.isEmpty()) return;
+          if (list.isEmpty) return;
           current = list.removeLast();
           f(current.key, current.value);
         }
@@ -205,7 +205,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   }
 
   bool containsKey(K key) {
-    if (!isEmpty()) {
+    if (!isEmpty) {
       splay_(key);
       if (_root.key.compareTo(key) == 0) return true;
     }

@@ -629,7 +629,7 @@ class Primitives {
 
     // Sort the named arguments to get the right selector name and
     // arguments order.
-    if (namedArguments != null && !namedArguments.isEmpty()) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
       // Call new List.from to make sure we get a JavaScript array.
       List<String> listOfNamedArguments =
           new List<String>.from(namedArguments.getKeys());

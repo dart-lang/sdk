@@ -60,7 +60,7 @@ class Unparser implements Visitor {
       addToken(node.extendsKeyword);
       visit(node.superclass);
     }
-    if (!node.interfaces.isEmpty()) {
+    if (!node.interfaces.isEmpty) {
       sb.add(' ');
       visit(node.interfaces);
     }
@@ -206,7 +206,7 @@ class Unparser implements Visitor {
     visit(node.typeArguments);
     visit(node.elements);
     // If list is empty, emit space after [] to disambiguate cases like []==[].
-    if (node.elements.isEmpty()) sb.add(' ');
+    if (node.elements.isEmpty) sb.add(' ');
   }
 
   visitModifiers(Modifiers node) => node.visitChildren(this);
@@ -215,10 +215,10 @@ class Unparser implements Visitor {
    * Unparses given NodeList starting from specific node.
    */
   unparseNodeListFrom(NodeList node, Link<Node> from) {
-    if (from.isEmpty()) return;
+    if (from.isEmpty) return;
     String delimiter = (node.delimiter == null) ? "" : "${node.delimiter}";
     visit(from.head);
-    for (Link link = from.tail; !link.isEmpty(); link = link.tail) {
+    for (Link link = from.tail; !link.isEmpty; link = link.tail) {
       sb.add(delimiter);
       visit(link.head);
     }

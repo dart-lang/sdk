@@ -128,11 +128,11 @@ class CloningVisitor implements Visitor<Node> {
     // Special case for classes which exist in hierarchy, but not
     // in the visitor.
     if (node is Prefix) {
-      return node.nodes.isEmpty() ?
+      return node.nodes.isEmpty ?
           new Prefix() : new Prefix.singleton(visit(node.nodes.head));
     }
     if (node is Postfix) {
-      return node.nodes.isEmpty() ?
+      return node.nodes.isEmpty ?
           new Postfix() : new Postfix.singleton(visit(node.nodes.head));
     }
     LinkBuilder<Node> builder = new LinkBuilder<Node>();

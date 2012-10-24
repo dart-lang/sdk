@@ -432,7 +432,7 @@ class NodeList extends Node implements Iterable<Node> {
   final Token beginToken;
   final Token endToken;
   final SourceString delimiter;
-  bool isEmpty() => nodes.isEmpty();
+  bool get isEmpty => nodes.isEmpty;
 
   NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
 
@@ -445,7 +445,7 @@ class NodeList extends Node implements Iterable<Node> {
 
   int length() {
     int result = 0;
-    for (Link<Node> cursor = nodes; !cursor.isEmpty(); cursor = cursor.tail) {
+    for (Link<Node> cursor = nodes; !cursor.isEmpty; cursor = cursor.tail) {
       result++;
     }
     return result;
@@ -455,7 +455,7 @@ class NodeList extends Node implements Iterable<Node> {
 
   visitChildren(Visitor visitor) {
     if (nodes == null) return;
-    for (Link<Node> link = nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = nodes; !link.isEmpty; link = link.tail) {
       if (link.head != null) link.head.accept(visitor);
     }
   }
@@ -463,7 +463,7 @@ class NodeList extends Node implements Iterable<Node> {
   Token getBeginToken() {
     if (beginToken != null) return beginToken;
      if (nodes != null) {
-       for (Link<Node> link = nodes; !link.isEmpty(); link = link.tail) {
+       for (Link<Node> link = nodes; !link.isEmpty; link = link.tail) {
          if (link.head.getBeginToken() != null) {
            return link.head.getBeginToken();
          }
@@ -479,8 +479,8 @@ class NodeList extends Node implements Iterable<Node> {
     if (endToken != null) return endToken;
     if (nodes != null) {
       Link<Node> link = nodes;
-      if (link.isEmpty()) return beginToken;
-      while (!link.tail.isEmpty()) link = link.tail;
+      if (link.isEmpty) return beginToken;
+      while (!link.tail.isEmpty) link = link.tail;
       if (link.head.getEndToken() != null) return link.head.getEndToken();
       if (link.head.getBeginToken() != null) return link.head.getBeginToken();
     }
@@ -659,7 +659,7 @@ class FunctionExpression extends Expression {
     // TODO(karlklose,ahe): refactor AST nodes (issue 1713).
     if (body.asReturn() != null) return true;
     NodeList statements = body.asBlock().statements;
-    return (!statements.nodes.isEmpty() ||
+    return (!statements.nodes.isEmpty ||
             !identical(statements.getBeginToken().kind, $SEMICOLON));
   }
 
@@ -1158,7 +1158,7 @@ class Modifiers extends Node {
 
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;
-    for (; !nodes.isEmpty(); nodes = nodes.tail) {
+    for (; !nodes.isEmpty; nodes = nodes.tail) {
       String value = nodes.head.asIdentifier().source.stringValue;
       if (identical(value, 'static')) flags |= FLAG_STATIC;
       else if (identical(value, 'abstract')) flags |= FLAG_ABSTRACT;
@@ -1174,7 +1174,7 @@ class Modifiers extends Node {
 
   Node findModifier(String modifier) {
     Link<Node> nodeList = nodes.nodes;
-    for (; !nodeList.isEmpty(); nodeList = nodeList.tail) {
+    for (; !nodeList.isEmpty; nodeList = nodeList.tail) {
       String value = nodeList.head.asIdentifier().source.stringValue;
       if(identical(value, modifier)) {
         return nodeList.head;
@@ -1492,7 +1492,7 @@ class SwitchCase extends Node {
   }
 
   Token getEndToken() {
-    if (statements.nodes.isEmpty()) {
+    if (statements.nodes.isEmpty) {
       // All cases must have at least one expression or be the default.
       if (defaultKeyword != null) {
         // The colon after 'default'.
@@ -1894,7 +1894,7 @@ class TryStatement extends Statement {
 
   Token getEndToken() {
     if (finallyBlock != null) return finallyBlock.getEndToken();
-    if (!catchBlocks.isEmpty()) return catchBlocks.getEndToken();
+    if (!catchBlocks.isEmpty) return catchBlocks.getEndToken();
     return tryBlock.getEndToken();
   }
 }
@@ -1948,15 +1948,15 @@ class CatchBlock extends Node {
   accept(Visitor visitor) => visitor.visitCatchBlock(this);
 
   Node get exception {
-    if (formals == null || formals.nodes.isEmpty()) return null;
+    if (formals == null || formals.nodes.isEmpty) return null;
     VariableDefinitions declarations = formals.nodes.head;
     return declarations.definitions.nodes.head;
   }
 
   Node get trace {
-    if (formals == null || formals.nodes.isEmpty()) return null;
+    if (formals == null || formals.nodes.isEmpty) return null;
     Link<Node> declarations = formals.nodes.tail;
-    if (declarations.isEmpty()) return null;
+    if (declarations.isEmpty) return null;
     VariableDefinitions head = declarations.head;
     return head.definitions.nodes.head;
   }

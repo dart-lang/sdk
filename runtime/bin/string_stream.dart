@@ -10,7 +10,7 @@ abstract class _StringDecoder {
   int write(List<int> buffer);
 
   // Returns whether any decoded data is available.
-  bool isEmpty();
+  bool get isEmpty;
 
   // Returns the number of available decoded characters.
   int available();
@@ -78,12 +78,12 @@ class _StringDecoderBase implements _StringDecoder {
     return buffer.length;
   }
 
-  bool isEmpty() => _result.isEmpty();
+  bool get isEmpty => _result.isEmpty;
 
   int get lineBreaks => _lineBreaks;
 
   String decoded([int len]) {
-    if (isEmpty()) return null;
+    if (isEmpty) return null;
 
     String result;
     if (len !== null && len < available()) {
@@ -99,7 +99,7 @@ class _StringDecoderBase implements _StringDecoder {
       }
     }
     _resultOffset += result.length;
-    while (!_lineBreakEnds.isEmpty() &&
+    while (!_lineBreakEnds.isEmpty &&
            _lineBreakEnds.first() < _charOffset + _resultOffset) {
       _lineBreakEnds.removeFirst();
       _lineBreaks--;
@@ -109,7 +109,7 @@ class _StringDecoderBase implements _StringDecoder {
   }
 
   String get decodedLine {
-    if (_lineBreakEnds.isEmpty()) return null;
+    if (_lineBreakEnds.isEmpty) return null;
     int lineEnd = _lineBreakEnds.removeFirst();
     int terminationSequenceLength = 1;
     if (_result[lineEnd - _charOffset] == LF &&
@@ -387,7 +387,7 @@ class _StringInputStream implements StringInputStream {
 
   Encoding get encoding => _encoding;
 
-  bool get closed => _inputClosed && _decoder.isEmpty();
+  bool get closed => _inputClosed && _decoder.isEmpty;
 
   void set onData(void callback()) {
     _clientDataHandler = callback;
@@ -413,7 +413,7 @@ class _StringInputStream implements StringInputStream {
 
   void _onData() {
     _readData();
-    if (!_decoder.isEmpty() && _clientDataHandler !== null) {
+    if (!_decoder.isEmpty && _clientDataHandler !== null) {
       _clientDataHandler();
     }
     if (_decoder.lineBreaks > 0 && _clientLineHandler !== null) {
@@ -425,7 +425,7 @@ class _StringInputStream implements StringInputStream {
 
   void _onClosed() {
     _inputClosed = true;
-    if (_decoder.isEmpty() && _clientCloseHandler != null) {
+    if (_decoder.isEmpty && _clientCloseHandler != null) {
       _clientCloseHandler();
       _closed = true;
     } else {
@@ -445,7 +445,7 @@ class _StringInputStream implements StringInputStream {
         (_clientDataHandler === null && _clientLineHandler === null)) {
       _input.onData = null;
     } else if (_clientDataHandler !== null) {
-      if (_decoder.isEmpty()) {
+      if (_decoder.isEmpty) {
         _input.onData = _onData;
       } else {
         _input.onData = null;
@@ -490,7 +490,7 @@ class _StringInputStream implements StringInputStream {
     if (!_closed) {
       // Schedule data callback if string data available.
       if (_clientDataHandler != null &&
-          !_decoder.isEmpty() &&
+          !_decoder.isEmpty &&
           _scheduledDataCallback == null) {
         if (_scheduledLineCallback != null) {
           _scheduledLineCallback.cancel();
@@ -500,7 +500,7 @@ class _StringInputStream implements StringInputStream {
 
       // Schedule line callback if a line is available.
       if (_clientLineHandler != null &&
-          (_decoder.lineBreaks > 0 || (!_decoder.isEmpty() && _inputClosed)) &&
+          (_decoder.lineBreaks > 0 || (!_decoder.isEmpty && _inputClosed)) &&
           _scheduledLineCallback == null) {
         if (_scheduledDataCallback != null) {
           _scheduledDataCallback.cancel();
@@ -509,7 +509,7 @@ class _StringInputStream implements StringInputStream {
       }
 
       // Schedule close callback if no more data and input is closed.
-      if (_decoder.isEmpty() &&
+      if (_decoder.isEmpty &&
           _inputClosed &&
           _scheduledCloseCallback == null) {
         _scheduledCloseCallback = new Timer(0, issueCloseCallback);

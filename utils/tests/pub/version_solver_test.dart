@@ -404,7 +404,7 @@ testResolve(description, packages, {lockfile, result, error}) {
           var expectedId = result.remove(actualId.name);
           if (actualId != expectedId) return false;
         }
-        return result.isEmpty();
+        return result.isEmpty;
       }, description: 'packages to match $result')));
     } else if (error == noVersion) {
       expect(future, throwsA(new isInstanceOf<NoVersionException>()));

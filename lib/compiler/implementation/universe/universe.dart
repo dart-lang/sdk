@@ -136,7 +136,7 @@ class Selector {
     : this.name = name,
       this.library = name.isPrivate() ? library : null,
       this.namedArguments = namedArguments,
-      this.orderedNamedArguments = namedArguments.isEmpty()
+      this.orderedNamedArguments = namedArguments.isEmpty
           ? namedArguments
           : <SourceString>[] {
     assert(!name.isPrivate() || library != null);
@@ -246,7 +246,7 @@ class Selector {
         // number of positional arguments are not greater than the
         // number of parameters.
         assert(positionalArgumentCount <= parameters.parameterCount);
-        return namedArguments.isEmpty();
+        return namedArguments.isEmpty;
       }
     } else {
       if (positionalArgumentCount > requiredParameterCount) return false;
@@ -275,8 +275,8 @@ class Selector {
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
 
-    bool hasOptionalParameters = !parameters.optionalParameters.isEmpty();
-    if (namedArguments.isEmpty()) {
+    bool hasOptionalParameters = !parameters.optionalParameters.isEmpty;
+    if (namedArguments.isEmpty) {
       if (!hasOptionalParameters) {
         return requiredParameterCount == argumentCount;
       } else {
@@ -291,7 +291,7 @@ class Selector {
       }
       Set<SourceString> nameSet = new Set<SourceString>();
       for (;
-           !remainingNamedParameters.isEmpty();
+           !remainingNamedParameters.isEmpty;
            remainingNamedParameters = remainingNamedParameters.tail) {
         nameSet.add(remainingNamedParameters.head.name);
       }
@@ -328,7 +328,7 @@ class Selector {
 
     // Visit named arguments and add them into a temporary list.
     List compiledNamedArguments = [];
-    for (; !arguments.isEmpty(); arguments = arguments.tail) {
+    for (; !arguments.isEmpty; arguments = arguments.tail) {
       NamedArgument namedArgument = arguments.head;
       compiledNamedArguments.add(compileArgument(namedArgument.expression));
     }
@@ -346,7 +346,7 @@ class Selector {
     // their values: either in the temporary list or using the
     // default value.
     for (;
-         !remainingNamedParameters.isEmpty();
+         !remainingNamedParameters.isEmpty;
          remainingNamedParameters = remainingNamedParameters.tail) {
       Element parameter = remainingNamedParameters.head;
       int foundIndex = namedArguments.indexOf(parameter.name);
@@ -389,7 +389,7 @@ class Selector {
             compiler);
       } else {
         parameters.forEachOptionalParameter((element) {
-          if (!arguments.isEmpty()) {
+          if (!arguments.isEmpty) {
             list.add(compileArgument(arguments.head));
             arguments = arguments.tail;
           } else {
@@ -400,7 +400,7 @@ class Selector {
     } else {
       // Visit named arguments and add them into a temporary list.
       List compiledNamedArguments = [];
-      for (; !arguments.isEmpty(); arguments = arguments.tail) {
+      for (; !arguments.isEmpty; arguments = arguments.tail) {
         NamedArgument namedArgument = arguments.head;
         compiledNamedArguments.add(compileArgument(namedArgument.expression));
       }
@@ -441,8 +441,8 @@ class Selector {
   }
 
   List<SourceString> getOrderedNamedArguments() {
-    if (namedArguments.isEmpty()) return namedArguments;
-    if (!orderedNamedArguments.isEmpty()) return orderedNamedArguments;
+    if (namedArguments.isEmpty) return namedArguments;
+    if (!orderedNamedArguments.isEmpty) return orderedNamedArguments;
 
     orderedNamedArguments.addAll(namedArguments);
     orderedNamedArguments.sort((SourceString first, SourceString second) {

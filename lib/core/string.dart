@@ -64,7 +64,7 @@ interface String
   /**
    * Returns whether this string is empty.
    */
-  bool isEmpty();
+  bool get isEmpty;
 
   /**
    * Creates a new string by concatenating this string with [other].

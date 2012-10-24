@@ -114,7 +114,7 @@ class _SocketOutputStream
 
   void close() {
     if (_closing && _closed) return;
-    if (!_pendingWrites.isEmpty()) {
+    if (!_pendingWrites.isEmpty) {
       // Mark the socket for close when all data is written.
       _closing = true;
       _socket._onWrite = _onWrite;
@@ -152,7 +152,7 @@ class _SocketOutputStream
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
     if (_closing || _closed) throw new StreamException("Stream closed");
     int bytesWritten = 0;
-    if (_pendingWrites.isEmpty()) {
+    if (_pendingWrites.isEmpty) {
       // If nothing is buffered write as much as possible and buffer
       // the rest.
       bytesWritten = _socket.writeList(buffer, offset, len);
@@ -175,7 +175,7 @@ class _SocketOutputStream
 
   void _onWrite() {
     // Write as much buffered data to the socket as possible.
-    while (!_pendingWrites.isEmpty()) {
+    while (!_pendingWrites.isEmpty) {
       List<int> buffer = _pendingWrites.first;
       int offset = _pendingWrites.index;
       int bytesToWrite = buffer.length - offset;

@@ -48,6 +48,6 @@ main() {
 
   test('queryAll (None)', () {
       List l = queryAll('video');
-      Expect.isTrue(l.isEmpty());
+      Expect.isTrue(l.isEmpty);
     });
 }

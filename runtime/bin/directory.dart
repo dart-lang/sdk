@@ -182,7 +182,7 @@ class DirectoryIOException implements Exception {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("DirectoryIOException");
-    if (!message.isEmpty()) {
+    if (!message.isEmpty) {
       sb.add(": $message");
       if (path != null) {
         sb.add(", path = $path");

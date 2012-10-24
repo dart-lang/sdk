@@ -1649,7 +1649,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   Label is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());

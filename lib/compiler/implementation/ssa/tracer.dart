@@ -50,7 +50,7 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void addPredecessors(HBasicBlock block) {
-    if (block.predecessors.isEmpty()) {
+    if (block.predecessors.isEmpty) {
       printEmptyProperty("predecessors");
     } else {
       addIndent();
@@ -63,7 +63,7 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void addSuccessors(HBasicBlock block) {
-    if (block.successors.isEmpty()) {
+    if (block.successors.isEmpty) {
       printEmptyProperty("successors");
     } else {
       addIndent();

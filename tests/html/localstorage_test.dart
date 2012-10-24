@@ -102,8 +102,8 @@ main() {
   });
 
   testWithLocalStorage('isEmpty', () {
-    Expect.isFalse(window.localStorage.isEmpty());
+    Expect.isFalse(window.localStorage.isEmpty);
     window.localStorage.clear();
-    Expect.isTrue(window.localStorage.isEmpty());
+    Expect.isTrue(window.localStorage.isEmpty);
   });
 }

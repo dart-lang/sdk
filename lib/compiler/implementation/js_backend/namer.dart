@@ -120,7 +120,7 @@ class Namer {
         '${privateName(lib, name)}\$${signature.parameterCount}';
     if (!signature.optionalParametersAreNamed) {
       return methodName;
-    } else if (!signature.optionalParameters.isEmpty()) {
+    } else if (!signature.optionalParameters.isEmpty) {
       StringBuffer buffer = new StringBuffer();
       signature.orderedOptionalParameters.forEach((Element element) {
         buffer.add('\$${JsNames.getValid(element.name.slowToString())}');

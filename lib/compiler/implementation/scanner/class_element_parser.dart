@@ -41,7 +41,7 @@ class PartialClassElement extends ClassElement {
         Token token = parser.parseTopLevelDeclaration(beginToken);
         assert(identical(token, endToken.next));
         cachedNode = listener.popNode();
-        assert(listener.nodes.isEmpty());
+        assert(listener.nodes.isEmpty);
       });
       compiler.patchParser.measure(() {
         if (isPatched) {
@@ -169,7 +169,7 @@ class MemberListener extends NodeListener {
   }
 
   void addMember(Element memberElement) {
-    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+    for (Link link = metadata; !link.isEmpty; link = link.tail) {
       memberElement.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();

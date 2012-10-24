@@ -68,7 +68,7 @@ class TypesTask extends CompilerTask {
       FunctionElement function = holder;
       FunctionSignature signature = function.computeSignature(compiler);
       for (Element parameter in signature.requiredParameters) {
-        if (types.isEmpty()) return null;
+        if (types.isEmpty) return null;
         if (element == parameter) {
           return new ConcreteType.singleton(new ClassBaseType(types.head));
         }
@@ -165,7 +165,7 @@ class ConcreteTypeInferencer extends Visitor {
 
   Link<Element> computeConcreteSendArguments(Send node) {
     if (node.argumentsNode == null) return null;
-    if (node.arguments.isEmpty()) return const Link<Element>();
+    if (node.arguments.isEmpty) return const Link<Element>();
     if (node.receiver != null && concreteTypes[node.receiver] == null) {
       return null;
     }
@@ -226,14 +226,14 @@ class ConcreteTypeInferencer extends Visitor {
    */
   Link<Element> computeLubs(Link<Element> a, Link<Element> b) {
     LinkBuilder<Element> lubs = new LinkBuilder<Element>();
-    while (!a.isEmpty() && !b.isEmpty()) {
+    while (!a.isEmpty && !b.isEmpty) {
       Element lub = computeLub(a.head, b.head);
       if (lub == null) return null;
       lubs.addLast(lub);
       a = a.tail;
       b = b.tail;
     }
-    return (a.isEmpty() && b.isEmpty()) ? lubs.toLink() : null;
+    return (a.isEmpty && b.isEmpty) ? lubs.toLink() : null;
   }
 
   /**

@@ -190,7 +190,7 @@ interface SourceString extends Iterable<int> default StringWrapper {
 
   String slowToString();
 
-  bool isEmpty();
+  bool get isEmpty;
 
   bool isPrivate();
 }
@@ -224,9 +224,9 @@ class StringWrapper implements SourceString {
         stringValue.substring(initial, stringValue.length - terminal));
   }
 
-  bool isEmpty() => stringValue.isEmpty();
+  bool get isEmpty => stringValue.isEmpty;
 
-  bool isPrivate() => !isEmpty() && identical(stringValue.charCodeAt(0), $_);
+  bool isPrivate() => !isEmpty && identical(stringValue.charCodeAt(0), $_);
 }
 
 class StringCodeIterator implements Iterator<int> {

@@ -227,12 +227,12 @@ class Expect {
     final extraSet = new Set.from(actual);
     extraSet.removeAll(expected);
 
-    if (extraSet.isEmpty() && missingSet.isEmpty()) return;
+    if (extraSet.isEmpty && missingSet.isEmpty) return;
     String msg = _getMessage(reason);
 
     StringBuffer sb = new StringBuffer("Expect.setEquals($msg) fails");
     // Report any missing items.
-    if (!missingSet.isEmpty()) {
+    if (!missingSet.isEmpty) {
       sb.add('\nExpected collection does not contain: ');
     }
 
@@ -241,7 +241,7 @@ class Expect {
     }
 
     // Report any extra items.
-    if (!extraSet.isEmpty()) {
+    if (!extraSet.isEmpty) {
       sb.add('\nExpected collection should not contain: ');
     }
 

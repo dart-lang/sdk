@@ -84,7 +84,7 @@ interface Map<K, V> default HashMapImplementation<K, V> {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty();
+  bool get isEmpty;
 }
 
 /**

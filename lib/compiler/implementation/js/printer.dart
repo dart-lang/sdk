@@ -331,7 +331,7 @@ class Printer implements NodeVisitor {
     visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
-    if (!node.body.statements.isEmpty()) {
+    if (!node.body.statements.isEmpty) {
       indentLevel++;
       blockOutWithoutBraces(node.body);
       indentLevel--;
@@ -340,7 +340,7 @@ class Printer implements NodeVisitor {
 
   visitDefault(Default node) {
     outIndentLn("default:");
-    if (!node.body.statements.isEmpty()) {
+    if (!node.body.statements.isEmpty) {
       indentLevel++;
       blockOutWithoutBraces(node.body);
       indentLevel--;
@@ -945,7 +945,7 @@ class MinifyRenamer implements Namer {
   String declareName(String oldName) {
     const LETTERS = 52;
     const DIGITS = 10;
-    if (maps.isEmpty()) return oldName;
+    if (maps.isEmpty) return oldName;
 
     String newName;
     int n = nameNumber;

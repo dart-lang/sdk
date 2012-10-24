@@ -46,8 +46,8 @@ class ByteString implements SourceString {
     sb.add(slowToString());
   }
 
-  bool isEmpty() => length == 0;
-  bool isPrivate() => !isEmpty() && identical(bytes[offset], $_);
+  bool get isEmpty => length == 0;
+  bool isPrivate() => !isEmpty && identical(bytes[offset], $_);
 
   String get stringValue => null;
 }

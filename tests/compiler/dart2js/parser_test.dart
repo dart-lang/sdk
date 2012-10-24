@@ -251,7 +251,7 @@ void testPostfix() {
   Expect.stringEquals("a", sendSet.receiver.toString());
   Expect.stringEquals("b", sendSet.selector.toString());
   Expect.stringEquals("++", sendSet.assignmentOperator.toString());
-  Expect.isTrue(sendSet.arguments.isEmpty());
+  Expect.isTrue(sendSet.arguments.isEmpty);
 }
 
 void testOperatorParse() {
@@ -260,7 +260,7 @@ void testOperatorParse() {
   Expect.isNotNull(name);
   Expect.stringEquals('operator', name.receiver.source.stringValue);
   Expect.stringEquals('-', name.selector.source.stringValue);
-  Expect.isTrue(function.parameters.isEmpty());
+  Expect.isTrue(function.parameters.isEmpty);
   Expect.isNull(function.returnType);
   Expect.isNull(function.getOrSet);
 }

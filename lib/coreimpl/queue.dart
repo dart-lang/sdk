@@ -158,7 +158,7 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return counter;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return (_sentinel._next === _sentinel);
   }
 

@@ -171,7 +171,7 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Fill out full set of string methods.
   static testStringMethods() {
     var s = "abcdef";
-    assertEquals(s.isEmpty(), false);
+    assertEquals(s.isEmpty, false);
     assertEquals(s.startsWith("abc"), true);
     assertEquals(s.endsWith("def"), true);
     assertEquals(s.startsWith("aa"), false);
@@ -199,7 +199,7 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Fill out full set of list methods.
   static testListMethods() {
     var a = [1,2,3,4];
-    assertEquals(a.isEmpty(), false);
+    assertEquals(a.isEmpty, false);
     assertEquals(a.length, 4);
     var exception = null;
     a.clear();

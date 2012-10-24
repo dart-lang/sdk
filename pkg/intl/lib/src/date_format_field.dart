@@ -219,7 +219,7 @@ class _DateFormatPatternField extends _DateFormatField {
    int parseEnumeratedString(_Stream input, List possibilities) {
      var results = new _Stream(possibilities).findIndexes(
        (each) => input.peek(each.length) == each);
-     if (results.isEmpty()) throwFormatException(input);
+     if (results.isEmpty) throwFormatException(input);
      results.sort(
        (a, b) => possibilities[a].length.compareTo(possibilities[b].length));
      var longestResult = results.last();

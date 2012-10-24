@@ -58,7 +58,7 @@ class ConstantHandler extends CompilerTask {
       if (result != null) return result;
       if (lazyStatics.contains(element)) return null;
       result = compileVariableWithDefinitions(element, work.resolutionTree);
-      assert(pendingVariables.isEmpty());
+      assert(pendingVariables.isEmpty);
       return result;
     });
   }
@@ -286,7 +286,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     }
     List<Constant> arguments = <Constant>[];
     for (Link<Node> link = node.elements.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       arguments.add(evaluateConstant(link.head));
     }
@@ -305,7 +305,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     List<StringConstant> keys = <StringConstant>[];
     Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
     for (Link<Node> link = node.entries.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
@@ -737,7 +737,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
     if (initializerList != null) {
       for (Link<Node> link = initializerList.nodes;
-           !link.isEmpty();
+           !link.isEmpty;
            link = link.tail) {
         assert(link.head is Send);
         if (link.head is !SendSet) {
@@ -753,7 +753,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           // A field initializer.
           SendSet init = link.head;
           Link<Node> initArguments = init.arguments;
-          assert(!initArguments.isEmpty() && initArguments.tail.isEmpty());
+          assert(!initArguments.isEmpty && initArguments.tail.isEmpty);
           Constant fieldValue = evaluate(initArguments.head);
           updateFieldValue(init, elements[init], fieldValue);
         }

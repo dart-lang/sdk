@@ -424,7 +424,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   Link<Element> topLevelElements = parseUnit(text, compiler, library);
 
   for (Link<Element> elements = topLevelElements;
-       !elements.isEmpty();
+       !elements.isEmpty;
        elements = elements.tail) {
     Node node = elements.head.parseNode(compiler);
     TreeElements mapping = compiler.resolver.resolve(elements.head);

@@ -98,7 +98,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
   void processWorklist() {
     do {
-      while (!worklist.isEmpty()) {
+      while (!worklist.isEmpty) {
         int id = worklist.removeLast();
         HInstruction instruction = workmap[id];
         assert(instruction != null);
@@ -112,7 +112,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       // replaced operands, so we may need to take another stab at
       // emptying the worklist afterwards.
       processPendingOptimizations();
-    } while (!worklist.isEmpty());
+    } while (!worklist.isEmpty);
   }
 
   void addDependentInstructionsToWorkList(HInstruction instruction) {

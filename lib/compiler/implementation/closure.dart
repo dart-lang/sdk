@@ -115,7 +115,7 @@ class ClosureScope {
   ClosureScope(this.boxElement, this.capturedVariableMapping)
       : boxedLoopVariables = const <Element>[];
 
-  bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty();
+  bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty;
 }
 
 class ClosureClassMap {
@@ -250,7 +250,7 @@ class ClosureTranslator extends Visitor {
         }
       });
       ClassElement closureElement = data.closureClassElement;
-      assert(closureElement != null || fieldCaptures.isEmpty());
+      assert(closureElement != null || fieldCaptures.isEmpty);
       for (Element capturedElement in fieldCaptures) {
         SourceString name;
         if (capturedElement is BoxElement) {
@@ -302,7 +302,7 @@ class ClosureTranslator extends Visitor {
 
   visitVariableDefinitions(VariableDefinitions node) {
     for (Link<Node> link = node.definitions.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       Node definition = link.head;
       Element element = elements[definition];
@@ -436,7 +436,7 @@ class ClosureTranslator extends Visitor {
         capturedVariableMapping[element] = boxed;
       }
     }
-    if (!scopeMapping.isEmpty()) {
+    if (!scopeMapping.isEmpty) {
       ClosureScope scope = new ClosureScope(box, scopeMapping);
       closureData.capturingScopes[node] = scope;
     }
@@ -469,7 +469,7 @@ class ClosureTranslator extends Visitor {
     if (scopeData == null) return;
     List<Element> result = <Element>[];
     for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       Node definition = link.head;
       Element element = elements[definition];
@@ -587,7 +587,7 @@ class ClosureTranslator extends Visitor {
     // Mark all free variables as captured and use them in the outer function.
     List<Element> freeVariables =
         savedClosureData.freeVariableMapping.getKeys();
-    assert(freeVariables.isEmpty() || savedInsideClosure);
+    assert(freeVariables.isEmpty || savedInsideClosure);
     for (Element freeElement in freeVariables) {
       if (capturedVariableMapping[freeElement] != null &&
           capturedVariableMapping[freeElement] != freeElement) {

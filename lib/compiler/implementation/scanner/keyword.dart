@@ -115,7 +115,7 @@ class Keyword implements SourceString {
     return this;
   }
 
-  bool isEmpty() => false;
+  bool get isEmpty => false;
   bool isPrivate() => false;
 }
 

@@ -68,7 +68,7 @@ main() {
     return;
   }
 
-  if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
+  if (globalOptions['help'] || globalOptions.rest.isEmpty) {
     printUsage();
     return;
   }
@@ -255,7 +255,7 @@ abstract class PubCommand {
     print('Usage: $usage');
 
     var commandUsage = commandParser.getUsage();
-    if (!commandUsage.isEmpty()) {
+    if (!commandUsage.isEmpty) {
       print('');
       print(commandUsage);
     }

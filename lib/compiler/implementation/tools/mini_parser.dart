@@ -114,7 +114,7 @@ void parseFile(String filename, MyOptions options) {
   }
   if (options.buildAst) {
     MyNodeListener l = listener;
-    if (!l.nodes.isEmpty()) {
+    if (!l.nodes.isEmpty) {
       String message = 'Stack not empty after parsing';
       print(formatError(message, l.nodes.head.getBeginToken(),
                         l.nodes.head.getEndToken(), file));

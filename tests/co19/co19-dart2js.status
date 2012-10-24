@@ -313,6 +313,52 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
 Language/14_Types/5_Function_Types_A01_t21: Fail, OK
 
+Language/10_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
+Language/10_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
+Language/10_Expressions/06_Lists_A05_t02: Fail, OK # co19 issue 287
+Language/10_Expressions/06_Lists_A08_t03: Fail, OK # co19 issue 287
+LibTest/core/HashSet/HashSet_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Queue/filter_A01_t04: Fail, OK # co19 issue 287
+LibTest/core/Queue/some_A01_t06: Fail, OK # co19 issue 287
+LibTest/core/Queue/every_A01_t06: Fail, OK # co19 issue 287
+LibTest/core/Queue/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Queue/filter_A01_t06: Fail, OK # co19 issue 287
+LibTest/core/Queue/clear_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Queue/Queue_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Queue/filter_A01_t02: Fail, OK # co19 issue 287
+LibTest/core/Queue/forEach_A01_t04: Fail, OK # co19 issue 287
+LibTest/core/Map/putIfAbsent_A01_t10: Fail, OK # co19 issue 287
+LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
+LibTest/core/Map/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Map/forEach_A01_t07: Fail, OK # co19 issue 287
+LibTest/core/Expect/identical_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/equals_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/isNull_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/stringEquals_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/isTrue_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/isFalse_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/notEquals_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/listEquals_A03_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/setEquals_A03_t01: Fail, OK # co19 issue 287
+LibTest/core/Expect/isNotNull_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/List/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/List/filter_A02_t01: Fail, OK # co19 issue 287
+LibTest/core/List/filter_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/HashMap/HashMap.from_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/HashMap/HashMap_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/StringBuffer/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Set/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Set/Set_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Set/filter_A01_t02: Fail, OK # co19 issue 287
+LibTest/core/Set/forEach_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/Set/filter_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/String/isEmpty_A01_t01: Fail, OK # co19 issue 287
+LibTest/core/String/splitChars_A01_t01: Fail, OK # co19 issue 287
+
+
 LibTest/core/int/isOdd_A01_t01: Fail, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 

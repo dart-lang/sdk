@@ -324,7 +324,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   return false;
 }
 

@@ -168,7 +168,7 @@ class _IntegerImplementation {
       value ~/= radix;
       temp.add(digit);
     }
-    if (temp.isEmpty()) {
+    if (temp.isEmpty) {
       return "0";
     }
     StringBuffer buffer = new StringBuffer();

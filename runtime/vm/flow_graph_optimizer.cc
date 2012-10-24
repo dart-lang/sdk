@@ -977,7 +977,7 @@ void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::InlineStringIsEmptyTester(InstanceCallInstr* call) {
+void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -1056,6 +1056,15 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return true;
   }
 
+  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
+    if (!ic_data.HasOneTarget()) {
+      // Target is not only StringBase_get_isEmpty.
+      return false;
+    }
+    InlineStringIsEmptyGetter(call);
+    return true;
+  }
+
   return false;
 }
 
@@ -1114,15 +1123,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
     call->ReplaceWith(d2int_instr, current_iterator());
     RemovePushArguments(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_length.
-      return false;
-    }
-    InlineStringIsEmptyTester(call);
     return true;
   }
 

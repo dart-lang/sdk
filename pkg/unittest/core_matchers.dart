@@ -12,7 +12,7 @@ class _Empty extends BaseMatcher {
   const _Empty();
   bool matches(item, MatchState matchState) {
     if (item is Map || item is Collection) {
-      return item.isEmpty();
+      return item.isEmpty;
     } else if (item is String) {
       return item.length == 0;
     } else {

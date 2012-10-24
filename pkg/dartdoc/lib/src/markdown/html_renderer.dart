@@ -27,7 +27,7 @@ class HtmlRenderer implements NodeVisitor {
 
   bool visitElementBefore(Element element) {
     // Hackish. Separate block-level elements with newlines.
-    if (!buffer.isEmpty() &&
+    if (!buffer.isEmpty &&
         _BLOCK_TAGS.firstMatch(element.tag) != null) {
       buffer.add('\n');
     }

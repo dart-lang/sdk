@@ -16,7 +16,7 @@ class UpdateCommand extends PubCommand {
 
   Future onRun() {
     var future;
-    if (commandOptions.rest.isEmpty()) {
+    if (commandOptions.rest.isEmpty) {
       future = entrypoint.updateAllDependencies();
     } else {
       future = entrypoint.updateDependencies(commandOptions.rest);

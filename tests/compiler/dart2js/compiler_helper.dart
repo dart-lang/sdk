@@ -95,7 +95,7 @@ void compileAndDoNotMatch(String code, String entry, RegExp regexp) {
                  '"$generated" has a match in /$regexp/');
 }
 
-int length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
+int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 
 // Does a compile and then a match where every 'x' is replaced by something
 // that matches any variable, and every space is optional.

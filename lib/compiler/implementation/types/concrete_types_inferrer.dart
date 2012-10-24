@@ -179,7 +179,7 @@ class ConcreteTypeCartesianProduct
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
   ConcreteTypeCartesianProduct(this.baseTypeOfThis, this.concreteTypes);
-  Iterator iterator() => concreteTypes.isEmpty()
+  Iterator iterator() => concreteTypes.isEmpty
       ? [new ConcreteTypesEnvironment(baseTypeOfThis)].iterator()
       : new ConcreteTypeCartesianProductIterator(baseTypeOfThis, concreteTypes);
   String toString() {
@@ -205,7 +205,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
     this.concreteTypes = concreteTypes,
     nextValues = new Map<Element, BaseType>(),
     state = new Map<Element, Iterator>() {
-    if (concreteTypes.isEmpty()) {
+    if (concreteTypes.isEmpty) {
       size = 0;
       return;
     }
@@ -568,7 +568,7 @@ class ConcreteTypesInferrer {
     // we attach each positional parameter to its corresponding positional
     // argument
     for (Link<Element> requiredParameters = signature.requiredParameters;
-         !requiredParameters.isEmpty();
+         !requiredParameters.isEmpty;
          requiredParameters = requiredParameters.tail) {
       final Element requiredParameter = requiredParameters.head;
       // we know next() is defined because of the guard above
@@ -587,7 +587,7 @@ class ConcreteTypesInferrer {
     final Map<SourceString, Element> leftOverNamedParameters =
         new Map<SourceString, Element>();
     for (;
-         !remainingNamedParameters.isEmpty();
+         !remainingNamedParameters.isEmpty;
          remainingNamedParameters = remainingNamedParameters.tail) {
       final Element namedParameter = remainingNamedParameters.head;
       leftOverNamedParameters[namedParameter.name] = namedParameter;
@@ -705,7 +705,7 @@ class ConcreteTypesInferrer {
     try {
       workQueue.addLast(
           new InferenceWorkItem(element, new ConcreteTypesEnvironment()));
-      while (!workQueue.isEmpty()) {
+      while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
         ConcreteType concreteType = analyze(item.method, item.environment);
         var template = cache[item.method];
@@ -802,7 +802,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     final positional = new List<ConcreteType>();
     final named = new Map<Identifier, ConcreteType>();
     for(Link<Node> iterator = arguments;
-        !iterator.isEmpty();
+        !iterator.isEmpty;
         iterator = iterator.tail) {
       Node node = iterator.head;
       NamedArgument namedArgument = node.asNamedArgument();
@@ -991,7 +991,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType type = new ConcreteType.empty();
     // The concrete type of a sequence of statements is the union of the
     // statement's types.
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       type = type.union(analyze(link.head));
     }
     return type;
@@ -1022,7 +1022,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitVariableDefinitions(VariableDefinitions node) {
-    for (Link<Node> link = node.definitions.nodes; !link.isEmpty();
+    for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {
       analyze(link.head);
     }

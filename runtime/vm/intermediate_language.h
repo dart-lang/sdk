@@ -36,7 +36,7 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
   V(_StringBase, get:length, StringBaseLength)                                 \
-  V(_StringBase, isEmpty, StringBaseIsEmpty)                                   \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
   V(_Double, toDouble, DoubleToDouble)                                         \
   V(_Double, toInt, DoubleToInteger)                                           \

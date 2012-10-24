@@ -62,7 +62,7 @@ class TypeDeclarationScope extends NestedScope {
 
   Element lookupTypeVariable(SourceString name) {
     Link<DartType> typeVariableLink = element.typeVariables;
-    while (!typeVariableLink.isEmpty()) {
+    while (!typeVariableLink.isEmpty) {
       TypeVariableType typeVariable = typeVariableLink.head;
       if (typeVariable.name == name) {
         return typeVariable.element;

@@ -106,7 +106,7 @@ class LinkedHashMapImplementation<K, V>
     return _map.length;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return length == 0;
   }
 

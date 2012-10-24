@@ -101,11 +101,11 @@ charCodeAt(var receiver, int index) {
   }
 }
 
-isEmpty(receiver) {
+get$isEmpty(receiver) {
   if (receiver is String || isJsArray(receiver)) {
     return JS('bool', r'#.length === 0', receiver);
   }
-  return UNINTERCEPTED(receiver.isEmpty());
+  return UNINTERCEPTED(receiver.isEmpty);
 }
 
 compareTo(a, b) {

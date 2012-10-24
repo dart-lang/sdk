@@ -142,7 +142,7 @@ class MockCompiler extends Compiler {
     print(message);
   }
 
-  bool get compilationFailed => !errors.isEmpty();
+  bool get compilationFailed => !errors.isEmpty;
 
   void clearWarnings() {
     warnings = [];

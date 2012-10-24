@@ -126,7 +126,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
     if (_closeCallbackCalled) return;
 
     if (!_streamMarkedClosed) {
-      if (!_bufferList.isEmpty() &&
+      if (!_bufferList.isEmpty &&
           _clientDataHandler != null &&
           _scheduledDataCallback == null) {
         _scheduledDataCallback = new Timer(0, issueDataCallback);

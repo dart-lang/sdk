@@ -8,7 +8,7 @@ class ValueSet {
   ValueSetNode collisions;
   ValueSet() : table = new List<HInstruction>(8);
 
-  bool isEmpty() => size == 0;
+  bool get isEmpty => size == 0;
   int get length => size;
 
   void add(HInstruction instruction) {

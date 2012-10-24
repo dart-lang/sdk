@@ -180,7 +180,7 @@ class LiveEnvironment {
     loopMarkers.remove(header);
   }
 
-  bool isEmpty() => liveInstructions.isEmpty() && loopMarkers.isEmpty();
+  bool get isEmpty => liveInstructions.isEmpty && loopMarkers.isEmpty;
   bool contains(HInstruction instruction) =>
       liveInstructions.containsKey(instruction);
   String toString() => liveInstructions.toString();
@@ -219,7 +219,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
-    if (!liveInstructions[graph.entry].isEmpty()) {
+    if (!liveInstructions[graph.entry].isEmpty) {
       compiler.internalError('LiveIntervalBuilder',
           node: compiler.currentElement.parseNode(compiler));
     }
@@ -358,7 +358,7 @@ class CopyHandler {
   }
 
   String toString() => 'Copies: $copies, assignments: $assignments';
-  bool isEmpty() => copies.isEmpty() && assignments.isEmpty();
+  bool get isEmpty => copies.isEmpty && assignments.isEmpty;
 }
 
 /**
@@ -458,7 +458,7 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
-    while (!freeTemporaryNames.isEmpty()) {
+    while (!freeTemporaryNames.isEmpty) {
       String name = freeTemporaryNames.removeLast();
       if (!usedNames.contains(name)) return name;
     }
@@ -590,7 +590,7 @@ class SsaVariableAllocator extends HBaseVisitor {
    * have no users or that are generated at use site does not need a name.
    */
   bool needsName(HInstruction instruction) {
-    if (instruction.usedBy.isEmpty()) return false;
+    if (instruction.usedBy.isEmpty) return false;
     // TODO(ngeoffray): locals/parameters are being generated at use site,
     // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.

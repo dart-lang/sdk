@@ -19,13 +19,13 @@ abstract class DartString implements Iterable<int> {
   factory DartString.escapedString(SourceString source, int length) =>
       new EscapedSourceDartString(source, length);
   factory DartString.concat(DartString first, DartString second) {
-    if (first.isEmpty()) return second;
-    if (second.isEmpty()) return first;
+    if (first.isEmpty) return second;
+    if (second.isEmpty) return first;
     return new ConsDartString(first, second);
   }
   const DartString();
   abstract int get length;
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
   abstract Iterator<int> iterator();
   abstract String slowToString();
 

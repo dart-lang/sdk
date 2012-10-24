@@ -153,7 +153,7 @@ function(cls, desc) {
   void generateNativeClass(ClassElement classElement) {
     nativeClasses.add(classElement);
 
-    assert(classElement.backendMembers.isEmpty());
+    assert(classElement.backendMembers.isEmpty);
     String quotedName = classElement.nativeName.slowToString();
     if (isNativeLiteral(quotedName)) {
       generateNativeLiteral(classElement);
@@ -172,9 +172,9 @@ function(cls, desc) {
     CodeBuffer methodBuffer = new CodeBuffer();
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
-    if (methodBuffer.isEmpty()
-        && fieldBuffer.isEmpty()
-        && getterSetterBuffer.isEmpty()) {
+    if (methodBuffer.isEmpty
+        && fieldBuffer.isEmpty
+        && getterSetterBuffer.isEmpty) {
       return;
     }
 
@@ -182,17 +182,17 @@ function(cls, desc) {
     nativeBuffer.add("$defineNativeClassName('$nativeName', ");
     nativeBuffer.add('{');
     bool firstInMap = true;
-    if (!fieldBuffer.isEmpty()) {
+    if (!fieldBuffer.isEmpty) {
       firstInMap = false;
       nativeBuffer.add(fieldBuffer);
     }
-    if (!getterSetterBuffer.isEmpty()) {
+    if (!getterSetterBuffer.isEmpty) {
       if (!firstInMap) nativeBuffer.add(",");
       firstInMap = false;
       nativeBuffer.add("\n ");
       nativeBuffer.add(getterSetterBuffer);
     }
-    if (!methodBuffer.isEmpty()) {
+    if (!methodBuffer.isEmpty) {
       if (!firstInMap) nativeBuffer.add(",");
       nativeBuffer.add(methodBuffer);
     }
@@ -275,7 +275,7 @@ function(cls, desc) {
   }
 
   void emitDynamicDispatchMetadata() {
-    if (classesWithDynamicDispatch.isEmpty()) return;
+    if (classesWithDynamicDispatch.isEmpty) return;
     int length = classesWithDynamicDispatch.length;
     nativeBuffer.add('// $length dynamic classes.\n');
 
@@ -295,12 +295,12 @@ function(cls, desc) {
     }
 
     Collection<ClassElement> dispatchClasses = classes.filter(
-        (cls) => !getDirectSubclasses(cls).isEmpty() &&
+        (cls) => !getDirectSubclasses(cls).isEmpty &&
                   classesWithDynamicDispatch.contains(cls));
 
     nativeBuffer.add('// ${classes.length} classes\n');
     Collection<ClassElement> classesThatHaveSubclasses = classes.filter(
-        (ClassElement t) => !getDirectSubclasses(t).isEmpty());
+        (ClassElement t) => !getDirectSubclasses(t).isEmpty);
     nativeBuffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
 
     // Generate code that builds the map from cls tags used in dynamic dispatch
@@ -365,7 +365,7 @@ function(cls, desc) {
     }
 
     // Write out a thunk that builds the metadata.
-    if (!tagDefns.isEmpty()) {
+    if (!tagDefns.isEmpty) {
       nativeBuffer.add('(function(){\n');
 
       for (final String varName in varNames) {
@@ -426,7 +426,7 @@ function(cls, desc) {
   }
 
   void assembleCode(CodeBuffer targetBuffer) {
-    if (nativeClasses.isEmpty()) return;
+    if (nativeClasses.isEmpty) return;
     emitDynamicDispatchMetadata();
     targetBuffer.add('$defineNativeClassName = '
                      '$defineNativeClassFunction;\n\n');
@@ -462,7 +462,7 @@ function(cls, desc) {
 
     // If we have any properties to add to Object.prototype, we run
     // through them and add them using defineProperty.
-    if (!objectProperties.isEmpty()) {
+    if (!objectProperties.isEmpty) {
       targetBuffer.add("(function(table) {\n"
                        "  for (var key in table) {\n"
                        "    $defPropName(Object.prototype, key, table[key]);\n"

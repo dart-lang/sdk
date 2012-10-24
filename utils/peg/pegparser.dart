@@ -266,7 +266,7 @@ class Grammar {
 
   diagnose(state) {
     var message = 'unexpected error';
-    if (!state.max_rule.isEmpty()) {
+    if (!state.max_rule.isEmpty) {
       var s = new Set();
       for (var rule in state.max_rule)
         s.add(rule.description());

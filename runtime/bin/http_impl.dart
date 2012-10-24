@@ -2038,7 +2038,7 @@ class _ProxyConfiguration {
     List<String> list = configuration.split(";");
     list.forEach((String proxy) {
       proxy = proxy.trim();
-      if (!proxy.isEmpty()) {
+      if (!proxy.isEmpty) {
         if (proxy.startsWith(PROXY_PREFIX)) {
           int colon = proxy.indexOf(":");
           if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
@@ -2100,7 +2100,7 @@ class _HttpClient implements HttpClient {
                              Uri uri,
                              [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
-    if (method == null || uri.domain.isEmpty()) {
+    if (method == null || uri.domain.isEmpty) {
       throw new ArgumentError(null);
     }
     return _prepareHttpClientConnection(method, uri, connection);
@@ -2138,7 +2138,7 @@ class _HttpClient implements HttpClient {
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
-       while (!connections.isEmpty()) {
+       while (!connections.isEmpty) {
          _SocketConnection socketConn = connections.removeFirst();
          socketConn._socket.close();
        }
@@ -2202,7 +2202,7 @@ class _HttpClient implements HttpClient {
       // otherwise create a new one.
       String key = _connectionKey(connectHost, connectPort);
       Queue socketConnections = _openSockets[key];
-      if (socketConnections == null || socketConnections.isEmpty()) {
+      if (socketConnections == null || socketConnections.isEmpty) {
         Socket socket = new Socket(connectHost, connectPort);
         // Until the connection is established handle connection errors
         // here as the HttpClientConnection object is not yet associated
@@ -2236,8 +2236,8 @@ class _HttpClient implements HttpClient {
                   _connectionOpened(socketConn, connection, !proxy.isDirect));
 
         // Get rid of eviction timer if there are no more active connections.
-        if (socketConnections.isEmpty()) _openSockets.remove(key);
-        if (_openSockets.isEmpty()) _cancelEvictionTimer();
+        if (socketConnections.isEmpty) _openSockets.remove(key);
+        if (_openSockets.isEmpty) _cancelEvictionTimer();
       }
     }
 
@@ -2293,13 +2293,13 @@ class _HttpClient implements HttpClient {
             void _(String key, Queue<_SocketConnection> connections) {
               // As returned connections are added at the head of the
               // list remove from the tail.
-              while (!connections.isEmpty()) {
+              while (!connections.isEmpty) {
                 _SocketConnection socketConn = connections.last();
                 if (socketConn._idleTime(now).inMilliseconds >
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();
                   socketConn._socket.close();
-                  if (connections.isEmpty()) emptyKeys.add(key);
+                  if (connections.isEmpty) emptyKeys.add(key);
                 } else {
                   break;
                 }
@@ -2310,7 +2310,7 @@ class _HttpClient implements HttpClient {
         emptyKeys.forEach((String key) => _openSockets.remove(key));
 
         // If all connections where evicted cancel the eviction timer.
-        if (_openSockets.isEmpty()) _cancelEvictionTimer();
+        if (_openSockets.isEmpty) _cancelEvictionTimer();
       }
       _evictionTimer = new Timer.repeating(10000, _handleEviction);
     }

@@ -414,7 +414,7 @@ class NestedTempDirectoryTest {
   }
 
   void deletePhaseCallback() {
-    if (!createdDirectories.isEmpty()) {
+    if (!createdDirectories.isEmpty) {
       current = createdDirectories.removeLast();
       current.deleteSync();
       deletePhaseCallback();

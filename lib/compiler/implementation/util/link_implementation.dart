@@ -5,7 +5,7 @@
 class LinkIterator<T> implements Iterator<T> {
   Link<T> current;
   LinkIterator(Link<T> this.current);
-  bool get hasNext => !current.isEmpty();
+  bool get hasNext => !current.isEmpty;
   T next() {
     T result = current.head;
     current = current.tail;
@@ -28,7 +28,7 @@ class LinkEntry<T> extends Link<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.add(head);
     if (separatedBy == null) separatedBy = '';
-    for (Link link = tail; !link.isEmpty(); link = link.tail) {
+    for (Link link = tail; !link.isEmpty; link = link.tail) {
       buffer.add(separatedBy);
       buffer.add(link.head);
     }
@@ -44,7 +44,7 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> reverse() {
     Link<T> result = const Link();
-    for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       result = result.prepend(link.head);
     }
     return result;
@@ -52,25 +52,25 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> reversePrependAll(Link<T> from) {
     Link<T> result;
-    for (result = this; !from.isEmpty(); from = from.tail) {
+    for (result = this; !from.isEmpty; from = from.tail) {
       result = result.prepend(from.head);
     }
     return result;
   }
 
 
-  bool isEmpty() => false;
+  bool get isEmpty => false;
 
   List<T> toList() {
     List<T> list = new List<T>();
-    for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       list.addLast(link.head);
     }
     return list;
   }
 
   void forEach(void f(T element)) {
-    for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       f(link.head);
     }
   }
@@ -78,14 +78,14 @@ class LinkEntry<T> extends Link<T> {
   bool operator ==(other) {
     if (other is !Link<T>) return false;
     Link<T> myElements = this;
-    while (!myElements.isEmpty() && !other.isEmpty()) {
+    while (!myElements.isEmpty && !other.isEmpty) {
       if (myElements.head != other.head) {
         return false;
       }
       myElements = myElements.tail;
       other = other.tail;
     }
-    return myElements.isEmpty() && other.isEmpty();
+    return myElements.isEmpty && other.isEmpty;
   }
 }
 

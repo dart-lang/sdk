@@ -88,7 +88,7 @@ class _ObjectArray<E> implements List<E> {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -230,7 +230,7 @@ class _ImmutableArray<E> implements List<E> {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 

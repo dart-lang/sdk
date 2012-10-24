@@ -872,7 +872,7 @@ class FileDescriptor extends Descriptor {
    * Loads the contents of the file.
    */
   InputStream load(List<String> path) {
-    if (!path.isEmpty()) {
+    if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
@@ -943,7 +943,7 @@ class DirectoryDescriptor extends Descriptor {
    * Loads [path] from within this directory.
    */
   InputStream load(List<String> path) {
-    if (path.isEmpty()) {
+    if (path.isEmpty) {
       throw "Can't load the contents of $name: is a directory.";
     }
 
@@ -1123,7 +1123,7 @@ class TarFileDescriptor extends Descriptor {
    * Loads the contents of this tar file.
    */
   InputStream load(List<String> path) {
-    if (!path.isEmpty()) {
+    if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
@@ -1158,7 +1158,7 @@ class NothingDescriptor extends Descriptor {
   }
 
   InputStream load(List<String> path) {
-    if (path.isEmpty()) {
+    if (path.isEmpty) {
       throw "Can't load the contents of $name: it doesn't exist.";
     } else {
       throw "Can't load ${Strings.join(path, '/')} from within $name: $name "

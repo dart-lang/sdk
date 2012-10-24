@@ -85,7 +85,7 @@ abstract class SequenceCollection<E> implements Collection<E>, Sequence<E> {
     return false;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length == 0;
   }
 }

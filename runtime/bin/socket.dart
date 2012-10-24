@@ -137,7 +137,7 @@ class SocketIOException implements Exception {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("SocketIOException");
-    if (!message.isEmpty()) {
+    if (!message.isEmpty) {
       sb.add(": $message");
       if (osError != null) {
         sb.add(" ($osError)");

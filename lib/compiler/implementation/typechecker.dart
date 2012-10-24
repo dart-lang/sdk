@@ -132,7 +132,7 @@ class InterfaceType implements DartType {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
-    if (!arguments.isEmpty()) {
+    if (!arguments.isEmpty) {
       sb.add('<');
       arguments.printOn(sb, ', ');
       sb.add('>');
@@ -143,7 +143,7 @@ class InterfaceType implements DartType {
   int get hashCode {
     int hash = element.hashCode;
     for (Link<DartType> arguments = this.arguments;
-         !arguments.isEmpty();
+         !arguments.isEmpty;
          arguments = arguments.tail) {
       int argumentHash = arguments.head != null ? arguments.head.hashCode : 0;
       hash = 17 * hash + 3 * argumentHash;
@@ -197,7 +197,7 @@ class FunctionType implements DartType {
   int get hashCode {
     int hash = 17 * element.hashCode + 3 * returnType.hashCode;
     for (Link<DartType> parameters = parameterTypes;
-         !parameters.isEmpty();
+         !parameters.isEmpty;
         parameters = parameters.tail) {
       hash = 17 * hash + 3 * parameters.head.hashCode;
     }
@@ -229,7 +229,7 @@ class TypedefType implements DartType {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
-    if (!typeArguments.isEmpty()) {
+    if (!typeArguments.isEmpty) {
       sb.add('<');
       typeArguments.printOn(sb, ', ');
       sb.add('>');
@@ -281,7 +281,7 @@ class Types {
       ClassElement tc = t.element;
       if (identical(tc, s.element)) return true;
       for (Link<DartType> supertypes = tc.allSupertypes;
-           supertypes != null && !supertypes.isEmpty();
+           supertypes != null && !supertypes.isEmpty;
            supertypes = supertypes.tail) {
         DartType supertype = supertypes.head;
         if (identical(supertype.element, s.element)) return true;
@@ -294,12 +294,12 @@ class Types {
       FunctionType sf = s;
       Link<DartType> tps = tf.parameterTypes;
       Link<DartType> sps = sf.parameterTypes;
-      while (!tps.isEmpty() && !sps.isEmpty()) {
+      while (!tps.isEmpty && !sps.isEmpty) {
         if (!isAssignable(tps.head, sps.head)) return false;
         tps = tps.tail;
         sps = sps.tail;
       }
-      if (!tps.isEmpty() || !sps.isEmpty()) return false;
+      if (!tps.isEmpty || !sps.isEmpty) return false;
       if (!isAssignable(sf.returnType, tf.returnType)) return false;
       return true;
     } else if (t is TypeVariableType) {
@@ -524,7 +524,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     if (member == null) {
       classElement.ensureResolved(compiler);
       for (Link<DartType> supertypes = classElement.allSupertypes;
-           !supertypes.isEmpty() && member == null;
+           !supertypes.isEmpty && member == null;
            supertypes = supertypes.tail) {
         ClassElement lookupTarget = supertypes.head.element;
         member = lookupTarget.lookupLocalMember(name);
@@ -541,22 +541,22 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   void analyzeArguments(Send send, DartType type) {
     Link<Node> arguments = send.arguments;
     if (type == null || identical(type, types.dynamicType)) {
-      while(!arguments.isEmpty()) {
+      while(!arguments.isEmpty) {
         analyze(arguments.head);
         arguments = arguments.tail;
       }
     } else {
       FunctionType funType = type;
       Link<DartType> parameterTypes = funType.parameterTypes;
-      while (!arguments.isEmpty() && !parameterTypes.isEmpty()) {
+      while (!arguments.isEmpty && !parameterTypes.isEmpty) {
         checkAssignable(arguments.head, parameterTypes.head,
                         analyze(arguments.head));
         arguments = arguments.tail;
         parameterTypes = parameterTypes.tail;
       }
-      if (!arguments.isEmpty()) {
+      if (!arguments.isEmpty) {
         reportTypeWarning(arguments.head, MessageKind.ADDITIONAL_ARGUMENT);
-      } else if (!parameterTypes.isEmpty()) {
+      } else if (!parameterTypes.isEmpty) {
         reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
                           [parameterTypes.head]);
       }
@@ -581,7 +581,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       final Node firstArgument = node.receiver;
       final DartType firstArgumentType = analyze(node.receiver);
       final arguments = node.arguments;
-      final Node secondArgument = arguments.isEmpty() ? null : arguments.head;
+      final Node secondArgument = arguments.isEmpty ? null : arguments.head;
       final DartType secondArgumentType =
           analyzeWithDefault(secondArgument, null);
 
@@ -597,7 +597,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         return boolType;
       } else if (identical(name, '||') || identical(name, '&&') || identical(name, '!')) {
         checkAssignable(firstArgument, boolType, firstArgumentType);
-        if (!arguments.isEmpty()) {
+        if (!arguments.isEmpty) {
           // TODO(karlklose): check number of arguments in validator.
           checkAssignable(secondArgument, boolType, secondArgumentType);
         }
@@ -723,7 +723,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   DartType visitNodeList(NodeList node) {
     DartType type = StatementType.NOT_RETURNING;
     bool reportedDeadCode = false;
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       DartType nextType = analyze(link.head);
       if (type == StatementType.RETURNING) {
         if (!reportedDeadCode) {
@@ -808,7 +808,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = types.dynamicType;
     }
-    for (Link<Node> link = node.definitions.nodes; !link.isEmpty();
+    for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {
       Node initialization = link.head;
       compiler.ensure(initialization is Identifier

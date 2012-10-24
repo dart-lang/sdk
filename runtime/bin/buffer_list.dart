@@ -17,7 +17,7 @@ class _BufferList {
    * buffer list is empty.
    */
   void add(List<int> buffer, [int offset = 0]) {
-    assert(offset == 0 || _buffers.isEmpty());
+    assert(offset == 0 || _buffers.isEmpty);
     _buffers.addLast(buffer);
     _length += buffer.length;
     if (offset != 0) _index = offset;
@@ -135,7 +135,7 @@ class _BufferList {
    * Returns whether the buffer list is empty that is has no bytes
    * available.
    */
-  bool isEmpty() => _buffers.isEmpty();
+  bool get isEmpty => _buffers.isEmpty;
 
   /**
    * Clears the content of the buffer list.

@@ -29,7 +29,7 @@ class _Path implements Path {
     return clean;
   }
 
-  bool get isEmpty => _path.isEmpty();
+  bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
 
@@ -129,7 +129,7 @@ class _Path implements Path {
     List segs = segments();
     String drive;
     if (isAbs &&
-        !segs.isEmpty() &&
+        !segs.isEmpty &&
         segs[0].length == 2 &&
         segs[0][1] == ':') {
       drive = segs[0];
@@ -140,7 +140,7 @@ class _Path implements Path {
       switch (segment) {
         case '..':
           // Absolute paths drop leading .. markers, including after a drive.
-          if (newSegs.isEmpty()) {
+          if (newSegs.isEmpty) {
             if (isAbs) {
               // Do nothing: drop the segment.
             } else {
@@ -170,7 +170,7 @@ class _Path implements Path {
       }
     }
 
-    if (newSegs.isEmpty()) {
+    if (newSegs.isEmpty) {
       if (isAbs) {
         segmentsToJoin.add('');
       } else {

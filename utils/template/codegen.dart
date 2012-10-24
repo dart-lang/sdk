@@ -26,7 +26,7 @@ class CGBlock {
     assert(_blockType >= CGBlock.CONSTRUCTOR && _blockType <= CGBlock.WITH);
   }
 
-  bool get anyStatements => !_stmts.isEmpty();
+  bool get anyStatements => !_stmts.isEmpty;
   bool get isConstructor => _blockType == CGBlock.CONSTRUCTOR;
   bool get isEach => _blockType == CGBlock.EACH;
   bool get isWith => _blockType == CGBlock.WITH;

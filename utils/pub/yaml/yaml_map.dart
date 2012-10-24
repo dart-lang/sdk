@@ -32,7 +32,7 @@ class YamlMap implements Map {
   Collection getKeys() => _map.getKeys().map(_unwrapKey);
   Collection getValues() => _map.getValues();
   int get length => _map.length;
-  bool isEmpty() => _map.isEmpty();
+  bool get isEmpty => _map.isEmpty;
   String toString() => _map.toString();
 
   int get hashCode => _hashCode(_map);

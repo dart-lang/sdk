@@ -610,7 +610,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
-      if (!parameters.optionalParameters.isEmpty()) {
+      if (!parameters.optionalParameters.isEmpty) {
         addParameterStubs(member, defineInstanceMember);
       }
     } else if (!member.isField()) {
@@ -1181,7 +1181,7 @@ $classesCollector.$mangledName = {'':
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
-    if (!lazyFields.isEmpty()) {
+    if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in lazyFields) {
         assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
@@ -1250,7 +1250,7 @@ $classesCollector.$mangledName = {'':
     assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-      if (selectors != null && !selectors.isEmpty()) {
+      if (selectors != null && !selectors.isEmpty) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.isFunction()) {
@@ -1262,7 +1262,7 @@ $classesCollector.$mangledName = {'':
 
   void emitNoSuchMethodHandlers(DefineMemberFunction defineInstanceMember) {
     // Do not generate no such method handlers if there is no class.
-    if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
+    if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
     String noSuchMethodName =
         namer.publicInstanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);

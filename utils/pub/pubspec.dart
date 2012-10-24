@@ -39,7 +39,7 @@ class Pubspec {
 
   /** Whether or not the pubspec has no contents. */
   bool get isEmpty =>
-    name == null && version == Version.none && dependencies.isEmpty();
+    name == null && version == Version.none && dependencies.isEmpty;
 
   /**
    * Parses the pubspec whose text is [contents]. If the pubspec doesn't define

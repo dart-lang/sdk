@@ -36,7 +36,7 @@ class ConstantMap<V> implements Map<String, V> {
     return result;
   }
 
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   String toString() => Maps.mapToString(this);
 

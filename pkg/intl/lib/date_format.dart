@@ -533,7 +533,7 @@ class DateFormat {
 
   /** Recursive helper for parsing the template pattern. */
   List _parsePatternHelper(String pattern) {
-    if (pattern.isEmpty()) return [];
+    if (pattern.isEmpty) return [];
 
     var matched = _match(pattern);
     if (matched == null) return [];

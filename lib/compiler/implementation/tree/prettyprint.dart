@@ -25,7 +25,7 @@ class PrettyPrinter implements Visitor {
   }
 
   String popTag() {
-    assert(!tagStack.isEmpty());
+    assert(!tagStack.isEmpty);
     String tag = tagStack.head;
     tagStack = tagStack.tail;
     return tag;

@@ -65,7 +65,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
     discardOpenLt();
-    while (!groupingStack.isEmpty()) {
+    while (!groupingStack.isEmpty) {
       BeginGroupToken begin = groupingStack.head;
       begin.endGroup = tail;
       groupingStack = groupingStack.tail;
@@ -104,7 +104,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     assert(!identical(openKind, LT_TOKEN));
     appendStringToken(info, value);
     discardOpenLt();
-    if (groupingStack.isEmpty()) {
+    if (groupingStack.isEmpty) {
       return advance();
     }
     BeginGroupToken begin = groupingStack.head;
@@ -128,7 +128,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
 
   void appendGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
@@ -137,11 +137,11 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
 
   void appendGtGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
@@ -150,15 +150,15 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
 
   void appendGtGtGt(PrecedenceInfo info, String value) {
     appendStringToken(info, value);
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
-    if (groupingStack.isEmpty()) return;
+    if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
@@ -172,7 +172,7 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   }
 
   void discardOpenLt() {
-    while (!groupingStack.isEmpty()
+    while (!groupingStack.isEmpty
         && identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }

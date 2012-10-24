@@ -88,8 +88,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isTrue(makeNode().nodes.isEmpty());
-      Expect.isFalse(makeNodeWithChildren().nodes.isEmpty());
+      Expect.isTrue(makeNode().nodes.isEmpty);
+      Expect.isFalse(makeNodeWithChildren().nodes.isEmpty);
     });
 
     test('length', () {
