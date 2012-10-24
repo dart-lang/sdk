@@ -47,16 +47,16 @@ abstract class int extends num {
   /** Returns the absolute value of this integer. */
   int abs();
 
-  /** For integers the round method is the identify function. */
+  /** Returns [this]. */
   int round();
 
-  /** For integers the floor method is the identify function. */
+  /** Returns [this]. */
   int floor();
 
-  /** For integers the ceil method is the identify function. */
+  /** Returns [this]. */
   int ceil();
 
-  /** For integers the truncate method is the identify function. */
+  /** Returns [this]. */
   int truncate();
 
   /**
