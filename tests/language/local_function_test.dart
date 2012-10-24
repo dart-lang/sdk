@@ -142,14 +142,14 @@ class LocalFunctionTest {
     bool exception_caught = false;
     try {
       f(1, 2);
-    } on ClosureArgumentMismatchException catch (e) {
+    } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
       f();
-    } on ClosureArgumentMismatchException catch (e) {
+    } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);

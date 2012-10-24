@@ -156,7 +156,6 @@ get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
 library_prefixes_test: Fail # other is not a type
-local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
