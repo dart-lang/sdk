@@ -15,6 +15,5 @@
     'splay_tree.dart',
     'stopwatch_implementation.dart',
     'string.dart',
-    'string_buffer.dart',
   ],
 }

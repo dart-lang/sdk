@@ -15,4 +15,3 @@
 #source("splay_tree.dart");
 #source("stopwatch_implementation.dart");
 #source("string.dart");
-#source("string_buffer.dart");
