@@ -229,6 +229,7 @@ LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
 LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
+LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
 
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
