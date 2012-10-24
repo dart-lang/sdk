@@ -99,15 +99,11 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 static void InstallUnoptimizedCode(const Function& function) {
   // Disable optimized code.
   ASSERT(function.HasOptimizedCode());
-  // Patch entry of optimized code.
-  CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
   if (FLAG_trace_compiler) {
     OS::Print("--> patching entry %#"Px"\n",
               Code::Handle(function.CurrentCode()).EntryPoint());
   }
-  // Use previously compiled code.
-  function.SetCode(Code::Handle(function.unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(function.unoptimized_code()));
+  function.SwitchToUnoptimizedCode();
   if (FLAG_trace_compiler) {
     OS::Print("--> restoring entry at %#"Px"\n",
               Code::Handle(function.unoptimized_code()).EntryPoint());

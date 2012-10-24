@@ -43,6 +43,8 @@ DEFINE_FLAG(bool, reject_named_argument_as_positional, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
+DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
+    "Trace disabling optimized code.");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -3017,8 +3019,14 @@ void Function::SetCode(const Code& value) const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+  const Code& current_code = Code::Handle(CurrentCode());
+  if (FLAG_trace_disabling_optimized_code) {
+    OS::Print("Disabling optimized code: '%s' entry: %#"Px"\n",
+      ToFullyQualifiedCString(),
+      current_code.EntryPoint());
+  }
   // Patch entry of the optimized code.
-  CodePatcher::PatchEntry(Code::Handle(CurrentCode()));
+  CodePatcher::PatchEntry(current_code);
   // Use previously compiled unoptimized code.
   SetCode(Code::Handle(unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
