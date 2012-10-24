@@ -8,6 +8,7 @@
   'sources': [
     'common.cc',
     'crypto.cc',
+    'crypto_android.cc',
     'crypto_linux.cc',
     'crypto_macos.cc',
     'crypto_win.cc',
