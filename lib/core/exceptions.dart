@@ -42,19 +42,6 @@ class IllegalAccessException implements Exception {
   String toString() => "Attempt to modify an immutable object";
 }
 
-
-class ClosureArgumentMismatchException implements Exception {
-  const ClosureArgumentMismatchException();
-  String toString() => "Closure argument mismatch";
-}
-
-
-class ObjectNotClosureException implements Exception {
-  const ObjectNotClosureException();
-  String toString() => "Object is not closure";
-}
-
-
 /**
  * Exception thrown when a string or some other data does not have an expected
  * format and cannot be parsed or processed.

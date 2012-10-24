@@ -167,7 +167,7 @@ RawObject* DartLibraryCalls::ExceptionCreate(
     const Library& lib,
     const String& class_name,
     const GrowableArray<const Object*>& arguments) {
-  const Class& cls = Class::Handle(lib.LookupClass(class_name));
+  const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));

@@ -201,15 +201,26 @@ LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 274
 LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 274
 LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 274
 
+LibTest/core/ObjectNotClosureException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ObjectNotClosureException/ObjectNotClosureException_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
+LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
+LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
+LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A01_t01: Fail, OK # co19 issue 276
+Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
-
-# These tests do noting in checked mode, and therefore cannot fail.
-LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 274
-LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 274
-LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 274
-LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 274
 
 [ $compiler == dart2js && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail # http://dartbug.com/5348

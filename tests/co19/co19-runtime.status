@@ -211,6 +211,18 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # iss
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
+LibTest/core/ObjectNotClosureException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ObjectNotClosureException/ObjectNotClosureException_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
+LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
+LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A01_t01: Fail, OK # co19 issue 276
+Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail, OK # co19 issue 283
@@ -223,11 +235,11 @@ Language/14_Types/7_Type_Void_A04_t05: Fail, OK # co19 issue 158
 
 Language/10_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 234
 
-
 [ $compiler == none && $runtime == vm && $unchecked ]
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 
+LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
 
 [ $compiler == none && $runtime == vm ]
 # Not properly reporting exception in initializer expressions

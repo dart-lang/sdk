@@ -188,6 +188,24 @@ LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # co19 issue 272
 LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # co19 issue 272
 
+LibTest/core/ObjectNotClosureException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ObjectNotClosureException/ObjectNotClosureException_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
+LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
+LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
+LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/toString_A01_t01: Fail, OK # co19 issue 276
+LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A01_t01: Fail, OK # co19 issue 276
+Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
+
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t41: Fail # http://dartbug.com/5519
