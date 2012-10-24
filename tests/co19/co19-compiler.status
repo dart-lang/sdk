@@ -225,6 +225,20 @@ LibTest/core/Set/filter_A01_t03: Fail, OK
 LibTest/core/String/hashCode_A01_t01: Pass, OK
 LibTest/core/int/hashCode_A01_t01: Pass, OK
 
+LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 276
+LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
+LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
+LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
+LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
+Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
+
 # The following tests use the deprecated catch syntax
 
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK
