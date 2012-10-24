@@ -44,15 +44,51 @@ audiobuffersourcenode_test: Pass, Fail
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
 
-[ $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
+
+[$runtime == ie10 ]
+# TODO(efortuna, blois): Triage.
+audiobuffersourcenode_test: Fail
+audiocontext_test: Fail
+contentelement_test: Fail
+css_test: Fail
+element_test: Fail
+element_webkit_test: Fail
+exceptions_test: Fail
+fileapi_test: Fail
+indexeddb_1_test: Fail
+indexeddb_2_test: Fail
+indexeddb_3_test: Fail
+indexeddb_4_test: Fail
+inner_frame_test: Skip
+isolates_test: Skip
+js_interop_2_test: Fail
+js_interop_3_test: Fail
+js_interop_4_test: Fail
+localstorage_test: Fail
+messageevent_test: Fail
+mutationobserver_test: Fail
+node_test: Fail
+serialized_script_value_test: Fail
+svgelement2_test: Fail
+svgelement_test: Fail
+svg_3_test: Fail
+typed_arrays_1_test: Fail
+typed_arrays_arraybuffer_test: Fail
+typed_arrays_dataview_test: Fail
+url_test: Fail
+websql_test: Fail
+window_open_test: Skip
+xhr_test: Fail
+xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
 contentelement_test: Fail   # ie9 does not support content element.

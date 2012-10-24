@@ -296,7 +296,7 @@ class OperaHtmlParser(HTMLParser.HTMLParser):
     """Find the latest version."""
     if (tag == 'a' and attrs[0][0] == 'href' and
         self.rejection_func(attrs[0][1])):
-      self.latest = self.better_func(attrs[0][1], self.latest)
+      self.latest = self.accept_func(attrs[0][1], self.latest)
 
 class OperaInstaller(object):
   """Install from the Opera FTP website."""
