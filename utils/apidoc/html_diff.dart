@@ -16,7 +16,11 @@
 #import('../../pkg/dartdoc/lib/mirrors.dart');
 #import('../../pkg/dartdoc/lib/mirrors_util.dart');
 
+// TODO(amouravski): There is currently magic that looks at dart:* libraries
+// rather than the declared library names. This changed due to recent syntax
+// changes. We should only need to look at the library 'html'.
 const HTML_LIBRARY_NAME = 'dart:html';
+const HTML_DECLARED_NAME = 'html';
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -92,7 +96,7 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    LibraryMirror htmlLib = _mirrors.libraries[HTML_LIBRARY_NAME];
+    LibraryMirror htmlLib = _mirrors.libraries[HTML_DECLARED_NAME];
     if (htmlLib === null) {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
