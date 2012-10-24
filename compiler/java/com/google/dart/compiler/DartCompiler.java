@@ -1370,20 +1370,20 @@ public class DartCompiler {
   }
 
   private static void showVersion(CompilerOptions options) {
-    String revision = getSdkRevision(options);
-    if (revision == null) {
-      revision = "<unkown>";
+    String version = getSdkVersion(options);
+    if (version == null) {
+      version = "<unkown>";
     }
-    System.out.println("dart_analyzer version " + revision);
+    System.out.println("dart_analyzer version " + version);
   }
 
   /**
    * @return the numeric revision of SDK, may be <code>null</code> if cannot find.
    */
-  private static String getSdkRevision(CompilerOptions options) {
+  private static String getSdkVersion(CompilerOptions options) {
     try {
       File sdkPath = options.getDartSdkPath();
-      File revisionFile = new File(sdkPath, "revision");
+      File revisionFile = new File(sdkPath, "version");
       if (revisionFile.exists() && revisionFile.isFile()) {
         BufferedReader br = new BufferedReader(new FileReader(revisionFile));
         try {
