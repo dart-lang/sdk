@@ -20,7 +20,7 @@ bool Socket::Initialize() {
 
 intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   intptr_t fd;
-  struct hostent* server;
+  struct hostent server;
   struct sockaddr_in server_address;
 
   fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
@@ -31,8 +31,12 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 
   FDUtils::SetNonBlocking(fd);
 
-  server = gethostbyname(host);
-  if (server == NULL) {
+  static const size_t kTempBufSize = 1024;
+  char temp_buf[kTempBufSize];
+  struct hostent *unused;
+  int err;
+  if (gethostbyname_r(
+          host, &server, temp_buf, kTempBufSize, &unused, &err) != 0) {
     TEMP_FAILURE_RETRY(close(fd));
     fprintf(stderr, "Error CreateConnect: %s\n", strerror(errno));
     return -1;
@@ -40,7 +44,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port);
-  bcopy(server->h_addr, &server_address.sin_addr.s_addr, server->h_length);
+  bcopy(server.h_addr, &server_address.sin_addr.s_addr, server.h_length);
   memset(&server_address.sin_zero, 0, sizeof(server_address.sin_zero));
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd,
