@@ -106,6 +106,7 @@ class FlowGraph : public ZoneAllocated {
   intptr_t InstructionCount() const;
 
   ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
+  void AddToInitialDefinitions(Definition* defn);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,

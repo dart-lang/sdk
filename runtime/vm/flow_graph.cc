@@ -49,8 +49,15 @@ ConstantInstr* FlowGraph::AddConstantToInitialDefinitions(
   // Otherwise, allocate and add it to the pool.
   ConstantInstr* constant = new ConstantInstr(object);
   constant->set_ssa_temp_index(alloc_ssa_temp_index());
-  graph_entry_->initial_definitions()->Add(constant);
+  AddToInitialDefinitions(constant);
   return constant;
+}
+
+void FlowGraph::AddToInitialDefinitions(Definition* defn) {
+  // TODO(zerny): Set previous to the graph entry so it is accessible by
+  // GetBlock. Remove this once there is a direct pointer to the block.
+  defn->set_previous(graph_entry_);
+  graph_entry_->initial_definitions()->Add(defn);
 }
 
 
@@ -502,9 +509,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   GrowableArray<Definition*> env(variable_count());
 
   // Add global constants to the initial definitions.
-  ConstantInstr* constant_null = new ConstantInstr(Object::ZoneHandle());
-  constant_null->set_ssa_temp_index(alloc_ssa_temp_index());
-  graph_entry_->initial_definitions()->Add(constant_null);
+  ConstantInstr* constant_null =
+      AddConstantToInitialDefinitions(Object::ZoneHandle());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -513,7 +519,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     for (intptr_t i = 0; i < parameter_count(); ++i) {
       Definition* defn = (*inlining_parameters)[i];
       defn->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-      graph_entry_->initial_definitions()->Add(defn);
+      AddToInitialDefinitions(defn);
       env.Add(defn);
     }
   } else {
@@ -521,7 +527,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     for (intptr_t i = 0; i < parameter_count(); ++i) {
       ParameterInstr* param = new ParameterInstr(i, graph_entry_);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-      graph_entry_->initial_definitions()->Add(param);
+      AddToInitialDefinitions(param);
       env.Add(param);
     }
   }
