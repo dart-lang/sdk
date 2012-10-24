@@ -213,12 +213,13 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # iss
 
 
 [ $compiler == none && $runtime == vm && $checked ]
-Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A03_t02: Fail, OK # co19 issue 283
+Language/10_Expressions/09_Function_Expressions_A04_t02: Fail, OK # co19 issue 283
+
+Language/14_Types/7_Type_Void_A04_t02: Fail, OK # co19 issue 158
+Language/14_Types/7_Type_Void_A04_t03: Fail, OK # co19 issue 158
+Language/14_Types/7_Type_Void_A04_t04: Fail, OK # co19 issue 158
+Language/14_Types/7_Type_Void_A04_t05: Fail, OK # co19 issue 158
 
 Language/10_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 234
 
