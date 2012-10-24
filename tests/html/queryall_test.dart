@@ -76,7 +76,7 @@ main() {
   test('immutable', () {
       List<Element> list = div.queryAll('*');
       int len = list.length;
-      expect(() { list.add(new DivElement()); }, throwsException);
+      expect(() { list.add(new DivElement()); }, throwsUnsupportedError);
       expect(list.length, equals(len));
     });
 }
