@@ -96,7 +96,7 @@ def ProcessTools(mode, name, version):
 
   toolsBuildScript = os.path.join('.', 'editor', 'build', 'build.py')
 
-  # TODO(devoncarew): should we move this into GetBuildInfo()?  
+  # TODO(devoncarew): should we move this into GetBuildInfo()?
   # get the latest changed revision from the current repository sub-tree
   version = GetLatestChangedRevision()
 
@@ -131,7 +131,21 @@ def ProcessCompiler(name):
     # environment variables available.
     has_shell=True
   return subprocess.call([sys.executable,
-      os.path.join('utils', 'compiler', 'buildbot.py')],
+      os.path.join('tools', 'bots', 'compiler.py')],
+      env=os.environ, shell=has_shell)
+
+def ProcessPub(name):
+  '''
+  Build and test pub and the pub packages in the main Dart repository.
+  '''
+  print 'ProcessPub'
+  has_shell=False
+  if '-win' in name:
+    # In Windows we need to run in the shell, so that we have all the
+    # environment variables available.
+    has_shell=True
+  return subprocess.call([sys.executable,
+      os.path.join('tools', 'bots', 'pub.py')],
       env=os.environ, shell=has_shell)
 
 def FixJavaHome():
@@ -159,15 +173,15 @@ def GetShouldClobber():
 def RunDart(scriptPath):
   if sys.platform == 'darwin':
     pipe = subprocess.Popen(
-          ['./tools/testing/bin/macos/dart', scriptPath], 
+          ['./tools/testing/bin/macos/dart', scriptPath],
           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   elif os.name == 'posix':
     pipe = subprocess.Popen(
-          ['./tools/testing/bin/linux/dart', scriptPath], 
+          ['./tools/testing/bin/linux/dart', scriptPath],
           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   else:
     pipe = subprocess.Popen(
-          ['tools\\testing\\bin\\windows\\dart.exe', scriptPath], 
+          ['tools\\testing\\bin\\windows\\dart.exe', scriptPath],
           stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
   output = pipe.communicate()
@@ -208,6 +222,8 @@ def main():
     # TODO (danrubel) Fix dart-editor builds so that we can call FixJavaHome() before the build
     FixJavaHome()
     status = ProcessTools('release', name, version)
+  elif name.startswith('pub-'):
+    status = ProcessPub(name)
   else:
     # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
     # root directory, set JAVA_HOME based on that.

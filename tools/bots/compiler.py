@@ -4,133 +4,72 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Dart2js buildbot steps
+"""
+Dart2js buildbot steps
 
 Runs tests for the  dart2js compiler.
 """
 
 import platform
-import optparse
 import os
 import re
 import shutil
 import subprocess
 import sys
 
-BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
-BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
-
-
-DART_PATH = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import bot
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
 
-NO_COLOR_ENV = dict(os.environ)
-NO_COLOR_ENV['TERM'] = 'nocolor'
 
-class BuildInfo(object):
-  """ Encapsulation of build information.
-    - compiler: 'dart2js' or None when the builder has an incorrect name
-    - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
-    - mode: 'debug' or 'release'
-    - system: 'linux', 'mac', or 'win7'
-    - checked: True if we should run in checked mode, otherwise False
-    - host_checked: True if we should run in host checked mode, otherwise False
-    - shard_index: The shard we are running, None when not specified.
-    - total_shards: The total number of shards, None when not specified.
-    - is_buildbot: True if we are on a buildbot (or emulating it).
-    - test_set: Specification of a non standard test set, default None
-  """
-  def __init__(self, compiler, runtime, mode, system, checked=False,
-               host_checked=False, shard_index=None, total_shards=None,
-               is_buildbot=False, test_set=None):
-    self.compiler = compiler
-    self.runtime = runtime
-    self.mode = mode
-    self.system = system
-    self.checked = checked
-    self.host_checked = host_checked
-    self.shard_index = shard_index
-    self.total_shards = total_shards
-    self.is_buildbot = is_buildbot
-    self.test_set = test_set
-
-  def PrintBuildInfo(self):
-    shard_description = ""
-    if self.shard_index:
-      shard_description = " shard %s of %s" % (self.shard_index,
-                                               self.total_shards)
-    print ("compiler: %s, runtime: %s mode: %s, system: %s,"
-           " checked: %s, host-checked: %s, test-set: %s%s"
-           ) % (self.compiler, self.runtime, self.mode, self.system,
-                self.checked, self.host_checked, self.test_set,
-                shard_description)
-
-
-def GetBuildInfo():
+def GetBuildInfo(builder_name, is_buildbot):
   """Returns a BuildInfo object for the current buildbot based on the
      name of the builder.
   """
-  parser = optparse.OptionParser()
-  parser.add_option('-n', '--name', dest='name', help='The name of the build'
-      'bot you would like to emulate (ex: web-chrome-win7)', default=None)
-  args, _ = parser.parse_args()
-
   compiler = None
   runtime = None
   mode = None
   system = None
-  builder_name = os.environ.get(BUILDER_NAME)
   checked = False
   host_checked = False
   shard_index = None
   total_shards = None
-  is_buildbot = True
   test_set = None
 
-  if not builder_name:
-    # We are not running on a buildbot.
-    is_buildbot = False
-    if args.name:
-      builder_name = args.name
-    else:
-      print 'Use -n $BUILDBOT_NAME for the bot you would like to emulate.'
-      sys.exit(1)
+  dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
+  web_pattern = re.match(WEB_BUILDER, builder_name)
 
-  if builder_name:
-    dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
-    web_pattern = re.match(WEB_BUILDER, builder_name)
-
-    if web_pattern:
-      compiler = 'dart2js'
-      runtime = web_pattern.group(1)
-      system = web_pattern.group(2)
-      mode = 'release'
-      test_set = web_pattern.group(4)
-    elif dart2js_pattern:
-      compiler = 'dart2js'
-      system = dart2js_pattern.group(1)
-      runtime = 'd8'
-      if dart2js_pattern.group(3) == 'jsshell':
-        runtime = 'jsshell'
-      mode = dart2js_pattern.group(4)
-      # The valid naming parts for checked and host-checked are:
-      # Empty: checked=False, host_checked=False
-      # -checked: checked=True, host_checked=False
-      # -host-checked: checked=False, host_checked=True
-      # -checked-host-checked: checked=True, host_checked=True
-      if dart2js_pattern.group(6) == 'checked':
-        checked = True
-      if dart2js_pattern.group(6) == 'host-checked':
-        host_checked = True
-      if dart2js_pattern.group(8) == 'host-checked':
-        host_checked = True
-      shard_index = dart2js_pattern.group(9)
-      total_shards = dart2js_pattern.group(10)
+  if web_pattern:
+    compiler = 'dart2js'
+    runtime = web_pattern.group(1)
+    system = web_pattern.group(2)
+    mode = 'release'
+    test_set = web_pattern.group(4)
+  elif dart2js_pattern:
+    compiler = 'dart2js'
+    system = dart2js_pattern.group(1)
+    runtime = 'd8'
+    if dart2js_pattern.group(3) == 'jsshell':
+      runtime = 'jsshell'
+    mode = dart2js_pattern.group(4)
+    # The valid naming parts for checked and host-checked are:
+    # Empty: checked=False, host_checked=False
+    # -checked: checked=True, host_checked=False
+    # -host-checked: checked=False, host_checked=True
+    # -checked-host-checked: checked=True, host_checked=True
+    if dart2js_pattern.group(6) == 'checked':
+      checked = True
+    if dart2js_pattern.group(6) == 'host-checked':
+      host_checked = True
+    if dart2js_pattern.group(8) == 'host-checked':
+      host_checked = True
+    shard_index = dart2js_pattern.group(9)
+    total_shards = dart2js_pattern.group(10)
+  else :
+    return None
 
   if system == 'windows':
     system = 'win7'
@@ -140,8 +79,9 @@ def GetBuildInfo():
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
-    sys.exit(1)
-  return BuildInfo(compiler, runtime, mode, system, checked, host_checked,
+    return None
+
+  return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                    shard_index, total_shards, is_buildbot, test_set)
 
 
@@ -158,52 +98,36 @@ def TestStepName(name, flags):
 
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
   step_name = TestStepName(name, flags)
-  print '@@@BUILD_STEP %s@@@' % step_name
-  sys.stdout.flush()
-  if NeedsXterm(compiler, runtime) and system == 'linux':
-    cmd = ['xvfb-run', '-a']
-  else:
-    cmd = []
+  with bot.BuildStep(step_name, swallow_error=True):
+    sys.stdout.flush()
+    if NeedsXterm(compiler, runtime) and system == 'linux':
+      cmd = ['xvfb-run', '-a']
+    else:
+      cmd = []
 
-  user_test = os.environ.get('USER_TEST', 'no')
+    user_test = os.environ.get('USER_TEST', 'no')
 
-  cmd.extend([sys.executable,
-              os.path.join(os.curdir, 'tools', 'test.py'),
-              '--step_name=' + step_name,
-              '--mode=' + mode,
-              '--compiler=' + compiler,
-              '--runtime=' + runtime,
-              '--time',
-              '--use-sdk',
-              '--report'])
+    cmd.extend([sys.executable,
+                os.path.join(os.curdir, 'tools', 'test.py'),
+                '--step_name=' + step_name,
+                '--mode=' + mode,
+                '--compiler=' + compiler,
+                '--runtime=' + runtime,
+                '--time',
+                '--use-sdk',
+                '--report'])
 
-  if user_test == 'yes':
-    cmd.append('--progress=color')
-  else:
-    cmd.extend(['--progress=buildbot', '-v'])
+    if user_test == 'yes':
+      cmd.append('--progress=color')
+    else:
+      cmd.extend(['--progress=buildbot', '-v'])
 
-  if flags:
-    cmd.extend(flags)
-  cmd.extend(targets)
+    if flags:
+      cmd.extend(flags)
+    cmd.extend(targets)
 
-  print 'running %s' % (' '.join(cmd))
-  exit_code = subprocess.call(cmd, env=NO_COLOR_ENV)
-  if exit_code != 0:
-    print '@@@STEP_FAILURE@@@'
-  return exit_code
-
-
-def BuildSDK(mode, system):
-  """ build the SDK.
-   Args:
-     - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', or 'win7'
-  """
-  os.chdir(DART_PATH)
-
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
-  print 'running %s' % (' '.join(args))
-  return subprocess.call(args, env=NO_COLOR_ENV)
+    print 'running %s' % (' '.join(cmd))
+    bot.RunProcess(cmd)
 
 
 def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
@@ -217,9 +141,6 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
        emulating one.
      - test_set: Specification of a non standard test set, default None
   """
-
-  # Make sure we are in the dart directory
-  os.chdir(DART_PATH)
 
   if system.startswith('win') and runtime == 'ie':
     # There should not be more than one InternetExplorerDriver instance
@@ -294,7 +215,6 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
       TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
                flags)
 
-  return 0
 
 def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
@@ -302,6 +222,7 @@ def _DeleteTempWebdriverProfiles(directory):
     item = os.path.join(directory, f)
     if os.path.isdir(item) and (f.startswith('tmp') or f.startswith('opera')):
       subprocess.Popen('rm -rf %s' % item, shell=True)
+
 
 def CleanUpTemporaryFiles(system, browser):
   """For some browser (selenium) tests, the browser creates a temporary profile
@@ -331,19 +252,6 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteTempWebdriverProfiles('/tmp')
     _DeleteTempWebdriverProfiles('/var/tmp')
 
-def ClobberBuilder(mode):
-  """ Clobber the builder before we do the build.
-  Args:
-     - mode: either 'debug' or 'release'
-  """
-  cmd = [sys.executable,
-         './tools/clean_output_directory.py',
-         '--mode=' + mode]
-  print 'Clobbering %s' % (' '.join(cmd))
-  return subprocess.call(cmd, env=NO_COLOR_ENV)
-
-def GetShouldClobber():
-  return os.environ.get(BUILDER_CLOBBER) == "1"
 
 def GetHasHardCodedCheckedMode(build_info):
   # TODO(ricow): We currently run checked mode tests on chrome on linux and
@@ -357,32 +265,8 @@ def GetHasHardCodedCheckedMode(build_info):
     return True
   return False
 
-def main():
-  if len(sys.argv) == 0:
-    print 'Script pathname not known, giving up.'
-    return 1
 
-  build_info = GetBuildInfo()
-
-  # Print out the buildinfo for easy debugging.
-  build_info.PrintBuildInfo()
-
-  if build_info.compiler is None:
-    return 1
-
-  if GetShouldClobber():
-    print '@@@BUILD_STEP Clobber@@@'
-    status = ClobberBuilder(build_info.mode)
-    if status != 0:
-      print '@@@STEP_FAILURE@@@'
-      return status
-
-  print '@@@BUILD_STEP build sdk@@@'
-  status = BuildSDK(build_info.mode, build_info.system)
-  if status != 0:
-    print '@@@STEP_FAILURE@@@'
-    return status
-
+def RunCompilerTests(build_info):
   test_flags = []
   if build_info.shard_index:
     test_flags = ['--shards=%s' % build_info.total_shards,
@@ -392,22 +276,18 @@ def main():
 
   if build_info.host_checked: test_flags += ['--host-checked']
 
-  status = TestCompiler(build_info.runtime, build_info.mode,
-                        build_info.system, list(test_flags),
-                        build_info.is_buildbot, build_info.test_set)
+  TestCompiler(build_info.runtime, build_info.mode, build_info.system,
+               list(test_flags), build_info.is_buildbot, build_info.test_set)
 
   # See comment in GetHasHardCodedCheckedMode, this is a hack.
-  if (status == 0 and GetHasHardCodedCheckedMode(build_info)):
-    status = TestCompiler(build_info.runtime, build_info.mode,
-                          build_info.system,
-                          test_flags  + ['--checked'],
-                          build_info.is_buildbot,
-                          build_info.test_set)
+  if (GetHasHardCodedCheckedMode(build_info)):
+    TestCompiler(build_info.runtime, build_info.mode, build_info.system,
+                 test_flags + ['--checked'], build_info.is_buildbot,
+                 build_info.test_set)
 
-  if build_info.runtime != 'd8': CleanUpTemporaryFiles(build_info.system,
-                                                       build_info.runtime)
-  if status != 0: print '@@@STEP_FAILURE@@@'
-  return status
+  if build_info.runtime != 'd8':
+    CleanUpTemporaryFiles(build_info.system, build_info.runtime)
+
 
 if __name__ == '__main__':
-  sys.exit(main())
+  bot.RunBot(GetBuildInfo, RunCompilerTests)
