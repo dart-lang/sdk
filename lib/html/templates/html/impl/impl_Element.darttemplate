@@ -283,7 +283,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * [NoMoreElementsException] if no element is left.
    */
   Element next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
 
@@ -293,7 +293,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   /**
    * Returns whether the [Iterator] has elements left.
    */
-  bool hasNext() => _index < _list.length;
+  bool get hasNext => _index < _list.length;
 }
 
 class _ElementAttributeMap implements AttributeMap {
