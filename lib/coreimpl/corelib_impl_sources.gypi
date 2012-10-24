@@ -10,7 +10,6 @@
     'linked_hash_map.dart',
     'list.dart',
     'maps.dart',
-    'options.dart',
     'queue.dart',
     'regexp.dart',
     'splay_tree.dart',

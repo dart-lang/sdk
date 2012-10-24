@@ -10,7 +10,6 @@
 #source("linked_hash_map.dart");
 #source("list.dart");
 #source("maps.dart");
-#source("options.dart");
 #source("queue.dart");
 #source("regexp.dart");
 #source("splay_tree.dart");
