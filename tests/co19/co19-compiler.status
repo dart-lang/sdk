@@ -305,5 +305,16 @@ Language/03_Overview/2_Privacy_A01_t18: Fail, OK
 Language/03_Overview/2_Privacy_A01_t08: Fail, OK
 
 
+Language/11_Statements/05_For/2_For_in_A01_t04: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
+Language/11_Statements/06_For/2_For_in_A01_t01: Fail, OK # co19 issue 286
+Language/11_Statements/06_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
+Language/11_Statements/07_While_A02_t01: Fail, OK # co19 issue 286
+Language/11_Statements/08_Do_A02_t01: Fail, OK # co19 issue 286
+LibTest/core/Queue/Queue.from_A01_t02: Fail, OK # co19 issue 286
+LibTest/core/Set/Set.from_A01_t02: Fail, OK # co19 issue 286
+
+
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip

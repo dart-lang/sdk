@@ -20,7 +20,7 @@ class SetIteratorTest {
   }
 
   static void testThrows(Iterator<int> it) {
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     var exception = null;
     try {
       it.next();
@@ -32,7 +32,7 @@ class SetIteratorTest {
 
   static int sum(int expected, Iterator<int> it) {
     int count = 0;
-    while (it.hasNext()) {
+    while (it.hasNext) {
       count += it.next();
     }
     Expect.equals(expected, count);
@@ -45,7 +45,7 @@ class SetIteratorTest {
     set.add(3);
 
     Iterator<int> it = set.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     sum(6, it);
     testThrows(it);
   }
@@ -58,7 +58,7 @@ class SetIteratorTest {
       set.add(i);
     }
     Iterator<int> it = set.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     sum(count, it);
     testThrows(it);
   }
@@ -66,7 +66,7 @@ class SetIteratorTest {
   static void testEmptySet() {
     Set<int> set = new Set<int>();
     Iterator<int> it = set.iterator();
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     sum(0, it);
     testThrows(it);
   }
@@ -80,7 +80,7 @@ class SetIteratorTest {
       set.remove(i);
     }
     Iterator<int> it = set.iterator();
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     sum(0, it);
     testThrows(it);
 
@@ -91,7 +91,7 @@ class SetIteratorTest {
       else count += i;
     }
     it = set.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     sum(count, it);
     testThrows(it);
   }

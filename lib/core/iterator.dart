@@ -20,5 +20,5 @@ abstract class Iterator<E> {
   /**
    * Returns whether the [Iterator] has elements left.
    */
-  bool hasNext();
+  bool hasNext;
 }

@@ -215,7 +215,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
     }
   }
 
-  bool hasNext() {
+  bool get hasNext {
     return counter < size;
   }
 
@@ -226,11 +226,11 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   }
 
   ConcreteTypesEnvironment next() {
-    if (!hasNext()) throw new NoMoreElementsException();
+    if (!hasNext) throw new NoMoreElementsException();
     Element keyToIncrement = null;
     for (final key in concreteTypes.getKeys()) {
       final iterator = state[key];
-      if (iterator != null && iterator.hasNext()) {
+      if (iterator != null && iterator.hasNext) {
         nextValues[key] = state[key].next();
         break;
       }
@@ -577,7 +577,7 @@ class ConcreteTypesInferrer {
     // we attach the remaining positional arguments to their corresponding
     // named arguments
     Link<Element> remainingNamedParameters = signature.optionalParameters;
-    while (remainingPositionalArguments.hasNext()) {
+    while (remainingPositionalArguments.hasNext) {
       final Element namedParameter = remainingNamedParameters.head;
       result[namedParameter] = remainingPositionalArguments.next();
       // we know tail is defined because of the guard above

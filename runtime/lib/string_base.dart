@@ -189,7 +189,7 @@ class _StringBase {
     if (pattern is String) {
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext();
+    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext;
   }
 
   String replaceFirst(Pattern pattern, String replacement) {
@@ -202,7 +202,7 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     Iterator iterator = pattern.allMatches(this).iterator();
-    if (iterator.hasNext()) {
+    if (iterator.hasNext) {
       Match match = iterator.next();
       buffer.add(this.substring(startIndex, match.start())).add(replacement);
       startIndex = match.end();
@@ -265,7 +265,7 @@ class _StringBase {
   List<String> split(Pattern pattern) {
     int length = this.length;
     Iterator iterator = pattern.allMatches(this).iterator();
-    if (length == 0 && iterator.hasNext()) {
+    if (length == 0 && iterator.hasNext) {
       // A matched empty string input returns the empty list.
       return <String>[];
     }
@@ -273,7 +273,7 @@ class _StringBase {
     int startIndex = 0;
     int previousIndex = 0;
     while (true) {
-      if (startIndex == length || !iterator.hasNext()) {
+      if (startIndex == length || !iterator.hasNext) {
         result.add(this.substring(previousIndex, length));
         break;
       }

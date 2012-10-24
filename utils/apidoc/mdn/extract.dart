@@ -454,7 +454,7 @@ class PostOrderTraversalIterator implements Iterator<Node> {
     _next = _leftMostDescendent(start);
   }
 
-  bool hasNext() => _next != null;
+  bool get hasNext => _next != null;
 
   Node next() {
     if (_next == null) return null;

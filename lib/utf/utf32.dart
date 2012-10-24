@@ -219,13 +219,13 @@ class Utf32BytesDecoder implements _ListRangeIterator {
   List<int> decodeRest() {
     List<int> codeunits = new List<int>(remaining);
     int i = 0;
-    while (hasNext()) {
+    while (hasNext) {
       codeunits[i++] = next();
     }
     return codeunits;
   }
 
-  bool hasNext() => utf32EncodedBytesIterator.hasNext();
+  bool get hasNext => utf32EncodedBytesIterator.hasNext;
 
   int next() {
     if (utf32EncodedBytesIterator.remaining < 4) {

@@ -195,9 +195,9 @@ class SequenceIterator<E> implements Iterator<E> {
   Sequence<E> _sequence;
   int _position;
   SequenceIterator(this._sequence) : _position = 0;
-  bool hasNext() => _position < _sequence.length;
+  bool get hasNext => _position < _sequence.length;
   E next() {
-    if (hasNext()) return _sequence[_position++];
+    if (hasNext) return _sequence[_position++];
     throw new NoMoreElementsException();
   }
 }

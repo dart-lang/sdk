@@ -11665,7 +11665,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
    * [NoMoreElementsException] if no element is left.
    */
   Element next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
 
@@ -11675,7 +11675,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   /**
    * Returns whether the [Iterator] has elements left.
    */
-  bool hasNext() => _index < _list.length;
+  bool get hasNext => _index < _list.length;
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -39113,7 +39113,7 @@ class _Collections {
   }
 
   static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
+    return !iterable.iterator().hasNext;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40780,7 +40780,7 @@ class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
       : super(array),
         _length = array.length;
 
-  bool hasNext() => _length > _pos;
+  bool get hasNext => _length > _pos;
 
   final int _length;  // Cache array length for faster access.
 }
@@ -40791,10 +40791,10 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
       : _array = array,
         _pos = 0;
 
-  bool hasNext() => _array.length > _pos;
+  bool get hasNext => _array.length > _pos;
 
   T next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
     return _array[_pos++];

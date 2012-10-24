@@ -58,16 +58,16 @@ class StringValidator {
     // If it only have two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
-    if (source.hasNext() && source.next() == quoteChar && source.hasNext()) {
+    if (source.hasNext && source.next() == quoteChar && source.hasNext) {
       int code = source.next();
       assert(code == quoteChar);  // If not, there is a bug in the parser.
       quoteLength = 3;
       // Check if a multiline string starts with a newline (CR, LF or CR+LF).
-      if (source.hasNext()) {
+      if (source.hasNext) {
         code = source.next();
         if (code == $CR) {
           quoteLength += 1;
-          if (source.hasNext() && source.next() == $LF) {
+          if (source.hasNext && source.next() == $LF) {
             quoteLength += 1;
           }
         } else if (code == $LF) {
@@ -96,13 +96,13 @@ class StringValidator {
     int length = 0;
     int index = startOffset;
     bool containsEscape = false;
-    for(Iterator<int> iter = string.iterator(); iter.hasNext(); length++) {
+    for(Iterator<int> iter = string.iterator(); iter.hasNext; length++) {
       index++;
       int code = iter.next();
       if (code == $BACKSLASH) {
         if (quoting.raw) continue;
         containsEscape = true;
-        if (!iter.hasNext()) {
+        if (!iter.hasNext) {
           stringParseError("Incomplete escape sequence",token, index);
           return null;
         }
@@ -110,7 +110,7 @@ class StringValidator {
         code = iter.next();
         if (code == $x) {
           for (int i = 0; i < 2; i++) {
-            if (!iter.hasNext()) {
+            if (!iter.hasNext) {
               stringParseError("Incomplete escape sequence", token, index);
               return null;
             }

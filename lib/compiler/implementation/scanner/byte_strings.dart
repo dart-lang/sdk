@@ -89,7 +89,7 @@ class AsciiStringIterator implements Iterator<int> {
       : this.bytes = bytes, offset = 0, end = bytes.length;
   AsciiStringIterator.range(List<int> bytes, int from, int length)
       : this.bytes = bytes, offset = from, end = from + length;
-  bool hasNext() => offset < end;
+  bool get hasNext => offset < end;
   int next() => bytes[offset++];
 }
 

@@ -179,6 +179,26 @@ LibTest/core/Set/filter_A01_t03: Fail, OK
 LibTest/core/String/hashCode_A01_t01: Fail, OK
 LibTest/core/int/hashCode_A01_t01: Fail, OK
 
+Language/11_Statements/07_Do_A02_t01: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t01: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t04: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 286
+Language/11_Statements/05_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
+Language/11_Statements/06_For/2_For_in_A01_t01: Fail, OK # co19 issue 286
+Language/11_Statements/06_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
+Language/11_Statements/06_While_A02_t01: Fail, OK # co19 issue 286
+Language/11_Statements/07_While_A02_t01: Fail, OK # co19 issue 286
+Language/11_Statements/08_Do_A02_t01: Fail, OK # co19 issue 286
+LibTest/core/Queue/iterator_hasNext_A01_t02: Fail, OK # co19 issue 286
+LibTest/core/Queue/iterator_hasNext_A01_t01: Fail, OK # co19 issue 286
+LibTest/core/Queue/iterator_A01_t02: Fail, OK # co19 issue 286
+LibTest/core/Queue/Queue.from_A01_t02: Fail, OK # co19 issue 286
+LibTest/core/List/iterator_hasNext_A01_t01: Fail, OK # co19 issue 286
+LibTest/core/List/iterator_next_A01_t01: Fail, OK # co19 issue 286
+LibTest/core/List/iterator_A01_t01: Fail, OK # co19 issue 286
+LibTest/core/List/List.from_A01_t01: Fail, OK # co19 issue 286
+LibTest/core/Set/Set.from_A01_t02: Fail, OK # co19 issue 286
+
 # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
 Language/14_Types/5_Function_Types_A01_t21: Fail, OK

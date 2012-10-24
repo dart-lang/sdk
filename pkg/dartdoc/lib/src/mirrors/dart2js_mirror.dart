@@ -1059,12 +1059,12 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     }
     var thisTypeArguments = typeArguments.iterator();
     var otherTypeArguments = other.typeArguments.iterator();
-    while (thisTypeArguments.hasNext() && otherTypeArguments.hasNext()) {
+    while (thisTypeArguments.hasNext && otherTypeArguments.hasNext) {
       if (thisTypeArguments.next() != otherTypeArguments.next()) {
         return false;
       }
     }
-    return !thisTypeArguments.hasNext() && !otherTypeArguments.hasNext();
+    return !thisTypeArguments.hasNext && !otherTypeArguments.hasNext;
   }
 }
 

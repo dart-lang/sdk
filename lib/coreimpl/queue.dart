@@ -249,12 +249,12 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
     _currentEntry = _sentinel;
   }
 
-  bool hasNext() {
+  bool get hasNext {
     return _currentEntry._next !== _sentinel;
   }
 
   E next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
     _currentEntry = _currentEntry._next;

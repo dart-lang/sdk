@@ -74,9 +74,9 @@ List flatten(List nested) {
  */
 only(Iterable iter) {
   var iterator = iter.iterator();
-  assert(iterator.hasNext());
+  assert(iterator.hasNext);
   var obj = iterator.next();
-  assert(!iterator.hasNext());
+  assert(!iterator.hasNext);
   return obj;
 }
 

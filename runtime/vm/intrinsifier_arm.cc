@@ -304,7 +304,7 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   return false;
 }
 

@@ -177,7 +177,7 @@ class _AllMatchesIterator implements Iterator<Match> {
     : _done = false, _re = JSSyntaxRegExp._globalVersionOf(re);
 
   Match next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
 
@@ -187,7 +187,7 @@ class _AllMatchesIterator implements Iterator<Match> {
     return next;
   }
 
-  bool hasNext() {
+  bool get hasNext {
     if (_done) {
       return false;
     } else if (_next != null) {

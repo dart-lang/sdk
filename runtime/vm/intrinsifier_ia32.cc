@@ -1576,10 +1576,10 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 
 
 // Class 'FixedSizeArrayIterator':
-//   bool hasNext() {
+//   bool get hasNext {
 //     return _length > _pos;
 //   }
-bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   Label fall_through, is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());

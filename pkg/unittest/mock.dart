@@ -781,7 +781,7 @@ class LogEntryList {
         if (includeKeys) {
           rtn.logs.add(keyEntry);
         }
-        if (keyIterator.hasNext()) {
+        if (keyIterator.hasNext) {
           keyEntry = keyIterator.next();
         } else if (isPreceding) { // We're done.
           break;

@@ -77,10 +77,10 @@ String getNumberTypeCheck(String variable) {
 
 bool checkNumberOfMatches(Iterator it, int nb) {
   for (int i = 0; i < nb; i++) {
-    Expect.isTrue(it.hasNext(), "Found less than $nb matches");
+    Expect.isTrue(it.hasNext, "Found less than $nb matches");
     it.next();
   }
-  Expect.isFalse(it.hasNext(), "Found more than $nb matches");
+  Expect.isFalse(it.hasNext, "Found more than $nb matches");
 }
 
 void compileAndMatch(String code, String entry, RegExp regexp) {

@@ -243,7 +243,7 @@ class StringCodeIterator implements Iterator<int> {
     assert(end <= string.length);
   }
 
-  bool hasNext() => index < end;
+  bool get hasNext => index < end;
   int next() => string.charCodeAt(index++);
 }
 

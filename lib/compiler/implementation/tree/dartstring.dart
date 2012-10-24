@@ -35,7 +35,7 @@ abstract class DartString implements Iterable<int> {
     if (length != otherString.length) return false;
     Iterator it1 = iterator();
     Iterator it2 = otherString.iterator();
-    while (it1.hasNext()) {
+    while (it1.hasNext) {
       if (it1.next() != it2.next()) return false;
     }
     return true;
@@ -96,7 +96,7 @@ class EscapedSourceDartString extends SourceBasedDartString {
     if (toStringCache != null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
     StringEscapeIterator it = new StringEscapeIterator(source);
-    while (it.hasNext()) {
+    while (it.hasNext) {
       buffer.addCharCode(it.next());
     }
     toStringCache = buffer.toString();
@@ -134,18 +134,18 @@ class ConsDartStringIterator implements Iterator<int> {
   ConsDartStringIterator(ConsDartString cons)
       : current = cons.left.iterator(),
         right = cons.right {
-    hasNextLookAhead = current.hasNext();
+    hasNextLookAhead = current.hasNext;
     if (!hasNextLookAhead) {
       nextPart();
     }
   }
-  bool hasNext() {
+  bool get hasNext {
     return hasNextLookAhead;
   }
   int next() {
     assert(hasNextLookAhead);
     int result = current.next();
-    hasNextLookAhead = current.hasNext();
+    hasNextLookAhead = current.hasNext;
     if (!hasNextLookAhead) {
       nextPart();
     }
@@ -155,7 +155,7 @@ class ConsDartStringIterator implements Iterator<int> {
     if (right != null) {
       current = right.iterator();
       right = null;
-      hasNextLookAhead = current.hasNext();
+      hasNextLookAhead = current.hasNext;
     }
   }
 }
@@ -166,7 +166,7 @@ class ConsDartStringIterator implements Iterator<int> {
 class StringEscapeIterator implements Iterator<int>{
   final Iterator<int> source;
   StringEscapeIterator(SourceString source) : this.source = source.iterator();
-  bool hasNext() => source.hasNext();
+  bool get hasNext => source.hasNext;
   int next() {
     int code = source.next();
     if (!identical(code, $BACKSLASH)) {

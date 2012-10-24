@@ -5,7 +5,7 @@
 class LinkIterator<T> implements Iterator<T> {
   Link<T> current;
   LinkIterator(Link<T> this.current);
-  bool hasNext() => !current.isEmpty();
+  bool get hasNext => !current.isEmpty();
   T next() {
     T result = current.head;
     current = current.tail;

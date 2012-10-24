@@ -124,7 +124,7 @@ List<int> _utf16CodeUnitsToCodepoints(
       .fromListRangeIterator(source, replacementCodepoint);
   List<int> codepoints = new List<int>(source.remaining);
   int i = 0;
-  while (decoder.hasNext()) {
+  while (decoder.hasNext) {
     codepoints[i++] = decoder.next();
   }
   if (i == codepoints.length) {
@@ -158,7 +158,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
 
   Iterator<int> iterator() => this;
 
-  bool hasNext() => utf16CodeUnitIterator.hasNext();
+  bool get hasNext => utf16CodeUnitIterator.hasNext;
 
   int next() {
     int value = utf16CodeUnitIterator.next();
@@ -174,7 +174,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
       // transfer directly
       return value;
     } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
-        utf16CodeUnitIterator.hasNext()) {
+        utf16CodeUnitIterator.hasNext) {
       // merge surrogate pair
       int nextValue = utf16CodeUnitIterator.next();
       if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
@@ -241,7 +241,7 @@ class _ListRange implements Iterable {
  * and move forward/backward within the iterator.
  */
 abstract class _ListRangeIterator implements Iterator<int> {
-  bool hasNext();
+  bool hasNext;
   int next();
   int get position;
   void backup([by]);
@@ -256,7 +256,7 @@ class _ListRangeIteratorImpl implements _ListRangeIterator {
 
   _ListRangeIteratorImpl(this._source, this._offset, this._end);
 
-  bool hasNext() => _offset < _end;
+  bool get hasNext => _offset < _end;
 
   int next() => _source[_offset++];
 

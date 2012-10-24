@@ -298,12 +298,12 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _ObjectArray || array is _ImmutableArray);
   }
 
-  bool hasNext() {
+  bool get hasNext {
     return _length > _pos;
   }
 
   E next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
     return _array[_pos++];

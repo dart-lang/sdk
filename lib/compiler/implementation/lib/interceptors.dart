@@ -145,7 +145,7 @@ addAll(receiver, collection) {
 
   // TODO(ahe): Use for-in when it is implemented correctly.
   var iterator = collection.iterator();
-  while (iterator.hasNext()) {
+  while (iterator.hasNext) {
     receiver.add(iterator.next());
   }
 }

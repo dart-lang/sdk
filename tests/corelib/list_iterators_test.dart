@@ -5,12 +5,12 @@
 class ListIteratorsTest {
   static void checkListIterator(List a) {
     Iterator it = a.iterator();
-    Expect.equals(false, it.hasNext() == a.isEmpty());
+    Expect.equals(false, it.hasNext == a.isEmpty());
     for (int i = 0; i < a.length; i++) {
-      Expect.equals(true, it.hasNext());
+      Expect.equals(true, it.hasNext);
       var elem = it.next();
     }
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     bool exceptionCaught = false;
     try {
      var eleme = it.next();
@@ -31,11 +31,11 @@ class ListIteratorsTest {
     checkListIterator(g);
 
     Iterator it = g.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     g.removeLast();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     g.removeLast();
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
 
     g.addAll([10, 20]);
     int sum = 0;

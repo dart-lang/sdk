@@ -59,7 +59,7 @@ class Collections {
   }
 
   static bool isEmpty(Iterable iterable) {
-    return !iterable.iterator().hasNext();
+    return !iterable.iterator().hasNext;
   }
 
   // TODO(jjb): visiting list should be an identityHashSet when it exists

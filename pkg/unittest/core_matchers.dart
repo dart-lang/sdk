@@ -102,8 +102,8 @@ class _DeepMatcher extends BaseMatcher {
     var position = 0;
     String reason = null;
     while (reason == null) {
-      if (expectedIterator.hasNext()) {
-        if (actualIterator.hasNext()) {
+      if (expectedIterator.hasNext) {
+        if (actualIterator.hasNext) {
           Description r = matcher(expectedIterator.next(),
                            actualIterator.next(),
                            'mismatch at position ${position}',
@@ -113,7 +113,7 @@ class _DeepMatcher extends BaseMatcher {
         } else {
           reason = 'shorter than expected';
         }
-      } else if (actualIterator.hasNext()) {
+      } else if (actualIterator.hasNext) {
         reason = 'longer than expected';
       } else {
         return null;

@@ -8,25 +8,25 @@ class RegExpAllMatchesTest {
   static testIterator() {
     var matches = new RegExp("foo").allMatches("foo foo");
     Iterator it = matches.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     Expect.equals('foo', it.next().group(0));
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     Expect.equals('foo', it.next().group(0));
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
 
     // Run two iterators over the same results.
     it = matches.iterator();
     Iterator it2 = matches.iterator();
-    Expect.equals(true, it.hasNext());
-    Expect.equals(true, it2.hasNext());
+    Expect.equals(true, it.hasNext);
+    Expect.equals(true, it2.hasNext);
     Expect.equals('foo', it.next().group(0));
     Expect.equals('foo', it2.next().group(0));
-    Expect.equals(true, it.hasNext());
-    Expect.equals(true, it2.hasNext());
+    Expect.equals(true, it.hasNext);
+    Expect.equals(true, it2.hasNext);
     Expect.equals('foo', it.next().group(0));
     Expect.equals('foo', it2.next().group(0));
-    Expect.equals(false, it.hasNext());
-    Expect.equals(false, it2.hasNext());
+    Expect.equals(false, it.hasNext);
+    Expect.equals(false, it2.hasNext);
   }
 
   static testForEach() {

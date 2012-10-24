@@ -10,7 +10,7 @@ class QueueIteratorTest {
   }
 
   static void testThrows(Iterator<int> it) {
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     var exception = null;
     try {
       it.next();
@@ -22,7 +22,7 @@ class QueueIteratorTest {
 
   static int sum(int expected, Iterator<int> it) {
     int count = 0;
-    while (it.hasNext()) {
+    while (it.hasNext) {
       count += it.next();
     }
     Expect.equals(expected, count);
@@ -35,7 +35,7 @@ class QueueIteratorTest {
     queue.addLast(3);
 
     Iterator<int> it = queue.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     sum(6, it);
     testThrows(it);
   }
@@ -48,7 +48,7 @@ class QueueIteratorTest {
       queue.addLast(i);
     }
     Iterator<int> it = queue.iterator();
-    Expect.equals(true, it.hasNext());
+    Expect.equals(true, it.hasNext);
     sum(count, it);
     testThrows(it);
   }
@@ -56,7 +56,7 @@ class QueueIteratorTest {
   static void testEmptyQueue() {
     Queue<int> queue = new Queue<int>();
     Iterator<int> it = queue.iterator();
-    Expect.equals(false, it.hasNext());
+    Expect.equals(false, it.hasNext);
     sum(0, it);
     testThrows(it);
   }

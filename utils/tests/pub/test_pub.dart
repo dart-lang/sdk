@@ -607,7 +607,7 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   var iterator = scheduled.iterator();
 
   Future runNextEvent(_) {
-    if (_abortScheduled || !iterator.hasNext()) {
+    if (_abortScheduled || !iterator.hasNext) {
       _abortScheduled = false;
       scheduled.clear();
       return new Future.immediate(null);

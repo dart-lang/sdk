@@ -95,5 +95,5 @@ abstract class Collection<E> extends Iterable<E> {
   /**
    * Returns true if there is no element in this collection.
    */
-  bool isEmpty() => !iterator().hasNext();
+  bool isEmpty() => !iterator().hasNext;
 }

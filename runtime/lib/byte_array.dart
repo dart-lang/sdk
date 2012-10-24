@@ -1488,12 +1488,12 @@ class _ByteArrayIterator<E> implements Iterator<E> {
     assert(array is _ByteArrayBase || array is _ByteArrayViewBase);
   }
 
-  bool hasNext() {
+  bool get hasNext {
    return _length > _pos;
   }
 
   E next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
     return _array[_pos++];

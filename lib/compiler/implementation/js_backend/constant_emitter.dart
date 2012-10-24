@@ -91,7 +91,7 @@ class ConstantEmitter implements ConstantVisitor {
                           CodeBuffer buffer,
                           Node diagnosticNode) {
     Iterator<int> iterator = string.iterator();
-    while (iterator.hasNext()) {
+    while (iterator.hasNext) {
       int code = iterator.next();
       if (identical(code, $SQ)) {
         buffer.add(r"\'");

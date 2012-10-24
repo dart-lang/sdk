@@ -131,5 +131,5 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  bool hasNext() => !queue.isEmpty() || object !== null;
+  bool get hasNext => !queue.isEmpty() || object !== null;
 }

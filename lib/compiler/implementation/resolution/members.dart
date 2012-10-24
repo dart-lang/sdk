@@ -2079,13 +2079,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     world.registerDynamicInvocation(name, selector);
   }
 
+  registerImplicitFieldGet(SourceString name) {
+    Selector selector = new Selector.getter(name, null);
+    world.registerDynamicGetter(name, selector);
+  }
+
   visitForIn(ForIn node) {
     for (final name in const [
         const SourceString('iterator'),
-        const SourceString('next'),
-        const SourceString('hasNext')]) {
+        const SourceString('next')]) {
       registerImplicitInvocation(name, 0);
     }
+    registerImplicitFieldGet(const SourceString('hasNext'));
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;

@@ -54,6 +54,6 @@ class _Collections {
   }
 
   static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
+    return !iterable.iterator().hasNext;
   }
 }

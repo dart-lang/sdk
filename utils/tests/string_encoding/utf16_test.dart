@@ -113,7 +113,7 @@ class Utf16Tests extends TestClass {
 
   void testIterableMethods() {
     // empty input
-    Expect.isFalse(decodeUtf16AsIterable([]).iterator().hasNext());
+    Expect.isFalse(decodeUtf16AsIterable([]).iterator().hasNext);
 
     IterableUtf16Decoder koreanDecoder =
       decodeUtf16AsIterable(testKoreanCharSubsetUtf16beBom);

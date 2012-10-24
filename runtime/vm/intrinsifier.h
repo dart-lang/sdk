@@ -72,8 +72,8 @@ namespace dart {
   V(::, sin, Math_sin)                                                         \
   V(::, cos, Math_cos)                                                         \
   V(Object, ==, Object_equal)                                                  \
+  V(_FixedSizeArrayIterator, get:hasNext, FixedSizeArrayIterator_getHasNext)   \
   V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                \
-  V(_FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)          \
   V(_StringBase, get:hashCode, String_getHashCode)                             \
   V(_StringBase, get:length, String_getLength)                                 \
   V(_StringBase, charCodeAt, String_charCodeAt)                                \

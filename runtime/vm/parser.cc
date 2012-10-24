@@ -5708,11 +5708,10 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   current_block_->statements->Add(iterator_init);
 
   // Generate while loop condition.
-  AstNode* iterator_has_next = new InstanceCallNode(
+  AstNode* iterator_has_next = new InstanceGetterNode(
       collection_pos,
       new LoadLocalNode(collection_pos, iterator_var),
-      String::ZoneHandle(Symbols::HasNext()),
-      no_args);
+      String::ZoneHandle(Symbols::HasNext()));
 
   // Parse the for loop body. Ideally, we would use ParseNestedStatement()
   // here, but that does not work well because we have to insert an implicit

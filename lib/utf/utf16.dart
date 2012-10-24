@@ -264,7 +264,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   List<int> decodeRest() {
     List<int> codeunits = new List<int>(remaining);
     int i = 0;
-    while (hasNext()) {
+    while (hasNext) {
       codeunits[i++] = next();
     }
     if (i == codeunits.length) {
@@ -276,7 +276,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
     }
   }
 
-  bool hasNext() => utf16EncodedBytesIterator.hasNext();
+  bool get hasNext => utf16EncodedBytesIterator.hasNext;
 
   int next() {
     if (utf16EncodedBytesIterator.remaining < 2) {

@@ -165,7 +165,7 @@ class Utf32Tests extends TestClass {
 
   void testIterableMethods() {
     // empty input
-    Expect.isFalse(decodeUtf32AsIterable([]).iterator().hasNext());
+    Expect.isFalse(decodeUtf32AsIterable([]).iterator().hasNext);
 
     IterableUtf32Decoder koreanDecoder =
       decodeUtf32AsIterable(testKoreanCharSubsetUtf32beBom);

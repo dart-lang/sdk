@@ -406,7 +406,7 @@ class HashSetIterator<E> implements Iterator<E> {
     _advance();
   }
 
-  bool hasNext() {
+  bool get hasNext {
     if (_nextValidIndex >= _entries.length) return false;
     if (_entries[_nextValidIndex] === HashMapImplementation._DELETED_KEY) {
       // This happens in case the set was modified in the meantime.
@@ -418,7 +418,7 @@ class HashSetIterator<E> implements Iterator<E> {
   }
 
   E next() {
-    if (!hasNext()) {
+    if (!hasNext) {
       throw const NoMoreElementsException();
     }
     E res = _entries[_nextValidIndex];

@@ -343,9 +343,9 @@ class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS('int', r'#.length', list);
+  bool get hasNext => i < JS('int', r'#.length', list);
   T next() {
-    if (!hasNext()) throw new NoMoreElementsException();
+    if (!hasNext) throw new NoMoreElementsException();
     var value = JS('Object', r'#[#]', list, i);
     i += 1;
     return value;
@@ -967,7 +967,7 @@ class StackTrace {
 makeLiteralMap(List keyValuePairs) {
   Iterator iterator = keyValuePairs.iterator();
   Map result = new LinkedHashMap();
-  while (iterator.hasNext()) {
+  while (iterator.hasNext) {
     String key = iterator.next();
     var value = iterator.next();
     result[key] = value;

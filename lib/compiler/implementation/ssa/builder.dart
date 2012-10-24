@@ -3426,7 +3426,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitForIn(ForIn node) {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator()
-    //   while ($iter.hasNext()) {
+    //   while ($iter.hasNext) {
     //     E <declaredIdentifier> = $iter.next();
     //     <body>
     //   }
@@ -3443,8 +3443,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction buildCondition() {
       SourceString name = const SourceString('hasNext');
-      Selector call = new Selector.call(name, work.element.getLibrary(), 0);
-      push(new HInvokeDynamicMethod(call, <HInstruction>[iterator]));
+      Selector selector = new Selector.getter(name, work.element.getLibrary());
+      if (interceptors.getStaticGetInterceptor(name) != null) {
+        compiler.internalError("hasNext getter must not be intercepted",
+                               node: node);
+      }
+      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
+      push(new HInvokeDynamicGetter(selector, null, iterator, !hasGetter));
       return popBoolified();
     }
     void buildBody() {
@@ -3679,7 +3684,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element getFallThroughErrorElement =
         compiler.findHelper(const SourceString("getFallThroughError"));
     Iterator<Node> caseIterator = node.cases.iterator();
-    while (caseIterator.hasNext()) {
+    while (caseIterator.hasNext) {
       SwitchCase switchCase = caseIterator.next();
       List<Constant> caseConstants = <Constant>[];
       HBasicBlock block = graph.addNewBlock();
@@ -3704,7 +3709,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
       visit(switchCase.statements);
-      if (!isAborted() && caseIterator.hasNext()) {
+      if (!isAborted() && caseIterator.hasNext) {
         pushInvokeHelper0(getFallThroughErrorElement);
         HInstruction error = pop();
         close(new HThrow(error));
