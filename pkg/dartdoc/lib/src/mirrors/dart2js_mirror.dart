@@ -482,6 +482,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
 
   LibraryElement get _library => _element;
 
+  Uri get uri => _library.uri;
+
   LibraryMirror library() => this;
 
   /**

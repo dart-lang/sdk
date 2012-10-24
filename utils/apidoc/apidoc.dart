@@ -179,7 +179,7 @@ class Htmldoc extends doc.Dartdoc {
   }
 
   doc.DocComment getRecordedLibraryComment(LibraryMirror library) {
-    if (library.simpleName == HTML_LIBRARY_NAME) {
+    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
       return libraryComment;
     }
     return null;
@@ -351,21 +351,21 @@ class Apidoc extends doc.Dartdoc {
   void docIndexLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName == 'dart:nativewrappers') return;
+    if (doc.displayName(library) == 'dart:nativewrappers') return;
     super.docIndexLibrary(library);
   }
 
   void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName == 'dart:nativewrappers') return;
+    if (doc.displayName(library) == 'dart:nativewrappers') return;
     super.docLibraryNavigationJson(library, libraryList);
   }
 
   void docLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName == 'dart:nativewrappers') return;
+    if (doc.displayName(library) == 'dart:nativewrappers') return;
     super.docLibrary(library);
   }
 
@@ -380,7 +380,7 @@ class Apidoc extends doc.Dartdoc {
   }
 
   doc.DocComment getLibraryComment(LibraryMirror library) {
-    if (library.simpleName == HTML_LIBRARY_NAME) {
+    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
@@ -460,7 +460,7 @@ class Apidoc extends doc.Dartdoc {
     }
 
     var typeString = '';
-    if (type.library.simpleName == HTML_LIBRARY_NAME) {
+    if (doc.displayName(type.library) == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -494,7 +494,7 @@ class Apidoc extends doc.Dartdoc {
   MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
-    if (library.simpleName == HTML_LIBRARY_NAME) {
+    if (doc.displayName(library) == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];

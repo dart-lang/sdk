@@ -132,6 +132,11 @@ abstract class LibraryMirror extends ObjectMirror {
    * Returns the source location for this library.
    */
   Location get location;
+
+  /**
+   * Returns the canonical URI for this library.
+   */
+  Uri get uri;
 }
 
 /**
