@@ -364,13 +364,13 @@ every(receiver, f) {
 sort$0(receiver) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort());
   checkMutable(receiver, 'sort');
-  DualPivotQuicksort.sort(receiver, Comparable.compare);
+  coreSort(receiver, Comparable.compare);
 }
 
 sort$1(receiver, compare) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
   checkMutable(receiver, 'sort');
-  DualPivotQuicksort.sort(receiver, compare);
+  coreSort(receiver, compare);
 }
 
 get$isNegative(receiver) {

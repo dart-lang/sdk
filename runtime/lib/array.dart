@@ -93,7 +93,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void sort([Comparator<E> compare = Comparable.compare]) {
-    DualPivotQuicksort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(E element, [int start = 0]) {

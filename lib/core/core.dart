@@ -36,6 +36,7 @@
 #source("regexp.dart");
 #source("sequences.dart");
 #source("set.dart");
+#source("sort.dart");
 #source("stopwatch.dart");
 #source("string.dart");
 #source("string_buffer.dart");

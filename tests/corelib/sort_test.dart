@@ -9,7 +9,7 @@
 
 main() {
   var compare = (a, b) => a.compareTo(b);
-  var sort = (list) => DualPivotQuicksort.sort(list, compare);
+  var sort = (list) => list.sort(compare);
   new SortHelper(sort, compare).run();
 
   compare = (a, b) => -a.compareTo(b);

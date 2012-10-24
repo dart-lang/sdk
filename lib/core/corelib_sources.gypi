@@ -34,6 +34,7 @@
     'regexp.dart',
     'sequences.dart',
     'set.dart',
+    'sort.dart',
     'stopwatch.dart',
     'string.dart',
     'strings.dart',
