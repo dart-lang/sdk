@@ -86,7 +86,7 @@ def GetBuildInfo(builder_name, is_buildbot):
 
 
 def NeedsXterm(compiler, runtime):
-  return runtime in ['ie', 'chrome', 'safari', 'opera', 'ff', 'drt']
+  return runtime in ['ie9', 'ie10', 'chrome', 'safari', 'opera', 'ff', 'drt']
 
 
 def TestStepName(name, flags):
@@ -142,7 +142,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
      - test_set: Specification of a non standard test set, default None
   """
 
-  if system.startswith('win') and runtime == 'ie':
+  if system.startswith('win') and runtime.startswith('ie'):
     # There should not be more than one InternetExplorerDriver instance
     # running at a time. For details, see
     # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
@@ -195,7 +195,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # that run the browser tests to cut down on the cycle time.
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
-  if not (system.startswith('win') and runtime == 'ie'):
+  if not (system.startswith('win') and runtime.startswith('ie')):
     # Run the default set of test suites.
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
@@ -260,7 +260,7 @@ def GetHasHardCodedCheckedMode(build_info):
   # vms for testing this.
   if (build_info.system == 'linux' and build_info.runtime == 'chrome'):
     return True
-  if (build_info.system == 'win7' and build_info.runtime == 'ie' and
+  if (build_info.system == 'win7' and build_info.runtime.startswith('ie') and
       build_info.test_set == 'all'):
     return True
   return False
