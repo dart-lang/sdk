@@ -814,9 +814,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                  new CheckSmiInstr(value->Copy(), call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
-    unary_op = new UnarySmiOpInstr(op_kind,
-                                   (op_kind == Token::kNEGATE) ? call : NULL,
-                                   value);
+    unary_op = new UnarySmiOpInstr(op_kind, call, value);
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {

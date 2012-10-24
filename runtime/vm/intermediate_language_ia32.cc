@@ -1589,7 +1589,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-      deopt  = compiler->AddDeoptStub(instance_call()->deopt_id(),
+      deopt  = compiler->AddDeoptStub(deopt_id(),
                                       kDeoptBinarySmiOp);
   }
 
@@ -1762,7 +1762,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ pushl(temp);
         __ pushl(right);
         compiler->GenerateStaticCall(
-            instance_call()->deopt_id(),
+            deopt_id(),
             instance_call()->token_pos(),
             target,
             kArgumentCount,
@@ -1976,7 +1976,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == locs()->out().reg());
   switch (op_kind()) {
     case Token::kNEGATE: {
-      Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+      Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                             kDeoptUnaryOp);
       __ negl(value);
       __ j(OVERFLOW, deopt);

@@ -519,6 +519,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxDoubleInstr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryMintOpInstr;
+  friend class BinarySmiOpInstr;
+  friend class UnarySmiOpInstr;
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
@@ -3749,6 +3751,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
     ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* left() const { return inputs_[0]; }
@@ -3802,6 +3805,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
     ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
     ASSERT(value != NULL);
     inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* value() const { return inputs_[0]; }
