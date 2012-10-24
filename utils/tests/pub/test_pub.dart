@@ -999,7 +999,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
       workingDir = rootDir;
       return runGit(['init']);
     }).chain((_) => runGit(['add', '.']))
-      .chain((_) => runGit(['commit', '-m', 'initial commit']))
+      .chain((_) => runGit(['commit', '-m', 'initial commit',
+                            '--author="Pub Test <pub@dartlang.org>"']))
       .transform((_) => workingDir);
   }
 
@@ -1013,7 +1014,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     return super.create(parentDir).chain((rootDir) {
       workingDir = rootDir;
       return runGit(['add', '.']);
-    }).chain((_) => runGit(['commit', '-m', 'update']));
+    }).chain((_) => runGit(['commit', '-m', 'update',
+                            '--author="Pub Test <pub@dartlang.org>"']));
   }
 
   /**
@@ -1050,7 +1052,11 @@ class GitRepoDescriptor extends DirectoryDescriptor {
 
   Future<String> _runGit(List<String> args, Directory workingDir) {
     return runGit(args, workingDir: workingDir.path).transform((result) {
-      if (!result.success) throw "Error running git: ${result.stderr}";
+      if (!result.success) {
+        throw "Error running: git ${Strings.join(args, ' ')}\n"
+            "${Strings.join(result.stderr, '\n')}";
+      }
+
       return result.stdout;
     });
   }
