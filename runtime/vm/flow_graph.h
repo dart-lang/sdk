@@ -11,6 +11,7 @@
 namespace dart {
 
 class BlockEntryInstr;
+class ConstantInstr;
 class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
@@ -104,8 +105,11 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
+  ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
+
   // Operations on the flow graph.
-  void ComputeSSA(intptr_t next_virtual_register_number);
+  void ComputeSSA(intptr_t next_virtual_register_number,
+                  GrowableArray<Definition*>* inlining_parameters);
   void ComputeUseLists();
 
   // Finds natural loops in the flow graph and attaches a list of loop
@@ -138,7 +142,8 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<intptr_t>* parent,
       GrowableArray<intptr_t>* label);
 
-  void Rename(GrowableArray<PhiInstr*>* live_phis);
+  void Rename(GrowableArray<PhiInstr*>* live_phis,
+              GrowableArray<Definition*>* inlining_parameters);
   void RenameRecursive(
       BlockEntryInstr* block_entry,
       GrowableArray<Definition*>* env,

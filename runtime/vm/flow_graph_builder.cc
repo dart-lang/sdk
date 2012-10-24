@@ -1406,6 +1406,7 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 
 void EffectGraphVisitor::VisitArgumentDefinitionTestNode(
     ArgumentDefinitionTestNode* node) {
+  InlineBailout("EffectGraphVisitor::VisitArgumentDefinitionTestNode");
   Definition* load = BuildLoadLocal(node->saved_arguments_descriptor());
   Value* arguments_descriptor = Bind(load);
   ArgumentDefinitionTestInstr* arg_def_test =

@@ -158,12 +158,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining);
     }
 
-    // Transform to SSA.
     if (optimized) {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::ssa_timer,
                        isolate);
-      flow_graph->ComputeSSA(0);  // Start at virtual register 0.
+      // Transform to SSA (virtual register 0 and no inlining arguments).
+      flow_graph->ComputeSSA(0, NULL);
     }
 
     if (FLAG_print_flow_graph) {

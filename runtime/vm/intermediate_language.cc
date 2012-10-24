@@ -177,10 +177,13 @@ GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
 
 
 ConstantInstr* GraphEntryInstr::constant_null() {
-  ASSERT(initial_definitions_.length() > 0 &&
-         initial_definitions_[0]->IsConstant() &&
-         initial_definitions_[0]->AsConstant()->value().IsNull());
-  return initial_definitions_[0]->AsConstant();
+  ASSERT(initial_definitions_.length() > 0);
+  for (intptr_t i = 0; i < initial_definitions_.length(); ++i) {
+    ConstantInstr* defn = initial_definitions_[i]->AsConstant();
+    if (defn != NULL && defn->value().IsNull()) return defn;
+  }
+  UNREACHABLE();
+  return NULL;
 }
 
 

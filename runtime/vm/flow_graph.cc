@@ -36,6 +36,24 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
 }
 
 
+ConstantInstr* FlowGraph::AddConstantToInitialDefinitions(
+    const Object& object) {
+  // Check if the constant is already in the pool.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ConstantInstr* constant =
+        (*graph_entry_->initial_definitions())[i]->AsConstant();
+    if ((constant != NULL) && (constant->value().raw() == object.raw())) {
+      return constant;
+    }
+  }
+  // Otherwise, allocate and add it to the pool.
+  ConstantInstr* constant = new ConstantInstr(object);
+  constant->set_ssa_temp_index(alloc_ssa_temp_index());
+  graph_entry_->initial_definitions()->Add(constant);
+  return constant;
+}
+
+
 void FlowGraph::DiscoverBlocks() {
   // Initialize state.
   preorder_.Clear();
@@ -282,7 +300,9 @@ void FlowGraph::ComputeUseLists() {
 }
 
 
-void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
+void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
+                           GrowableArray<Definition*>* inlining_parameters) {
+  ASSERT((next_virtual_register_number == 0) || (inlining_parameters != NULL));
   current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
   ComputeDominators(&dominance_frontier);
@@ -290,7 +310,7 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number) {
   GrowableArray<PhiInstr*> live_phis;
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
-  Rename(&live_phis);
+  Rename(&live_phis, inlining_parameters);
   // Propagate alive mark transitively from alive phis.
   MarkLivePhis(&live_phis);
 }
@@ -471,7 +491,8 @@ void FlowGraph::InsertPhis(
 }
 
 
-void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
+void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
+                       GrowableArray<Definition*>* inlining_parameters) {
   // TODO(fschneider): Support catch-entry.
   if (graph_entry_->SuccessorCount() > 1) {
     Bailout("Catch-entry support in SSA.");
@@ -485,13 +506,24 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   constant_null->set_ssa_temp_index(alloc_ssa_temp_index());
   graph_entry_->initial_definitions()->Add(constant_null);
 
-  // Add incoming parameters to the initial definitions and the renaming
-  // environment.
-  for (intptr_t i = 0; i < parameter_count(); ++i) {
-    ParameterInstr* param = new ParameterInstr(i, graph_entry_);
-    param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-    graph_entry_->initial_definitions()->Add(param);
-    env.Add(param);
+  // Add parameters to the initial definitions and renaming environment.
+  if (inlining_parameters != NULL) {
+    // Use known parameters.
+    ASSERT(parameter_count() == inlining_parameters->length());
+    for (intptr_t i = 0; i < parameter_count(); ++i) {
+      Definition* defn = (*inlining_parameters)[i];
+      defn->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+      graph_entry_->initial_definitions()->Add(defn);
+      env.Add(defn);
+    }
+  } else {
+    // Create new parameters.
+    for (intptr_t i = 0; i < parameter_count(); ++i) {
+      ParameterInstr* param = new ParameterInstr(i, graph_entry_);
+      param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+      graph_entry_->initial_definitions()->Add(param);
+      env.Add(param);
+    }
   }
 
   // Initialize all locals with #null in the renaming environment.
