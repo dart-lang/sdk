@@ -172,7 +172,7 @@ class _JsonParser {
   _JsonParser(String json)
       : json = json,
         length = json.length {
-    if (tokens !== null) return;
+    if (tokens != null) return;
 
     // Use a list as jump-table. It is faster than switch and if.
     tokens = new List<int>(LAST_ASCII + 1);
@@ -205,7 +205,7 @@ class _JsonParser {
 
   parseToplevel() {
     final result = parseValue();
-    if (token() !== null) {
+    if (token() != null) {
       error('Junk at the end of JSON input');
     }
     return result;
@@ -213,7 +213,7 @@ class _JsonParser {
 
   parseValue() {
     final int token = token();
-    if (token === null) {
+    if (token == null) {
       error('Nothing to parse');
     }
     switch (token) {
@@ -353,8 +353,8 @@ class _JsonParser {
 
     final int startPos = position;
     int char = char();
-    if (char === MINUS) char = nextChar();
-    if (char === CHAR_0) {
+    if (identical(char, MINUS)) char = nextChar();
+    if (identical(char, CHAR_0)) {
       char = nextChar();
     } else if (isDigit(char)) {
       char = nextChar();
@@ -364,7 +364,7 @@ class _JsonParser {
     }
 
     bool isInt = true;
-    if (char === DOT) {
+    if (identical(char, DOT)) {
       char = nextChar();
       if (isDigit(char)) {
         char = nextChar();
@@ -375,9 +375,9 @@ class _JsonParser {
       }
     }
 
-    if (char === CHAR_E || char === CHAR_CAPITAL_E) {
+    if (identical(char, CHAR_E) || identical(char, CHAR_CAPITAL_E)) {
       char = nextChar();
-      if (char === MINUS || char === PLUS) char = nextChar();
+      if (identical(char, MINUS) || identical(char, PLUS)) char = nextChar();
       if (isDigit(char)) {
         char = nextChar();
         isInt = false;
@@ -424,11 +424,11 @@ class _JsonParser {
       if (position >= length) return null;
       int char = json.charCodeAt(position);
       int token = tokens[char];
-      if (token === WHITESPACE) {
+      if (identical(token, WHITESPACE)) {
         position++;
         continue;
       }
-      if (token === null) return 0;
+      if (token == null) return 0;
       return token;
     }
   }
@@ -511,7 +511,7 @@ class _JsonStringifier {
   void checkCycle(final object) {
     // TODO: use Iterables.
     for (int i = 0; i < seen.length; i++) {
-      if (seen[i] === object) {
+      if (identical(seen[i], object)) {
         throw 'Cyclic structure';
       }
     }
@@ -547,13 +547,13 @@ class _JsonStringifier {
       // TODO: use writeOn.
       sb.add(numberToString(object));
       return true;
-    } else if (object === true) {
+    } else if (identical(object, true)) {
       sb.add('true');
       return true;
-    } else if (object === false) {
+    } else if (identical(object, false)) {
       sb.add('false');
        return true;
-    } else if (object === null) {
+    } else if (object == null) {
       sb.add('null');
       return true;
     } else if (object is String) {
