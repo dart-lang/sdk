@@ -29,6 +29,7 @@ interface TypeError {}
 class Math {
   static double parseDouble(String s) => 1.0;
 }
+print(x) {}
 ''';
 
 const ioLib = r'''
@@ -774,8 +775,25 @@ main() {
 }
 ''';
   var expectedResult = 'import "dart:html" as p;'
-      'class A{static String get userAgent=>p.window.navigator.userAgent;}'
-      'main(){A.userAgent;}';
+      'class A{static String get p_userAgent=>p.window.navigator.userAgent;}'
+      'main(){A.p_userAgent;}';
+  testDart2Dart(src,
+      continuation: (String result) { Expect.equals(expectedResult, result); });
+}
+
+testConflictsWithCoreLib() {
+  var src = '''
+import 'dart:core' as fisk;
+
+print(x) { throw 'fisk'; }
+
+main() {
+  fisk.print('corelib');
+  print('local');
+}
+''';
+  var expectedResult = "p_print(x){throw 'fisk';}"
+      "main(){print('corelib');p_print('local');}";
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -813,4 +831,5 @@ main() {
   testTypeVariablesInDifferentLibraries();
   testDeclarationTypePlaceholders();
   testPlatformLibraryMemberNamesAreFixed();
+  testConflictsWithCoreLib();
 }

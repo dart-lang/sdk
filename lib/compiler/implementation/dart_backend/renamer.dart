@@ -175,11 +175,10 @@ void renamePlaceholders(
       renameNodes(renamable.nodes, (_) => newName);
     }
   } else {
-    // TODO(antonm): we should also populate this set with top-level
-    // names from core library.
     // Never rename anything to 'main'.
     final usedTopLevelOrMemberIdentifiers = new Set<String>();
     usedTopLevelOrMemberIdentifiers.add('main');
+    usedTopLevelOrMemberIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (originalName) {
       String newName = conservativeGenerator(
           originalName, usedTopLevelOrMemberIdentifiers.contains);
