@@ -155,8 +155,7 @@ class CCTestSuite implements TestSuite {
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
-                          expectations,
-                          usesWebDriver: TestUtils.usesWebDriver));
+                          expectations));
     }
   }
 
@@ -458,8 +457,7 @@ class StandardTestSuite implements TestSuite {
                           completeHandler,
                           expectations,
                           isNegative: isNegative,
-                          info: info,
-                          usesWebDriver: TestUtils.usesWebDriver));
+                          info: info));
     }
   }
 
@@ -1210,8 +1208,7 @@ class JUnitTestSuite implements TestSuite {
                         [new Command('java', args)],
                         updatedConfiguration,
                         completeHandler,
-                        new Set<String>.from([PASS]),
-                        usesWebDriver: TestUtils.usesWebDriver));
+                        new Set<String>.from([PASS])));
     doDone();
   }
 

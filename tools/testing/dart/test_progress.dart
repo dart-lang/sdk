@@ -131,7 +131,7 @@ class ProgressIndicator {
     }
     output.add(expected.toString());
     output.add('Actual: ${test.output.result}');
-    if (test.info != null) {
+    if (!test.output.hasTimedOut && test.info != null) {
       if (test.output.incomplete && !test.info.hasCompileError) {
         output.add('Unexpected compile-time error.');
       } else {

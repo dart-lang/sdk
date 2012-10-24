@@ -77,7 +77,6 @@ class TestCase {
   String displayName;
   TestOutput output;
   bool isNegative;
-  bool usesWebDriver;
   Set<String> expectedOutcomes;
   TestCaseEvent completedHandler;
   TestInformation info;
@@ -88,8 +87,7 @@ class TestCase {
            this.completedHandler,
            this.expectedOutcomes,
            {this.isNegative: false,
-            this.info: null,
-            this.usesWebDriver: false}) {
+            this.info: null}) {
     if (!isNegative) {
       this.isNegative = displayName.contains("negative_test");
     }
@@ -165,6 +163,8 @@ class TestCase {
 
   List<String> get batchRunnerArguments => ['-batch'];
   List<String> get batchTestArguments => commands.last().arguments;
+
+  bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
   void completed() { completedHandler(this); }
 }
@@ -594,6 +594,9 @@ class RunningProcess {
       (testCase as BrowserTestCase).numRetries--;
       print("Potential flake. Re-running ${testCase.displayName} "
           "(${(testCase as BrowserTestCase).numRetries} attempt(s) remains)");
+      // When retrying we need to reset the timeout as well.
+      // Otherwise there will be no timeout handling for the retry.
+      timeoutTimer = null;
       this.start();
     } else {
       testCase.completed();
@@ -610,8 +613,7 @@ class RunningProcess {
     process = null;
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
-    if (timedOut &&
-        !(testCase.usesWebDriver && !testCase.configuration['noBatch'])) {
+    if (timedOut) {
       // Non-webdriver test timed out before it could complete. Webdriver tests
       // run their own timeouts by timing from the launch of the browser (which
       // could be delayed).
