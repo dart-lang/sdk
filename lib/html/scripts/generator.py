@@ -35,6 +35,22 @@ def IsPureInterface(interface_name):
 
 
 _methods_with_named_formals = set([
+  'DataView.getFloat32',
+  'DataView.getFloat64',
+  'DataView.getInt16',
+  'DataView.getInt32',
+  'DataView.getInt8',
+  'DataView.getUint16',
+  'DataView.getUint32',
+  'DataView.getUint8',
+  'DataView.setFloat32',
+  'DataView.setFloat64',
+  'DataView.setInt16',
+  'DataView.setInt32',
+  'DataView.setInt8',
+  'DataView.setUint16',
+  'DataView.setUint32',
+  'DataView.setUint8',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
   ])

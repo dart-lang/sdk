@@ -10570,49 +10570,49 @@ abstract class DataView implements ArrayBufferView {
   }
 
   /** @domName DataView.getFloat32 */
-  num getFloat32(int byteOffset, [bool littleEndian]);
+  num getFloat32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getFloat64 */
-  num getFloat64(int byteOffset, [bool littleEndian]);
+  num getFloat64(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt16 */
-  int getInt16(int byteOffset, [bool littleEndian]);
+  int getInt16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt32 */
-  int getInt32(int byteOffset, [bool littleEndian]);
+  int getInt32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt8 */
   int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
-  int getUint16(int byteOffset, [bool littleEndian]);
+  int getUint16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint32 */
-  int getUint32(int byteOffset, [bool littleEndian]);
+  int getUint32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint8 */
   int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
-  void setFloat32(int byteOffset, num value, [bool littleEndian]);
+  void setFloat32(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setFloat64 */
-  void setFloat64(int byteOffset, num value, [bool littleEndian]);
+  void setFloat64(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setInt16 */
-  void setInt16(int byteOffset, int value, [bool littleEndian]);
+  void setInt16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt32 */
-  void setInt32(int byteOffset, int value, [bool littleEndian]);
+  void setInt32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt8 */
   void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
-  void setUint16(int byteOffset, int value, [bool littleEndian]);
+  void setUint16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint32 */
-  void setUint32(int byteOffset, int value, [bool littleEndian]);
+  void setUint32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint8 */
   void setUint8(int byteOffset, int value);
@@ -10625,7 +10625,7 @@ abstract class DataView implements ArrayBufferView {
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
-  num getFloat32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getFloat32_1(byteOffset, littleEndian);
     }
@@ -10636,7 +10636,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  num getFloat64(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getFloat64_1(byteOffset, littleEndian);
     }
@@ -10647,7 +10647,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  int getInt16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getInt16_1(byteOffset, littleEndian);
     }
@@ -10658,7 +10658,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
-  int getInt32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  int getInt32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getInt32_1(byteOffset, littleEndian);
     }
@@ -10671,7 +10671,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
-  int getUint16(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  int getUint16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getUint16_1(byteOffset, littleEndian);
     }
@@ -10682,7 +10682,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
-  int getUint32(/*unsigned long*/ byteOffset, [/*boolean*/ littleEndian]) {
+  int getUint32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       return _getUint32_1(byteOffset, littleEndian);
     }
@@ -10695,7 +10695,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
-  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, [/*boolean*/ littleEndian]) {
+  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setFloat32_1(byteOffset, value, littleEndian);
       return;
@@ -10707,7 +10707,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, [/*boolean*/ littleEndian]) {
+  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setFloat64_1(byteOffset, value, littleEndian);
       return;
@@ -10719,7 +10719,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, [/*boolean*/ littleEndian]) {
+  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setInt16_1(byteOffset, value, littleEndian);
       return;
@@ -10731,7 +10731,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
-  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, [/*boolean*/ littleEndian]) {
+  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setInt32_1(byteOffset, value, littleEndian);
       return;
@@ -10745,7 +10745,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
-  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, [/*boolean*/ littleEndian]) {
+  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setUint16_1(byteOffset, value, littleEndian);
       return;
@@ -10757,7 +10757,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
-  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, [/*boolean*/ littleEndian]) {
+  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, {/*boolean*/ littleEndian}) {
     if (?littleEndian) {
       _setUint32_1(byteOffset, value, littleEndian);
       return;

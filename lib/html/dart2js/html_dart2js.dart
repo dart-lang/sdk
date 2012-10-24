@@ -9460,49 +9460,49 @@ abstract class DataView implements ArrayBufferView {
   }
 
   /** @domName DataView.getFloat32 */
-  num getFloat32(int byteOffset, [bool littleEndian]);
+  num getFloat32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getFloat64 */
-  num getFloat64(int byteOffset, [bool littleEndian]);
+  num getFloat64(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt16 */
-  int getInt16(int byteOffset, [bool littleEndian]);
+  int getInt16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt32 */
-  int getInt32(int byteOffset, [bool littleEndian]);
+  int getInt32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt8 */
   int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
-  int getUint16(int byteOffset, [bool littleEndian]);
+  int getUint16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint32 */
-  int getUint32(int byteOffset, [bool littleEndian]);
+  int getUint32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint8 */
   int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
-  void setFloat32(int byteOffset, num value, [bool littleEndian]);
+  void setFloat32(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setFloat64 */
-  void setFloat64(int byteOffset, num value, [bool littleEndian]);
+  void setFloat64(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setInt16 */
-  void setInt16(int byteOffset, int value, [bool littleEndian]);
+  void setInt16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt32 */
-  void setInt32(int byteOffset, int value, [bool littleEndian]);
+  void setInt32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt8 */
   void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
-  void setUint16(int byteOffset, int value, [bool littleEndian]);
+  void setUint16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint32 */
-  void setUint32(int byteOffset, int value, [bool littleEndian]);
+  void setUint32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint8 */
   void setUint8(int byteOffset, int value);
@@ -9510,35 +9510,35 @@ abstract class DataView implements ArrayBufferView {
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*DataView" {
 
-  num getFloat32(int byteOffset, [bool littleEndian]) native;
+  num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  num getFloat64(int byteOffset, [bool littleEndian]) native;
+  num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  int getInt16(int byteOffset, [bool littleEndian]) native;
+  int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  int getInt32(int byteOffset, [bool littleEndian]) native;
+  int getInt32(int byteOffset, {bool littleEndian}) native;
 
   int getInt8(int byteOffset) native;
 
-  int getUint16(int byteOffset, [bool littleEndian]) native;
+  int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  int getUint32(int byteOffset, [bool littleEndian]) native;
+  int getUint32(int byteOffset, {bool littleEndian}) native;
 
   int getUint8(int byteOffset) native;
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  void setInt16(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  void setInt32(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
   void setInt8(int byteOffset, int value) native;
 
-  void setUint16(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  void setUint32(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
   void setUint8(int byteOffset, int value) native;
 }
