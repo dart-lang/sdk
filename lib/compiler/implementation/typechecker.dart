@@ -989,4 +989,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   DartType visitStringNode(StringNode node) {
     compiler.unimplemented('visitNode', node: node);
   }
+
+  DartType visitLibraryDependency(LibraryDependency node) {
+    compiler.unimplemented('visitNode', node: node);
+  }
 }

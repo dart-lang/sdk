@@ -653,7 +653,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     HInstruction left = relational.left;
     if (!left.isInteger(types)) return const Range.unbound();
     if (!right.isInteger(types)) return const Range.unbound();
-    Operation operation = relational.operation(constantSystem);
+    BinaryOperation operation = relational.operation(constantSystem);
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
 
@@ -742,7 +742,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return newInstruction;
   }
 
-  static Operation reverseOperation(BinaryOperation operation) {
+  static BinaryOperation reverseOperation(BinaryOperation operation) {
     if (operation == const LessOperation()) {
       return const GreaterEqualOperation();
     } else if (operation == const LessEqualOperation()) {

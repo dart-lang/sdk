@@ -2198,7 +2198,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'get'),
-                                const Link<Node>());
+                                argumentNodes: const Link<Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
     }
@@ -2247,7 +2247,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // An erroneous element indicates an unresolved static setter.
       generateThrowNoSuchMethod(send,
                                 getTargetName(element, 'set'),
-                                send.arguments);
+                                argumentNodes: send.arguments);
     } else {
       stack.add(value);
       // If the value does not already have a name, give it here.
@@ -2974,7 +2974,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (element.isErroneous()) {
-      generateThrowNoSuchMethod(node, getTargetName(element), node.arguments);
+      generateThrowNoSuchMethod(node,
+                                getTargetName(element),
+                                argumentNodes: node.arguments);
       return;
     }
     if (identical(element, compiler.assertMethod) && !compiler.enableUserAssertions) {
@@ -3053,8 +3055,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateThrowNoSuchMethod(Node diagnosticNode,
                                  String methodName,
-                                 [Link<Node> argumentNodes,
-                                  List<HInstruction> argumentValues]) {
+                                 {Link<Node> argumentNodes,
+                                  List<HInstruction> argumentValues}) {
     Element helper =
         compiler.findHelper(const SourceString('throwNoSuchMethod'));
     Constant receiverConstant =
@@ -3084,7 +3086,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
         generateThrowNoSuchMethod(node.send,
                                   getTargetName(error, 'constructor'),
-                                  node.send.arguments);
+                                  argumentNodes: node.send.arguments);
       } else if (error.messageKind == MessageKind.CANNOT_RESOLVE) {
         Message message = error.messageKind.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
@@ -3462,7 +3464,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (variable.isErroneous()) {
         generateThrowNoSuchMethod(node,
                                   getTargetName(variable, 'set'),
-                                  <HInstruction>[oldVariable]);
+                                  argumentValues: <HInstruction>[oldVariable]);
         pop();
       } else {
         localsHandler.updateLocal(variable, oldVariable);

@@ -368,7 +368,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.cancel(reason: reason, node: node);
+    compiler.cancel(reason, node: node);
   }
 
   void unreachable() { internalError('Unreachable case'); }

@@ -1538,7 +1538,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    Token begin = token;
+    BeginGroupToken begin = token;
     token = expect('(', token);
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
