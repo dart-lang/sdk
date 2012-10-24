@@ -1112,22 +1112,13 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        LocationSummary* locs) {
   __ LoadObject(RBX, function);
   __ LoadObject(R10, arguments_descriptor);
-  if (function.HasCode()) {
-    const Code& code = Code::Handle(function.CurrentCode());
-    ExternalLabel target_label(function.ToFullyQualifiedCString(),
-                               code.EntryPoint());
-    GenerateDartCall(deopt_id,
-                     token_pos,
-                     &target_label,
-                     PcDescriptors::kFuncCall,
-                     locs);
-  } else {
-    GenerateDartCall(deopt_id,
-                     token_pos,
-                     &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kFuncCall,
-                     locs);
-  }
+  // Do not use the code from the function, but let the code be patched so that
+  // we can record the outgoing edges to other code.
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
   __ Drop(argument_count);
 }
 
