@@ -2095,33 +2095,29 @@ RangeBoundary RangeBoundary::UpperBound() const {
 }
 
 
-bool Definition::InferRange(RangeOperator op) {
+void Definition::InferRange() {
   ASSERT(GetPropagatedCid() == kSmiCid);  // Has meaning only for smis.
   if (range_ == NULL) {
     range_ = Range::Unknown();
-    return true;
   }
-  return false;
 }
 
 
-bool ConstantInstr::InferRange(RangeOperator op) {
+void ConstantInstr::InferRange() {
   ASSERT(value_.IsSmi());
   if (range_ == NULL) {
     intptr_t value = Smi::Cast(value_).Value();
     range_ = new Range(RangeBoundary::FromConstant(value),
                        RangeBoundary::FromConstant(value));
-    return true;
   }
-  return false;
 }
 
 
-bool ConstraintInstr::InferRange(RangeOperator op) {
+void ConstraintInstr::InferRange() {
   Range* value_range = value()->definition()->range();
 
   // Compute intersection of constraint and value ranges.
-  return Range::Update(&range_,
+  range_ = new Range(
       RangeBoundary::Max(Range::ConstantMin(value_range),
                          Range::ConstantMin(constraint())),
       RangeBoundary::Min(Range::ConstantMax(value_range),
@@ -2129,14 +2125,15 @@ bool ConstraintInstr::InferRange(RangeOperator op) {
 }
 
 
-bool PhiInstr::InferRange(RangeOperator op) {
+void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;
 
   for (intptr_t i = 0; i < InputCount(); i++) {
     Range* input_range = InputAt(i)->definition()->range();
     if (input_range == NULL) {
-      continue;
+      range_ = Range::Unknown();
+      return;
     }
 
     if (new_min.IsUnknown()) {
@@ -2155,31 +2152,20 @@ bool PhiInstr::InferRange(RangeOperator op) {
   ASSERT(new_min.IsUnknown() == new_max.IsUnknown());
   if (new_min.IsUnknown()) {
     range_ = Range::Unknown();
-    return false;
+    return;
   }
 
-  if (op == Definition::kRangeWiden) {
-    // Apply widening operator.
-    new_min = RangeBoundary::WidenMin(range_->min(), new_min);
-    new_max = RangeBoundary::WidenMax(range_->max(), new_max);
-  } else if (op == Definition::kRangeNarrow) {
-    // Apply narrowing operator.
-    new_min = RangeBoundary::NarrowMin(range_->min(), new_min);
-    new_max = RangeBoundary::NarrowMax(range_->max(), new_max);
-  }
-
-  return Range::Update(&range_, new_min, new_max);
+  range_ = new Range(new_min, new_max);
 }
 
 
-bool BinarySmiOpInstr::InferRange(RangeOperator op) {
+void BinarySmiOpInstr::InferRange() {
   Range* left_range = left()->definition()->range();
   Range* right_range = right()->definition()->range();
 
   if ((left_range == NULL) || (right_range == NULL)) {
-    return Range::Update(&range_,
-                         RangeBoundary::MinSmi(),
-                         RangeBoundary::MaxSmi());
+    range_ = new Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
+    return;
   }
 
   RangeBoundary new_min;
@@ -2210,20 +2196,14 @@ bool BinarySmiOpInstr::InferRange(RangeOperator op) {
     default:
       if (range_ == NULL) {
         range_ = Range::Unknown();
-        return true;
       }
-      return false;
+      return;
   }
 
   ASSERT(!new_min.IsUnknown() && !new_max.IsUnknown());
   set_overflow(new_min.Overflowed() || new_max.Overflowed());
 
-  if (op == Definition::kRangeNarrow) {
-    new_min = new_min.Clamp();
-    new_max = new_max.Clamp();
-  }
-
-  return Range::Update(&range_, new_min, new_max);
+  range_ = new Range(new_min.Clamp(), new_max.Clamp());
 }
 
 

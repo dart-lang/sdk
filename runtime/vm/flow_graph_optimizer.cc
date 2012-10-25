@@ -1600,7 +1600,9 @@ void FlowGraphOptimizer::PropagateSminess() {
 // Range analysis for smi values.
 class RangeAnalysis : public ValueObject {
  public:
-  explicit RangeAnalysis(FlowGraph* flow_graph) : flow_graph_(flow_graph) { }
+  explicit RangeAnalysis(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        marked_defns_(NULL) { }
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
@@ -1633,42 +1635,41 @@ class RangeAnalysis : public ValueObject {
                            Instruction* dom,
                            Definition* other);
 
-  // Propagate range information until fix-point is reached.
+
+  // Walk the dominator tree and infer ranges for smi values.
   void InferRanges();
+  void InferRangesRecursive(BlockEntryInstr* block);
 
-  void ProcessWorklist(Definition::RangeOperator op);
+  enum Direction {
+    kUnknown,
+    kPositive,
+    kNegative,
+    kBoth
+  };
 
-  // Walk the dominator tree, initialize ranges for smi values and place them
-  // to the worklist.
-  void InitializeRangesRecursive(BlockEntryInstr* block);
+  Range* InferInductionVariableRange(JoinEntryInstr* loop_header,
+                                     PhiInstr* var);
+
+  void ResetWorklist();
+  void MarkDefinition(Definition* defn);
+
+  static Direction ToDirection(Value* val);
+
+  static Direction Invert(Direction direction) {
+    return (direction == kPositive) ? kNegative : kPositive;
+  }
+
+  static void UpdateDirection(Direction* direction,
+                              Direction new_direction) {
+    if (*direction != new_direction) {
+      if (*direction != kUnknown) new_direction = kBoth;
+      *direction = new_direction;
+    }
+  }
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
   void RemoveConstraints();
-
-  void CreateWorklists();
-
-  void AddToWorklist(Definition* value) {
-    const intptr_t index = value->ssa_temp_index();
-    if (!in_worklist_->Contains(index)) {
-      in_worklist_->Add(index);
-      worklist_.Add(value);
-    }
-  }
-
-  bool IsWorklistEmpty() const {
-    return worklist_.is_empty();
-  }
-
-  Definition* RemoveLastFromWorklist() {
-    Definition* defn = worklist_.Last();
-    worklist_.RemoveLast();
-    ASSERT(in_worklist_->Contains(defn->ssa_temp_index()));
-    in_worklist_->Remove(defn->ssa_temp_index());
-    return defn;
-  }
-
-  void SwapWorklists();
 
   FlowGraph* flow_graph_;
 
@@ -1682,9 +1683,9 @@ class RangeAnalysis : public ValueObject {
   // Bitvector for a quick filtering of known smi values.
   BitVector* smi_definitions_;
 
-  // Worklist used during range propagation.
+  // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
-  BitVector* in_worklist_;
+  BitVector* marked_defns_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -1939,14 +1940,161 @@ void RangeAnalysis::InsertConstraints() {
 }
 
 
-void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
+void RangeAnalysis::ResetWorklist() {
+  if (marked_defns_ == NULL) {
+    marked_defns_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  } else {
+    marked_defns_->Clear();
+  }
+  worklist_.Clear();
+}
+
+
+void RangeAnalysis::MarkDefinition(Definition* defn) {
+  // Unwrap constrained value.
+  while (defn->IsConstraint()) {
+    defn = defn->AsConstraint()->value()->definition();
+  }
+
+  if (!marked_defns_->Contains(defn->ssa_temp_index())) {
+    worklist_.Add(defn);
+    marked_defns_->Add(defn->ssa_temp_index());
+  }
+}
+
+
+RangeAnalysis::Direction RangeAnalysis::ToDirection(Value* val) {
+  if (val->BindsToConstant()) {
+    return (Smi::Cast(val->BoundConstant()).Value() >= 0) ? kPositive
+                                                          : kNegative;
+  } else if (val->definition()->range() != NULL) {
+    Range* range = val->definition()->range();
+    if (Range::ConstantMin(range).value() >= 0) {
+      return kPositive;
+    } else if (Range::ConstantMax(range).value() <= 0) {
+      return kNegative;
+    }
+  }
+  return kUnknown;
+}
+
+
+Range* RangeAnalysis::InferInductionVariableRange(JoinEntryInstr* loop_header,
+                                                  PhiInstr* var) {
+  BitVector* loop_info = loop_header->loop_info();
+
+  Definition* initial_value = NULL;
+  Direction direction = kUnknown;
+
+  ResetWorklist();
+  MarkDefinition(var);
+  while (!worklist_.is_empty()) {
+    Definition* defn = worklist_.Last();
+    worklist_.RemoveLast();
+
+    if (defn->IsPhi()) {
+      PhiInstr* phi = defn->AsPhi();
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        Definition* defn = phi->InputAt(i)->definition();
+
+        if (!loop_info->Contains(defn->GetBlock()->preorder_number())) {
+          // The value is coming from outside of the loop.
+          if (initial_value == NULL) {
+            initial_value = defn;
+            continue;
+          } else if (initial_value == defn) {
+            continue;
+          } else {
+            return NULL;
+          }
+        }
+
+        MarkDefinition(defn);
+      }
+    } else if (defn->IsBinarySmiOp()) {
+      BinarySmiOpInstr* binary_op = defn->AsBinarySmiOp();
+
+      switch (binary_op->op_kind()) {
+        case Token::kADD: {
+          const Direction growth_right =
+              ToDirection(binary_op->right());
+          if (growth_right != kUnknown) {
+            UpdateDirection(&direction, growth_right);
+            MarkDefinition(binary_op->left()->definition());
+            break;
+          }
+
+          const Direction growth_left =
+              ToDirection(binary_op->left());
+          if (growth_left != kUnknown) {
+            UpdateDirection(&direction, growth_left);
+            MarkDefinition(binary_op->right()->definition());
+            break;
+          }
+
+          return NULL;
+        }
+
+        case Token::kSUB: {
+          const Direction growth_right =
+              ToDirection(binary_op->right());
+          if (growth_right != kUnknown) {
+            UpdateDirection(&direction, Invert(growth_right));
+            MarkDefinition(binary_op->left()->definition());
+            break;
+          }
+          return NULL;
+        }
+
+        default:
+          return NULL;
+      }
+    } else {
+      return NULL;
+    }
+  }
+
+
+  // We transitively discovered all dependencies of the given phi
+  // and confirmed that it depends on a single value coming from outside of
+  // the loop and some linear combinations of itself.
+  // Compute the range based on initial value and the direction of the growth.
+  switch (direction) {
+    case kPositive:
+      return new Range(RangeBoundary::FromDefinition(initial_value),
+                       RangeBoundary::MaxSmi());
+
+    case kNegative:
+      return new Range(RangeBoundary::MinSmi(),
+                       RangeBoundary::FromDefinition(initial_value));
+
+    case kUnknown:
+    case kBoth:
+      return Range::Unknown();
+  }
+
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
   JoinEntryInstr* join = block->AsJoinEntry();
   if (join != NULL) {
+    const bool is_loop_header = (join->loop_info() != NULL);
     for (PhiIterator it(join); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
       if (smi_definitions_->Contains(phi->ssa_temp_index())) {
-        phi->InferRange(Definition::kRangeInit);
-        AddToWorklist(phi);
+        if (is_loop_header) {
+          // Try recognizing simple induction variables.
+          Range* range = InferInductionVariableRange(join, phi);
+          if (range != NULL) {
+            phi->range_ = range;
+            continue;
+          }
+        }
+
+        phi->InferRange();
       }
     }
   }
@@ -1956,54 +2104,17 @@ void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
     if ((defn != NULL) &&
         (defn->ssa_temp_index() != -1) &&
         smi_definitions_->Contains(defn->ssa_temp_index())) {
-      defn->InferRange(Definition::kRangeInit);
-      AddToWorklist(defn);
+      defn->InferRange();
     }
   }
 
   for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
-    InitializeRangesRecursive(block->dominated_blocks()[i]);
-  }
-}
-
-
-void RangeAnalysis::CreateWorklists() {
-  in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
-}
-
-
-void RangeAnalysis::ProcessWorklist(Definition::RangeOperator op) {
-  // Iterate until fix point is reached.
-  while (!IsWorklistEmpty()) {
-    Definition* defn = RemoveLastFromWorklist();
-    if (FLAG_trace_range_analysis) {
-      OS::Print("infering range for v%"Pd" %s\n",
-                defn->ssa_temp_index(),
-                Range::ToCString(defn->range()));
-    }
-    if (defn->InferRange(op)) {  // Update the range.
-      if (FLAG_trace_range_analysis) {
-        OS::Print("  changed to %s\n", Range::ToCString(defn->range()));
-      }
-      // Range change. Place all uses to the worklist.
-      for (Value* use = defn->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Definition* use_defn = use->instruction()->AsDefinition();
-        if ((use_defn != NULL) &&
-            (use_defn->ssa_temp_index() != -1) &&
-            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
-          AddToWorklist(use_defn);
-        }
-      }
-    }
+    InferRangesRecursive(block->dominated_blocks()[i]);
   }
 }
 
 
 void RangeAnalysis::InferRanges() {
-  CreateWorklists();
-
   // Initialize bitvector for quick filtering of smi values.
   smi_definitions_ = new BitVector(flow_graph_->current_ssa_temp_index());
   for (intptr_t i = 0; i < smi_values_.length(); i++) {
@@ -2014,54 +2125,10 @@ void RangeAnalysis::InferRanges() {
   }
 
   // Infer initial values of ranges.
-  InitializeRangesRecursive(flow_graph_->graph_entry());
-
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    if (smi_values_[i]->IsPhi() &&
-        smi_values_[i]->InferRange(Definition::kRangeInit)) {
-      Definition* defn = smi_values_[i];
-      for (Value* use = defn->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Definition* use_defn = use->instruction()->AsDefinition();
-        if ((use_defn != NULL) &&
-            (use_defn->ssa_temp_index() != -1) &&
-            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
-          AddToWorklist(use_defn);
-        }
-      }
-    }
-  }
+  InferRangesRecursive(flow_graph_->graph_entry());
 
   if (FLAG_trace_range_analysis) {
-    OS::Print("---- after initialization -------\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
-  }
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- widening ---------\n");
-  }
-  ProcessWorklist(Definition::kRangeWiden);
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- after widening -------\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
-  }
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- narrowing ---------\n");
-  }
-  // Only phis can change under narrowing operator. Place all phis
-  // into the worklist.
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    if (smi_values_[i]->IsPhi()) AddToWorklist(smi_values_[i]);
-  }
-  ProcessWorklist(Definition::kRangeNarrow);
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- after narrowing -------\n");
+    OS::Print("---- after range analysis -------\n");
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
