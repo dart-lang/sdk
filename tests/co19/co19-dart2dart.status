@@ -3,12 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
-Language/05_Variables/05_Variables_A03_t09: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t11: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t12: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t13: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t14: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/05_Variables/05_Variables_A03_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(dart2dart-team): Please triage this failure.
@@ -324,7 +318,13 @@ Language/05_Variables/05_Variables_A03_t05: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A03_t06: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A03_t07: Fail # inherited from VM
 Language/05_Variables/05_Variables_A03_t08: Fail # http://dartbug.com/5519
+Language/05_Variables/05_Variables_A03_t09: Fail # inherited from dart2js
 Language/05_Variables/05_Variables_A03_t10: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t11: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t12: Fail # inherited from dart2js
+Language/05_Variables/05_Variables_A03_t13: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t14: Fail # inherited from VM
+Language/05_Variables/05_Variables_A03_t15: Fail # inherited from VM
 Language/05_Variables/05_Variables_A04_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A04_t02: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A04_t03: Fail # http://dartbug.com/5519
