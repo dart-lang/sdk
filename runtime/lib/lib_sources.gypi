@@ -20,6 +20,7 @@
     'integers.cc',
     'integers.dart',
     'integers_patch.dart',
+    'invocation_mirror_patch.dart',
     'object_patch.dart',
     'print_patch.dart',
     'stopwatch.cc',
