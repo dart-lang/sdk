@@ -64,7 +64,8 @@ isolate2_negative_test: Skip # Timeout.
 unresolved_ports_negative_test: Skip # Timeout.
 
 [ $runtime == opera && $system == windows]
-timer_test: Fail
+# TODO(efortuna): Investigate.
+timer_test: Fail, Pass
 
 [ $arch == simarm ]
 *: Skip
