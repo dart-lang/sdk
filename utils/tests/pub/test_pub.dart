@@ -1039,7 +1039,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     });
   }
 
-  Future _runGitCommands(String parentDir, List<List<String>> commands) {
+  Future _runGitCommands(parentDir, List<List<String>> commands) {
     var workingDir;
 
     Future runGitStep(_) {
