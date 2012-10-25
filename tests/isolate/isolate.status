@@ -76,7 +76,7 @@ spawn_uri_vm_negative_test: Skip # ditto above.
 timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                    # implement timer (currently only in d8)
 
-[ $compiler == dart2js && $runtime == d8 ]
+[ $compiler == dart2js && $jscl ]
 multiple_timer_test: Fail,OK # Needs Timer to run.
 spawn_uri_negative_test: Pass # for the wrong reasons (not supported in d8)
 spawn_uri_test: Fail, OK # loading another file is not supported in d8

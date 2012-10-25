@@ -10,7 +10,7 @@ foreign_test: Fail # Cannot resolve JS.
 native_checked_fields_test: Fail
 
 
-[ $compiler == dart2js && ( $runtime == d8 || $browser ) ]
+[ $compiler == dart2js && ( $jscl || $browser ) ]
 foreign_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity1_test: Fail # TODO(ahe): Convert to metadata syntax.
 native_call_arity2_test: Fail # TODO(ahe): Convert to metadata syntax.

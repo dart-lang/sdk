@@ -234,6 +234,28 @@ LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 
+[ $compiler == dart2js && $runtime == jsshell ]
+Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TODO(ahe): Triage these tests.
+Language/07_Classes/8_Static_Variables_A02_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/List/every_A03_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/List/filter_A03_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/List/forEach_A02_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/List/some_A03_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Map/forEach_A01_t02: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Map/putIfAbsent_A01_t06: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Map/putIfAbsent_A01_t08: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Queue/every_A01_t03: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Queue/filter_A01_t03: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Queue/forEach_A01_t03: Fail # TODO(ahe): Triage these tests.
+LibTest/core/Queue/some_A01_t03: Fail # TODO(ahe): Triage these tests.
+LibTest/core/double/round_A01_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/core/double/toStringAsExponential_A01_t07: Fail # TODO(ahe): Triage these tests.
+LibTest/core/double/toStringAsFixed_A01_t05: Fail # TODO(ahe): Triage these tests.
+LibTest/core/double/toStringAsFixed_A01_t06: Fail # TODO(ahe): Triage these tests.
+LibTest/core/double/toStringAsPrecision_A01_t07: Fail # TODO(ahe): Triage these tests.
+LibTest/math/acos_A01_t01: Fail # TODO(ahe): Triage these tests.
+LibTest/math/asin_A01_t01: Fail # TODO(ahe): Triage these tests.
+
 [ $compiler == dart2js && $checked ]
 Language/03_Overview/1_Scoping_A02_t30: Fail # http://dartbug.com/5348
 
@@ -435,7 +457,7 @@ LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 280
 
 
 
-[ $compiler == dart2js && $system == windows && $runtime == d8 ]
+[ $compiler == dart2js && $system == windows && $jscl ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
@@ -576,7 +598,7 @@ LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
 
 
-[ $compiler == dart2js && $runtime == d8 ]
+[ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
 
@@ -641,7 +663,7 @@ Language/10_Expressions/27_Unary_Expressions_A01_t01: Fail # ! cannot be called 
 Language/10_Expressions/27_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
 Language/10_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
-[ $compiler == dart2js && $runtime == d8 ]
+[ $compiler == dart2js && $jscl ]
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -655,7 +677,7 @@ Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 #
 # The following tests may be broken, but require further review.
 #
-[ $compiler == dart2js && $runtime == d8 ]
+[ $compiler == dart2js && $jscl ]
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
