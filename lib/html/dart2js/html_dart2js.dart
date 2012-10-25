@@ -11799,7 +11799,7 @@ class _DataAttributeMap implements AttributeMap {
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in keys()) {
+    for (String key in keys) {
       remove(key);
     }
   }
