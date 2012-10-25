@@ -96,6 +96,11 @@ List<String> buildScript(String name,
   // TODO(ahe): Remove this option.
   options = ' --heap_growth_rate=32$options';
 
+  // Tell the VM to don't bother inlining methods. So far it isn't
+  // paying off but the VM team is working on fixing that.
+  // TODO(ahe): Remove this option.
+  options = ' --no_use_inlining$options';
+
   return [
 '''
 #!/bin/bash
