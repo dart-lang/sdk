@@ -120,32 +120,19 @@ def ProcessTools(mode, name, version):
 
   return subprocess.call(cmds, env=local_env)
 
-def ProcessCompiler(name):
+def ProcessBot(name, target):
   '''
-  build and test the compiler
+  Build and test the named bot target (compiler, android, pub). We look for
+  the supporting script in tools/bots/ to run the tests and build.
   '''
-  print 'ProcessCompiler'
-  has_shell=False
-  if 'windows' in name:
-    # In Windows we need to run in the shell, so that we have all the
-    # environment variables available.
-    has_shell=True
-  return subprocess.call([sys.executable,
-      os.path.join('tools', 'bots', 'compiler.py')],
-      env=os.environ, shell=has_shell)
-
-def ProcessPub(name):
-  '''
-  Build and test pub and the pub packages in the main Dart repository.
-  '''
-  print 'ProcessPub'
+  print 'Process%s' % target.capitalize()
   has_shell=False
   if '-win' in name:
     # In Windows we need to run in the shell, so that we have all the
     # environment variables available.
     has_shell=True
   return subprocess.call([sys.executable,
-      os.path.join('tools', 'bots', 'pub.py')],
+      os.path.join('tools', 'bots', target + '.py')],
       env=os.environ, shell=has_shell)
 
 def FixJavaHome():
@@ -223,12 +210,14 @@ def main():
     FixJavaHome()
     status = ProcessTools('release', name, version)
   elif name.startswith('pub-'):
-    status = ProcessPub(name)
+    status = ProcessBot(name, 'pub')
+  elif name.startswith('vm-android'):
+    status = ProcessBot(name, 'android')
   else:
     # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
     # root directory, set JAVA_HOME based on that.
     FixJavaHome()
-    status = ProcessCompiler(name)
+    status = ProcessBot(name, 'compiler')
 
   if status:
     print '@@@STEP_FAILURE@@@'

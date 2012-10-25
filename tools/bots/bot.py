@@ -92,7 +92,21 @@ class BuildStep(object):
         return True
 
 
-def RunBot(parse_name, custom_steps):
+def BuildSDK(build_info):
+  """
+  Builds the SDK.
+
+  - build_info: the buildInfo object, containing information about what sort of
+      build and test to be run.
+  """
+  with BuildStep('Build SDK'):
+    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+            'create_sdk']
+    print 'Building SDK: %s' % (' '.join(args))
+    RunProcess(args)
+
+
+def RunBot(parse_name, custom_steps, build_step=BuildSDK):
   """
   The main function for running a buildbot.
 
@@ -124,7 +138,7 @@ def RunBot(parse_name, custom_steps):
 
   try:
     Clobber(build_info.mode)
-    BuildSDK(build_info.mode, build_info.system)
+    build_step(build_info)
 
     custom_steps(build_info)
   except OSError as e:
@@ -172,19 +186,6 @@ def Clobber(mode):
            '--mode=' + mode]
     print 'Clobbering %s' % (' '.join(cmd))
     RunProcess(cmd)
-
-
-def BuildSDK(mode, system):
-  """
-  Builds the SDK.
-
-  - mode: either 'debug' or 'release'
-  - system: either 'linux', 'mac', or 'win7'
-  """
-  with BuildStep('Build SDK'):
-    args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
-    print 'Building SDK: %s' % (' '.join(args))
-    RunProcess(args)
 
 
 def RunTest(name, build_info, targets, flags=None):
