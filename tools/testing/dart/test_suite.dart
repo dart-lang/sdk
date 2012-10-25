@@ -1408,6 +1408,11 @@ class TestUtils {
         args.add("--allow-mock-compilation");
       }
     }
+    // TODO(riocw): Unify our minification calling convention between dart2js
+    // and dart2dart.
+    if (compiler == "dart2js" && configuration["minified"]) {
+      args.add("--minify");
+    }
     return args;
   }
 

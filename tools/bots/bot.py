@@ -34,20 +34,22 @@ class BuildInfo(object):
   - system: 'linux', 'mac', or 'win7'.
   - checked: True if we should run in checked mode, otherwise False.
   - host_checked: True if we should run in host checked mode, otherwise False.
+  - minified: True if we should minify the code, otherwise False
   - shard_index: The shard we are running, None when not specified.
   - total_shards: The total number of shards, None when not specified.
   - is_buildbot: True if we are on a buildbot (or emulating it).
   - test_set: Specification of a non standard test set or None.
   """
   def __init__(self, compiler, runtime, mode, system, checked=False,
-               host_checked=False, shard_index=None, total_shards=None,
-               is_buildbot=False, test_set=None):
+               host_checked=False, minified=False, shard_index=None,
+               total_shards=None, is_buildbot=False, test_set=None):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
     self.system = system
     self.checked = checked
     self.host_checked = host_checked
+    self.minified = minified
     self.shard_index = shard_index
     self.total_shards = total_shards
     self.is_buildbot = is_buildbot
@@ -59,9 +61,9 @@ class BuildInfo(object):
       shard_description = " shard %s of %s" % (self.shard_index,
                                                self.total_shards)
     print ("compiler: %s, runtime: %s mode: %s, system: %s,"
-           " checked: %s, host-checked: %s, test-set: %s%s"
+           " checked: %s, host-checked: %s, minified: %s, test-set: %s%s"
            ) % (self.compiler, self.runtime, self.mode, self.system,
-                self.checked, self.host_checked, self.test_set,
+                self.checked, self.host_checked, self.minified, self.test_set,
                 shard_description)
 
 

@@ -131,6 +131,13 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'minified',
+              'Enable minification in the compiler',
+              ['--minified'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],
@@ -470,6 +477,8 @@ Note: currently only implemented for dart2js.''',
     // expect.
     configuration['unchecked'] = !configuration['checked'];
     configuration['host_unchecked'] = !configuration['host_checked'];
+
+    configuration['unminified'] = !configuration['minified'];
 
     String runtime = configuration['runtime'];
     if (runtime == 'firefox') {
