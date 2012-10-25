@@ -992,30 +992,21 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    * Creates the Git repository and commits the contents.
    */
   Future<Directory> create(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['init']);
-    }).chain((_) => runGit(['add', '.']))
-      .chain((_) => runGit(['commit', '-m', 'initial commit',
-                            '--author="Pub Test <pub@dartlang.org>"']))
-      .transform((_) => workingDir);
+    return _runGitCommands(parentDir, [
+      ['init'],
+      ['add', '.'],
+      ['commit', '-m', 'initial commit']
+    ]);
   }
 
   /**
    * Commits any changes to the Git repository.
    */
   Future commit(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['add', '.']);
-    }).chain((_) => runGit(['commit', '-m', 'update',
-                            '--author="Pub Test <pub@dartlang.org>"']));
+    return _runGitCommands(parentDir, [
+      ['add', '.'],
+      ['commit', '-m', 'update']
+    ]);
   }
 
   /**
@@ -1029,10 +1020,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    */
   Future<String> revParse(String ref) {
     var completer = new Completer<String>();
-    // TODO(nweiz): inline this once issue 3197 is fixed
-    var superCreate = super.create;
     _schedule((parentDir) {
-      return superCreate(parentDir).chain((rootDir) {
+      return super.create(parentDir).chain((rootDir) {
         return _runGit(['rev-parse', ref], rootDir);
       }).transform((output) {
         completer.complete(output[0]);
@@ -1048,6 +1037,25 @@ class GitRepoDescriptor extends DirectoryDescriptor {
       var gitDir = new Directory(join(parentDir, name));
       return _runGit(args, gitDir);
     });
+  }
+
+  Future _runGitCommands(String parentDir, List<List<String>> commands) {
+    var workingDir;
+
+    Future runGitStep(_) {
+      if (commands.isEmpty) return new Future.immediate(workingDir);
+      var command = commands.removeAt(0);
+      return _runGit(command, workingDir).chain(runGitStep);
+    }
+
+    return super.create(parentDir).chain((rootDir) {
+      workingDir = rootDir;
+      return writeTextFile(join(parentDir, '.gitconfig'), '''
+[user]
+  name = Test Pub
+  email = pub@dartlang.org
+''');
+    }).chain(runGitStep);
   }
 
   Future<String> _runGit(List<String> args, Directory workingDir) {
