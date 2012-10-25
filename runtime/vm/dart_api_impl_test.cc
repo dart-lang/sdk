@@ -5567,13 +5567,13 @@ TEST_CASE(LoadSource) {
 
   result = Dart_LoadSource(Dart_Null(), url, source);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("LibraryLoadSource expects argument 'library' to be non-null.",
+  EXPECT_STREQ("Dart_LoadSource expects argument 'library' to be non-null.",
                Dart_GetError(result));
 
   result = Dart_LoadSource(Dart_True(), url, source);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
-      "LibraryLoadSource expects argument 'library' to be of type Library.",
+      "Dart_LoadSource expects argument 'library' to be of type Library.",
       Dart_GetError(result));
 
   result = Dart_LoadSource(error, url, source);
@@ -5582,12 +5582,12 @@ TEST_CASE(LoadSource) {
 
   result = Dart_LoadSource(lib, Dart_Null(), source);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("LibraryLoadSource expects argument 'url' to be non-null.",
+  EXPECT_STREQ("Dart_LoadSource expects argument 'url' to be non-null.",
                Dart_GetError(result));
 
   result = Dart_LoadSource(lib, Dart_True(), source);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("LibraryLoadSource expects argument 'url' to be of type String.",
+  EXPECT_STREQ("Dart_LoadSource expects argument 'url' to be of type String.",
                Dart_GetError(result));
 
   result = Dart_LoadSource(lib, error, source);
@@ -5596,13 +5596,13 @@ TEST_CASE(LoadSource) {
 
   result = Dart_LoadSource(lib, url, Dart_Null());
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("LibraryLoadSource expects argument 'source' to be non-null.",
+  EXPECT_STREQ("Dart_LoadSource expects argument 'source' to be non-null.",
                Dart_GetError(result));
 
   result = Dart_LoadSource(lib, url, Dart_True());
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
-      "LibraryLoadSource expects argument 'source' to be of type String.",
+      "Dart_LoadSource expects argument 'source' to be of type String.",
       Dart_GetError(result));
 
   result = Dart_LoadSource(lib, error, source);
