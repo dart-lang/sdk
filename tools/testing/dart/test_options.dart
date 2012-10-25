@@ -485,8 +485,6 @@ Note: currently only implemented for dart2js.''',
       configuration['runtime'] == 'ff';
     }
 
-    configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
-
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
 
