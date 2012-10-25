@@ -35,6 +35,12 @@ def PubConfig(name, is_buildbot):
 
 
 def PubSteps(build_info):
+  with bot.BuildStep('Build API Docs'):
+    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+            'api_docs']
+    print 'Generating API Docs: %s' % (' '.join(args))
+    bot.RunProcess(args)
+
   # TODO(rnystrom): Eventually test other targets here like 'utils'?
   bot.RunTest('pub', build_info, ['pub'])
 
