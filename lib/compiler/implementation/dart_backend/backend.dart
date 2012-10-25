@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ahe): This class is simply wrong.  This backend should use
+// elements when it can, not AST nodes.  Perhaps a [Map<Element,
+// TreeElements>] is what is needed.
 class ElementAst {
   final Node ast;
   final TreeElements treeElements;
@@ -15,13 +18,15 @@ class ElementAst {
   }
 
   ElementAst.forClassLike(this.ast)
-      : this.treeElements = new TreeElementMapping();
+      : this.treeElements = new TreeElementMapping(null);
 }
 
+// TODO(ahe): This class should not subclass [TreeElementMapping], if
+// anything, it should implement TreeElements.
 class AggregatedTreeElements extends TreeElementMapping {
   final List<TreeElements> treeElements;
 
-  AggregatedTreeElements() : treeElements = <TreeElements>[];
+  AggregatedTreeElements() : treeElements = <TreeElements>[], super(null);
 
   Element operator[](Node node) {
     final result = super[node];
@@ -364,7 +369,7 @@ class DartBackend extends Backend {
 
       classMembers[classElement].add(constructor);
       elementAsts[constructor] =
-          new ElementAst(constructor.cachedNode, new TreeElementMapping());
+          new ElementAst(constructor.cachedNode, new TreeElementMapping(null));
     }
 
     // Create all necessary placeholders.

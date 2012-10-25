@@ -158,7 +158,8 @@ class MockCompiler extends Compiler {
   }
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
-    ResolverVisitor visitor = new ResolverVisitor(this, element);
+    ResolverVisitor visitor =
+        new ResolverVisitor(this, element, new CollectingTreeElements(element));
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
@@ -170,7 +171,9 @@ class MockCompiler extends Compiler {
   resolverVisitor() {
     Element mockElement =
         new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
-    ResolverVisitor visitor = new ResolverVisitor(this, mockElement);
+    ResolverVisitor visitor =
+        new ResolverVisitor(this, mockElement,
+                            new CollectingTreeElements(mockElement));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -237,4 +240,18 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
+}
+
+class CollectingTreeElements extends TreeElementMapping {
+  CollectingTreeElements(Element currentElement) : super(currentElement);
+
+  operator []=(Node node, Element element) {
+    map[node] = element;
+  }
+
+  operator [](Node node) => map[node];
+
+  void remove(Node node) {
+    map.remove(node);
+  }
 }

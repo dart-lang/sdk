@@ -258,7 +258,7 @@ class ResolverTask extends CompilerTask {
           }
           resolveConstructorImplementation(element, tree);
         }
-        ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+        ResolverVisitor visitor = visitorFor(element);
         visitor.useElement(tree, element);
         visitor.setupFunction(tree, element);
 
@@ -279,6 +279,13 @@ class ResolverTask extends CompilerTask {
         return visitor.mapping;
       });
     });
+  }
+
+  /// This method should only be used by this library (or tests of
+  /// this library).
+  ResolverVisitor visitorFor(Element element) {
+    var mapping = new TreeElementMapping(element);
+    return new ResolverVisitor(compiler, element, mapping);
   }
 
   void visitBody(ResolverVisitor visitor, Statement body) {
@@ -350,15 +357,14 @@ class ResolverTask extends CompilerTask {
     if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
       error(element.modifiers.getStatic(), MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
-    ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+    ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
     return visitor.mapping;
   }
 
   TreeElements resolveParameter(Element element) {
     Node tree = element.parseNode(compiler);
-    ResolverVisitor visitor =
-        new ResolverVisitor(compiler, element.enclosingElement);
+    ResolverVisitor visitor = visitorFor(element.enclosingElement);
     initializerDo(tree, visitor.visit);
     return visitor.mapping;
   }
@@ -373,8 +379,7 @@ class ResolverTask extends CompilerTask {
 
   DartType resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation == null) return compiler.types.dynamicType;
-    ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-    DartType result = visitor.resolveTypeAnnotation(annotation);
+    DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
     if (result == null) {
       // TODO(karklose): warning.
       return compiler.types.dynamicType;
@@ -640,8 +645,8 @@ class ResolverTask extends CompilerTask {
       annotation.resolutionState = STATE_STARTED;
 
       Node node = annotation.parseNode(compiler);
-      ResolverVisitor visitor = new ResolverVisitor(
-          compiler, annotation.annotatedElement.enclosingElement);
+      ResolverVisitor visitor =
+          visitorFor(annotation.annotatedElement.enclosingElement);
       node.accept(visitor);
       annotation.value = compiler.constantHandler.compileNodeWithDefinitions(
           node, visitor.mapping);
@@ -1186,6 +1191,12 @@ class TypeResolver {
   }
 }
 
+/**
+ * Core implementation of resolution.
+ *
+ * Do not subclass or instantiate this class outside this library
+ * except for testing.
+ */
 class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TreeElementMapping mapping;
   Element enclosingElement;
@@ -1200,9 +1211,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION;
 
-  ResolverVisitor(Compiler compiler, Element element)
-    : this.mapping  = new TreeElementMapping(element),
-      this.enclosingElement = element,
+  ResolverVisitor(Compiler compiler, Element element, this.mapping)
+    : this.enclosingElement = element,
       // When the element is a field, we are actually resolving its
       // initial value, which should not have access to instance
       // fields.
@@ -2834,7 +2844,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   void resolveExpression(Node node) {
     if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement));
+    node.accept(new ResolverVisitor(compiler, enclosingElement,
+                                    new TreeElementMapping(enclosingElement)));
   }
 
   // TODO(ahe): This is temporary.

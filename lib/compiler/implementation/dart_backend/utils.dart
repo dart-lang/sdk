@@ -6,8 +6,10 @@ class CloningVisitor implements Visitor<Node> {
   final TreeElements originalTreeElements;
   final TreeElementMapping cloneTreeElements;
 
-  CloningVisitor(this.originalTreeElements)
-      : cloneTreeElements = new TreeElementMapping();
+  CloningVisitor(originalTreeElements)
+      : cloneTreeElements =
+            new TreeElementMapping(originalTreeElements.currentElement),
+        this.originalTreeElements = originalTreeElements;
 
   visit(Node node) {
     if (node == null) return null;

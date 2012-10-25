@@ -411,7 +411,7 @@ void setup() {
 DartType analyzeType(String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor =
-      new TypeCheckerVisitor(compiler, new TreeElementMapping(), types);
+      new TypeCheckerVisitor(compiler, new TreeElementMapping(null), types);
   return visitor.analyze(node);
 }
 

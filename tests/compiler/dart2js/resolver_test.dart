@@ -149,7 +149,8 @@ testSuperCalls() {
   ClassElement classA = compiler.mainApp.find(buildSourceString("A"));
   FunctionElement fooA = classA.lookupLocalMember(buildSourceString("foo"));
 
-  ResolverVisitor visitor = new ResolverVisitor(compiler, fooB);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, fooB, new CollectingTreeElements(fooB));
   FunctionExpression node = fooB.parseNode(compiler);
   visitor.visit(node.body);
   Map mapping = map(visitor);
@@ -167,7 +168,9 @@ testThis() {
   ClassElement fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   FunctionElement funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  ResolverVisitor visitor = new ResolverVisitor(compiler, funElement);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, funElement,
+                          new CollectingTreeElements(funElement));
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
@@ -188,7 +191,8 @@ testThis() {
   fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  visitor = new ResolverVisitor(compiler, funElement);
+  visitor = new ResolverVisitor(compiler, funElement,
+                                new CollectingTreeElements(funElement));
   function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
@@ -464,7 +468,8 @@ testOneInterface() {
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");
 
-  ResolverVisitor visitor = new ResolverVisitor(compiler, null);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, null, new CollectingTreeElements(null));
   compiler.resolveStatement("Foo bar;");
 
   ClassElement fooElement = compiler.mainApp.find(buildSourceString('Foo'));
@@ -568,7 +573,9 @@ resolveConstructor(String script, String statement, String className,
           new Selector.callConstructor(buildSourceString(constructor),
                                        classElement.getLibrary()));
   FunctionExpression tree = element.parseNode(compiler);
-  ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, element,
+                          new CollectingTreeElements(element));
   new InitializerResolver(visitor).resolveInitializers(element, tree);
   visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
