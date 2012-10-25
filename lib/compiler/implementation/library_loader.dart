@@ -127,7 +127,7 @@ class LibraryLoaderTask extends LibraryLoader {
   String get name => 'LibraryLoader';
 
   final Map<String, LibraryElement> libraryNames =
-      new Map<String, LibraryElement>();
+      new LinkedHashMap<String, LibraryElement>();
 
   LibraryDependencyHandler currentHandler;
 
@@ -463,7 +463,8 @@ class LibraryDependencyNode {
    * The export scope for [library] which is gradually computed by the work-list
    * computation in [LibraryDependencyHandler.computeExports].
    */
-  Map<SourceString, Element> exportScope = new Map<SourceString, Element>();
+  Map<SourceString, Element> exportScope =
+      new LinkedHashMap<SourceString, Element>();
 
   /**
    * The set of exported elements that need to be propageted to dependent
@@ -600,7 +601,7 @@ class LibraryDependencyHandler {
    * already been computed.
    */
   Map<LibraryElement,LibraryDependencyNode> nodeMap =
-      new Map<LibraryElement,LibraryDependencyNode>();
+      new LinkedHashMap<LibraryElement,LibraryDependencyNode>();
 
   LibraryDependencyHandler(Compiler this.compiler);
 
@@ -613,8 +614,19 @@ class LibraryDependencyHandler {
     bool changed = true;
     while (changed) {
       changed = false;
+      Map<LibraryDependencyNode, List<Element>> tasks =
+          new LinkedHashMap<LibraryDependencyNode, List<Element>>();
+
+      // Locally defined elements take precedence over exported
+      // elements.  So we must propagate local elements first.  We
+      // ensure this by pulling the pending exports before
+      // propagating.  This enforces that we handle exports
+      // breadth-first, with locally defined elements being level 0.
       nodeMap.forEach((_, LibraryDependencyNode node) {
-        var pendingExports = node.pullPendingExports();
+        List<Element> pendingExports = node.pullPendingExports();
+        tasks[node] = pendingExports;
+      });
+      tasks.forEach((LibraryDependencyNode node, List<Element> pendingExports) {
         pendingExports.forEach((Element element) {
           element = node.addElementToExportScope(compiler, element);
           if (node.propagateElement(element)) {
