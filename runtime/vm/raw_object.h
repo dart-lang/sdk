@@ -734,6 +734,7 @@ class RawCode : public RawObject {
   RawArray* object_table_;
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
+  RawGrowableObjectArray* resolved_static_calls_;
   RawArray* comments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);

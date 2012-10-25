@@ -393,7 +393,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
     DeoptTable::SetEntry(array, i, offset, info, reason);
   }
   code.set_deopt_info_array(array);
-  const Array& object_array = Array::Handle(Array::MakeArray(object_table_));
+  const Array& object_array = Array::Handle(Array::MakeArray(object_table()));
   code.set_object_table(object_array);
 }
 

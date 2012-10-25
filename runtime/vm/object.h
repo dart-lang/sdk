@@ -2426,6 +2426,11 @@ class Code : public Object {
   void set_stackmaps(const Array& maps) const;
   RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
 
+  RawGrowableObjectArray* resolved_static_calls() const {
+    return raw_ptr()->resolved_static_calls_;
+  }
+  void set_resolved_static_calls(const GrowableObjectArray& val) const;
+
   class Comments : public ZoneAllocated {
    public:
     static Comments& New(intptr_t count);

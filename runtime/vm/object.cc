@@ -6385,8 +6385,6 @@ RawInstructions* Instructions::New(intptr_t size) {
                                       aligned_size,
                                       Heap::kCode);
     NoGCScope no_gc;
-    // TODO(iposva): Remove premarking once old and code spaces are merged.
-    raw->SetMarkBit();
     result ^= raw;
     result.set_size(size);
   }
@@ -6964,6 +6962,11 @@ void Code::set_deopt_info_array(const Array& array) const {
 
 void Code::set_object_table(const Array& array) const {
   StorePointer(&raw_ptr()->object_table_, array.raw());
+}
+
+
+void Code::set_resolved_static_calls(const GrowableObjectArray& val) const {
+  StorePointer(&raw_ptr()->resolved_static_calls_, val.raw());
 }
 
 

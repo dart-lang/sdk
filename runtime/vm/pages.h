@@ -21,6 +21,12 @@ class ObjectPointerVisitor;
 // able to get to a HeapPage header quickly based on a pointer to an object.
 class HeapPage {
  public:
+  enum PageType {
+    kData = 0,
+    kExecutable,
+    kNumPageTypes
+  };
+
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
 
@@ -29,7 +35,8 @@ class HeapPage {
   }
 
   uword object_start() const {
-    return (reinterpret_cast<uword>(this) + sizeof(HeapPage));
+    return (reinterpret_cast<uword>(this) +
+            Utils::RoundUp(sizeof(HeapPage), kObjectAlignment));
   }
   uword object_end() const {
     return object_end_;
@@ -39,6 +46,10 @@ class HeapPage {
   uword used() const { return used_; }
   void AddUsed(uword size) {
     used_ += size;
+  }
+
+  PageType type() const {
+    return executable_ ? kExecutable : kData;
   }
 
   void VisitObjects(ObjectVisitor* visitor) const;
@@ -54,8 +65,8 @@ class HeapPage {
     object_end_ = val;
   }
 
-  static HeapPage* Initialize(VirtualMemory* memory, bool is_executable);
-  static HeapPage* Allocate(intptr_t size, bool is_executable);
+  static HeapPage* Initialize(VirtualMemory* memory, PageType type);
+  static HeapPage* Allocate(intptr_t size, PageType type);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.
@@ -65,6 +76,7 @@ class HeapPage {
   HeapPage* next_;
   uword used_;
   uword object_end_;
+  bool executable_;
 
   friend class PageSpace;
 
@@ -157,16 +169,18 @@ class PageSpace {
     kForceGrowth
   };
 
-  PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable = false);
+  PageSpace(Heap* heap, intptr_t max_capacity);
   ~PageSpace();
 
-  uword TryAllocate(intptr_t size);
-  uword TryAllocate(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocate(intptr_t size,
+                    HeapPage::PageType type = HeapPage::kData,
+                    GrowthPolicy growth_policy = kControlGrowth);
 
   intptr_t in_use() const { return in_use_; }
   intptr_t capacity() const { return capacity_; }
 
   bool Contains(uword addr) const;
+  bool Contains(uword addr, HeapPage::PageType type) const;
   bool IsValidAddress(uword addr) const {
     return Contains(addr);
   }
@@ -177,7 +191,8 @@ class PageSpace {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  RawObject* FindObject(FindObjectVisitor* visitor,
+                        HeapPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks, const char* gc_reason);
@@ -208,9 +223,9 @@ class PageSpace {
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
-  HeapPage* AllocatePage();
+  HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
-  HeapPage* AllocateLargePage(intptr_t size);
+  HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
@@ -221,7 +236,7 @@ class PageSpace {
     return increase <= (max_capacity_ - capacity_);
   }
 
-  FreeList freelist_;
+  FreeList freelist_[HeapPage::kNumPageTypes];
 
   Heap* heap_;
 
@@ -238,8 +253,6 @@ class PageSpace {
 
   // Old-gen GC cycle count.
   int count_;
-
-  bool is_executable_;
 
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;

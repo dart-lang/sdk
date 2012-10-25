@@ -32,23 +32,18 @@ DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
-DEFINE_FLAG(int, code_heap_size, Heap::kCodeHeapSizeInMB,
-            "code heap size in MB,"
-            "e.g: --code_heap_size=8 allocates a 8MB code heap");
 
   Heap::Heap() : read_only_(false) {
   new_space_ = new Scavenger(this,
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
-  code_space_ = new PageSpace(this, (FLAG_code_heap_size * MB), true);
 }
 
 
 Heap::~Heap() {
   delete new_space_;
   delete old_space_;
-  delete code_space_;
 }
 
 
@@ -63,16 +58,16 @@ uword Heap::AllocateNew(intptr_t size) {
   if (addr != 0) {
     return addr;
   }
-  return AllocateOld(size);
+  return AllocateOld(size, HeapPage::kData);
 }
 
 
-uword Heap::AllocateOld(intptr_t size) {
+uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
-  uword addr = old_space_->TryAllocate(size);
+  uword addr = old_space_->TryAllocate(size, type);
   if (addr == 0) {
     CollectAllGarbage();
-    addr = old_space_->TryAllocate(size, PageSpace::kForceGrowth);
+    addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
     if (addr == 0) {
       OS::PrintErr("Exhausted heap space, trying to allocate %"Pd" bytes.\n",
                    size);
@@ -82,25 +77,9 @@ uword Heap::AllocateOld(intptr_t size) {
 }
 
 
-uword Heap::AllocateCode(PageSpace* space, intptr_t size) {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
-  ASSERT(Utils::IsAligned(size, OS::PreferredCodeAlignment()));
-  uword addr = space->TryAllocate(size);
-  if (addr == 0) {
-    // TODO(iposva): Support GC.
-    FATAL("Exhausted code heap space.");
-  }
-  if (FLAG_compiler_stats) {
-    CompilerStats::code_allocated += size;
-  }
-  return addr;
-}
-
-
 bool Heap::Contains(uword addr) const {
   return new_space_->Contains(addr) ||
-      old_space_->Contains(addr) ||
-      code_space_->Contains(addr);
+      old_space_->Contains(addr);
 }
 
 
@@ -115,21 +94,19 @@ bool Heap::OldContains(uword addr) const {
 
 
 bool Heap::CodeContains(uword addr) const {
-  return code_space_->Contains(addr);
+  return old_space_->Contains(addr, HeapPage::kExecutable);
 }
 
 
 void Heap::IterateObjects(ObjectVisitor* visitor) {
   new_space_->VisitObjects(visitor);
   old_space_->VisitObjects(visitor);
-  code_space_->VisitObjects(visitor);
 }
 
 
 void Heap::IteratePointers(ObjectPointerVisitor* visitor) {
   new_space_->VisitObjectPointers(visitor);
   old_space_->VisitObjectPointers(visitor);
-  code_space_->VisitObjectPointers(visitor);
 }
 
 
@@ -140,12 +117,6 @@ void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
 
 void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
   old_space_->VisitObjectPointers(visitor);
-  code_space_->VisitObjectPointers(visitor);
-}
-
-
-void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
-  code_space_->VisitObjectPointers(visitor);
 }
 
 
@@ -156,18 +127,12 @@ void Heap::IterateNewObjects(ObjectVisitor* visitor) {
 
 void Heap::IterateOldObjects(ObjectVisitor* visitor) {
   old_space_->VisitObjects(visitor);
-  code_space_->VisitObjects(visitor);
-}
-
-
-void Heap::IterateCodeObjects(ObjectVisitor* visitor) {
-  code_space_->VisitObjects(visitor);
 }
 
 
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
-  // The code heap can only have RawInstructions objects.
-  RawObject* raw_obj = code_space_->FindObject(visitor);
+  // Only executable pages can have RawInstructions objects.
+  RawObject* raw_obj = old_space_->FindObject(visitor, HeapPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return reinterpret_cast<RawInstructions*>(raw_obj);
@@ -187,13 +152,9 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       break;
     }
     case kOld:
+    case kCode:
       old_space_->MarkSweep(invoke_api_callbacks,
                             GCReasonToString(kOldSpace));
-      break;
-    case kCode:
-      UNIMPLEMENTED();
-      code_space_->MarkSweep(invoke_api_callbacks,
-                             GCReasonToString(kCodeSpace));
       break;
     default:
       UNREACHABLE();
@@ -219,8 +180,6 @@ void Heap::CollectAllGarbage() {
   const char* gc_reason = GCReasonToString(kFull);
   new_space_->Scavenge(kInvokeApiCallbacks, gc_reason);
   old_space_->MarkSweep(kInvokeApiCallbacks, gc_reason);
-  // TODO(iposva): Merge old and code space.
-  // code_space_->MarkSweep(kInvokeApiCallbacks, gc_reason);
   if (FLAG_verbose_gc) {
     PrintSizes();
   }
@@ -236,8 +195,6 @@ void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
   new_space_->WriteProtect(read_only);
   old_space_->WriteProtect(read_only);
-  // TODO(iposva): Merge old and code space.
-  // code_space_->WriteProtect(read_only);
 }
 
 
@@ -267,13 +224,6 @@ void Heap::StartEndAddress(uword* start, uword* end) const {
     old_space_->StartEndAddress(&old_start, &old_end);
     *start = Utils::Minimum(old_start, *start);
     *end = Utils::Maximum(old_end, *end);
-  }
-  if (code_space_->capacity() != 0) {
-    uword code_start;
-    uword code_end;
-    code_space_->StartEndAddress(&code_start, &code_end);
-    *start = Utils::Minimum(code_start, *start);
-    *end = Utils::Maximum(code_end, *end);
   }
   ASSERT(*start <= *end);
 }
@@ -312,11 +262,9 @@ bool Heap::Verify() const {
 
 void Heap::PrintSizes() const {
   OS::PrintErr("New space (%"Pd"k of %"Pd"k) "
-               "Old space (%"Pd"k of %"Pd"k) "
-               "Code space (%"Pd"k of %"Pd"k)\n",
+               "Old space (%"Pd"k of %"Pd"k)\n",
                (new_space_->in_use() / KB), (new_space_->capacity() / KB),
-               (old_space_->in_use() / KB), (old_space_->capacity() / KB),
-               (code_space_->in_use() / KB), (code_space_->capacity() / KB));
+               (old_space_->in_use() / KB), (old_space_->capacity() / KB));
 }
 
 
