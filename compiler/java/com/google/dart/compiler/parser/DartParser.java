@@ -143,11 +143,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String AS_KEYWORD = "as";
   private static final String CALL_KEYWORD = "call";
-  public static final String DYNAMIC_KEYWORD = "dynamic";
-  // TODO(scheglov) remove "Dynamic" support after
-  // http://code.google.com/p/dart/issues/detail?id=5117
-  // http://code.google.com/p/dart/issues/detail?id=5118
-  public static final String DYNAMIC_KEYWORD_DEPRECATED = "Dynamic";
+  private static final String DYNAMIC_KEYWORD = "dynamic";
   private static final String EXPORT_KEYWORD = "export";
   private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
@@ -175,7 +171,6 @@ public class DartParser extends CompletionHooksParserBase {
     ABSTRACT_KEYWORD,
     AS_KEYWORD,
     DYNAMIC_KEYWORD,
-    DYNAMIC_KEYWORD_DEPRECATED,
     EXPORT_KEYWORD,
     EXTERNAL_KEYWORD,
     FACTORY_KEYWORD,

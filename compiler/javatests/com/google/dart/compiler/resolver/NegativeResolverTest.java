@@ -898,18 +898,18 @@ public class NegativeResolverTest extends CompilerTestCase {
     };
   }
 
-  public void test_blackListed_Dynamic() throws Exception {
+  public void test_blackListed_dynamic() throws Exception {
     checkSourceErrors(
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "class A extends Dynamic {",
+            "class A extends dynamic {",
             "}",
-            "class B implements Dynamic {",
+            "class B implements dynamic {",
             "}"),
         errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 7),
         errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 7));
-    assertEquals("'Dynamic' can not be used as superclass", errors.get(0).getMessage());
-    assertEquals("'Dynamic' can not be used as superinterface", errors.get(1).getMessage());
+    assertEquals("'dynamic' can not be used as superclass", errors.get(0).getMessage());
+    assertEquals("'dynamic' can not be used as superinterface", errors.get(1).getMessage());
   }
 
   public void test_blackListed_Function() throws Exception {
@@ -1007,7 +1007,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void test_explicitDynamicTypeArgument() throws Exception {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass implements Map<Object, Dynamic> {",
+        "class MyClass implements Map<Object, dynamic> {",
         "}"));
   }
 

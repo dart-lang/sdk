@@ -863,7 +863,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "class A {",
                 "  void set foo(bool a) {}",
                 "  set bar(bool a) {}",
-                "  Dynamic set baz(bool a) {}",
+                "  dynamic set baz(bool a) {}",
                 "  bool set bob(bool a) {}",
                 "}"));
     assertErrors(
@@ -1212,7 +1212,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  assert('message');", // not 'bool'
         "  assert('null');", // not 'bool'
         "  assert(0);", // not 'bool'
-        "  assert(f() {});", // OK, Dynamic
+        "  assert(f() {});", // OK, dynamic
         "  assert(bool f() {});", // OK, '() -> bool'
         "  assert(Object f() {});", // OK, 'Object' compatible with 'bool'
         "  assert(String f() {});", // not '() -> bool', return type
@@ -1269,7 +1269,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  final double f;",
-        "  A.useDynamic(Dynamic this.f);",
+        "  A.useDynamic(dynamic this.f);",
         "  A.useNum(num this.f);",
         "  A.useString(String this.f);",
         "}",
@@ -1471,7 +1471,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             makeCode(
                 "// filler filler filler filler filler filler filler filler filler filler",
                 "int fA() {}",
-                "Dynamic fB() {}",
+                "dynamic fB() {}",
                 "void fC() {}",
                 "fD() {}",
                 ""));
@@ -1483,7 +1483,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
     {
       DartMethodDefinition fB = (DartMethodDefinition) unit.getTopLevelNodes().get(1);
-      assertEquals("Dynamic", fB.getElement().getReturnType().getElement().getName());
+      assertEquals("dynamic", fB.getElement().getReturnType().getElement().getName());
     }
     {
       DartMethodDefinition fC = (DartMethodDefinition) unit.getTopLevelNodes().get(2);
@@ -1491,7 +1491,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
     {
       DartMethodDefinition fD = (DartMethodDefinition) unit.getTopLevelNodes().get(3);
-      assertEquals("Dynamic", fD.getElement().getReturnType().getElement().getName());
+      assertEquals("dynamic", fD.getElement().getReturnType().getElement().getName());
     }
   }
 
@@ -2375,7 +2375,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
-   * Prefer specific type, not Dynamic type argument.
+   * Prefer specific type, not "dynamic" type argument.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4792
    */
@@ -2436,7 +2436,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
+   * When we can not identify type of assigned value we should keep "dynamic" as type of variable.
    */
   public void test_typesPropagation_assign_newUnknownType() throws Exception {
     analyzeLibrary(
@@ -2510,7 +2510,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  if (a is num) {",
         "    var a1 = a;",
         "  }",
-        "  if (a is Dynamic) {",
+        "  if (a is dynamic) {",
         "    var a2 = a;",
         "  }",
         "  if (b is int) {",
@@ -2525,7 +2525,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   /**
    * When single variable has conflicting type constraints, right now we don't try to unify them,
-   * instead we fall back to "Dynamic".
+   * instead we fall back to "dynamic".
    */
   public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
     analyzeLibrary(
@@ -3464,7 +3464,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   /**
    * The spec in the section 10.28 says:
-   * "It is a compile-time error to use a built-in identifier other than Dynamic as a type annotation."
+   * "It is a compile-time error to use a built-in identifier other than dynamic as a type annotation."
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3307
    */
@@ -3474,7 +3474,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "main() {",
         "  abstract   v01;",
         "  as         v02;",
-        "  Dynamic    v03;",
+        "  dynamic    v03;",
         "  export     v04;",
         "  external   v05;",
         "  factory    v06;",
@@ -3493,7 +3493,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 3, 3, 8),   // abstract
         errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 4, 3, 2),   // as
-                                                                         // Dynamic
+                                                                         // dynamic
         errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 3, 6),   // export
         errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 7, 3, 8),   // external
         errEx(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 8, 3, 7),   // factory

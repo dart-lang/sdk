@@ -162,6 +162,11 @@ Language/07_Classes/3_Setters_A04_t06: Fail OK # getter and method with the same
 Language/07_Classes/07_Classes_A07_t03: Fail, OK
 Language/07_Classes/07_Classes_A07_t06: Fail, OK
 
+# co19 issue 292
+Language/08_Interfaces/5_Superinterfaces_A03_t02: Fail, OK
+Language/10_Expressions/31_Type_Test_A03_t01: Fail, OK
+Language/11_Statements/02_Expression_Statements_A01_t08: Fail, OK
+
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax

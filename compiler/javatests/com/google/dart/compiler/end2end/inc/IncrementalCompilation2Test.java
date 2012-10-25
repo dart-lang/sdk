@@ -1414,7 +1414,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "library application;",
             "import 'A.dart' as abstract;",
             "import 'A.dart' as as;",
-            "import 'A.dart' as Dynamic;",
+            "import 'A.dart' as dynamic;",
             "import 'A.dart' as export;",
             "import 'A.dart' as external;",
             "import 'A.dart' as factory;",

@@ -23,7 +23,7 @@ import java.util.Set;
 class DynamicElementImplementation extends AbstractNodeElement implements DynamicElement, MethodNodeElement {
 
   private DynamicElementImplementation() {
-    super(null, "Dynamic");
+    super(null, "dynamic");
   }
 
   @Override
@@ -162,7 +162,7 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   
   @Override
   public String getDeclarationNameWithTypeParameters() {
-    return "Dynamic";
+    return "dynamic";
   }
 
   @Override

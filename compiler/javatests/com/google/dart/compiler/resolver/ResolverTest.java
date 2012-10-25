@@ -1224,7 +1224,7 @@ public class ResolverTest extends ResolverTestCase {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class int {}",
-        "typedef Dynamic F1<T>(Dynamic x, T y);",
+        "typedef dynamic F1<T>(dynamic x, T y);",
         "class MyClass {",
         "  main() {",
         "    F1<int> f1 = (Object o, int i) => null;",
