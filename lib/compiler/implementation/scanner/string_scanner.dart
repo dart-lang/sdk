@@ -38,11 +38,18 @@ class SubstringWrapper implements SourceString {
   final String internalString;
   final int begin;
   final int end;
+  int cashedHash = 0;
+  String cachedSubString;
 
-  const SubstringWrapper(String this.internalString,
-                         int this.begin, int this.end);
+  SubstringWrapper(String this.internalString,
+                   int this.begin, int this.end);
 
-  int get hashCode => slowToString().hashCode;
+  int get hashCode {
+    if (0 == cashedHash) {
+      cashedHash = slowToString().hashCode;
+    }
+    return cashedHash;
+  }
 
   bool operator ==(other) {
     return other is SourceString && slowToString() == other.slowToString();
@@ -52,7 +59,12 @@ class SubstringWrapper implements SourceString {
     sb.add(internalString.substring(begin, end));
   }
 
-  String slowToString() => internalString.substring(begin, end);
+  String slowToString() {
+    if (cachedSubString == null) {
+      cachedSubString = internalString.substring(begin, end);
+    }
+    return cachedSubString;
+  }
 
   String toString() => "SubstringWrapper(${slowToString()})";
 

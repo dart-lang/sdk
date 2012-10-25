@@ -123,9 +123,12 @@ class ElementKind {
 }
 
 class Element implements Spannable {
+  static int elementHashCode = 0;
+
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
+  final int hashCode = ++elementHashCode;
   Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
@@ -260,11 +263,6 @@ class Element implements Spannable {
     }
     return token;
   }
-
-  // TODO(kasperl): This is a very bad hash code for the element and
-  // there's no reason why two elements with the same name should have
-  // the same hash code. Replace this with a simple id in the element?
-  int get hashCode => name == null ? 0 : name.hashCode;
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;

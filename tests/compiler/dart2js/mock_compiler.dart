@@ -243,6 +243,8 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
 }
 
 class CollectingTreeElements extends TreeElementMapping {
+  final Map<Node, Element> map = new LinkedHashMap<Node, Element>();
+
   CollectingTreeElements(Element currentElement) : super(currentElement);
 
   operator []=(Node node, Element element) {

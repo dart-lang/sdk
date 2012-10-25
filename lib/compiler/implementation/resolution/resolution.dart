@@ -11,5 +11,7 @@ import '../elements/elements.dart';
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 
+import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
+
 part 'members.dart';
 part 'scope.dart';

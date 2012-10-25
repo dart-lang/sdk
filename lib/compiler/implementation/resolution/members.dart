@@ -11,14 +11,12 @@ abstract class TreeElements {
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Node, Element> map;
   final Map<Node, Selector> selectors;
   final Map<Node, DartType> types;
   final Set<Element> checkedParameters;
 
-  TreeElementMapping([Element this.currentElement])
-      : map = new LinkedHashMap<Node, Element>(),
-        selectors = new LinkedHashMap<Node, Selector>(),
+  TreeElementMapping(this.currentElement)
+      : selectors = new LinkedHashMap<Node, Selector>(),
         types = new LinkedHashMap<Node, DartType>(),
         checkedParameters = new Set<Element>();
 
@@ -37,11 +35,19 @@ class TreeElementMapping implements TreeElements {
       }
       return true;
     }));
+    assert(invariant(node,
+                     getTreeElement(node) == element ||
+                     getTreeElement(node) == null,
+                     message: '${getTreeElement(node)}; $element'));
 
-    map[node] = element;
+    setTreeElement(node, element);
   }
-  operator [](Node node) => map[node];
-  void remove(Node node) { map.remove(node); }
+
+  operator [](Node node) => getTreeElement(node);
+
+  void remove(Node node) {
+    setTreeElement(node, null);
+  }
 
   void setType(Node node, DartType type) {
     types[node] = type;
@@ -2053,6 +2059,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       label.setBreakTarget();
       mapping[node.target] = label;
     }
+    if (mapping[node] != null) {
+      // TODO(ahe): I'm not sure why this node already has an element
+      // that is different from target.  I will talk to Lasse and
+      // figure out what is going on.
+      mapping.remove(node);
+    }
     mapping[node] = target;
   }
 
@@ -2196,6 +2208,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             new TargetElement(switchCase,
                               statementScope.nestingLevel,
                               enclosingElement);
+        if (mapping[switchCase] != null) {
+          // TODO(ahe): Talk to Lasse about this.
+          mapping.remove(switchCase);
+        }
         mapping[switchCase] = targetElement;
 
         LabelElement labelElement =
