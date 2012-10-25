@@ -135,7 +135,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
    Args:
      - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', or 'win7'
+     - system: either 'linux', 'mac', 'win7', or 'win8'
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
@@ -174,9 +174,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     version_query_string = '"%s" --version' % GetPath(runtime)
-    if runtime == 'ff' and system == 'win7':
+    if runtime == 'ff' and system.startswith('win'):
       version_query_string += '| more'
-    elif runtime == 'chrome' and system == 'win7':
+    elif runtime == 'chrome' and system.startswith('win'):
       version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' +
           '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" /v Version''')
     p = subprocess.Popen(version_query_string,
@@ -239,10 +239,10 @@ def CleanUpTemporaryFiles(system, browser):
   behavior has not been reproduced outside of the buildbots.
 
   Args:
-     - system: either 'linux', 'mac', or 'win7'
+     - system: either 'linux', 'mac', 'win7', or 'win8'
      - browser: one of the browsers, see GetBuildInfo
   """
-  if system == 'win7':
+  if system.startswith('win'):
     shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
         ignore_errors=True)
   elif browser == 'ff' or 'opera':
@@ -260,8 +260,7 @@ def GetHasHardCodedCheckedMode(build_info):
   # vms for testing this.
   if (build_info.system == 'linux' and build_info.runtime == 'chrome'):
     return True
-  if (build_info.system == 'win7' and build_info.runtime.startswith('ie') and
-      build_info.test_set == 'all'):
+  if build_info.runtime.startswith('ie') and build_info.test_set == 'all':
     return True
   return False
 
