@@ -38,9 +38,7 @@ class Range;
   V(_StringBase, get:length, StringBaseLength)                                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
-  V(_Double, toDouble, DoubleToDouble)                                         \
   V(_Double, toInt, DoubleToInteger)                                           \
-  V(_IntegerImplementation, toInt, IntegerToInteger)                           \
   V(::, sqrt, MathSqrt)                                                        \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -248,7 +246,6 @@ class EmbeddedArray<T, 0> {
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
   M(CheckStackOverflow)                                                        \
-  M(DoubleToDouble)                                                            \
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
   M(CheckClass)                                                                \
@@ -3747,7 +3744,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   UnarySmiOpInstr(Token::Kind op_kind,
                   InstanceCallInstr* instance_call,
                   Value* value)
-      : op_kind_(op_kind), instance_call_(instance_call) {
+      : op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
     ASSERT(value != NULL);
     inputs_[0] = value;
@@ -3756,8 +3753,6 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
   Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3772,7 +3767,6 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
  private:
   const Token::Kind op_kind_;
-  InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
 };
@@ -3798,34 +3792,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
-};
-
-
-class DoubleToDoubleInstr : public TemplateDefinition<1> {
- public:
-  DoubleToDoubleInstr(Value* value, InstanceCallInstr* instance_call)
-      : instance_call_(instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  DECLARE_INSTRUCTION(DoubleToDouble)
-  virtual RawAbstractType* CompileType() const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
-
- private:
-  InstanceCallInstr* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
 };
 
 

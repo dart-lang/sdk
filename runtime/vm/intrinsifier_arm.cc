@@ -235,10 +235,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  return false;
-}
-
 bool Intrinsifier::Double_add(Assembler* assembler) {
   return false;
 }

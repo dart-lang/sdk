@@ -1328,13 +1328,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ ret();
-  return true;
-}
-
-
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {

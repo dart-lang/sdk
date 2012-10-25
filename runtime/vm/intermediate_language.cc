@@ -1376,11 +1376,6 @@ RawAbstractType* UnarySmiOpInstr::CompileType() const {
 }
 
 
-RawAbstractType* DoubleToDoubleInstr::CompileType() const {
-  return Type::Double();
-}
-
-
 RawAbstractType* SmiToDoubleInstr::CompileType() const {
   return Type::Double();
 }

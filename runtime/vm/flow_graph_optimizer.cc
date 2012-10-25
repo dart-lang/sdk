@@ -1081,36 +1081,12 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  if ((recognized_kind == MethodRecognizer::kDoubleToDouble) &&
-      (class_ids[0] == kDoubleCid)) {
-    DoubleToDoubleInstr* d2d_instr =
-        new DoubleToDoubleInstr(call->ArgumentAt(0)->value(), call);
-    call->ReplaceWith(d2d_instr, current_iterator());
-    RemovePushArguments(call);
-    return true;
-  }
-
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
     SmiToDoubleInstr* s2d_instr = new SmiToDoubleInstr(call);
     call->ReplaceWith(s2d_instr, current_iterator());
     // Pushed arguments are not removed because SmiToDouble is implemented
     // as a call.
-    return true;
-  }
-
-  const intptr_t cid0 = class_ids[0];
-  if ((recognized_kind == MethodRecognizer::kIntegerToInteger) &&
-      ((cid0 == kSmiCid) || (cid0 == kMintCid) || (cid0 == kBigintCid))) {
-    // TODO(srdjan): implement also for mixed integer cids.
-    InsertBefore(call,
-                 new CheckSmiInstr(call->ArgumentAt(0)->value()->Copy(),
-                                   call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    call->ReplaceUsesWith(call->ArgumentAt(0));
-    RemovePushArguments(call);
-    call->RemoveFromGraph();
     return true;
   }
 
@@ -3303,17 +3279,6 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
     // TODO(kmillikin): Handle unary operations.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
     SetValue(instr, non_constant_);
   }
 }

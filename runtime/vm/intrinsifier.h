@@ -50,7 +50,6 @@ namespace dart {
   V(_Double, /, Double_div)                                                    \
   V(_Double, get:isNaN, Double_getIsNaN)                                       \
   V(_Double, get:isNegative, Double_getIsNegative)                             \
-  V(_Double, toDouble, Double_toDouble)                                        \
   V(_Double, _mulFromInteger, Double_mulFromInteger)                           \
   V(_Double, .fromInteger, Double_fromInteger)                                 \
   V(_Double, toInt, Double_toInt)                                              \

@@ -1147,16 +1147,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ ret();
-  // Generate enough code to satisfy patchability constraint.
-  intptr_t offset = __ CodeSize();
-  __ nop(JumpPattern::InstructionLength() - offset);
-  return true;
-}
-
-
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {

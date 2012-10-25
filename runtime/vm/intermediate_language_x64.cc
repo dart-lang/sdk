@@ -1957,32 +1957,6 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        kDeoptDoubleToDouble);
-
-  __ testq(value, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);  // Deoptimize if Smi.
-  __ CompareClassId(value, kDoubleCid);
-  __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
-  ASSERT(value == result);
-}
-
-
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
   return MakeCallSummary();  // Calls a stub to allocate result.
 }
