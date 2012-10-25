@@ -427,8 +427,13 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
-  CheckClassInstr* check =
-      new CheckClassInstr(value, call->deopt_id(), unary_checks);
+  Instruction* check = NULL;
+  if ((unary_checks.NumberOfChecks() == 1) &&
+      (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    check = new CheckSmiInstr(value, call->deopt_id());
+  } else {
+    check = new CheckClassInstr(value, call->deopt_id(), unary_checks);
+  }
   InsertBefore(call, check, call->env(), Definition::kEffect);
 }
 
@@ -491,7 +496,7 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
-  ICData& value_check = ICData::Handle();
+  ICData& value_check = ICData::ZoneHandle();
   switch (class_id) {
     case kArrayCid:
     case kGrowableObjectArrayCid:
@@ -1146,9 +1151,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     const intptr_t kMaxChecks = 4;
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
       bool call_with_checks;
-      // TODO(srdjan): Add check class instr for mixed smi/non-smi.
-      if (unary_checks.HasOneTarget() &&
-          (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
+      if (unary_checks.HasOneTarget()) {
         // Type propagation has not run yet, we cannot eliminate the check.
         AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
         // Call can still deoptimize, do not detach environment from instr.
@@ -1339,11 +1342,11 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
   smi_or_null.Add(kNullCid);
   if (ICDataHasOnlyReceiverArgumentClassIds(
         *comp->ic_data(), smi_or_null, smi_or_null)) {
-    ICData& unary_checks =
+    const ICData& unary_checks_0 =
         ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
     const intptr_t deopt_id = comp->deopt_id();
-    if ((unary_checks.NumberOfChecks() == 1) &&
-        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    if ((unary_checks_0.NumberOfChecks() == 1) &&
+        (unary_checks_0.GetReceiverClassIdAt(0) == kSmiCid)) {
       // Smi only.
       optimizer->InsertBefore(
         instr,
@@ -1354,14 +1357,15 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
       // Smi or NULL.
       optimizer->InsertBefore(
         instr,
-        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks),
+        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks_0),
         instr->env(),
         Definition::kEffect);
     }
 
-    unary_checks = comp->ic_data()->AsUnaryClassChecksForArgNr(1);
-    if ((unary_checks.NumberOfChecks() == 1) &&
-        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    const ICData& unary_checks_1 =
+        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecksForArgNr(1));
+    if ((unary_checks_1.NumberOfChecks() == 1) &&
+        (unary_checks_1.GetReceiverClassIdAt(0) == kSmiCid)) {
       // Smi only.
       optimizer->InsertBefore(
         instr,
@@ -1372,7 +1376,7 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
       // Smi or NULL.
       optimizer->InsertBefore(
         instr,
-        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks),
+        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks_1),
         instr->env(),
         Definition::kEffect);
     }

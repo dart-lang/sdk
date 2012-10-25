@@ -3854,12 +3854,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
-                  const ICData& unary_checks)
-      : unary_checks_(unary_checks) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-    deopt_id_ = deopt_id;
-  }
+                  const ICData& unary_checks);
 
   DECLARE_INSTRUCTION(CheckClass)
   virtual RawAbstractType* CompileType() const;

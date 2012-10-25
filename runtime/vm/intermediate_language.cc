@@ -61,6 +61,25 @@ bool Value::Equals(Value* other) const {
 }
 
 
+
+CheckClassInstr::CheckClassInstr(Value* value,
+                                 intptr_t deopt_id,
+                                 const ICData& unary_checks)
+    : unary_checks_(unary_checks) {
+  ASSERT(value != NULL);
+  ASSERT(unary_checks.IsZoneHandle());
+  // Expected useful check data.
+  ASSERT(!unary_checks_.IsNull() &&
+         (unary_checks_.NumberOfChecks() > 0) &&
+         (unary_checks_.num_args_tested() == 1));
+  inputs_[0] = value;
+  deopt_id_ = deopt_id;
+  // Otherwise use CheckSmiInstr.
+  ASSERT((unary_checks_.NumberOfChecks() != 1) ||
+         (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
+}
+
+
 bool CheckClassInstr::AttributesEqual(Instruction* other) const {
   CheckClassInstr* other_check = other->AsCheckClass();
   ASSERT(other_check != NULL);

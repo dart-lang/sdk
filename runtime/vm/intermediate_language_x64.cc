@@ -2113,6 +2113,8 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+         (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
