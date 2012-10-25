@@ -228,10 +228,6 @@ call_test: Fail # Issue 1604
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
 
-# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $runtime == opera ]
-*: Skip
-
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
 

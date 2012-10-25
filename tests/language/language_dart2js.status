@@ -352,3 +352,14 @@ export_test: Fail # Issue 5785 (root cause: issue 2264)
 export_cyclic_test: Fail # Issue 5785 (root cause: issue 2264)
 import_combinators_test: Fail # Issue 5785 (root cause: issue 2264)
 first_class_types_libraries_test: Fail
+
+[ $runtime == opera ]
+call_through_null_getter_test: Fail
+closure3_test: Fail
+execute_finally3_test: Fail
+method_invocation_test: Fail
+null_pointer_exception_test: Fail
+stack_overflow_test: Fail
+string_interpolate_npe_test: Fail
+closure_call_wrong_argument_count_negative_test: Skip
+label_test: Skip

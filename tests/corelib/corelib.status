@@ -14,9 +14,10 @@ apply2_test: Fail # Bug 5670
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
-# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
-*: Skip
+core_runtime_types_test: Fail
+date_time7_test: Fail
+unicode_test: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip

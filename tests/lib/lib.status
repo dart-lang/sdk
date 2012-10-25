@@ -10,9 +10,6 @@ mirrors/*: Skip
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
 
-[ $runtime == opera ]
-*: Skip
-
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip

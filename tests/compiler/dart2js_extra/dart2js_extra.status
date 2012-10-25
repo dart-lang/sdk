@@ -26,6 +26,3 @@ class_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $runtime == opera ]
-*: Skip

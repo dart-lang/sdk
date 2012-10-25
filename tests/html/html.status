@@ -185,6 +185,43 @@ svgelement2_test: Fail
 svgelement_test: Fail
 url_test: Fail
 
+[ $runtime == opera ]
+audiobuffersourcenode_test: Fail
+cache_test: Fail
+canvas_test: Pass,Fail
+contentelement_test: Fail
+audiocontext_test: Fail
+blob_constructor_test: Fail
+canvas_using_html_test: Fail
+canvas_test: Fail
+css_test: Fail
+cssstyledeclaration_test: Fail
+element_add_test: Fail
+element_constructor_1_test: Fail
+element_webkit_test: Fail
+exceptions_test: Fail
+element_test: Crash
+indexeddb_1_test: Fail
+indexeddb_2_test: Fail
+indexeddb_3_test: Fail
+indexeddb_4_test: Fail
+mutationobserver_test: Fail
+performance_api_test: Fail
+serialized_script_value_test: Fail
+svg_3_test: Fail
+svgelement_test: Fail
+svgelement2_test: Fail
+typed_arrays_1_test: Fail
+typed_arrays_arraybuffer_test: Fail
+url_test: Fail
+websocket_test: Fail
+fileapi_test: Skip # Timeout.
+inner_frame_test: Skip # Timeout.
+js_interop_3_test: Skip # Timeout.
+js_interop_4_test: Skip # Timeout.
+isolates_test: Skip # Timeout.
+websql_test: Skip # Timeout.
+
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
@@ -227,8 +264,6 @@ xhr_test: Fail
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $runtime == opera ]
-*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
