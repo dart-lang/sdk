@@ -267,14 +267,14 @@ class Dartdoc {
     }
     var includeByDefault = true;
     String libraryName = displayName(library);
+    if (excludedLibraries.contains(libraryName)) {
+      return false;
+    }
     if (!includedLibraries.isEmpty) {
       includeByDefault = false;
-      if (includedLibraries.indexOf(libraryName) != -1) {
+      if (includedLibraries.contains(libraryName)) {
         return true;
       }
-    }
-    if (excludedLibraries.indexOf(libraryName) != -1) {
-      return false;
     }
     if (libraryName.startsWith('dart:')) {
       String suffix = libraryName.substring('dart:'.length);
