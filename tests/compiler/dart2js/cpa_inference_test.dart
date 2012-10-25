@@ -237,6 +237,39 @@ testMutuallyRecusiveFunction() {
   result.checkNodeHasType('foo', [result.int, result.string]);
 }
 
+testSendToThis1() {
+  final String source = r"""
+      class A {
+        A();
+        f() => g();
+        g() => 42;
+      }
+      main() {
+        var foo = new A().f();
+        foo;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
+}
+
+testSendToThis2() {
+  final String source = r"""
+      class A {
+        foo() => this;
+      }
+      class B extends A {
+        bar() => foo();
+      }
+      main() {
+        var x = new B().bar();
+        x;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.base('B')]);
+}
+
 testConstructor() {
   final String source = r"""
       class A {
@@ -383,6 +416,8 @@ void main() {
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
+  testSendToThis1();
+  testSendToThis2();
   testConstructor();
   testGetters();
   testSetters();
