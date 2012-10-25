@@ -132,22 +132,20 @@ patch class JSSyntaxRegExp {
 class _MatchImplementation implements Match {
   final String pattern;
   final String str;
-  final int _start;
-  final int _end;
+  final int start;
+  final int end;
   final List<String> _groups;
 
   const _MatchImplementation(
       String this.pattern,
       String this.str,
-      int this._start,
-      int this._end,
+      int this.start,
+      int this.end,
       List<String> this._groups);
 
-  int start() => _start;
-  int end() => _end;
   String group(int index) => _groups[index];
   String operator [](int index) => group(index);
-  int groupCount() => _groups.length - 1;
+  int get groupCount => _groups.length - 1;
 
   List<String> groups(List<int> groups) {
     List<String> out = [];

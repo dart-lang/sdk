@@ -5,13 +5,8 @@
 class _JSRegExpMatch implements Match {
   _JSRegExpMatch(this.regexp, this.str, this._match);
 
-  int start() {
-    return _start(0);
-  }
-
-  int end() {
-    return _end(0);
-  }
+  int get start => _start(0);
+  int get end => _end(0);
 
   int _start(int groupIdx) {
     return _match[(groupIdx * MATCH_PAIR)];
@@ -46,9 +41,7 @@ class _JSRegExpMatch implements Match {
     return groupsList;
   }
 
-  int groupCount() {
-    return regexp._groupCount;
-  }
+  int get groupCount => regexp._groupCount;
 
   String get pattern => regexp.pattern;
 

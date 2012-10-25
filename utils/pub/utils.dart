@@ -97,8 +97,8 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   var buffer = new StringBuffer();
   var start = 0;
   for (var match in matcher.allMatches(source)) {
-    buffer.add(source.substring(start, match.start()));
-    start = match.end();
+    buffer.add(source.substring(start, match.start));
+    start = match.end;
     buffer.add(fn(match));
   }
   buffer.add(source.substring(start));
@@ -110,7 +110,7 @@ String replace(String source, Pattern matcher, String fn(Match)) {
  */
 bool endsWithPattern(String str, Pattern matcher) {
   for (var match in matcher.allMatches(str)) {
-    if (match.end() == str.length) return true;
+    if (match.end == str.length) return true;
   }
   return false;
 }

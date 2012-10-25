@@ -28,13 +28,13 @@ abstract class Match {
   /**
    * Returns the index in the string where the match starts.
    */
-  int start();
+  int get start;
 
   /**
    * Returns the index in the string after the last character of the
    * match.
    */
-  int end();
+  int get end;
 
   /**
    * Returns the string matched by the given [group]. If [group] is 0,
@@ -52,7 +52,7 @@ abstract class Match {
   /**
    * Returns the number of groups in the regular expression.
    */
-  int groupCount();
+  int get groupCount;
 
   /**
    * The string on which this matcher was computed.

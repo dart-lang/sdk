@@ -368,6 +368,37 @@ LibTest/core/Map/getKeys_A01_t02: Fail, OK # co19 issue 293
 LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 293
 LibTest/core/Map/getValues_A01_t01: Fail, OK # co19 issue 293
 
+LibTest/core/Match/end_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Match/group_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Match/groupCount_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Match/start_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A05_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 294
+
 LibTest/core/Queue/filter_A01_t04: Fail, OK # co19 issue 291
 LibTest/core/Queue/first_A01_t01: Fail, OK # co19 issue 291
 LibTest/core/Queue/removeFirst_A01_t01: Fail, OK # co19 issue 291

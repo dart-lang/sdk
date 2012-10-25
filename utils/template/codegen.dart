@@ -751,25 +751,25 @@ Nested #each or #with must have a localName;
 
     int lastIdx = 0;
     for (Match m in matches) {
-      if (m.start() > lastIdx) {
-        newExpr.add(expr.substring(lastIdx, m.start()));
+      if (m.start > lastIdx) {
+        newExpr.add(expr.substring(lastIdx, m.start));
       }
 
       bool identifier = true;
-      if (m.start() > 0)  {
-        int charCode = expr.charCodeAt(m.start() - 1);
+      if (m.start > 0)  {
+        int charCode = expr.charCodeAt(m.start - 1);
         // Starts with ' or " then it's not an identifier.
         identifier = charCode != 34 /* " */ && charCode != 39 /* ' */;
       }
 
-      String strMatch = expr.substring(m.start(), m.end());
+      String strMatch = expr.substring(m.start, m.end);
       if (identifier) {
         newExpr.add("${prefixPart}.${strMatch}");
       } else {
         // Quoted string don't touch.
         newExpr.add("${strMatch}");
       }
-      lastIdx = m.end();
+      lastIdx = m.end;
     }
 
     if (expr.length > lastIdx) {

@@ -27,12 +27,12 @@ testOneMatch() {
   var iterator = matches.iterator();
   Match match = iterator.next();
   Expect.isFalse(iterator.hasNext);
-  Expect.equals(str.indexOf('with', 0), match.start());
-  Expect.equals(str.indexOf('with', 0) + helloPattern.length, match.end());
+  Expect.equals(str.indexOf('with', 0), match.start);
+  Expect.equals(str.indexOf('with', 0) + helloPattern.length, match.end);
   Expect.equals(helloPattern, match.pattern);
   Expect.equals(str, match.str);
   Expect.equals(helloPattern, match[0]);
-  Expect.equals(0, match.groupCount());
+  Expect.equals(0, match.groupCount);
 }
 
 testTwoMatches() {
@@ -43,14 +43,14 @@ testTwoMatches() {
   int start = 0;
   for (var match in matches) {
     count++;
-    Expect.equals(str.indexOf('hello', start), match.start());
+    Expect.equals(str.indexOf('hello', start), match.start);
     Expect.equals(
-        str.indexOf('hello', start) + helloPattern.length, match.end());
+        str.indexOf('hello', start) + helloPattern.length, match.end);
     Expect.equals(helloPattern, match.pattern);
     Expect.equals(str, match.str);
     Expect.equals(helloPattern, match[0]);
-    Expect.equals(0, match.groupCount());
-    start = match.end();
+    Expect.equals(0, match.groupCount);
+    start = match.end;
   }
   Expect.equals(2, count);
 }

@@ -10,8 +10,8 @@ main() {
   int end = 5;
   while (it.hasNext) {
     Match match = it.next();
-    Expect.equals(start, match.start());
-    Expect.equals(end, match.end());
+    Expect.equals(start, match.start);
+    Expect.equals(end, match.end);
     start += 6;
     end += 6;
   }

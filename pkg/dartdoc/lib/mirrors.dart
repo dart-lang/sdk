@@ -481,8 +481,8 @@ abstract class Location {
 
   /**
    * Returns the [Source] in which this [Location] indexes.
-   * If [:loc:] is a location, [:loc.source().text()[loc.start()] is where it
-   * starts, and [:loc.source().text()[loc.end()] is where it ends.
+   * If [:loc:] is a location, [:loc.source().text()[loc.start]:] is where it
+   * starts, and [:loc.source().text()[loc.end]:] is where it ends.
    */
   Source get source;
 

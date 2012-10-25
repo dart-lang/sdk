@@ -243,8 +243,8 @@ class Bidi {
       Match match = const RegExp('<\\w+').firstMatch(html);
       if (match != null) {
         buffer.add(html.substring(
-            startIndex, match.end())).add(' dir=$direction');
-        startIndex = match.end();
+            startIndex, match.end)).add(' dir=$direction');
+        startIndex = match.end;
       }
       return buffer.add(html.substring(startIndex)).toString();
     }
@@ -296,9 +296,9 @@ class Bidi {
     var startIndex = 0;
     Iterable matches = regexp.allMatches(str);
     for (Match match in matches) {
-      buffer.add(str.substring(startIndex, match.start())).add(before);
-      buffer.add(str.substring(match.start(), match.end())).add(after);
-      startIndex = match.end();
+      buffer.add(str.substring(startIndex, match.start)).add(before);
+      buffer.add(str.substring(match.start, match.end)).add(after);
+      startIndex = match.end;
     }
     return buffer.add(str.substring(startIndex)).toString();
   }

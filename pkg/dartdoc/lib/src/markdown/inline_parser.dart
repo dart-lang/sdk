@@ -156,7 +156,7 @@ class InlineSyntax {
 
   bool tryMatch(InlineParser parser) {
     final startMatch = pattern.firstMatch(parser.currentSource);
-    if ((startMatch != null) && (startMatch.start() == 0)) {
+    if ((startMatch != null) && (startMatch.start == 0)) {
       // Write any existing plain text up to this point.
       parser.writeText();
 
@@ -354,7 +354,7 @@ class TagState {
   /// pattern.
   bool tryMatch(InlineParser parser) {
     Match endMatch = syntax.endPattern.firstMatch(parser.currentSource);
-    if ((endMatch != null) && (endMatch.start() == 0)) {
+    if ((endMatch != null) && (endMatch.start == 0)) {
       // Close the tag.
       close(parser, endMatch);
       return true;

@@ -204,8 +204,8 @@ class _StringBase {
     Iterator iterator = pattern.allMatches(this).iterator();
     if (iterator.hasNext) {
       Match match = iterator.next();
-      buffer.add(this.substring(startIndex, match.start())).add(replacement);
-      startIndex = match.end();
+      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      startIndex = match.end;
     }
     return buffer.add(this.substring(startIndex)).toString();
   }
@@ -220,8 +220,8 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
-      buffer.add(this.substring(startIndex, match.start())).add(replacement);
-      startIndex = match.end();
+      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      startIndex = match.end;
     }
     return buffer.add(this.substring(startIndex)).toString();
   }
@@ -278,16 +278,16 @@ class _StringBase {
         break;
       }
       Match match = iterator.next();
-      if (match.start() == length) {
+      if (match.start == length) {
         result.add(this.substring(previousIndex, length));
         break;
       }
-      int endIndex = match.end();
+      int endIndex = match.end;
       if (startIndex == endIndex && endIndex == previousIndex) {
         ++startIndex;  // empty match, advance and restart
         continue;
       }
-      result.add(this.substring(previousIndex, match.start()));
+      result.add(this.substring(previousIndex, match.start));
       startIndex = previousIndex = endIndex;
     }
     return result;
@@ -458,14 +458,13 @@ class _ExternalFourByteString extends _StringBase implements String {
 
 
 class _StringMatch implements Match {
-  const _StringMatch(int this._start,
+  const _StringMatch(int this.start,
                      String this.str,
                      String this.pattern);
 
-  int start() => _start;
-  int end() => _start + pattern.length;
+  int get end => start + pattern.length;
   String operator[](int g) => group(g);
-  int groupCount() => 0;
+  int get groupCount => 0;
 
   String group(int group) {
     if (group != 0) {
@@ -482,7 +481,7 @@ class _StringMatch implements Match {
     return result;
   }
 
-  final int _start;
+  final int start;
   final String str;
   final String pattern;
 }

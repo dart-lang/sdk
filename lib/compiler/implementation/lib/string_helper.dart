@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class StringMatch implements Match {
-  const StringMatch(int this._start,
+  const StringMatch(int this.start,
                     String this.str,
                     String this.pattern);
 
-  int start() => _start;
-  int end() => _start + pattern.length;
+  int get end => start + pattern.length;
   String operator[](int g) => group(g);
-  int groupCount() => 0;
+  int get groupCount => 0;
 
   String group(int group_) {
     if (group_ != 0) {
@@ -27,7 +26,7 @@ class StringMatch implements Match {
     return result;
   }
 
-  final int _start;
+  final int start;
   final String str;
   final String pattern;
 }
