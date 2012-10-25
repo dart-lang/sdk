@@ -335,6 +335,8 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
 Language/14_Types/5_Function_Types_A01_t21: Fail, OK
 
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
+
 Language/10_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
 Language/10_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
 Language/10_Expressions/06_Lists_A05_t02: Fail, OK # co19 issue 287

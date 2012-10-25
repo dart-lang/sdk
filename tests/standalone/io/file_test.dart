@@ -398,7 +398,7 @@ class FileTest {
     File file = new File(filename);
     file.createSync();
     Expect.isTrue(new File(filename).existsSync());
-    List<int> buffer = content.charCodes();
+    List<int> buffer = content.charCodes;
     RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     openedFile.writeListSync(buffer, 0, buffer.length);
     openedFile.closeSync();
@@ -421,7 +421,7 @@ class FileTest {
     String filename = tempDirectory.path.concat("/outstream_write_append");
     File file = new File(filename);
     file.createSync();
-    List<int> buffer = content.charCodes();
+    List<int> buffer = content.charCodes;
     OutputStream outStream = file.openOutputStream();
     outStream.write(buffer);
     outStream.onNoPendingWrites = () {
@@ -458,7 +458,7 @@ class FileTest {
     String filename = tempDirectory.path.concat("/outstream_write_string");
     File file = new File(filename);
     file.createSync();
-    List<int> buffer = content.charCodes();
+    List<int> buffer = content.charCodes;
     OutputStream outStream = file.openOutputStream();
     outStream.writeString("abcdABCD");
     outStream.writeString("abcdABCD", Encoding.UTF_8);
@@ -1045,11 +1045,11 @@ class FileTest {
       f.readAsText(Encoding.UTF_8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
-        Expect.listEquals(expected, text.charCodes());
+        Expect.listEquals(expected, text.charCodes);
         f.readAsText(Encoding.ISO_8859_1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
-          Expect.listEquals(expected, text.charCodes());
+          Expect.listEquals(expected, text.charCodes);
           var readAsTextFuture = f.readAsText(Encoding.ASCII);
           readAsTextFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
@@ -1086,12 +1086,12 @@ class FileTest {
     text = new File(name).readAsTextSync();
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
-    Expect.listEquals(expected, text.charCodes());
+    Expect.listEquals(expected, text.charCodes);
     Expect.throws(() { new File(name).readAsTextSync(Encoding.ASCII); });
     text = new File(name).readAsTextSync(Encoding.ISO_8859_1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
-    Expect.listEquals(expected, text.charCodes());
+    Expect.listEquals(expected, text.charCodes);
   }
 
   static void testReadAsTextSyncEmptyFile() {

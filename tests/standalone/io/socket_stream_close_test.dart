@@ -109,7 +109,7 @@ class SocketClose {
           proceed();
           break;
         case 1:
-          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.write("Hello".charCodes);
           _socket.outputStream.onNoPendingWrites = () {
             _socket.inputStream.close();
             proceed();
@@ -118,20 +118,20 @@ class SocketClose {
         case 2:
         case 3:
         case 4:
-          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.write("Hello".charCodes);
           break;
         case 5:
-          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.write("Hello".charCodes);
           _socket.outputStream.onNoPendingWrites = () {
             _socket.outputStream.close();
           };
           break;
         case 6:
-          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.write("Hello".charCodes);
           break;
         case 7:
         case 8:
-          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.write("Hello".charCodes);
           _socket.outputStream.onNoPendingWrites = () {
             _socket.outputStream.close();
           };
@@ -255,7 +255,7 @@ class SocketCloseServer {
         case 3:
           readBytes(() {
             _dataEvents++;
-            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.write("Hello".charCodes);
             connection.outputStream.onNoPendingWrites = () {
               connection.inputStream.close();
             };
@@ -264,21 +264,21 @@ class SocketCloseServer {
         case 4:
           readBytes(() {
             _dataEvents++;
-            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.write("Hello".charCodes);
             connection.inputStream.close();
           });
           break;
         case 5:
           readBytes(() {
             _dataEvents++;
-            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.write("Hello".charCodes);
           });
           break;
         case 6:
         case 7:
           readBytes(() {
             _dataEvents++;
-            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.write("Hello".charCodes);
             connection.outputStream.onNoPendingWrites = () {
               connection.outputStream.close();
             };
@@ -287,7 +287,7 @@ class SocketCloseServer {
         case 8:
           readBytes(() {
             _dataEvents++;
-            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.write("Hello".charCodes);
             connection.outputStream.close();
           });
           break;

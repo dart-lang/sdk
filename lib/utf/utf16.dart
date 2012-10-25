@@ -202,9 +202,9 @@ List<int> _stringToUtf16CodeUnits(String str) {
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
-    return str.charCodes();
+    return str.charCodes;
   } else {
-    return _codepointsToUtf16CodeUnits(str.charCodes());
+    return _codepointsToUtf16CodeUnits(str.charCodes);
   }
 }
 

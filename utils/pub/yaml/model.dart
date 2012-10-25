@@ -153,7 +153,7 @@ class _ScalarNode extends _Node {
       // TODO(nweiz): This could be faster if we used a RegExp to check for
       // special characters and short-circuited if they didn't exist.
 
-      var escapedValue = value.charCodes().map((c) {
+      var escapedValue = value.charCodes.map((c) {
         switch (c) {
         case _Parser.TAB: return "\\t";
         case _Parser.LF: return "\\n";

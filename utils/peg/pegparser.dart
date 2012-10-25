@@ -62,7 +62,7 @@ _Rule CHAR([characters]) {
 
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
-  List<int> codes = characters.charCodes();
+  List<int> codes = characters.charCodes;
   codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];

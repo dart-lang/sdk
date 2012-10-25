@@ -598,7 +598,7 @@ class _WebSocketHandler implements WebSocketHandler {
     response.headers.add(HttpHeaders.UPGRADE, "websocket");
     String key = request.headers.value("Sec-WebSocket-Key");
     SHA1 sha1 = new SHA1();
-    sha1.update("$key$_webSocketGUID".charCodes());
+    sha1.update("$key$_webSocketGUID".charCodes);
     String accept = _Base64._encode(sha1.digest());
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.contentLength = 0;
@@ -747,7 +747,7 @@ class _WebSocketClientConnection
       return false;
     }
     SHA1 sha1 = new SHA1();
-    sha1.update("$_nonce$_webSocketGUID".charCodes());
+    sha1.update("$_nonce$_webSocketGUID".charCodes);
     List<int> expectedAccept = sha1.digest();
     List<int> receivedAccept = _Base64._decode(accept);
     if (expectedAccept.length != receivedAccept.length) return false;

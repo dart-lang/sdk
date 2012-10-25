@@ -39,7 +39,7 @@ class Regress1925Test extends TestingServerTest {
     var buffer = new List(5);
     Socket socket = new Socket(TestingServer.HOST, _port);
     socket.onConnect = () {
-      socket.outputStream.write("12345".charCodes());
+      socket.outputStream.write("12345".charCodes);
       socket.outputStream.close();
       socket.inputStream.onData = () {
         count += socket.inputStream.readInto(buffer, count);

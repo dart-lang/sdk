@@ -119,7 +119,7 @@ bool endsWithPattern(String str, Pattern matcher) {
  * Returns the hex-encoded sha1 hash of [source].
  */
 String sha1(String source) =>
-  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes()).digest());
+  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
 
 /**
  * Returns a [Future] that completes in [milliSeconds].

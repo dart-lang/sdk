@@ -252,7 +252,7 @@ class _HttpHeaders implements HttpHeaders {
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
       List<int> data;
-      data = name.charCodes();
+      data = name.charCodes;
       connection._write(data);
       connection._write(COLONSP);
       for (int i = 0; i < values.length; i++) {
@@ -261,12 +261,12 @@ class _HttpHeaders implements HttpHeaders {
             connection._write(COMMASP);
           } else {
             connection._write(CRLF);
-            data = name.charCodes();
+            data = name.charCodes;
             connection._write(data);
             connection._write(COLONSP);
           }
         }
-        data = values[i].charCodes();
+        data = values[i].charCodes;
         connection._write(data);
       }
       connection._write(CRLF);
@@ -1110,10 +1110,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _httpConnection._write(_Const.HTTP10);
     }
     _writeSP();
-    data = _statusCode.toString().charCodes();
+    data = _statusCode.toString().charCodes;
     _httpConnection._write(data);
     _writeSP();
-    data = reasonPhrase.charCodes();
+    data = reasonPhrase.charCodes;
     _httpConnection._write(data);
     _writeCRLF();
 
@@ -1669,7 +1669,7 @@ class _HttpClientRequest
     List<int> data;
 
     // Write request line.
-    data = _method.toString().charCodes();
+    data = _method.toString().charCodes;
     _httpConnection._write(data);
     _writeSP();
     // Send the path for direct connections and the whole URL for
@@ -1684,9 +1684,9 @@ class _HttpClientRequest
           path = "${path}?${_uri.query}";
         }
       }
-      data = path.charCodes();
+      data = path.charCodes;
     } else {
-      data = _uri.toString().charCodes();
+      data = _uri.toString().charCodes;
     }
     _httpConnection._write(data);
     _writeSP();

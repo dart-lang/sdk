@@ -75,7 +75,7 @@ class AsciiString extends ByteString {
 
 
   static AsciiString fromString(String string) {
-    List<int> bytes = string.charCodes();
+    List<int> bytes = string.charCodes;
     return AsciiString.of(bytes, 0, bytes.length);
   }
 }

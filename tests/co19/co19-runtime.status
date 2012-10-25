@@ -357,6 +357,8 @@ LibTest/core/int/remainder_A01_t02: Fail # http://dartbug.com/5407
 LibTest/core/Date/toString_A02_t01: Fail, OK
 LibTest/core/Date/year_A01_t01: Fail, OK
 
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
+
 Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issue 273
 LibTest/isolate/SendPort/hashCode_A01_t01: Fail, OK # co19 issue 273
 LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK # co19 issue 273

@@ -11,9 +11,9 @@ List<int> stringToCodepoints(String str) {
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
-    codepoints = _utf16CodeUnitsToCodepoints(str.charCodes());
+    codepoints = _utf16CodeUnitsToCodepoints(str.charCodes);
   } else {
-    codepoints = str.charCodes();
+    codepoints = str.charCodes;
   }
   return codepoints;
 }

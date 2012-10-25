@@ -24,13 +24,13 @@ void main() {
       "Rpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo\r\n"
       "ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm"
       "5hbCBwbGVhc3VyZS4=";
-  Expect.equals(expected, _Base64._encode(line.charCodes()));
-  Expect.listEquals(line.charCodes(), _Base64._decode(expected));
+  Expect.equals(expected, _Base64._encode(line.charCodes));
+  Expect.listEquals(line.charCodes, _Base64._decode(expected));
 
   line = "Simple string";
   expected = "U2ltcGxlIHN0cmluZw==";
-  Expect.equals(expected, _Base64._encode(line.charCodes()));
-  Expect.listEquals(line.charCodes(), _Base64._decode(expected));
+  Expect.equals(expected, _Base64._encode(line.charCodes));
+  Expect.listEquals(line.charCodes, _Base64._decode(expected));
 
   for (int i = 0; i < 256; i++) {
     List<int> x = [i];

@@ -102,7 +102,7 @@ class SocketClose {
       void writeHello() {
         int bytesWritten = 0;
         while (bytesWritten != 5) {
-          bytesWritten += _socket.writeList("Hello".charCodes(),
+          bytesWritten += _socket.writeList("Hello".charCodes,
                                             bytesWritten,
                                             5 - bytesWritten);
         }
@@ -229,7 +229,7 @@ class SocketCloseServer {
     void writeHello() {
       int bytesWritten = 0;
       while (bytesWritten != 5) {
-        bytesWritten += connection.writeList("Hello".charCodes(),
+        bytesWritten += connection.writeList("Hello".charCodes,
                                              bytesWritten,
                                              5 - bytesWritten);
       }

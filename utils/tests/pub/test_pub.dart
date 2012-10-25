@@ -878,7 +878,7 @@ class FileDescriptor extends Descriptor {
     }
 
     var stream = new ListInputStream();
-    stream.write(contents.charCodes());
+    stream.write(contents.charCodes);
     stream.markEndOfStream();
     return stream;
   }

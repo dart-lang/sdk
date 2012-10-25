@@ -302,7 +302,7 @@ class _StringBase {
     return result;
   }
 
-  List<int> charCodes() {
+  List<int> get charCodes {
     int len = this.length;
     final result = new List<int>(len);
     for (int i = 0; i < len; i++) {

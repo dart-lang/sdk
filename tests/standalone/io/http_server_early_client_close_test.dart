@@ -43,7 +43,7 @@ class EarlyCloseTest {
 
     List<int> d;
     if (data is List<int>) d = data;
-    if (data is String) d = data.charCodes();
+    if (data is String) d = data.charCodes;
     if (d == null) Expect.fail("Invalid data");
     sendData(d, server.port);
 

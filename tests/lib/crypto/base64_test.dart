@@ -45,11 +45,11 @@ var longLineResultNoBreak =
 
 void main() {
   for (var i = 0; i < inputs.length; i++) {
-    var enc = CryptoUtils.bytesToBase64(inputs[i].charCodes());
+    var enc = CryptoUtils.bytesToBase64(inputs[i].charCodes);
     Expect.equals(results[i], enc);
   }
-  Expect.equals(CryptoUtils.bytesToBase64(longLine.charCodes(), 76),
+  Expect.equals(CryptoUtils.bytesToBase64(longLine.charCodes, 76),
                 longLineResult);
-  Expect.equals(CryptoUtils.bytesToBase64(longLine.charCodes()),
+  Expect.equals(CryptoUtils.bytesToBase64(longLine.charCodes),
                 longLineResultNoBreak);
 }

@@ -646,8 +646,8 @@ get$hashCode(receiver) {
   return 0x1fffffff & (hash + JS('int', r'# << #', 0x00003fff & hash, 15));
 }
 
-charCodes(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes());
+get$charCodes(receiver) {
+  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes);
   int len = receiver.length;
   List<int> result = new List<int>(len);
   for (int i = 0; i < len; i++) {

@@ -90,6 +90,8 @@ LibTest/math/tan_A01_t01: Fail # TODO(dart2dart-team): Please triage this failur
 
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
 
+LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
+
 Language/10_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
 Language/10_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
 Language/10_Expressions/06_Lists_A05_t02: Fail, OK # co19 issue 287

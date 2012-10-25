@@ -130,7 +130,7 @@ class _Composer extends _Visitor {
     if (match != null) {
       // TODO(nweiz): clean this up when Dart can parse an octal string
       var n = 0;
-      for (var c in match.group(1).charCodes()) {
+      for (var c in match.group(1).charCodes) {
         n *= 8;
         n += c - 48;
       }
