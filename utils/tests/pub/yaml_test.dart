@@ -1086,8 +1086,8 @@ main() {
     //     ? &anchor [a, b, c]
     //     : ? *anchor
     //       : bar""");
-    //   anchorList = doc.getKeys()[0];
-    //   aliasList = doc[['a', 'b', 'c']].getKeys()[0];
+    //   anchorList = doc.keys[0];
+    //   aliasList = doc[['a', 'b', 'c']].keys[0];
     //   Expect.isTrue(anchorList === aliasList);
     //   anchorList.add('d');
     //   Expect.listEquals(['a', 'b', 'c', 'd'], aliasList);

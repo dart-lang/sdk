@@ -59,7 +59,7 @@ class _Composer extends _Visitor {
       'float': parseFloat, 'str': parseString
     };
 
-    for (var key in tagParsers.getKeys()) {
+    for (var key in tagParsers.keys) {
       if (scalar.tag.name != _Tag.yaml(key)) continue;
       var result = tagParsers[key](scalar.content);
       if (result != null) return setAnchor(scalar, result);

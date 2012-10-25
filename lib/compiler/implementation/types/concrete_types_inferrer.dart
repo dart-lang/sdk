@@ -213,7 +213,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
       size = 0;
       return;
     }
-    for (final e in concreteTypes.getKeys()) {
+    for (final e in concreteTypes.keys) {
       final baseTypes = concreteTypes[e].baseTypes;
       size *= baseTypes.length;
     }
@@ -232,7 +232,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   ConcreteTypesEnvironment next() {
     if (!hasNext) throw new NoMoreElementsException();
     Element keyToIncrement = null;
-    for (final key in concreteTypes.getKeys()) {
+    for (final key in concreteTypes.keys) {
       final iterator = state[key];
       if (iterator != null && iterator.hasNext) {
         nextValues[key] = state[key].next();
@@ -317,7 +317,7 @@ class ConcreteTypesEnvironment {
     if (other is! ConcreteTypesEnvironment) return false;
     if (typeOfThis != other.typeOfThis) return false;
     if (environment.length != other.environment.length) return false;
-    for (Element key in environment.getKeys()) {
+    for (Element key in environment.keys) {
       if (!other.environment.containsKey(key)
           || (environment[key] != other.environment[key])) {
         return false;
@@ -663,7 +663,7 @@ class ConcreteTypesInferrer {
     }
     // we attach the named arguments to their corresponding named paramaters
     // (we don't use foreach because we want to be able to return early)
-    for (Identifier identifier in argumentsTypes.named.getKeys()) {
+    for (Identifier identifier in argumentsTypes.named.keys) {
       final ConcreteType concreteType = argumentsTypes.named[identifier];
       SourceString source = identifier.source;
       final Element namedParameter = leftOverNamedParameters[source];

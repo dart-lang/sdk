@@ -141,7 +141,7 @@ class _DeepMatcher extends BaseMatcher {
         } else if (expected.length != actual.length) {
           reason = new StringDescription('different map lengths');
         } else {
-          for (var key in expected.getKeys()) {
+          for (var key in expected.keys) {
             if (!actual.containsKey(key)) {
               reason = new StringDescription('missing map key ');
               reason.addDescriptionOf(key);

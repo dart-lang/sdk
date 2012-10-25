@@ -335,7 +335,7 @@ class Dartdoc {
   void _document(Compilation compilation) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.getValues().filter(
+        compilation.mirrors.libraries.values.filter(
             shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
@@ -586,7 +586,7 @@ class Dartdoc {
     }
 
     final types = [];
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       var typeInfo = {};
@@ -622,7 +622,7 @@ class Dartdoc {
 
   List docMembersJson(Map<Object,MemberMirror> memberMap) {
     final members = [];
-    for (MemberMirror member in orderByName(memberMap.getValues())) {
+    for (MemberMirror member in orderByName(memberMap.values)) {
       if (!showPrivate && member.isPrivate) continue;
 
       var memberInfo = {};
@@ -684,7 +684,7 @@ class Dartdoc {
     final types = <InterfaceMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -750,7 +750,7 @@ class Dartdoc {
     final typedefs = <TypedefMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -774,7 +774,7 @@ class Dartdoc {
     writeFooter();
     endFile();
 
-    for (final type in library.types.getValues()) {
+    for (final type in library.types.values) {
       if (!showPrivate && type.isPrivate) continue;
 
       docType(type);
@@ -1141,8 +1141,8 @@ class Dartdoc {
                      {bool allInherited}) {
     if (getters.isEmpty && setters.isEmpty) return;
 
-    var nameSet = new Set<String>.from(getters.getKeys());
-    nameSet.addAll(setters.getKeys());
+    var nameSet = new Set<String>.from(getters.keys);
+    nameSet.addAll(setters.keys);
     var nameList = new List<String>.from(nameSet);
     nameList.sort((String a, String b) {
       return a.toLowerCase().compareTo(b.toLowerCase());

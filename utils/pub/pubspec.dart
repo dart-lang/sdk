@@ -74,7 +74,7 @@ class Pubspec {
     if (parsedPubspec.containsKey('dependencies')) {
       var dependencyEntries = parsedPubspec['dependencies'];
       if (dependencyEntries is! Map ||
-          dependencyEntries.getKeys().some((e) => e is! String)) {
+          dependencyEntries.keys.some((e) => e is! String)) {
         throw new FormatException(
             'The pubspec dependencies should be a map of package names, but '
             'was ${dependencyEntries}.');
@@ -96,7 +96,7 @@ class Pubspec {
                 spec.remove('version'));
           }
 
-          var sourceNames = spec.getKeys();
+          var sourceNames = spec.keys;
           if (sourceNames.length > 1) {
             throw new FormatException(
                 'Dependency $name may only have one source: $sourceNames.');

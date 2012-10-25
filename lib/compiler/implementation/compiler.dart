@@ -511,7 +511,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void processQueue(Enqueuer world, Element main) {
-    backend.processNativeClasses(world, libraries.getValues());
+    backend.processNativeClasses(world, libraries.values);
     world.addToWorkList(main);
     progress.reset();
     world.forEach((WorkItem work) {
@@ -537,8 +537,8 @@ abstract class Compiler implements DiagnosticListener {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
     }
-    var resolved = new Set.from(enqueuer.resolution.resolvedElements.getKeys());
-    for (Element e in codegenWorld.generatedCode.getKeys()) {
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
+    for (Element e in codegenWorld.generatedCode.keys) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {

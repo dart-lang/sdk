@@ -187,7 +187,7 @@ class ConstantHandler extends CompilerTask {
    * other.
    */
   List<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialVariableValues.getKeys().filter((element) {
+    return initialVariableValues.keys.filter((element) {
       return element.kind == ElementKind.FIELD
           && !element.isInstanceMember()
           && !element.modifiers.isFinal();
@@ -200,7 +200,7 @@ class ConstantHandler extends CompilerTask {
    * other.
    */
   List<VariableElement> getStaticFinalFieldsForEmission() {
-    return initialVariableValues.getKeys().filter((element) {
+    return initialVariableValues.keys.filter((element) {
       return element.kind == ElementKind.FIELD
           && !element.isInstanceMember()
           && element.modifiers.isFinal();

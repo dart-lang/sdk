@@ -422,9 +422,9 @@ class FieldTypesRegistry {
 
   void dump() {
     Set<Element> allFields = new Set<Element>();
-    fieldInitializerTypeMap.getKeys().forEach(allFields.add);
-    fieldConstructorTypeMap.getKeys().forEach(allFields.add);
-    fieldTypeMap.getKeys().forEach(allFields.add);
+    fieldInitializerTypeMap.keys.forEach(allFields.add);
+    fieldConstructorTypeMap.keys.forEach(allFields.add);
+    fieldTypeMap.keys.forEach(allFields.add);
     allFields.forEach((Element field) {
       print("Inferred $field has type ${optimisticFieldType(field)}");
     });

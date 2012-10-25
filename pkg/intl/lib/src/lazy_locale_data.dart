@@ -64,7 +64,7 @@ class LazyLocaleData {
   bool containsKey(String locale) => availableLocaleSet.contains(locale);
 
   /** Returns the list of keys/locale names. */
-  List getKeys() => availableLocales;
+  List get keys => availableLocales;
 
   /**
    * Returns the data stored for [localeName]. If no data has been loaded

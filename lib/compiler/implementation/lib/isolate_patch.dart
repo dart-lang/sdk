@@ -855,8 +855,8 @@ class _PendingSendPortFinder extends _MessageTraverser {
 
     _visited[map] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
-    // map.getValues().forEach(_dispatch);
-    map.getValues().forEach((e) => _dispatch(e));
+    // map.values.forEach(_dispatch);
+    map.values.forEach((e) => _dispatch(e));
   }
 
   visitSendPort(SendPort port) {
@@ -1153,8 +1153,8 @@ class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.getKeys());
-    var values = _serializeList(map.getValues());
+    var keys = _serializeList(map.keys);
+    var values = _serializeList(map.values);
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }

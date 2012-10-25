@@ -16,8 +16,8 @@ testWithConstMap() {
   Expect.isTrue(otherMap is !LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
-  Expect.equals(2, otherMap.getKeys().length);
-  Expect.equals(2, otherMap.getValues().length);
+  Expect.equals(2, otherMap.keys.length);
+  Expect.equals(2, otherMap.values.length);
 
   var count = (map) {
     int count = 0;
@@ -37,8 +37,8 @@ testWithNonConstMap() {
   Expect.isTrue(otherMap is !LinkedHashMap);
 
   Expect.equals(2, otherMap.length);
-  Expect.equals(2, otherMap.getKeys().length);
-  Expect.equals(2, otherMap.getValues().length);
+  Expect.equals(2, otherMap.keys.length);
+  Expect.equals(2, otherMap.values.length);
 
   int count(map) {
     int count = 0;
@@ -53,15 +53,15 @@ testWithNonConstMap() {
   map['c'] = 44;
   Expect.equals(3, map.length);
   Expect.equals(2, otherMap.length);
-  Expect.equals(2, otherMap.getKeys().length);
-  Expect.equals(2, otherMap.getValues().length);
+  Expect.equals(2, otherMap.keys.length);
+  Expect.equals(2, otherMap.values.length);
 
   // Test that adding to otherMap does not change the original map.
   otherMap['c'] = 44;
   Expect.equals(3, map.length);
   Expect.equals(3, otherMap.length);
-  Expect.equals(3, otherMap.getKeys().length);
-  Expect.equals(3, otherMap.getValues().length);
+  Expect.equals(3, otherMap.keys.length);
+  Expect.equals(3, otherMap.values.length);
 }
 
 testWithLinkedMap() {
@@ -71,7 +71,7 @@ testWithLinkedMap() {
   Expect.isTrue(otherMap is HashMap);
   Expect.isTrue(otherMap is LinkedHashMap);
   var i = 1;
-  for (var val in map.getValues()) {
+  for (var val in map.values) {
     Expect.equals(i++, val);
   }
 }

@@ -248,7 +248,7 @@ class Grammar {
    * if the input can't be parsed.
    */
   parse(root, String text) {
-    for (var symbol in _symbols.getValues())
+    for (var symbol in _symbols.values)
       if (symbol._rule == null)
         print('${symbol.name} is undefined');
 

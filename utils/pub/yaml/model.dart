@@ -219,7 +219,7 @@ class _MappingNode extends _Node {
     // Should be super != other; bug 2554
     if (!(super == other) || other is! _MappingNode) return false;
     if (content.length != other.content.length) return false;
-    for (var key in content.getKeys()) {
+    for (var key in content.keys) {
       if (!other.content.containsKey(key)) return false;
       if (content[key] != other.content[key]) return false;
     }
@@ -227,7 +227,7 @@ class _MappingNode extends _Node {
   }
 
   String toString() {
-    var strContent = Strings.join(content.getKeys().
+    var strContent = Strings.join(content.keys.
         map((k) => '${k}: ${content[k]}'), ', ');
     return '$tag {$strContent}';
   }

@@ -11,7 +11,7 @@ class ConstantMap<V> implements Map<String, V> {
   final List<String> _keys;
 
   bool containsValue(V needle) {
-    return getValues().some((V value) => value == needle);
+    return values.some((V value) => value == needle);
   }
 
   bool containsKey(String key) {
@@ -28,9 +28,9 @@ class ConstantMap<V> implements Map<String, V> {
     _keys.forEach((String key) => f(key, this[key]));
   }
 
-  Collection<String> getKeys() => _keys;
+  Collection<String> get keys => _keys;
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> result = <V>[];
     _keys.forEach((String key) => result.add(this[key]));
     return result;

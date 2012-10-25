@@ -82,7 +82,7 @@ class CTConstTest {
     Expect.equals(true, c11dItaly === Roman.VivaItalia);
 
     Expect.equals(3, c11dItaly.length);
-    Expect.equals(3, c11dItaly.getKeys().length);
+    Expect.equals(3, c11dItaly.keys.length);
     Expect.equals(true, c11dItaly.containsKey("white"));
     Expect.equals(false, c11dItaly.containsKey("black"));
 

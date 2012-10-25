@@ -62,11 +62,11 @@ class LinkedHashMapTest {
     verifyValues(valuesInOrder);
 
     clear();
-    map.getKeys().forEach(testForEachKey);
+    map.keys.forEach(testForEachKey);
     verifyKeys(keysInOrder);
 
     clear();
-    map.getValues().forEach(testForEachValue);
+    map.values.forEach(testForEachValue);
     verifyValues(valuesInOrder);
 
     // Remove and then insert.
@@ -82,11 +82,11 @@ class LinkedHashMapTest {
     verifyValues(valuesAfterBMove);
 
     clear();
-    map.getKeys().forEach(testForEachKey);
+    map.keys.forEach(testForEachKey);
     verifyKeys(keysAfterBMove);
 
     clear();
-    map.getValues().forEach(testForEachValue);
+    map.values.forEach(testForEachValue);
     verifyValues(valuesAfterBMove);
 
     // Update.
@@ -99,11 +99,11 @@ class LinkedHashMapTest {
     verifyValues(valuesAfterAUpdate);
 
     clear();
-    map.getKeys().forEach(testForEachKey);
+    map.keys.forEach(testForEachKey);
     verifyKeys(keysAfterBMove);
 
     clear();
-    map.getValues().forEach(testForEachValue);
+    map.values.forEach(testForEachValue);
     verifyValues(valuesAfterAUpdate);
   }
 }

@@ -192,8 +192,8 @@ void servePackages(List<Map> pubspecs) {
       }
 
       _servedPackageDir.contents.clear();
-      for (var name in _servedPackages.getKeys()) {
-        var versions = _servedPackages[name].getKeys();
+      for (var name in _servedPackages.keys) {
+        var versions = _servedPackages[name].keys;
         _servedPackageDir.contents.addAll([
           file('$name.json',
               JSON.stringify({'versions': versions})),
@@ -380,7 +380,7 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
   return _awaitObject(dependencies).transform((resolvedDependencies) {
     var result = <String, Map>{};
     for (var dependency in resolvedDependencies) {
-      var keys = dependency.getKeys().filter((key) => key != "version");
+      var keys = dependency.keys.filter((key) => key != "version");
       var sourceName = only(keys);
       var source;
       switch (sourceName) {

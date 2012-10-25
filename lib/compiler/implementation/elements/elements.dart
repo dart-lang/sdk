@@ -1503,7 +1503,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool get hasConstructor {
     // Search in scope to be sure we search patched constructors.
-    for (var element in localScope.getValues()) {
+    for (var element in localScope.values) {
       if (element.isConstructor()) return true;
     }
     return false;

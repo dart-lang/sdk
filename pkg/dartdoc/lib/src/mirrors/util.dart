@@ -45,13 +45,13 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
     return found;
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     var keys = <K>[];
     forEach((k,_) => keys.add(k));
     return keys;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     var values = <V>[];
     forEach((_,v) => values.add(v));
     return values;

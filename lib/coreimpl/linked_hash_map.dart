@@ -65,7 +65,7 @@ class LinkedHashMapImplementation<K, V>
     return value;
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     List<K> list = new List<K>(length);
     int index = 0;
     _list.forEach(void _(KeyValuePair<K, V> entry) {
@@ -76,7 +76,7 @@ class LinkedHashMapImplementation<K, V>
   }
 
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> list = new List<V>(length);
     int index = 0;
     _list.forEach(void _(KeyValuePair<K, V> entry) {

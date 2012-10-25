@@ -222,13 +222,13 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
     return visit(_root);
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     List<K> list = new List<K>();
     forEach((K k, V v) { list.add(k); });
     return list;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> list = new List<V>();
     forEach((K k, V v) { list.add(v); });
     return list;

@@ -632,7 +632,7 @@ class Primitives {
     if (namedArguments != null && !namedArguments.isEmpty) {
       // Call new List.from to make sure we get a JavaScript array.
       List<String> listOfNamedArguments =
-          new List<String>.from(namedArguments.getKeys());
+          new List<String>.from(namedArguments.keys);
       argumentCount += namedArguments.length;
       // We're sorting on strings, and the behavior is the same between
       // Dart string sort and JS string sort. To avoid needing the Dart

@@ -35,7 +35,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     }
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     int numKeys = length;
     List<K> list = new List<K>(numKeys);
     for (int i = 0; i < numKeys; i++) {
@@ -44,7 +44,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return list;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     int numValues = length;
     List<V> list = new List<V>(numValues);
     for (int i = 0; i < numValues; i++) {

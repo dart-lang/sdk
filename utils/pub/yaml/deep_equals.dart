@@ -58,7 +58,7 @@ bool _listEquals(List list1, List list2, List parents1, List parents2) {
 bool _mapEquals(Map map1, Map map2, List parents1, List parents2) {
   if (map1.length != map2.length) return false;
 
-  for (var key in map1.getKeys()) {
+  for (var key in map1.keys) {
     if (!map2.containsKey(key)) return false;
     if (!deepEquals(map1[key], map2[key], parents1, parents2)) return false;
   }

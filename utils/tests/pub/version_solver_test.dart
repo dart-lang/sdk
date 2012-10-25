@@ -449,7 +449,7 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return fakeAsync(() => _packages[description].getKeys());
+    return fakeAsync(() => _packages[description].keys);
   }
 
   Future<Pubspec> describe(PackageId id) {

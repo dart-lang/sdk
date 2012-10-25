@@ -85,7 +85,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         parameters.add(new js.Parameter(name));
       });
       addTypeParameters(work.element, parameters, parameterNames);
-      String parametersString = Strings.join(parameterNames.getValues(), ", ");
+      String parametersString = Strings.join(parameterNames.values, ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);

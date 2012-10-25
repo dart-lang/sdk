@@ -15,8 +15,8 @@ bool isUnsupportedError(o) => o is UnsupportedError;
 main() {
   Expect.equals(499, m1['a']);
   Expect.equals(null, m1['b']);
-  Expect.listEquals(['a'], m1.getKeys());
-  Expect.listEquals([499], m1.getValues());
+  Expect.listEquals(['a'], m1.keys);
+  Expect.listEquals([499], m1.values);
   Expect.isTrue(m1.containsKey('a'));
   Expect.isFalse(m1.containsKey('toString'));
   Expect.isTrue(m1.containsValue(499));
@@ -43,8 +43,8 @@ main() {
   Expect.equals(499, m2['a']);
   Expect.equals(42, m2['b']);
   Expect.equals(null, m2['c']);
-  Expect.listEquals(['a', 'b'], m2.getKeys());
-  Expect.listEquals([499, 42], m2.getValues());
+  Expect.listEquals(['a', 'b'], m2.keys);
+  Expect.listEquals([499, 42], m2.values);
   Expect.isTrue(m2.containsKey('a'));
   Expect.isTrue(m2.containsKey('b'));
   Expect.isFalse(m2.containsKey('toString'));
@@ -76,8 +76,8 @@ main() {
   Expect.isTrue(m3['m1'] === m1);
   Expect.isTrue(m3['m2'] === m2);
 
-  Expect.listEquals(['z', 'a', 'm'], m4.getKeys());
-  Expect.listEquals([9, 8, 7], m4.getValues());
+  Expect.listEquals(['z', 'a', 'm'], m4.keys);
+  Expect.listEquals([9, 8, 7], m4.values);
   seenKeys = [];
   seenValues = [];
   m4.forEach((key, value) {
@@ -96,8 +96,8 @@ main() {
   Expect.isTrue(m7.isEmpty);
   Expect.equals(0, m7.length);
   Expect.equals(null, m7['b']);
-  Expect.listEquals([], m7.getKeys());
-  Expect.listEquals([], m7.getValues());
+  Expect.listEquals([], m7.keys);
+  Expect.listEquals([], m7.values);
   Expect.isFalse(m7.containsKey('a'));
   Expect.isFalse(m7.containsKey('toString'));
   Expect.isFalse(m7.containsValue(499));

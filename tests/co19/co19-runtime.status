@@ -359,6 +359,15 @@ LibTest/core/Date/year_A01_t01: Fail, OK
 
 LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
 
+LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
+LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
+LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # co19 issue 293
+LibTest/core/Map/getKeys_A01_t01: Fail, OK # co19 issue 293
+LibTest/core/Map/getKeys_A01_t02: Fail, OK # co19 issue 293
+LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 293
+LibTest/core/Map/getValues_A01_t01: Fail, OK # co19 issue 293
+
 LibTest/core/Queue/filter_A01_t04: Fail, OK # co19 issue 291
 LibTest/core/Queue/first_A01_t01: Fail, OK # co19 issue 291
 LibTest/core/Queue/removeFirst_A01_t01: Fail, OK # co19 issue 291

@@ -80,7 +80,7 @@ class GitSource extends Source {
 
     if (!description.isEmpty) {
       var plural = description.length > 1;
-      var keys = Strings.join(description.getKeys(), ', ');
+      var keys = Strings.join(description.keys, ', ');
       throw new FormatException("Invalid key${plural ? 's' : ''}: $keys.");
     }
   }

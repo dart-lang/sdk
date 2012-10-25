@@ -113,7 +113,7 @@ class MockCompiler extends Compiler {
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElement(script);
     parseScript(source, library);
-    library.setExports(library.localScope.getValues());
+    library.setExports(library.localScope.values);
     return library;
   }
 

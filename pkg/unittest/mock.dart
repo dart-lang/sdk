@@ -1280,7 +1280,7 @@ class Mock {
     }
     bool matchedMethodName = false;
     MatchState matchState = new MatchState();
-    for (String k in _behaviors.getKeys()) {
+    for (String k in _behaviors.keys) {
       Behavior b = _behaviors[k];
       if (b.matcher.nameFilter.matches(method, matchState)) {
         matchedMethodName = true;

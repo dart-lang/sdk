@@ -204,7 +204,7 @@ class VersionSolver {
   }
 
   List<PackageId> buildResults() {
-    return _packages.getValues().filter((dep) => dep.isDependedOn).map((dep) {
+    return _packages.values.filter((dep) => dep.isDependedOn).map((dep) {
       var description = dep.description;
 
       // If the lockfile contains a fully-resolved description for the package,
@@ -278,7 +278,7 @@ class ChangeVersion implements WorkItem {
       var oldDependencyRefs = list[0];
       var newDependencyRefs = list[1];
 
-      for (var oldRef in oldDependencyRefs.getValues()) {
+      for (var oldRef in oldDependencyRefs.values) {
         if (newDependencyRefs.containsKey(oldRef.name)) {
           // The dependency is in both versions of this package, but its
           // constraint may have changed.
@@ -293,7 +293,7 @@ class ChangeVersion implements WorkItem {
 
       // Everything that's left is a depdendency that's only in the new
       // version of the package.
-      for (var newRef in newDependencyRefs.getValues()) {
+      for (var newRef in newDependencyRefs.values) {
         solver.enqueue(new AddConstraint(package, newRef));
       }
     });
@@ -548,7 +548,7 @@ class Dependency {
   bool get isDependedOn => !_refs.isEmpty;
 
   /** The names of all the packages that depend on this dependency. */
-  Collection<String> get dependers => _refs.getKeys();
+  Collection<String> get dependers => _refs.keys;
 
   /**
    * Gets the overall constraint that all packages are placing on this one.
@@ -558,7 +558,7 @@ class Dependency {
   VersionConstraint get constraint {
     if (_refs.isEmpty) return null;
     return new VersionConstraint.intersect(
-        _refs.getValues().map((ref) => ref.constraint));
+        _refs.values.map((ref) => ref.constraint));
   }
 
   /// The source of this dependency's package.
@@ -581,7 +581,7 @@ class Dependency {
   /// description that all dependencies agree upon.
   PackageRef _canonicalRef() {
     if (_refs.isEmpty) return null;
-    var refs = _refs.getValues();
+    var refs = _refs.values;
     for (var ref in refs) {
       if (ref is RootSource) return ref;
     }
@@ -625,7 +625,7 @@ class Dependency {
   /// constraints.
   PackageRef _requiredRef() {
     if (_refs.isEmpty) return null;
-    var refs = _refs.getValues();
+    var refs = _refs.values;
     var first = refs[0];
     if (refs.length == 1) {
       if (first.source is RootSource) return null;

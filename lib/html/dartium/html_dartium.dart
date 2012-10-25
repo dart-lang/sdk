@@ -13036,7 +13036,7 @@ class _ElementAttributeMap implements AttributeMap {
     }
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final keys = new List<String>(attributes.length);
@@ -13046,7 +13046,7 @@ class _ElementAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final values = new List<String>(attributes.length);
@@ -13084,7 +13084,7 @@ class _DataAttributeMap implements AttributeMap {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
+  bool containsValue(String value) => values.some((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
@@ -13101,7 +13101,7 @@ class _DataAttributeMap implements AttributeMap {
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in getKeys()) {
+    for (String key in keys) {
       remove(key);
     }
   }
@@ -13114,7 +13114,7 @@ class _DataAttributeMap implements AttributeMap {
     });
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -13124,7 +13124,7 @@ class _DataAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -13134,7 +13134,7 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length => getKeys().length;
+  int get length => keys.length;
 
   // TODO: Use lazy iterator when it is available on Map.
   bool get isEmpty => length == 0;
@@ -13356,7 +13356,7 @@ class _ElementImpl extends _NodeImpl implements Element {
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       attributes[key] = value[key];
     }
   }
@@ -13388,7 +13388,7 @@ class _ElementImpl extends _NodeImpl implements Element {
   void set dataAttributes(Map<String, String> value) {
     final dataAttributes = this.dataAttributes;
     dataAttributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
   }
@@ -36230,7 +36230,7 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent {
 class _StorageImpl extends NativeFieldWrapperClass1 implements Storage {
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => getValues().some((e) => e == value);
+  bool containsValue(String value) => values.some((e) => e == value);
 
   bool containsKey(String key) => $dom_getItem(key) != null;
 
@@ -36260,13 +36260,13 @@ class _StorageImpl extends NativeFieldWrapperClass1 implements Storage {
     }
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     final keys = [];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     final values = [];
     forEach((k, v) => values.add(v));
     return values;
@@ -44059,8 +44059,8 @@ class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.getKeys());
-    var values = _serializeList(map.getValues());
+    var keys = _serializeList(map.keys);
+    var values = _serializeList(map.values);
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }
@@ -44408,8 +44408,8 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   String remove(String key) native "DOMStringMap_remove_Callback";
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
-  Collection<String> getValues() => Maps.getValues(this);
+  Collection<String> get keys native "DOMStringMap_getKeys_Callback";
+  Collection<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
 }

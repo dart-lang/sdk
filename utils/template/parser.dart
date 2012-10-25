@@ -454,7 +454,7 @@ class Parser {
           }
           if (scopeType > 0) {
             var elem = new TemplateElement.attributes(tagToken.kind,
-              attrs.getValues(), varName, _makeSpan(start));
+              attrs.values, varName, _makeSpan(start));
             stack.top().add(elem);
 
             if (scopeType == 1) {

@@ -389,7 +389,7 @@ class VariableNames {
   /** Returns a fresh variable with the given prefix. */
   static String computeFreshWithPrefix(String prefix,
                                        Map<Element, String> parameterNames) {
-    Set<String> parameters = new Set<String>.from(parameterNames.getValues());
+    Set<String> parameters = new Set<String>.from(parameterNames.values);
     String name = '${prefix}0';
     int i = 1;
     while (parameters.contains(name)) name = '$prefix${i++}';

@@ -20,7 +20,7 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
   type = type.declaration;
   var subtypes = <InterfaceMirror>[];
   type.system.libraries.forEach((_, library) {
-    for (InterfaceMirror otherType in library.types.getValues()) {
+    for (InterfaceMirror otherType in library.types.values) {
       var superClass = otherType.superclass;
       if (superClass !== null) {
         superClass = superClass.declaration;

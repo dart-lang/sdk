@@ -11,8 +11,8 @@ bool isUnsupportedError(o) => o is UnsupportedError;
 main() {
   Expect.equals(499, m1['__proto__']);
   Expect.equals(null, m1['b']);
-  Expect.listEquals(['__proto__'], m1.getKeys());
-  Expect.listEquals([499], m1.getValues());
+  Expect.listEquals(['__proto__'], m1.keys);
+  Expect.listEquals([499], m1.values);
   Expect.isTrue(m1.containsKey('__proto__'));
   Expect.isFalse(m1.containsKey('toString'));
   Expect.isTrue(m1.containsValue(499));
@@ -40,8 +40,8 @@ main() {
   Expect.equals(42, m2['b']);
   Expect.equals(null, m2['c']);
   Expect.equals(null, m2['__proto__']);
-  Expect.listEquals(['a', 'b'], m2.getKeys());
-  Expect.listEquals([499, 42], m2.getValues());
+  Expect.listEquals(['a', 'b'], m2.keys);
+  Expect.listEquals([499, 42], m2.values);
   Expect.isTrue(m2.containsKey('a'));
   Expect.isTrue(m2.containsKey('b'));
   Expect.isFalse(m2.containsKey('toString'));

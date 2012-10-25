@@ -97,14 +97,14 @@ render(idl_node, [indent_str='  ']) {
       w(node.annotations);
       w(node.type.id);
     } else if (node is IDLAnnotations) {
-      for (var name in sorted(node.map.getKeys())) {
+      for (var name in sorted(node.map.keys)) {
         IDLAnnotation annotation = node.map[name];
         var args = annotation.map;
         if (args.isEmpty) {
           w('@$name');
         } else {
           var formattedArgs = [];
-          for (var argName in sorted(args.getKeys())) {
+          for (var argName in sorted(args.keys)) {
             var argValue = args[argName];
             if (argValue == null)
               formattedArgs.add(argName);
@@ -119,7 +119,7 @@ render(idl_node, [indent_str='  ']) {
       if(!node.map.isEmpty) {
         w('[');
         var sep = null;
-        for (var name in sorted(node.map.getKeys())) {
+        for (var name in sorted(node.map.keys)) {
           w(sep);
           sep = ', ';
           w(name);

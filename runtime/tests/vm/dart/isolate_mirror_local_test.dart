@@ -125,7 +125,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
       });
 
   // Check that the members map is complete.
-  List keys = lib_mirror.members.getKeys();
+  List keys = lib_mirror.members.keys;
   sort(keys);
   Expect.equals('['
                 'FuncType, '
@@ -162,7 +162,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the classes map is complete.
-  keys = lib_mirror.classes.getKeys();
+  keys = lib_mirror.classes.keys;
   sort(keys);
   Expect.equals('['
                 'FuncType, '
@@ -174,7 +174,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the functions map is complete.
-  keys = lib_mirror.functions.getKeys();
+  keys = lib_mirror.functions.keys;
   sort(keys);
   Expect.equals('['
                 '_stringCompare, '
@@ -200,17 +200,17 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 '$keys');
 
   // Check that the getters map is complete.
-  keys = lib_mirror.getters.getKeys();
+  keys = lib_mirror.getters.keys;
   sort(keys);
   Expect.equals('[myVar]', '$keys');
 
   // Check that the setters map is complete.
-  keys = lib_mirror.setters.getKeys();
+  keys = lib_mirror.setters.keys;
   sort(keys);
   Expect.equals('[myVar=]', '$keys');
 
   // Check that the variables map is complete.
-  keys = lib_mirror.variables.getKeys();
+  keys = lib_mirror.variables.keys;
   sort(keys);
   Expect.equals('['
                 'exit_port, '

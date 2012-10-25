@@ -25,14 +25,14 @@ void testParseQueryString() {
   String queryString =
       '%3F=%3D&foo=bar&%26=%25&sqrt2=%E2%88%9A2&name=Franti%C5%A1ek';
   Map<String, String> map = _HttpUtils.splitQueryString(queryString);
-  for (String key in map.getKeys()) {
+  for (String key in map.keys) {
     Expect.equals(map[key], { '&'     : '%',
                               'foo'   : 'bar',
                               '?'     : '=',
                               'sqrt2' : '\u221A2',
                               'name'  : 'Franti\u0161ek'}[key]);
   }
-  Expect.setEquals(map.getKeys(), ['&', '?', 'foo', 'sqrt2', 'name']);
+  Expect.setEquals(map.keys, ['&', '?', 'foo', 'sqrt2', 'name']);
 }
 
 void main() {

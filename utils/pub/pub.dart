@@ -121,7 +121,7 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
   var names = <String>[];
-  for (var command in pubCommands.getKeys()) {
+  for (var command in pubCommands.keys) {
     length = max(length, command.length);
     names.add(command);
   }

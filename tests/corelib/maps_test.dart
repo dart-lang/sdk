@@ -106,7 +106,7 @@ main() {
   Expect.equals(true, other_map.containsValue(value2));
   Expect.equals(2, Maps.length(other_map));
 
-  // Test Collection.getValues.
+  // Test Collection.values.
   void testForEachCollection(value) {
     other_map[value] = value;
   }

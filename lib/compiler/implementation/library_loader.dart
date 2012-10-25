@@ -504,7 +504,7 @@ class LibraryDependencyNode {
    */
   void registerInitialExports() {
     pendingExportSet.addAll(
-        library.localScope.getValues().filter((Element element) {
+        library.localScope.values.filter((Element element) {
           // At this point [localScope] only contains members so we don't need
           // to check for foreign or prefix elements.
           return !element.name.isPrivate();
@@ -515,7 +515,7 @@ class LibraryDependencyNode {
    * Registers the compute export scope with the node library.
    */
   void registerExports() {
-    library.setExports(exportScope.getValues());
+    library.setExports(exportScope.values);
   }
 
   /**

@@ -69,9 +69,9 @@ main() {
     Expect.setEquals(const <String> ['foo-value', 'bar-value'], values);
 
     Expect.setEquals(const <String> ['foo', 'bar'],
-                     new List<String>.from(div.dataAttributes.getKeys()));
+                     new List<String>.from(div.dataAttributes.keys));
     Expect.setEquals(const <String> ['foo-value', 'bar-value'],
-                     new List<String>.from(div.dataAttributes.getValues()));
+                     new List<String>.from(div.dataAttributes.values));
 
     Expect.equals(2, div.dataAttributes.length);
     Expect.isFalse(div.dataAttributes.isEmpty);

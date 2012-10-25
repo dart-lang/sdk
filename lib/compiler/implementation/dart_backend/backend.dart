@@ -135,7 +135,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.getKeys().map((classElement) => classElement.type));
+        classMembers.keys.map((classElement) => classElement.type));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));
@@ -226,7 +226,7 @@ class DartBackend extends Backend {
     // however as of today there are problems with names of some core library
     // interfaces, most probably for interfaces of literals.
     final fixedMemberNames = new Set<String>();
-    for (final library in compiler.libraries.getValues()) {
+    for (final library in compiler.libraries.values) {
       if (!library.isPlatformLibrary) continue;
       library.implementation.forEachLocalMember((Element element) {
         if (element is ClassElement) {
@@ -344,7 +344,7 @@ class DartBackend extends Backend {
         new Identifier(new StringToken(IDENTIFIER_INFO, '', -1));
 
     NextClassElement:
-    for (ClassElement classElement in classMembers.getKeys()) {
+    for (ClassElement classElement in classMembers.keys) {
       for (Element member in classMembers[classElement]) {
         if (member.isConstructor()) continue NextClassElement;
       }
@@ -445,7 +445,7 @@ class DartBackend extends Backend {
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
     Collection<LibraryElement> referencedLibraries =
-        compiler.libraries.getValues().filter(isUserLibrary);
+        compiler.libraries.values.filter(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {

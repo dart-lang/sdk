@@ -238,7 +238,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
   }
 
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     List<K> list = new List<K>(length);
     int i = 0;
     forEach(void _(K key, V value) {
@@ -247,7 +247,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
     return list;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> list = new List<V>(length);
     int i = 0;
     forEach(void _(K key, V value) {
@@ -366,12 +366,12 @@ class HashSetImplementation<E > implements HashSet<E> {
   }
 
   bool every(bool f(E element)) {
-    Collection<E> keys = _backingMap.getKeys();
+    Collection<E> keys = _backingMap.keys;
     return keys.every(f);
   }
 
   bool some(bool f(E element)) {
-    Collection<E> keys = _backingMap.getKeys();
+    Collection<E> keys = _backingMap.keys;
     return keys.some(f);
   }
 

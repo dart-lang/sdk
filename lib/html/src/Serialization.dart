@@ -123,8 +123,8 @@ class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.getKeys());
-    var values = _serializeList(map.getValues());
+    var keys = _serializeList(map.keys);
+    var values = _serializeList(map.values);
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }

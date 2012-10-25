@@ -28,7 +28,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
   void addMissingHelper(String propType) {
     Map expected = allProps[type][propType];
     if (expected != null) {
-      for(final name in sortStringCollection(expected.getKeys())) {
+      for(final name in sortStringCollection(expected.keys)) {
         if (!members.containsKey(name)) {
           total++;
         sb.add("""
@@ -152,7 +152,7 @@ void main() {
       <li><a href="#dart_summary">Summary</a></li>
     </li>
 """);
-  for (String type in sortStringCollection(database.getKeys())) {
+  for (String type in sortStringCollection(database.keys)) {
   	final entry = database[type];
     if (entry == null || entry.containsKey('skipped')) {
       numSkipped++;
@@ -187,7 +187,7 @@ void main() {
                 <th>Name</th><th>Description</th><th>IDL</th><th>Status</th>
               </tr>
 """);
-      for (String name in sortStringCollection(members.getKeys())) {
+      for (String name in sortStringCollection(members.keys)) {
         Map memberData = members[name];
         bool unknown = !hasAny(type, name);
         StringBuffer classes = new StringBuffer();
@@ -294,7 +294,7 @@ $sbMembers
     }
   }
 
-  for (String type in sortStringCollection(allProps.getKeys())) {
+  for (String type in sortStringCollection(allProps.keys)) {
     if (!matchedTypes.contains(type) &&
         !database.containsKey(type)) {
       numSkipped++;
@@ -313,7 +313,7 @@ $sbMembers
   <h2>Summary</h2>
   <h3>
     Generated docs for $numGen classes out of a possible
-    ${allProps.getKeys().length}
+    ${allProps.keys.length}
   </h3>
   <h3>Found documentation for $numFoundMethods methods listed in WebKit</h3>
   <h3>

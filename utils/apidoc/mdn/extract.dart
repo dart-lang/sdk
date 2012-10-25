@@ -834,7 +834,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
     final allText = getAllTextNodes(match);
 
     final pmap = new Map<String, Element>();
-    for (final prop in expectedProps.getKeys()) {
+    for (final prop in expectedProps.keys) {
       if (alreadyMatchedProperties.contains(prop)) {
         continue;
       }
@@ -844,7 +844,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
       }
     }
 
-    for (final prop in pmap.getKeys()) {
+    for (final prop in pmap.keys) {
       pmap[prop].classes.add(DART_REMOVED);
     }
 
@@ -875,7 +875,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
     // carefully check that the documentation for each method comment is
     // visually consistent but take less care to check that each
     // method comment has identical markup structure.
-    for (String prop in pmap.getKeys()) {
+    for (String prop in pmap.keys) {
       Element e = pmap[prop];
       ClientRect r = getClientRect(e);
       // TODO(jacobr): a lot of these queries are identical and this code
@@ -901,7 +901,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
     // We mark these elements in batch to reduce the number of layouts
     // triggered. TODO(jacobr): use new batch based async measurement to make
     // this code flow simpler.
-    for (String prop in pmap.getKeys()) {
+    for (String prop in pmap.keys) {
       Element e = pmap[prop];
       e.classes.add(DART_REMOVED);
     }
@@ -915,7 +915,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
       }
     }
 
-    for (String prop in pmap.getKeys()) {
+    for (String prop in pmap.keys) {
       Element elem = pmap[prop];
       bool obsolete = false;
       final parse = filteredHtml(
@@ -1031,7 +1031,7 @@ void cleanupEntry(List members, Map entry) {
   String name = fullNameCleanup(entry['name']);
   entry['name'] = name;
   if (maybeName(name)) {
-    for (String key in entry.getKeys()) {
+    for (String key in entry.keys) {
       var value = entry[key];
       if (value == null) {
         entry.remove(key);

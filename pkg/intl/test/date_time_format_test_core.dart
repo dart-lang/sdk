@@ -251,7 +251,7 @@ runDateTests([List<String> subset]) {
   });
 
   test('Patterns and symbols have the same coverage',() {
-    var patterns = new List.from(dateTimePatterns.getKeys());
+    var patterns = new List.from(dateTimePatterns.keys);
     var compare = (a, b) => a.compareTo(b);
     patterns.sort(compare);
     var symbols = allLocales();

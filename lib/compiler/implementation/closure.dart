@@ -231,7 +231,7 @@ class ClosureTranslator extends Visitor {
       Map<Element, Element> freeVariableMapping = data.freeVariableMapping;
       // We get a copy of the keys and iterate over it, to avoid modifications
       // to the map while iterating over it.
-      freeVariableMapping.getKeys().forEach((Element fromElement) {
+      freeVariableMapping.keys.forEach((Element fromElement) {
         assert(fromElement == freeVariableMapping[fromElement]);
         Element updatedElement = capturedVariableMapping[fromElement];
         assert(updatedElement != null);
@@ -586,7 +586,7 @@ class ClosureTranslator extends Visitor {
 
     // Mark all free variables as captured and use them in the outer function.
     List<Element> freeVariables =
-        savedClosureData.freeVariableMapping.getKeys();
+        savedClosureData.freeVariableMapping.keys;
     assert(freeVariables.isEmpty || savedInsideClosure);
     for (Element freeElement in freeVariables) {
       if (capturedVariableMapping[freeElement] != null &&

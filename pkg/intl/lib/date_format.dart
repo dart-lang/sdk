@@ -249,7 +249,7 @@ class DateFormat {
    * Returns a list of all locales for which we have date formatting
    * information.
    */
-  static List<String> allLocalesWithSymbols() => dateTimeSymbols.getKeys();
+  static List<String> allLocalesWithSymbols() => dateTimeSymbols.keys;
 
   /**
    * The named constructors for this class are all conveniences for creating
