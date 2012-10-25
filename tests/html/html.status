@@ -185,6 +185,13 @@ svgelement2_test: Fail
 svgelement_test: Fail
 url_test: Fail
 
+[ $runtime == opera && $system == windows ]
+element_test: Skip # Browser is already closed by the time we get results?
+htmlelement_test: Fail, Pass
+
+[ $runtime == opera && $system == macos ]
+element_test: Crash
+
 [ $runtime == opera ]
 audiobuffersourcenode_test: Fail
 cache_test: Fail
@@ -200,7 +207,6 @@ element_add_test: Fail
 element_constructor_1_test: Fail
 element_webkit_test: Fail
 exceptions_test: Fail
-element_test: Crash
 indexeddb_1_test: Fail
 indexeddb_2_test: Fail
 indexeddb_3_test: Fail
