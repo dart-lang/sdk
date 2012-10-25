@@ -445,6 +445,9 @@ class ExportLink {
  */
 class LibraryDependencyNode {
   final LibraryElement library;
+  int get hashCode => ++hashCodeCounter; // VM implementation of hashCode is slow.
+  static int hashCodeCounter = 0;
+
 
   /**
    * A linked list of the import tags that import [library] mapped to the
