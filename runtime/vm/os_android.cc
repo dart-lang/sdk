@@ -28,17 +28,17 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  ASSERT(succeeded);
-  return decomposed.tm_zone;
+  // If unsuccessful, return an empty string like V8 does.
+  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
 }
 
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  ASSERT(succeeded);
   // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  return static_cast<int>(decomposed.tm_gmtoff);
+  // If unsuccessful, return zero like V8 does.
+  return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
 

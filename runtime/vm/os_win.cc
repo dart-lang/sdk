@@ -36,10 +36,14 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   tm decomposed;
   // LocalTime will set _tzname.
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  ASSERT(succeeded);
-  int inDaylightSavingsTime = decomposed.tm_isdst;
-  ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
-  return _tzname[inDaylightSavingsTime];
+  if (succeeded) {
+    int inDaylightSavingsTime = decomposed.tm_isdst;
+    ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
+    return _tzname[inDaylightSavingsTime];
+  } else {
+    // Return an empty string like V8 does.
+    return "";
+  }
 }
 
 
@@ -47,17 +51,21 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
   // LocalTime will set _timezone.
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  ASSERT(succeeded);
-  int inDaylightSavingsTime = decomposed.tm_isdst;
-  ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
-  // Dart and Windows disagree on the sign of the bias.
-  int offset = static_cast<int>(-_timezone);
-  if (inDaylightSavingsTime == 1) {
-    static int daylight_bias = GetDaylightSavingBiasInSeconds();
-    // Subtract because windows and Dart disagree on the sign.
-    offset = offset - daylight_bias;
+  if (succeeded) {
+    int inDaylightSavingsTime = decomposed.tm_isdst;
+    ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
+    // Dart and Windows disagree on the sign of the bias.
+    int offset = static_cast<int>(-_timezone);
+    if (inDaylightSavingsTime == 1) {
+      static int daylight_bias = GetDaylightSavingBiasInSeconds();
+      // Subtract because windows and Dart disagree on the sign.
+      offset = offset - daylight_bias;
+    }
+    return offset;
+  } else {
+    // Return zero like V8 does.
+    return 0;
   }
-  return offset;
 }
 
 
