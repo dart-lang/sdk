@@ -1567,7 +1567,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       PrefixElement prefix = resolvedReceiver;
       target = prefix.lookupLocalMember(name);
       if (target == null) {
-        error(node, MessageKind.NO_SUCH_LIBRARY_MEMBER, [prefix.name, name]);
+        return warnAndCreateErroneousElement(
+            node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
+            [prefix.name, name]);
       }
     }
     return target;

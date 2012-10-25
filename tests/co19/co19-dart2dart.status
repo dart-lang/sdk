@@ -632,7 +632,6 @@ Language/11_Statements/11_Labels_A01_t03: Fail # inherited from VM
 Language/11_Statements/11_Labels_A03_t04: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t12: Fail # inherited from dart2js
 Language/11_Statements/13_Continue_A02_t13: Fail # inherited from dart2js
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # inherited from VM
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5519
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5519
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # inherited from VM

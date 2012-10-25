@@ -857,8 +857,6 @@ Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5
 
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Fail # http://dartbug.com/5713
 
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # http://dartbug.com/5714
-
 
 #
 # Unexpected runtime errors.
