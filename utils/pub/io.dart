@@ -44,10 +44,10 @@ String join(part1, [part2, part3, part4]) {
 
     for (final piece in _getPath(part).split('/')) {
       if (piece == '..' && parts.length > 0 &&
-          parts.last() != '.' && parts.last() != '..') {
+          parts.last != '.' && parts.last != '..') {
         parts.removeLast();
       } else if (piece != '') {
-        if (parts.length > 0 && parts.last() == '.') {
+        if (parts.length > 0 && parts.last == '.') {
           parts.removeLast();
         }
         parts.add(piece);
@@ -506,7 +506,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
       var lines = output.split(NEWLINE_PATTERN);
-      if (!lines.isEmpty && lines.last() == "") lines.removeLast();
+      if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
     return new PubProcessResult(toLines(result.stdout),

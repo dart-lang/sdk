@@ -300,7 +300,7 @@ class ListSyntax extends BlockSyntax {
         // Anything else is paragraph text or other stuff that can be in a list
         // item. However, if the previous item is a blank line, this means we're
         // done with the list and are starting a new top-level paragraph.
-        if ((childLines.length > 0) && (childLines.last() == '')) break;
+        if ((childLines.length > 0) && (childLines.last == '')) break;
         childLines.add(parser.current);
       }
       parser.advance();

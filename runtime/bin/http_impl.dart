@@ -2294,7 +2294,7 @@ class _HttpClient implements HttpClient {
               // As returned connections are added at the head of the
               // list remove from the tail.
               while (!connections.isEmpty) {
-                _SocketConnection socketConn = connections.last();
+                _SocketConnection socketConn = connections.last;
                 if (socketConn._idleTime(now).inMilliseconds >
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();

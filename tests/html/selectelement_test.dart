@@ -53,6 +53,6 @@ main() {
     ];
     element.elements.addAll(options);
     // Use last to make sure that the list was correctly wrapped.
-    expect(element.options.last(), options[3]);
+    expect(element.options.last, options[3]);
   });
 }

@@ -211,7 +211,7 @@ main() {
 
     Expect.equals(4, someChecked.length);
 
-    Expect.equals(someChecked[3], someChecked.last());
+    Expect.equals(someChecked[3], someChecked.last);
 
     root.remove();
   });

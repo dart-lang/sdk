@@ -446,7 +446,7 @@ class HInstructionStringifier implements HVisitor<String> {
       buf.add(", ");
     }
     buf.add("default: B");
-    buf.add(node.block.successors.last().id);
+    buf.add(node.block.successors.last.id);
     return buf.toString();
   }
 
@@ -472,7 +472,7 @@ class HInstructionStringifier implements HVisitor<String> {
     }
 
     return "Try: $tryBlock, Catch: $catchBlock, Finally: $finallyBlock, "
-        "Join: B${successors.last().id}";
+        "Join: B${successors.last.id}";
   }
 
   String visitTypeGuard(HTypeGuard node) {

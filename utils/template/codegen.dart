@@ -54,12 +54,12 @@ class CGBlock {
   }
 
   void add(String value) {
-    if (_stmts.last() != null) {
-      _stmts.last().add(value);
+    if (_stmts.last != null) {
+      _stmts.last.add(value);
     }
   }
 
-  CGStatement get last => _stmts.length > 0 ? _stmts.last() : null;
+  CGStatement get last => _stmts.length > 0 ? _stmts.last : null;
 
   /**
    * Returns mixed list of elements marked with the var attribute.  If the
@@ -522,7 +522,7 @@ class ElemCG {
     _globalInits = new StringBuffer();
 
   bool get isLastBlockConstructor {
-    CGBlock block = _cgBlocks.last();
+    CGBlock block = _cgBlocks.last;
     return block.isConstructor;
   }
 
@@ -649,10 +649,10 @@ Nested #each or #with must have a localName;
     }
   }
 
-  CGBlock get lastBlock => _cgBlocks.length > 0 ? _cgBlocks.last() : null;
+  CGBlock get lastBlock => _cgBlocks.length > 0 ? _cgBlocks.last : null;
 
   void add(String str) {
-    _cgBlocks.last().add(str);
+    _cgBlocks.last.add(str);
   }
 
   String get globalDeclarations {
@@ -669,7 +669,7 @@ Nested #each or #with must have a localName;
 
   String get codeBody {
     closeStatement();
-    return _cgBlocks.last().codeBody;
+    return _cgBlocks.last.codeBody;
   }
 
   /* scopeName for expression

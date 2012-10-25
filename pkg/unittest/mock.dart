@@ -370,7 +370,7 @@ class LogEntryList {
   get first => (logs == null || logs.length == 0) ? null : logs[0];
 
   /** Get the last entry, or null if no entries. */
-  get last => (logs == null || logs.length == 0) ? null : logs.last();
+  get last => (logs == null || logs.length == 0) ? null : logs.last;
 
   /** Creates a LogEntry predicate function from the argument. */
   Function _makePredicate(arg) {

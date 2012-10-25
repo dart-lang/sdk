@@ -58,7 +58,7 @@ String relativize(Uri base, Uri uri, bool isWindows) {
     for (int i = common; i < uriParts.length - 1; i++) {
       sb.add('${uriParts[i]}/');
     }
-    sb.add('${uriParts.last()}');
+    sb.add('${uriParts.last}');
     return sb.toString();
   }
   return uri.toString();

@@ -57,13 +57,13 @@ abstract class Queue<E> extends Collection<E> {
    * Returns the first element of the queue. Throws an
    * [EmptyQueueException] exception if this queue is empty.
    */
-  E first();
+  E get first;
 
   /**
    * Returns the last element of the queue. Throws an
    * [EmptyQueueException] exception if this queue is empty.
    */
-  E last();
+  E get last;
 
   /**
    * Removes all elements in the queue. The size of the queue becomes zero.

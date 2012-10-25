@@ -37,11 +37,11 @@ String joinPaths(String path1, String path2) {
 
   var pieces = path1.split('/');
   for (var piece in path2.split('/')) {
-    if (piece == '..' && pieces.length > 0 && pieces.last() != '.'
-      && pieces.last() != '..') {
+    if (piece == '..' && pieces.length > 0 && pieces.last != '.'
+      && pieces.last != '..') {
       pieces.removeLast();
     } else if (piece != '') {
-      if (pieces.length > 0 && pieces.last() == '.') {
+      if (pieces.length > 0 && pieces.last == '.') {
         pieces.removeLast();
       }
       pieces.add(piece);

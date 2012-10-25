@@ -136,14 +136,14 @@ class _ChildrenElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _element.$dom_removeChild(result);
     }
     return result;
   }
 
-  Element last() {
+  Element get last {
     return _element.$dom_lastElementChild;
   }
 }
@@ -269,7 +269,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Element last() => _nodeList.last();
+  Element get last => _nodeList.last;
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {

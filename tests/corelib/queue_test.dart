@@ -90,11 +90,11 @@ class QueueTest {
 
     queue.addFirst(1);
     queue.addFirst(2);
-    Expect.equals(2, queue.first());
-    Expect.equals(1, queue.last());
+    Expect.equals(2, queue.first);
+    Expect.equals(1, queue.last);
 
     queue.addLast(3);
-    Expect.equals(3, queue.last());
+    Expect.equals(3, queue.last);
     bool isGreaterThanOne(int value) {
       return (value > 1);
     }

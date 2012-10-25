@@ -166,7 +166,7 @@ main() {
       Expect.isFalse(elements.isEmpty);
       Expect.equals(4, elements.length);
       Expect.equals("I", elements[2].tagName);
-      Expect.equals("U", elements.last().tagName);
+      Expect.equals("U", elements.last.tagName);
     });
 
     test('setting elements overwrites nodes as well', () {

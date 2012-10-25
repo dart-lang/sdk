@@ -100,7 +100,7 @@ class _StringDecoderBase implements _StringDecoder {
     }
     _resultOffset += result.length;
     while (!_lineBreakEnds.isEmpty &&
-           _lineBreakEnds.first() < _charOffset + _resultOffset) {
+           _lineBreakEnds.first < _charOffset + _resultOffset) {
       _lineBreakEnds.removeFirst();
       _lineBreaks--;
     }

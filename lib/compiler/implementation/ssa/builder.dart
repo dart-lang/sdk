@@ -1545,7 +1545,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void dup() {
-    stack.add(stack.last());
+    stack.add(stack.last);
   }
 
   HInstruction popBoolified() {
@@ -1573,7 +1573,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       sourceFileLocationForToken(node, node.getEndToken());
 
   SourceFileLocation sourceFileLocationForToken(Node node, Token token) {
-    Element element = sourceElementStack.last();
+    Element element = sourceElementStack.last;
     // TODO(johnniwinther): remove the 'element.patch' hack.
     if (element is FunctionElement) {
       FunctionElement functionElement = element;

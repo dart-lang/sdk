@@ -1765,7 +1765,7 @@ class HSwitch extends HControlFlow {
    * the expression. If the switch had no default case, this is the
    * following join-block.
    */
-  HBasicBlock get defaultTarget => block.successors.last();
+  HBasicBlock get defaultTarget => block.successors.last;
 
   accept(HVisitor visitor) => visitor.visitSwitch(this);
 
@@ -2015,7 +2015,7 @@ class HTry extends HControlFlow {
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';
   accept(HVisitor visitor) => visitor.visitTry(this);
-  HBasicBlock get joinBlock => this.block.successors.last();
+  HBasicBlock get joinBlock => this.block.successors.last;
 }
 
 class HIf extends HConditionalBranch {
@@ -2806,7 +2806,7 @@ class HStatementSequenceInformation implements HStatementInformation {
   HStatementSequenceInformation(this.statements);
 
   HBasicBlock get start => statements[0].start;
-  HBasicBlock get end => statements.last().end;
+  HBasicBlock get end => statements.last.end;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitSequenceInfo(this);
@@ -2975,7 +2975,7 @@ class HSwitchBlockInformation implements HStatementInformation {
   HBasicBlock get end {
     // We don't create a switch block if there are no cases.
     assert(!statements.isEmpty);
-    return statements.last().end;
+    return statements.last.end;
   }
 
   bool accept(HStatementInformationVisitor visitor) =>

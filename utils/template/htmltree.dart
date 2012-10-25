@@ -92,7 +92,7 @@ class TemplateChildren extends ASTNode {
     children.add(child);
   }
 
-  ASTNode last() => children.last();
+  ASTNode get last => children.last;
   ASTNode removeLast() => children.removeLast();
   bool get anyChildren => children != null && children.length > 0;
 

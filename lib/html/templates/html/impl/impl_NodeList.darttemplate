@@ -50,7 +50,7 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
-  E last() => _list.last();
+  E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
     _list.getRange(start, rangeLength);
@@ -113,7 +113,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   _NodeImpl removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _parent.$dom_removeChild(result);
     }
@@ -155,7 +155,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
   Node get first => this[0];
 
   // FIXME: implement thesee.

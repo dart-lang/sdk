@@ -115,11 +115,11 @@ class InlineParser {
   writeTextRange(int start, int end) {
     if (end > start) {
       final text = source.substring(start, end);
-      final nodes = _stack.last().children;
+      final nodes = _stack.last.children;
 
       // If the previous node is text too, just append.
-      if ((nodes.length > 0) && (nodes.last() is Text)) {
-        final newNode = new Text('${nodes.last().text}$text');
+      if ((nodes.length > 0) && (nodes.last is Text)) {
+        final newNode = new Text('${nodes.last.text}$text');
         nodes[nodes.length - 1] = newNode;
       } else {
         nodes.add(new Text(text));
@@ -128,7 +128,7 @@ class InlineParser {
   }
 
   addNode(Node node) {
-    _stack.last().children.add(node);
+    _stack.last.children.add(node);
   }
 
   // TODO(rnystrom): Only need this because RegExp doesn't let you start

@@ -351,7 +351,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   attachLocationToLast(HInstruction instruction) {
-    attachLocation(expressionStack.last(), instruction);
+    attachLocation(expressionStack.last, instruction);
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
@@ -2693,7 +2693,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   String currentLabel() {
-    return labels.last();
+    return labels.last;
   }
 
   js.VariableUse generateStateUse()
@@ -2822,7 +2822,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startBailoutCase(List<HBailoutTarget> bailouts1,
                         [List<HBailoutTarget> bailouts2 = const []]) {
-    if (!defaultClauseUsedInBailoutStack.last() &&
+    if (!defaultClauseUsedInBailoutStack.last &&
         bailouts1.length + bailouts2.length >= 2) {
       currentContainer = new js.Block.empty();
       currentBailoutSwitch.cases.add(new js.Default(currentContainer));
@@ -2831,7 +2831,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     } else {
       _handleBailoutCase(bailouts1);
       _handleBailoutCase(bailouts2);
-      currentContainer = currentBailoutSwitch.cases.last().body;
+      currentContainer = currentBailoutSwitch.cases.last.body;
     }
   }
 

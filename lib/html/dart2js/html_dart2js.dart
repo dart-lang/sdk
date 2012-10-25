@@ -2273,7 +2273,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  CSSRule last() => this[length - 1];
+  CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -7244,7 +7244,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  CSSValue last() => this[length - 1];
+  CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -7976,7 +7976,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect last() => this[length - 1];
+  ClientRect get last => this[length - 1];
 
   ClientRect removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -8817,7 +8817,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  DOMMimeType last() => this[length - 1];
+  DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -8987,7 +8987,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  DOMPlugin last() => this[length - 1];
+  DOMPlugin get last => this[length - 1];
 
   DOMPlugin removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -9255,7 +9255,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String last() => this[length - 1];
+  String get last => this[length - 1];
 
   String removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -10321,7 +10321,7 @@ class _FilteredElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       result.remove();
     }
@@ -10346,7 +10346,7 @@ class _FilteredElementList implements List {
     return _filtered.lastIndexOf(element, start);
   }
 
-  Element last() => _filtered.last();
+  Element get last => _filtered.last;
 }
 
 Future<CSSStyleDeclaration> _emptyStyleFuture() {
@@ -10482,7 +10482,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last();
+  Element get $m_lastElementChild() => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -11518,14 +11518,14 @@ class _ChildrenElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _element.$dom_removeChild(result);
     }
     return result;
   }
 
-  Element last() {
+  Element get last {
     return _element.$dom_lastElementChild;
   }
 }
@@ -11651,7 +11651,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Element last() => _nodeList.last();
+  Element get last => _nodeList.last;
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
@@ -12693,7 +12693,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Entry last() => this[length - 1];
+  Entry get last => this[length - 1];
 
   Entry removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -12783,7 +12783,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync last() => this[length - 1];
+  EntrySync get last => this[length - 1];
 
   EntrySync removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -13610,7 +13610,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  File last() => this[length - 1];
+  File get last => this[length - 1];
 
   File removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -14040,7 +14040,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  num last() => this[length - 1];
+  num get last => this[length - 1];
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -14159,7 +14159,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  num last() => this[length - 1];
+  num get last => this[length - 1];
 
   num removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -14580,7 +14580,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Gamepad last() => this[length - 1];
+  Gamepad get last => this[length - 1];
 
   Gamepad removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -14774,7 +14774,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -14886,7 +14886,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17121,7 +17121,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17240,7 +17240,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -17359,7 +17359,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -19879,7 +19879,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  MediaStream last() => this[length - 1];
+  MediaStream get last => this[length - 1];
 
   MediaStream removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -20871,7 +20871,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -21254,7 +21254,7 @@ class _ChildNodeListLazy implements List {
 
 
   _NodeImpl get first => JS('_NodeImpl', '#.firstChild', _this);
-  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
+  _NodeImpl get last => JS('_NodeImpl', '#.lastChild', _this);
 
   void add(_NodeImpl value) {
     _this.$dom_appendChild(value);
@@ -21272,7 +21272,7 @@ class _ChildNodeListLazy implements List {
   }
 
   _NodeImpl removeLast() {
-    final result = last();
+    final result = last;
     if (result != null) {
       _this.$dom_removeChild(result);
     }
@@ -21555,7 +21555,7 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
-  E last() => _list.last();
+  E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
     _list.getRange(start, rangeLength);
@@ -21618,7 +21618,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   }
 
   _NodeImpl removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _parent.$dom_removeChild(result);
     }
@@ -21660,7 +21660,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
   Node get first => this[0];
 
   // FIXME: implement thesee.
@@ -24030,7 +24030,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Map last() => this[length - 1];
+  Map get last => this[length - 1];
 
   Map removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -24542,7 +24542,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedLength last() => this[length - 1];
+  SVGAnimatedLength get last => this[length - 1];
 
   SVGAnimatedLength removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -24669,7 +24669,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedNumber last() => this[length - 1];
+  SVGAnimatedNumber get last => this[length - 1];
 
   SVGAnimatedNumber removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -24840,7 +24840,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimateTransformElement last() => this[length - 1];
+  SVGAnimateTransformElement get last => this[length - 1];
 
   SVGAnimateTransformElement removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -25697,7 +25697,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGElementInstance last() => this[length - 1];
+  SVGElementInstance get last => this[length - 1];
 
   SVGElementInstance removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -27719,7 +27719,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGLength last() => this[length - 1];
+  SVGLength get last => this[length - 1];
 
   SVGLength removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -28315,7 +28315,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGNumber last() => this[length - 1];
+  SVGNumber get last => this[length - 1];
 
   SVGNumber removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -29232,7 +29232,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGPathSeg last() => this[length - 1];
+  SVGPathSeg get last => this[length - 1];
 
   SVGPathSeg removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -30271,7 +30271,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String last() => this[length - 1];
+  String get last => this[length - 1];
 
   String removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -30928,7 +30928,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGTransform last() => this[length - 1];
+  SVGTransform get last => this[length - 1];
 
   SVGTransform removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -31875,7 +31875,7 @@ class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SourceBuffer last() => this[length - 1];
+  SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -32061,7 +32061,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechGrammar last() => this[length - 1];
+  SpeechGrammar get last => this[length - 1];
 
   SpeechGrammar removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -32194,7 +32194,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechInputResult last() => this[length - 1];
+  SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -32533,7 +32533,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechRecognitionResult last() => this[length - 1];
+  SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -32924,7 +32924,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  StyleSheet last() => this[length - 1];
+  StyleSheet get last => this[length - 1];
 
   StyleSheet removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -33819,7 +33819,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrackCue last() => this[length - 1];
+  TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -33982,7 +33982,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, Java
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrack last() => this[length - 1];
+  TextTrack get last => this[length - 1];
 
   TextTrack removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -34273,7 +34273,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Touch last() => this[length - 1];
+  Touch get last => this[length - 1];
 
   Touch removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -34649,7 +34649,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -34768,7 +34768,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -34887,7 +34887,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");
@@ -36877,7 +36877,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Animation last() => this[length - 1];
+  Animation get last => this[length - 1];
 
   Animation removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");

@@ -202,10 +202,10 @@ class _Parser {
     if (farthestLine < line) {
       farthestLine = line;
       farthestColumn = column;
-      farthestContext = contextStack.last();
+      farthestContext = contextStack.last;
     } else if (farthestLine == line && farthestColumn < column) {
       farthestColumn = column;
-      farthestContext = contextStack.last();
+      farthestContext = contextStack.last;
     }
     farthestPos = pos;
 

@@ -56,7 +56,7 @@ main() {
 
     test('last', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.last() is Comment);
+      Expect.isTrue(node.nodes.last is Comment);
     });
 
     test('forEach', () {
@@ -115,13 +115,13 @@ main() {
     test('add', () {
       var node = makeNode();
       node.nodes.add(new Element.tag('hr'));
-      Expect.isTrue(node.nodes.last() is HRElement);
+      Expect.isTrue(node.nodes.last is HRElement);
     });
 
     test('addLast', () {
       var node = makeNode();
       node.nodes.addLast(new Element.tag('hr'));
-      Expect.isTrue(node.nodes.last() is HRElement);
+      Expect.isTrue(node.nodes.last is HRElement);
     });
 
     test('iterator', () {

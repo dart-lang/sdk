@@ -57,7 +57,7 @@ $endif
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  $E last() => this[length - 1];
+  $E get last => this[length - 1];
 
   $E removeLast() {
     throw new UnsupportedError("Cannot removeLast on immutable List.");

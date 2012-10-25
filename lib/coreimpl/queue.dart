@@ -136,11 +136,11 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return _sentinel._next.remove();
   }
 
-  E first() {
+  E get first {
     return _sentinel._next.element;
   }
 
-  E last() {
+  E get last {
     return _sentinel._previous.element;
   }
 

@@ -126,7 +126,7 @@ interface List<E> extends Collection<E>, Sequence<E>
    * Returns the last element of the list, or throws an out of bounds
    * exception if the list is empty.
    */
-  E last();
+  E get last;
 
   /**
    * Returns a new list containing [length] elements from the list,

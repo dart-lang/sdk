@@ -137,6 +137,19 @@ LibTest/core/Set/filter_A01_t01: Fail, OK # co19 issue 287
 LibTest/core/String/isEmpty_A01_t01: Fail, OK # co19 issue 287
 LibTest/core/String/splitChars_A01_t01: Fail, OK # co19 issue 287
 
+LibTest/core/Queue/filter_A01_t04: Fail, OK # co19 issue 291
+LibTest/core/Queue/first_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/removeFirst_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/addFirst_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/removeLast_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/add_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/addLast_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/Queue/last_A01_t01: Fail, OK # co19 issue 291
+LibTest/core/List/last_A02_t01: Fail, OK # co19 issue 291
+LibTest/core/List/last_A01_t01: Fail, OK # co19 issue 291
+
 
 LibTest/core/int/isOdd_A01_t01: Fail, OK  # co19 issue 277
 LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277

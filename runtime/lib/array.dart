@@ -138,7 +138,7 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove in a non-extendable array");
   }
 
-  E last() {
+  E get last {
     return this[length - 1];
   }
 }
@@ -285,7 +285,7 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot remove in a non-extendable array");
   }
 
-  E last() {
+  E get last {
     return this[length - 1];
   }
 }

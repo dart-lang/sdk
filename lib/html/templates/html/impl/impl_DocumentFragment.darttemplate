@@ -73,7 +73,7 @@ class _FilteredElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       result.remove();
     }
@@ -98,7 +98,7 @@ class _FilteredElementList implements List {
     return _filtered.lastIndexOf(element, start);
   }
 
-  Element last() => _filtered.last();
+  Element get last => _filtered.last;
 }
 
 Future<CSSStyleDeclaration> _emptyStyleFuture() {
@@ -234,7 +234,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last();
+  Element get $m_lastElementChild() => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;

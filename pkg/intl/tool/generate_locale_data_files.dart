@@ -40,7 +40,7 @@ void writeLocaleList() {
   List<String> allLocales = DateFormat.allLocalesWithSymbols();
   allLocales.forEach((locale) {
     outputStream.writeString('"$locale"');
-    if (locale == allLocales.last()) {
+    if (locale == allLocales.last) {
       outputStream.writeString('];');
     } else {
       outputStream.writeString(',\n    ');

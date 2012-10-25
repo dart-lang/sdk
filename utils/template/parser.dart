@@ -17,7 +17,7 @@ class TagStack {
   }
 
   top() {
-    return _stack.last();
+    return _stack.last;
   }
 }
 

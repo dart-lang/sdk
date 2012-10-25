@@ -28,7 +28,7 @@ class _BufferList {
    * buffer and does not remove the buffer from the list. Use
    * [index] to determine the index of the first byte in the buffer.
    */
-  List<int> get first => _buffers.first();
+  List<int> get first => _buffers.first;
 
   /**
    * Returns the current index of the next byte. This will always be
@@ -40,15 +40,15 @@ class _BufferList {
   /**
    * Peek at the next available byte.
    */
-  int peek() => _buffers.first()[_index];
+  int peek() => _buffers.first[_index];
 
   /**
    * Returns the next available byte removing it from the buffers.
    */
   int next() {
-    int value = _buffers.first()[_index++];
+    int value = _buffers.first[_index++];
     _length--;
-    if (_index == _buffers.first().length) {
+    if (_index == _buffers.first.length) {
       _buffers.removeFirst();
       _index = 0;
     }
@@ -62,19 +62,19 @@ class _BufferList {
   List<int> readBytes(int count) {
     List<int> result;
     if (_length == 0 || _length < count) return null;
-    if (_index == 0 && _buffers.first().length == count) {
-      result = _buffers.first();
+    if (_index == 0 && _buffers.first.length == count) {
+      result = _buffers.first;
       _buffers.removeFirst();
       _index = 0;
       _length -= count;
       return result;
     } else {
-      int firstRemaining = _buffers.first().length - _index;
+      int firstRemaining = _buffers.first.length - _index;
       if (firstRemaining >= count) {
-        result = _buffers.first().getRange(_index, count);
+        result = _buffers.first.getRange(_index, count);
         _index += count;
         _length -= count;
-        if (_index == _buffers.first().length) {
+        if (_index == _buffers.first.length) {
           _buffers.removeFirst();
           _index = 0;
         }
@@ -83,11 +83,11 @@ class _BufferList {
         result = new Uint8List(count);
         int remaining = count;
         while (remaining > 0) {
-          int bytesInFirst = _buffers.first().length - _index;
+          int bytesInFirst = _buffers.first.length - _index;
           if (bytesInFirst <= remaining) {
             result.setRange(count - remaining,
                             bytesInFirst,
-                            _buffers.first(),
+                            _buffers.first,
                             _index);
             _buffers.removeFirst();
             _index = 0;
@@ -96,12 +96,12 @@ class _BufferList {
           } else {
             result.setRange(count - remaining,
                             remaining,
-                            _buffers.first(),
+                            _buffers.first,
                             _index);
             _index = remaining;
             _length -= remaining;
             remaining = 0;
-            assert(_index < _buffers.first().length);
+            assert(_index < _buffers.first.length);
           }
         }
         return result;

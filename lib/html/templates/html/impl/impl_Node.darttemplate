@@ -15,10 +15,10 @@ class _ChildNodeListLazy implements List {
 
 $if DART2JS
   _NodeImpl get first => JS('_NodeImpl', '#.firstChild', _this);
-  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
+  _NodeImpl get last => JS('_NodeImpl', '#.lastChild', _this);
 $else
   _NodeImpl get first => _this.$dom_firstChild;
-  _NodeImpl last() => _this.$dom_lastChild;
+  _NodeImpl get last => _this.$dom_lastChild;
 $endif
 
   void add(_NodeImpl value) {
@@ -37,7 +37,7 @@ $endif
   }
 
   _NodeImpl removeLast() {
-    final result = last();
+    final result = last;
     if (result != null) {
       _this.$dom_removeChild(result);
     }

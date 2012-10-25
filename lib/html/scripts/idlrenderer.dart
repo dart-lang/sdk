@@ -48,7 +48,7 @@ render(idl_node, [indent_str='  ']) {
     if (node == null) {
       return;
     } else if (node is String) {
-      if (output.last().endsWith('\n'))
+      if (output.last.endsWith('\n'))
         output.addAll(indent_stack);
       output.add(node);
     } else if (node is List) {

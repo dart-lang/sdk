@@ -430,7 +430,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block.isLoopHeader()) {
       blocks.addLast(block);
     } else if (block.isLabeledBlock()
-               && (blocks.isEmpty || !identical(blocks.last(), block))) {
+               && (blocks.isEmpty || !identical(blocks.last, block))) {
       HLabeledBlockInformation info = block.blockFlow.body;
       visitStatements(info.body);
       return;

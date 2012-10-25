@@ -246,9 +246,9 @@ insertRange$3(receiver, start, length, initialValue) {
   return listInsertRange(receiver, start, length, initialValue);
 }
 
-last(receiver) {
+get$last(receiver) {
   if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.last());
+    return UNINTERCEPTED(receiver.last);
   }
   return receiver[receiver.length - 1];
 }

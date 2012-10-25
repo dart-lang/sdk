@@ -978,7 +978,7 @@ class MinifyRenamer implements Namer {
     }
     assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     nameNumber++;
-    maps.last()[oldName] = newName;
+    maps.last[oldName] = newName;
     return newName;
   }
 }

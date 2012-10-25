@@ -433,8 +433,8 @@ String genCleanHtml(Element root) {
 
     // Trim useless nodes from the back.
     while (root.nodes.length > 0 &&
-        isSkippable(root.nodes.last())) {
-      root.nodes.last().remove();
+        isSkippable(root.nodes.last)) {
+      root.nodes.last.remove();
       changed = true;
     }
   }
@@ -1183,7 +1183,7 @@ void run() {
     bool foundMatch = false;
     // Test out if the title is really an HTML tag that matches the
     // current class name.
-    for (String tag in [title.split(" ")[0], title.split(".").last()]) {
+    for (String tag in [title.split(" ")[0], title.split(".").last]) {
       try {
         Element element = new Element.tag(tag);
         // TODO(jacobr): this is a really ugly way of doing this that will

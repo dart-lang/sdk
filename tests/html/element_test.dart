@@ -497,7 +497,7 @@ main() {
 
     test('last', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.last() is InputElement);
+      Expect.isTrue(el.elements.last is InputElement);
     });
 
     test('forEach', () {
@@ -557,13 +557,13 @@ main() {
     test('add', () {
       var el = makeElement();
       el.elements.add(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last() is HRElement);
+      Expect.isTrue(el.elements.last is HRElement);
     });
 
     test('addLast', () {
       var el = makeElement();
       el.elements.addLast(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last() is HRElement);
+      Expect.isTrue(el.elements.last is HRElement);
     });
 
     test('iterator', () {
@@ -636,7 +636,7 @@ main() {
     }
 
     test('last', () {
-      Expect.isTrue(getQueryAll().last() is HRElement);
+      Expect.isTrue(getQueryAll().last is HRElement);
     });
 
     test('forEach', () {

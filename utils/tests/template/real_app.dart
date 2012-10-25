@@ -92,7 +92,7 @@ void main() {
     elem.on.click.add((MouseEvent e) {
       var expandCollapseElem = e.toElement;
 
-      DivElement salesDiv = expandCollapseElem.parent.elements.last();
+      DivElement salesDiv = expandCollapseElem.parent.elements.last;
 
       bool showSales = (salesDiv.classes.contains(DivisionSales.showSales));
 
