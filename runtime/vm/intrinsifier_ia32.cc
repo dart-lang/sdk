@@ -1098,6 +1098,7 @@ static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
       break;
     default:
       UNREACHABLE();
+      hi_true_cond = hi_false_cond = lo_false_cond = OVERFLOW;
   }
   __ Bind(&try_mint_smi);
   // Note that EDX and ECX must be preserved in case we fall through to main
