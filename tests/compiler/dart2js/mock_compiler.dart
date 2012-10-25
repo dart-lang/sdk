@@ -56,12 +56,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}
-  abstract class int extends num {}
-  abstract class double extends num {}
+  abstract class num {}
+  abstract class int extends num { }
+  abstract class double extends num { }
   class bool {}
   class String {}
   class Object {}
-  abstract class num {}
   class Function {}
   interface List default ListImplementation { List([length]);}
   class ListImplementation { factory List([length]) => null; }

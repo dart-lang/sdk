@@ -45,6 +45,7 @@ class AnalysisResult {
 
   BaseType int;
   BaseType double;
+  BaseType num;
   BaseType bool;
   BaseType string;
   BaseType list;
@@ -55,6 +56,7 @@ class AnalysisResult {
     inferrer = compiler.typesTask.concreteTypesInferrer;
     int = inferrer.baseTypes.intBaseType;
     double = inferrer.baseTypes.doubleBaseType;
+    num = inferrer.baseTypes.numBaseType;
     bool = inferrer.baseTypes.boolBaseType;
     string = inferrer.baseTypes.stringBaseType;
     list = inferrer.baseTypes.listBaseType;
@@ -120,9 +122,26 @@ class AnalysisResult {
   }
 }
 
+const String CORELIB = r'''
+  print(var obj) {}
+  abstract class num { operator +(x); operator *(x); operator -(x); }
+  abstract class int extends num { }
+  abstract class double extends num { }
+  class bool {}
+  class String {}
+  class Object {}
+  class Function {}
+  abstract class List {}
+  abstract class Map {}
+  class Closure {}
+  class Null {}
+  class Dynamic_ {}
+  bool identical(Object a, Object b) {}''';
+
 AnalysisResult analyze(String code) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = new MockCompiler(enableConcreteTypeInference: true);
+  MockCompiler compiler = new MockCompiler(coreSource: CORELIB,
+                                           enableConcreteTypeInference: true);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.runCompiler(uri);
   return new AnalysisResult(compiler);
@@ -448,6 +467,59 @@ testNoReturn() {
   result.checkNodeHasType('y', [result.nullType]);
 }
 
+testArithmeticOperators() {
+  String source(op) {
+    return """
+        main() {
+          var a = 1 $op 2;
+          var b = 1 $op 2.0;
+          var c = 1.0 $op 2;
+          var d = 1.0 $op 2.0;
+          var e = (1 $op 2.0) $op 1;
+          var f = 1 $op (1 $op 2.0);
+          var g = (1 $op 2.0) $op 1.0;
+          var h = 1.0 $op (1 $op 2);
+          var i = (1 $op 2) $op 1;
+          var j = 1 $op (1 $op 2);
+          var k = (1.0 $op 2.0) $op 1.0;
+          var l = 1.0 $op (1.0 $op 2.0);
+          a; b; c; d; e; f; g; h; i; j; k; l;
+        }""";
+  }
+  for (String op in ['+', '*', '-']) {
+    AnalysisResult result = analyze(source(op));
+    result.checkNodeHasType('a', [result.int]);
+    result.checkNodeHasType('b', [result.num]);
+    result.checkNodeHasType('c', [result.num]);
+    result.checkNodeHasType('d', [result.double]);
+    result.checkNodeHasType('e', [result.num]);
+    result.checkNodeHasType('f', [result.num]);
+    result.checkNodeHasType('g', [result.num]);
+    result.checkNodeHasType('h', [result.num]);
+    result.checkNodeHasType('i', [result.int]);
+    result.checkNodeHasType('j', [result.int]);
+    result.checkNodeHasType('k', [result.double]);
+    result.checkNodeHasType('l', [result.double]);
+  }
+}
+
+testOperators() {
+  final String source = r"""
+      class A {
+        operator <(x) => 42;
+        operator <<(x) => "a";
+      }
+      main() {
+        var x = new A() < "foo";
+        var y = new A() << "foo";
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.int]);
+  result.checkNodeHasType('y', [result.string]);
+}
+
 void main() {
   testLiterals();
   testRedefinition();
@@ -469,4 +541,6 @@ void main() {
   testMapLiterals();
   testReturn();
   // testNoReturn(); // right now we infer the empty type instead of null
+  testArithmeticOperators();
+  testOperators();
 }
