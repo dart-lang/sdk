@@ -861,7 +861,23 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitFor(For node) {
-    inferrer.fail(node, 'not yet implemented');
+    if (node.initializer != null) {
+      analyze(node.initializer);
+    }
+    analyze(node.conditionStatement);
+    ConcreteType result = new ConcreteType.empty();
+    ConcreteTypesEnvironment oldEnvironment;
+    do {
+      oldEnvironment = environment;
+      analyze(node.conditionStatement);
+      analyze(node.body);
+      analyze(node.update);
+      environment = oldEnvironment.join(environment);
+    // TODO(polux): Maybe have a destructive join-method that returns a boolean
+    // value indicating whether something changed to avoid performing this
+    // comparison twice.
+    } while (oldEnvironment != environment);
+    return result;
   }
 
   ConcreteType visitFunctionDeclaration(FunctionDeclaration node) {

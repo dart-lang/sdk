@@ -193,8 +193,30 @@ testWhile() {
       class B { f() => new C(); }
       class C { f() => new A(); }
       main() {
+        var bar = null;
         var foo = new A();
-        while(true) {
+        while(bar = 42) {
+          foo = foo.f();
+        }
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType(
+      'foo',
+      [result.base('A'), result.base('B'), result.base('C')]);
+  // Check that the condition is evaluated.
+  result.checkNodeHasType('bar', [result.int]);
+}
+
+testFor1() {
+  final String source = r"""
+      class A { f() => new B(); }
+      class B { f() => new C(); }
+      class C { f() => new A(); }
+      main() {
+        var foo = new A();
+        for(;;) {
           foo = foo.f();
         }
         foo;
@@ -204,6 +226,25 @@ testWhile() {
   result.checkNodeHasType(
       'foo',
       [result.base('A'), result.base('B'), result.base('C')]);
+}
+
+testFor2() {
+  final String source = r"""
+      class A { f() => new B(); test() => true; }
+      class B { f() => new A(); test() => true; }
+      main() {
+        var bar = null;
+        var foo = new A();
+        for(var i = new A(); bar = 42; i = i.f()) {
+           foo = i;
+        }
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
+  // Check that the condition is evaluated.
+  result.checkNodeHasType('bar', [result.int]);
 }
 
 testNonRecusiveFunction() {
@@ -413,6 +454,8 @@ void main() {
   testIfThenElse();
   testTernaryIf();
   testWhile();
+  testFor1();
+  testFor2();
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
