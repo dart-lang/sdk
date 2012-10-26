@@ -12,16 +12,16 @@ class Printer implements NodeVisitor {
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
-  final Namer namer;
+  final LocalNamer localNamer;
 
   Printer(leg.Compiler compiler)
       : shouldCompressOutput = compiler.enableMinification,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
-        namer = determineRenamer(compiler.enableMinification);
-
-  static Namer determineRenamer(bool shouldCompressOutput) {
+        localNamer = determineRenamer(compiler.enableMinification);
+  
+  static LocalNamer determineRenamer(bool shouldCompressOutput) {
     // TODO(erikcorry): Re-enable the MinifyRenamer after M1.
     return new IdentityNamer();
   }
@@ -362,7 +362,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(name, PRIMARY,
                             newInForInit: false, newAtStatementBegin: false);
     }
-    namer.enterScope(vars);
+    localNamer.enterScope(vars);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
@@ -370,7 +370,7 @@ class Printer implements NodeVisitor {
     }
     out(")");
     blockBody(fun.body, needsSeparation: false, needsNewline: false);
-    namer.leaveScope();
+    localNamer.leaveScope();
   }
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
@@ -610,7 +610,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableUse(VariableUse ref) {
-    out(namer.getName(ref.name));
+    out(localNamer.getName(ref.name));
   }
 
   visitThis(This node) {
@@ -618,11 +618,11 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclaration(VariableDeclaration decl) {
-    out(namer.getName(decl.name));
+    out(localNamer.getName(decl.name));
   }
 
   visitParameter(Parameter param) {
-    out(namer.getName(param.name));
+    out(localNamer.getName(param.name));
   }
 
   bool isDigit(int charCode) {
@@ -897,7 +897,7 @@ leg.CodeBuffer prettyPrint(Node node,
 }
 
 
-abstract class Namer {
+abstract class LocalNamer {
   String getName(String oldName);
   String declareName(String oldName);
   void enterScope(VarCollector vars);
@@ -905,7 +905,7 @@ abstract class Namer {
 }
 
 
-class IdentityNamer implements Namer {
+class IdentityNamer implements LocalNamer {
   String getName(String oldName) => oldName;
   String declareName(String oldName) => oldName;
   void enterScope(VarCollector vars) {}
@@ -913,7 +913,7 @@ class IdentityNamer implements Namer {
 }
 
 
-class MinifyRenamer implements Namer {
+class MinifyRenamer implements LocalNamer {
   final List<Map<String, String>> maps = [];
   final List<int> nameNumberStack = [];
   int nameNumber = 0;
@@ -950,37 +950,48 @@ class MinifyRenamer implements Namer {
     if (maps.isEmpty) return oldName;
 
     String newName;
-    int n = nameNumber;
-    if (n < LETTERS) {
-      // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
-      newName = new String.fromCharCodes([nthLetter(n)]);
-    } else {
-      // Then name variables a0, a1, a2, ..., a9, b0, b1, ..., Z9, aa0, aa1, ...
-      // For all functions with fewer than 500 locals this is just as compact
-      // as using aa, ab, etc. but avoids clashes with keywords.
-      n -= LETTERS;
-      int digit = n % DIGITS;
-      n ~/= DIGITS;
-      int alphaChars = 1;
-      int nameSpaceSize = LETTERS;
-      // Find out whether we should use the 1-character namespace (size 52), the
-      // 2-character namespace (size 52*52), etc.
-      while (n >= nameSpaceSize) {
-        n -= nameSpaceSize;
-        alphaChars++;
-        nameSpaceSize *= LETTERS;
+    do {
+      int n = nameNumber;
+      if (n < LETTERS) {
+        // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
+        newName = new String.fromCharCodes([nthLetter(n)]);
+      } else {
+        // Then name variables a0, a1, ..., a9, b0, b1, ..., Z9, aa0, aa1, ...
+        // For all functions with fewer than 500 locals this is just as compact
+        // as using aa, ab, etc. but avoids clashes with keywords.
+        n -= LETTERS;
+        int digit = n % DIGITS;
+        n ~/= DIGITS;
+        int alphaChars = 1;
+        int nameSpaceSize = LETTERS;
+        // Find out whether we should use the 1-character namespace (size 52),
+        // the 2-character namespace (size 52*52), etc.
+        while (n >= nameSpaceSize) {
+          n -= nameSpaceSize;
+          alphaChars++;
+          nameSpaceSize *= LETTERS;
+        }
+        var codes = <int>[];
+        for (var i = 0; i < alphaChars; i++) {
+          nameSpaceSize ~/= LETTERS;
+          codes.add(nthLetter((n ~/ nameSpaceSize) % LETTERS));
+        }
+        codes.add(charCodes.$0 + digit);
+        newName = new String.fromCharCodes(codes);
       }
-      var codes = <int>[];
-      for (var i = 0; i < alphaChars; i++) {
-        nameSpaceSize ~/= LETTERS;
-        codes.add(nthLetter((n ~/ nameSpaceSize) % LETTERS));
-      }
-      codes.add(charCodes.$0 + digit);
-      newName = new String.fromCharCodes(codes);
-    }
-    assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
-    nameNumber++;
-    maps.last[oldName] = newName;
+      assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+      nameNumber++;
+    } while (isReserved(newName));
+    maps.last()[oldName] = newName;
     return newName;
+  }
+
+  // We only have names here that are single-letter or end with a digit,
+  // since those are the ones we can generate.
+  bool isReserved(String name) {
+    assert(name.length == 1 || const RegExp(r'[0-9]$').hasMatch(name));
+    // No names reserved yet.  All JS keywords are more than one character and
+    // do not end with a digit.
+    return false;
   }
 }

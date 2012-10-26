@@ -29,19 +29,22 @@ main() {
   List<String> productionScript = buildScript(
       'dart2js-production',
       dartUri, dartVmUri,
-      'lib/compiler/implementation/dart2js.dart', '');
+      'lib/compiler/implementation/dart2js.dart',
+      '');
   writeScript(productionUri, productionScript);
 
   List<String> developerScript = buildScript(
       'dart2js-developer',
       dartUri, dartVmUri,
-      'lib/compiler/implementation/dart2js.dart', ' --enable_checked_mode');
+      'lib/compiler/implementation/dart2js.dart',
+      r' ${DART_VM_FLAGS:---enable_checked_mode}');
   writeScript(developerUri, developerScript);
 
   List<String> dartdocScript = buildScript(
       'dartdoc',
       dartUri, dartVmUri,
-      'pkg/dartdoc/bin/dartdoc.dart', '');
+      'pkg/dartdoc/bin/dartdoc.dart',
+      '');
   writeScript(dartdocUri, dartdocScript);
 }
 

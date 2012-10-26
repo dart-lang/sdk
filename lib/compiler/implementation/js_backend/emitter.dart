@@ -93,29 +93,51 @@ class CodeEmitterTask extends CompilerTask {
   String get lazyInitializerName
       => '${namer.ISOLATE}.\$lazy';
 
-  final String GETTER_SUFFIX = "?";
-  final String SETTER_SUFFIX = "!";
-  final String GETTER_SETTER_SUFFIX = "=";
+  // Property name suffixes.  If the accessors are renaming then the format
+  // is <accessorName>:<fieldName><suffix>.  We use the suffix to know whether
+  // to look for the ':' separator in order to avoid doing the indexOf operation
+  // on every single property (they are quite rare).  None of these characters
+  // are legal in an identifier and they are related by bit patterns.
+  // setter          <          0x3c
+  // both            =          0x3d
+  // getter          >          0x3e
+  // renaming setter |          0x7c
+  // renaming both   }          0x7d
+  // renaming getter ~          0x7e
+  const SUFFIX_MASK = 0x3f;
+  const FIRST_SUFFIX_CODE = 0x3c;
+  const SETTER_CODE = 0x3c;
+  const GETTER_SETTER_CODE = 0x3d;
+  const GETTER_CODE = 0x3e;
+  const RENAMING_FLAG = 0x40;
+  String needsGetterCode(String variable) => '($variable & 3) > 0';
+  String needsSetterCode(String variable) => '($variable & 2) == 0';
+  String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
 
   String get generateGetterSetterFunction {
     return """
   function(field, prototype) {
     var len = field.length;
-    var lastChar = field[len - 1];
-    var needsGetter = lastChar == '$GETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    var needsSetter = lastChar == '$SETTER_SUFFIX' || lastChar == '$GETTER_SETTER_SUFFIX';
-    if (needsGetter || needsSetter) field = field.substring(0, len - 1);
-    if (needsGetter) {
-      var getterString = "return this." + field + ";";
-  """
-  /* The supportsProtoCheck below depends on the getter/setter convention.
-         When changing here, update the protoCheck too. */
-  """
-      prototype["get\$" + field] = new Function(getterString);
-    }
-    if (needsSetter) {
-      var setterString = "this." + field + " = v;";
-      prototype["set\$" + field] = new Function("v", setterString);
+    var lastCharCode = field.charCodeAt(len - 1);
+    var needsAccessor = (lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE;
+    if (needsAccessor) {
+      var needsGetter = ${needsGetterCode('lastCharCode')};
+      var needsSetter = ${needsSetterCode('lastCharCode')};
+      var renaming = ${isRenaming('lastCharCode')};
+      var accessorName = field = field.substring(0, len - 1);
+      if (renaming) {
+        var divider = field.indexOf(":");
+        accessorName = field.substring(0, divider);
+        field = field.substring(divider + 1);
+      }
+      if (needsGetter) {
+        var getterString = "return this." + field + ";";
+        prototype["get\$" + accessorName] = new Function(getterString);
+      }
+      if (needsSetter) {
+        var setterString = "this." + field + " = v;";
+        prototype["set\$" + accessorName] = new Function("v", setterString);
+      }
     }
     return field;
   }""";
@@ -176,7 +198,7 @@ var $supportsProtoName = false;
 var tmp = $defineClassName('c', ['f?'], {}).prototype;
 if (tmp.__proto__) {
   tmp.__proto__ = {};
-  if (typeof tmp.get\$f !== "undefined") $supportsProtoName = true;
+  if (typeof tmp.get\$f !== 'undefined') $supportsProtoName = true;
 }
 ''';
   }
@@ -485,7 +507,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     // on A and a typed selector on B could yield the same stub.
     Set<String> generatedStubNames = new Set<String>();
     if (compiler.enabledFunctionApply
-        && member.name == Namer.CLOSURE_INVOCATION_NAME) {
+        && member.name == namer.CLOSURE_INVOCATION_NAME) {
       // If [Function.apply] is called, we pessimistically compile all
       // possible stubs for this closure.
       // TODO(5074): This functionality only supports the new
@@ -682,6 +704,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
   void visitClassFields(ClassElement classElement,
                         void addField(Element member,
                                       String name,
+                                      String accessorName,
                                       bool needsGetter,
                                       bool needsSetter,
                                       bool needsCheckedSetter)) {
@@ -717,9 +740,11 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       if ((isInstantiated && !enclosingClass.isNative())
           || needsGetter
           || needsSetter) {
-        String fieldName = isShadowed
+        String accessorName = isShadowed
             ? namer.shadowedFieldName(member)
             : namer.getName(member);
+        String fieldName = enclosingClass.isNative() ?
+            member.name.slowToString() : accessorName;
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
             && canGenerateCheckedSetter(member)) {
@@ -729,6 +754,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         // Getters and setters with suffixes will be generated dynamically.
         addField(member,
                  fieldName,
+                 accessorName,
                  needsGetter,
                  needsSetter,
                  needsCheckedSetter);
@@ -745,13 +771,17 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         includeSuperMembers: isInstantiated && !classElement.isNative());
   }
 
-  void generateGetter(Element member, String fieldName, CodeBuffer buffer) {
-    String getterName = namer.getterName(member.getLibrary(), member.name);
+  void generateGetter(Element member, String fieldName, String accessorName,
+                      CodeBuffer buffer) {
+    String getterName =
+        namer.getterName(member.getLibrary(), new SourceString(accessorName));
     buffer.add("$getterName: function() { return this.$fieldName; }");
   }
 
-  void generateSetter(Element member, String fieldName, CodeBuffer buffer) {
-    String setterName = namer.setterName(member.getLibrary(), member.name);
+  void generateSetter(Element member, String fieldName, String accessorName,
+                      CodeBuffer buffer) {
+    String setterName =
+        namer.setterName(member.getLibrary(), new SourceString(accessorName));
     buffer.add("$setterName: function(v) { this.$fieldName = v; }");
   }
 
@@ -768,6 +798,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void generateCheckedSetter(Element member,
                              String fieldName,
+                             String accessorName,
                              CodeBuffer buffer) {
     assert(canGenerateCheckedSetter(member));
     DartType type = member.computeType(compiler);
@@ -778,7 +809,8 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
       additionalArgument = ", '${namer.operatorIs(type.element)}'";
     }
-    String setterName = namer.setterName(member.getLibrary(), member.name);
+    String setterName =
+        namer.setterName(member.getLibrary(), new SourceString(accessorName));
     buffer.add("$setterName: function(v) { "
         "this.$fieldName = $helperName(v$additionalArgument); }");
   }
@@ -792,6 +824,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
     bool isFirstField = true;
     visitClassFields(classElement, (Element member,
                                     String name,
+                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
@@ -800,13 +833,19 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       } else {
         buffer.add(", ");
       }
-      buffer.add('"$name');
+      buffer.add('"$accessorName');
+      int flag = 0;
+      if (name != accessorName) {
+        buffer.add(':$name');
+        assert(needsGetter || needsSetter);
+        flag = RENAMING_FLAG;
+      }
       if (needsGetter && needsSetter) {
-        buffer.add(GETTER_SETTER_SUFFIX);
+        buffer.addCharCode(GETTER_SETTER_CODE + flag);
       } else if (needsGetter) {
-        buffer.add(GETTER_SUFFIX);
+        buffer.addCharCode(GETTER_CODE + flag);
       } else if (needsSetter) {
-        buffer.add(SETTER_SUFFIX);
+        buffer.addCharCode(SETTER_CODE + flag);
       }
       buffer.add('"');
     });
@@ -818,6 +857,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
                                {bool omitLeadingComma: false}) {
     visitClassFields(classElement, (Element member,
                                     String name,
+                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
@@ -828,7 +868,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         } else {
           omitLeadingComma = false;
         }
-        generateCheckedSetter(member, name, buffer);
+        generateCheckedSetter(member, name, accessorName, buffer);
       }
     });
   }
@@ -1015,7 +1055,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       // create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
       String invocationName = namer.instanceMethodName(callElement);
       String fieldAccess = '$isolateProperties.$staticName';
@@ -1092,7 +1132,7 @@ $classesCollector.$mangledName = {'':
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, member);
 
       String invocationName = namer.instanceMethodName(callElement);
       List<String> arguments = new List<String>(parameterCount);
@@ -1148,7 +1188,7 @@ $classesCollector.$mangledName = {'':
         String invocationName =
             namer.instanceMethodInvocationName(memberLibrary, member.name,
                                                selector);
-        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
+        SourceString callName = namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
             namer.instanceMethodInvocationName(memberLibrary, callName,
                                                selector);
@@ -1478,10 +1518,10 @@ $mainEnsureGetter
 //
 // BEGIN invoke [main].
 //
-if (typeof document != 'undefined' && document.readyState != 'complete') {
+if (typeof document !== 'undefined' && document.readyState != 'complete') {
   document.addEventListener('readystatechange', function () {
     if (document.readyState == 'complete') {
-      if (typeof dartMainRunner == 'function') {
+      if (typeof dartMainRunner === 'function') {
         dartMainRunner(function() { ${mainCall}; });
       } else {
         ${mainCall};
@@ -1489,7 +1529,7 @@ if (typeof document != 'undefined' && document.readyState != 'complete') {
     }
   }, false);
 } else {
-  if (typeof dartMainRunner == 'function') {
+  if (typeof dartMainRunner === 'function') {
     dartMainRunner(function() { ${mainCall}; });
   } else {
     ${mainCall};
