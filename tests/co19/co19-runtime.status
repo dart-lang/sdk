@@ -2,13 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
-[ $compiler == none && $runtime == vm ]
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail, OK
-Language/07_Classes/1_Instance_Methods_A02_t06: Fail, OK
-Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail, OK
-Language/14_Types/5_Function_Types_A01_t21: Fail, OK
-
 # These tests either wrongly expect a compile-time error or wrongly reject a type error in production mode, co19 issue 282:
 [ $compiler == none && $runtime == vm ]
 Language/13_Libraries_and_Scripts/1_Imports_A03_t05: Fail, OK
@@ -68,6 +61,7 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # TODO(
 Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/09_Generics/09_Generics_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/01_Constants_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A06_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/01_Constants_A14_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -76,15 +70,15 @@ Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # TODO(v
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t46: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/05_Strings_A02_t48: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A03_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/10_Expressions/09_Function_Expressions_A04_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/11_Instance_Creation/2_Const_A10_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/13_Property_Extraction_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t08: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # TODO(vm-team): Please triage this failure.
@@ -169,31 +163,41 @@ Language/10_Expressions/31_Type_Test_A05_t02: Fail # TODO(vm-team): Please triag
 Language/10_Expressions/31_Type_Test_A05_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/32_Type_Cast_A04_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/10_Expressions/32_Type_Cast_A04_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/06_For/2_For_in_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/06_For/2_For_in_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/06_For_A01_t11: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/08_Do_A02_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Switch_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A06_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A02_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A02_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A03_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/11_Statements/09_Switch_A06_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A06_t03: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A06_t04: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/09_Switch_A07_t02: Fail # TODO(vm-team): Please triage this failure.
-Language/11_Statements/10_Try_A05_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/10_Try_A11_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/12_Labels_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A01_t53: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/1_Imports_A01_t54: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t07: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t15: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A01_t16: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/3_Parts_A03_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/WrongArgumentCountException/WrongArgumentCountException_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/WrongArgumentCountException/toString_A01_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -211,32 +215,8 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # iss
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
-LibTest/core/ObjectNotClosureException/toString_A01_t01: Fail, OK # co19 issue 276
-LibTest/core/ObjectNotClosureException/ObjectNotClosureException_A01_t01: Fail, OK # co19 issue 276
 LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
-LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
 LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
-LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/ClosureArgumentMismatchException/toString_A01_t01: Fail, OK # co19 issue 276
-LibTest/core/ClosureArgumentMismatchException/ClosureArgumentMismatchException_A01_t01: Fail, OK # co19 issue 276
-Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
-
-LibTest/core/IllegalAccessException/IllegalAccessException_A01_t01: Fail, OK # co19 issue 285
-LibTest/core/IllegalAccessException/toString_A01_t01: Fail, OK # co19 issue 285
-LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
-LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
-LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
-LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
 
 LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
@@ -247,9 +227,19 @@ LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
 
+LibTest/core/UnsupportedError/toString_A01_t01: Fail, OK # co19 issue 295
+
+
 [ $compiler == none && $runtime == vm && $checked ]
-Language/10_Expressions/09_Function_Expressions_A03_t02: Fail, OK # co19 issue 283
-Language/10_Expressions/09_Function_Expressions_A04_t02: Fail, OK # co19 issue 283
+Language/07_Classes/6_Constructors/2_Factories_A03_t05: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/05_If_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+Language/11_Statements/15_Assert_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t02: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t03: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t04: Fail # TODO(vm-team): Please triage this failure.
+Language/14_Types/7_Type_Void_A04_t05: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Map/putIfAbsent_A01_t07: Fail # TODO(vm-team): Please triage this failure.
 
 Language/14_Types/7_Type_Void_A04_t02: Fail, OK # co19 issue 158
 Language/14_Types/7_Type_Void_A04_t03: Fail, OK # co19 issue 158
@@ -262,7 +252,6 @@ Language/10_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 234
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
 
-LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
 
 [ $compiler == none && $runtime == vm ]
 # Not properly reporting exception in initializer expressions
@@ -347,15 +336,12 @@ LibTest/math/tan_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
-LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 
 [ $compiler == none && $runtime == vm && $system == windows ]
 LibTest/math/atan2_A01_t03: Fail # http://dartbug.com/5407
 LibTest/core/double/operator_remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/remainder_A01_t04: Fail # http://dartbug.com/5407
 LibTest/core/double/round_A01_t01: Fail # http://dartbug.com/5407
-LibTest/core/int/operator_remainder_A01_t02: Fail # http://dartbug.com/5407
-LibTest/core/int/remainder_A01_t02: Fail # http://dartbug.com/5407
 
 
 [ $compiler == none && $runtime == vm ]
@@ -420,167 +406,16 @@ LibTest/core/Queue/last_A01_t01: Fail, OK # co19 issue 291
 LibTest/core/List/last_A02_t01: Fail, OK # co19 issue 291
 LibTest/core/List/last_A01_t01: Fail, OK # co19 issue 291
 
-Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issue 273
-LibTest/isolate/SendPort/hashCode_A01_t01: Fail, OK # co19 issue 273
-LibTest/core/Map/putIfAbsent_A01_t04: Fail, OK # co19 issue 273
-LibTest/core/Map/Map_class_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/Set/remove_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/Set/addAll_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/Set/forEach_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/Set/add_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/Set/filter_A01_t03: Fail, OK # co19 issue 273
-LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
-LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
-
-Language/11_Statements/07_Do_A02_t01: Fail, OK # co19 issue 286
-Language/11_Statements/05_For/2_For_in_A01_t01: Fail, OK # co19 issue 286
-Language/11_Statements/05_For/2_For_in_A01_t04: Fail, OK # co19 issue 286
-Language/11_Statements/05_For/2_For_in_A01_t02: Fail, OK # co19 issue 286
-Language/11_Statements/05_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
-Language/11_Statements/06_For/2_For_in_A01_t01: Fail, OK # co19 issue 286
-Language/11_Statements/06_For/2_For_in_A01_t05: Fail, OK # co19 issue 286
-Language/11_Statements/06_While_A02_t01: Fail, OK # co19 issue 286
-Language/11_Statements/07_While_A02_t01: Fail, OK # co19 issue 286
-Language/11_Statements/08_Do_A02_t01: Fail, OK # co19 issue 286
-LibTest/core/Queue/iterator_hasNext_A01_t02: Fail, OK # co19 issue 286
-LibTest/core/Queue/iterator_hasNext_A01_t01: Fail, OK # co19 issue 286
-LibTest/core/Queue/iterator_A01_t02: Fail, OK # co19 issue 286
-LibTest/core/Queue/Queue.from_A01_t02: Fail, OK # co19 issue 286
-LibTest/core/List/iterator_hasNext_A01_t01: Fail, OK # co19 issue 286
-LibTest/core/List/iterator_next_A01_t01: Fail, OK # co19 issue 286
-LibTest/core/List/iterator_A01_t01: Fail, OK # co19 issue 286
-LibTest/core/List/List.from_A01_t01: Fail, OK # co19 issue 286
-LibTest/core/Set/Set.from_A01_t02: Fail, OK # co19 issue 286
-
 Language/10_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
 Language/10_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
-Language/10_Expressions/06_Lists_A05_t02: Fail, OK # co19 issue 287
-Language/10_Expressions/06_Lists_A08_t03: Fail, OK # co19 issue 287
-LibTest/core/HashSet/HashSet_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail, OK # co19 issue 287
 LibTest/core/Queue/filter_A01_t04: Fail, OK # co19 issue 287
-LibTest/core/Queue/some_A01_t06: Fail, OK # co19 issue 287
-LibTest/core/Queue/every_A01_t06: Fail, OK # co19 issue 287
-LibTest/core/Queue/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Queue/filter_A01_t06: Fail, OK # co19 issue 287
-LibTest/core/Queue/clear_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Queue/Queue_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Queue/filter_A01_t02: Fail, OK # co19 issue 287
-LibTest/core/Queue/forEach_A01_t04: Fail, OK # co19 issue 287
-LibTest/core/Map/putIfAbsent_A01_t10: Fail, OK # co19 issue 287
 LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 287
-LibTest/core/Map/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Map/forEach_A01_t07: Fail, OK # co19 issue 287
-LibTest/core/Expect/identical_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/equals_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/isNull_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/stringEquals_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/isTrue_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/isFalse_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/notEquals_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/approxEquals_A04_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/listEquals_A03_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/setEquals_A03_t01: Fail, OK # co19 issue 287
-LibTest/core/Expect/isNotNull_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/List/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/List/filter_A02_t01: Fail, OK # co19 issue 287
-LibTest/core/List/filter_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/HashMap/HashMap.from_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/HashMap/HashMap_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/StringBuffer/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Set/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Set/Set_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Set/filter_A01_t02: Fail, OK # co19 issue 287
-LibTest/core/Set/forEach_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/Set/filter_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/String/isEmpty_A01_t01: Fail, OK # co19 issue 287
-LibTest/core/String/splitChars_A01_t01: Fail, OK # co19 issue 287
-
-
-
-LibTest/core/int/isOdd_A01_t01: Fail, OK # co19 issue 277
-LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
-
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK # co19 issue 278
-LibTest/core/double/INFINITY_A01_t01: Fail, OK # co19 issue 278
-LibTest/core/double/isInfinite_A01_t03: Fail, OK # co19 issue 278
-LibTest/core/double/isInfinite_A01_t02: Fail, OK # co19 issue 278
-LibTest/core/double/isInfinite_A01_t01: Fail, OK # co19 issue 278
-LibTest/core/int/isInfinite_A01_t01: Fail, OK # co19 issue 278
-
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail, OK # co19 issue 279
-LibTest/core/double/INFINITY_A01_t01: Fail, OK # co19 issue 279
-LibTest/core/double/isNegative_A01_t01: Fail, OK # co19 issue 279
-LibTest/core/double/operator_unary_minus_A01_t01: Fail, OK # co19 issue 279
-LibTest/core/double/operator_unary_minus_A01_t03: Fail, OK # co19 issue 279
-LibTest/core/double/isNegative_A01_t02: Fail, OK # co19 issue 279
-LibTest/core/int/isNegative_A01_t01: Fail, OK # co19 issue 279
-
-LibTest/math/sqrt_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/tan_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/atan_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/sqrt_A01_t03: Fail, OK # co19 issue 280
-LibTest/math/acos_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/max_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/cos_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/pow_A12_t01: Fail, OK # co19 issue 280
-LibTest/math/pow_A02_t01: Fail, OK # co19 issue 280
-LibTest/math/acos_A01_t03: Fail, OK # co19 issue 280
-LibTest/math/log_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/asin_A01_t03: Fail, OK # co19 issue 280
-LibTest/math/pow_A18_t01: Fail, OK # co19 issue 280
-LibTest/math/atan2_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/exp_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 280
-LibTest/math/min_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/log_A01_t03: Fail, OK # co19 issue 280
-LibTest/math/sin_A01_t02: Fail, OK # co19 issue 280
-LibTest/math/asin_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/isNaN_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/operator_multiplication_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/toDouble_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/operator_truncating_division_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/operator_division_A01_t06: Fail, OK # co19 issue 280
-LibTest/core/double/operator_subtraction_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/operator_remainder_A01_t05: Fail, OK # co19 issue 280
-LibTest/core/double/operator_division_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/operator_subtraction_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/operator_truncating_division_A01_t04: Fail, OK # co19 issue 280
-LibTest/core/double/operator_unary_minus_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/remainder_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/remainder_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/abs_A01_t04: Fail, OK # co19 issue 280
-LibTest/core/double/truncate_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/isNaN_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/round_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/operator_addition_A01_t04: Fail, OK # co19 issue 280
-LibTest/core/double/operator_remainder_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/operator_multiplication_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/remainder_A01_t05: Fail, OK # co19 issue 280
-LibTest/core/double/operator_division_A01_t04: Fail, OK # co19 issue 280
-LibTest/core/double/ceil_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK # co19 issue 280
-LibTest/core/double/floor_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/operator_addition_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/double/isNaN_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/double/operator_remainder_A01_t03: Fail, OK # co19 issue 280
-LibTest/core/double/NAN_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/int/operator_subtraction_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/int/operator_division_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/int/remainder_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/int/isNaN_A01_t01: Fail, OK # co19 issue 280
-LibTest/core/int/operator_remainder_A01_t02: Fail, OK # co19 issue 280
-LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 280
-
-
 
 
 [ $compiler == none && $runtime == vm ]
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 
 LibTest/core/String/contains_A01_t02: Fail
-Language/11_Statements/11_Labels_A01_t03: Fail # Issue 2238
 
 
 [ $compiler == none && $runtime == vm && $arch == ia32 ]
