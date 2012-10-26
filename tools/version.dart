@@ -7,7 +7,7 @@ import "dart:io";
 import "release/version.dart";
 
 void main() {
-  Path scriptPath = new Path(new Options().script).directoryPath;
+  Path scriptPath = new Path.fromNative(new Options().script).directoryPath;
   Version version = new Version(scriptPath.append("VERSION"));
   Future f = version.getVersion();
   f.then((currentVersion) {
