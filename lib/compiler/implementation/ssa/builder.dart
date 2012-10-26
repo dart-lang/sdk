@@ -993,7 +993,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // [:resolveMethodElement:] require the passed element to be a
       // declaration.
       TreeElements treeElements =
-          compiler.resolver.resolveMethodElement(constructor.declaration);
+          compiler.enqueuer.resolution.getCachedElements(
+              constructor.declaration);
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
 
@@ -1163,7 +1164,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       // Build the initializers in the context of the new constructor.
       TreeElements oldElements = elements;
-      elements = compiler.resolver.resolveMethodElement(constructor);
+      elements =
+          compiler.enqueuer.resolution.getCachedElements(constructor);
       buildInitializers(constructor, constructors, fieldValues);
       elements = oldElements;
     });
