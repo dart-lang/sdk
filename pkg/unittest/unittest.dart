@@ -5,8 +5,18 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, specify the relative path to
- * pkg/unittest/unittest.dart.
+ * To import this library, use the pub package manager.
+ * Create a pubspec.yaml file in your project and add
+ * a dependency on unittest with the following lines:
+ *     dependencies:
+ *       unittest:
+ *         sdk: unittest
+ *         
+ * Then run 'pub install' from your project directory or using
+ * the DartEditor.
+ *         
+ * Please see [Pub Getting Started](http://pub.dartlang.org/doc)
+ * for more details about the pub package manager.
  *
  * ##Concepts##
  *
@@ -24,7 +34,7 @@
  *
  * A trivial test:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -34,7 +44,7 @@
  *
  * Multiple tests:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -48,7 +58,7 @@
  *
  * Multiple tests, grouped by category:
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
+ *     import 'package:unittest/unittest.dart';
  *     main() {
  *       group('group A', () {
  *         test('test A.1', () {
@@ -74,25 +84,25 @@
  * that callback is run. A count argument can be provided to specify the number
  * of times the callback should be called (the default is 1).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:html');
+ *     import 'package:unittest/unittest.dart';
+ *     import 'dart:isolate';
  *     main() {
- *       test('calllback is executed once', () {
+ *       test('callback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
  *         // the callback takes 0 arguments...
- *         window.setTimeout(expectAsync0(() {
+ *         var timer = new Timer(0, (_) => expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
- *         }), 0);
+ *         }));
  *       });
  *
- *       test('calllback is executed twice', () {
- *         var callback = expectAsync0(() {
+ *       test('callback is executed twice', () {
+ *         var callback = (_) => expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
  *         }, count: 2); // <-- we can indicate multiplicity to [expectAsync0]
- *         window.setTimeout(callback, 0);
- *         window.setTimeout(callback, 0);
+ *         new Timer(0, callback);
+ *         new Timer(0, callback);
  *       });
  *     }
  *
@@ -115,23 +125,24 @@
  * arguments or that take named parameters. (this is not implemented yet,
  * but will be coming here soon).
  *
- *     #import('path-to-dart/pkg/unittest/unitest.dart');
- *     #import('dart:html');
+ *     import 'package:unittest/unittest.dart';
+ *     import 'dart:isolate';
  *     main() {
- *       test('calllback is executed', () {
+ *       test('callback is executed', () {
  *         // indicate ahead of time that an async callback is expected.
  *         var async = startAsync();
- *         window.setTimeout(() {
+ *         new Timer(0, (_) {
  *           // Guard the body of the callback, so errors are propagated
- *           // correctly
+ *           // correctly.
  *           guardAsync(() {
  *             int x = 2 + 3;
  *             expect(x, equals(5));
  *           });
  *           // indicate that the asynchronous callback was invoked.
  *           async.complete();
- *         }), 0);
+ *         });
  *       });
+ *     }
  *
  */
 library unittest;
