@@ -22,5 +22,5 @@ testLength(s) {
 
 
 testIsEmpty(s) {
-  return s.isEmpty();
+  return s.isEmpty;
 }

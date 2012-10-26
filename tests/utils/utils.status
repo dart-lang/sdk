@@ -23,8 +23,6 @@ recursive_import_test: Fail # http://dartbug.com/2264
 *_layout_test: Skip
 
 [ $compiler == dartc ]
-dummy_compiler_test: Fail # http://dartbug.com/6073
-recursive_import_test: Fail # http://dartbug.com/6073
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

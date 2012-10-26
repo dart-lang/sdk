@@ -68,7 +68,7 @@ main() {
     return;
   }
 
-  if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
+  if (globalOptions['help'] || globalOptions.rest.isEmpty) {
     printUsage();
     return;
   }
@@ -121,7 +121,7 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
   var names = <String>[];
-  for (var command in pubCommands.getKeys()) {
+  for (var command in pubCommands.keys) {
     length = max(length, command.length);
     names.add(command);
   }
@@ -255,7 +255,7 @@ abstract class PubCommand {
     print('Usage: $usage');
 
     var commandUsage = commandParser.getUsage();
-    if (!commandUsage.isEmpty()) {
+    if (!commandUsage.isEmpty) {
       print('');
       print(commandUsage);
     }

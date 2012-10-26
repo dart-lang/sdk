@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of js_backend;
+
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
@@ -82,6 +84,10 @@ class Namer {
     return 'c\$${target.nestingLevel}';
   }
 
+  /**
+   * If the [name] is not private returns [:name.slowToString():]. Otherwise
+   * mangles the [name] so that each library has a unique name.
+   */
   String privateName(LibraryElement lib, SourceString name) {
     if (name.isPrivate()) {
       String nameString = name.slowToString();
@@ -116,7 +122,7 @@ class Namer {
         '${privateName(lib, name)}\$${signature.parameterCount}';
     if (!signature.optionalParametersAreNamed) {
       return methodName;
-    } else if (!signature.optionalParameters.isEmpty()) {
+    } else if (!signature.optionalParameters.isEmpty) {
       StringBuffer buffer = new StringBuffer();
       signature.orderedOptionalParameters.forEach((Element element) {
         buffer.add('\$${JsNames.getValid(element.name.slowToString())}');
@@ -161,6 +167,13 @@ class Namer {
     // therefore be derived from the instance field-name.
     String fieldName = safeName(privateName(lib, name));
     return 'set\$$fieldName';
+  }
+
+  String publicGetterName(SourceString name) {
+    // We dynamically create getters from the field-name. The getter name must
+    // therefore be derived from the instance field-name.
+    String fieldName = safeName(name.slowToString());
+    return 'get\$$fieldName';
   }
 
   String getterName(LibraryElement lib, SourceString name) {

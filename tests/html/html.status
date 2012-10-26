@@ -44,15 +44,54 @@ audiobuffersourcenode_test: Pass, Fail
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
 
-[ $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $runtime == dartium || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
+
+[$runtime == ie10 ]
+# TODO(efortuna, blois): Triage.
+audiobuffersourcenode_test: Fail
+audiocontext_test: Fail
+canvasrenderingcontext2d_test: Fail, Pass
+contentelement_test: Fail
+css_test: Fail
+element_test: Fail
+element_webkit_test: Fail
+exceptions_test: Fail
+fileapi_test: Fail
+indexeddb_1_test: Fail
+indexeddb_2_test: Fail
+indexeddb_3_test: Fail
+indexeddb_4_test: Fail
+inner_frame_test: Skip
+isolates_test: Skip
+js_interop_2_test: Fail
+js_interop_3_test: Fail
+js_interop_4_test: Fail
+localstorage_test: Fail
+measurement_test: Fail, Pass
+messageevent_test: Fail
+mutationobserver_test: Fail
+node_test: Fail
+serialized_script_value_test: Fail
+storage_test: Fail, Pass
+svgelement2_test: Fail
+svgelement_test: Fail
+svg_3_test: Fail
+typed_arrays_1_test: Fail
+typed_arrays_arraybuffer_test: Fail
+typed_arrays_dataview_test: Fail
+url_test: Fail
+websql_test: Fail
+window_open_test: Skip
+xhr_test: Fail
+xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
 contentelement_test: Fail   # ie9 does not support content element.
@@ -146,6 +185,49 @@ svgelement2_test: Fail
 svgelement_test: Fail
 url_test: Fail
 
+[ $runtime == opera && $system == windows ]
+element_test: Skip # Browser is already closed by the time we get results?
+htmlelement_test: Fail, Pass
+
+[ $runtime == opera && $system == macos ]
+element_test: Crash
+
+[ $runtime == opera ]
+audiobuffersourcenode_test: Fail
+cache_test: Fail
+canvas_test: Pass,Fail
+contentelement_test: Fail
+audiocontext_test: Fail
+blob_constructor_test: Fail
+canvas_using_html_test: Fail
+canvas_test: Fail
+css_test: Fail
+cssstyledeclaration_test: Fail
+element_add_test: Fail
+element_constructor_1_test: Fail
+element_webkit_test: Fail
+exceptions_test: Fail
+indexeddb_1_test: Fail
+indexeddb_2_test: Fail
+indexeddb_3_test: Fail
+indexeddb_4_test: Fail
+mutationobserver_test: Fail
+performance_api_test: Fail
+serialized_script_value_test: Fail
+svg_3_test: Fail
+svgelement_test: Fail
+svgelement2_test: Fail
+typed_arrays_1_test: Fail
+typed_arrays_arraybuffer_test: Fail
+url_test: Fail
+websocket_test: Fail
+fileapi_test: Skip # Timeout.
+inner_frame_test: Skip # Timeout.
+js_interop_3_test: Skip # Timeout.
+js_interop_4_test: Skip # Timeout.
+isolates_test: Skip # Timeout.
+websql_test: Skip # Timeout.
+
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
@@ -188,8 +270,6 @@ xhr_test: Fail
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $runtime == opera ]
-*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.

@@ -10,7 +10,7 @@ class RegEx2Test {
     Match match = helloPattern.firstMatch(s);
     if (match != null) {
       print("got match");
-      int groupCount = match.groupCount();
+      int groupCount = match.groupCount;
       print("groupCount is $groupCount");
       print("group 0 is ${match.group(0)}");
       print("group 1 is ${match.group(1)}");

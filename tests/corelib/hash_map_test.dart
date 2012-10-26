@@ -11,10 +11,10 @@ class HashMapTest {
     // is used to verify that the test script is picking up these tests.
     var m = new Map();
     Expect.equals(0, m.length);
-    Expect.equals(true, m.isEmpty());
+    Expect.equals(true, m.isEmpty);
     m["one"] = 1;
     Expect.equals(1, m.length);
-    Expect.equals(false, m.isEmpty());
+    Expect.equals(false, m.isEmpty);
     Expect.equals(1, m["one"]);
   }
 }

@@ -19,11 +19,11 @@ main() {
   // Check that no boolify code is generated.
   RegExp regexp = const RegExp("=== true");
   Iterator matches = regexp.allMatches(generated).iterator();
-  Expect.isFalse(matches.hasNext());
+  Expect.isFalse(matches.hasNext);
 
   regexp = const RegExp("===");
   matches = regexp.allMatches(generated).iterator();
-  Expect.isTrue(matches.hasNext());
+  Expect.isTrue(matches.hasNext);
   matches.next();
-  Expect.isFalse(matches.hasNext());
+  Expect.isFalse(matches.hasNext);
 }

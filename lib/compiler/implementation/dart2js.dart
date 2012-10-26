@@ -54,7 +54,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   var pattern = new RegExp('^(${Strings.join(patterns, ")\$|(")})\$');
   OUTER: for (String argument in argv) {
     Match match = pattern.firstMatch(argument);
-    assert(match.groupCount() == handlers.length);
+    assert(match.groupCount == handlers.length);
     for (int i = 0; i < handlers.length; i++) {
       if (match[i + 1] != null) {
         handlers[i].handle(argument);
@@ -173,7 +173,7 @@ void compile(List<String> argv) {
     helpAndFail('Error: --force-strip may only be used with '
         '--output-type=dart');
   }
-  if (arguments.isEmpty()) {
+  if (arguments.isEmpty) {
     helpAndFail('Error: No Dart file specified.');
   }
   if (arguments.length > 1) {

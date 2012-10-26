@@ -228,15 +228,14 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
     return _out.outputStream;
   }
 
-  void kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError(
           "Argument 'signal' must be a ProcessSignal");
     }
     assert(_started);
-    if (_ended) return;
-    if (_kill(this, signal._signalNumber)) return;
-    throw new ProcessException("Could not kill process");
+    if (_ended) return false;
+    return _kill(this, signal._signalNumber);
   }
 
   bool _kill(Process p, int signal) native "Process_Kill";

@@ -40,13 +40,13 @@ List<ParameterMirror> _parametersFromFunctionSignature(
     FunctionSignature signature) {
   var parameters = <ParameterMirror>[];
   Link<Element> link = signature.requiredParameters;
-  while (!link.isEmpty()) {
+  while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
         system, method, link.head, false));
     link = link.tail;
   }
   link = signature.optionalParameters;
-  while (!link.isEmpty()) {
+  while (!link.isEmpty) {
     parameters.add(new Dart2JsParameterMirror(
         system, method, link.head, true));
     link = link.tail;
@@ -251,7 +251,7 @@ class LibraryCompiler extends api.Compiler {
   }
 
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
-    backend.processNativeClasses(world, libraries.getValues());
+    backend.processNativeClasses(world, libraries.values);
     for (var library in elements) {
       library.forEachLocalMember((element) {
         world.addToWorkList(element);
@@ -411,7 +411,7 @@ abstract class Dart2JsElementMirror implements Dart2JsMirror {
 
   String toString() => _element.toString();
 
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 abstract class Dart2JsProxyMirror implements Dart2JsMirror {
@@ -421,7 +421,7 @@ abstract class Dart2JsProxyMirror implements Dart2JsMirror {
 
   String get displayName => simpleName;
 
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 //------------------------------------------------------------------------------
@@ -463,7 +463,7 @@ class Dart2JsMirrorSystem implements MirrorSystem, Dart2JsMirror {
   String get qualifiedName => simpleName;
 
   // TODO(johnniwinther): Hack! Dart2JsMirrorSystem need not be a Mirror.
-  int hashCode() => qualifiedName.hashCode();
+  int get hashCode => qualifiedName.hashCode;
 }
 
 abstract class Dart2JsObjectMirror extends Dart2JsElementMirror
@@ -481,6 +481,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
       : super(system, library);
 
   LibraryElement get _library => _element;
+
+  Uri get uri => _library.uri;
 
   LibraryMirror library() => this;
 
@@ -737,7 +739,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   List<InterfaceMirror> get interfaces {
     var list = <InterfaceMirror>[];
     Link<DartType> link = _class.interfaces;
-    while (!link.isEmpty()) {
+    while (!link.isEmpty) {
       var type = _convertTypeToTypeMirror(system, link.head,
                                           system.compiler.types.dynamicType);
       list.add(type);
@@ -757,7 +759,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   bool get isDeclaration => true;
 
   List<TypeMirror> get typeArguments {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         'Declarations do not have type arguments');
   }
 
@@ -840,7 +842,7 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   bool get isTypedef => true;
 
   List<TypeMirror> get typeArguments {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         'Declarations do not have type arguments');
   }
 
@@ -1059,12 +1061,12 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
     }
     var thisTypeArguments = typeArguments.iterator();
     var otherTypeArguments = other.typeArguments.iterator();
-    while (thisTypeArguments.hasNext() && otherTypeArguments.hasNext()) {
+    while (thisTypeArguments.hasNext && otherTypeArguments.hasNext) {
       if (thisTypeArguments.next() != otherTypeArguments.next()) {
         return false;
       }
     }
-    return !thisTypeArguments.hasNext() && !otherTypeArguments.hasNext();
+    return !thisTypeArguments.hasNext && !otherTypeArguments.hasNext;
   }
 }
 

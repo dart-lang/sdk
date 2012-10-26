@@ -65,7 +65,7 @@ testFileWriteRead() {
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
   createLink(x, y, true, () {
-    var data = "asdf".charCodes();
+    var data = "asdf".charCodes;
     var output = new File(y).openOutputStream(FileMode.WRITE);
     output.write(data);
     output.onNoPendingWrites = () {

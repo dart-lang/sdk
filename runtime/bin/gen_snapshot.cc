@@ -18,6 +18,7 @@
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
+    free(snapshot_buffer);                                                     \
     fprintf(stderr, "Error: %s", Dart_GetError(result));                       \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
@@ -30,6 +31,7 @@
 static const char* snapshot_filename = NULL;
 static bool script_snapshot = false;
 static const char* package_root = NULL;
+static uint8_t* snapshot_buffer = NULL;
 
 
 // Global state which contains a pointer to the script name for which
@@ -343,7 +345,7 @@ int main(int argc, char** argv) {
       CHECK_RESULT(result);
 
       // Save the snapshot buffer as we are about to shutdown the isolate.
-      uint8_t* snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
+      snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
       ASSERT(snapshot_buffer != NULL);
       memmove(snapshot_buffer, buffer, size);
 
@@ -360,6 +362,7 @@ int main(int argc, char** argv) {
       if (isolate == NULL) {
         fprintf(stderr, "%s", error);
         free(error);
+        free(snapshot_buffer);
         exit(255);
       }
       Dart_EnterScope();

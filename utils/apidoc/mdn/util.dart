@@ -57,7 +57,7 @@ num scoreEntry(Map entry, String type) {
   }
   if (entry.containsKey("members")) {
     Map members = getMembersMap(entry);
-    for (String name in members.getKeys()) {
+    for (String name in members.keys) {
       if (hasAny(type, name)) {
         score++;
       }

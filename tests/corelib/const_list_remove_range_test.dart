@@ -9,7 +9,7 @@ main() {
 }
 
 void expectUOE(Function f) {
-  Expect.throws(f, (e) => e is UnsupportedOperationException);
+  Expect.throws(f, (e) => e is UnsupportedError);
 }
 
 testImmutable(var list) {

@@ -109,7 +109,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   static String get _browserPrefix {
-    if (_cachedBrowserPrefix === null) {
+    if (_cachedBrowserPrefix == null) {
       if (_Device.isFirefox) {
         _cachedBrowserPrefix = '-moz-';
       } else {

@@ -1042,31 +1042,100 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 }
 
 
+static void Push64SmiOrMint(Assembler* assembler,
+                            Register reg,
+                            Register tmp,
+                            Label* not_smi_or_mint) {
+  Label not_smi, done;
+  __ testl(reg, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ SmiUntag(reg);
+  // Sign extend to 64 bit
+  __ movl(tmp, reg);
+  __ sarl(tmp, Immediate(31));
+  __ pushl(tmp);
+  __ pushl(reg);
+  __ jmp(&done);
+  __ Bind(&not_smi);
+  __ CompareClassId(reg, kMintCid, tmp);
+  __ j(NOT_EQUAL, not_smi_or_mint);
+  // Mint.
+  __ pushl(FieldAddress(reg, Mint::value_offset() + kWordSize));
+  __ pushl(FieldAddress(reg, Mint::value_offset()));
+  __ Bind(&done);
+}
+
+
 static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
-  Label fall_through, true_label;
+  Label try_mint_smi, is_true, is_false, drop_two_fall_through, fall_through;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  TestBothArgumentsSmis(assembler, &fall_through);
+  TestBothArgumentsSmis(assembler, &try_mint_smi);
   // EAX contains the right argument.
   __ cmpl(Address(ESP, + 2 * kWordSize), EAX);
-  __ j(true_condition, &true_label, Assembler::kNearJump);
+  __ j(true_condition, &is_true, Assembler::kNearJump);
+  __ Bind(&is_false);
   __ LoadObject(EAX, bool_false);
   __ ret();
-  __ Bind(&true_label);
+  __ Bind(&is_true);
   __ LoadObject(EAX, bool_true);
   __ ret();
+
+  // 64-bit comparison
+  Condition hi_true_cond, hi_false_cond, lo_false_cond;
+  switch (true_condition) {
+    case LESS:
+    case LESS_EQUAL:
+      hi_true_cond = LESS;
+      hi_false_cond = GREATER;
+      lo_false_cond = (true_condition == LESS) ? ABOVE_EQUAL : ABOVE;
+      break;
+    case GREATER:
+    case GREATER_EQUAL:
+      hi_true_cond = GREATER;
+      hi_false_cond = LESS;
+      lo_false_cond = (true_condition == GREATER) ? BELOW_EQUAL : BELOW;
+      break;
+    default:
+      UNREACHABLE();
+      hi_true_cond = hi_false_cond = lo_false_cond = OVERFLOW;
+  }
+  __ Bind(&try_mint_smi);
+  // Note that EDX and ECX must be preserved in case we fall through to main
+  // method.
+  // EAX contains the right argument.
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Left argument.
+  // Push left as 64 bit integer.
+  Push64SmiOrMint(assembler, EBX, EDI, &fall_through);
+  // Push right as 64 bit integer.
+  Push64SmiOrMint(assembler, EAX, EDI, &drop_two_fall_through);
+  __ popl(EBX);  // Right.LO.
+  __ popl(ECX);  // Right.HI.
+  __ popl(EAX);  // Left.LO.
+  __ popl(EDX);  // Left.HI.
+  __ cmpl(EDX, ECX);  // cmpl left.HI, right.HI.
+  __ j(hi_false_cond, &is_false, Assembler::kNearJump);
+  __ j(hi_true_cond, &is_true, Assembler::kNearJump);
+  __ cmpl(EAX, EBX);  // cmpl left.LO, right.LO.
+  __ j(lo_false_cond, &is_false, Assembler::kNearJump);
+  // Else is true.
+  __ jmp(&is_true);
+
+  __ Bind(&drop_two_fall_through);
+  __ Drop(2);
   __ Bind(&fall_through);
   return false;
 }
 
 
-bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+
+bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
   return CompareIntegers(assembler, LESS);
 }
 
 
-bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS);
+bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+  return Integer_greaterThanFromInt(assembler);
 }
 
 
@@ -1259,13 +1328,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ ret();
-  return true;
-}
-
-
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
@@ -1365,7 +1427,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_true;
@@ -1382,7 +1444,7 @@ bool Intrinsifier::Double_isNaN(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_false, is_true, is_zero;
@@ -1533,7 +1595,7 @@ static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
 //     return _array[_pos++];
 //   }
 // Intrinsify: return _array[_pos++];
-// TODO(srdjan): Throw a 'NoMoreElementsException' exception if the iterator
+// TODO(srdjan): Throw a 'StateError' exception if the iterator
 // has no more elements.
 bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
   Label fall_through;
@@ -1576,10 +1638,10 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 
 
 // Class 'FixedSizeArrayIterator':
-//   bool hasNext() {
+//   bool get hasNext {
 //     return _length > _pos;
 //   }
-bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   Label fall_through, is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -1602,6 +1664,19 @@ bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
   __ LoadObject(EAX, bool_true);
   __ ret();
   __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::String_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
+  __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
   return false;
 }
 
@@ -1636,20 +1711,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_hashCode(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
-  __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ ret();
-  __ Bind(&fall_through);
-  // Hash not yet computed.
-  return false;
-}
-
-
-bool Intrinsifier::String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   Label is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());

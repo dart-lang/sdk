@@ -37,12 +37,14 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
-DEFINE_FLAG(bool, reject_named_argument_as_positional, false,
+DEFINE_FLAG(bool, reject_named_argument_as_positional, true,
     "Enforce new rules for optional parameters and disallow passing of named "
     "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
+DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
+    "Trace disabling optimized code.");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -3017,8 +3019,14 @@ void Function::SetCode(const Code& value) const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+  const Code& current_code = Code::Handle(CurrentCode());
+  if (FLAG_trace_disabling_optimized_code) {
+    OS::Print("Disabling optimized code: '%s' entry: %#"Px"\n",
+      ToFullyQualifiedCString(),
+      current_code.EntryPoint());
+  }
   // Patch entry of the optimized code.
-  CodePatcher::PatchEntry(Code::Handle(CurrentCode()));
+  CodePatcher::PatchEntry(current_code);
   // Use previously compiled unoptimized code.
   SetCode(Code::Handle(unoptimized_code()));
   CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
@@ -3361,9 +3369,20 @@ void Function::set_is_abstract(bool value) const {
   set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
 }
 
+
 void Function::set_is_inlinable(bool value) const {
   set_kind_tag(InlinableBit::update(value, raw_ptr()->kind_tag_));
 }
+
+
+bool Function::IsInlineable() const {
+  // '==' call is handled specially.
+  const String& equality_name = String::Handle(Symbols::EqualOperator());
+  return InlinableBit::decode(raw_ptr()->kind_tag_) &&
+         HasCode() &&
+         name() != equality_name.raw();
+}
+
 
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();
@@ -6366,8 +6385,6 @@ RawInstructions* Instructions::New(intptr_t size) {
                                       aligned_size,
                                       Heap::kCode);
     NoGCScope no_gc;
-    // TODO(iposva): Remove premarking once old and code spaces are merged.
-    raw->SetMarkBit();
     result ^= raw;
     result.set_size(size);
   }
@@ -6945,6 +6962,11 @@ void Code::set_deopt_info_array(const Array& array) const {
 
 void Code::set_object_table(const Array& array) const {
   StorePointer(&raw_ptr()->object_table_, array.raw());
+}
+
+
+void Code::set_resolved_static_calls(const GrowableObjectArray& val) const {
+  StorePointer(&raw_ptr()->resolved_static_calls_, val.raw());
 }
 
 

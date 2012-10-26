@@ -28,7 +28,7 @@ main() {
   A a = new A();
   var info = a.foo();
   Expect.equals('foo', info.name);
-  Expect.isTrue(info.args.isEmpty());
+  Expect.isTrue(info.args.isEmpty);
   Expect.isTrue(info.receiver === a);
 
   info = a.foo(2);

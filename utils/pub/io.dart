@@ -44,10 +44,10 @@ String join(part1, [part2, part3, part4]) {
 
     for (final piece in _getPath(part).split('/')) {
       if (piece == '..' && parts.length > 0 &&
-          parts.last() != '.' && parts.last() != '..') {
+          parts.last != '.' && parts.last != '..') {
         parts.removeLast();
       } else if (piece != '') {
-        if (parts.length > 0 && parts.last() == '.') {
+        if (parts.length > 0 && parts.last == '.') {
           parts.removeLast();
         }
         parts.add(piece);
@@ -506,7 +506,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
       var lines = output.split(NEWLINE_PATTERN);
-      if (!lines.isEmpty() && lines.last() == "") lines.removeLast();
+      if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
     return new PubProcessResult(toLines(result.stdout),
@@ -654,12 +654,6 @@ Future<bool> _extractTarGzWindows(InputStream stream, String destination) {
     // Write the archive to a temp file.
     tempDir = temp;
     return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
-  }).chain((_) {
-    // TODO(rnystrom): Hack. We get intermittent "file already in use" errors.
-    // It looks like the 7zip process is starting up before the file has
-    // finished being written. So we'll just sleep for a couple of seconds
-    // here. :(
-    return sleep(2000);
   }).chain((_) {
     // 7zip can't unarchive from gzip -> tar -> destination all in one step
     // first we un-gzip it to a tar file.

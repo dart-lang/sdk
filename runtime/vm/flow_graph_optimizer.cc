@@ -28,6 +28,8 @@ DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
             "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool, array_bounds_check_elimination, true,
+            "Eliminate redundant bounds checks.");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -427,8 +429,13 @@ void FlowGraphOptimizer::AddCheckClass(InstanceCallInstr* call,
   // Type propagation has not run yet, we cannot eliminate the check.
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
-  CheckClassInstr* check =
-      new CheckClassInstr(value, call->deopt_id(), unary_checks);
+  Instruction* check = NULL;
+  if ((unary_checks.NumberOfChecks() == 1) &&
+      (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    check = new CheckSmiInstr(value, call->deopt_id());
+  } else {
+    check = new CheckClassInstr(value, call->deopt_id(), unary_checks);
+  }
   InsertBefore(call, check, call->env(), Definition::kEffect);
 }
 
@@ -491,12 +498,13 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
-  ICData& value_check = ICData::Handle();
+  ICData& value_check = ICData::ZoneHandle();
   switch (class_id) {
     case kArrayCid:
     case kGrowableObjectArrayCid:
       // Acceptable store index classes.
       break;
+    case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
@@ -538,6 +546,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
         ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
         InsertBefore(call, null_constant, NULL, Definition::kValue);
@@ -567,7 +576,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   Value* value = call->ArgumentAt(2)->value();
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
-  if (class_id == kFloat64ArrayCid) {
+  if ((class_id == kFloat32ArrayCid) || (class_id == kFloat64ArrayCid)) {
     ASSERT(!value_check.IsNull());
     InsertBefore(call,
                  new CheckClassInstr(value->Copy(),
@@ -600,6 +609,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
+    case kFloat32ArrayCid:
     case kFloat64ArrayCid:
       // Acceptable load index classes.
       break;
@@ -811,9 +821,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                  new CheckSmiInstr(value->Copy(), call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
-    unary_op = new UnarySmiOpInstr(op_kind,
-                                   (op_kind == Token::kNEGATE) ? call : NULL,
-                                   value);
+    unary_op = new UnarySmiOpInstr(op_kind, call, value);
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -914,7 +922,8 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
                                                  intptr_t length_offset,
-                                                 bool is_immutable) {
+                                                 bool is_immutable,
+                                                 MethodRecognizer::Kind kind) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -924,6 +933,7 @@ void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
       Type::ZoneHandle(Type::SmiType()),
       is_immutable);
   load->set_result_cid(kSmiCid);
+  load->set_recognized_kind(kind);
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }
@@ -946,6 +956,7 @@ void FlowGraphOptimizer::InlineGArrayCapacityGetter(InstanceCallInstr* call) {
       Array::length_offset(),
       Type::ZoneHandle(Type::SmiType()));
   length_load->set_result_cid(kSmiCid);
+  length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
 
   call->ReplaceWith(length_load, current_iterator());
   RemovePushArguments(call);
@@ -974,7 +985,7 @@ void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::InlineStringIsEmptyTester(InstanceCallInstr* call) {
+void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -1026,12 +1037,16 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     switch (recognized_kind) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
-        InlineArrayLengthGetter(call, Array::length_offset(), true);
+        InlineArrayLengthGetter(call,
+                                Array::length_offset(),
+                                true,
+                                recognized_kind);
         break;
       case MethodRecognizer::kGrowableArrayLength:
         InlineArrayLengthGetter(call,
                                 GrowableObjectArray::length_offset(),
-                                false);
+                                false,
+                                recognized_kind);
         break;
       default:
         UNREACHABLE();
@@ -1053,6 +1068,15 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return true;
   }
 
+  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
+    if (!ic_data.HasOneTarget()) {
+      // Target is not only StringBase_get_isEmpty.
+      return false;
+    }
+    InlineStringIsEmptyGetter(call);
+    return true;
+  }
+
   return false;
 }
 
@@ -1071,36 +1095,12 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  if ((recognized_kind == MethodRecognizer::kDoubleToDouble) &&
-      (class_ids[0] == kDoubleCid)) {
-    DoubleToDoubleInstr* d2d_instr =
-        new DoubleToDoubleInstr(call->ArgumentAt(0)->value(), call);
-    call->ReplaceWith(d2d_instr, current_iterator());
-    RemovePushArguments(call);
-    return true;
-  }
-
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (class_ids[0] == kSmiCid)) {
     SmiToDoubleInstr* s2d_instr = new SmiToDoubleInstr(call);
     call->ReplaceWith(s2d_instr, current_iterator());
     // Pushed arguments are not removed because SmiToDouble is implemented
     // as a call.
-    return true;
-  }
-
-  const intptr_t cid0 = class_ids[0];
-  if ((recognized_kind == MethodRecognizer::kIntegerToInteger) &&
-      ((cid0 == kSmiCid) || (cid0 == kMintCid) || (cid0 == kBigintCid))) {
-    // TODO(srdjan): implement also for mixed integer cids.
-    InsertBefore(call,
-                 new CheckSmiInstr(call->ArgumentAt(0)->value()->Copy(),
-                                   call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    call->ReplaceUsesWith(call->ArgumentAt(0));
-    RemovePushArguments(call);
-    call->RemoveFromGraph();
     return true;
   }
 
@@ -1111,15 +1111,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         new DoubleToIntegerInstr(call->ArgumentAt(0)->value(), call);
     call->ReplaceWith(d2int_instr, current_iterator());
     RemovePushArguments(call);
-    return true;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseIsEmpty) {
-    if (!ic_data.HasOneTarget()) {
-      // Target is not only StringBase_get_length.
-      return false;
-    }
-    InlineStringIsEmptyTester(call);
     return true;
   }
 
@@ -1169,9 +1160,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     const intptr_t kMaxChecks = 4;
     if (instr->ic_data()->NumberOfChecks() <= kMaxChecks) {
       bool call_with_checks;
-      // TODO(srdjan): Add check class instr for mixed smi/non-smi.
-      if (unary_checks.HasOneTarget() &&
-          (unary_checks.GetReceiverClassIdAt(0) != kSmiCid)) {
+      if (unary_checks.HasOneTarget()) {
         // Type propagation has not run yet, we cannot eliminate the check.
         AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
         // Call can still deoptimize, do not detach environment from instr.
@@ -1362,11 +1351,11 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
   smi_or_null.Add(kNullCid);
   if (ICDataHasOnlyReceiverArgumentClassIds(
         *comp->ic_data(), smi_or_null, smi_or_null)) {
-    ICData& unary_checks =
+    const ICData& unary_checks_0 =
         ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
     const intptr_t deopt_id = comp->deopt_id();
-    if ((unary_checks.NumberOfChecks() == 1) &&
-        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    if ((unary_checks_0.NumberOfChecks() == 1) &&
+        (unary_checks_0.GetReceiverClassIdAt(0) == kSmiCid)) {
       // Smi only.
       optimizer->InsertBefore(
         instr,
@@ -1377,14 +1366,15 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
       // Smi or NULL.
       optimizer->InsertBefore(
         instr,
-        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks),
+        new CheckClassInstr(comp->left()->Copy(), deopt_id, unary_checks_0),
         instr->env(),
         Definition::kEffect);
     }
 
-    unary_checks = comp->ic_data()->AsUnaryClassChecksForArgNr(1);
-    if ((unary_checks.NumberOfChecks() == 1) &&
-        (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+    const ICData& unary_checks_1 =
+        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecksForArgNr(1));
+    if ((unary_checks_1.NumberOfChecks() == 1) &&
+        (unary_checks_1.GetReceiverClassIdAt(0) == kSmiCid)) {
       // Smi only.
       optimizer->InsertBefore(
         instr,
@@ -1395,7 +1385,7 @@ static void HandleEqualityCompare(FlowGraphOptimizer* optimizer,
       // Smi or NULL.
       optimizer->InsertBefore(
         instr,
-        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks),
+        new CheckClassInstr(comp->right()->Copy(), deopt_id, unary_checks_1),
         instr->env(),
         Definition::kEffect);
     }
@@ -1599,7 +1589,9 @@ void FlowGraphOptimizer::PropagateSminess() {
 // Range analysis for smi values.
 class RangeAnalysis : public ValueObject {
  public:
-  explicit RangeAnalysis(FlowGraph* flow_graph) : flow_graph_(flow_graph) { }
+  explicit RangeAnalysis(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        marked_defns_(NULL) { }
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
@@ -1632,42 +1624,41 @@ class RangeAnalysis : public ValueObject {
                            Instruction* dom,
                            Definition* other);
 
-  // Propagate range information until fix-point is reached.
+
+  // Walk the dominator tree and infer ranges for smi values.
   void InferRanges();
+  void InferRangesRecursive(BlockEntryInstr* block);
 
-  void ProcessWorklist(Definition::RangeOperator op);
+  enum Direction {
+    kUnknown,
+    kPositive,
+    kNegative,
+    kBoth
+  };
 
-  // Walk the dominator tree, initialize ranges for smi values and place them
-  // to the worklist.
-  void InitializeRangesRecursive(BlockEntryInstr* block);
+  Range* InferInductionVariableRange(JoinEntryInstr* loop_header,
+                                     PhiInstr* var);
+
+  void ResetWorklist();
+  void MarkDefinition(Definition* defn);
+
+  static Direction ToDirection(Value* val);
+
+  static Direction Invert(Direction direction) {
+    return (direction == kPositive) ? kNegative : kPositive;
+  }
+
+  static void UpdateDirection(Direction* direction,
+                              Direction new_direction) {
+    if (*direction != new_direction) {
+      if (*direction != kUnknown) new_direction = kBoth;
+      *direction = new_direction;
+    }
+  }
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
   void RemoveConstraints();
-
-  void CreateWorklists();
-
-  void AddToWorklist(Definition* value) {
-    const intptr_t index = value->ssa_temp_index();
-    if (!in_worklist_->Contains(index)) {
-      in_worklist_->Add(index);
-      worklist_.Add(value);
-    }
-  }
-
-  bool IsWorklistEmpty() const {
-    return worklist_.is_empty();
-  }
-
-  Definition* RemoveLastFromWorklist() {
-    Definition* defn = worklist_.Last();
-    worklist_.RemoveLast();
-    ASSERT(in_worklist_->Contains(defn->ssa_temp_index()));
-    in_worklist_->Remove(defn->ssa_temp_index());
-    return defn;
-  }
-
-  void SwapWorklists();
 
   FlowGraph* flow_graph_;
 
@@ -1681,9 +1672,9 @@ class RangeAnalysis : public ValueObject {
   // Bitvector for a quick filtering of known smi values.
   BitVector* smi_definitions_;
 
-  // Worklist used during range propagation.
+  // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
-  BitVector* in_worklist_;
+  BitVector* marked_defns_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -1938,71 +1929,187 @@ void RangeAnalysis::InsertConstraints() {
 }
 
 
-void RangeAnalysis::InitializeRangesRecursive(BlockEntryInstr* block) {
+void RangeAnalysis::ResetWorklist() {
+  if (marked_defns_ == NULL) {
+    marked_defns_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  } else {
+    marked_defns_->Clear();
+  }
+  worklist_.Clear();
+}
+
+
+void RangeAnalysis::MarkDefinition(Definition* defn) {
+  // Unwrap constrained value.
+  while (defn->IsConstraint()) {
+    defn = defn->AsConstraint()->value()->definition();
+  }
+
+  if (!marked_defns_->Contains(defn->ssa_temp_index())) {
+    worklist_.Add(defn);
+    marked_defns_->Add(defn->ssa_temp_index());
+  }
+}
+
+
+RangeAnalysis::Direction RangeAnalysis::ToDirection(Value* val) {
+  if (val->BindsToConstant()) {
+    return (Smi::Cast(val->BoundConstant()).Value() >= 0) ? kPositive
+                                                          : kNegative;
+  } else if (val->definition()->range() != NULL) {
+    Range* range = val->definition()->range();
+    if (Range::ConstantMin(range).value() >= 0) {
+      return kPositive;
+    } else if (Range::ConstantMax(range).value() <= 0) {
+      return kNegative;
+    }
+  }
+  return kUnknown;
+}
+
+
+Range* RangeAnalysis::InferInductionVariableRange(JoinEntryInstr* loop_header,
+                                                  PhiInstr* var) {
+  BitVector* loop_info = loop_header->loop_info();
+
+  Definition* initial_value = NULL;
+  Direction direction = kUnknown;
+
+  ResetWorklist();
+  MarkDefinition(var);
+  while (!worklist_.is_empty()) {
+    Definition* defn = worklist_.Last();
+    worklist_.RemoveLast();
+
+    if (defn->IsPhi()) {
+      PhiInstr* phi = defn->AsPhi();
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        Definition* defn = phi->InputAt(i)->definition();
+
+        if (!loop_info->Contains(defn->GetBlock()->preorder_number())) {
+          // The value is coming from outside of the loop.
+          if (initial_value == NULL) {
+            initial_value = defn;
+            continue;
+          } else if (initial_value == defn) {
+            continue;
+          } else {
+            return NULL;
+          }
+        }
+
+        MarkDefinition(defn);
+      }
+    } else if (defn->IsBinarySmiOp()) {
+      BinarySmiOpInstr* binary_op = defn->AsBinarySmiOp();
+
+      switch (binary_op->op_kind()) {
+        case Token::kADD: {
+          const Direction growth_right =
+              ToDirection(binary_op->right());
+          if (growth_right != kUnknown) {
+            UpdateDirection(&direction, growth_right);
+            MarkDefinition(binary_op->left()->definition());
+            break;
+          }
+
+          const Direction growth_left =
+              ToDirection(binary_op->left());
+          if (growth_left != kUnknown) {
+            UpdateDirection(&direction, growth_left);
+            MarkDefinition(binary_op->right()->definition());
+            break;
+          }
+
+          return NULL;
+        }
+
+        case Token::kSUB: {
+          const Direction growth_right =
+              ToDirection(binary_op->right());
+          if (growth_right != kUnknown) {
+            UpdateDirection(&direction, Invert(growth_right));
+            MarkDefinition(binary_op->left()->definition());
+            break;
+          }
+          return NULL;
+        }
+
+        default:
+          return NULL;
+      }
+    } else {
+      return NULL;
+    }
+  }
+
+
+  // We transitively discovered all dependencies of the given phi
+  // and confirmed that it depends on a single value coming from outside of
+  // the loop and some linear combinations of itself.
+  // Compute the range based on initial value and the direction of the growth.
+  switch (direction) {
+    case kPositive:
+      return new Range(RangeBoundary::FromDefinition(initial_value),
+                       RangeBoundary::MaxSmi());
+
+    case kNegative:
+      return new Range(RangeBoundary::MinSmi(),
+                       RangeBoundary::FromDefinition(initial_value));
+
+    case kUnknown:
+    case kBoth:
+      return Range::Unknown();
+  }
+
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
   JoinEntryInstr* join = block->AsJoinEntry();
   if (join != NULL) {
+    const bool is_loop_header = (join->loop_info() != NULL);
     for (PhiIterator it(join); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
       if (smi_definitions_->Contains(phi->ssa_temp_index())) {
-        phi->InferRange(Definition::kRangeInit);
-        AddToWorklist(phi);
+        if (is_loop_header) {
+          // Try recognizing simple induction variables.
+          Range* range = InferInductionVariableRange(join, phi);
+          if (range != NULL) {
+            phi->range_ = range;
+            continue;
+          }
+        }
+
+        phi->InferRange();
       }
     }
   }
 
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Definition* defn = it.Current()->AsDefinition();
+    Instruction* current = it.Current();
+
+    Definition* defn = current->AsDefinition();
     if ((defn != NULL) &&
         (defn->ssa_temp_index() != -1) &&
         smi_definitions_->Contains(defn->ssa_temp_index())) {
-      defn->InferRange(Definition::kRangeInit);
-      AddToWorklist(defn);
+      defn->InferRange();
+    } else if (FLAG_array_bounds_check_elimination &&
+               current->IsCheckArrayBound() &&
+               current->AsCheckArrayBound()->IsRedundant()) {
+      it.RemoveCurrentFromGraph();
     }
   }
 
   for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
-    InitializeRangesRecursive(block->dominated_blocks()[i]);
-  }
-}
-
-
-void RangeAnalysis::CreateWorklists() {
-  in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
-}
-
-
-void RangeAnalysis::ProcessWorklist(Definition::RangeOperator op) {
-  // Iterate until fix point is reached.
-  while (!IsWorklistEmpty()) {
-    Definition* defn = RemoveLastFromWorklist();
-    if (FLAG_trace_range_analysis) {
-      OS::Print("infering range for v%"Pd" %s\n",
-                defn->ssa_temp_index(),
-                Range::ToCString(defn->range()));
-    }
-    if (defn->InferRange(op)) {  // Update the range.
-      if (FLAG_trace_range_analysis) {
-        OS::Print("  changed to %s\n", Range::ToCString(defn->range()));
-      }
-      // Range change. Place all uses to the worklist.
-      for (Value* use = defn->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Definition* use_defn = use->instruction()->AsDefinition();
-        if ((use_defn != NULL) &&
-            (use_defn->ssa_temp_index() != -1) &&
-            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
-          AddToWorklist(use_defn);
-        }
-      }
-    }
+    InferRangesRecursive(block->dominated_blocks()[i]);
   }
 }
 
 
 void RangeAnalysis::InferRanges() {
-  CreateWorklists();
-
   // Initialize bitvector for quick filtering of smi values.
   smi_definitions_ = new BitVector(flow_graph_->current_ssa_temp_index());
   for (intptr_t i = 0; i < smi_values_.length(); i++) {
@@ -2013,54 +2120,10 @@ void RangeAnalysis::InferRanges() {
   }
 
   // Infer initial values of ranges.
-  InitializeRangesRecursive(flow_graph_->graph_entry());
-
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    if (smi_values_[i]->IsPhi() &&
-        smi_values_[i]->InferRange(Definition::kRangeInit)) {
-      Definition* defn = smi_values_[i];
-      for (Value* use = defn->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Definition* use_defn = use->instruction()->AsDefinition();
-        if ((use_defn != NULL) &&
-            (use_defn->ssa_temp_index() != -1) &&
-            smi_definitions_->Contains(use_defn->ssa_temp_index())) {
-          AddToWorklist(use_defn);
-        }
-      }
-    }
-  }
+  InferRangesRecursive(flow_graph_->graph_entry());
 
   if (FLAG_trace_range_analysis) {
-    OS::Print("---- after initialization -------\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
-  }
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- widening ---------\n");
-  }
-  ProcessWorklist(Definition::kRangeWiden);
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- after widening -------\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
-  }
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- narrowing ---------\n");
-  }
-  // Only phis can change under narrowing operator. Place all phis
-  // into the worklist.
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    if (smi_values_[i]->IsPhi()) AddToWorklist(smi_values_[i]);
-  }
-  ProcessWorklist(Definition::kRangeNarrow);
-
-  if (FLAG_trace_range_analysis) {
-    OS::Print("---- after narrowing -------\n");
+    OS::Print("---- after range analysis -------\n");
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
@@ -2364,7 +2427,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
               current->DebugName(),
-              current->deopt_id(),
+              current->GetDeoptId(),
               current->GetBlock()->block_id(),
               pre_header->block_id());
   }
@@ -2474,6 +2537,15 @@ void LICM::Optimize(FlowGraph* flow_graph) {
 }
 
 
+static bool IsLoadEliminationCandidate(Definition* def) {
+  // Immutable loads (not affected by side effects) are handled
+  // in the DominatorBasedCSE pass.
+  // TODO(fschneider): Extend to other load instructions.
+  return (def->IsLoadField() && def->AffectedBySideEffect())
+      || def->IsLoadIndexed();
+}
+
+
 static intptr_t NumberLoadExpressions(FlowGraph* graph) {
   DirectChainedHashMap<Definition*> map;
   intptr_t expr_id = 0;
@@ -2485,10 +2557,7 @@ static intptr_t NumberLoadExpressions(FlowGraph* graph) {
          !instr_it.Done();
          instr_it.Advance()) {
       Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn == NULL) ||
-          !defn->IsLoadField() ||
-          !defn->AffectedBySideEffect()) {
-        // TODO(fschneider): Extend to other load instructions.
+      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
       Definition* result = map.Lookup(defn);
@@ -2533,10 +2602,7 @@ static void ComputeAvailableLoads(
         break;
       }
       Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn == NULL) ||
-          !defn->IsLoadField() ||
-          !defn->AffectedBySideEffect()) {
-        // TODO(fschneider): Extend to other load instructions.
+      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
         continue;
       }
       avail_gen[preorder_number]->Add(defn->expr_id());
@@ -2588,7 +2654,7 @@ static void ComputeAvailableLoads(
 }
 
 
-static void OptimizeLoads(
+static bool OptimizeLoads(
     BlockEntryInstr* block,
     GrowableArray<Definition*>* definitions,
     const GrowableArray<BitVector*>& avail_in) {
@@ -2603,6 +2669,7 @@ static void OptimizeLoads(
     }
   }
 
+  bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* instr = it.Current();
     if (instr->HasSideEffect()) {
@@ -2613,11 +2680,7 @@ static void OptimizeLoads(
       continue;
     }
     Definition* defn = instr->AsDefinition();
-    if ((defn == NULL) ||
-        !defn->IsLoadField() ||
-        !defn->AffectedBySideEffect()) {
-      // Immutable loads are handled in normal CSE.
-      // TODO(fschneider): Extend to other load instructions.
+    if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
       continue;
     }
     Definition* result = (*definitions)[defn->expr_id()];
@@ -2629,6 +2692,7 @@ static void OptimizeLoads(
     // Replace current with lookup result.
     defn->ReplaceUsesWith(result);
     it.RemoveCurrentFromGraph();
+    changed = true;
     if (FLAG_trace_optimization) {
       OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
                 defn->ssa_temp_index(),
@@ -2643,15 +2707,17 @@ static void OptimizeLoads(
     if (i  < num_children - 1) {
       GrowableArray<Definition*> child_defs(definitions->length());
       child_defs.AddArray(*definitions);
-      OptimizeLoads(child, &child_defs, avail_in);
+      changed = OptimizeLoads(child, &child_defs, avail_in) || changed;
     } else {
-      OptimizeLoads(child, definitions, avail_in);
+      changed = OptimizeLoads(child, definitions, avail_in) || changed;
     }
   }
+  return changed;
 }
 
 
-void DominatorBasedCSE::Optimize(FlowGraph* graph) {
+bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
+  bool changed = false;
   if (FLAG_load_cse) {
     intptr_t max_expr_id = NumberLoadExpressions(graph);
     if (max_expr_id > 0) {
@@ -2667,19 +2733,21 @@ void DominatorBasedCSE::Optimize(FlowGraph* graph) {
       for (intptr_t j = 0; j < max_expr_id ; j++) {
         definitions.Add(NULL);
       }
-
-      OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
+      changed = OptimizeLoads(graph->graph_entry(), &definitions, avail_in);
     }
   }
 
   DirectChainedHashMap<Instruction*> map;
-  OptimizeRecursive(graph->graph_entry(), &map);
+  changed = OptimizeRecursive(graph->graph_entry(), &map) || changed;
+
+  return changed;
 }
 
 
-void DominatorBasedCSE::OptimizeRecursive(
+bool DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* block,
     DirectChainedHashMap<Instruction*>* map) {
+  bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
     if (current->AffectedBySideEffect()) continue;
@@ -2690,6 +2758,7 @@ void DominatorBasedCSE::OptimizeRecursive(
     }
     // Replace current with lookup result.
     ReplaceCurrentInstruction(&it, current, replacement);
+    changed = true;
   }
 
   // Process children in the dominator tree recursively.
@@ -2698,11 +2767,13 @@ void DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
       DirectChainedHashMap<Instruction*> child_map(*map);  // Copy map.
-      OptimizeRecursive(child, &child_map);
+      changed = OptimizeRecursive(child, &child_map) || changed;
     } else {
-      OptimizeRecursive(child, map);  // Reuse map for the last child.
+      // Reuse map for the last child.
+      changed = OptimizeRecursive(child, map) || changed;
     }
   }
+  return changed;
 }
 
 
@@ -3227,17 +3298,6 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
     // TODO(kmillikin): Handle unary operations.
-    SetValue(instr, non_constant_);
-  }
-}
-
-
-void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
-  if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle conversion.
     SetValue(instr, non_constant_);
   }
 }

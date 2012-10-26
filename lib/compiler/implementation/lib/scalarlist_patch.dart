@@ -8,111 +8,111 @@
 
 patch class Int8List {
   patch factory Int8List(int length) {
-    throw new UnsupportedOperationException('Int8List');
+    throw new UnsupportedError('Int8List');
   }
 
   patch factory Int8List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Int8List.view');
+    throw new UnsupportedError('Int8List.view');
   }
 }
 
 
 patch class Uint8List {
   patch factory Uint8List(int length) {
-    throw new UnsupportedOperationException('Uint8List');
+    throw new UnsupportedError('Uint8List');
   }
 
   patch factory Uint8List.view(ByteArray array,
                                [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Uint8List.view');
+    throw new UnsupportedError('Uint8List.view');
   }
 }
 
 
 patch class Int16List {
   patch factory Int16List(int length) {
-    throw new UnsupportedOperationException('Int16List');
+    throw new UnsupportedError('Int16List');
 
   }
 
   patch factory Int16List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Int16List.view');
+    throw new UnsupportedError('Int16List.view');
   }
 }
 
 
 patch class Uint16List {
   patch factory Uint16List(int length) {
-    throw new UnsupportedOperationException('Uint16List');
+    throw new UnsupportedError('Uint16List');
   }
 
   patch factory Uint16List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Uint16List.view');
+    throw new UnsupportedError('Uint16List.view');
   }
 }
 
 
 patch class Int32List {
   patch factory Int32List(int length) {
-    throw new UnsupportedOperationException('Int32List');
+    throw new UnsupportedError('Int32List');
   }
 
   patch factory Int32List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Int32List.view');
+    throw new UnsupportedError('Int32List.view');
   }
 }
 
 
 patch class Uint32List {
   patch factory Uint32List(int length) {
-    throw new UnsupportedOperationException('Uint32List');
+    throw new UnsupportedError('Uint32List');
   }
 
   patch factory Uint32List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Uint32List.view');
+    throw new UnsupportedError('Uint32List.view');
   }
 }
 
 
 patch class Int64List {
   patch factory Int64List(int length) {
-    throw new UnsupportedOperationException('Int64List');
+    throw new UnsupportedError('Int64List');
   }
 
   patch factory Int64List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Int64List.view');
+    throw new UnsupportedError('Int64List.view');
   }
 }
 
 
 patch class Uint64List {
   patch factory Uint64List(int length) {
-    throw new UnsupportedOperationException('Uint64List');
+    throw new UnsupportedError('Uint64List');
   }
 
   patch factory Uint64List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Uint64List.view');
+    throw new UnsupportedError('Uint64List.view');
   }
 }
 
 
 patch class Float32List {
   patch factory Float32List(int length) {
-    throw new UnsupportedOperationException('Float32List');
+    throw new UnsupportedError('Float32List');
   }
 
   patch factory Float32List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Float32List.view');
+    throw new UnsupportedError('Float32List.view');
   }
 }
 
 
 patch class Float64List {
   patch factory Float64List(int length) {
-    throw new UnsupportedOperationException('Float64List');
+    throw new UnsupportedError('Float64List');
   }
 
   patch factory Float64List.view(ByteArray array, [int start = 0, int length]) {
-    throw new UnsupportedOperationException('Float64List.view');
+    throw new UnsupportedError('Float64List.view');
   }
 }

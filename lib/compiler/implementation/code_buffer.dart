@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart2js;
+
 class CodeBuffer implements StringBuffer {
   StringBuffer buffer;
   List<CodeBufferMarker> markers;
@@ -14,8 +16,8 @@ class CodeBuffer implements StringBuffer {
 
   int get length => buffer.length;
 
-  bool isEmpty() {
-    return buffer.isEmpty();
+  bool get isEmpty {
+    return buffer.isEmpty;
   }
 
   /**

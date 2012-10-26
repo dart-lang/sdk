@@ -823,7 +823,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class abstract {}",
             "class as {}",
-            "class Dynamic {}",
+            "class dynamic {}",
             "class export {}",
             "class external {}",
             "class factory {}",
@@ -839,7 +839,7 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
             errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 2, 7, 8), // abstract
             errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 3, 7, 2), // as
-            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 7), // Dynamic
+            errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 4, 7, 7), // dynamic
             errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 7, 6), // export
             errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 7, 8), // external
             errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 7, 7, 7), // factory
@@ -868,7 +868,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class C01<abstract> {}",
             "class C02<as> {}",
-            "class C03<Dynamic> {}",
+            "class C03<dynamic> {}",
             "class C04<export> {}",
             "class C05<external> {}",
             "class C06<factory> {}",
@@ -884,7 +884,7 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 2, 11, 8), // abstract
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 3, 11, 2), // as
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 7), // Dynamic
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 4, 11, 7), // dynamic
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 5, 11, 6), // export
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 6, 11, 8), // external
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, 7, 11, 7), // factory
@@ -913,7 +913,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "typedef abstract();",
             "typedef as();",
-            "typedef Dynamic();",
+            "typedef dynamic();",
             "typedef export();",
             "typedef external();",
             "typedef factory();",
@@ -929,7 +929,7 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 2, 9, 8), // abstract
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 3, 9, 2), // as
-        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 7), // Dynamic
+        errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 4, 9, 7), // dynamic
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 5, 9, 6), // export
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 6, 9, 8), // external
         errEx(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 7, 9, 7), // factory

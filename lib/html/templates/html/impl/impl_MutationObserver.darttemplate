@@ -20,7 +20,7 @@ $!MEMBERS
     if (options != null) {
       options.forEach((k, v) {
           if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true === v);
+            _add(parsedOptions, k, true == v);
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {

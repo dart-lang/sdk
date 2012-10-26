@@ -235,10 +235,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  return false;
-}
-
 bool Intrinsifier::Double_add(Assembler* assembler) {
   return false;
 }
@@ -269,12 +265,12 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   return false;
 }
 
 
-bool Intrinsifier::Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   return false;
 }
 
@@ -304,7 +300,12 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::String_getHashCode(Assembler* assembler) {
   return false;
 }
 
@@ -319,12 +320,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_hashCode(Assembler* assembler) {
-  return false;
-}
-
-
-bool Intrinsifier::String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   return false;
 }
 

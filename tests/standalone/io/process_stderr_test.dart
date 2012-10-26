@@ -20,7 +20,7 @@ void test(Future<Process> future, int expectedExitCode) {
       Expect.equals(expectedExitCode, exitCode);
     };
 
-    List<int> data = "ABCDEFGHI\n".charCodes();
+    List<int> data = "ABCDEFGHI\n".charCodes;
     final int dataSize = data.length;
 
     InputStream input = process.stderr;

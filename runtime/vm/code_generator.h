@@ -61,7 +61,6 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(PolymorphicInstanceCallTestFail)                                           \
   V(InstanceCallNoICData)                                                      \
   V(IntegerToDouble)                                                           \
-  V(DoubleToDouble)                                                            \
   V(BinarySmiOp)                                                               \
   V(BinaryMintOp)                                                              \
   V(ShiftMintOp)                                                               \

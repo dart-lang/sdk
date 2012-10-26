@@ -8,7 +8,7 @@ class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
       : super(array),
         _length = array.length;
 
-  bool hasNext() => _length > _pos;
+  bool get hasNext => _length > _pos;
 
   final int _length;  // Cache array length for faster access.
 }
@@ -19,11 +19,11 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
       : _array = array,
         _pos = 0;
 
-  bool hasNext() => _array.length > _pos;
+  bool get hasNext => _array.length > _pos;
 
   T next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

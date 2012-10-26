@@ -192,8 +192,8 @@ void servePackages(List<Map> pubspecs) {
       }
 
       _servedPackageDir.contents.clear();
-      for (var name in _servedPackages.getKeys()) {
-        var versions = _servedPackages[name].getKeys();
+      for (var name in _servedPackages.keys) {
+        var versions = _servedPackages[name].keys;
         _servedPackageDir.contents.addAll([
           file('$name.json',
               JSON.stringify({'versions': versions})),
@@ -380,7 +380,7 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
   return _awaitObject(dependencies).transform((resolvedDependencies) {
     var result = <String, Map>{};
     for (var dependency in resolvedDependencies) {
-      var keys = dependency.getKeys().filter((key) => key != "version");
+      var keys = dependency.keys.filter((key) => key != "version");
       var sourceName = only(keys);
       var source;
       switch (sourceName) {
@@ -607,7 +607,7 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   var iterator = scheduled.iterator();
 
   Future runNextEvent(_) {
-    if (_abortScheduled || !iterator.hasNext()) {
+    if (_abortScheduled || !iterator.hasNext) {
       _abortScheduled = false;
       scheduled.clear();
       return new Future.immediate(null);
@@ -872,13 +872,13 @@ class FileDescriptor extends Descriptor {
    * Loads the contents of the file.
    */
   InputStream load(List<String> path) {
-    if (!path.isEmpty()) {
+    if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
 
     var stream = new ListInputStream();
-    stream.write(contents.charCodes());
+    stream.write(contents.charCodes);
     stream.markEndOfStream();
     return stream;
   }
@@ -943,7 +943,7 @@ class DirectoryDescriptor extends Descriptor {
    * Loads [path] from within this directory.
    */
   InputStream load(List<String> path) {
-    if (path.isEmpty()) {
+    if (path.isEmpty) {
       throw "Can't load the contents of $name: is a directory.";
     }
 
@@ -992,28 +992,21 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    * Creates the Git repository and commits the contents.
    */
   Future<Directory> create(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['init']);
-    }).chain((_) => runGit(['add', '.']))
-      .chain((_) => runGit(['commit', '-m', 'initial commit']))
-      .transform((_) => workingDir);
+    return _runGitCommands(parentDir, [
+      ['init'],
+      ['add', '.'],
+      ['commit', '-m', 'initial commit']
+    ]);
   }
 
   /**
    * Commits any changes to the Git repository.
    */
   Future commit(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['add', '.']);
-    }).chain((_) => runGit(['commit', '-m', 'update']));
+    return _runGitCommands(parentDir, [
+      ['add', '.'],
+      ['commit', '-m', 'update']
+    ]);
   }
 
   /**
@@ -1027,10 +1020,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    */
   Future<String> revParse(String ref) {
     var completer = new Completer<String>();
-    // TODO(nweiz): inline this once issue 3197 is fixed
-    var superCreate = super.create;
     _schedule((parentDir) {
-      return superCreate(parentDir).chain((rootDir) {
+      return super.create(parentDir).chain((rootDir) {
         return _runGit(['rev-parse', ref], rootDir);
       }).transform((output) {
         completer.complete(output[0]);
@@ -1048,9 +1039,32 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     });
   }
 
+  Future _runGitCommands(parentDir, List<List<String>> commands) {
+    var workingDir;
+
+    Future runGitStep(_) {
+      if (commands.isEmpty) return new Future.immediate(workingDir);
+      var command = commands.removeAt(0);
+      return _runGit(command, workingDir).chain(runGitStep);
+    }
+
+    return super.create(parentDir).chain((rootDir) {
+      workingDir = rootDir;
+      return writeTextFile(join(parentDir, '.gitconfig'), '''
+[user]
+  name = Test Pub
+  email = pub@dartlang.org
+''');
+    }).chain(runGitStep);
+  }
+
   Future<String> _runGit(List<String> args, Directory workingDir) {
     return runGit(args, workingDir: workingDir.path).transform((result) {
-      if (!result.success) throw "Error running git: ${result.stderr}";
+      if (!result.success) {
+        throw "Error running: git ${Strings.join(args, ' ')}\n"
+            "${Strings.join(result.stderr, '\n')}";
+      }
+
       return result.stdout;
     });
   }
@@ -1116,14 +1130,14 @@ class TarFileDescriptor extends Descriptor {
   }
 
   Future delete(dir) {
-    throw new UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   /**
    * Loads the contents of this tar file.
    */
   InputStream load(List<String> path) {
-    if (!path.isEmpty()) {
+    if (!path.isEmpty) {
       var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
@@ -1158,7 +1172,7 @@ class NothingDescriptor extends Descriptor {
   }
 
   InputStream load(List<String> path) {
-    if (path.isEmpty()) {
+    if (path.isEmpty) {
       throw "Can't load the contents of $name: it doesn't exist.";
     } else {
       throw "Can't load ${Strings.join(path, '/')} from within $name: $name "

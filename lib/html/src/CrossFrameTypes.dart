@@ -16,9 +16,7 @@ abstract class Window {
   void focus();
   void blur();
   void close();
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-		   [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
 
 abstract class Location {

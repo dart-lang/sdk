@@ -4,7 +4,7 @@
 
 class _GrowableObjectArray<T> implements List<T> {
   factory _GrowableObjectArray._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "GrowableObjectArray can only be allocated by the VM");
   }
 
@@ -145,7 +145,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return elem;
   }
 
-  T last() {
+  T get last {
     return this[length - 1];
   }
 
@@ -199,7 +199,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -208,7 +208,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void sort([Comparator<T> compare = Comparable.compare]) {
-    DualPivotQuicksort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   String toString() {

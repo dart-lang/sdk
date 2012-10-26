@@ -10,12 +10,8 @@
 [ $runtime == drt || $runtime == dartium || $runtime == opera]
 *: Skip
 
-# Git on Windows is cripplingly slow and will make these tests time out (#5271).
+# Git on Windows is cripplingly slow (#5271).
+# Git tests do not work on Windows on buildbots (dartbug.com/6191).
 [ $system == windows ]
 install/git/*: Skip
 update/git/*: Skip
-
-# Getting non-determinstic network errors with these on Windows (#5272).
-[ $system == windows ]
-install/hosted/*: Skip
-update/hosted/*: Skip

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class PartialTypeTree {
+part of universe;
+
+abstract class PartialTypeTree {
 
   final Compiler compiler;
   PartialTypeTreeNode root;
@@ -44,7 +46,7 @@ class PartialTypeTree {
     // tree. If so, we have a tree with interface subtypes. If not,
     // keep track of them so we can deal with it if the interface is
     // added to the tree later.
-    for (Link link = type.interfaces; !link.isEmpty(); link = link.tail) {
+    for (Link link = type.interfaces; !link.isEmpty; link = link.tail) {
       InterfaceType superType = link.head;
       ClassElement superTypeElement = superType.element;
       if (nodes.containsKey(superTypeElement)) {
@@ -86,11 +88,11 @@ class PartialTypeTree {
       // current node to being children of a new node if we need
       // to insert that.
       Link<PartialTypeTreeNode> subtypes = const Link();
-      for (Link link = current.children; !link.isEmpty(); link = link.tail) {
+      for (Link link = current.children; !link.isEmpty; link = link.tail) {
         PartialTypeTreeNode child = link.head;
         ClassElement childType = child.type;
         if (type.isSubclassOf(childType)) {
-          assert(subtypes.isEmpty());
+          assert(subtypes.isEmpty);
           current = child;
           continue L;
         } else if (childType.isSubclassOf(type)) {
@@ -105,10 +107,10 @@ class PartialTypeTree {
       // that are subtypes of the type of the new node below the new
       // node in the hierarchy.
       PartialTypeTreeNode newNode = newNode(type);
-      if (!subtypes.isEmpty()) {
+      if (!subtypes.isEmpty) {
         newNode.children = subtypes;
         Link<PartialTypeTreeNode> remaining = const Link();
-        for (Link link = current.children; !link.isEmpty(); link = link.tail) {
+        for (Link link = current.children; !link.isEmpty; link = link.tail) {
           PartialTypeTreeNode child = link.head;
           if (!child.type.isSubclassOf(type)) {
             remaining = remaining.prepend(child);
@@ -137,7 +139,7 @@ class PartialTypeTree {
     L: while (!identical(current.type, type)) {
       assert(type.isSubclassOf(current.type));
       if (!visit(current)) return;
-      for (Link link = current.children; !link.isEmpty(); link = link.tail) {
+      for (Link link = current.children; !link.isEmpty; link = link.tail) {
         PartialTypeTreeNode child = link.head;
         ClassElement childType = child.type;
         if (type.isSubclassOf(childType)) {
@@ -167,7 +169,7 @@ class PartialTypeTreeNode {
    */
   bool visitRecursively(bool visit(PartialTypeTreeNode node)) {
     if (!visit(this)) return false;
-    for (Link link = children; !link.isEmpty(); link = link.tail) {
+    for (Link link = children; !link.isEmpty; link = link.tail) {
       PartialTypeTreeNode child = link.head;
       if (!child.visitRecursively(visit)) return false;
     }

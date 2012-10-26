@@ -323,13 +323,13 @@ void indexSet$slow(var a, var index, var value) {
 
 checkMutable(list, reason) {
   if (JS('bool', r'!!(#.immutable$list)', list)) {
-    throw new UnsupportedOperationException(reason);
+    throw new UnsupportedError(reason);
   }
 }
 
 checkGrowable(list, reason) {
   if (JS('bool', r'!!(#.fixed$length)', list)) {
-    throw new UnsupportedOperationException(reason);
+    throw new UnsupportedError(reason);
   }
 }
 
@@ -343,9 +343,9 @@ class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS('int', r'#.length', list);
+  bool get hasNext => i < JS('int', r'#.length', list);
   T next() {
-    if (!hasNext()) throw new NoMoreElementsException();
+    if (!hasNext) throw new StateError("No more elements");
     var value = JS('Object', r'#[#]', list, i);
     i += 1;
     return value;
@@ -409,7 +409,7 @@ class Primitives {
     var base = 10;
     if (match[1] != null) base = 16;
     var result = JS('num', r'parseInt(#, #)', string, base);
-    if (result.isNaN()) throw new FormatException(string);
+    if (result.isNaN) throw new FormatException(string);
     return result;
   }
 
@@ -427,7 +427,7 @@ class Primitives {
       throw new FormatException(string);
     }
     var result = JS('num', r'parseFloat(#)', string);
-    if (result.isNaN() && string != 'NaN') {
+    if (result.isNaN && string != 'NaN') {
       throw new FormatException(string);
     }
     return result;
@@ -509,7 +509,7 @@ class Primitives {
       value = JS('num', r'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
-    if (value.isNaN() ||
+    if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
       throw new ArgumentError();
@@ -536,6 +536,10 @@ class Primitives {
     }
     return JS('Date', r'#.date', receiver);
   }
+
+  // The getters for date and time parts below add a positive integer to ensure
+  // that the result is really an integer, because the JavaScript implementation
+  // may return -0.0 instead of 0.
 
   static getYear(receiver) {
     return (receiver.isUtc)
@@ -591,7 +595,7 @@ class Primitives {
     checkNull(str);
     if (str is !String) throw new ArgumentError(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN()) throw new ArgumentError(str);
+    if (value.isNaN) throw new ArgumentError(str);
     return value;
   }
 
@@ -625,10 +629,10 @@ class Primitives {
 
     // Sort the named arguments to get the right selector name and
     // arguments order.
-    if (namedArguments != null && !namedArguments.isEmpty()) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
       // Call new List.from to make sure we get a JavaScript array.
       List<String> listOfNamedArguments =
-          new List<String>.from(namedArguments.getKeys());
+          new List<String>.from(namedArguments.keys);
       argumentCount += namedArguments.length;
       // We're sorting on strings, and the behavior is the same between
       // Dart string sort and JS string sort. To avoid needing the Dart
@@ -757,7 +761,7 @@ class MathNatives {
       base = 16;
     }
     var ret = JS('num', r'parseInt(#, #)', trimmed, base);
-    if (ret.isNaN()) throw new FormatException(str);
+    if (ret.isNaN) throw new FormatException(str);
     return ret;
   }
 
@@ -768,7 +772,7 @@ class MathNatives {
       // TODO(ahe): This is unspecified, but tested by co19.
       ret = JS('num', r'parseInt(#)', str);
     }
-    if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
+    if (ret.isNaN && str != 'NaN' && str != '-NaN') {
       throw new FormatException(str);
     }
     return ret;
@@ -882,17 +886,9 @@ unwrapException(ex) {
         type == 'called_non_callable' ||
         type == 'non_object_property_call' ||
         type == 'non_object_property_load') {
-      if (name is String && name.startsWith(r'call$')) {
-        return new ObjectNotClosureException();
-      } else {
-        return new NullPointerException();
-      }
+      return new NullPointerException();
     } else if (type == 'undefined_method') {
-      if (name is String && name.startsWith(r'call$')) {
-        return new ObjectNotClosureException();
-      } else {
-        return new NoSuchMethodError('', name, []);
-      }
+      return new NoSuchMethodError('', name, []);
     }
 
     var ieErrorCode = JS('int', '#.number & 0xffff', ex);
@@ -925,7 +921,7 @@ unwrapException(ex) {
 
   if (JS('bool', r'# instanceof RangeError', ex)) {
     if (message is String && message.contains('call stack')) {
-      return new StackOverflowException();
+      return new StackOverflowError();
     }
 
     // In general, a RangeError is thrown when trying to pass a number
@@ -939,7 +935,7 @@ unwrapException(ex) {
          r"typeof InternalError == 'function' && # instanceof InternalError",
          ex)) {
     if (message is String && message == 'too much recursion') {
-      return new StackOverflowException();
+      return new StackOverflowError();
     }
   }
 
@@ -971,7 +967,7 @@ class StackTrace {
 makeLiteralMap(List keyValuePairs) {
   Iterator iterator = keyValuePairs.iterator();
   Map result = new LinkedHashMap();
-  while (iterator.hasNext()) {
+  while (iterator.hasNext) {
     String key = iterator.next();
     var value = iterator.next();
     result[key] = value;
@@ -1052,7 +1048,7 @@ abstract class Dynamic_ {
  */
 class Null {
   factory Null() {
-    throw new UnsupportedOperationException('new Null()');
+    throw new UnsupportedError('new Null()');
   }
 }
 

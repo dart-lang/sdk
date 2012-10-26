@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart2js;
+
 class World {
   final Compiler compiler;
   final Map<ClassElement, Set<ClassElement>> subtypes;
@@ -40,7 +42,7 @@ class World {
     // (3) subclasses of (2) and (3).
 
     void potentiallyAddForRti(ClassElement cls, Function callback) {
-      if (cls.typeVariables.isEmpty()) return;
+      if (cls.typeVariables.isEmpty) return;
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
       if (callback != null) {
@@ -56,7 +58,7 @@ class World {
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type is InterfaceType) {
         InterfaceType itf = type;
-        if (!itf.arguments.isEmpty()) {
+        if (!itf.arguments.isEmpty) {
           potentiallyAddForRti(itf.element, null);
         }
       }
@@ -64,7 +66,7 @@ class World {
 
     List<ClassElement> worklist =
         new List<ClassElement>.from(classesNeedingRti);
-    while (!worklist.isEmpty()) {
+    while (!worklist.isEmpty) {
       Element e = worklist.removeLast();
       Set<Element> dependencies = rtiDependencies[e];
       if (dependencies == null) continue;
@@ -189,5 +191,5 @@ class MemberSet {
     elements.add(element);
   }
 
-  bool isEmpty() => elements.isEmpty();
+  bool get isEmpty => elements.isEmpty;
 }

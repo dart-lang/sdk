@@ -9,8 +9,6 @@
     'array.cc',
     'array.dart',
     'array_patch.dart',
-    'date.cc',
-    'date_patch.dart',
     'growable_array.cc',
     'growable_array.dart',
     'immutable_map.dart',

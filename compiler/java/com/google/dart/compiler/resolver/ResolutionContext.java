@@ -213,8 +213,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
       String name = ((DartIdentifier) identifier).getName();
-      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !DartParser.DYNAMIC_KEYWORD.equals(name)
-          && !DartParser.DYNAMIC_KEYWORD_DEPRECATED.equals(name)) {
+      if (DartParser.PSEUDO_KEYWORDS_SET.contains(name) && !"dynamic".equals(name)) {
         onError(identifier, ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, name);
         return Types.newDynamicType();
       }
@@ -258,10 +257,7 @@ public class ResolutionContext implements ResolutionErrorListener {
         if (Elements.isIdentifierName(identifier, "void")) {
           return typeProvider.getVoidType();
         }
-        if (Elements.isIdentifierName(identifier, DartParser.DYNAMIC_KEYWORD)) {
-          return typeProvider.getDynamicType();
-        }
-        if (Elements.isIdentifierName(identifier, DartParser.DYNAMIC_KEYWORD_DEPRECATED)) {
+        if (Elements.isIdentifierName(identifier, "dynamic")) {
           return typeProvider.getDynamicType();
         }
         onError(identifier, errorCode, identifier);

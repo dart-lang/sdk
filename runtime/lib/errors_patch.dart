@@ -7,3 +7,16 @@ patch class NoSuchMethodError {
     return Object._toString(object);
   }
 }
+
+// Exceptions that should be NoSuchMethodError instead.
+
+class _ClosureArgumentMismatchException implements Exception {
+  const _ClosureArgumentMismatchException();
+  String toString() => "Closure argument mismatch";
+}
+
+
+class _ObjectNotClosureException implements Exception {
+  const _ObjectNotClosureException();
+  String toString() => "Object is not closure";
+}

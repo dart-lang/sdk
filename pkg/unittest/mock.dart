@@ -370,7 +370,7 @@ class LogEntryList {
   get first => (logs == null || logs.length == 0) ? null : logs[0];
 
   /** Get the last entry, or null if no entries. */
-  get last => (logs == null || logs.length == 0) ? null : logs.last();
+  get last => (logs == null || logs.length == 0) ? null : logs.last;
 
   /** Creates a LogEntry predicate function from the argument. */
   Function _makePredicate(arg) {
@@ -781,7 +781,7 @@ class LogEntryList {
         if (includeKeys) {
           rtn.logs.add(keyEntry);
         }
-        if (keyIterator.hasNext()) {
+        if (keyIterator.hasNext) {
           keyEntry = keyIterator.next();
         } else if (isPreceding) { // We're done.
           break;
@@ -1280,7 +1280,7 @@ class Mock {
     }
     bool matchedMethodName = false;
     MatchState matchState = new MatchState();
-    for (String k in _behaviors.getKeys()) {
+    for (String k in _behaviors.keys) {
       Behavior b = _behaviors[k];
       if (b.matcher.nameFilter.matches(method, matchState)) {
         matchedMethodName = true;

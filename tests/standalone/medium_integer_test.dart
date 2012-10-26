@@ -101,8 +101,8 @@ class MediumIntegerTest {
     testMintAnd(0x100000001);
     var a = 100000000000;
     var b = 100000000001;
-    Expect.equals(false, a.hashCode() == b.hashCode());
-    Expect.equals(true, a.hashCode() == (b - 1).hashCode());
+    Expect.equals(false, a.hashCode == b.hashCode);
+    Expect.equals(true, a.hashCode == (b - 1).hashCode);
   }
 }
 

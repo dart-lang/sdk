@@ -131,7 +131,7 @@ class Expect {
     String msg = _getMessage(reason);
 
     // Make sure all of the values are present in both and match.
-    for (final key in expected.getKeys()) {
+    for (final key in expected.keys) {
       if (!actual.containsKey(key)) {
         _fail('Expect.mapEquals(missing expected key: <$key>$msg) fails');
       }
@@ -140,7 +140,7 @@ class Expect {
     }
 
     // Make sure the actual map doesn't have any extra keys.
-    for (final key in actual.getKeys()) {
+    for (final key in actual.keys) {
       if (!expected.containsKey(key)) {
         _fail('Expect.mapEquals(unexpected key: <$key>$msg) fails');
       }
@@ -227,12 +227,12 @@ class Expect {
     final extraSet = new Set.from(actual);
     extraSet.removeAll(expected);
 
-    if (extraSet.isEmpty() && missingSet.isEmpty()) return;
+    if (extraSet.isEmpty && missingSet.isEmpty) return;
     String msg = _getMessage(reason);
 
     StringBuffer sb = new StringBuffer("Expect.setEquals($msg) fails");
     // Report any missing items.
-    if (!missingSet.isEmpty()) {
+    if (!missingSet.isEmpty) {
       sb.add('\nExpected collection does not contain: ');
     }
 
@@ -241,7 +241,7 @@ class Expect {
     }
 
     // Report any extra items.
-    if (!extraSet.isEmpty()) {
+    if (!extraSet.isEmpty) {
       sb.add('\nExpected collection should not contain: ');
     }
 

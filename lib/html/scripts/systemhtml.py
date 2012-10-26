@@ -25,10 +25,12 @@ _js_custom_members = set([
     'SelectElement.options',
     'SelectElement.selectedOptions',
     'TableElement.createTBody',
+    'LocalWindow.cancelAnimationFrame',
     'LocalWindow.document',
     'LocalWindow.indexedDB',
     'LocalWindow.location',
     'LocalWindow.open',
+    'LocalWindow.requestAnimationFrame',
     'LocalWindow.webkitCancelAnimationFrame',
     'LocalWindow.webkitRequestAnimationFrame',
     'WheelEvent.wheelDeltaX',
@@ -240,22 +242,14 @@ class HtmlDartInterfaceGenerator(object):
                           self._template_loader.Load('interface.darttemplate'))
 
     implements = []
-    suppressed_implements = []
-
     for parent in self._interface.parents:
       parent_type_info = self._type_registry.TypeInfo(parent.type.id)
-      parent_interface_name = parent_type_info.interface_name()
-      # TODO(vsm): Remove source_filter.
-      if MatchSourceFilter(parent):
-        # Parent is a DOM type.
-        implements.append(parent_interface_name)
-      elif '<' in parent.type.id:
-        # Parent is a Dart collection type.
-        # TODO(vsm): Make this check more robust.
-        implements.append(parent_interface_name)
-      else:
-        suppressed_implements.append('%s.%s' %
-            (self._common_prefix, parent_interface_name))
+      implements.append(parent_type_info.interface_name())
+
+    if self._interface_type_info.list_item_type():
+      item_type_info = self._type_registry.TypeInfo(
+          self._interface_type_info.list_item_type())
+      implements.append('List<%s>' % item_type_info.dart_type())
 
     if interface_name in _secure_base_types:
       implements.append(_secure_base_types[interface_name])
@@ -265,9 +259,6 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str += ' implements ' + ', '.join(implements)
       comment = ','
-    if suppressed_implements:
-      implements_str += ' /*%s %s */' % (comment,
-          ', '.join(suppressed_implements))
 
     factory_provider = None
     if interface_name in interface_factories:
@@ -337,8 +328,12 @@ class HtmlDartInterfaceGenerator(object):
       constructor_info.GenerateFactoryInvocation(
           self._DartType, self._members_emitter, factory_provider)
 
-    element_type = MaybeTypedArrayElementTypeInHierarchy(
-        self._interface, self._database)
+    element_type = None
+    for interface in self._database.Hierarchy(self._interface):
+      type_info = self._type_registry.TypeInfo(interface.id)
+      if type_info.is_typed_array():
+        element_type = type_info.list_item_type()
+        break
     if element_type:
       self._members_emitter.Emit(
           '\n'
@@ -383,13 +378,19 @@ class HtmlDartInterfaceGenerator(object):
 
     # The implementation should define an indexer if the interface directly
     # extends List.
-    (element_type, requires_indexer) = ListImplementationInfo(
-          interface, self._database)
-    if element_type:
-      if requires_indexer:
-        self.AddIndexer(element_type)
-      else:
-        self.AmendIndexer(element_type)
+    element_type = None
+    requires_indexer = False
+    if self._interface_type_info.list_item_type():
+      self.AddIndexer(self._interface_type_info.list_item_type())
+    else:
+      for parent in self._database.Hierarchy(self._interface):
+        if parent == self._interface:
+          continue
+        parent_type_info = self._type_registry.TypeInfo(parent.id)
+        if parent_type_info.list_item_type():
+          self.AmendIndexer(parent_type_info.list_item_type())
+          break
+
     # Group overloaded operations by id
     operationsById = {}
     for operation in interface.operations:
@@ -439,13 +440,13 @@ class HtmlDartInterfaceGenerator(object):
   def AddAttribute(self, attribute, is_secondary=False):
     dom_name = DartDomNameOfAttribute(attribute)
     html_name = self._renamer.RenameMember(
-      self._interface.id, dom_name, 'get:')
+      self._interface.id, attribute, dom_name, 'get:')
     if not html_name or self._IsPrivate(html_name):
       return
 
 
     html_setter_name = self._renamer.RenameMember(
-        self._interface.id, dom_name, 'set:')
+        self._interface.id, attribute, dom_name, 'set:')
     read_only = (attribute.is_read_only or 'Replaceable' in attribute.ext_attrs
                  or not html_setter_name)
 
@@ -457,7 +458,7 @@ class HtmlDartInterfaceGenerator(object):
           DOMINTERFACE=attribute.doc_js_interface_name,
           DOMNAME=dom_name)
       if read_only:
-        template = '\n  abstract $TYPE get $NAME;\n'
+        template = '\n  $TYPE get $NAME;\n'
       else:
         template = '\n  $TYPE $NAME;\n'
 
@@ -477,7 +478,13 @@ class HtmlDartInterfaceGenerator(object):
       operations - contains the overloads, one or more operations with the same
         name.
     """
-    html_name = self._renamer.RenameMember(self._interface.id, info.name)
+    # FIXME: When we pass in operations[0] below, we're assuming all
+    # overloaded operations have the same security attributes.  This
+    # is currently true, but we should consider filtering earlier or
+    # merging the relevant data into info itself.
+    html_name = self._renamer.RenameMember(self._interface.id,
+                                           info.operations[0],
+                                           info.name)
     if not html_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -606,10 +613,10 @@ class Dart2JSBackend(object):
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
+    if self._interface_type_info.is_typed_array():
+      element_type = self._interface_type_info.list_item_type()
       implements.append('List<%s>' % self._DartType(element_type))
-    if self._HasJavaScriptIndexingBehaviour():
+    if self._interface_type_info.list_item_type():
       implements.append('JavaScriptIndexingBehavior')
     return implements
 
@@ -692,7 +699,7 @@ class Dart2JSBackend(object):
         self._members_emitter.Emit(
             '\n'
             '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
             '  }\n',
             TYPE=self._NarrowInputType(element_type))
 
@@ -773,7 +780,7 @@ class Dart2JSBackend(object):
     return_type = self._NarrowOutputType(attr.type.id)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  $TYPE get $HTML_NAME() => JS("$TYPE", "#.$NAME", this);'
+        '\n  $TYPE get $HTML_NAME => JS("$TYPE", "#.$NAME", this);'
         '\n',
         HTML_NAME=html_name,
         NAME=attr.id,
@@ -797,7 +804,7 @@ class Dart2JSBackend(object):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
-        '\n  $NATIVE_TYPE get _$HTML_NAME() =>'
+        '\n  $NATIVE_TYPE get _$HTML_NAME =>'
         ' JS("$NATIVE_TYPE", "#.$NAME", this);'
         '\n',
         CONVERT=conversion.function_name,
@@ -882,7 +889,7 @@ class Dart2JSBackend(object):
       if conversion:
         return conversion.input_type
       else:
-        return self._NarrowInputType(type_name) if type_name else 'Dynamic'
+        return self._NarrowInputType(type_name) if type_name else 'dynamic'
 
     body = self._members_emitter.Emit(
         '\n'
@@ -943,7 +950,7 @@ class Dart2JSBackend(object):
         # be conservative.
         if param_type == verified_type:
           if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'Dynamic'
+            param_type = 'dynamic'
         target_parameters.append(
             '%s%s' % (TypeOrNothing(param_type), param_name))
 
@@ -974,12 +981,12 @@ class Dart2JSBackend(object):
         argument = operation.arguments[i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
-        if test_type in ['Dynamic', 'Object']:
+        if test_type in ['dynamic', 'Object']:
           checks[i] = '?%s' % parameter_name
         elif test_type == parameter_types[i]:
           checks[i] = 'true'
         else:
-          checks[i] = '(%s is %s || %s === null)' % (
+          checks[i] = '(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name)
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.
@@ -1034,13 +1041,6 @@ class Dart2JSBackend(object):
 
   def CustomJSMembers(self):
     return _js_custom_members
-
-  def _HasJavaScriptIndexingBehaviour(self):
-    """Returns True if the native object has an indexer and length property."""
-    (element_type, requires_indexer) = ListImplementationInfo(
-        self._interface, self._database)
-    if element_type and requires_indexer: return True
-    return False
 
   def _NarrowToImplementationType(self, type_name):
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()
@@ -1122,4 +1122,4 @@ class DartLibraryEmitter():
     for path in sorted(self._path_to_emitter.keys()):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
-          "#source('$PATH');\n", PATH=massage_path(relpath))
+          "part '$PATH';\n", PATH=massage_path(relpath))

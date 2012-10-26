@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_backend;
+
+// TODO(ahe): This class is simply wrong.  This backend should use
+// elements when it can, not AST nodes.  Perhaps a [Map<Element,
+// TreeElements>] is what is needed.
 class ElementAst {
   final Node ast;
   final TreeElements treeElements;
@@ -15,13 +20,15 @@ class ElementAst {
   }
 
   ElementAst.forClassLike(this.ast)
-      : this.treeElements = new TreeElementMapping();
+      : this.treeElements = new TreeElementMapping(null);
 }
 
+// TODO(ahe): This class should not subclass [TreeElementMapping], if
+// anything, it should implement TreeElements.
 class AggregatedTreeElements extends TreeElementMapping {
   final List<TreeElements> treeElements;
 
-  AggregatedTreeElements() : treeElements = <TreeElements>[];
+  AggregatedTreeElements() : treeElements = <TreeElements>[], super(null);
 
   Element operator[](Node node) {
     final result = super[node];
@@ -85,7 +92,7 @@ class FunctionBodyRewriter extends CloningVisitor {
     rewiteStatement(Statement statement) {
       if (statement is Block) {
         Link statements = statement.statements.nodes;
-        if (!statements.isEmpty() && statements.tail.isEmpty()) {
+        if (!statements.isEmpty && statements.tail.isEmpty) {
           Statement single = statements.head;
           bool isDeclaration =
               single is VariableDefinitions || single is FunctionDeclaration;
@@ -130,7 +137,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.getKeys().map((classElement) => classElement.type));
+        classMembers.keys.map((classElement) => classElement.type));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));
@@ -154,7 +161,7 @@ class DartBackend extends Backend {
       }
     }
 
-    while (!workQueue.isEmpty()) {
+    while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
       if (processedTypes.contains(type)) continue;
       processedTypes.add(type);
@@ -221,7 +228,7 @@ class DartBackend extends Backend {
     // however as of today there are problems with names of some core library
     // interfaces, most probably for interfaces of literals.
     final fixedMemberNames = new Set<String>();
-    for (final library in compiler.libraries.getValues()) {
+    for (final library in compiler.libraries.values) {
       if (!library.isPlatformLibrary) continue;
       library.implementation.forEachLocalMember((Element element) {
         if (element is ClassElement) {
@@ -237,7 +244,7 @@ class DartBackend extends Backend {
             // Fetch name of named constructors and factories if any,
             // otherwise store regular name.
             // TODO(antonm): better way to analyze the name.
-            fixedMemberNames.add(name.split(r'$').last());
+            fixedMemberNames.add(name.split(r'$').last);
           }
         }
         // Even class names are added due to a delicate problem we have:
@@ -326,7 +333,7 @@ class DartBackend extends Backend {
         processElement(element, elementAst);
       } else {
         if (!element.isTopLevel()) {
-          compiler.cancel(reason: 'Cannot process $element', element: element);
+          compiler.cancel('Cannot process $element', element: element);
         }
         addTopLevel(element, elementAst);
       }
@@ -339,11 +346,11 @@ class DartBackend extends Backend {
         new Identifier(new StringToken(IDENTIFIER_INFO, '', -1));
 
     NextClassElement:
-    for (ClassElement classElement in classMembers.getKeys()) {
+    for (ClassElement classElement in classMembers.keys) {
       for (Element member in classMembers[classElement]) {
         if (member.isConstructor()) continue NextClassElement;
       }
-      if (classElement.constructors.isEmpty()) continue NextClassElement;
+      if (classElement.constructors.isEmpty) continue NextClassElement;
 
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
@@ -364,7 +371,7 @@ class DartBackend extends Backend {
 
       classMembers[classElement].add(constructor);
       elementAsts[constructor] =
-          new ElementAst(constructor.cachedNode, new TreeElementMapping());
+          new ElementAst(constructor.cachedNode, new TreeElementMapping(null));
     }
 
     // Create all necessary placeholders.
@@ -440,7 +447,7 @@ class DartBackend extends Backend {
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
     Collection<LibraryElement> referencedLibraries =
-        compiler.libraries.getValues().filter(isUserLibrary);
+        compiler.libraries.values.filter(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {

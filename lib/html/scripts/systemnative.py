@@ -66,7 +66,7 @@ class DartiumBackend(object):
           '\n'
           'bool $CLASS_NAME::handleEvent($PARAMETERS)\n'
           '{\n'
-          '    if (!m_callback.isolate()->isAlive())\n'
+          '    if (!m_callback.isIsolateAlive())\n'
           '        return false;\n'
           '    DartIsolate::Scope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
@@ -274,10 +274,6 @@ class DartiumBackend(object):
         TO_DART=to_dart_emitter.Fragments())
 
   def AddAttribute(self, attribute, html_name, read_only):
-    if 'CheckSecurityForNode' in attribute.ext_attrs:
-      # FIXME: exclude from interface as well.
-      return
-
     self._AddGetter(attribute, html_name)
     if not read_only:
       self._AddSetter(attribute, html_name)
@@ -387,7 +383,7 @@ class DartiumBackend(object):
         self._members_emitter.Emit(
             '\n'
             '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+            '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
             '  }\n',
             TYPE=dart_element_type)
 
@@ -445,10 +441,6 @@ class DartiumBackend(object):
 
     operation = info.operations[0]
 
-    if 'CheckSecurityForNode' in operation.ext_attrs:
-      # FIXME: exclude from interface as well.
-      return
-
     is_custom = 'Custom' in operation.ext_attrs
     has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
@@ -458,7 +450,7 @@ class DartiumBackend(object):
         SecureOutputType(self, info.type_name),
         html_name,
         info.ParametersDeclaration(
-            (lambda x: 'Dynamic') if needs_dispatcher else self._DartType))
+            (lambda x: 'dynamic') if needs_dispatcher else self._DartType))
 
     if not needs_dispatcher:
       # Bind directly to native implementation
@@ -511,7 +503,7 @@ class DartiumBackend(object):
       for i in range(0, argument_count):
         argument = operation.arguments[i]
         argument_name = argument_names[i]
-        checks[i] = '(%s is %s || %s === null)' % (
+        checks[i] = '(%s is %s || %s == null)' % (
             argument_name, self._DartType(argument.type.id), argument_name)
       GenerateCall(operation, argument_count, checks)
 

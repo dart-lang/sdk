@@ -45,13 +45,13 @@ void main() {
   var l2 = new List(5);
   for (var i = 0; i < 5; i++) l2[i] = i;
   Expect.throws(() { l2.removeAt(2); },
-                (e) => e is UnsupportedOperationException,
+                (e) => e is UnsupportedError,
                 "fixed-length");
 
   // Unmodifiable list.
   var l3 = const [0, 1, 2, 3, 4];
   Expect.throws(() { l3.removeAt(2); },
-                (e) => e is UnsupportedOperationException,
+                (e) => e is UnsupportedError,
                 "unmodifiable");
 
   // Empty list is not special.

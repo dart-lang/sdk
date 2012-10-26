@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_backend;
+
 class LocalPlaceholder {
   final String identifier;
   final Set<Node> nodes;
   LocalPlaceholder(this.identifier) : nodes = new Set<Node>();
-  int hashCode() => identifier.hashCode();
+  int get hashCode => identifier.hashCode;
   String toString() =>
       'local_placeholder[id($identifier), nodes($nodes)]';
 }
@@ -368,7 +370,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.cancel(reason: reason, node: node);
+    compiler.cancel(reason, node: node);
   }
 
   void unreachable() { internalError('Unreachable case'); }

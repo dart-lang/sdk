@@ -60,13 +60,13 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!PageSpace::IsPageAllocatableSize(size)) {
-          return AllocateOld(size);
+          return AllocateOld(size, HeapPage::kData);
         }
         return AllocateNew(size);
       case kOld:
-        return AllocateOld(size);
+        return AllocateOld(size, HeapPage::kData);
       case kCode:
-        return AllocateCode(code_space_, size);
+        return AllocateOld(size, HeapPage::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -79,9 +79,9 @@ class Heap {
       case kNew:
         return new_space_->TryAllocate(size);
       case kOld:
-        return old_space_->TryAllocate(size);
+        return old_space_->TryAllocate(size, HeapPage::kData);
       case kCode:
-        return code_space_->TryAllocate(size);
+        return old_space_->TryAllocate(size, HeapPage::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -101,7 +101,6 @@ class Heap {
   // Visit all pointers in the space.
   void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
-  void IterateCodePointers(ObjectPointerVisitor* visitor);
 
   // Visit all objects.
   void IterateObjects(ObjectVisitor* visitor);
@@ -109,7 +108,6 @@ class Heap {
   // Visit all object in the space.
   void IterateNewObjects(ObjectVisitor* visitor);
   void IterateOldObjects(ObjectVisitor* visitor);
-  void IterateCodeObjects(ObjectVisitor* visitor);
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
@@ -171,13 +169,11 @@ class Heap {
   Heap();
 
   uword AllocateNew(intptr_t size);
-  uword AllocateOld(intptr_t size);
-  uword AllocateCode(PageSpace* space, intptr_t size);
+  uword AllocateOld(intptr_t size, HeapPage::PageType type);
 
   // The different spaces used for allocation.
   Scavenger* new_space_;
   PageSpace* old_space_;
-  PageSpace* code_space_;
 
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;

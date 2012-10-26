@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 /**
  * Scanner that reads from a String and creates tokens that points to
  * substrings.
@@ -38,11 +40,18 @@ class SubstringWrapper implements SourceString {
   final String internalString;
   final int begin;
   final int end;
+  int cashedHash = 0;
+  String cachedSubString;
 
-  const SubstringWrapper(String this.internalString,
-                         int this.begin, int this.end);
+  SubstringWrapper(String this.internalString,
+                   int this.begin, int this.end);
 
-  int hashCode() => slowToString().hashCode();
+  int get hashCode {
+    if (0 == cashedHash) {
+      cashedHash = slowToString().hashCode;
+    }
+    return cashedHash;
+  }
 
   bool operator ==(other) {
     return other is SourceString && slowToString() == other.slowToString();
@@ -52,7 +61,12 @@ class SubstringWrapper implements SourceString {
     sb.add(internalString.substring(begin, end));
   }
 
-  String slowToString() => internalString.substring(begin, end);
+  String slowToString() {
+    if (cachedSubString == null) {
+      cachedSubString = internalString.substring(begin, end);
+    }
+    return cachedSubString;
+  }
 
   String toString() => "SubstringWrapper(${slowToString()})";
 
@@ -69,7 +83,7 @@ class SubstringWrapper implements SourceString {
                                 begin + initial, end - terminal);
   }
 
-  bool isEmpty() => begin == end;
+  bool get isEmpty => begin == end;
 
-  bool isPrivate() => !isEmpty() && identical(internalString.charCodeAt(begin), $_);
+  bool isPrivate() => !isEmpty && identical(internalString.charCodeAt(begin), $_);
 }

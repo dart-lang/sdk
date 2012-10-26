@@ -23,22 +23,24 @@ DEFINE_FLAG(bool, print_free_list_before_gc, false,
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
             "Print free list statistics after a GC");
 
-HeapPage* HeapPage::Initialize(VirtualMemory* memory, bool is_executable) {
+HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
+  bool is_executable = (type == kExecutable);
   memory->Commit(is_executable);
 
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
   result->memory_ = memory;
   result->next_ = NULL;
   result->used_ = 0;
+  result->executable_ = is_executable;
   return result;
 }
 
 
-HeapPage* HeapPage::Allocate(intptr_t size, bool is_executable) {
+HeapPage* HeapPage::Allocate(intptr_t size, PageType type) {
   VirtualMemory* memory =
       VirtualMemory::ReserveAligned(size, PageSpace::kPageAlignment);
-  return Initialize(memory, is_executable);
+  return Initialize(memory, type);
 }
 
 
@@ -87,12 +89,25 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 
 
 void HeapPage::WriteProtect(bool read_only) {
-  memory_->Protect(
-      read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+  VirtualMemory::Protection prot;
+  if (read_only) {
+    if (executable_) {
+      prot = VirtualMemory::kReadExecute;
+    } else {
+      prot = VirtualMemory::kReadOnly;
+    }
+  } else {
+    if (executable_) {
+      prot = VirtualMemory::kReadWriteExecute;
+    } else {
+      prot = VirtualMemory::kReadWrite;
+    }
+  }
+  memory_->Protect(prot);
 }
 
 
-PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
+PageSpace::PageSpace(Heap* heap, intptr_t max_capacity)
     : freelist_(),
       heap_(heap),
       pages_(NULL),
@@ -102,7 +117,6 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
       capacity_(0),
       in_use_(0),
       count_(0),
-      is_executable_(is_executable),
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -123,8 +137,8 @@ intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
 }
 
 
-HeapPage* PageSpace::AllocatePage() {
-  HeapPage* page = HeapPage::Allocate(kPageSize, is_executable_);
+HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
+  HeapPage* page = HeapPage::Allocate(kPageSize, type);
   if (pages_ == NULL) {
     pages_ = page;
   } else {
@@ -137,9 +151,9 @@ HeapPage* PageSpace::AllocatePage() {
 }
 
 
-HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
+HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   intptr_t page_size = LargePageSizeFor(size);
-  HeapPage* page = HeapPage::Allocate(page_size, is_executable_);
+  HeapPage* page = HeapPage::Allocate(page_size, type);
   page->set_next(large_pages_);
   large_pages_ = page;
   capacity_ += page_size;
@@ -187,28 +201,25 @@ void PageSpace::FreePages(HeapPage* pages) {
 }
 
 
-uword PageSpace::TryAllocate(intptr_t size) {
-  return TryAllocate(size, kControlGrowth);
-}
-
-
-uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
+uword PageSpace::TryAllocate(intptr_t size,
+                             HeapPage::PageType type,
+                             GrowthPolicy growth_policy) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
   if (size < kAllocatablePageSize) {
-    result = freelist_.TryAllocate(size);
+    result = freelist_[type].TryAllocate(size);
     if ((result == 0) &&
         (page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
         CanIncreaseCapacity(kPageSize)) {
-      HeapPage* page = AllocatePage();
+      HeapPage* page = AllocatePage(type);
       ASSERT(page != NULL);
       // Start of the newly allocated page is the allocated object.
       result = page->object_start();
       // Enqueue the remainder in the free list.
       uword free_start = result + size;
-      freelist_.Free(free_start, page->object_end() - free_start);
+      freelist_[type].Free(free_start, page->object_end() - free_start);
     }
   } else {
     // Large page allocation.
@@ -218,7 +229,7 @@ uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
       return 0;
     }
     if (CanIncreaseCapacity(page_size)) {
-      HeapPage* page = AllocateLargePage(size);
+      HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
       }
@@ -244,6 +255,26 @@ bool PageSpace::Contains(uword addr) const {
   page = large_pages_;
   while (page != NULL) {
     if (page->Contains(addr)) {
+      return true;
+    }
+    page = page->next();
+  }
+  return false;
+}
+
+
+bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    if ((page->type() == type) && page->Contains(addr)) {
+      return true;
+    }
+    page = page->next();
+  }
+
+  page = large_pages_;
+  while (page != NULL) {
+    if ((page->type() == type) && page->Contains(addr)) {
       return true;
     }
     page = page->next();
@@ -319,22 +350,27 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
-RawObject* PageSpace::FindObject(FindObjectVisitor* visitor) const {
+RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
+                                 HeapPage::PageType type) const {
   ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
   HeapPage* page = pages_;
   while (page != NULL) {
-    RawObject* obj = page->FindObject(visitor);
-    if (obj != Object::null()) {
-      return obj;
+    if (page->type() == type) {
+      RawObject* obj = page->FindObject(visitor);
+      if (obj != Object::null()) {
+        return obj;
+      }
     }
     page = page->next();
   }
 
   page = large_pages_;
   while (page != NULL) {
-    RawObject* obj = page->FindObject(visitor);
-    if (obj != Object::null()) {
-      return obj;
+    if (page->type() == type) {
+      RawObject* obj = page->FindObject(visitor);
+      if (obj != Object::null()) {
+        return obj;
+      }
     }
     page = page->next();
   }
@@ -364,7 +400,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   NoHandleScope no_handles(isolate);
 
   if (FLAG_print_free_list_before_gc) {
-    freelist_.Print();
+    OS::Print("Data Freelist:\n");
+    freelist_[HeapPage::kData].Print();
+    OS::Print("Executable Freelist:\n");
+    freelist_[HeapPage::kExecutable].Print();
   }
 
   if (FLAG_verify_before_gc) {
@@ -386,15 +425,16 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
 
   // Reset the bump allocation page to unused.
   // Reset the freelists and setup sweeping.
-  freelist_.Reset();
+  freelist_[HeapPage::kData].Reset();
+  freelist_[HeapPage::kExecutable].Reset();
   GCSweeper sweeper(heap_);
   intptr_t in_use = 0;
 
   HeapPage* prev_page = NULL;
   HeapPage* page = pages_;
   while (page != NULL) {
-    intptr_t page_in_use = sweeper.SweepPage(page, &freelist_);
     HeapPage* next_page = page->next();
+    intptr_t page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
     if (page_in_use == 0) {
       FreePage(page, prev_page);
     } else {
@@ -442,7 +482,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks, const char* gc_reason) {
   }
 
   if (FLAG_print_free_list_after_gc) {
-    freelist_.Print();
+    OS::Print("Data Freelist:\n");
+    freelist_[HeapPage::kData].Print();
+    OS::Print("Executable Freelist:\n");
+    freelist_[HeapPage::kExecutable].Print();
   }
 
   if (FLAG_verify_after_gc) {

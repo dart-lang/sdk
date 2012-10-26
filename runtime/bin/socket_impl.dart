@@ -223,7 +223,7 @@ class _SocketBase extends NativeFieldWrapperClass1 {
     }
   }
 
-  int hashCode() => _hashCode;
+  int get hashCode => _hashCode;
 
   bool _propagateError(Exception e) => false;
 

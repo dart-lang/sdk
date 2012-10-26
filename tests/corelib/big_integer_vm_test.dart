@@ -168,8 +168,8 @@ class BigIntegerTest {
     Expect.equals(1234567890123456, (-1234567890123456).abs());
     var a = 10000000000000000000;
     var b = 10000000000000000001;
-    Expect.equals(false, a.hashCode() == b.hashCode());
-    Expect.equals(true, a.hashCode() == (b - 1).hashCode());
+    Expect.equals(false, a.hashCode == b.hashCode);
+    Expect.equals(true, a.hashCode == (b - 1).hashCode);
   }
 }
 

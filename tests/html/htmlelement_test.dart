@@ -32,13 +32,13 @@ main() {
   test('dataAttributes', () {
     Element div = new Element.tag('div');
 
-    Expect.isTrue(div.dataAttributes.isEmpty());
+    Expect.isTrue(div.dataAttributes.isEmpty);
     Expect.equals(null, div.dataAttributes['foo']);
-    Expect.isTrue(div.dataAttributes.isEmpty());
+    Expect.isTrue(div.dataAttributes.isEmpty);
 
     div.dataAttributes['foo'] = 'foo-value';
     Expect.equals('foo-value', div.dataAttributes['foo']);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.isFalse(div.dataAttributes.isEmpty);
 
     Expect.isTrue(div.dataAttributes.containsValue('foo-value'));
     Expect.isFalse(div.dataAttributes.containsValue('bar-value'));
@@ -69,23 +69,23 @@ main() {
     Expect.setEquals(const <String> ['foo-value', 'bar-value'], values);
 
     Expect.setEquals(const <String> ['foo', 'bar'],
-                     new List<String>.from(div.dataAttributes.getKeys()));
+                     new List<String>.from(div.dataAttributes.keys));
     Expect.setEquals(const <String> ['foo-value', 'bar-value'],
-                     new List<String>.from(div.dataAttributes.getValues()));
+                     new List<String>.from(div.dataAttributes.values));
 
     Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.isFalse(div.dataAttributes.isEmpty);
 
     Expect.isNull(div.dataAttributes.remove('qux'));
     Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.isFalse(div.dataAttributes.isEmpty);
 
     Expect.equals('foo-value', div.dataAttributes.remove('foo'));
     Expect.equals(1, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.isFalse(div.dataAttributes.isEmpty);
 
     div.dataAttributes.clear();
     Expect.equals(0, div.dataAttributes.length);
-    Expect.isTrue(div.dataAttributes.isEmpty());
+    Expect.isTrue(div.dataAttributes.isEmpty);
   });
 }

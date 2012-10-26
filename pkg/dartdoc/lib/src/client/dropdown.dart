@@ -19,7 +19,7 @@ updateDropDown(Event event) {
   if (text == currentSearchText) {
     return;
   }
-  if (text.isEmpty()) {
+  if (text.isEmpty) {
     updateResults(text, results);
     hideDropDown();
     return;
@@ -29,12 +29,12 @@ updateDropDown(Event event) {
     String typeText = text.substring(0, text.indexOf('.'));
     String memberText = text.substring(text.indexOf('.') + 1);
 
-    if (typeText.isEmpty() && memberText.isEmpty()) {
+    if (typeText.isEmpty && memberText.isEmpty) {
       // Don't search on '.'.
-    } else if (typeText.isEmpty()) {
+    } else if (typeText.isEmpty) {
       // Search text is of the form '.id' => Look up members.
       matchAllMembers(results, memberText);
-    } else if (memberText.isEmpty()) {
+    } else if (memberText.isEmpty) {
       // Search text is of the form 'Type.' => Look up members in 'Type'.
       matchAllMembersInType(results, typeText, memberText);
     } else {
@@ -55,7 +55,7 @@ updateDropDown(Event event) {
   table.classes.add('drop-down-table');
   elements.add(table);
 
-  if (results.isEmpty()) {
+  if (results.isEmpty) {
     var row = table.insertRow(0);
     row.innerHTML = "<tr><td>No matches found for '$text'.</td></tr>";
   } else {
@@ -239,7 +239,7 @@ List<Result> currentResults = const <Result>[];
 void updateResults(String searchText, List<Result> results) {
   currentSearchText = searchText;
   currentResults = results;
-  if (currentResults.isEmpty()) {
+  if (currentResults.isEmpty) {
     _currentResultIndex = -1;
     currentResult = null;
   } else {
@@ -305,7 +305,7 @@ void handleUpDown(KeyboardEvent event) {
 
 /** Show the search drop down unless there are no current results. */
 void showDropDown() {
-  if (currentResults.isEmpty()) {
+  if (currentResults.isEmpty) {
     hideDropDown();
   } else {
     dropdown.style.visibility = 'visible';

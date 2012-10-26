@@ -90,6 +90,15 @@ void cleanOutputDirectory(Path path) {
 }
 
 /**
+ * Returns the display name of the library. This is necessary to account for
+ * dart: libraries.
+ */
+String displayName(LibraryMirror library) {
+  var uri = library.uri.toString();
+  return uri.startsWith('dart:') ?  uri.toString() : library.simpleName;
+}
+
+/**
  * Copies all of the files in the directory [from] to [to]. Does *not*
  * recursively copy subdirectories.
  *
@@ -257,15 +266,15 @@ class Dartdoc {
       return false;
     }
     var includeByDefault = true;
-    String libraryName = library.simpleName;
-    if (!includedLibraries.isEmpty()) {
+    String libraryName = displayName(library);
+    if (excludedLibraries.contains(libraryName)) {
+      return false;
+    }
+    if (!includedLibraries.isEmpty) {
       includeByDefault = false;
-      if (includedLibraries.indexOf(libraryName) != -1) {
+      if (includedLibraries.contains(libraryName)) {
         return true;
       }
-    }
-    if (excludedLibraries.indexOf(libraryName) != -1) {
-      return false;
     }
     if (libraryName.startsWith('dart:')) {
       String suffix = libraryName.substring('dart:'.length);
@@ -283,7 +292,7 @@ class Dartdoc {
    */
   bool shouldLinkToPublicApi(LibraryMirror library) {
     if (linkToApi) {
-      String libraryName = library.simpleName;
+      String libraryName = displayName(library);
       if (libraryName.startsWith('dart:')) {
         String suffix = libraryName.substring('dart:'.length);
         LibraryInfo info = LIBRARIES[suffix];
@@ -326,11 +335,11 @@ class Dartdoc {
   void _document(Compilation compilation) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.getValues().filter(
+        compilation.mirrors.libraries.values.filter(
             shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
-      return x.simpleName.toUpperCase().compareTo(
-          y.simpleName.toUpperCase());
+      return displayName(x).toUpperCase().compareTo(
+          displayName(y).toUpperCase());
     });
 
     // Generate the docs.
@@ -410,7 +419,7 @@ class Dartdoc {
     var data = '';
     if (_currentLibrary != null) {
       data = '$data data-library='
-             '"${md.escapeHtml(_currentLibrary.simpleName)}"';
+             '"${md.escapeHtml(displayName(_currentLibrary))}"';
     }
 
     if (_currentType != null) {
@@ -519,7 +528,7 @@ class Dartdoc {
   }
 
   void docIndexLibrary(LibraryMirror library) {
-    writeln('<h4>${a(libraryUrl(library), library.simpleName)}</h4>');
+    writeln('<h4>${a(libraryUrl(library), displayName(library))}</h4>');
   }
 
   /**
@@ -570,14 +579,14 @@ class Dartdoc {
 
   void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
     var libraryInfo = {};
-    libraryInfo[NAME] = library.simpleName;
+    libraryInfo[NAME] = displayName(library);
     final List members = docMembersJson(library.declaredMembers);
-    if (!members.isEmpty()) {
+    if (!members.isEmpty) {
       libraryInfo[MEMBERS] = members;
     }
 
     final types = [];
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       var typeInfo = {};
@@ -591,11 +600,11 @@ class Dartdoc {
         typeInfo[KIND] = TYPEDEF;
       }
       final List typeMembers = docMembersJson(type.declaredMembers);
-      if (!typeMembers.isEmpty()) {
+      if (!typeMembers.isEmpty) {
         typeInfo[MEMBERS] = typeMembers;
       }
 
-      if (!type.declaration.typeVariables.isEmpty()) {
+      if (!type.declaration.typeVariables.isEmpty) {
         final typeVariables = [];
         for (final typeVariable in type.declaration.typeVariables) {
           typeVariables.add(typeVariable.displayName);
@@ -604,7 +613,7 @@ class Dartdoc {
       }
       types.add(typeInfo);
     }
-    if (!types.isEmpty()) {
+    if (!types.isEmpty) {
       libraryInfo[TYPES] = types;
     }
 
@@ -613,7 +622,7 @@ class Dartdoc {
 
   List docMembersJson(Map<Object,MemberMirror> memberMap) {
     final members = [];
-    for (MemberMirror member in orderByName(memberMap.getValues())) {
+    for (MemberMirror member in orderByName(memberMap.values)) {
       if (!showPrivate && member.isPrivate) continue;
 
       var memberInfo = {};
@@ -630,7 +639,7 @@ class Dartdoc {
         } else {
           memberInfo[KIND] = METHOD;
         }
-        if (method.parameters.isEmpty()) {
+        if (method.parameters.isEmpty) {
           memberInfo[NO_PARAMS] = true;
         }
       }
@@ -655,9 +664,9 @@ class Dartdoc {
         write('<h2><div class="icon-library"></div>');
 
         if ((_currentLibrary == library) && (_currentType == null)) {
-          write('<strong>${library.simpleName}</strong>');
+          write('<strong>${displayName(library)}</strong>');
         } else {
-          write('${a(libraryUrl(library), library.simpleName)}');
+          write('${a(libraryUrl(library), displayName(library))}');
         }
         write('</h2>');
 
@@ -675,7 +684,7 @@ class Dartdoc {
     final types = <InterfaceMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -715,16 +724,16 @@ class Dartdoc {
 
   void docLibrary(LibraryMirror library) {
     if (verbose) {
-      print('Library \'${library.simpleName}\':');
+      print('Library \'${displayName(library)}\':');
     }
     _totalLibraries++;
     _currentLibrary = library;
     _currentType = null;
 
     startFile(libraryUrl(library));
-    writeHeader('${library.simpleName} Library',
-        [library.simpleName, libraryUrl(library)]);
-    writeln('<h2><strong>${library.simpleName}</strong> library</h2>');
+    writeHeader('${displayName(library)} Library',
+        [displayName(library), libraryUrl(library)]);
+    writeln('<h2><strong>${displayName(library)}</strong> library</h2>');
 
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
@@ -741,7 +750,7 @@ class Dartdoc {
     final typedefs = <TypedefMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (InterfaceMirror type in orderByName(library.types.getValues())) {
+    for (InterfaceMirror type in orderByName(library.types.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -765,7 +774,7 @@ class Dartdoc {
     writeFooter();
     endFile();
 
-    for (final type in library.types.getValues()) {
+    for (final type in library.types.values) {
       if (!showPrivate && type.isPrivate) continue;
 
       docType(type);
@@ -813,8 +822,8 @@ class Dartdoc {
 
     final typeTitle =
       '${typeName(type)} ${kind}';
-    writeHeader('$typeTitle / ${type.library.simpleName} Library',
-        [type.library.simpleName, libraryUrl(type.library),
+    writeHeader('$typeTitle / ${displayName(type.library)} Library',
+        [displayName(type.library), libraryUrl(type.library),
          typeName(type), typeUrl(type)]);
     writeln(
         '''
@@ -1130,10 +1139,10 @@ class Dartdoc {
                      Map<String,MemberMirror> getters,
                      Map<String,MemberMirror> setters,
                      {bool allInherited}) {
-    if (getters.isEmpty() && setters.isEmpty()) return;
+    if (getters.isEmpty && setters.isEmpty) return;
 
-    var nameSet = new Set<String>.from(getters.getKeys());
-    nameSet.addAll(setters.getKeys());
+    var nameSet = new Set<String>.from(getters.keys);
+    nameSet.addAll(setters.keys);
     var nameList = new List<String>.from(nameSet);
     nameList.sort((String a, String b) {
       return a.toLowerCase().compareTo(b.toLowerCase());
@@ -1512,7 +1521,7 @@ class Dartdoc {
 
   /** Gets the URL to the documentation for [library]. */
   String libraryUrl(LibraryMirror library) {
-    return '${sanitize(library.simpleName)}.html';
+    return '${sanitize(displayName(library))}.html';
   }
 
   /** Gets the URL for the documentation for [type]. */
@@ -1524,7 +1533,7 @@ class Dartdoc {
     // Always get the generic type to strip off any type parameters or
     // arguments. If the type isn't generic, genericType returns `this`, so it
     // works for non-generic types too.
-    return '${sanitize(type.library.simpleName)}/'
+    return '${sanitize(displayName(type.library))}/'
            '${type.declaration.simpleName}.html';
   }
 
@@ -1658,7 +1667,7 @@ class Dartdoc {
           typeParams.add(typeParam.simpleName);
         }
       }
-      if (typeParams.isEmpty()) {
+      if (typeParams.isEmpty) {
         return type.simpleName;
       }
       final params = Strings.join(typeParams, ', ');
@@ -1848,7 +1857,7 @@ class DocComment {
   final InterfaceMirror inheritedFrom;
 
   DocComment(this.text, [this.inheritedFrom = null]) {
-    assert(text != null && !text.trim().isEmpty());
+    assert(text != null && !text.trim().isEmpty);
   }
 
   String get html => md.markdownToHtml(text);

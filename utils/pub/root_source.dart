@@ -26,7 +26,6 @@ class RootSource extends Source {
   }
 
   Future<bool> install(PackageId id, String destPath) {
-    throw new UnsupportedOperationException(
-        "Can't install from a root source.");
+    throw new UnsupportedError("Can't install from a root source.");
   }
 }

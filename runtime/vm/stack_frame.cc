@@ -59,6 +59,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
+    // Visit the code object.
+    RawObject* raw_code = code.raw();
+    visitor->VisitPointer(&raw_code);
+    // Visit stack based on stack maps.
     Array maps;
     maps = Array::null();
     Stackmap map;

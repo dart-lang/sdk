@@ -131,7 +131,7 @@ class ProgressIndicator {
     }
     output.add(expected.toString());
     output.add('Actual: ${test.output.result}');
-    if (test.info != null) {
+    if (!test.output.hasTimedOut && test.info != null) {
       if (test.output.incomplete && !test.info.hasCompileError) {
         output.add('Unexpected compile-time error.');
       } else {
@@ -404,6 +404,9 @@ class DiffProgressIndicator extends ColorProgressIndicator {
     List<String> configs =
         statusToConfigs.putIfAbsent(status, () => <String>[]);
     configs.add(test.configurationString);
+    if (test.output.hasTimedOut) {
+      print('\n${test.displayName} timed out on ${test.configurationString}');
+    }
   }
 
   String _extractRuntime(String configuration) {

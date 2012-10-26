@@ -132,7 +132,7 @@ void _maybeScheduleMeasurementFrame() {
  * no measurements were actually requested.
  */
 void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks === null) {
+  if (_pendingMeasurementFrameCallbacks == null) {
     _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -149,7 +149,7 @@ void _addMeasurementFrameCallback(TimeoutHandler callback) {
  */
 Future _createMeasurementFuture(ComputeValue computeValue,
                                 Completer completer) {
-  if (_pendingRequests === null) {
+  if (_pendingRequests == null) {
     _pendingRequests = <_MeasurementRequest>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -165,7 +165,7 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests !== null) {
+  if (_pendingRequests != null) {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
@@ -180,7 +180,7 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests !== null) {
+  if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
         request.completer.completeException(request.value);
@@ -190,7 +190,7 @@ void _completeMeasurementFutures() {
     }
   }
 
-  if (readyMeasurementFrameCallbacks !== null) {
+  if (readyMeasurementFrameCallbacks != null) {
     for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
       // TODO(jacobr): wrap each call to a handler in a try-catch block.
       handler();

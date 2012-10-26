@@ -59,7 +59,7 @@ class _Composer extends _Visitor {
       'float': parseFloat, 'str': parseString
     };
 
-    for (var key in tagParsers.getKeys()) {
+    for (var key in tagParsers.keys) {
       if (scalar.tag.name != _Tag.yaml(key)) continue;
       var result = tagParsers[key](scalar.content);
       if (result != null) return setAnchor(scalar, result);
@@ -130,7 +130,7 @@ class _Composer extends _Visitor {
     if (match != null) {
       // TODO(nweiz): clean this up when Dart can parse an octal string
       var n = 0;
-      for (var c in match.group(1).charCodes()) {
+      for (var c in match.group(1).charCodes) {
         n *= 8;
         n += c - 48;
       }

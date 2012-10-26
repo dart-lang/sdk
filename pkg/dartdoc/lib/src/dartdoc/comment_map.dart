@@ -33,7 +33,7 @@ class CommentMap {
 
     _ensureFileParsed(span.source);
     String comment = _comments[span.source.uri.toString()][span.start];
-    assert(comment == null || !comment.trim().isEmpty());
+    assert(comment == null || !comment.trim().isEmpty);
     return comment;
   }
 
@@ -46,7 +46,7 @@ class CommentMap {
   String findLibrary(Source source) {
     _ensureFileParsed(source);
     String comment = _libraryComments[source.uri.toString()];
-    assert(comment == null || !comment.trim().isEmpty());
+    assert(comment == null || !comment.trim().isEmpty);
     return comment;
   }
 
@@ -87,7 +87,7 @@ class CommentMap {
           lastComment = null;
         }
       } else if (lastComment != null) {
-        if (!lastComment.trim().isEmpty()) {
+        if (!lastComment.trim().isEmpty) {
           // We haven't attached the last doc comment to something yet, so stick
           // it to this token.
           comments[token.charOffset] = lastComment;

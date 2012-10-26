@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 class SsaCodeGeneratorTask extends CompilerTask {
 
   final JavaScriptBackend backend;
@@ -85,7 +87,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
         parameters.add(new js.Parameter(name));
       });
       addTypeParameters(work.element, parameters, parameterNames);
-      String parametersString = Strings.join(parameterNames.getValues(), ", ");
+      String parametersString = Strings.join(parameterNames.values, ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
@@ -319,7 +321,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * to the [statement].
    */
   void pushStatement(js.Statement statement, [HInstruction instruction]) {
-    assert(expressionStack.isEmpty());
+    assert(expressionStack.isEmpty);
     if (instruction != null) {
       attachLocation(statement, instruction);
     }
@@ -351,7 +353,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   attachLocationToLast(HInstruction instruction) {
-    attachLocation(expressionStack.last(), instruction);
+    attachLocation(expressionStack.last, instruction);
   }
 
   js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
@@ -405,7 +407,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     HBasicBlock start = beginGraph(graph);
     visitBasicBlock(start);
-    if (!delayedVariableDeclarations.isEmpty()) {
+    if (!delayedVariableDeclarations.isEmpty) {
       List<js.VariableInitialization> declarations =
           <js.VariableInitialization>[];
       delayedVariableDeclarations.forEach((String name) {
@@ -460,8 +462,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // HFieldSet generates code on the form x.y = ..., which isn't
         // valid in a declaration, but it also always have no uses, so
         // it's caught by that test too.
-        assert(current is! HFieldSet || current.usedBy.isEmpty());
-        if (current.usedBy.isEmpty()) {
+        assert(current is! HFieldSet || current.usedBy.isEmpty);
+        if (current.usedBy.isEmpty) {
           result = TYPE_EXPRESSION;
         }
         current = current.next;
@@ -559,7 +561,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     visitSubGraph(expressionSubGraph.subExpression);
     expressionStack = oldExpressionStack;
     isGeneratingExpression = oldIsGeneratingExpression;
-    if (sequenceElements.isEmpty()) {
+    if (sequenceElements.isEmpty) {
       // Happens when the initializer, condition or update of a loop is empty.
       return null;
     } else if (sequenceElements.length == 1) {
@@ -687,7 +689,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitStatement(HInstruction node) {
     assert(!isGeneratingExpression);
     visit(node);
-    if (!expressionStack.isEmpty()) {
+    if (!expressionStack.isEmpty) {
       assert(expressionStack.length == 1);
       pushExpressionAsStatement(pop());
     }
@@ -1005,7 +1007,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endLabeledBlock(labeledBlockInfo);
 
     if (labeledBlockInfo.isContinue) {
-      while (!continueOverrides.isEmpty()) {
+      while (!continueOverrides.isEmpty) {
         continueAction.remove(continueOverrides.head);
         continueOverrides = continueOverrides.tail;
       }
@@ -1146,8 +1148,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    while (!worklist.isEmpty()) {
-      while (!ready.isEmpty()) {
+    while (!worklist.isEmpty) {
+      while (!ready.isEmpty) {
         String destination = ready.removeLast();
         String source = initialValue[destination];
         // Since [source] might have been updated, use the current
@@ -1323,7 +1325,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // one dominated block (since it has only one successor).
     // If the successor is dominated by another block, then the other block
     // is responsible for visiting the successor.
-    if (dominated.isEmpty()) return;
+    if (dominated.isEmpty) return;
     if (dominated.length > 2) {
       compiler.internalError('dominated.length = ${dominated.length}',
                              instruction: node);
@@ -1675,7 +1677,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement(types)) {
-      if (!inputs.isEmpty()) {
+      if (!inputs.isEmpty) {
         compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
       }
@@ -2693,7 +2695,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   String currentLabel() {
-    return labels.last();
+    return labels.last;
   }
 
   js.VariableUse generateStateUse()
@@ -2822,7 +2824,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startBailoutCase(List<HBailoutTarget> bailouts1,
                         [List<HBailoutTarget> bailouts2 = const []]) {
-    if (!defaultClauseUsedInBailoutStack.last() &&
+    if (!defaultClauseUsedInBailoutStack.last &&
         bailouts1.length + bailouts2.length >= 2) {
       currentContainer = new js.Block.empty();
       currentBailoutSwitch.cases.add(new js.Default(currentContainer));
@@ -2831,7 +2833,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     } else {
       _handleBailoutCase(bailouts1);
       _handleBailoutCase(bailouts2);
-      currentContainer = currentBailoutSwitch.cases.last().body;
+      currentContainer = currentBailoutSwitch.cases.last.body;
     }
   }
 

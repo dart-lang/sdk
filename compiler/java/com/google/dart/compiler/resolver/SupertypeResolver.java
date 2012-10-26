@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class SupertypeResolver {
   private static final Set<String> BLACK_LISTED_TYPES = ImmutableSet.of(
-      "Dynamic",
+      "dynamic",
       "Function",
       "bool",
       "num",

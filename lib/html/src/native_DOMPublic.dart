@@ -11,7 +11,7 @@ spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLe
 var _testRunner;
 
 TestRunner get testRunner {
-  if (_testRunner === null)
+  if (_testRunner == null)
     _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
   return _testRunner;
 }

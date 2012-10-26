@@ -496,7 +496,7 @@ class ArgParser {
    * that abbreviation.
    */
   _Option _findByAbbr(String abbr) {
-    for (var option in _options.getValues()) {
+    for (var option in _options.values) {
       if (option.abbreviation == abbr) return option;
     }
 
@@ -544,7 +544,7 @@ class ArgResults {
   }
 
   /** Get the names of the options as a [Collection]. */
-  Collection<String> get options => _options.getKeys();
+  Collection<String> get options => _options.keys;
 }
 
 class _Option {
@@ -630,7 +630,7 @@ class _Usage {
       if (option.help != null) write(2, option.help);
 
       if (option.allowedHelp != null) {
-        var allowedNames = option.allowedHelp.getKeys();
+        var allowedNames = option.allowedHelp.keys;
         allowedNames.sort((a, b) => a.compareTo(b));
         newline();
         for (var name in allowedNames) {
@@ -692,7 +692,7 @@ class _Usage {
 
       // Make room for the allowed help.
       if (option.allowedHelp != null) {
-        for (var allowed in option.allowedHelp.getKeys()) {
+        for (var allowed in option.allowedHelp.keys) {
           title = max(title, getAllowedTitle(allowed).length);
         }
       }

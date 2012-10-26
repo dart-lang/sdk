@@ -99,15 +99,11 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 static void InstallUnoptimizedCode(const Function& function) {
   // Disable optimized code.
   ASSERT(function.HasOptimizedCode());
-  // Patch entry of optimized code.
-  CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
   if (FLAG_trace_compiler) {
     OS::Print("--> patching entry %#"Px"\n",
               Code::Handle(function.CurrentCode()).EntryPoint());
   }
-  // Use previously compiled code.
-  function.SetCode(Code::Handle(function.unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(function.unoptimized_code()));
+  function.SwitchToUnoptimizedCode();
   if (FLAG_trace_compiler) {
     OS::Print("--> restoring entry at %#"Px"\n",
               Code::Handle(function.unoptimized_code()).EntryPoint());
@@ -156,90 +152,106 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function);
       flow_graph = builder.BuildGraph(FlowGraphBuilder::kNotInlining);
+    }
 
-      // Transform to SSA.
-      if (optimized) flow_graph->ComputeSSA(0);  // Start at virtual register 0.
+    if (optimized) {
+      TimerScope timer(FLAG_compiler_stats,
+                       &CompilerStats::ssa_timer,
+                       isolate);
+      // Transform to SSA (virtual register 0 and no inlining arguments).
+      flow_graph->ComputeSSA(0, NULL);
+    }
 
-      if (FLAG_print_flow_graph) {
-        OS::Print("Before Optimizations\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
+    if (FLAG_print_flow_graph) {
+      OS::Print("Before Optimizations\n");
+      FlowGraphPrinter printer(*flow_graph);
+      printer.PrintBlocks();
+    }
+
+    if (optimized) {
+      TimerScope timer(FLAG_compiler_stats,
+                       &CompilerStats::graphoptimizer_timer,
+                       isolate);
+
+      flow_graph->ComputeUseLists();
+
+      FlowGraphOptimizer optimizer(flow_graph);
+      optimizer.ApplyICData();
+
+      // Compute the use lists.
+      flow_graph->ComputeUseLists();
+
+      // Inlining (mutates the flow graph)
+      if (FLAG_use_inlining) {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_timer);
+        FlowGraphInliner inliner(flow_graph);
+        inliner.Inline();
+        // Use lists are maintained and validated by the inliner.
       }
 
-      if (optimized) {
+      // Propagate types and eliminate more type tests.
+      if (FLAG_propagate_types) {
+        FlowGraphTypePropagator propagator(flow_graph);
+        propagator.PropagateTypes();
+      }
+
+      // Verify that the use lists are still valid.
+      DEBUG_ASSERT(flow_graph->ValidateUseLists());
+
+      // Propagate sminess from CheckSmi to phis.
+      optimizer.PropagateSminess();
+
+      // Use propagated class-ids to optimize further.
+      optimizer.ApplyClassIds();
+
+      // Do optimizations that depend on the propagated type information.
+      // TODO(srdjan): Should this be called CanonicalizeComputations?
+      optimizer.OptimizeComputations();
+
+      // Unbox doubles.
+      flow_graph->ComputeUseLists();
+      optimizer.SelectRepresentations();
+
+      if (FLAG_constant_propagation ||
+          FLAG_common_subexpression_elimination) {
         flow_graph->ComputeUseLists();
-
-        FlowGraphOptimizer optimizer(flow_graph);
-        optimizer.ApplyICData();
-
-        // Compute the use lists.
-        flow_graph->ComputeUseLists();
-
-        // Inlining (mutates the flow graph)
-        if (FLAG_use_inlining) {
-          FlowGraphInliner inliner(flow_graph);
-          inliner.Inline();
-          // Use lists are maintained and validated by the inliner.
-        }
-
-        // Propagate types and eliminate more type tests.
-        if (FLAG_propagate_types) {
-          FlowGraphTypePropagator propagator(flow_graph);
-          propagator.PropagateTypes();
-        }
-
-        // Verify that the use lists are still valid.
-        DEBUG_ASSERT(flow_graph->ValidateUseLists());
-
-        // Propagate sminess from CheckSmi to phis.
-        optimizer.PropagateSminess();
-
-        // Use propagated class-ids to optimize further.
-        optimizer.ApplyClassIds();
-
-        // Do optimizations that depend on the propagated type information.
-        // TODO(srdjan): Should this be called CanonicalizeComputations?
+      }
+      if (FLAG_constant_propagation) {
+        ConstantPropagator::Optimize(flow_graph);
+        // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.OptimizeComputations();
-
-        // Unbox doubles.
-        flow_graph->ComputeUseLists();
-        optimizer.SelectRepresentations();
-
-        if (FLAG_constant_propagation ||
-            FLAG_common_subexpression_elimination) {
-          flow_graph->ComputeUseLists();
-        }
-        if (FLAG_constant_propagation) {
-          ConstantPropagator::Optimize(flow_graph);
-          // A canonicalization pass to remove e.g. smi checks on smi constants.
-          optimizer.OptimizeComputations();
-        }
-        if (FLAG_common_subexpression_elimination) {
+      }
+      if (FLAG_common_subexpression_elimination) {
+        if (DominatorBasedCSE::Optimize(flow_graph)) {
+          // Do another round of CSE to take secondary effects into account:
+          // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
+          // TODO(fschneider): Change to a one-pass optimization pass.
           DominatorBasedCSE::Optimize(flow_graph);
         }
-        if (FLAG_loop_invariant_code_motion &&
-            (parsed_function.function().deoptimization_counter() <
-             (FLAG_deoptimization_counter_threshold - 1))) {
-          LICM::Optimize(flow_graph);
-        }
+      }
+      if (FLAG_loop_invariant_code_motion &&
+          (parsed_function.function().deoptimization_counter() <
+           (FLAG_deoptimization_counter_threshold - 1))) {
+        LICM::Optimize(flow_graph);
+      }
 
-        if (FLAG_range_analysis) {
-          // We have to perform range analysis after LICM because it
-          // optimistically moves CheckSmi through phis into loop preheaders
-          // making some phis smi.
-          flow_graph->ComputeUseLists();
-          optimizer.InferSmiRanges();
-        }
+      if (FLAG_range_analysis) {
+        // We have to perform range analysis after LICM because it
+        // optimistically moves CheckSmi through phis into loop preheaders
+        // making some phis smi.
+        flow_graph->ComputeUseLists();
+        optimizer.InferSmiRanges();
+      }
 
-        // Perform register allocation on the SSA graph.
-        FlowGraphAllocator allocator(*flow_graph);
-        allocator.AllocateRegisters();
+      // Perform register allocation on the SSA graph.
+      FlowGraphAllocator allocator(*flow_graph);
+      allocator.AllocateRegisters();
 
-        if (FLAG_print_flow_graph) {
-          OS::Print("After Optimizations:\n");
-          FlowGraphPrinter printer(*flow_graph);
-          printer.PrintBlocks();
-        }
+      if (FLAG_print_flow_graph) {
+        OS::Print("After Optimizations:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
       }
     }
 
@@ -422,18 +434,20 @@ static RawError* CompileFunctionHelper(const Function& function,
   }
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(time_compilation);
-    ParsedFunction parsed_function(function);
+    Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
+    per_compile_timer.Start();
+    ParsedFunction* parsed_function = new ParsedFunction(function);
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos());
     }
-    Parser::ParseFunction(&parsed_function);
-    parsed_function.AllocateVariables();
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
 
     const bool success =
-        CompileParsedFunctionHelper(parsed_function, optimized);
+        CompileParsedFunctionHelper(*parsed_function, optimized);
     if (optimized && !success) {
       // Optimizer bailed out. Disable optimizations and to never try again.
       if (FLAG_trace_compiler) {
@@ -446,11 +460,13 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
 
     ASSERT(success);
+    per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: %#"Px"\n",
+      OS::Print("--> '%s' entry: %#"Px" time: %"Pd64" us\n",
                 function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).EntryPoint());
+                Code::Handle(function.CurrentCode()).EntryPoint(),
+                per_compile_timer.TotalElapsedTime());
     }
 
     if (Isolate::Current()->debugger()->IsActive()) {
@@ -565,16 +581,16 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants
     // here.
-    ParsedFunction parsed_function(func);
-    parsed_function.SetNodeSequence(fragment);
-    parsed_function.set_default_parameter_values(Array::Handle());
-    parsed_function.set_expression_temp_var(
+    ParsedFunction* parsed_function = new ParsedFunction(func);
+    parsed_function->SetNodeSequence(fragment);
+    parsed_function->set_default_parameter_values(Array::Handle());
+    parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
-    fragment->scope()->AddVariable(parsed_function.expression_temp_var());
-    parsed_function.AllocateVariables();
+    fragment->scope()->AddVariable(parsed_function->expression_temp_var());
+    parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false);
+    CompileParsedFunctionHelper(*parsed_function, false);
 
     GrowableArray<const Object*> arguments;  // no arguments.
     const Array& kNoArgumentNames = Array::Handle();

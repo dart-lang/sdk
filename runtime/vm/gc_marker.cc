@@ -209,7 +209,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    // TODO(iposva): merge old and code spaces.
     MarkAndPush(raw_obj);
   }
 
@@ -282,7 +281,6 @@ void GCMarker::IterateRoots(Isolate* isolate,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
-  heap_->IterateCodePointers(visitor);
 }
 
 

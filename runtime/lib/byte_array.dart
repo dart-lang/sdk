@@ -153,7 +153,7 @@ abstract class _ByteArrayBase {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -164,27 +164,27 @@ abstract class _ByteArrayBase {
   // Methods implementing the List interface.
 
   set length(newLength) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot resize a non-extendable array");
   }
 
   void add(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addLast(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addAll(Collection value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    DualPivotQuicksort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -197,26 +197,26 @@ abstract class _ByteArrayBase {
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   int removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  last() {
+  get last {
     return this[length - 1];
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   void insertRange(int start, int length, [initialValue]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
@@ -1488,13 +1488,13 @@ class _ByteArrayIterator<E> implements Iterator<E> {
     assert(array is _ByteArrayBase || array is _ByteArrayViewBase);
   }
 
-  bool hasNext() {
+  bool get hasNext {
    return _length > _pos;
   }
 
   E next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }
@@ -1633,7 +1633,7 @@ class _ByteArrayViewBase {
     return Collections.some(this, f);;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -1642,27 +1642,27 @@ class _ByteArrayViewBase {
   // Methods implementing the List interface.
 
   set length(newLength) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot resize a non-extendable array");
   }
 
   void add(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addLast(value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void addAll(Collection value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void sort([Comparator compare = Comparable.compare]) {
-    DualPivotQuicksort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -1675,26 +1675,26 @@ class _ByteArrayViewBase {
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   int removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  last() {
+  get last {
     return this[length - 1];
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
   void insertRange(int start, int length, [initialValue]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 }

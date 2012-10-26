@@ -46,7 +46,7 @@ main() {
 
   var libraries = mirrors.libraries;
   Expect.isNotNull(libraries, "No libraries map returned");
-  Expect.isFalse(libraries.isEmpty(), "Empty libraries map returned");
+  Expect.isFalse(libraries.isEmpty, "Empty libraries map returned");
 
   var helperLibrary = libraries["mirrors_helper"];
   Expect.isNotNull(helperLibrary, "Library 'mirrors_helper' not found");
@@ -57,7 +57,7 @@ main() {
 
   var types = helperLibrary.types;
   Expect.isNotNull(types, "No types map returned");
-  Expect.isFalse(types.isEmpty(), "Empty types map returned");
+  Expect.isFalse(types.isEmpty, "Empty types map returned");
 
   testFoo(mirrors, helperLibrary, types);
   testBar(mirrors, helperLibrary, types);
@@ -113,7 +113,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   var fooInterfaces = fooClass.interfaces;
   Expect.isNotNull(fooInterfaces, "Interfaces map is null");
-  Expect.isTrue(fooInterfaces.isEmpty(), "Interfaces map is not empty");
+  Expect.isTrue(fooInterfaces.isEmpty, "Interfaces map is not empty");
 
   var fooSubdeclarations = computeSubdeclarations(fooClass);
   Expect.equals(1, count(fooSubdeclarations), "Unexpected subtype count");
@@ -127,18 +127,18 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
                 "Class has type arguments");
   var fooClassTypeVariables = fooClass.typeVariables;
   Expect.isNotNull(fooClassTypeVariables, "Type variable list is null");
-  Expect.isTrue(fooClassTypeVariables.isEmpty(),
+  Expect.isTrue(fooClassTypeVariables.isEmpty,
                 "Type variable list is not empty");
 
   Expect.isNull(fooClass.defaultType, "Class has default type");
 
   var fooClassMembers = fooClass.declaredMembers;
   Expect.isNotNull(fooClassMembers, "Declared members map is null");
-  Expect.isTrue(fooClassMembers.isEmpty(), "Declared members map is unempty");
+  Expect.isTrue(fooClassMembers.isEmpty, "Declared members map is unempty");
 
   var fooClassConstructors = fooClass.constructors;
   Expect.isNotNull(fooClassConstructors, "Constructors map is null");
-  Expect.isTrue(fooClassConstructors.isEmpty(),
+  Expect.isTrue(fooClassConstructors.isEmpty,
                 "Constructors map is unempty");
 }
 
@@ -186,7 +186,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 
   var barInterfaces = barInterface.interfaces;
   Expect.isNotNull(barInterfaces, "Interfaces map is null");
-  Expect.isTrue(barInterfaces.isEmpty(), "Interfaces map is not empty");
+  Expect.isTrue(barInterfaces.isEmpty, "Interfaces map is not empty");
 
   var barSubdeclarations = computeSubdeclarations(barInterface);
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
@@ -201,7 +201,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
               "Interface has type arguments");
   var barInterfaceTypeVariables = barInterface.typeVariables;
   Expect.isNotNull(barInterfaceTypeVariables, "Type variable list is null");
-  Expect.isFalse(barInterfaceTypeVariables.isEmpty(),
+  Expect.isFalse(barInterfaceTypeVariables.isEmpty,
                  "Type variable list is empty");
   Expect.equals(barInterfaceTypeVariables.length, 1,
                 "Unexpected number of type variables");
@@ -214,12 +214,12 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 
   var barInterfaceMembers = barInterface.declaredMembers;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
-  Expect.isTrue(barInterfaceMembers.isEmpty(),
+  Expect.isTrue(barInterfaceMembers.isEmpty,
                 "Declared members map is unempty");
 
   var barInterfaceConstructors = barInterface.constructors;
   Expect.isNotNull(barInterfaceConstructors, "Constructors map is null");
-  Expect.isTrue(barInterfaceConstructors.isEmpty(),
+  Expect.isTrue(barInterfaceConstructors.isEmpty,
                 "Constructors map is unempty");
 }
 
@@ -276,7 +276,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   var bazInterfaces = bazClass.interfaces;
   Expect.isNotNull(bazInterfaces, "Interfaces map is null");
-  Expect.isTrue(!bazInterfaces.isEmpty(), "Interfaces map is empty");
+  Expect.isTrue(!bazInterfaces.isEmpty, "Interfaces map is empty");
   for (var bazInterface in bazInterfaces) {
     Expect.isTrue(containsType(bazClass,
                                computeSubdeclarations(objectType)),
@@ -544,11 +544,11 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNull(funcTypedef.superclass, "Non-null superclass on typedef");
   Expect.isNotNull(funcTypedef.interfaces,
                    "Null interfaces map on typedef");
-  Expect.isTrue(funcTypedef.interfaces.isEmpty(),
+  Expect.isTrue(funcTypedef.interfaces.isEmpty,
                 "Non-empty interfaces map on typedef");
   Expect.isNotNull(funcTypedef.declaredMembers,
                    "Declared members map is null on type def");
-  Expect.isTrue(funcTypedef.declaredMembers.isEmpty(),
+  Expect.isTrue(funcTypedef.declaredMembers.isEmpty,
                 "Non-empty declared members map on typedef");
 
   // TODO(johnniwinther): Returned typedef should not be the declaration:

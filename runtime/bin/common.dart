@@ -27,7 +27,7 @@ class OSError {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("OS Error");
-    if (!message.isEmpty()) {
+    if (!message.isEmpty) {
       sb.add(": ");
       sb.add(message);
       if (errorCode != noErrorCode) {

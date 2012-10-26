@@ -228,7 +228,7 @@ void testPOST(bool chunkedEncoding) {
           request.outputStream.writeString(data.substring(10, data.length));
         } else {
           request.contentLength = data.length;
-          request.outputStream.write(data.charCodes());
+          request.outputStream.write(data.charCodes);
         }
         request.outputStream.close();
       };

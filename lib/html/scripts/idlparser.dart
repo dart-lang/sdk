@@ -177,7 +177,7 @@ class IDLDictNode {
   bool has(String key) => map.containsKey(key);
 
   formatMap() {
-    if (map.isEmpty())
+    if (map.isEmpty)
       return '';
     StringBuffer sb = new StringBuffer();
     map.forEach((k, v) {

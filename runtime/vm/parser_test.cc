@@ -30,11 +30,11 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    ParsedFunction parsed_function(function);
-    Parser::ParseFunction(&parsed_function);
-    EXPECT(parsed_function.node_sequence() != NULL);
+    ParsedFunction* parsed_function = new ParsedFunction(function);
+    Parser::ParseFunction(parsed_function);
+    EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);
-    AstPrinter::PrintFunctionNodes(parsed_function);
+    AstPrinter::PrintFunctionNodes(*parsed_function);
     retval = true;
   } else {
     retval = false;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 abstract class HVisitor<R> {
   R visitAdd(HAdd node);
   R visitBailoutTarget(HBailoutTarget node);
@@ -365,13 +367,13 @@ class HInstructionList {
   HInstruction first = null;
   HInstruction last = null;
 
-  bool isEmpty() {
+  bool get isEmpty {
     return first == null;
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
-      assert(isEmpty());
+      assert(isEmpty);
       first = last = instruction;
     } else if (identical(cursor, last)) {
       last.next = instruction;
@@ -387,7 +389,7 @@ class HInstructionList {
 
   void addBefore(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
-      assert(isEmpty());
+      assert(isEmpty);
       first = last = instruction;
     } else if (identical(cursor, first)) {
       first.previous = instruction;
@@ -419,7 +421,7 @@ class HInstructionList {
   }
 
   void remove(HInstruction instruction) {
-    assert(instruction.usedBy.isEmpty());
+    assert(instruction.usedBy.isEmpty);
     detach(instruction);
   }
 
@@ -465,7 +467,7 @@ class HBasicBlock extends HInstructionList {
         dominatedBlocks = <HBasicBlock>[],
         bailoutTargets = <HBailoutTarget>[];
 
-  int hashCode() => id;
+  int get hashCode => id;
 
   bool isNew() => status == STATUS_NEW;
   bool isOpen() => status == STATUS_OPEN;
@@ -488,7 +490,7 @@ class HBasicBlock extends HInstructionList {
     return parentLoopHeader;
   }
 
-  bool hasBailoutTargets() => !bailoutTargets.isEmpty();
+  bool hasBailoutTargets() => !bailoutTargets.isEmpty;
 
   void open() {
     assert(isNew());
@@ -581,7 +583,7 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addSuccessor(HBasicBlock block) {
-    if (successors.isEmpty()) {
+    if (successors.isEmpty) {
       successors = [block];
     } else {
       successors.add(block);
@@ -623,7 +625,7 @@ class HBasicBlock extends HInstructionList {
       }
     }
 
-    if (better.isEmpty()) return rewrite(from, to);
+    if (better.isEmpty) return rewrite(from, to);
 
     L1: for (HInstruction user in from.usedBy) {
       for (HCheck check in better) {
@@ -816,7 +818,7 @@ abstract class HInstruction implements Spannable {
       : id = idCounter++,
         usedBy = <HInstruction>[];
 
-  int hashCode() => id;
+  int get hashCode => id;
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
@@ -985,7 +987,7 @@ abstract class HInstruction implements Spannable {
 
   void notifyRemovedFromBlock() {
     assert(isInBasicBlock());
-    assert(usedBy.isEmpty());
+    assert(usedBy.isEmpty);
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
@@ -1765,7 +1767,7 @@ class HSwitch extends HControlFlow {
    * the expression. If the switch had no default case, this is the
    * following join-block.
    */
-  HBasicBlock get defaultTarget => block.successors.last();
+  HBasicBlock get defaultTarget => block.successors.last;
 
   accept(HVisitor visitor) => visitor.visitSwitch(this);
 
@@ -2015,7 +2017,7 @@ class HTry extends HControlFlow {
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';
   accept(HVisitor visitor) => visitor.visitTry(this);
-  HBasicBlock get joinBlock => this.block.successors.last();
+  HBasicBlock get joinBlock => this.block.successors.last;
 }
 
 class HIf extends HConditionalBranch {
@@ -2421,7 +2423,7 @@ class HStatic extends HInstruction {
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
-  int gvnHashCode() => super.gvnHashCode() ^ element.hashCode();
+  int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
   int typeCode() => HInstruction.STATIC_TYPECODE;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
@@ -2806,7 +2808,7 @@ class HStatementSequenceInformation implements HStatementInformation {
   HStatementSequenceInformation(this.statements);
 
   HBasicBlock get start => statements[0].start;
-  HBasicBlock get end => statements.last().end;
+  HBasicBlock get end => statements.last.end;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitSequenceInfo(this);
@@ -2974,8 +2976,8 @@ class HSwitchBlockInformation implements HStatementInformation {
   HBasicBlock get start => expression.start;
   HBasicBlock get end {
     // We don't create a switch block if there are no cases.
-    assert(!statements.isEmpty());
-    return statements.last().end;
+    assert(!statements.isEmpty);
+    return statements.last.end;
   }
 
   bool accept(HStatementInformationVisitor visitor) =>

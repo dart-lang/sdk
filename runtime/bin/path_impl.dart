@@ -8,7 +8,7 @@ class _Path implements Path {
   _Path(String source) : _path = source;
   _Path.fromNative(String source) : _path = _clean(source);
 
-  int hashCode() => _path.hashCode();
+  int get hashCode => _path.hashCode;
 
   static String _clean(String source) {
     switch (Platform.operatingSystem) {
@@ -29,7 +29,7 @@ class _Path implements Path {
     return clean;
   }
 
-  bool get isEmpty => _path.isEmpty();
+  bool get isEmpty => _path.isEmpty;
   bool get isAbsolute => _path.startsWith('/');
   bool get hasTrailingSeparator => _path.endsWith('/');
 
@@ -41,13 +41,14 @@ class _Path implements Path {
     //    base.join(relative) == this.canonicalize.
     // Throws an exception if no such path exists, or the case is not
     // implemented yet.
-    if (base.isAbsolute && _path.startsWith(base._path)) {
-      if (_path == base._path) return new Path('.');
+    var basePath = base.toString();
+    if (base.isAbsolute && _path.startsWith(basePath)) {
+      if (_path == basePath) return new Path('.');
       if (base.hasTrailingSeparator) {
-        return new Path(_path.substring(base._path.length));
+        return new Path(_path.substring(basePath.length));
       }
-      if (_path[base._path.length] == '/') {
-        return new Path(_path.substring(base._path.length + 1));
+      if (_path[basePath.length] == '/') {
+        return new Path(_path.substring(basePath.length + 1));
       }
     } else if (base.isAbsolute && isAbsolute) {
       List<String> baseSegments = base.canonicalize().segments();
@@ -68,7 +69,7 @@ class _Path implements Path {
       for (int i = common; i < pathSegments.length - 1; i++) {
         sb.add('${pathSegments[i]}/');
       }
-      sb.add('${pathSegments.last()}');
+      sb.add('${pathSegments.last}');
       if (hasTrailingSeparator) {
         sb.add('/');
       }
@@ -89,9 +90,9 @@ class _Path implements Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      return new Path('$_path${further._path}').canonicalize();
+      return new Path('$_path${further}').canonicalize();
     }
-    return new Path('$_path/${further._path}').canonicalize();
+    return new Path('$_path/${further}').canonicalize();
   }
 
   // Note: The URI RFC names for these operations are normalize, resolve, and
@@ -118,7 +119,7 @@ class _Path implements Path {
         segs[pos] = null;
       }
     }
-    if (segs.last() == '') segs.removeLast();  // Path ends with /.
+    if (segs.last == '') segs.removeLast();  // Path ends with /.
     // No remaining segments can be ., .., or empty.
     return !segs.some((s) => s == '' || s == '.' || s == '..');
   }
@@ -128,7 +129,7 @@ class _Path implements Path {
     List segs = segments();
     String drive;
     if (isAbs &&
-        !segs.isEmpty() &&
+        !segs.isEmpty &&
         segs[0].length == 2 &&
         segs[0][1] == ':') {
       drive = segs[0];
@@ -139,13 +140,13 @@ class _Path implements Path {
       switch (segment) {
         case '..':
           // Absolute paths drop leading .. markers, including after a drive.
-          if (newSegs.isEmpty()) {
+          if (newSegs.isEmpty) {
             if (isAbs) {
               // Do nothing: drop the segment.
             } else {
               newSegs.add('..');
             }
-          } else if (newSegs.last() == '..') {
+          } else if (newSegs.last == '..') {
             newSegs.add('..');
           } else {
             newSegs.removeLast();
@@ -169,7 +170,7 @@ class _Path implements Path {
       }
     }
 
-    if (newSegs.isEmpty()) {
+    if (newSegs.isEmpty) {
       if (isAbs) {
         segmentsToJoin.add('');
       } else {

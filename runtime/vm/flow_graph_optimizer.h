@@ -87,10 +87,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,
                                intptr_t length_offset,
-                               bool is_immutable);
+                               bool is_immutable,
+                               MethodRecognizer::Kind kind);
   void InlineGArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
-  void InlineStringIsEmptyTester(InstanceCallInstr* call);
+  void InlineStringIsEmptyGetter(InstanceCallInstr* call);
 
   FlowGraph* flow_graph_;
 
@@ -155,10 +156,12 @@ class LICM : public AllStatic {
 // on the dominator tree.
 class DominatorBasedCSE : public AllStatic {
  public:
-  static void Optimize(FlowGraph* graph);
+  // Return true, if the optimization changed the flow graph.
+  // False, if nothing changed.
+  static bool Optimize(FlowGraph* graph);
 
  private:
-  static void OptimizeRecursive(
+  static bool OptimizeRecursive(
       BlockEntryInstr* entry,
       DirectChainedHashMap<Instruction*>* map);
 };

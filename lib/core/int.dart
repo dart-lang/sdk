@@ -36,10 +36,10 @@ abstract class int extends num {
   int operator >>(int shiftAmount);
 
   /** Returns true if and only if this integer is even. */
-  bool isEven();
+  bool get isEven;
 
   /** Returns true if and only if this integer is odd. */
-  bool isOdd();
+  bool get isOdd;
 
   /** Negate operator. Negating an integer produces an integer. */
   int operator -();
@@ -47,16 +47,16 @@ abstract class int extends num {
   /** Returns the absolute value of this integer. */
   int abs();
 
-  /** For integers the round method is the identify function. */
+  /** Returns [this]. */
   int round();
 
-  /** For integers the floor method is the identify function. */
+  /** Returns [this]. */
   int floor();
 
-  /** For integers the ceil method is the identify function. */
+  /** Returns [this]. */
   int ceil();
 
-  /** For integers the truncate method is the identify function. */
+  /** Returns [this]. */
   int truncate();
 
   /**

@@ -16,6 +16,7 @@
 // to inject additional functionality e.g: Logger, file I/O, socket I/O etc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Common_IsBuiltinList, 1)                                                   \
+  V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \

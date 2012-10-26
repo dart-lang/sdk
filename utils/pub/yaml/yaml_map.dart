@@ -29,13 +29,13 @@ class YamlMap implements Map {
   void clear() => _map.clear();
   void forEach(void f(key, value)) =>
     _map.forEach((k, v) => f(_unwrapKey(k), v));
-  Collection getKeys() => _map.getKeys().map(_unwrapKey);
-  Collection getValues() => _map.getValues();
+  Collection get keys => _map.keys.map(_unwrapKey);
+  Collection get values => _map.values;
   int get length => _map.length;
-  bool isEmpty() => _map.isEmpty();
+  bool get isEmpty => _map.isEmpty;
   String toString() => _map.toString();
 
-  int hashCode() => _hashCode(_map);
+  int get hashCode => _hashCode(_map);
 
   bool operator ==(other) {
     if (other is! YamlMap) return false;
@@ -67,7 +67,7 @@ class _WrappedHashKey {
 
   _WrappedHashKey(this.value);
 
-  int hashCode() => _hashCode(value);
+  int get hashCode => _hashCode(value);
 
   String toString() => value.toString();
 
@@ -95,8 +95,8 @@ int _hashCode(obj, [List parents]) {
     if (obj == true) return 1;
     if (obj == false) return 2;
     if (obj is Map) {
-      return _hashCode(obj.getKeys(), parents) ^
-        _hashCode(obj.getValues(), parents);
+      return _hashCode(obj.keys, parents) ^
+        _hashCode(obj.values, parents);
     }
     if (obj is List) {
       // This is probably a really bad hash function, but presumably we'll get this
@@ -107,7 +107,7 @@ int _hashCode(obj, [List parents]) {
       }
       return hash;
     }
-    return obj.hashCode();
+    return obj.hashCode;
   } finally {
     parents.removeLast();
   }

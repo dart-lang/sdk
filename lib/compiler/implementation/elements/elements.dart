@@ -123,9 +123,12 @@ class ElementKind {
 }
 
 class Element implements Spannable {
+  static int elementHashCode = 0;
+
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
+  final int hashCode = ++elementHashCode;
   Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
   Element(this.name, this.kind, this.enclosingElement) {
@@ -231,11 +234,11 @@ class Element implements Spannable {
   Element get declaration => isPatch ? origin : this;
 
   Element get patch {
-    throw new UnsupportedOperationException('patch is not supported on $this');
+    throw new UnsupportedError('patch is not supported on $this');
   }
 
   Element get origin {
-    throw new UnsupportedOperationException('origin is not supported on $this');
+    throw new UnsupportedError('origin is not supported on $this');
   }
 
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
@@ -260,11 +263,6 @@ class Element implements Spannable {
     }
     return token;
   }
-
-  // TODO(kasperl): This is a very bad hash code for the element and
-  // there's no reason why two elements with the same name should have
-  // the same hash code. Replace this with a simple id in the element?
-  int hashCode() => name == null ? 0 : name.hashCode();
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
@@ -316,20 +314,9 @@ class Element implements Spannable {
   }
 
   /**
-   * Creates the scope for this element. The scope of the
-   * enclosing element will be the parent scope.
+   * Creates the scope for this element.
    */
-  // TODO(johnniwinther): Clean up scope generation. Possibly generation scopes
-  // externally.
-  Scope buildScope({bool patchScope: false}) =>
-      buildEnclosingScope(patchScope: patchScope);
-
-  /**
-   * Creates the scope for the enclosing element.
-   */
-  // TODO(johnniwinther): Remove buildEnclosingScope as part of scope clean-up.
-  Scope buildEnclosingScope({bool patchScope: false}) =>
-      enclosingElement.buildScope(patchScope: patchScope);
+  Scope buildScope() => enclosingElement.buildScope();
 
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
@@ -391,6 +378,11 @@ class ErroneousElement extends Element {
   Link<MetadataAnnotation> get metadata => unsupported();
 
   getLibrary() => enclosingElement.getLibrary();
+
+  String toString() {
+    String n = targetName.slowToString();
+    return '<$n: ${messageKind.message(messageArguments)}>';
+  }
 }
 
 class ErroneousFunctionElement extends ErroneousElement
@@ -546,7 +538,7 @@ class CompilationUnitElement extends ContainerElement {
           api_e.Diagnostic.WARNING);
       return;
     }
-    if (!localMembers.isEmpty()) {
+    if (!localMembers.isEmpty) {
       listener.reportMessage(
           listener.spanFromNode(tag),
           MessageKind.BEFORE_TOP_LEVEL.error(),
@@ -700,10 +692,18 @@ class LibraryElement extends ScopeContainerElement {
    */
   Element find(SourceString elementName) {
     Element result = localScope[elementName];
-    if (result == null) {
-      result = importScope[elementName];
+    if (result != null) return result;
+    if (origin != null) {
+      result = origin.localScope[elementName];
+      if (result != null) return result;
     }
-    return result;
+    result = importScope[elementName];
+    if (result != null) return result;
+    if (origin != null) {
+      result = origin.importScope[elementName];
+      if (result != null) return result;
+    }
+    return null;
   }
 
   /** Look up a top-level element in this library, but only look for
@@ -754,16 +754,7 @@ class LibraryElement extends ScopeContainerElement {
     }
   }
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildEnclosingScope({bool patchScope: false}) {
-    if (origin != null) {
-      return new PatchLibraryScope(origin, this);
-    } if (patchScope && patch != null) {
-      return new PatchLibraryScope(this, patch);
-    } else {
-      return new TopScope(this);
-    }
-  }
+  Scope buildScope() => new LibraryScope(this);
 
   bool get isPlatformLibrary => uri.scheme == "dart";
 
@@ -826,10 +817,8 @@ class TypedefElement extends Element implements TypeDeclarationElement {
 
   Link<DartType> get typeVariables => cachedType.typeArguments;
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    return new TypeDeclarationScope(
-      enclosingElement.buildScope(patchScope: patchScope), this);
+  Scope buildScope() {
+    return new TypeDeclarationScope(enclosingElement.buildScope(), this);
   }
 }
 
@@ -850,7 +839,7 @@ class VariableElement extends Element {
     if (cachedNode != null) return cachedNode;
     VariableDefinitions definitions = variables.parseNode(listener);
     for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty(); link = link.tail) {
+         !link.isEmpty; link = link.tail) {
       Expression initializedIdentifier = link.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
       if (identifier == null) {
@@ -934,9 +923,9 @@ class VariableListElement extends Element {
       } else {
         // Is node.definitions exactly one FunctionExpression?
         Link<Node> link = node.definitions.nodes;
-        if (!link.isEmpty() &&
+        if (!link.isEmpty &&
             link.head.asFunctionExpression() != null &&
-            link.tail.isEmpty()) {
+            link.tail.isEmpty) {
           FunctionExpression functionExpression = link.head;
           // We found exactly one FunctionExpression
           functionSignature =
@@ -1040,7 +1029,7 @@ class FunctionSignature {
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       function(link.head);
     }
@@ -1048,7 +1037,7 @@ class FunctionSignature {
 
   void forEachOptionalParameter(void function(Element parameter)) {
     for (Link<Element> link = optionalParameters;
-         !link.isEmpty();
+         !link.isEmpty;
          link = link.tail) {
       function(link.head);
     }
@@ -1279,7 +1268,7 @@ abstract class TypeDeclarationElement implements Element {
 
     // Create types and elements for type variable.
     var arguments = new LinkBuilder<DartType>();
-    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link link = parameters.nodes; !link.isEmpty; link = link.tail) {
       TypeVariable node = link.head;
       SourceString variableName = node.name.source;
       TypeVariableElement variableElement =
@@ -1493,9 +1482,7 @@ abstract class ClassElement extends ScopeContainerElement
     SourceString normalizedName;
     SourceString className = this.name;
     SourceString constructorName = selector.name;
-    if (!identical(constructorName, const SourceString('')) &&
-        ((className == null) ||
-         (constructorName.slowToString() != className.slowToString()))) {
+    if (constructorName != const SourceString('')) {
       normalizedName = Elements.constructConstructorName(className,
                                                          constructorName);
     } else {
@@ -1514,7 +1501,7 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool get hasConstructor {
     // Search in scope to be sure we search patched constructors.
-    for (var element in localScope.getValues()) {
+    for (var element in localScope.values) {
       if (element.isConstructor()) return true;
     }
     return false;
@@ -1639,29 +1626,9 @@ abstract class ClassElement extends ScopeContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeName != null;
-  int hashCode() => id;
+  int get hashCode => id;
 
-  // TODO(johnniwinther): Rewrite to avoid the optional argument.
-  Scope buildScope({bool patchScope: false}) {
-    if (origin != null) {
-      return new PatchClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), origin, this);
-    } else if (patchScope && patch != null) {
-      return new PatchClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), this, patch);
-    } else {
-      return new ClassScope(
-          enclosingElement.buildScope(patchScope: patchScope), this);
-    }
-  }
-
-  Scope buildLocalScope() {
-    if (origin != null) {
-      return new LocalPatchClassScope(origin, this);
-    } else {
-      return new LocalClassScope(this);
-    }
-  }
+  Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
   Link<DartType> get allSupertypesAndSelf {
     return allSupertypes.prepend(new InterfaceType(this));

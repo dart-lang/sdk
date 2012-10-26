@@ -234,6 +234,9 @@ class _HttpParser {
 
           case _State.REQUEST_LINE_URI:
             if (byte == _CharCode.SP) {
+              if (_uri_or_reason_phrase.length == 0) {
+                throw new HttpParserException("Invalid request URI");
+              }
               _state = _State.REQUEST_LINE_HTTP_VERSION;
               _httpVersionIndex = 0;
             } else {

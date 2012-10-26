@@ -97,9 +97,9 @@ off_t File::Length() {
 
 
 File* File::Open(const char* name, FileOpenMode mode) {
-  int flags = O_RDONLY | O_BINARY;
+  int flags = O_RDONLY | O_BINARY | O_NOINHERIT;
   if ((mode & kWrite) != 0) {
-    flags = (O_RDWR | O_CREAT | O_BINARY);
+    flags = (O_RDWR | O_CREAT | O_BINARY | O_NOINHERIT);
   }
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;

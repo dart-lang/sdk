@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 class HValidator extends HInstructionVisitor {
   bool isValid = true;
   HGraph graph;
@@ -46,14 +48,14 @@ class HValidator extends HInstructionVisitor {
         (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
       markInvalid("Return node with > 1 succesor or not going to exit-block");
     }
-    if (block.last is HExit && !block.successors.isEmpty()) {
+    if (block.last is HExit && !block.successors.isEmpty) {
       markInvalid("Exit block with successor");
     }
-    if (block.last is HThrow && !block.successors.isEmpty()) {
+    if (block.last is HThrow && !block.successors.isEmpty) {
       markInvalid("Throw block with successor");
     }
 
-    if (block.successors.isEmpty() &&
+    if (block.successors.isEmpty &&
         block.last is !HThrow &&
         !block.isExitBlock()) {
       markInvalid("Non-exit or throw block without successor");

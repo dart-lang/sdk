@@ -80,7 +80,7 @@ class OSError {
 
   /** Converts an OSError object to a string representation. */
   String toString() {
-    throw UnsupportedOperationException('OSError.toString');
+    throw new UnsupportedError('OSError.toString');
   }
 
   /**
@@ -97,52 +97,52 @@ class OSError {
 }
 
 List _ensureFastAndSerializableBuffer(List buffer, int offset, int bytes) {
-  throw new UnsupportedOperationException('_ensureFastAndSerializableBuffer');
+  throw new UnsupportedError('_ensureFastAndSerializableBuffer');
 }
 
 class _File {
   factory _File(arg) {
-    throw new UnsupportedOperationException('new File($arg)');
+    throw new UnsupportedError('new File($arg)');
   }
 
   factory _File.fromPath(arg) {
-    throw new UnsupportedOperationException('new File.fromPath($arg)');
+    throw new UnsupportedError('new File.fromPath($arg)');
   }
 }
 
 class _Platform {
   static int get numberOfProcessors {
-    throw new UnsupportedOperationException('_Platform.numberOfProcessors');
+    throw new UnsupportedError('_Platform.numberOfProcessors');
   }
 
   static String get pathSeparator {
-    throw new UnsupportedOperationException('_Platform.pathSeparator');
+    throw new UnsupportedError('_Platform.pathSeparator');
   }
 
   static String get operatingSystem {
-    throw new UnsupportedOperationException('_Platform.operatingSystem');
+    throw new UnsupportedError('_Platform.operatingSystem');
   }
 
   static String get localHostname {
-    throw new UnsupportedOperationException('_Platform.localHostname');
+    throw new UnsupportedError('_Platform.localHostname');
   }
 
   static Map<String, String> get environment {
-    throw new UnsupportedOperationException('_Platform.environment');
+    throw new UnsupportedError('_Platform.environment');
   }
 }
 
 class _Directory {
   factory _Directory(arg) {
-    throw new UnsupportedOperationException('new Directory($arg)');
+    throw new UnsupportedError('new Directory($arg)');
   }
 
   factory _Directory.fromPath(arg) {
-    throw new UnsupportedOperationException('new Directory.fromPath($arg)');
+    throw new UnsupportedError('new Directory.fromPath($arg)');
   }
 
   factory _Directory.current() {
-    throw new UnsupportedOperationException('new Directory.current()');
+    throw new UnsupportedError('new Directory.current()');
   }
 }
 
@@ -150,7 +150,7 @@ class _DirectoryLister {
 }
 
 void _exit(int exitCode) {
-  throw new UnsupportedOperationException("exit($exitCode)");
+  throw new UnsupportedError("exit($exitCode)");
 }
 
 class _Process {
@@ -158,50 +158,50 @@ class _Process {
                                List<String> arguments,
                                [ProcessOptions options]) {
     var msg = 'Process.start($executable, $arguments, $options)';
-    throw new UnsupportedOperationException(msg);
+    throw new UnsupportedError(msg);
   }
 
   static Future<ProcessResult> run(String executable,
                                    List<String> arguments,
                                    [ProcessOptions options]) {
     var msg = 'Process.run($executable, $arguments, $options)';
-    throw new UnsupportedOperationException(msg);
+    throw new UnsupportedError(msg);
   }
 }
 
 class _ServerSocket {
   factory _ServerSocket(String bindAddress, int port, int backlog) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         'new ServerSocket($bindAddress, $port, $backlog)');
   }
 }
 
 class _Socket {
   factory _Socket(String host, int port) {
-    throw new UnsupportedOperationException('new Socket($host, $port)');
+    throw new UnsupportedError('new Socket($host, $port)');
   }
 }
 
 class _EventHandler {
   factory _EventHandler() {
-    throw new UnsupportedOperationException('new _EventHandler()');
+    throw new UnsupportedError('new _EventHandler()');
   }
 
   static void _start() {
-    throw new UnsupportedOperationException('_EventHandler._start()');
+    throw new UnsupportedError('_EventHandler._start()');
   }
 
   static _sendData(int id, ReceivePort receivePort, int data) {
     var msg = '_EventHandler._sendData($id, $receivePort, $data)';
-    throw new UnsupportedOperationException(msg);
+    throw new UnsupportedError(msg);
   }
 
   static _EventHandler get _eventHandler {
-    throw new UnsupportedOperationException('_EventHandler._eventhandler');
+    throw new UnsupportedError('_EventHandler._eventhandler');
   }
 
   static void set _eventHandler(_EventHandler e) {
-    throw new UnsupportedOperationException('_EventHandler._eventhandler = $e');
+    throw new UnsupportedError('_EventHandler._eventhandler = $e');
   }
 }
 

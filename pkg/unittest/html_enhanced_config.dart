@@ -153,7 +153,7 @@ class HtmlEnhancedConfiguration extends Configuration {
       List<TestCase> flattened = new List<TestCase>();
 
       groupedBy
-        .getValues()
+        .values
         .forEach((tList){
           tList.sort((tcA, tcB) => tcA.id - tcB.id);
           flattened.addAll(tList);

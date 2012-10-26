@@ -111,6 +111,12 @@ abstract class HttpServer {
    * Sets the error handler that is called when a connection error occurs.
    */
   void set onError(void callback(e));
+
+  /**
+   * Set the timeout, in seconds, for sessions of this HTTP server. Default
+   * is 20 minutes.
+   */
+  int set sessionTimeout(int timeout);
 }
 
 
@@ -386,6 +392,29 @@ abstract class HeaderValue {
   String toString();
 }
 
+abstract class HttpSession {
+  /**
+   * Get the id for the current session.
+   */
+  String get id;
+
+  /**
+   * Access the user-data associated with the session.
+   */
+  Dynamic data;
+
+  /**
+   * Destroy the session. This will terminate the session and any further
+   * connections with this id will be given a new id and session.
+   */
+  void destroy();
+
+  /**
+   * Set a callback that will be called when the session is timed out.
+   */
+  void set onTimeout(void callback());
+}
+
 
 /**
  * Representation of a content type.
@@ -553,9 +582,18 @@ abstract class HttpRequest {
   HttpHeaders get headers;
 
   /**
-   * Returns the cookies in the request (from the Cookie header).
+   * Returns the cookies in the request (from the Cookie headers).
    */
   List<Cookie> get cookies;
+
+  /**
+   * Returns, or initialize, a session for the given request. If the session is
+   * being initialized by this call, [init] will be called with the
+   * newly create session. Here the [:HttpSession.data:] field can be set, if
+   * needed.
+   * See [:HttpServer.sessionTimeout:] on how to change default timeout.
+   */
+  HttpSession session([init(HttpSession session)]);
 
   /**
    * Returns the input stream for the request. This is used to read

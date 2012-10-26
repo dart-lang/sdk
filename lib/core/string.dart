@@ -64,7 +64,7 @@ interface String
   /**
    * Returns whether this string is empty.
    */
-  bool isEmpty();
+  bool get isEmpty;
 
   /**
    * Creates a new string by concatenating this string with [other].
@@ -117,7 +117,7 @@ interface String
   /**
    * Returns a list of the scalar character codes of this string.
    */
-  List<int> charCodes();
+  List<int> get charCodes;
 
   /**
    * If this string is not already all lower case, returns a new string

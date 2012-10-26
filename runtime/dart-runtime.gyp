@@ -91,6 +91,7 @@
           ],
           'action': [
             'python',
+            '-u', # Make standard I/O unbuffered.
             'tools/make_version.py',
             '--output', '<(version_cc_file)',
             '--input', '<(version_in_cc_file)',

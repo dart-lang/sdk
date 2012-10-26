@@ -160,7 +160,7 @@ listGroups() {
       }
     }
   }
-  for (var g in groups.getKeys()) {
+  for (var g in groups.keys) {
     var msg = formatListMessage('$testfile ', '$g ');
     print('###$msg');
   }

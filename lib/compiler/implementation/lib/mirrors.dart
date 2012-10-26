@@ -13,14 +13,14 @@
  */
 class _Mirrors {
   static MirrorSystem currentMirrorSystem() {
-    throw new UnsupportedOperationException("MirrorSystem not implemented");
+    throw new UnsupportedError("MirrorSystem not implemented");
   }
 
   static Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-    throw new UnsupportedOperationException("MirrorSystem not implemented");
+    throw new UnsupportedError("MirrorSystem not implemented");
   }
 
   static InstanceMirror reflect(Object reflectee) {
-    throw new UnsupportedOperationException("MirrorSystem not implemented");
+    throw new UnsupportedError("MirrorSystem not implemented");
   }
 }

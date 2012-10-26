@@ -100,7 +100,7 @@ void buildFileList(List dirs, RegExp filePat, bool recurse,
  * support files into the generated scripts.
  */
 
-String get runnerDirectory() {
+String get runnerDirectory {
   var libDirectory = makePathAbsolute(new Options().script);
   return libDirectory.substring(0,
       libDirectory.lastIndexOf(Platform.pathSeparator));

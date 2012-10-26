@@ -2144,7 +2144,7 @@ public class Resolver {
           // fall through
         case 0:
           typeArgs.add(implicitKey);
-          DartTypeNode implicitValue = new DartTypeNode(new DartIdentifier("Dynamic"));
+          DartTypeNode implicitValue = new DartTypeNode(new DartIdentifier("dynamic"));
           typeArgs.add(implicitValue);
           break;
       }

@@ -35,7 +35,7 @@ class MyListIterator<T> implements Iterator<T> {
   final List<T> values;
   int index;
   MyListIterator(List<T> values) : this.values = values, index = 0;
-  bool hasNext() => index < values.length;
+  bool get hasNext => index < values.length;
   T next() => values[index++];
 }
 

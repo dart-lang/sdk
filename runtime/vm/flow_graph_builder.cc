@@ -366,7 +366,6 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 
 
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
-  ASSERT(!FLAG_enable_type_checks);
   ControlInstruction* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
     branch = new BranchInstr(new StrictCompareInstr(comp->kind(),
@@ -380,7 +379,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         comp->left(),
         comp->right()));
   } else {
-    branch = new BranchInstr(comp);
+    branch = new BranchInstr(comp, FLAG_enable_type_checks);
   }
   AddInstruction(branch);
   CloseFragment();
@@ -403,12 +402,12 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
 
 
 void TestGraphVisitor::ReturnDefinition(Definition* definition) {
+  ComparisonInstr* comp = definition->AsComparison();
+  if (comp != NULL) {
+    MergeBranchWithComparison(comp);
+    return;
+  }
   if (!FLAG_enable_type_checks) {
-    ComparisonInstr* comp = definition->AsComparison();
-    if (comp != NULL) {
-      MergeBranchWithComparison(comp);
-      return;
-    }
     BooleanNegateInstr* neg = definition->AsBooleanNegate();
     if (neg != NULL) {
       MergeBranchWithNegate(neg);
@@ -1406,6 +1405,7 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 
 void EffectGraphVisitor::VisitArgumentDefinitionTestNode(
     ArgumentDefinitionTestNode* node) {
+  InlineBailout("EffectGraphVisitor::VisitArgumentDefinitionTestNode");
   Definition* load = BuildLoadLocal(node->saved_arguments_descriptor());
   Value* arguments_descriptor = Bind(load);
   ArgumentDefinitionTestInstr* arg_def_test =
@@ -1531,6 +1531,29 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
+  if (node->function().name() == Symbols::Identical()) {
+    // Attempt to replace identical with strcit equal early on.
+    // TODO(hausner): Evaluate if this can happen at AST building time.
+    const Class& cls = Class::Handle(node->function().Owner());
+    if (cls.IsTopLevel()) {
+      const Library& core_lib = Library::Handle(Library::CoreLibrary());
+      if (cls.library() == core_lib.raw()) {
+        ASSERT(node->arguments()->length() == 2);
+        ValueGraphVisitor for_left_value(owner(), temp_index());
+        node->arguments()->NodeAt(0)->Visit(&for_left_value);
+        Append(for_left_value);
+        ValueGraphVisitor for_right_value(owner(), temp_index());
+        node->arguments()->NodeAt(1)->Visit(&for_right_value);
+        Append(for_right_value);
+        StrictCompareInstr* comp = new StrictCompareInstr(
+            Token::kEQ_STRICT,
+            for_left_value.value(),
+            for_right_value.value());
+        ReturnDefinition(comp);
+        return;
+      }
+    }
+  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
   BuildPushArguments(*node->arguments(), arguments);

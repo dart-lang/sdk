@@ -89,7 +89,7 @@ class PerformanceModel {
  */
 class TestReport {
   TestReport(this.id, this.desc, this.warmup, this.results) {
-    spaceChar = " ".charCodes()[0];
+    spaceChar = " ".charCodes[0];
   }
 
   int spaceChar;
@@ -169,7 +169,7 @@ class TestReport {
   String _leftAlign(String s, int width) {
     List<int> outCodes = [];
     outCodes.insertRange(0, width, spaceChar);
-    outCodes.setRange(0, Math.min(width, s.length), s.charCodes());
+    outCodes.setRange(0, Math.min(width, s.length), s.charCodes);
     return new String.fromCharCodes(outCodes);
   }
 
@@ -177,12 +177,12 @@ class TestReport {
     List<int> outCodes = [];
     outCodes.insertRange(0, width, spaceChar);
     outCodes.setRange(Math.max(0, width - s.length), Math.min(width, s.length),
-        s.charCodes());
+        s.charCodes);
     return new String.fromCharCodes(outCodes);
   }
 
   static String _stringifyDoubleAsInt(double val) {
-    if (val.isInfinite() || val.isNaN()) {
+    if (val.isInfinite || val.isNaN) {
       return "NaN";
     } else {
       return val.toInt().toString();
@@ -273,7 +273,7 @@ class BenchmarkRunner extends Runner {
       test();
     }
     s.stop();
-    return new BlockSample(count, s.elapsedInUs() * 1000);
+    return new BlockSample(count, s.elapsedMicroseconds * 1000);
   }
 }
 

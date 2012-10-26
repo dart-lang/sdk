@@ -57,13 +57,12 @@ if [ -x /usr/libexec/java_home ]; then
 fi
 
 EXTRA_JVMARGS="-Xss2M "
-OS=`uname | tr [A-Z] [a-z]`
+OS=`uname | tr "[A-Z]" "[a-z]"`
 if [ "$OS" == "darwin" ] ; then
   # Bump up the heap on Mac VMs, some of which default to 128M or less.
-  # Users can specify DART_JVMARGS in the environment to override
-  # this setting. Force to 32 bit client vm. 64 bit and server VM make for 
-  # poor performance.
-  EXTRA_JVMARGS+=" -Xmx256M -client -d32 "
+  # Users can specify DART_JVMARGS in the environment to override this
+  # setting.
+  EXTRA_JVMARGS+=" -Xmx256M -client "
 else
   # On other architectures
   # -batch invocations will do better with a server vm

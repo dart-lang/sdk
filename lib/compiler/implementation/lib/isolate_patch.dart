@@ -85,7 +85,7 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the change to break the isolate abstraction.
-_Manager get _globalState() => JS("Object", r"$globalState");
+_Manager get _globalState => JS("Object", r"$globalState");
 set _globalState(_Manager val) {
   JS("void", r"$globalState = #", val);
 }
@@ -106,7 +106,7 @@ patch ReceivePort get port {
 patch SendPort spawnFunction(void topLevelFunction()) {
   final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
   if (name == null) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "only top-level functions can be spawned.");
   }
   return _IsolateNatives._spawn(name, null, false);
@@ -208,7 +208,7 @@ $globalThis.onmessage = function (e) {
 
   /** Close the worker running this code if all isolates are done. */
   void maybeCloseWorker() {
-    if (isolates.isEmpty()) {
+    if (isolates.isEmpty) {
       mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
@@ -269,7 +269,7 @@ class _IsolateContext {
   /** Unregister a port on this isolate. */
   void unregister(int portId) {
     ports.remove(portId);
-    if (ports.isEmpty()) {
+    if (ports.isEmpty) {
       _globalState.isolates.remove(id); // indicate this isolate is not active
     }
   }
@@ -286,7 +286,7 @@ class _EventLoop {
   }
 
   _IsolateEvent dequeue() {
-    if (events.isEmpty()) return null;
+    if (events.isEmpty) return null;
     return events.removeFirst();
   }
 
@@ -300,7 +300,7 @@ class _EventLoop {
                  _globalState.isolates.containsKey(
                      _globalState.rootContext.id) &&
                  _globalState.fromCommandLine &&
-                 _globalState.rootContext.ports.isEmpty()) {
+                 _globalState.rootContext.ports.isEmpty) {
         // We want to reach here only on the main [_Manager] and only
         // on the command-line.  In the browser the isolate might
         // still be alive due to DOM callbacks, but the presumption is
@@ -409,7 +409,7 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() => JS("String", r"$thisScriptUrl");
+  static String get _thisScript => JS("String", r"$thisScriptUrl");
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) => JS("Object", r"new Worker(#)", url);
@@ -561,7 +561,7 @@ class _IsolateNatives {
   static SendPort _startNonWorker(
       String functionName, String uri, SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
-    if (uri != null) throw new UnsupportedOperationException(
+    if (uri != null) throw new UnsupportedError(
             "Currently spawnUri is not supported without web workers.");
     _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);
@@ -650,7 +650,7 @@ class _BaseSendPort implements SendPort {
 
   abstract void send(var message, [SendPort replyTo]);
   abstract bool operator ==(var other);
-  abstract int hashCode();
+  abstract int get hashCode;
 }
 
 /** A send port that delivers messages in-memory via native JavaScript calls. */
@@ -697,7 +697,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
   bool operator ==(var other) => (other is _NativeJsSendPort) &&
       (_receivePort == other._receivePort);
 
-  int hashCode() => _receivePort._id;
+  int get hashCode => _receivePort._id;
 }
 
 /** A send port that delivers messages via worker.postMessage. */
@@ -734,7 +734,7 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
         (_receivePortId == other._receivePortId);
   }
 
-  int hashCode() {
+  int get hashCode {
     // TODO(sigmund): use a standard hash when we get one available in corelib.
     return (_workerId << 16) ^ (_isolateId << 8) ^ _receivePortId;
   }
@@ -787,7 +787,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
 
   bool operator ==(var other) =>
       other is _BufferingSendPort && _id == other._id;
-  int hashCode() => _id;
+  int get hashCode => _id;
 }
 
 /** Default factory for receive ports. */
@@ -855,8 +855,8 @@ class _PendingSendPortFinder extends _MessageTraverser {
 
     _visited[map] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
-    // map.getValues().forEach(_dispatch);
-    map.getValues().forEach((e) => _dispatch(e));
+    // map.values.forEach(_dispatch);
+    map.values.forEach((e) => _dispatch(e));
   }
 
   visitSendPort(SendPort port) {
@@ -1153,8 +1153,8 @@ class _Serializer extends _MessageTraverser {
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.getKeys());
-    var values = _serializeList(map.getValues());
+    var keys = _serializeList(map.keys);
+    var values = _serializeList(map.values);
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }

@@ -38,7 +38,7 @@ void toolMain(List<String> arguments) {
   void printStats() {
     int kb = (charCount / 1024).round().toInt();
     String stats =
-        '$classCount classes (${kb}Kb) in ${stopwatch.elapsedInMs()}ms';
+        '$classCount classes (${kb}Kb) in ${stopwatch.elapsedMilliseconds}ms';
     if (errorCount != 0) {
       stats = '$stats with $errorCount errors';
     }
@@ -114,7 +114,7 @@ void parseFile(String filename, MyOptions options) {
   }
   if (options.buildAst) {
     MyNodeListener l = listener;
-    if (!l.nodes.isEmpty()) {
+    if (!l.nodes.isEmpty) {
       String message = 'Stack not empty after parsing';
       print(formatError(message, l.nodes.head.getBeginToken(),
                         l.nodes.head.getEndToken(), file));

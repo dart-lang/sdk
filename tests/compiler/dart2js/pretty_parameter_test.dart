@@ -100,9 +100,9 @@ main() {
 
   regexp = const RegExp(r"a = 2;");
   Iterator matches = regexp.allMatches(generated).iterator();
-  Expect.isTrue(matches.hasNext());
+  Expect.isTrue(matches.hasNext);
   matches.next();
-  Expect.isFalse(matches.hasNext());
+  Expect.isFalse(matches.hasNext);
 
   generated = compile(PARAMETER_INIT, entry: 'foo');
   regexp = const RegExp("var result = start;");

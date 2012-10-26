@@ -185,7 +185,7 @@ abstract class ResolverTestCase extends TestCase {
     private final ClassElement objectElement;
 
     {
-      ClassElement dynamicElement = Elements.classNamed("Dynamic");
+      ClassElement dynamicElement = Elements.classNamed("dynamic");
       dynamicType = Types.interfaceType(dynamicElement, Collections.<Type>emptyList());
       dynamicElement.setType(dynamicType);
 

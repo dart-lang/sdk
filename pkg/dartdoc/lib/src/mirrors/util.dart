@@ -18,11 +18,11 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
   }
 
   void operator []=(K key, value) {
-    throw new UnsupportedOperationException('[]= is not supported');
+    throw new UnsupportedError('[]= is not supported');
   }
 
   void clear() {
-    throw new UnsupportedOperationException('clear() is not supported');
+    throw new UnsupportedError('clear() is not supported');
   }
 
   bool containsKey(K key) {
@@ -45,19 +45,19 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
     return found;
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     var keys = <K>[];
     forEach((k,_) => keys.add(k));
     return keys;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     var values = <V>[];
     forEach((_,v) => values.add(v));
     return values;
   }
 
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
   V putIfAbsent(K key, V ifAbsent()) {
     if (!containsKey(key)) {
       V value = this[key];
@@ -68,13 +68,13 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
   }
 
   V remove(K key) {
-    throw new UnsupportedOperationException('V remove(K key) is not supported');
+    throw new UnsupportedError('V remove(K key) is not supported');
   }
 }
 
 /**
  * [ImmutableMapWrapper] wraps a (mutable) map as an immutable map where all
- * mutating operations throw [UnsupportedOperationException] upon invocation.
+ * mutating operations throw [UnsupportedError] upon invocation.
  */
 class ImmutableMapWrapper<K,V> extends AbstractMap<K,V> {
   final Map<K,V> _map;

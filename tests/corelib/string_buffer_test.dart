@@ -7,7 +7,7 @@
 class StringBufferTest {
   static testConstructor() {
     StringBuffer bf = new StringBuffer("");
-    Expect.equals(true, bf.isEmpty());
+    Expect.equals(true, bf.isEmpty);
 
     bf = new StringBuffer("abc");
     Expect.equals(3, bf.length);
@@ -16,7 +16,7 @@ class StringBufferTest {
 
   static testAdd() {
     StringBuffer bf = new StringBuffer("");
-    Expect.equals(true, bf.isEmpty());
+    Expect.equals(true, bf.isEmpty);
 
     bf.add("a");
     Expect.equals(1, bf.length);
@@ -80,9 +80,9 @@ class StringBufferTest {
 
   static testIsEmpty() {
     StringBuffer bf = new StringBuffer("");
-    Expect.equals(true, bf.isEmpty());
+    Expect.equals(true, bf.isEmpty);
     bf.add("foo");
-    Expect.equals(false, bf.isEmpty());
+    Expect.equals(false, bf.isEmpty);
   }
 
   static testAddAll() {

@@ -64,6 +64,16 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("import ;\n", dir.toSource());
   }
 
+  public void test_switch_noLBrace() {
+    parseUnit("test.dart", Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  switch (0)",
+        "}",
+        ""),
+        ParserErrorCode.EXPECTED_TOKEN, 3, 12);
+  }
+
   public void test_getter() {
     parseUnit("getter.dart", Joiner.on("\n").join(
         "class G {",

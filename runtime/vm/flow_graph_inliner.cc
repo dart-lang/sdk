@@ -14,20 +14,22 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/timer.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, trace_inlining, false, "Trace inlining");
 DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
-DEFINE_FLAG(int, inlining_size_threshold, 250,
-    "Inline only functions with up to threshold instructions (default 250)");
-DEFINE_FLAG(int, inlining_depth_threshold, 1,
-    "Inline recursively up to threshold depth (default 1)");
-DEFINE_FLAG(bool, inline_control_flow, true,
-    "Inline functions with control flow.");
+DEFINE_FLAG(int, inlining_size_threshold, 50,
+    "Inline only functions with up to threshold instructions (default 50)");
+// TODO(srdjan): set to 3 once crash in apidoc.dart is resolved.
+DEFINE_FLAG(int, inlining_depth_threshold, 3,
+    "Inline recursively up to threshold depth (default 3)");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
+DECLARE_FLAG(bool, compiler_stats);
+DECLARE_FLAG(bool, reject_named_argument_as_positional);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -44,6 +46,86 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
   }
   return false;
 }
+
+
+// TODO(zerny): Remove the ChildrenVisitor and SourceLabelResetter once we have
+// moved the label/join map for control flow out of the AST and into the flow
+// graph builder.
+
+// Default visitor to traverse child nodes.
+class ChildrenVisitor : public AstNodeVisitor {
+ public:
+  ChildrenVisitor() { }
+#define DEFINE_VISIT(type, name)                                               \
+  virtual void Visit##type(type* node) { node->VisitChildren(this); }
+  NODE_LIST(DEFINE_VISIT);
+#undef DEFINE_VISIT
+};
+
+
+// Visitor to clear each AST node containing source labels.
+class SourceLabelResetter : public ChildrenVisitor {
+ public:
+  SourceLabelResetter() { }
+  virtual void VisitSequenceNode(SequenceNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitCaseNode(CaseNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitSwitchNode(SwitchNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitWhileNode(WhileNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitDoWhileNode(DoWhileNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitForNode(ForNode* node) {
+    Reset(node, node->label());
+  }
+  virtual void VisitJumpNode(JumpNode* node) {
+    Reset(node, node->label());
+  }
+  void Reset(AstNode* node, SourceLabel* lbl) {
+    node->VisitChildren(this);
+    if (lbl == NULL) return;
+    lbl->join_for_break_ = NULL;
+    lbl->join_for_continue_ = NULL;
+  }
+};
+
+
+// Helper to create a parameter stub from an actual argument.
+static Definition* CreateParameterStub(intptr_t i,
+                                       Value* argument,
+                                       FlowGraph* graph) {
+  ConstantInstr* constant = argument->definition()->AsConstant();
+  if (constant != NULL) {
+    return new ConstantInstr(constant->value());
+  } else {
+    return new ParameterInstr(i, graph->graph_entry());
+  }
+}
+
+
+// Helper to get the default value of a formal parameter.
+static ConstantInstr* GetDefaultValue(intptr_t i,
+                                      const ParsedFunction& parsed_function) {
+  return new ConstantInstr(Object::ZoneHandle(
+      parsed_function.default_parameter_values().At(i)));
+}
+
+
+// Pair of an argument name and its value.
+struct NamedArgument : ValueObject {
+ public:
+  String* name;
+  Value* value;
+  NamedArgument(String* name, Value* value)
+    : name(name), value(value) { }
+};
 
 
 // A collection of call sites to consider for inlining.
@@ -100,7 +182,7 @@ class CallSites : public FlowGraphVisitor {
   }
 
   void VisitStaticCall(StaticCallInstr* call) {
-    if (call->function().is_inlinable()) static_calls_.Add(call);
+    if (call->function().IsInlineable()) static_calls_.Add(call);
   }
 
  private:
@@ -122,7 +204,8 @@ class CallSiteInliner : public ValueObject {
         inlined_size_(0),
         inlining_depth_(1),
         collected_call_sites_(NULL),
-        inlining_call_sites_(NULL) { }
+        inlining_call_sites_(NULL),
+        function_cache_() { }
 
   void InlineCalls() {
     // If inlining depth is less then one abort.
@@ -162,6 +245,7 @@ class CallSiteInliner : public ValueObject {
 
  private:
   bool TryInlining(const Function& function,
+                   const Array& argument_names,
                    GrowableArray<Value*>* arguments,
                    Definition* call) {
     TRACE_INLINING(OS::Print("  => %s (deopt count %d)\n",
@@ -169,19 +253,10 @@ class CallSiteInliner : public ValueObject {
                              function.deoptimization_counter()));
 
     // Abort if the inlinable bit on the function is low.
-    if (!function.is_inlinable()) {
+    if (!function.IsInlineable()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
       return false;
     }
-
-    // Abort if the callee has optional parameters.
-    if (function.HasOptionalParameters()) {
-      TRACE_INLINING(OS::Print("     Bailout: optional parameters\n"));
-      return false;
-    }
-
-    // Assuming no optional parameters the actual/formal count should match.
-    ASSERT(arguments->length() == function.num_fixed_parameters());
 
     // Abort if this function has deoptimized too much.
     if (function.deoptimization_counter() >=
@@ -205,6 +280,16 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    // Abort if we are running legacy support for optional parameters.
+    if (!FLAG_reject_named_argument_as_positional &&
+        function.HasOptionalPositionalParameters() &&
+        (!argument_names.IsNull() && (argument_names.Length() > 0))) {
+      function.set_is_inlinable(false);
+      TRACE_INLINING(OS::Print(
+          "     Bailout: named optional positional parameter\n"));
+      return false;
+    }
+
     Isolate* isolate = Isolate::Current();
     // Save and clear IC data.
     const Array& prev_ic_data = Array::Handle(isolate->ic_data_array());
@@ -218,9 +303,14 @@ class CallSiteInliner : public ValueObject {
     isolate->set_long_jump_base(&jump);
     if (setjmp(*jump.Set()) == 0) {
       // Parse the callee function.
-      ParsedFunction parsed_function(function);
-      Parser::ParseFunction(&parsed_function);
-      parsed_function.AllocateVariables();
+      bool in_cache;
+      ParsedFunction* parsed_function;
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_parse_timer,
+                         isolate);
+        parsed_function = GetParsedFunction(function, &in_cache);
+      }
 
       // Load IC data for the callee.
       if (function.HasCode()) {
@@ -230,33 +320,74 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      FlowGraphBuilder builder(parsed_function);
+      FlowGraphBuilder builder(*parsed_function);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
-      FlowGraph* callee_graph =
-          builder.BuildGraph(FlowGraphBuilder::kValueContext);
-
-      // Abort if the callee graph contains control flow.
-      if (!FLAG_inline_control_flow &&
-          (callee_graph->preorder().length() != 2)) {
-        function.set_is_inlinable(false);
-        isolate->set_long_jump_base(base);
-        isolate->set_ic_data_array(prev_ic_data.raw());
-        TRACE_INLINING(OS::Print("     Bailout: control flow\n"));
-        return false;
+      FlowGraph* callee_graph;
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_build_timer,
+                         isolate);
+        callee_graph = builder.BuildGraph(FlowGraphBuilder::kValueContext);
       }
 
-      // Compute SSA on the callee graph, catching bailouts.
-      callee_graph->ComputeSSA(next_ssa_temp_index_);
-      callee_graph->ComputeUseLists();
+      // The parameter stubs are a copy of the actual arguments providing
+      // concrete information about the values, for example constant values,
+      // without linking between the caller and callee graphs.
+      // TODO(zerny): Put more information in the stubs, eg, type information.
+      GrowableArray<Definition*> param_stubs(function.NumParameters());
 
-      // TODO(zerny): Do more optimization passes on the callee graph.
-      FlowGraphOptimizer optimizer(callee_graph);
-      optimizer.ApplyICData();
-      callee_graph->ComputeUseLists();
+      // Create a parameter stub for each fixed positional parameter.
+      for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
+        param_stubs.Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
+      }
+
+      // If the callee has optional parameters, rebuild the argument and stub
+      // arrays so that actual arguments are in one-to-one with the formal
+      // parameters.
+      if (function.HasOptionalParameters()) {
+        TRACE_INLINING(OS::Print("     adjusting for optional parameters\n"));
+        AdjustForOptionalParameters(*parsed_function,
+                                    argument_names,
+                                    arguments,
+                                    &param_stubs,
+                                    callee_graph);
+        // Add a bogus parameter at the end for the (unused) argument descriptor
+        // slot. The parser allocates an extra slot between locals and
+        // parameters to hold the argument descriptor in case it escapes.  We
+        // currently bailout if there are argument test expressions or escaping
+        // variables so this parameter and the stack slot are not used.
+        if (parsed_function->GetSavedArgumentsDescriptorVar() != NULL) {
+          param_stubs.Add(new ParameterInstr(
+              function.NumParameters(), callee_graph->graph_entry()));
+        }
+      }
+
+      // After treating optional parameters the actual/formal count must match.
+      ASSERT(arguments->length() == function.NumParameters());
+      ASSERT(param_stubs.length() == callee_graph->parameter_count());
+
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_ssa_timer,
+                         isolate);
+        // Compute SSA on the callee graph, catching bailouts.
+        callee_graph->ComputeSSA(next_ssa_temp_index_, &param_stubs);
+        callee_graph->ComputeUseLists();
+      }
+
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_opt_timer,
+                         isolate);
+        // TODO(zerny): Do more optimization passes on the callee graph.
+        FlowGraphOptimizer optimizer(callee_graph);
+        optimizer.ApplyICData();
+        callee_graph->ComputeUseLists();
+      }
 
       if (FLAG_trace_inlining && FLAG_print_flow_graph) {
         OS::Print("Callee graph for inlining %s\n",
-                  parsed_function.function().ToFullyQualifiedCString());
+                  function.ToFullyQualifiedCString());
         FlowGraphPrinter printer(*callee_graph);
         printer.PrintBlocks();
       }
@@ -278,34 +409,50 @@ class CallSiteInliner : public ValueObject {
         collected_call_sites_->FindCallSites(callee_graph);
       }
 
-      // Plug result in the caller graph.
-      caller_graph_->InlineCall(call, callee_graph);
-      next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
+      {
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::graphinliner_subst_timer,
+                         isolate);
 
-      // Remove push arguments of the call.
-      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-        PushArgumentInstr* push = call->ArgumentAt(i);
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
+        // Plug result in the caller graph.
+        caller_graph_->InlineCall(call, callee_graph);
+        next_ssa_temp_index_ = caller_graph_->max_virtual_register_number();
 
-      // Replace formal parameters with actuals.
-      intptr_t arg_index = 0;
-      GrowableArray<Definition*>* defns =
-          callee_graph->graph_entry()->initial_definitions();
-      for (intptr_t i = 0; i < defns->length(); ++i) {
-        ParameterInstr* param = (*defns)[i]->AsParameter();
-        if (param != NULL) {
-          param->ReplaceUsesWith((*arguments)[arg_index++]->definition());
+        // Remove push arguments of the call.
+        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+          PushArgumentInstr* push = call->ArgumentAt(i);
+          push->ReplaceUsesWith(push->value()->definition());
+          push->RemoveFromGraph();
+        }
+
+        // Replace each stub with the actual argument or the caller's constant.
+        // Nulls denote optional parameters for which no actual was given.
+        for (intptr_t i = 0; i < arguments->length(); ++i) {
+          Definition* stub = param_stubs[i];
+          Value* actual = (*arguments)[i];
+          if (actual != NULL) stub->ReplaceUsesWith(actual->definition());
+        }
+
+        // Replace remaining constants with uses by constants in the caller's
+        // initial definitions.
+        GrowableArray<Definition*>* defns =
+            callee_graph->graph_entry()->initial_definitions();
+        for (intptr_t i = 0; i < defns->length(); ++i) {
+          ConstantInstr* constant = (*defns)[i]->AsConstant();
+          if (constant == NULL ||
+              ((constant->input_use_list() == NULL) &&
+               (constant->env_use_list() == NULL))) {
+            continue;
+          }
+          constant->ReplaceUsesWith(
+            caller_graph_->AddConstantToInitialDefinitions(constant->value()));
         }
       }
-      ASSERT(arg_index == arguments->length());
-
-      // Replace callee's null constant with caller's null constant.
-      callee_graph->graph_entry()->constant_null()->ReplaceUsesWith(
-          caller_graph_->graph_entry()->constant_null());
 
       TRACE_INLINING(OS::Print("     Success\n"));
+
+      // Add the function to the cache.
+      if (!in_cache) function_cache_.Add(parsed_function);
 
       // Check that inlining maintains use lists.
       DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
@@ -329,6 +476,25 @@ class CallSiteInliner : public ValueObject {
     }
   }
 
+  // Parse a function reusing the cache if possible.
+  ParsedFunction* GetParsedFunction(const Function& function, bool* in_cache) {
+    // TODO(zerny): Use a hash map for the cache.
+    for (intptr_t i = 0; i < function_cache_.length(); ++i) {
+      ParsedFunction* parsed_function = function_cache_[i];
+      if (parsed_function->function().raw() == function.raw()) {
+        *in_cache = true;
+        SourceLabelResetter reset;
+        parsed_function->node_sequence()->Visit(&reset);
+        return parsed_function;
+      }
+    }
+    *in_cache = false;
+    ParsedFunction* parsed_function = new ParsedFunction(function);
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+    return parsed_function;
+  }
+
   void InlineStaticCalls() {
     const GrowableArray<StaticCallInstr*>& calls =
         *inlining_call_sites_->static_calls();
@@ -339,7 +505,7 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->ArgumentAt(i)->value());
       }
-      TryInlining(call->function(), &arguments, call);
+      TryInlining(call->function(), call->argument_names(), &arguments, call);
     }
   }
 
@@ -361,7 +527,10 @@ class CallSiteInliner : public ValueObject {
       for (int i = 1; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->ArgumentAt(i)->value());
       }
-      TryInlining(closure->function(), &arguments, call);
+      TryInlining(closure->function(),
+                  call->argument_names(),
+                  &arguments,
+                  call);
     }
   }
 
@@ -375,18 +544,113 @@ class CallSiteInliner : public ValueObject {
       const ICData& ic_data = instr->ic_data();
       const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
       if (instr->with_checks()) {
-        TRACE_INLINING(OS::Print("     Bailout: %"Pd" checks target '%s'\n",
-                                 ic_data.NumberOfChecks(),
-                                 target.ToCString()));
+        TRACE_INLINING(OS::Print(
+          "  => %s (deopt count %d)\n     Bailout: %"Pd" checks\n",
+          target.ToCString(),
+          target.deoptimization_counter(),
+          ic_data.NumberOfChecks()));
         continue;
       }
       GrowableArray<Value*> arguments(instr->ArgumentCount());
       for (int i = 0; i < instr->ArgumentCount(); ++i) {
         arguments.Add(instr->ArgumentAt(i)->value());
       }
-      TryInlining(target, &arguments, instr);
+      TryInlining(target,
+                  instr->instance_call()->argument_names(),
+                  &arguments,
+                  instr);
     }
   }
+
+  void AdjustForOptionalParameters(const ParsedFunction& parsed_function,
+                                   const Array& argument_names,
+                                   GrowableArray<Value*>* arguments,
+                                   GrowableArray<Definition*>* param_stubs,
+                                   FlowGraph* callee_graph) {
+    const Function& function = parsed_function.function();
+    // The language and this code does not support both optional positional
+    // and optional named parameters for the same function.
+    ASSERT(!function.HasOptionalPositionalParameters() ||
+           !function.HasOptionalNamedParameters());
+
+    intptr_t arg_count = arguments->length();
+    intptr_t param_count = function.NumParameters();
+    intptr_t fixed_param_count = function.num_fixed_parameters();
+    ASSERT(fixed_param_count <= arg_count);
+    ASSERT(arg_count <= param_count);
+
+    if (function.HasOptionalPositionalParameters()) {
+      // Create a stub for each optional positional parameters with an actual.
+      for (intptr_t i = fixed_param_count; i < arg_count; ++i) {
+        param_stubs->Add(CreateParameterStub(i, (*arguments)[i], callee_graph));
+      }
+      ASSERT(function.NumOptionalPositionalParameters() ==
+             (param_count - fixed_param_count));
+      // For each optional positional parameter without an actual, add its
+      // default value.
+      for (intptr_t i = arg_count; i < param_count; ++i) {
+        const Object& object =
+            Object::ZoneHandle(
+                parsed_function.default_parameter_values().At(
+                    i - fixed_param_count));
+        ConstantInstr* constant = new ConstantInstr(object);
+        arguments->Add(NULL);
+        param_stubs->Add(constant);
+      }
+      return;
+    }
+
+    ASSERT(function.HasOptionalNamedParameters());
+
+    // Passed arguments must match fixed parameters plus named arguments.
+    intptr_t argument_names_count =
+        (argument_names.IsNull()) ? 0 : argument_names.Length();
+    ASSERT(arg_count == (fixed_param_count + argument_names_count));
+
+    // Fast path when no optional named parameters are given.
+    if (argument_names_count == 0) {
+      for (intptr_t i = 0; i < param_count - fixed_param_count; ++i) {
+        arguments->Add(NULL);
+        param_stubs->Add(GetDefaultValue(i, parsed_function));
+      }
+      return;
+    }
+
+    // Otherwise, build a collection of name/argument pairs.
+    GrowableArray<NamedArgument> named_args(argument_names_count);
+    for (intptr_t i = 0; i < argument_names.Length(); ++i) {
+      String& arg_name = String::Handle(Isolate::Current());
+      arg_name ^= argument_names.At(i);
+      named_args.Add(
+          NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
+    }
+
+    // Truncate the arguments array to just fixed parameters.
+    arguments->TruncateTo(fixed_param_count);
+
+    // For each optional named parameter, add the actual argument or its
+    // default if no argument is passed.
+    for (intptr_t i = fixed_param_count; i < param_count; ++i) {
+      String& param_name = String::Handle(function.ParameterNameAt(i));
+      // Search for and add the named argument.
+      Value* arg = NULL;
+      for (intptr_t j = 0; j < named_args.length(); ++j) {
+        if (param_name.Equals(*named_args[j].name)) {
+          arg = named_args[j].value;
+          break;
+        }
+      }
+      arguments->Add(arg);
+      // Create a stub for the argument or use the parameter's default value.
+      if (arg != NULL) {
+        param_stubs->Add(CreateParameterStub(i, arg, callee_graph));
+      } else {
+        param_stubs->Add(
+            GetDefaultValue(i - fixed_param_count, parsed_function));
+      }
+    }
+  }
+
 
   FlowGraph* caller_graph_;
   intptr_t next_ssa_temp_index_;
@@ -396,6 +660,7 @@ class CallSiteInliner : public ValueObject {
   intptr_t inlining_depth_;
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
+  GrowableArray<ParsedFunction*> function_cache_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
@@ -424,6 +689,7 @@ void FlowGraphInliner::Inline() {
   inliner.InlineCalls();
 
   if (inliner.inlined()) {
+    flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph) {

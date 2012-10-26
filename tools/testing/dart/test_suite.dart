@@ -65,28 +65,32 @@ bool Contains(element, collection) => collection.indexOf(element) >= 0;
 
 void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
-    void processErrorHandler(error) {
-    }
     Future processFuture = Process.start(runnerPath, ["--list"]);
     processFuture.then((p) {
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
-      List<String> tests = new List<String>();
+      var streamDone = false;
+      var processExited = false;
+      checkDone() {
+        if (streamDone && processExited) {
+          replyTo.send("");
+        }
+      }
       stdoutStream.onLine = () {
         String line = stdoutStream.readLine();
-        while (line != null) {
-          tests.add(line);
-          line = stdoutStream.readLine();
-        }
+        replyTo.send(line);
+      };
+      stdoutStream.onClosed = () {
+        streamDone = true;
+        checkDone();
       };
       p.onExit = (code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
           replyTo.send("");
+        } else {
+          processExited = true;
+          checkDone();
         }
-        for (String test in tests) {
-          replyTo.send(test);
-        }
-        replyTo.send("");
       };
       port.close();
     });
@@ -155,8 +159,7 @@ class CCTestSuite implements TestSuite {
                           [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
-                          expectations,
-                          usesWebDriver: TestUtils.usesWebDriver));
+                          expectations));
     }
   }
 
@@ -458,8 +461,7 @@ class StandardTestSuite implements TestSuite {
                           completeHandler,
                           expectations,
                           isNegative: isNegative,
-                          info: info,
-                          usesWebDriver: TestUtils.usesWebDriver));
+                          info: info));
     }
   }
 
@@ -1210,8 +1212,7 @@ class JUnitTestSuite implements TestSuite {
                         [new Command('java', args)],
                         updatedConfiguration,
                         completeHandler,
-                        new Set<String>.from([PASS]),
-                        usesWebDriver: TestUtils.usesWebDriver));
+                        new Set<String>.from([PASS])));
     doDone();
   }
 
@@ -1407,6 +1408,11 @@ class TestUtils {
         args.add("--allow-mock-compilation");
       }
     }
+    // TODO(riocw): Unify our minification calling convention between dart2js
+    // and dart2dart.
+    if (compiler == "dart2js" && configuration["minified"]) {
+      args.add("--minify");
+    }
     return args;
   }
 
@@ -1420,6 +1426,7 @@ class TestUtils {
   static bool usesWebDriver(String runtime) => Contains(
       runtime, const <String>['dartium',
                               'ie9',
+                              'ie10',
                               'safari',
                               'opera',
                               'chrome',

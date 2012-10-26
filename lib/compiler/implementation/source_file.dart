@@ -40,7 +40,7 @@ class SourceFile {
 
   int getLine(int position) {
     List<int> starts = lineStarts;
-    if (position < 0 || starts.last() <= position) {
+    if (position < 0 || starts.last <= position) {
       throw 'bad position #$position in file $filename with '
             'length ${text.length}.';
     }

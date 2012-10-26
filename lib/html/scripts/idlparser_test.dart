@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('idlparser_test');
-#import('../../../utils/peg/pegparser.dart');
-#source('idlparser.dart');
-#source('idlrenderer.dart');
+library idlparser_test;
+
+import '../../../utils/peg/pegparser.dart';
+
+part 'idlparser.dart';
+part 'idlrenderer.dart';
 
 main() {
   IDLParser parser = new IDLParser(FREMONTCUT_SYNTAX);

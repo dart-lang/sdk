@@ -199,26 +199,35 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary() const {
 }
 
 
+static void EmitAssertBoolean(Register reg,
+                              intptr_t token_pos,
+                              LocationSummary* locs,
+                              FlowGraphCompiler* compiler) {
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  ASSERT(locs->always_calls());
+  Label done;
+  __ CompareObject(reg, compiler->bool_true());
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ CompareObject(reg, compiler->bool_false());
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  __ pushq(reg);  // Push the source object.
+  compiler->GenerateCallRuntime(token_pos,
+                                kConditionTypeErrorRuntimeEntry,
+                                locs);
+  // We should never return here.
+  __ int3();
+  __ Bind(&done);
+}
+
+
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
   if (!is_eliminated()) {
-    // Check that the type of the value is allowed in conditional context.
-    // Call the runtime if the object is not bool::true or bool::false.
-    Label done;
-    __ CompareObject(obj, compiler->bool_true());
-    __ j(EQUAL, &done, Assembler::kNearJump);
-    __ CompareObject(obj, compiler->bool_false());
-    __ j(EQUAL, &done, Assembler::kNearJump);
-
-    __ pushq(obj);  // Push the source object.
-    compiler->GenerateCallRuntime(token_pos(),
-                                  kConditionTypeErrorRuntimeEntry,
-                                  locs());
-    // We should never return here.
-    __ int3();
-    __ Bind(&done);
+    EmitAssertBoolean(obj, token_pos(), locs(), compiler);
   }
   ASSERT(obj == result);
 }
@@ -330,7 +339,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    token_pos);
   }
-  const String& operator_name = String::ZoneHandle(Symbols::New("=="));
+  const String& operator_name = String::ZoneHandle(Symbols::EqualOperator());
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
@@ -455,6 +464,9 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
           __ jmp(&done);
         }
       } else {
+        if (branch->is_checked()) {
+          EmitAssertBoolean(RAX, token_pos, locs, compiler);
+        }
         __ CompareObject(RAX, compiler->bool_true());
         branch->EmitBranchOnCondition(compiler, cond);
       }
@@ -732,6 +744,9 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              token_pos(),
                              Token::kEQ,  // kNE reverse occurs at branch.
                              locs());
+  if (branch->is_checked()) {
+    EmitAssertBoolean(RAX, token_pos(), locs(), compiler);
+  }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   __ CompareObject(RAX, compiler->bool_true());
   branch->EmitBranchOnCondition(compiler, branch_condition);
@@ -921,7 +936,15 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           class_id(), array, Smi::Cast(index.constant()).Value());
 
   if (representation() == kUnboxedDouble) {
-    __ movsd(locs()->out().xmm_reg(), element_address);
+    if (class_id() == kFloat32ArrayCid) {
+      // Load single precision float.
+      __ movss(locs()->out().xmm_reg(), element_address);
+      // Promote to double.
+      __ cvtss2sd(locs()->out().xmm_reg(), locs()->out().xmm_reg());
+    } else {
+      ASSERT(class_id() == kFloat64ArrayCid);
+      __ movsd(locs()->out().xmm_reg(), element_address);
+    }
   } else {
     __ movq(locs()->out().reg(), element_address);
   }
@@ -930,9 +953,12 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = class_id() == kFloat32ArrayCid ? 1 : 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (class_id() == kFloat32ArrayCid) {
+    locs->set_temp(0, Location::RequiresXmmRegister());
+  }
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, CanBeImmediateIndex(index())
                     ? Location::RegisterOrConstant(index())
@@ -957,6 +983,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           class_id(), array, index.reg()) :
       FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
+
+  if (class_id() == kFloat32ArrayCid) {
+    // Convert to single precision.
+    __ cvtsd2ss(locs()->temp(0).xmm_reg(), locs()->in(2).xmm_reg());
+    // Store.
+    __ movss(element_address, locs()->temp(0).xmm_reg());
+    return;
+  }
 
   if (class_id() == kFloat64ArrayCid) {
     __ movsd(element_address, locs()->in(2).xmm_reg());
@@ -1526,7 +1560,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+    deopt = compiler->AddDeoptStub(deopt_id(),
                                    kDeoptBinarySmiOp);
   }
 
@@ -1693,7 +1727,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ pushq(temp);
         __ pushq(right);
         compiler->GenerateStaticCall(
-            instance_call()->deopt_id(),
+            deopt_id(),
             instance_call()->token_pos(),
             target,
             kArgumentCount,
@@ -1907,7 +1941,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(value == locs()->out().reg());
   switch (op_kind()) {
     case Token::kNEGATE: {
-      Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+      Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
@@ -1920,32 +1954,6 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
-}
-
-
-LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        kDeoptDoubleToDouble);
-
-  __ testq(value, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);  // Deoptimize if Smi.
-  __ CompareClassId(value, kDoubleCid);
-  __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
-  ASSERT(value == result);
 }
 
 
@@ -2105,6 +2113,8 @@ LocationSummary* CheckClassInstr::MakeLocationSummary() const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+         (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
@@ -2180,12 +2190,15 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((array_type() == kArrayCid) ||
          (array_type() == kImmutableArrayCid) ||
          (array_type() == kGrowableObjectArrayCid) ||
-         (array_type() == kFloat64ArrayCid));
+         (array_type() == kFloat64ArrayCid) ||
+         (array_type() == kFloat32ArrayCid));
   intptr_t length_offset = -1;
   if (array_type() == kGrowableObjectArrayCid) {
     length_offset = GrowableObjectArray::length_offset();
   } else if (array_type() == kFloat64ArrayCid) {
     length_offset = Float64Array::length_offset();
+  } else if (array_type() == kFloat32ArrayCid) {
+    length_offset = Float32Array::length_offset();
   } else {
     length_offset = Array::length_offset();
   }

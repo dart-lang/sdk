@@ -41,7 +41,7 @@ main() {
 
   test('Simple set of numbers', () {
     var number = new NumberFormat();
-    for (var x in testNumbers.getKeys()) {
+    for (var x in testNumbers.keys) {
       var formatted = number.format(testNumbers[x]);
       expect(formatted, x);
     }

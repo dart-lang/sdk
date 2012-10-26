@@ -36,11 +36,9 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength)                     \
   V(_GrowableObjectArray, get:capacity, GrowableArrayCapacity)                 \
   V(_StringBase, get:length, StringBaseLength)                                 \
-  V(_StringBase, isEmpty, StringBaseIsEmpty)                                   \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty)                               \
   V(_IntegerImplementation, toDouble, IntegerToDouble)                         \
-  V(_Double, toDouble, DoubleToDouble)                                         \
   V(_Double, toInt, DoubleToInteger)                                           \
-  V(_IntegerImplementation, toInt, IntegerToInteger)                           \
   V(::, sqrt, MathSqrt)                                                        \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -248,7 +246,6 @@ class EmbeddedArray<T, 0> {
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
   M(CheckStackOverflow)                                                        \
-  M(DoubleToDouble)                                                            \
   M(SmiToDouble)                                                               \
   M(DoubleToInteger)                                                           \
   M(CheckClass)                                                                \
@@ -519,6 +516,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxDoubleInstr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryMintOpInstr;
+  friend class BinarySmiOpInstr;
+  friend class UnarySmiOpInstr;
   friend class ShiftMintOpInstr;
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
@@ -1002,6 +1001,7 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
+  friend class FlowGraph;  // Access to predecessor_ when inlining.
   virtual void ClearPredecessors() { predecessor_ = NULL; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
     ASSERT(predecessor_ == NULL);
@@ -1109,9 +1109,7 @@ class Definition : public Instruction {
   //    - unknown sentinel
   Object& constant_value() const { return constant_value_; }
 
-  enum RangeOperator { kRangeInit, kRangeWiden, kRangeNarrow };
-
-  virtual bool InferRange(RangeOperator op);
+  virtual void InferRange();
 
   Range* range() const { return range_; }
 
@@ -1121,6 +1119,8 @@ class Definition : public Instruction {
   virtual Definition* Canonicalize();
 
  protected:
+  friend class RangeAnalysis;
+
   Range* range_;
 
  private:
@@ -1146,8 +1146,7 @@ class PhiInstr : public Definition {
     : block_(block),
       inputs_(num_inputs),
       is_alive_(false),
-      representation_(kTagged),
-      has_inputs_without_range_(true) {
+      representation_(kTagged) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1205,7 +1204,7 @@ class PhiInstr : public Definition {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  virtual bool InferRange(RangeOperator op);
+  virtual void InferRange();
 
  private:
   friend class ConstantPropagator;  // Direct access to inputs_.
@@ -1214,10 +1213,6 @@ class PhiInstr : public Definition {
   GrowableArray<Value*> inputs_;
   bool is_alive_;
   Representation representation_;
-
-  // Used to determine an interation of a range analysis after all phi inputs
-  // were initialized to apply widening.
-  bool has_inputs_without_range_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -1483,8 +1478,8 @@ class ControlInstruction : public Instruction {
 
 class BranchInstr : public ControlInstruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison)
-      : comparison_(comparison) { }
+  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false)
+      : comparison_(comparison), is_checked_(is_checked) { }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -1498,6 +1493,8 @@ class BranchInstr : public ControlInstruction {
 
   ComparisonInstr* comparison() const { return comparison_; }
   void set_comparison(ComparisonInstr* value) { comparison_ = value; }
+
+  bool is_checked() const { return is_checked_; }
 
   virtual LocationSummary* locs();
   virtual intptr_t DeoptimizationTarget() const;
@@ -1513,6 +1510,7 @@ class BranchInstr : public ControlInstruction {
 
  private:
   ComparisonInstr* comparison_;
+  const bool is_checked_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -1582,9 +1580,7 @@ class RangeBoundary : public ValueObject {
     return RangeBoundary(kConstant, val, 0);
   }
 
-  static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0) {
-    return RangeBoundary(kSymbol, reinterpret_cast<intptr_t>(defn), offs);
-  }
+  static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0);
 
   static RangeBoundary MinSmi() {
     return FromConstant(Smi::kMinValue);
@@ -1605,19 +1601,9 @@ class RangeBoundary : public ValueObject {
     return FromConstant(Smi::kMaxValue + 1);
   }
 
-  static RangeBoundary Min(RangeBoundary a, RangeBoundary b) {
-    const intptr_t min_a = a.LowerBound().value();
-    const intptr_t min_b = b.LowerBound().value();
+  static RangeBoundary Min(RangeBoundary a, RangeBoundary b);
 
-    return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
-  }
-
-  static RangeBoundary Max(RangeBoundary a, RangeBoundary b) {
-    const intptr_t max_a = a.UpperBound().value();
-    const intptr_t max_b = b.UpperBound().value();
-
-    return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
-  }
+  static RangeBoundary Max(RangeBoundary a, RangeBoundary b);
 
   bool Overflowed() const {
     return !Smi::IsValid(value());
@@ -1649,40 +1635,15 @@ class RangeBoundary : public ValueObject {
     return reinterpret_cast<Definition*>(value_);
   }
 
+  intptr_t offset() const {
+    return offset_;
+  }
+
   RangeBoundary LowerBound() const;
   RangeBoundary UpperBound() const;
 
-  static RangeBoundary WidenMin(const RangeBoundary& old_min,
-                                const RangeBoundary& new_min) {
-    if (new_min.LowerBound().value() < old_min.LowerBound().value()) {
-      return OverflowedMinSmi();
-    }
-    return old_min;
-  }
-
-  static RangeBoundary WidenMax(const RangeBoundary& old_max,
-                                const RangeBoundary& new_max) {
-    if (new_max.UpperBound().value() > old_max.UpperBound().value()) {
-      return OverflowedMaxSmi();
-    }
-    return old_max;
-  }
-
-  static RangeBoundary NarrowMin(const RangeBoundary& old_min,
-                                 const RangeBoundary& new_min) {
-    ASSERT(old_min.IsConstant());
-    ASSERT(new_min.IsConstant());
-    return (old_min.value() == kMinusInfinity) ? new_min
-                                               : Min(old_min, new_min);
-  }
-
-  static RangeBoundary NarrowMax(const RangeBoundary& old_max,
-                                const RangeBoundary& new_max) {
-    return (old_max.value() == kPlusInfinity) ? new_max
-                                              : Max(old_max, new_max);
-  }
-
   void PrintTo(BufferFormatter* f) const;
+  const char* ToCString() const;
 
   static RangeBoundary Add(const RangeBoundary& a,
                            const RangeBoundary& b,
@@ -1736,25 +1697,6 @@ class Range : public ZoneAllocated {
     return min_.Equals(other->min_) && max_.Equals(other->max_);
   }
 
-  static bool Update(Range** range_slot,
-                     const RangeBoundary& min,
-                     const RangeBoundary& max) {
-    if (*range_slot == NULL) {
-      *range_slot = new Range(min, max);
-      return true;
-    }
-
-    Range* range = *range_slot;
-    if (range->min_.Equals(min) && range->max_.Equals(max)) {
-      return false;
-    }
-
-    range->min_ = min;
-    range->max_ = max;
-
-    return true;
-  }
-
   static RangeBoundary ConstantMin(Range* range) {
     if (range == NULL) return RangeBoundary::MinSmi();
     return range->min().LowerBound();
@@ -1801,7 +1743,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
   Value* value() const { return inputs_[0]; }
   Range* constraint() const { return constraint_; }
 
-  virtual bool InferRange(RangeOperator op);
+  virtual void InferRange();
 
   void AddDependency(Definition* defn) {
     Value* val = new Value(defn);
@@ -1854,7 +1796,7 @@ class ConstantInstr : public TemplateDefinition<0> {
   virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
 
-  virtual bool InferRange(RangeOperator op);
+  virtual void InferRange();
 
  private:
   const Object& value_;
@@ -1913,7 +1855,8 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return value()->ResultCid(); }
+  virtual intptr_t GetPropagatedCid();
 
   virtual Definition* Canonicalize();
 
@@ -2313,10 +2256,12 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const {
     return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
         && (receiver_class_id() != kSmiCid);
   }
   virtual bool HasSideEffect() const {
     return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
         && (receiver_class_id() != kSmiCid);
   }
 
@@ -2695,6 +2640,10 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
   virtual Representation representation() const;
 
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const { return true; }
+
  private:
   const intptr_t class_id_;
 
@@ -2991,7 +2940,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
         result_cid_(kDynamicCid),
-        immutable_(immutable) {
+        immutable_(immutable),
+        recognized_kind_(MethodRecognizer::kUnknown) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
@@ -3017,11 +2967,23 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   virtual bool AffectedBySideEffect() const { return !immutable_; }
 
+  virtual void InferRange();
+
+  void set_recognized_kind(MethodRecognizer::Kind kind) {
+    recognized_kind_ = kind;
+  }
+
+  MethodRecognizer::Kind recognized_kind() const {
+    return recognized_kind_;
+  }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
   intptr_t result_cid_;
   const bool immutable_;
+
+  MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -3740,6 +3702,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
     ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* left() const { return inputs_[0]; }
@@ -3772,7 +3735,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   void PrintTo(BufferFormatter* f) const;
 
-  virtual bool InferRange(RangeOperator op);
+  virtual void InferRange();
 
  private:
   const Token::Kind op_kind_;
@@ -3789,16 +3752,15 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   UnarySmiOpInstr(Token::Kind op_kind,
                   InstanceCallInstr* instance_call,
                   Value* value)
-      : op_kind_(op_kind), instance_call_(instance_call) {
+      : op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
     ASSERT(value != NULL);
     inputs_[0] = value;
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3813,7 +3775,6 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
  private:
   const Token::Kind op_kind_;
-  InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
 };
@@ -3839,34 +3800,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
-};
-
-
-class DoubleToDoubleInstr : public TemplateDefinition<1> {
- public:
-  DoubleToDoubleInstr(Value* value, InstanceCallInstr* instance_call)
-      : instance_call_(instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  DECLARE_INSTRUCTION(DoubleToDouble)
-  virtual RawAbstractType* CompileType() const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
-
- private:
-  InstanceCallInstr* instance_call_;
-
-  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
 };
 
 
@@ -3929,12 +3862,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
  public:
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
-                  const ICData& unary_checks)
-      : unary_checks_(unary_checks) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
-    deopt_id_ = deopt_id;
-  }
+                  const ICData& unary_checks);
 
   DECLARE_INSTRUCTION(CheckClass)
   virtual RawAbstractType* CompileType() const;
@@ -4026,6 +3954,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   Value* index() const { return inputs_[1]; }
 
   intptr_t array_type() const { return array_type_; }
+
+  bool IsRedundant();
 
  private:
   intptr_t array_type_;

@@ -497,7 +497,7 @@ main() {
 
     test('last', () {
       var el = makeElementWithChildren();
-      Expect.isTrue(el.elements.last() is InputElement);
+      Expect.isTrue(el.elements.last is InputElement);
     });
 
     test('forEach', () {
@@ -530,8 +530,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isTrue(makeElement().elements.isEmpty());
-      Expect.isFalse(makeElementWithChildren().elements.isEmpty());
+      Expect.isTrue(makeElement().elements.isEmpty);
+      Expect.isFalse(makeElementWithChildren().elements.isEmpty);
     });
 
     test('length', () {
@@ -557,13 +557,13 @@ main() {
     test('add', () {
       var el = makeElement();
       el.elements.add(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last() is HRElement);
+      Expect.isTrue(el.elements.last is HRElement);
     });
 
     test('addLast', () {
       var el = makeElement();
       el.elements.addLast(new Element.tag('hr'));
-      Expect.isTrue(el.elements.last() is HRElement);
+      Expect.isTrue(el.elements.last is HRElement);
     });
 
     test('iterator', () {
@@ -631,12 +631,12 @@ main() {
 
     void testUnsupported(String name, void f()) {
       test(name, () {
-        Expect.throws(f, (e) => e is UnsupportedOperationException);
+        Expect.throws(f, (e) => e is UnsupportedError);
       });
     }
 
     test('last', () {
-      Expect.isTrue(getQueryAll().last() is HRElement);
+      Expect.isTrue(getQueryAll().last is HRElement);
     });
 
     test('forEach', () {
@@ -672,8 +672,8 @@ main() {
     });
 
     test('isEmpty', () {
-      Expect.isTrue(getEmptyQueryAll().isEmpty());
-      Expect.isFalse(getQueryAll().isEmpty());
+      Expect.isTrue(getEmptyQueryAll().isEmpty);
+      Expect.isFalse(getQueryAll().isEmpty);
     });
 
     test('length', () {

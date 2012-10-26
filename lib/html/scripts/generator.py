@@ -33,6 +33,28 @@ _pure_interfaces = set([
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+
+_methods_with_named_formals = set([
+  'DataView.getFloat32',
+  'DataView.getFloat64',
+  'DataView.getInt16',
+  'DataView.getInt32',
+  'DataView.getInt8',
+  'DataView.getUint16',
+  'DataView.getUint32',
+  'DataView.getUint8',
+  'DataView.setFloat32',
+  'DataView.setFloat64',
+  'DataView.setInt16',
+  'DataView.setInt32',
+  'DataView.setInt8',
+  'DataView.setUint16',
+  'DataView.setUint32',
+  'DataView.setUint8',
+  'DirectoryEntry.getDirectory',
+  'DirectoryEntry.getFile',
+  ])
+
 #
 # Renames for attributes that have names that are not legal Dart names.
 #
@@ -71,63 +93,6 @@ _dart2js_dom_custom_native_specs = {
 
 def IsRegisteredType(type_name):
   return type_name in _idl_type_registry
-
-def ListImplementationInfo(interface, database):
-  """Returns a tuple (elment_type, requires_indexer).
-  If interface do not have to implement List, element_type is None.
-  Otherwise element_type is list element type and requires_indexer
-  is true iff this interface implementation must have indexer and
-  false otherwise.  False means that interface implementation
-  inherits indexer and may just reuse it."""
-  element_type = MaybeListElementType(interface)
-  if element_type:
-    return (element_type, True)
-
-  for parent in interface.parents:
-    if database.HasInterface(parent.type.id):
-      parent_interface = database.GetInterface(parent.type.id)
-      (element_type, _) = ListImplementationInfo(parent_interface, database)
-      if element_type:
-        return (element_type, False)
-
-  return (None, None)
-
-
-def MaybeListElementType(interface):
-  """Returns the List element type T, or None in interface does not implement
-  List<T>.
-  """
-  for parent in interface.parents:
-    match = re.match(r'sequence<(\w*)>$', parent.type.id)
-    if match:
-      return match.group(1)
-  return None
-
-def MaybeTypedArrayElementType(interface):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.
-  """
-  # Typed arrays implement ArrayBufferView and List<T>.
-  for parent in interface.parents:
-    if parent.type.id == 'ArrayBufferView':
-      return MaybeListElementType(interface)
-  return None
-
-def MaybeTypedArrayElementTypeInHierarchy(interface, database):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.  Checks the whole parent hierarchy.
-  """
-  element_type = MaybeTypedArrayElementType(interface)
-  if element_type:
-    return element_type
-  for parent in interface.parents:
-    if database.HasInterface(parent.type.id):
-      parent_interface = database.GetInterface(parent.type.id)
-      element_type = MaybeTypedArrayElementType(parent_interface)
-      if element_type:
-        return element_type
-
-  return None
 
 def MakeNativeSpec(javascript_binding_name):
   if javascript_binding_name in _dart2js_dom_custom_native_specs:
@@ -237,7 +202,8 @@ def AnalyzeOperation(interface, operations):
   info.js_name = info.declared_name
   info.type_name = operations[0].type.id   # TODO: widen.
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
-  info.requires_named_arguments = False
+  full_name = '%s.%s' % (interface.id, info.declared_name)
+  info.requires_named_arguments = full_name in _methods_with_named_formals
   return info
 
 
@@ -308,11 +274,11 @@ def TypeOrNothing(dart_type, comment=None):
   where a type may be omitted.
   The string is empty or has a trailing space.
   """
-  if dart_type == 'Dynamic':
+  if dart_type == 'dynamic':
     if comment:
       return '/*%s*/ ' % comment   # Just a comment foo(/*T*/ x)
     else:
-      return ''                    # foo(x) looks nicer than foo(Dynamic x)
+      return ''                    # foo(x) looks nicer than foo(var|dynamic x)
   else:
     return dart_type + ' '
 
@@ -320,7 +286,7 @@ def TypeOrNothing(dart_type, comment=None):
 def TypeOrVar(dart_type, comment=None):
   """Returns string for declaring something with |dart_type| in a context
   where if a type is omitted, 'var' must be used instead."""
-  if dart_type == 'Dynamic':
+  if dart_type == 'dynamic':
     if comment:
       return 'var /*%s*/' % comment   # e.g.  var /*T*/ x;
     else:
@@ -343,7 +309,7 @@ class OperationInfo(object):
 
   def ParametersDeclaration(self, rename_type, force_optional=False):
     def FormatParam(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'Dynamic'
+      dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
       return '%s%s' % (TypeOrNothing(dart_type, param.type_id), param.name)
 
     required = []
@@ -437,7 +403,7 @@ class OperationInfo(object):
 
 
   def CopyAndWidenDefaultParameters(self):
-    """Returns equivalent OperationInfo, but default parameters are Dynamic."""
+    """Returns equivalent OperationInfo, but default parameters are dynamic."""
     info = copy.copy(self)
     info.param_infos = [param.Copy() for param in self.param_infos]
     for param in info.param_infos:
@@ -477,7 +443,7 @@ def IndentText(text, indent):
 # name
 def TypeName(type_ids, interface):
   # Dynamically type this field for now.
-  return 'Dynamic'
+  return 'dynamic'
 
 def ImplementationClassNameForInterfaceName(interface_name):
   return '_%sImpl' % interface_name
@@ -507,7 +473,7 @@ class Conversion(object):
 #
 
 _serialize_SSV = Conversion('_convertDartToNative_SerializedScriptValue',
-                           'Dynamic', 'Dynamic')
+                           'dynamic', 'dynamic')
 
 dart2js_conversions = {
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
@@ -523,19 +489,19 @@ dart2js_conversions = {
                  'EventTarget'),
 
     'IDBKey get':
-      Conversion('_convertNativeToDart_IDBKey', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBKey', 'dynamic', 'dynamic'),
     'IDBKey set':
-      Conversion('_convertDartToNative_IDBKey', 'Dynamic', 'Dynamic'),
+      Conversion('_convertDartToNative_IDBKey', 'dynamic', 'dynamic'),
 
     'ImageData get':
-      Conversion('_convertNativeToDart_ImageData', 'Dynamic', 'ImageData'),
+      Conversion('_convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
-      Conversion('_convertDartToNative_ImageData', 'ImageData', 'Dynamic'),
+      Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
-      Conversion('_convertNativeToDart_Dictionary', 'Dynamic', 'Map'),
+      Conversion('_convertNativeToDart_Dictionary', 'dynamic', 'Map'),
     'Dictionary set':
-      Conversion('_convertDartToNative_Dictionary', 'Map', 'Dynamic'),
+      Conversion('_convertDartToNative_Dictionary', 'Map', 'dynamic'),
 
     'DOMString[] set':
       Conversion('_convertDartToNative_StringArray', 'List<String>', 'List'),
@@ -553,21 +519,21 @@ dart2js_conversions = {
     # receiving message via MessageEvent
     'DOMObject get MessageEvent.data':
       Conversion('_convertNativeToDart_SerializedScriptValue',
-                 'Dynamic', 'Dynamic'),
+                 'dynamic', 'dynamic'),
 
 
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require
     # serialized script value processing.
     'IDBAny get IDBCursorWithValue.value':
-      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # This is problematic.  The result property of IDBRequest is used for
     # all requests.  Read requests like IDBDataStore.getObject need
     # conversion, but other requests like opening a database return
     # something that does not need conversion.
     'IDBAny get IDBRequest.result':
-      Conversion('_convertNativeToDart_IDBAny', 'Dynamic', 'Dynamic'),
+      Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # "source: On getting, returns the IDBObjectStore or IDBIndex that the
     # cursor is iterating. ...".  So we should not try to convert it.
@@ -607,6 +573,12 @@ class IDLTypeInfo(object):
     raise NotImplementedError()
 
   def has_generated_interface(self):
+    raise NotImplementedError()
+
+  def list_item_type(self):
+    raise NotImplementedError()
+
+  def is_typed_array(self):
     raise NotImplementedError()
 
   def merged_interface(self):
@@ -696,14 +668,25 @@ class IDLTypeInfo(object):
 
 
 class InterfaceIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data, dart_interface_name):
+  def __init__(self, idl_type, data, dart_interface_name, type_registry):
     super(InterfaceIDLTypeInfo, self).__init__(idl_type, data)
     self._dart_interface_name = dart_interface_name
+    self._type_registry = type_registry
 
   def dart_type(self):
+    # TODO(podivilov): why NodeList is special?
+    if self.idl_type() == 'NodeList':
+      return 'List<Node>'
+    if self.list_item_type() and not self.has_generated_interface():
+      return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
     return self._data.dart_type or self._dart_interface_name
 
   def narrow_dart_type(self):
+    # TODO(podivilov): why NodeList is special?
+    if self.idl_type() == 'NodeList':
+      return 'List<Node>'
+    if self.list_item_type():
+      return ImplementationClassNameForInterfaceName(self.idl_type())
     # TODO(podivilov): only primitive and collection types should override
     # dart_type.
     if self._data.dart_type != None:
@@ -713,9 +696,13 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return ImplementationClassNameForInterfaceName(self.interface_name())
 
   def interface_name(self):
+    if self.list_item_type() and not self.has_generated_interface():
+      return self.dart_type()
     return self._dart_interface_name
 
   def implementation_name(self):
+    if self.list_item_type():
+      return ImplementationClassNameForInterfaceName(self.idl_type())
     implementation_name = ImplementationClassNameForInterfaceName(
         self.interface_name())
     if self.merged_into():
@@ -723,7 +710,13 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     return implementation_name
 
   def has_generated_interface(self):
-    return True
+    return not self._data.suppress_interface
+
+  def list_item_type(self):
+    return self._data.item_type
+
+  def is_typed_array(self):
+    return self._data.is_typed_array
 
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
@@ -749,38 +742,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 class CallbackIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
-
-
-# Type info for DOM types that are converted to dart lists and therefore whose
-# actual interface generation should be suppressed. For type information, we
-# still generate the implementations though, so these types should not be
-# suppressed entirely.
-class ListLikeIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, data, item_info):
-    super(ListLikeIDLTypeInfo, self).__init__(idl_type, data)
-    self._item_info = item_info
-
-  def dart_type(self):
-    return 'List<%s>' % self._item_info.dart_type()
-
-  def narrow_dart_type(self):
-    if self.has_generated_interface():
-      return self.dart_type()
-    return ImplementationClassNameForInterfaceName(self.idl_type())
-
-  def interface_name(self):
-    if self.has_generated_interface():
-      return self.idl_type()
-    return self.dart_type()
-
-  def implementation_name(self):
-    return ImplementationClassNameForInterfaceName(self.idl_type())
-
-  def has_generated_interface(self):
-    # Don't generate interfaces for list-like types.
-    # TODO(podivilov): why NodeList is special? Is it indeed a list-like type
-    # or should just implement sequence<Node>?
-    return self.idl_type() == 'NodeList'
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
@@ -868,8 +829,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
 
 class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
-  def __init__(self, idl_type, data):
-    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data, idl_type)
+  def __init__(self, idl_type, data, type_registry):
+    super(SVGTearOffIDLTypeInfo, self).__init__(
+        idl_type, data, idl_type, type_registry)
 
   def native_type(self):
     if self._data.native_type:
@@ -913,7 +875,7 @@ class TypeData(object):
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
                requires_v8_scope=False,
-               item_type=None):
+               item_type=None, suppress_interface=False, is_typed_array=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -926,6 +888,12 @@ class TypeData(object):
     self.webcore_setter_name = webcore_setter_name
     self.requires_v8_scope = requires_v8_scope
     self.item_type = item_type
+    self.suppress_interface = suppress_interface
+    self.is_typed_array = is_typed_array
+
+
+def TypedArrayTypeData(item_type):
+  return TypeData(clazz='Interface', item_type=item_type, is_typed_array=True)
 
 
 _idl_type_registry = {
@@ -954,7 +922,7 @@ _idl_type_registry = {
 
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue', requires_v8_scope=True),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
-    'custom': TypeData(clazz='Primitive', dart_type='Dynamic'),
+    'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
     'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
@@ -971,7 +939,7 @@ _idl_type_registry = {
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
-    'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='Dynamic'),
+    'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='dynamic'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': TypeData(clazz='Primitive', dart_type='Object'),
@@ -991,48 +959,86 @@ _idl_type_registry = {
     'HTMLDocument': TypeData(clazz='Interface', merged_into='Document'),
     'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
         custom_to_dart=True),
-    'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
-    'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'IDBAny': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
+    'IDBKey': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
-    'ClientRectList': TypeData(clazz='ListLike', item_type='ClientRect'),
-    'CSSRuleList': TypeData(clazz='ListLike', item_type='CSSRule'),
-    'CSSValueList': TypeData(clazz='ListLike', item_type='CSSValue'),
-    'DOMStringList': TypeData(clazz='ListLike', item_type='DOMString',
-        custom_to_native=True),
-    'EntryArray': TypeData(clazz='ListLike', item_type='Entry'),
-    'EntryArraySync': TypeData(clazz='ListLike', item_type='EntrySync'),
-    'FileList': TypeData(clazz='ListLike', item_type='File'),
-    'GamepadList': TypeData(clazz='ListLike', item_type='Gamepad'),
-    'MediaStreamList': TypeData(clazz='ListLike', item_type='MediaStream'),
-    'NodeList': TypeData(clazz='ListLike', item_type='Node'),
-    'SVGElementInstanceList': TypeData(clazz='ListLike',
-        item_type='SVGElementInstance'),
-    'SpeechInputResultList': TypeData(clazz='ListLike',
-        item_type='SpeechInputResult'),
-    'SpeechRecognitionResultList': TypeData(clazz='ListLike',
-        item_type='SpeechRecognitionResult'),
-    'StyleSheetList': TypeData(clazz='ListLike', item_type='StyleSheet'),
-    'WebKitAnimationList': TypeData(clazz='ListLike',
-        item_type='WebKitAnimation'),
+    'ClientRectList': TypeData(clazz='Interface',
+        item_type='ClientRect', suppress_interface=True),
+    'CSSRuleList': TypeData(clazz='Interface',
+        item_type='CSSRule', suppress_interface=True),
+    'CSSValueList': TypeData(clazz='Interface',
+        item_type='CSSValue', suppress_interface=True),
+    'DOMMimeTypeArray': TypeData(clazz='Interface', item_type='DOMMimeType'),
+    'DOMPluginArray': TypeData(clazz='Interface', item_type='DOMPlugin'),
+    'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
+        suppress_interface=True, custom_to_native=True),
+    'EntryArray': TypeData(clazz='Interface', item_type='Entry',
+        suppress_interface=True),
+    'EntryArraySync': TypeData(clazz='Interface', item_type='EntrySync',
+        suppress_interface=True),
+    'FileList': TypeData(clazz='Interface', item_type='File',
+        suppress_interface=True),
+    'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
+        suppress_interface=True),
+    'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
+    'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
+    'MediaStreamList': TypeData(clazz='Interface',
+        item_type='MediaStream', suppress_interface=True),
+    'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
+    'NodeList': TypeData(clazz='Interface', item_type='Node'),
+    'SVGAnimatedLengthList': TypeData(clazz='Interface',
+        item_type='SVGAnimatedLength'),
+    'SVGAnimatedNumberList': TypeData(clazz='Interface',
+        item_type='SVGAnimatedNumber'),
+    'SVGAnimatedTransformList': TypeData(clazz='Interface',
+        item_type='SVGAnimateTransformElement'),
+    'SVGElementInstanceList': TypeData(clazz='Interface',
+        item_type='SVGElementInstance', suppress_interface=True),
+    'SourceBufferList': TypeData(clazz='Interface', item_type='SourceBuffer'),
+    'SpeechGrammarList': TypeData(clazz='Interface', item_type='SpeechGrammar'),
+    'SpeechInputResultList': TypeData(clazz='Interface',
+        item_type='SpeechInputResult', suppress_interface=True),
+    'SpeechRecognitionResultList': TypeData(clazz='Interface',
+        item_type='SpeechRecognitionResult', suppress_interface=True),
+    'SQLResultSetRowList': TypeData(clazz='Interface', item_type='Dictionary'),
+    'StyleSheetList': TypeData(clazz='Interface',
+        item_type='StyleSheet', suppress_interface=True),
+    'TextTrackCueList': TypeData(clazz='Interface', item_type='TextTrackCue'),
+    'TextTrackList': TypeData(clazz='Interface', item_type='TextTrack'),
+    'TouchList': TypeData(clazz='Interface', item_type='Touch'),
+    'WebKitAnimationList': TypeData(clazz='Interface',
+        item_type='WebKitAnimation', suppress_interface=True),
+
+    'Float32Array': TypedArrayTypeData('double'),
+    'Float64Array': TypedArrayTypeData('double'),
+    'Int8Array': TypedArrayTypeData('int'),
+    'Int16Array': TypedArrayTypeData('int'),
+    'Int32Array': TypedArrayTypeData('int'),
+    'Uint8Array': TypedArrayTypeData('int'),
+    'Uint16Array': TypedArrayTypeData('int'),
+    'Uint32Array': TypedArrayTypeData('int'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
-    'SVGLengthList': TypeData(clazz='SVGTearOff'),
+    'SVGLengthList': TypeData(clazz='SVGTearOff', item_type='SVGLength'),
     'SVGMatrix': TypeData(clazz='SVGTearOff'),
     'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<float>'),
-    'SVGNumberList': TypeData(clazz='SVGTearOff'),
-    'SVGPathSegList': TypeData(clazz='SVGTearOff', native_type='SVGPathSegListPropertyTearOff'),
+    'SVGNumberList': TypeData(clazz='SVGTearOff', item_type='SVGNumber'),
+    'SVGPathSegList': TypeData(clazz='SVGTearOff', item_type='SVGPathSeg',
+        native_type='SVGPathSegListPropertyTearOff'),
     'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatPoint>'),
     'SVGPointList': TypeData(clazz='SVGTearOff'),
     'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff'),
     'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatRect>'),
-    'SVGStringList': TypeData(clazz='SVGTearOff', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
+    'SVGStringList': TypeData(clazz='SVGTearOff', item_type='DOMString',
+        native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
     'SVGTransform': TypeData(clazz='SVGTearOff'),
-    'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff'),
+    'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
+        native_type='SVGTransformListPropertyTearOff'),
 }
 
 _svg_supplemental_includes = [
@@ -1073,7 +1079,8 @@ class TypeRegistry(object):
       return InterfaceIDLTypeInfo(
           type_name,
           TypeData('Interface'),
-          self._renamer.RenameInterface(interface))
+          self._renamer.RenameInterface(interface),
+          self)
 
     type_data = _idl_type_registry.get(type_name)
 
@@ -1083,10 +1090,11 @@ class TypeRegistry(object):
             self._database.GetInterface(type_name))
       else:
         dart_interface_name = type_name
-      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name)
+      return InterfaceIDLTypeInfo(type_name, type_data, dart_interface_name,
+                                  self)
 
-    if type_data.clazz == 'ListLike':
-      return ListLikeIDLTypeInfo(type_name, type_data, self.TypeInfo(type_data.item_type))
+    if type_data.clazz == 'SVGTearOff':
+      return SVGTearOffIDLTypeInfo(type_name, type_data, self)
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)

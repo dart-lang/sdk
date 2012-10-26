@@ -297,7 +297,7 @@ bool randomBool() {
 
 /** Returns the alphabetized characters in a string. */
 String alphagram(String s) {
-  List<int> chars = s.charCodes();
+  List<int> chars = s.charCodes;
   chars.sort((int a, int b) => a - b);
   return new String.fromCharCodes(chars);
 }

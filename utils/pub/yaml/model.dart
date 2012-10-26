@@ -46,7 +46,7 @@ class _Tag {
     }
   }
 
-  int hashCode() => name.hashCode();
+  int get hashCode => name.hashCode;
 }
 
 /** The abstract class for YAML nodes. */
@@ -64,7 +64,7 @@ class _Node {
     return tag == other.tag;
   }
 
-  int hashCode() => _hashCode([tag, anchor]);
+  int get hashCode => _hashCode([tag, anchor]);
 
   abstract visit(_Visitor v);
 }
@@ -90,7 +90,7 @@ class _SequenceNode extends _Node {
 
   String toString() => '$tag [${Strings.join(content.map((e) => '$e'), ', ')}]';
 
-  int hashCode() => super.hashCode() ^ _hashCode(content);
+  int get hashCode => super.hashCode ^ _hashCode(content);
 
   visit(_Visitor v) => v.visitSequence(this);
 }
@@ -153,7 +153,7 @@ class _ScalarNode extends _Node {
       // TODO(nweiz): This could be faster if we used a RegExp to check for
       // special characters and short-circuited if they didn't exist.
 
-      var escapedValue = value.charCodes().map((c) {
+      var escapedValue = value.charCodes.map((c) {
         switch (c) {
         case _Parser.TAB: return "\\t";
         case _Parser.LF: return "\\n";
@@ -201,7 +201,7 @@ class _ScalarNode extends _Node {
     return '${Strings.join(prefix, '')}$str';
   }
 
-  int hashCode() => super.hashCode() ^ content.hashCode();
+  int get hashCode => super.hashCode ^ content.hashCode;
 
   visit(_Visitor v) => v.visitScalar(this);
 }
@@ -219,7 +219,7 @@ class _MappingNode extends _Node {
     // Should be super != other; bug 2554
     if (!(super == other) || other is! _MappingNode) return false;
     if (content.length != other.content.length) return false;
-    for (var key in content.getKeys()) {
+    for (var key in content.keys) {
       if (!other.content.containsKey(key)) return false;
       if (content[key] != other.content[key]) return false;
     }
@@ -227,12 +227,12 @@ class _MappingNode extends _Node {
   }
 
   String toString() {
-    var strContent = Strings.join(content.getKeys().
+    var strContent = Strings.join(content.keys.
         map((k) => '${k}: ${content[k]}'), ', ');
     return '$tag {$strContent}';
   }
 
-  int hashCode() => super.hashCode() ^ _hashCode(content);
+  int get hashCode => super.hashCode ^ _hashCode(content);
 
   visit(_Visitor v) => v.visitMapping(this);
 }

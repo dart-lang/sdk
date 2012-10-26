@@ -12,7 +12,7 @@ class _Empty extends BaseMatcher {
   const _Empty();
   bool matches(item, MatchState matchState) {
     if (item is Map || item is Collection) {
-      return item.isEmpty();
+      return item.isEmpty;
     } else if (item is String) {
       return item.length == 0;
     } else {
@@ -102,8 +102,8 @@ class _DeepMatcher extends BaseMatcher {
     var position = 0;
     String reason = null;
     while (reason == null) {
-      if (expectedIterator.hasNext()) {
-        if (actualIterator.hasNext()) {
+      if (expectedIterator.hasNext) {
+        if (actualIterator.hasNext) {
           Description r = matcher(expectedIterator.next(),
                            actualIterator.next(),
                            'mismatch at position ${position}',
@@ -113,7 +113,7 @@ class _DeepMatcher extends BaseMatcher {
         } else {
           reason = 'shorter than expected';
         }
-      } else if (actualIterator.hasNext()) {
+      } else if (actualIterator.hasNext) {
         reason = 'longer than expected';
       } else {
         return null;
@@ -141,7 +141,7 @@ class _DeepMatcher extends BaseMatcher {
         } else if (expected.length != actual.length) {
           reason = new StringDescription('different map lengths');
         } else {
-          for (var key in expected.getKeys()) {
+          for (var key in expected.keys) {
             if (!actual.containsKey(key)) {
               reason = new StringDescription('missing map key ');
               reason.addDescriptionOf(key);
@@ -495,18 +495,18 @@ class _NullPointerException extends ExceptionMatcher {
   bool matches(item, MatchState matchState) => item is NullPointerException;
 }
 
-/** A matcher for UnsupportedOperationExceptions. */
-const isUnsupportedOperationException = const _UnsupportedOperationException();
+/** A matcher for UnsupportedErrors. */
+const isUnsupportedError = const _UnsupportedError();
 
-/** A matcher for functions that throw UnsupportedOperationException */
-const Matcher throwsUnsupportedOperationException =
-    const Throws(isUnsupportedOperationException);
+/** A matcher for functions that throw UnsupportedError */
+const Matcher throwsUnsupportedError =
+    const Throws(isUnsupportedError);
 
-class _UnsupportedOperationException extends ExceptionMatcher {
-  const _UnsupportedOperationException() :
-      super("UnsupportedOperationException");
+class _UnsupportedError extends ExceptionMatcher {
+  const _UnsupportedError() :
+      super("UnsupportedError");
   bool matches(item, MatchState matchState) =>
-      item is UnsupportedOperationException;
+      item is UnsupportedError;
 }
 
 /**
@@ -624,4 +624,55 @@ class _Predicate extends BaseMatcher {
 
   Description describe(Description description) =>
       description.add(_description);
+}
+
+/**
+ * A useful utility class for implementing other matchers through inheritance.
+ * Derived classes should call the base constructor with a feature name and
+ * description, and an instance matcher, and should implement the
+ * [featureValueOf] abstract method.
+ *
+ * The feature description will typically describe the item and the feature,
+ * while the feature name will just name the feature. For example, we may
+ * have a Widget class where each Widget has a price; we could make a
+ * FeatureMatcher that can make assertions about prices with:
+ *
+ *     class HasPrice extends FeatureMatcher {
+ *       const HasPrice(matcher) :
+ *           super("Widget with price that is", "price", matcher);
+ *       featureValueOf(actual) => actual.price;
+ *     }
+ *
+ * and then use this for example like:
+ *
+ *      expect(inventoryItem, new HasPrice(greaterThan(0)));
+ */
+abstract class CustomMatcher extends BaseMatcher {
+  final String _featureDescription;
+  final String _featureName;
+  final Matcher _matcher;
+
+  const CustomMatcher(this._featureDescription, this._featureName,
+      this._matcher);
+
+  /** Implement this to extract the interesting feature.*/
+  featureValueOf(actual);
+
+  bool matches(item, MatchState matchState) {
+    var f = featureValueOf(item);
+    if (_matcher.matches(f, matchState)) return true;
+    matchState.state = { 'innerState': matchState.state, 'feature': f };
+    return false;
+  }
+
+  Description describe(Description description) =>
+      description.add(_featureDescription).add(' ').addDescriptionOf(_matcher);
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    mismatchDescription.add(_featureName).add(' ');
+    _matcher.describeMismatch(matchState.state['feature'], mismatchDescription,
+        matchState.state['innerState'], verbose);
+    return mismatchDescription;
+  }
 }

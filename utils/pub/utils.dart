@@ -74,9 +74,9 @@ List flatten(List nested) {
  */
 only(Iterable iter) {
   var iterator = iter.iterator();
-  assert(iterator.hasNext());
+  assert(iterator.hasNext);
   var obj = iterator.next();
-  assert(!iterator.hasNext());
+  assert(!iterator.hasNext);
   return obj;
 }
 
@@ -97,8 +97,8 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   var buffer = new StringBuffer();
   var start = 0;
   for (var match in matcher.allMatches(source)) {
-    buffer.add(source.substring(start, match.start()));
-    start = match.end();
+    buffer.add(source.substring(start, match.start));
+    start = match.end;
     buffer.add(fn(match));
   }
   buffer.add(source.substring(start));
@@ -110,7 +110,7 @@ String replace(String source, Pattern matcher, String fn(Match)) {
  */
 bool endsWithPattern(String str, Pattern matcher) {
   for (var match in matcher.allMatches(str)) {
-    if (match.end() == str.length) return true;
+    if (match.end == str.length) return true;
   }
   return false;
 }
@@ -119,7 +119,7 @@ bool endsWithPattern(String str, Pattern matcher) {
  * Returns the hex-encoded sha1 hash of [source].
  */
 String sha1(String source) =>
-  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes()).digest());
+  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes).digest());
 
 /**
  * Returns a [Future] that completes in [milliSeconds].

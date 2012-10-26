@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of org_dartlang_compiler_util;
+
 class Link<T> implements Iterable<T> {
   T get head => null;
   Link<T> get tail => null;
@@ -39,12 +41,12 @@ class Link<T> implements Iterable<T> {
 
   List toList() => new List<T>(0);
 
-  bool isEmpty() => true;
+  bool get isEmpty => true;
 
   Link<T> reverse() => this;
 
   Link<T> reversePrependAll(Link<T> from) {
-    if (from.isEmpty()) return this;
+    if (from.isEmpty) return this;
     return this.prepend(from.head).reversePrependAll(from.tail);
   }
 
@@ -52,7 +54,7 @@ class Link<T> implements Iterable<T> {
 
   bool operator ==(other) {
     if (other is !Link<T>) return false;
-    return other.isEmpty();
+    return other.isEmpty;
   }
 
   String toString() => "[]";

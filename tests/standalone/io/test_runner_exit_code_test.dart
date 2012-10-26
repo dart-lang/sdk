@@ -5,7 +5,7 @@
 #import('dart:io');
 
 void runTests(String executable, String script, Iterator iterator) {
-  if (iterator.hasNext()) {
+  if (iterator.hasNext) {
     var progressIndicator = iterator.next();
     Process.run(executable, [script, progressIndicator]).then((result) {
       Expect.equals(1, result.exitCode);

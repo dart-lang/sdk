@@ -14,7 +14,7 @@ checkOutput(encoding, output) {
   } else if (encoding == 'latin1') {
     Expect.equals(output, 'æøå');
   } else if (encoding == 'utf8') {
-    Expect.listEquals(output.charCodes(), [955]);
+    Expect.listEquals(output.charCodes, [955]);
   }
 }
 

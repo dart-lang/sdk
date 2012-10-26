@@ -29,7 +29,7 @@ $if DART2JS
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaY is not supported');
   }
 
@@ -57,7 +57,7 @@ $if DART2JS
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaX is not supported');
   }
 

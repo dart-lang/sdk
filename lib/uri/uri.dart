@@ -48,7 +48,7 @@ class Uri {
   static String _emptyIfNull(String val) => val != null ? val : '';
 
   static int _parseIntOrZero(String val) {
-    if (val !== null && val != '') {
+    if (val != null && val != '') {
       return int.parse(val);
     } else {
       return 0;
@@ -217,13 +217,13 @@ class Uri {
     if (hasAuthority() || (scheme == "file")) {
       sb.add("//");
       _addIfNonEmpty(sb, userInfo, userInfo, "@");
-      sb.add(domain === null ? "null" : domain);
+      sb.add(domain == null ? "null" : domain);
       if (port != 0) {
         sb.add(":");
         sb.add(port.toString());
       }
     }
-    sb.add(path === null ? "null" : path);
+    sb.add(path == null ? "null" : path);
     _addIfNonEmpty(sb, query, "?", query);
     _addIfNonEmpty(sb, fragment, "#", fragment);
     return sb.toString();
@@ -232,8 +232,8 @@ class Uri {
   static void _addIfNonEmpty(StringBuffer sb, String test,
                              String first, String second) {
     if ("" != test) {
-      sb.add(first === null ? "null" : first);
-      sb.add(second === null ? "null" : second);
+      sb.add(first == null ? "null" : first);
+      sb.add(second == null ? "null" : second);
     }
   }
 }

@@ -20,7 +20,7 @@ class UninitializedLocaleData {
   operator [](String key) {
     _throwException();
   }
-  List getKeys() => _throwException();
+  List get keys => _throwException();
   bool containsKey(String key) => _throwException();
 
   _throwException() {

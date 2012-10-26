@@ -26,7 +26,7 @@ class ByteString implements SourceString {
 
   Iterator<int> iterator() => new Utf8Decoder(bytes, offset, length);
 
-  int hashCode() {
+  int get hashCode {
     if (_hashCode == null) {
       _hashCode = computeHashCode();
     }
@@ -46,8 +46,8 @@ class ByteString implements SourceString {
     sb.add(slowToString());
   }
 
-  bool isEmpty() => length == 0;
-  bool isPrivate() => !isEmpty() && identical(bytes[offset], $_);
+  bool get isEmpty => length == 0;
+  bool isPrivate() => !isEmpty && identical(bytes[offset], $_);
 
   String get stringValue => null;
 }
@@ -75,7 +75,7 @@ class AsciiString extends ByteString {
 
 
   static AsciiString fromString(String string) {
-    List<int> bytes = string.charCodes();
+    List<int> bytes = string.charCodes;
     return AsciiString.of(bytes, 0, bytes.length);
   }
 }
@@ -89,7 +89,7 @@ class AsciiStringIterator implements Iterator<int> {
       : this.bytes = bytes, offset = 0, end = bytes.length;
   AsciiStringIterator.range(List<int> bytes, int from, int length)
       : this.bytes = bytes, offset = from, end = from + length;
-  bool hasNext() => offset < end;
+  bool get hasNext => offset < end;
   int next() => bytes[offset++];
 }
 

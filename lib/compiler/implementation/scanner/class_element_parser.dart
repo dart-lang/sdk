@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 class ClassElementParser extends PartialParser {
   ClassElementParser(Listener listener) : super(listener);
 
@@ -41,7 +43,7 @@ class PartialClassElement extends ClassElement {
         Token token = parser.parseTopLevelDeclaration(beginToken);
         assert(identical(token, endToken.next));
         cachedNode = listener.popNode();
-        assert(listener.nodes.isEmpty());
+        assert(listener.nodes.isEmpty);
       });
       compiler.patchParser.measure(() {
         if (isPatched) {
@@ -169,7 +171,7 @@ class MemberListener extends NodeListener {
   }
 
   void addMember(Element memberElement) {
-    for (Link link = metadata; !link.isEmpty(); link = link.tail) {
+    for (Link link = metadata; !link.isEmpty; link = link.tail) {
       memberElement.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();

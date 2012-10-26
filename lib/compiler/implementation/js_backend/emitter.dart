@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of js_backend;
+
 /**
  * A function element that represents a closure call. The signature is copied
  * from the given element.
@@ -610,7 +612,7 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
-      if (!parameters.optionalParameters.isEmpty()) {
+      if (!parameters.optionalParameters.isEmpty) {
         addParameterStubs(member, defineInstanceMember);
       }
     } else if (!member.isField()) {
@@ -1181,7 +1183,7 @@ $classesCollector.$mangledName = {'':
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
-    if (!lazyFields.isEmpty()) {
+    if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in lazyFields) {
         assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
@@ -1214,6 +1216,8 @@ $classesCollector.$mangledName = {'':
     for (Constant constant in constants) {
       // No need to emit functions. We already did that.
       if (constant.isFunction()) continue;
+      // Numbers, strings and booleans are currently always inlined.
+      if (constant.isPrimitive()) continue;
 
       String name = namer.constantName(constant);
       // The name is null when the constant is already a JS constant.
@@ -1250,7 +1254,7 @@ $classesCollector.$mangledName = {'':
     assert(invariant(member, member.isDeclaration));
     if (member.isGetter() || member.isField()) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
-      if (selectors != null && !selectors.isEmpty()) {
+      if (selectors != null && !selectors.isEmpty) {
         emitCallStubForGetter(member, selectors, defineInstanceMember);
       }
     } else if (member.isFunction()) {
@@ -1262,7 +1266,7 @@ $classesCollector.$mangledName = {'':
 
   void emitNoSuchMethodHandlers(DefineMemberFunction defineInstanceMember) {
     // Do not generate no such method handlers if there is no class.
-    if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
+    if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
     String noSuchMethodName =
         namer.publicInstanceMethodNameByArity(Compiler.NO_SUCH_METHOD, 2);

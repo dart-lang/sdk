@@ -52,7 +52,7 @@ class Process {
   /**
    * Returns an input stream of the process stdout.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract InputStream get stdout;
@@ -60,7 +60,7 @@ class Process {
   /**
    * Returns an input stream of the process stderr.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract InputStream get stderr;
@@ -68,7 +68,7 @@ class Process {
   /**
    * Returns an output stream to the process stdin.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract OutputStream get stdin;
@@ -77,7 +77,7 @@ class Process {
    * Sets an exit handler which gets invoked when the process
    * terminates.
    *
-   * Throws an [UnsupportedOperationException] if the process is
+   * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
   abstract void set onExit(void callback(int exitCode));
@@ -87,10 +87,15 @@ class Process {
    * flag. On Posix systems, [kill] sends [signal] to the
    * process. Depending on the signal giving, it'll have different
    * meanings. When the process terminates as a result of calling
-   * [kill] [onExit] is called. If the kill operation fails an
-   * exception is thrown.
+   * [kill] [onExit] is called.
+   *
+   * Returns [:true:] if the process is successfully killed (the
+   * signal is successfully sent). Returns [:false:] if the process
+   * could not be killed (the signal could not be sent). Usually,
+   * a [:false:] return value from kill means that the process is
+   * already dead.
    */
-  abstract void kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
+  abstract bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
 
   /**
    * Terminates the streams of a process. [close] must be called on a

@@ -27,10 +27,10 @@ reduce(Iterable source, callback, [initialValue]) {
   final i = source.iterator();
 
   var current = initialValue;
-  if (current == null && i.hasNext()) {
+  if (current == null && i.hasNext) {
     current = i.next();
   }
-  while (i.hasNext()) {
+  while (i.hasNext) {
     current = callback(current, i.next());
   }
   return current;
@@ -40,10 +40,10 @@ List zip(Iterable left, Iterable right, mapper(left, right)) {
   List result = new List();
   var x = left.iterator();
   var y = right.iterator();
-  while (x.hasNext() && y.hasNext()) {
+  while (x.hasNext && y.hasNext) {
     result.add(mapper(x.next(), y.next()));
   }
-  if (x.hasNext() || y.hasNext()) {
+  if (x.hasNext || y.hasNext) {
     throw new ArgumentError();
   }
   return result;

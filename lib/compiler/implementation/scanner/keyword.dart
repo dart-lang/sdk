@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 /**
  * A keyword in the Dart programming language.
  */
@@ -94,7 +96,7 @@ class Keyword implements SourceString {
     return result;
   }
 
-  int hashCode() => syntax.hashCode();
+  int get hashCode => syntax.hashCode;
 
   bool operator ==(other) {
     return other is SourceString && toString() == other.slowToString();
@@ -115,7 +117,7 @@ class Keyword implements SourceString {
     return this;
   }
 
-  bool isEmpty() => false;
+  bool get isEmpty => false;
   bool isPrivate() => false;
 }
 

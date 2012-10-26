@@ -43,7 +43,7 @@ class EarlyCloseTest {
 
     List<int> d;
     if (data is List<int>) d = data;
-    if (data is String) d = data.charCodes();
+    if (data is String) d = data.charCodes;
     if (d == null) Expect.fail("Invalid data");
     sendData(d, server.port);
 
@@ -80,7 +80,7 @@ void testEarlyClose() {
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0);
   void runTest(Iterator it) {
-    if (it.hasNext()) {
+    if (it.hasNext) {
       it.next().execute(server).then((_) => runTest(it));
     } else {
       server.close();

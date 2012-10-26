@@ -80,7 +80,7 @@ num min(num a, num b) {
           }
         }
         // Check for NaN and b == -0.0.
-        if (a == 0 && b.isNegative() || b.isNaN()) return b;
+        if (a == 0 && b.isNegative || b.isNaN) return b;
         return a;
       }
       return a;
@@ -117,11 +117,11 @@ num max(num a, num b) {
           }
         }
         // Check for NaN.
-        if (b.isNaN()) return b;
+        if (b.isNaN) return b;
         return a;
       }
       // max(-0.0, 0) must return 0.
-      if (b == 0 && a.isNegative()) return b;
+      if (b == 0 && a.isNegative) return b;
       return a;
     }
     throw new ArgumentError(b);

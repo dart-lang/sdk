@@ -173,7 +173,8 @@ def start_browser(browser, executable_path, html_out):
     xpi = os.path.join(script_dir, 'extensions', 'firefox',                               'ConsoleCollector.xpi')
     profile.add_extension(xpi);
     return selenium.webdriver.Firefox(firefox_profile=profile)
-  elif browser == 'ie9' and platform.system() == 'Windows':
+  elif ((browser == 'ie9' or browser == 'ie10') and 
+      platform.system() == 'Windows'):
     return selenium.webdriver.Ie()
   elif browser == 'safari' and platform.system() == 'Darwin':
     # TODO(efortuna): Ensure our preferences (no pop-up blocking) file is the

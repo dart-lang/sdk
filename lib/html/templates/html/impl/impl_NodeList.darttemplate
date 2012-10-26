@@ -23,7 +23,7 @@ class _ListWrapper<E> implements List<E> {
 
   bool some(bool f(E element)) => _list.some(f);
 
-  bool isEmpty() => _list.isEmpty();
+  bool get isEmpty => _list.isEmpty;
 
   int get length => _list.length;
 
@@ -50,7 +50,7 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
-  E last() => _list.last();
+  E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
     _list.getRange(start, rangeLength);
@@ -113,7 +113,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   _NodeImpl removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _parent.$dom_removeChild(result);
     }
@@ -141,12 +141,12 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -155,18 +155,18 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
   Node get first => this[0];
 
   // FIXME: implement thesee.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));

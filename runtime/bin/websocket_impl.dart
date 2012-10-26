@@ -468,7 +468,7 @@ class _WebSocketConnectionBase {
     _closeSent = true;
   }
 
-  int hashCode() => _hash;
+  int get hashCode => _hash;
 
   _onWebSocketMessageStart(int type) {
     _currentMessageType = type;
@@ -576,7 +576,7 @@ class _WebSocketConnectionBase {
 class _WebSocketConnection
     extends _WebSocketConnectionBase implements WebSocketConnection {
   _WebSocketConnection(DetachedSocket detached) {
-    _hash = detached.socket.hashCode();
+    _hash = detached.socket.hashCode;
     _socketConnected(detached.socket);
     _startProcessing(detached.unparsedData);
   }
@@ -598,7 +598,7 @@ class _WebSocketHandler implements WebSocketHandler {
     response.headers.add(HttpHeaders.UPGRADE, "websocket");
     String key = request.headers.value("Sec-WebSocket-Key");
     SHA1 sha1 = new SHA1();
-    sha1.update("$key$_webSocketGUID".charCodes());
+    sha1.update("$key$_webSocketGUID".charCodes);
     String accept = _Base64._encode(sha1.digest());
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.contentLength = 0;
@@ -747,7 +747,7 @@ class _WebSocketClientConnection
       return false;
     }
     SHA1 sha1 = new SHA1();
-    sha1.update("$_nonce$_webSocketGUID".charCodes());
+    sha1.update("$_nonce$_webSocketGUID".charCodes);
     List<int> expectedAccept = sha1.digest();
     List<int> receivedAccept = _Base64._decode(accept);
     if (expectedAccept.length != receivedAccept.length) return false;
@@ -775,15 +775,14 @@ class _WebSocket implements WebSocket {
       throw new WebSocketException("Unsupported user info ${uri.userInfo}");
     }
     int port = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
-    String path;
+    String path = uri.path;
+    if (path.length == 0) path = "/";
     if (uri.query != "") {
       if (uri.fragment != "") {
-        path = "${uri.path}?${uri.query}#${uri.fragment}";
+        path = "${path}?${uri.query}#${uri.fragment}";
       } else {
-        path = "${uri.path}?${uri.query}";
+        path = "${path}?${uri.query}";
       }
-    } else {
-      path = uri.path;
     }
 
     HttpClient client = new HttpClient();

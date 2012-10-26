@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 /**
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list (aka a token stream).
@@ -573,13 +575,13 @@ class Parser {
     listener.beginTopLevelMember(token);
 
     Link<Token> identifiers = findMemberName(token);
-    if (identifiers.isEmpty()) {
+    if (identifiers.isEmpty) {
       return listener.unexpected(start);
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
     Token getOrSet;
-    if (!identifiers.isEmpty()) {
+    if (!identifiers.isEmpty) {
       String value = identifiers.head.stringValue;
       if ((identical(value, 'get')) || (identical(value, 'set'))) {
         getOrSet = identifiers.head;
@@ -587,7 +589,7 @@ class Parser {
       }
     }
     Token type;
-    if (!identifiers.isEmpty()) {
+    if (!identifiers.isEmpty) {
       if (isValidTypeReference(identifiers.head)) {
         type = identifiers.head;
         identifiers = identifiers.tail;
@@ -771,7 +773,7 @@ class Parser {
 
   void parseModifierList(Link<Token> tokens) {
     int count = 0;
-    for (; !tokens.isEmpty(); tokens = tokens.tail) {
+    for (; !tokens.isEmpty; tokens = tokens.tail) {
       Token token = tokens.head;
       if (isModifier(token)) {
         parseModifier(token);
@@ -867,26 +869,26 @@ class Parser {
     listener.beginMember(token);
 
     Link<Token> identifiers = findMemberName(token);
-    if (identifiers.isEmpty()) {
+    if (identifiers.isEmpty) {
       return listener.unexpected(start);
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
-    if (!identifiers.isEmpty()) {
+    if (!identifiers.isEmpty) {
       if (optional('operator', identifiers.head)) {
         name = identifiers.head;
         identifiers = identifiers.tail;
       }
     }
     Token getOrSet;
-    if (!identifiers.isEmpty()) {
+    if (!identifiers.isEmpty) {
       if (isGetOrSet(identifiers.head)) {
         getOrSet = identifiers.head;
         identifiers = identifiers.tail;
       }
     }
     Token type;
-    if (!identifiers.isEmpty()) {
+    if (!identifiers.isEmpty) {
       if (isValidTypeReference(identifiers.head)) {
         type = identifiers.head;
         identifiers = identifiers.tail;
@@ -1538,7 +1540,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    Token begin = token;
+    var begin = token;
     token = expect('(', token);
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {

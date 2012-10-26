@@ -97,7 +97,7 @@ void testReadLine1() {
 
   stream.onData = stringData;
   stream.onClosed = streamClosed;
-  s.write("Line".charCodes());
+  s.write("Line".charCodes);
 }
 
 void testReadLine2() {
@@ -121,7 +121,7 @@ void testReadLine2() {
       Expect.equals(2, stream.available());
       Expect.equals(null, line);
       stage++;
-      s.write("ne4\n".charCodes());
+      s.write("ne4\n".charCodes);
     } else if (stage == 1) {
       Expect.equals(6, stream.available());
       line = stream.readLine();
@@ -130,7 +130,7 @@ void testReadLine2() {
       line = stream.readLine();
       Expect.equals(null, line);
       stage++;
-      s.write("\n\n\r\n\r\n\r\r".charCodes());
+      s.write("\n\n\r\n\r\n\r\r".charCodes);
     } else if (stage == 2) {
       // Expect 5 empty lines. As long as the stream is not closed the
       // final \r cannot be interpreted as a end of line.
@@ -162,7 +162,7 @@ void testReadLine2() {
 
   stream.onLine = stringData;
   stream.onClosed = streamClosed;
-  s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
+  s.write("Line1\nLine2\r\nLine3\rLi".charCodes);
 }
 
 void testReadChunks() {
@@ -198,7 +198,7 @@ void testReadChunks() {
     Expect.equals(0, stream.available());
   }
 
-  s.write("ABCD1234".charCodes());
+  s.write("ABCD1234".charCodes);
   stream.onData = stringData;
 }
 
@@ -224,7 +224,7 @@ void testReadMixed() {
       Expect.equals(null, data);
       data = stream.read(4);
       Expect.equals("1234", data);
-      s.write("A\r\nBCD\n1234".charCodes());
+      s.write("A\r\nBCD\n1234".charCodes);
       stage++;
     } else if (stage == 1) {
       Expect.equals(11, stream.available());
@@ -243,7 +243,7 @@ void testReadMixed() {
       Expect.equals(null, data);
       data = stream.read(4);
       Expect.equals("1234", data);
-      s.write("A\r\nBCD\n1234".charCodes());
+      s.write("A\r\nBCD\n1234".charCodes);
       stage++;
     } else if (stage == 2) {
       Expect.equals(11, stream.available());
@@ -264,7 +264,7 @@ void testReadMixed() {
     Expect.equals(true, stream.closed);
   }
 
-  s.write("A\r\nBCD\n1234".charCodes());
+  s.write("A\r\nBCD\n1234".charCodes);
   stream.onData = stringData;
   stream.onClosed = streamClosed;
 }

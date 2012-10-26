@@ -4,6 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
+part of html;
+
 $!COMMENT
 abstract class $ID$EXTENDS  {
   factory $ID() => _$(ID)FactoryProvider.create$ID();

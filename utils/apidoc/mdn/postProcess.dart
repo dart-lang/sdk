@@ -16,7 +16,7 @@ void main() {
       new File('output/database.json').readAsTextSync());
   final filteredDb = {};
   final obsolete = [];
-  for (String type in database.getKeys()) {
+  for (String type in database.keys) {
     final entry = pickBestEntry(database[type], type);
     if (entry == null) {
       print("Can't find ${type} in database.  Skipping.");
@@ -25,7 +25,7 @@ void main() {
     filteredDb[type] = entry;
     if (entry.containsKey("members")) {
       Map members = getMembersMap(entry);
-      for (String name in members.getKeys()) {
+      for (String name in members.keys) {
         Map memberData = members[name];
         if (memberData['obsolete'] == true) {
           obsolete.add({'type': type, 'member' : name});

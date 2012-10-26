@@ -257,19 +257,19 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Double_isInfinite, 1) {
+DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 1) {
   const Double& arg = Double::CheckedHandle(arguments->At(0));
   return Bool::Get(isinf(arg.value()));
 }
 
 
-DEFINE_NATIVE_ENTRY(Double_isNaN, 1) {
+DEFINE_NATIVE_ENTRY(Double_getIsNaN, 1) {
   const Double& arg = Double::CheckedHandle(arguments->At(0));
   return Bool::Get(isnan(arg.value()));
 }
 
 
-DEFINE_NATIVE_ENTRY(Double_isNegative, 1) {
+DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   const Double& arg = Double::CheckedHandle(arguments->At(0));
   // Include negative zero, infinity.
   return Bool::Get(signbit(arg.value()) && !isnan(arg.value()));

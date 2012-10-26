@@ -2,27 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_backend;
+
 class CloningVisitor implements Visitor<Node> {
   final TreeElements originalTreeElements;
   final TreeElementMapping cloneTreeElements;
 
-  CloningVisitor(this.originalTreeElements)
-      : cloneTreeElements = new TreeElementMapping();
+  CloningVisitor(originalTreeElements)
+      : cloneTreeElements =
+            new TreeElementMapping(originalTreeElements.currentElement),
+        this.originalTreeElements = originalTreeElements;
 
   visit(Node node) {
     if (node == null) return null;
     final clone = node.accept(this);
+
     final originalElement = originalTreeElements[node];
-    if (originalElement != null) {
-      cloneTreeElements[clone] = originalElement;
-    }
-    TypeAnnotation asTypeAnnotation = node.asTypeAnnotation();
-    if (asTypeAnnotation != null) {
-      final originalType = originalTreeElements.getType(asTypeAnnotation);
-      if (originalType != null) {
-        cloneTreeElements.setType(clone.asTypeAnnotation(), originalType);
-      }
-    }
+    if (originalElement != null) cloneTreeElements[clone] = originalElement;
+
+    final originalType = originalTreeElements.getType(node);
+    if (originalType != null) cloneTreeElements.setType(clone, originalType);
     return clone;
   }
 
@@ -133,11 +132,11 @@ class CloningVisitor implements Visitor<Node> {
     // Special case for classes which exist in hierarchy, but not
     // in the visitor.
     if (node is Prefix) {
-      return node.nodes.isEmpty() ?
+      return node.nodes.isEmpty ?
           new Prefix() : new Prefix.singleton(visit(node.nodes.head));
     }
     if (node is Postfix) {
-      return node.nodes.isEmpty() ?
+      return node.nodes.isEmpty ?
           new Postfix() : new Postfix.singleton(visit(node.nodes.head));
     }
     LinkBuilder<Node> builder = new LinkBuilder<Node>();

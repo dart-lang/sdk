@@ -45,6 +45,7 @@ class AnalysisResult {
 
   BaseType int;
   BaseType double;
+  BaseType num;
   BaseType bool;
   BaseType string;
   BaseType list;
@@ -55,6 +56,7 @@ class AnalysisResult {
     inferrer = compiler.typesTask.concreteTypesInferrer;
     int = inferrer.baseTypes.intBaseType;
     double = inferrer.baseTypes.doubleBaseType;
+    num = inferrer.baseTypes.numBaseType;
     bool = inferrer.baseTypes.boolBaseType;
     string = inferrer.baseTypes.stringBaseType;
     list = inferrer.baseTypes.listBaseType;
@@ -120,9 +122,26 @@ class AnalysisResult {
   }
 }
 
+const String CORELIB = r'''
+  print(var obj) {}
+  abstract class num { operator +(x); operator *(x); operator -(x); }
+  abstract class int extends num { }
+  abstract class double extends num { }
+  class bool {}
+  class String {}
+  class Object {}
+  class Function {}
+  abstract class List {}
+  abstract class Map {}
+  class Closure {}
+  class Null {}
+  class Dynamic_ {}
+  bool identical(Object a, Object b) {}''';
+
 AnalysisResult analyze(String code) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = new MockCompiler(enableConcreteTypeInference: true);
+  MockCompiler compiler = new MockCompiler(coreSource: CORELIB,
+                                           enableConcreteTypeInference: true);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.runCompiler(uri);
   return new AnalysisResult(compiler);
@@ -193,8 +212,30 @@ testWhile() {
       class B { f() => new C(); }
       class C { f() => new A(); }
       main() {
+        var bar = null;
         var foo = new A();
-        while(true) {
+        while(bar = 42) {
+          foo = foo.f();
+        }
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType(
+      'foo',
+      [result.base('A'), result.base('B'), result.base('C')]);
+  // Check that the condition is evaluated.
+  result.checkNodeHasType('bar', [result.int]);
+}
+
+testFor1() {
+  final String source = r"""
+      class A { f() => new B(); }
+      class B { f() => new C(); }
+      class C { f() => new A(); }
+      main() {
+        var foo = new A();
+        for(;;) {
           foo = foo.f();
         }
         foo;
@@ -204,6 +245,25 @@ testWhile() {
   result.checkNodeHasType(
       'foo',
       [result.base('A'), result.base('B'), result.base('C')]);
+}
+
+testFor2() {
+  final String source = r"""
+      class A { f() => new B(); test() => true; }
+      class B { f() => new A(); test() => true; }
+      main() {
+        var bar = null;
+        var foo = new A();
+        for(var i = new A(); bar = 42; i = i.f()) {
+           foo = i;
+        }
+        foo; bar;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
+  // Check that the condition is evaluated.
+  result.checkNodeHasType('bar', [result.int]);
 }
 
 testNonRecusiveFunction() {
@@ -237,6 +297,39 @@ testMutuallyRecusiveFunction() {
   result.checkNodeHasType('foo', [result.int, result.string]);
 }
 
+testSendToThis1() {
+  final String source = r"""
+      class A {
+        A();
+        f() => g();
+        g() => 42;
+      }
+      main() {
+        var foo = new A().f();
+        foo;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
+}
+
+testSendToThis2() {
+  final String source = r"""
+      class A {
+        foo() => this;
+      }
+      class B extends A {
+        bar() => foo();
+      }
+      main() {
+        var x = new B().bar();
+        x;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.base('B')]);
+}
+
 testConstructor() {
   final String source = r"""
       class A {
@@ -259,7 +352,7 @@ testGetters() {
       class A {
         var x;
         A(this.x);
-        get y() => x;
+        get y => x;
       }
       main() {
         var a = new A(42);
@@ -374,15 +467,72 @@ testNoReturn() {
   result.checkNodeHasType('y', [result.nullType]);
 }
 
+testArithmeticOperators() {
+  String source(op) {
+    return """
+        main() {
+          var a = 1 $op 2;
+          var b = 1 $op 2.0;
+          var c = 1.0 $op 2;
+          var d = 1.0 $op 2.0;
+          var e = (1 $op 2.0) $op 1;
+          var f = 1 $op (1 $op 2.0);
+          var g = (1 $op 2.0) $op 1.0;
+          var h = 1.0 $op (1 $op 2);
+          var i = (1 $op 2) $op 1;
+          var j = 1 $op (1 $op 2);
+          var k = (1.0 $op 2.0) $op 1.0;
+          var l = 1.0 $op (1.0 $op 2.0);
+          a; b; c; d; e; f; g; h; i; j; k; l;
+        }""";
+  }
+  for (String op in ['+', '*', '-']) {
+    AnalysisResult result = analyze(source(op));
+    result.checkNodeHasType('a', [result.int]);
+    result.checkNodeHasType('b', [result.num]);
+    result.checkNodeHasType('c', [result.num]);
+    result.checkNodeHasType('d', [result.double]);
+    result.checkNodeHasType('e', [result.num]);
+    result.checkNodeHasType('f', [result.num]);
+    result.checkNodeHasType('g', [result.num]);
+    result.checkNodeHasType('h', [result.num]);
+    result.checkNodeHasType('i', [result.int]);
+    result.checkNodeHasType('j', [result.int]);
+    result.checkNodeHasType('k', [result.double]);
+    result.checkNodeHasType('l', [result.double]);
+  }
+}
+
+testOperators() {
+  final String source = r"""
+      class A {
+        operator <(x) => 42;
+        operator <<(x) => "a";
+      }
+      main() {
+        var x = new A() < "foo";
+        var y = new A() << "foo";
+        x; y;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.int]);
+  result.checkNodeHasType('y', [result.string]);
+}
+
 void main() {
   testLiterals();
   testRedefinition();
   testIfThenElse();
   testTernaryIf();
   testWhile();
+  testFor1();
+  testFor2();
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
+  testSendToThis1();
+  testSendToThis2();
   testConstructor();
   testGetters();
   testSetters();
@@ -391,4 +541,6 @@ void main() {
   testMapLiterals();
   testReturn();
   // testNoReturn(); // right now we infer the empty type instead of null
+  testArithmeticOperators();
+  testOperators();
 }

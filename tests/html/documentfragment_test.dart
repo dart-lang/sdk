@@ -28,7 +28,7 @@ main() {
     try {
       fn();
     } catch (e) {
-      if (e is IllegalAccessException || e is UnsupportedOperationException) {
+      if (e is UnsupportedError) {
         return;
       }
     }
@@ -117,7 +117,7 @@ main() {
     test('is initially empty', () {
       elements = new DocumentFragment().elements;
       Expect.listEquals([], elements);
-      Expect.isTrue(elements.isEmpty());
+      Expect.isTrue(elements.isEmpty);
     });
 
     test('filters out non-element nodes', () {
@@ -163,10 +163,10 @@ main() {
           ["I"], _nodeStrings(elements.filter((e) => e.tagName == "I")));
       Expect.isTrue(elements.every((e) => e is Element));
       Expect.isTrue(elements.some((e) => e.tagName == "U"));
-      Expect.isFalse(elements.isEmpty());
+      Expect.isFalse(elements.isEmpty);
       Expect.equals(4, elements.length);
       Expect.equals("I", elements[2].tagName);
-      Expect.equals("U", elements.last().tagName);
+      Expect.equals("U", elements.last.tagName);
     });
 
     test('setting elements overwrites nodes as well', () {
@@ -298,7 +298,7 @@ main() {
        expectEmptyRect(rect.offset);
        expectEmptyRect(rect.scroll);
        expectEmptyRect(rect.bounding);
-       Expect.isTrue(rect.clientRects.isEmpty());
+       Expect.isTrue(rect.clientRects.isEmpty);
     }));
     Expect.equals("false", fragment.contentEditable);
     Expect.equals(-1, fragment.tabIndex);
@@ -316,9 +316,9 @@ main() {
     Expect.isNull(fragment.previousElementSibling);
     Expect.isNull(fragment.offsetParent);
     Expect.isNull(fragment.parent);
-    Expect.isTrue(fragment.attributes.isEmpty());
-    Expect.isTrue(fragment.classes.isEmpty());
-    Expect.isTrue(fragment.dataAttributes.isEmpty());
+    Expect.isTrue(fragment.attributes.isEmpty);
+    Expect.isTrue(fragment.classes.isEmpty);
+    Expect.isTrue(fragment.dataAttributes.isEmpty);
     Expect.isFalse(fragment.matchesSelector("foo"));
     Expect.isFalse(fragment.matchesSelector("*"));
   });

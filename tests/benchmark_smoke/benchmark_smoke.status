@@ -14,9 +14,6 @@
 [ $runtime == vm ]
 *: Skip
 
-[ $runtime == opera ]
-*: Skip
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

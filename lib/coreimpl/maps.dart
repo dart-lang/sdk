@@ -4,13 +4,13 @@
 
 /*
  * Helper class which implements complex [Map] operations
- * in term of basic ones ([Map.getKeys], [Map.operator []],
+ * in term of basic ones ([Map.keys], [Map.operator []],
  * [Map.operator []=] and [Map.remove].)  Not all methods are
  * necessary to implement each particular operation.
  */
 class Maps {
   static bool containsValue(Map map, value) {
-    for (final v in map.getValues()) {
+    for (final v in map.values) {
       if (value == v) {
         return true;
       }
@@ -19,7 +19,7 @@ class Maps {
   }
 
   static bool containsKey(Map map, key) {
-    for (final k in map.getKeys()) {
+    for (final k in map.keys) {
       if (key == k) {
         return true;
       }
@@ -37,26 +37,26 @@ class Maps {
   }
 
   static clear(Map map) {
-    for (final k in map.getKeys()) {
+    for (final k in map.keys) {
       map.remove(k);
     }
   }
 
   static forEach(Map map, void f(key, value)) {
-    for (final k in map.getKeys()) {
+    for (final k in map.keys) {
       f(k, map[k]);
     }
   }
 
   static Collection getValues(Map map) {
     final result = [];
-    for (final k in map.getKeys()) {
+    for (final k in map.keys) {
       result.add(map[k]);
     }
     return result;
   }
 
-  static int length(Map map) => map.getKeys().length;
+  static int length(Map map) => map.keys.length;
 
   static bool isEmpty(Map map) => length(map) == 0;
 

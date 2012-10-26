@@ -34,32 +34,6 @@ class IndexOutOfRangeException implements Exception {
   final _value;
 }
 
-/**
- * Exception thrown because of attempt to modify an immutable object.
- */
-class IllegalAccessException implements Exception {
-  const IllegalAccessException();
-  String toString() => "Attempt to modify an immutable object";
-}
-
-
-class ClosureArgumentMismatchException implements Exception {
-  const ClosureArgumentMismatchException();
-  String toString() => "Closure argument mismatch";
-}
-
-
-class ObjectNotClosureException implements Exception {
-  const ObjectNotClosureException();
-  String toString() => "Object is not closure";
-}
-
-
-class StackOverflowException implements Exception {
-  const StackOverflowException();
-  String toString() => "Stack Overflow";
-}
-
 
 /**
  * Exception thrown when a string or some other data does not have an expected
@@ -80,12 +54,6 @@ class FormatException implements Exception {
 }
 
 
-class WrongArgumentCountException implements Exception {
-  const WrongArgumentCountException();
-  String toString() => "WrongArgumentCountException";
-}
-
-
 class NullPointerException implements Exception {
   const NullPointerException([this.functionName, this.arguments = const []]);
   String toString() {
@@ -102,25 +70,6 @@ class NullPointerException implements Exception {
 
   final String functionName;
   final List arguments;
-}
-
-
-class NoMoreElementsException implements Exception {
-  const NoMoreElementsException();
-  String toString() => "NoMoreElementsException";
-}
-
-
-class EmptyQueueException implements Exception {
-  const EmptyQueueException();
-  String toString() => "EmptyQueueException";
-}
-
-
-class UnsupportedOperationException implements Exception {
-  const UnsupportedOperationException(String this._message);
-  String toString() => "UnsupportedOperationException: $_message";
-  final String _message;
 }
 
 

@@ -72,7 +72,7 @@ public class Types {
   }
     
   public Type intersection(List<Type> types) {
-    // exclude Dynamic type
+    // exclude 'dynamic' type
     {
       List<Type> newTypes = Lists.newArrayList();
       for (Type type : types) {

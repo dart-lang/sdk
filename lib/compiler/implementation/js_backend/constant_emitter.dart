@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of js_backend;
+
 class ConstantEmitter implements ConstantVisitor {
   final Compiler compiler;
   final Namer namer;
@@ -63,7 +65,7 @@ class ConstantEmitter implements ConstantVisitor {
 
   void visitDouble(DoubleConstant constant) {
     double value = constant.value;
-    if (value.isNaN()) {
+    if (value.isNaN) {
       buffer.add("(0/0)");
     } else if (value == double.INFINITY) {
       buffer.add("(1/0)");
@@ -91,7 +93,7 @@ class ConstantEmitter implements ConstantVisitor {
                           CodeBuffer buffer,
                           Node diagnosticNode) {
     Iterator<int> iterator = string.iterator();
-    while (iterator.hasNext()) {
+    while (iterator.hasNext) {
       int code = iterator.next();
       if (identical(code, $SQ)) {
         buffer.add(r"\'");

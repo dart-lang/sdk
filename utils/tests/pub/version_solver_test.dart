@@ -404,7 +404,7 @@ testResolve(description, packages, {lockfile, result, error}) {
           var expectedId = result.remove(actualId.name);
           if (actualId != expectedId) return false;
         }
-        return result.isEmpty();
+        return result.isEmpty;
       }, description: 'packages to match $result')));
     } else if (error == noVersion) {
       expect(future, throwsA(new isInstanceOf<NoVersionException>()));
@@ -449,7 +449,7 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return fakeAsync(() => _packages[description].getKeys());
+    return fakeAsync(() => _packages[description].keys);
   }
 
   Future<Pubspec> describe(PackageId id) {

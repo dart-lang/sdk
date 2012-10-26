@@ -164,7 +164,13 @@ public class LibraryUnit {
   }
 
   public boolean hasImport(LibraryUnit unit) {
-    return imports.contains(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of()));
+    for (LibraryImport libraryImport : imports) {
+      if (libraryImport.getPrefix() == null && Objects.equal(libraryImport.getLibrary(), unit)) {
+        return true;
+      }
+    }
+    return false;
+//    return imports.contains(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of()));
   }
 
   public DartExpression getEntryPoint() {

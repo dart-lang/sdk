@@ -6,6 +6,8 @@
 
 {
   'sources': [
+    'date.cc',
+    'date_patch.dart',
     'double.cc',
     'double.dart',
     'double_patch.dart',
@@ -18,6 +20,7 @@
     'integers.cc',
     'integers.dart',
     'integers_patch.dart',
+    'invocation_mirror_patch.dart',
     'object_patch.dart',
     'print_patch.dart',
     'stopwatch.cc',

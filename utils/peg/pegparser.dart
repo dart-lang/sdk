@@ -62,7 +62,7 @@ _Rule CHAR([characters]) {
 
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
-  List<int> codes = characters.charCodes();
+  List<int> codes = characters.charCodes;
   codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];
@@ -248,7 +248,7 @@ class Grammar {
    * if the input can't be parsed.
    */
   parse(root, String text) {
-    for (var symbol in _symbols.getValues())
+    for (var symbol in _symbols.values)
       if (symbol._rule == null)
         print('${symbol.name} is undefined');
 
@@ -266,7 +266,7 @@ class Grammar {
 
   diagnose(state) {
     var message = 'unexpected error';
-    if (!state.max_rule.isEmpty()) {
+    if (!state.max_rule.isEmpty) {
       var s = new Set();
       for (var rule in state.max_rule)
         s.add(rule.description());

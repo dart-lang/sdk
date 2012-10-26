@@ -87,12 +87,12 @@ main() {
   });
 
   testWithLocalStorage('getKeys', () {
-    Expect.setEquals(['key1', 'key2', 'key3'], window.localStorage.getKeys());
+    Expect.setEquals(['key1', 'key2', 'key3'], window.localStorage.keys);
   });
 
   testWithLocalStorage('getVals', () {
     Expect.setEquals(['val1', 'val2', 'val3'],
-        window.localStorage.getValues());
+        window.localStorage.values);
   });
 
   testWithLocalStorage('length', () {
@@ -102,8 +102,8 @@ main() {
   });
 
   testWithLocalStorage('isEmpty', () {
-    Expect.isFalse(window.localStorage.isEmpty());
+    Expect.isFalse(window.localStorage.isEmpty);
     window.localStorage.clear();
-    Expect.isTrue(window.localStorage.isEmpty());
+    Expect.isTrue(window.localStorage.isEmpty);
   });
 }

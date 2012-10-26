@@ -33,7 +33,7 @@ class RuntimeTypeInformation {
   bool hasTypeArguments(DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      return !interfaceType.arguments.isEmpty();
+      return !interfaceType.arguments.isEmpty;
     }
     return false;
   }
@@ -69,7 +69,7 @@ class RuntimeTypeInformation {
    */
   String generateRuntimeTypeString(ClassElement element, int numberOfInputs) {
     String elementName = getName(element);
-    if (element.typeVariables.isEmpty()) return "'$elementName'";
+    if (element.typeVariables.isEmpty) return "'$elementName'";
     String stringify(_, bool hasValue) => hasValue ? "' + # + '" : "Dynamic";
     String arguments = stringifyTypeVariables(element.typeVariables,
                                               numberOfInputs,

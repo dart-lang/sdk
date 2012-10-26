@@ -26,7 +26,7 @@ class CGBlock {
     assert(_blockType >= CGBlock.CONSTRUCTOR && _blockType <= CGBlock.WITH);
   }
 
-  bool get anyStatements => !_stmts.isEmpty();
+  bool get anyStatements => !_stmts.isEmpty;
   bool get isConstructor => _blockType == CGBlock.CONSTRUCTOR;
   bool get isEach => _blockType == CGBlock.EACH;
   bool get isWith => _blockType == CGBlock.WITH;
@@ -54,12 +54,12 @@ class CGBlock {
   }
 
   void add(String value) {
-    if (_stmts.last() != null) {
-      _stmts.last().add(value);
+    if (_stmts.last != null) {
+      _stmts.last.add(value);
     }
   }
 
-  CGStatement get last => _stmts.length > 0 ? _stmts.last() : null;
+  CGStatement get last => _stmts.length > 0 ? _stmts.last : null;
 
   /**
    * Returns mixed list of elements marked with the var attribute.  If the
@@ -522,7 +522,7 @@ class ElemCG {
     _globalInits = new StringBuffer();
 
   bool get isLastBlockConstructor {
-    CGBlock block = _cgBlocks.last();
+    CGBlock block = _cgBlocks.last;
     return block.isConstructor;
   }
 
@@ -649,10 +649,10 @@ Nested #each or #with must have a localName;
     }
   }
 
-  CGBlock get lastBlock => _cgBlocks.length > 0 ? _cgBlocks.last() : null;
+  CGBlock get lastBlock => _cgBlocks.length > 0 ? _cgBlocks.last : null;
 
   void add(String str) {
-    _cgBlocks.last().add(str);
+    _cgBlocks.last.add(str);
   }
 
   String get globalDeclarations {
@@ -669,7 +669,7 @@ Nested #each or #with must have a localName;
 
   String get codeBody {
     closeStatement();
-    return _cgBlocks.last().codeBody;
+    return _cgBlocks.last.codeBody;
   }
 
   /* scopeName for expression
@@ -751,25 +751,25 @@ Nested #each or #with must have a localName;
 
     int lastIdx = 0;
     for (Match m in matches) {
-      if (m.start() > lastIdx) {
-        newExpr.add(expr.substring(lastIdx, m.start()));
+      if (m.start > lastIdx) {
+        newExpr.add(expr.substring(lastIdx, m.start));
       }
 
       bool identifier = true;
-      if (m.start() > 0)  {
-        int charCode = expr.charCodeAt(m.start() - 1);
+      if (m.start > 0)  {
+        int charCode = expr.charCodeAt(m.start - 1);
         // Starts with ' or " then it's not an identifier.
         identifier = charCode != 34 /* " */ && charCode != 39 /* ' */;
       }
 
-      String strMatch = expr.substring(m.start(), m.end());
+      String strMatch = expr.substring(m.start, m.end);
       if (identifier) {
         newExpr.add("${prefixPart}.${strMatch}");
       } else {
         // Quoted string don't touch.
         newExpr.add("${strMatch}");
       }
-      lastIdx = m.end();
+      lastIdx = m.end;
     }
 
     if (expr.length > lastIdx) {

@@ -781,7 +781,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
 
       /**
-       * @return the {@link Type} which is both "a" and "b" types. May be "Dynamic" if "a" and "b"
+       * @return the {@link Type} which is both "a" and "b" types. May be "dynamic" if "a" and "b"
        *         don't form hierarchy.
        */
       Type getUnionType(Type a, Type b) {

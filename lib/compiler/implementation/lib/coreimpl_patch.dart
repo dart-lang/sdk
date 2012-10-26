@@ -69,65 +69,6 @@ patch class ListImplementation<E> {
 }
 
 
-// Patch for Date implementation.
-// TODO(ager): Split out into date_patch.dart and allow #source
-// in patch files?
-patch class DateImplementation {
-  patch DateImplementation(int year,
-                           int month,
-                           int day,
-                           int hour,
-                           int minute,
-                           int second,
-                           int millisecond,
-                           bool isUtc)
-      : this.isUtc = checkNull(isUtc),
-        millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second, millisecond, isUtc) {
-    Primitives.lazyAsJsDate(this);
-  }
-
-  patch DateImplementation.now()
-      : isUtc = false,
-        millisecondsSinceEpoch = Primitives.dateNow() {
-    Primitives.lazyAsJsDate(this);
-  }
-
-  patch static int _brokenDownDateToMillisecondsSinceEpoch(
-      int year, int month, int day, int hour, int minute, int second,
-      int millisecond, bool isUtc) {
-    return Primitives.valueFromDecomposedDate(
-        year, month, day, hour, minute, second, millisecond, isUtc);
-  }
-
-  patch String get timeZoneName {
-    if (isUtc) return "UTC";
-    return Primitives.getTimeZoneName(this);
-  }
-
-  patch Duration get timeZoneOffset {
-    if (isUtc) return new Duration();
-    return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
-  }
-
-  patch int get year => Primitives.getYear(this);
-
-  patch int get month => Primitives.getMonth(this);
-
-  patch int get day => Primitives.getDay(this);
-
-  patch int get hour => Primitives.getHours(this);
-
-  patch int get minute => Primitives.getMinutes(this);
-
-  patch int get second => Primitives.getSeconds(this);
-
-  patch int get millisecond => Primitives.getMilliseconds(this);
-
-  patch int get weekday => Primitives.getWeekday(this);
-}
-
-
 // Patch for Stopwatch implementation.
 // TODO(ager): Split out into stopwatch_patch.dart and allow #source
 // in patch files?
@@ -191,22 +132,20 @@ patch class JSSyntaxRegExp {
 class _MatchImplementation implements Match {
   final String pattern;
   final String str;
-  final int _start;
-  final int _end;
+  final int start;
+  final int end;
   final List<String> _groups;
 
   const _MatchImplementation(
       String this.pattern,
       String this.str,
-      int this._start,
-      int this._end,
+      int this.start,
+      int this.end,
       List<String> this._groups);
 
-  int start() => _start;
-  int end() => _end;
   String group(int index) => _groups[index];
   String operator [](int index) => group(index);
-  int groupCount() => _groups.length - 1;
+  int get groupCount => _groups.length - 1;
 
   List<String> groups(List<int> groups) {
     List<String> out = [];
@@ -236,8 +175,8 @@ class _AllMatchesIterator implements Iterator<Match> {
     : _done = false, _re = JSSyntaxRegExp._globalVersionOf(re);
 
   Match next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
 
     // _next is set by [hasNext].
@@ -246,7 +185,7 @@ class _AllMatchesIterator implements Iterator<Match> {
     return next;
   }
 
-  bool hasNext() {
+  bool get hasNext {
     if (_done) {
       return false;
     } else if (_next != null) {

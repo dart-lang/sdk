@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  bool isNaN() => false;
+  bool get isNaN => false;
 }
 
 main() {
@@ -12,4 +12,4 @@ main() {
   Expect.throws(() => foo('bar'), (e) => e is NoSuchMethodError);
 }
 
-foo(a) => a.isNaN();
+foo(a) => a.isNaN;

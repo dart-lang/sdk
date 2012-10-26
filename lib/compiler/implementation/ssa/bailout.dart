@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 class BailoutInfo {
   int instructionId;
   int bailoutId;
@@ -59,7 +61,7 @@ class Environment {
     loopMarkers.addAll(other.loopMarkers);
   }
 
-  bool isEmpty() => lives.isEmpty() && loopMarkers.isEmpty();
+  bool get isEmpty => lives.isEmpty && loopMarkers.isEmpty;
 }
 
 
@@ -263,7 +265,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
-    if (!liveInstructions[graph.entry].isEmpty()) {
+    if (!liveInstructions[graph.entry].isEmpty) {
       compiler.internalError('Bailout environment computation',
           node: compiler.currentElement.parseNode(compiler));
     }
@@ -417,7 +419,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     subGraph = new SubGraph(graph.entry, graph.exit);
     visitBasicBlock(graph.entry);
-    if (!blocks.isEmpty()) {
+    if (!blocks.isEmpty) {
       compiler.internalError('Bailout propagation',
           node: compiler.currentElement.parseNode(compiler));
     }
@@ -430,7 +432,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (block.isLoopHeader()) {
       blocks.addLast(block);
     } else if (block.isLabeledBlock()
-               && (blocks.isEmpty() || !identical(blocks.last(), block))) {
+               && (blocks.isEmpty || !identical(blocks.last, block))) {
       HLabeledBlockInformation info = block.blockFlow.body;
       visitStatements(info.body);
       return;
@@ -530,7 +532,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
     if (inputLength > maxBailoutParameters) {
       maxBailoutParameters = inputLength;
     }
-    if (blocks.isEmpty()) {
+    if (blocks.isEmpty) {
       if (firstBailoutTarget == null) {
         firstBailoutTarget = target;
       } else {

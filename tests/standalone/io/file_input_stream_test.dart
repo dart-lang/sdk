@@ -33,7 +33,7 @@ void testStringInputStreamSync() {
 void testInputStreamAsync() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
-  var expected = "Hello Dart\nwassup!\n".charCodes();
+  var expected = "Hello Dart\nwassup!\n".charCodes;
   InputStream x = (new File(fileName)).openInputStream();
   var byteCount = 0;
   x.onData = () {
@@ -95,7 +95,7 @@ void testChunkedInputStream() {
 
 void testUnreadyInputStream() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
-  var expected = "Hello Dart\nwassup!\n".charCodes();
+  var expected = "Hello Dart\nwassup!\n".charCodes;
   InputStream x = (new File(fileName)).openInputStream();
   List<int> buffer = new List<int>(100);
 

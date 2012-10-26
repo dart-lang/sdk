@@ -5,12 +5,12 @@
 // Dart test program for testing NaN and Infinity.
 
 void main() {
-  Expect.isTrue(double.NAN.isNaN());
-  Expect.isFalse(double.NAN.isInfinite());
-  Expect.isFalse(double.INFINITY.isNaN());
-  Expect.isTrue(double.INFINITY.isInfinite());
-  Expect.isFalse(double.NEGATIVE_INFINITY.isNaN());
-  Expect.isTrue(double.NEGATIVE_INFINITY.isInfinite());
+  Expect.isTrue(double.NAN.isNaN);
+  Expect.isFalse(double.NAN.isInfinite);
+  Expect.isFalse(double.INFINITY.isNaN);
+  Expect.isTrue(double.INFINITY.isInfinite);
+  Expect.isFalse(double.NEGATIVE_INFINITY.isNaN);
+  Expect.isTrue(double.NEGATIVE_INFINITY.isInfinite);
   Expect.equals("NaN", double.NAN.toString());
   Expect.equals("Infinity", double.INFINITY.toString());
   Expect.equals("-Infinity", double.NEGATIVE_INFINITY.toString());
@@ -32,6 +32,6 @@ void main() {
   Expect.isFalse(double.NEGATIVE_INFINITY > double.NAN);
   Expect.isFalse(double.INFINITY == double.NAN);
   Expect.isFalse(double.NEGATIVE_INFINITY == double.NAN);
-  Expect.isTrue((3.0 * double.NAN).isNaN());
+  Expect.isTrue((3.0 * double.NAN).isNaN);
   Expect.isTrue(double.INFINITY > double.NEGATIVE_INFINITY);
 }

@@ -65,7 +65,7 @@ class _ChildrenElementList implements List {
     return out;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
@@ -83,7 +83,7 @@ class _ChildrenElementList implements List {
 
    void set length(int newLength) {
      // TODO(jacobr): remove children when length is reduced.
-     throw const UnsupportedOperationException('');
+     throw new UnsupportedError('');
    }
 
   Element add(_ElementImpl value) {
@@ -102,7 +102,7 @@ class _ChildrenElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -126,7 +126,7 @@ class _ChildrenElementList implements List {
   }
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -136,14 +136,14 @@ class _ChildrenElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _element.$dom_removeChild(result);
     }
     return result;
   }
 
-  Element last() {
+  Element get last {
     return _element.$dom_lastElementChild;
   }
 }
@@ -208,14 +208,14 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  bool isEmpty() => _nodeList.isEmpty();
+  bool get isEmpty => _nodeList.isEmpty;
 
   int get length => _nodeList.length;
 
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void set length(int newLength) {
@@ -223,33 +223,33 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void addLast(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Iterator<Element> iterator() => new _FrozenElementListIterator(this);
 
   void addAll(Collection<Element> collection) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   List<Element> getRange(int start, int rangeLength) =>
@@ -262,14 +262,14 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element removeLast() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
-  Element last() => _nodeList.last();
+  Element get last => _nodeList.last;
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
@@ -280,11 +280,11 @@ class _FrozenElementListIterator implements Iterator<Element> {
 
   /**
    * Gets the next element in the iteration. Throws a
-   * [NoMoreElementsException] if no element is left.
+   * [StateError("No more elements")] if no element is left.
    */
   Element next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
 
     return _list[_index++];
@@ -293,7 +293,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   /**
    * Returns whether the [Iterator] has elements left.
    */
-  bool hasNext() => _index < _list.length;
+  bool get hasNext => _index < _list.length;
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -352,7 +352,7 @@ class _ElementAttributeMap implements AttributeMap {
     }
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final keys = new List<String>(attributes.length);
@@ -362,7 +362,7 @@ class _ElementAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final values = new List<String>(attributes.length);
@@ -382,7 +382,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty() {
+  bool get isEmpty {
     return length == 0;
   }
 }
@@ -400,7 +400,7 @@ class _DataAttributeMap implements AttributeMap {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
+  bool containsValue(String value) => values.some((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
@@ -417,7 +417,7 @@ class _DataAttributeMap implements AttributeMap {
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in getKeys()) {
+    for (String key in keys) {
       remove(key);
     }
   }
@@ -430,7 +430,7 @@ class _DataAttributeMap implements AttributeMap {
     });
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -440,7 +440,7 @@ class _DataAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -450,10 +450,10 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length => getKeys().length;
+  int get length => keys.length;
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   // Helpers.
   String _attr(String key) => 'data-$key';
@@ -486,7 +486,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool some(bool f(String element)) => _read().some(f);
 
-  bool isEmpty() => _read().isEmpty();
+  bool get isEmpty => _read().isEmpty;
 
   bool get frozen => false;
 
@@ -570,7 +570,7 @@ class _CssClassSet implements CSSClassSet {
     Set<String> s = new Set<String>();
     for (String name in _classname().split(' ')) {
       String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
+      if (!trimmed.isEmpty) {
         s.add(trimmed);
       }
     }
@@ -609,7 +609,7 @@ class _SimpleClientRect implements ClientRect {
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
   bool operator ==(ClientRect other) {
-    return other !== null && left == other.left && top == other.top
+    return other != null && left == other.left && top == other.top
         && width == other.width && height == other.height;
   }
 
@@ -672,7 +672,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       attributes[key] = value[key];
     }
   }
@@ -704,7 +704,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void set dataAttributes(Map<String, String> value) {
     final dataAttributes = this.dataAttributes;
     dataAttributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
   }
@@ -842,7 +842,7 @@ class _ElementFactoryProvider {
     String parentTag = 'div';
     String tag;
     final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
+    if (match != null) {
       tag = match.group(1).toLowerCase();
       if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];

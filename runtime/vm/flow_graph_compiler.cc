@@ -393,7 +393,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
     DeoptTable::SetEntry(array, i, offset, info, reason);
   }
   code.set_deopt_info_array(array);
-  const Array& object_array = Array::Handle(Array::MakeArray(object_table_));
+  const Array& object_array = Array::Handle(Array::MakeArray(object_table()));
   code.set_object_table(object_array);
 }
 
@@ -904,6 +904,12 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
     case kGrowableObjectArrayCid:
     case kImmutableArrayCid: {
       const intptr_t disp = offset * kWordSize + sizeof(RawArray);
+      ASSERT(Utils::IsInt(31, disp));
+      return FieldAddress(array, disp);
+    }
+    case kFloat32ArrayCid: {
+      const intptr_t disp =
+          offset * kFloatSize + Float32Array::data_offset();
       ASSERT(Utils::IsInt(31, disp));
       return FieldAddress(array, disp);
     }

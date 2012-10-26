@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of types;
+
 class CancelTypeInferenceException {
   final Node node;
   final String reason;
@@ -35,7 +37,7 @@ class ClassBaseType implements BaseType {
     if (other is! ClassBaseType) return false;
     return element == other.element;
   }
-  int hashCode() => element.hashCode();
+  int get hashCode => element.hashCode;
   String toString() => element.name.slowToString();
   bool isClass() => true;
   bool isUnknown() => false;
@@ -48,7 +50,7 @@ class ClassBaseType implements BaseType {
 class UnknownBaseType implements BaseType {
   const UnknownBaseType();
   bool operator ==(BaseType other) => other is UnknownBaseType;
-  int hashCode() => 0;
+  int get hashCode => 0;
   bool isClass() => false;
   bool isUnknown() => true;
   bool isNull() => false;
@@ -61,7 +63,7 @@ class UnknownBaseType implements BaseType {
 class NullBaseType implements BaseType {
   const NullBaseType();
   bool operator ==(BaseType other) => other is NullBaseType;
-  int hashCode() => 1;
+  int get hashCode => 1;
   bool isClass() => false;
   bool isUnknown() => false;
   bool isNull() => true;
@@ -110,7 +112,7 @@ class UnknownConcreteType implements ConcreteType {
   bool operator ==(ConcreteType other) => identical(this, other);
   Set<BaseType> get baseTypes =>
       new Set<BaseType>.from([const UnknownBaseType()]);
-  int hashCode() => 0;
+  int get hashCode => 0;
   ConcreteType union(ConcreteType other) => this;
   ClassElement getUniqueType() => null;
   toString() => "unknown";
@@ -136,14 +138,18 @@ class UnionType implements ConcreteType {
     return baseTypes.containsAll(other.baseTypes);
   }
 
-  int hashCode() {
+  int get hashCode {
     int result = 1;
     for (final baseType in baseTypes) {
-      result = 31 * result + baseType.hashCode();
+      result = 31 * result + baseType.hashCode;
     }
     return result;
   }
 
+  // TODO(polux): Collapse {num, int, ...}, {num, double, ...} and
+  // {int, double,...} into {num, ...} as an optimization. It will require
+  // UnionType to know about these class elements, which is cumbersome because
+  // there are no nested classes. We need factory methods instead.
   ConcreteType union(ConcreteType other) {
     if (other.isUnkown()) {
       return const UnknownConcreteType();
@@ -179,7 +185,7 @@ class ConcreteTypeCartesianProduct
   final BaseType baseTypeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
   ConcreteTypeCartesianProduct(this.baseTypeOfThis, this.concreteTypes);
-  Iterator iterator() => concreteTypes.isEmpty()
+  Iterator iterator() => concreteTypes.isEmpty
       ? [new ConcreteTypesEnvironment(baseTypeOfThis)].iterator()
       : new ConcreteTypeCartesianProductIterator(baseTypeOfThis, concreteTypes);
   String toString() {
@@ -205,17 +211,17 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
     this.concreteTypes = concreteTypes,
     nextValues = new Map<Element, BaseType>(),
     state = new Map<Element, Iterator>() {
-    if (concreteTypes.isEmpty()) {
+    if (concreteTypes.isEmpty) {
       size = 0;
       return;
     }
-    for (final e in concreteTypes.getKeys()) {
+    for (final e in concreteTypes.keys) {
       final baseTypes = concreteTypes[e].baseTypes;
       size *= baseTypes.length;
     }
   }
 
-  bool hasNext() {
+  bool get hasNext {
     return counter < size;
   }
 
@@ -226,11 +232,11 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   }
 
   ConcreteTypesEnvironment next() {
-    if (!hasNext()) throw new NoMoreElementsException();
+    if (!hasNext) throw new StateError("No more elements");
     Element keyToIncrement = null;
-    for (final key in concreteTypes.getKeys()) {
+    for (final key in concreteTypes.keys) {
       final iterator = state[key];
-      if (iterator != null && iterator.hasNext()) {
+      if (iterator != null && iterator.hasNext) {
         nextValues[key] = state[key].next();
         break;
       }
@@ -249,6 +255,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
 class BaseTypes {
   final BaseType intBaseType;
   final BaseType doubleBaseType;
+  final BaseType numBaseType;
   final BaseType boolBaseType;
   final BaseType stringBaseType;
   final BaseType listBaseType;
@@ -258,6 +265,7 @@ class BaseTypes {
   BaseTypes(Compiler compiler) :
     intBaseType = new ClassBaseType(compiler.intClass),
     doubleBaseType = new ClassBaseType(compiler.doubleClass),
+    numBaseType = new ClassBaseType(compiler.numClass),
     boolBaseType = new ClassBaseType(compiler.boolClass),
     stringBaseType = new ClassBaseType(compiler.stringClass),
     listBaseType = new ClassBaseType(compiler.listClass),
@@ -311,7 +319,7 @@ class ConcreteTypesEnvironment {
     if (other is! ConcreteTypesEnvironment) return false;
     if (typeOfThis != other.typeOfThis) return false;
     if (environment.length != other.environment.length) return false;
-    for (Element key in environment.getKeys()) {
+    for (Element key in environment.keys) {
       if (!other.environment.containsKey(key)
           || (environment[key] != other.environment[key])) {
         return false;
@@ -320,11 +328,11 @@ class ConcreteTypesEnvironment {
     return true;
   }
 
-  int hashCode() {
-    int result = (typeOfThis != null) ? typeOfThis.hashCode() : 1;
+  int get hashCode {
+    int result = (typeOfThis != null) ? typeOfThis.hashCode : 1;
     environment.forEach((element, concreteType) {
-      result = 31 * (31 * result + element.hashCode()) +
-          concreteType.hashCode();
+      result = 31 * (31 * result + element.hashCode) +
+          concreteType.hashCode;
     });
     return result;
   }
@@ -402,6 +410,69 @@ class ConcreteTypesInferrer {
         workQueue = new Queue<InferenceWorkItem>(),
         callers = new Map<FunctionElement, Set<FunctionElement>>(),
         readers = new Map<Element, Set<FunctionElement>>();
+
+  /**
+   * Populates [cache] with ad hoc rules like:
+   *
+   *     {int} + {int}    -> {int}
+   *     {int} + {double} -> {num}
+   *     {int} + {num}    -> {double}
+   *     ...
+   */
+  populateCacheWithBuiltinRules() {
+    // Builds the environment that would be looked up if we were to analyze
+    // o.method(arg) where o has concrete type {receiverType} and arg has
+    // concrete type {argumentType}.
+    ConcreteTypesEnvironment makeEnvironment(BaseType receiverType,
+                                             FunctionElement method,
+                                             BaseType argumentType) {
+      ArgumentsTypes argumentsTypes = new ArgumentsTypes(
+          [new ConcreteType.singleton(argumentType)],
+          new Map());
+      Map<Element, ConcreteType> argumentMap =
+          associateArguments(method, argumentsTypes);
+      return new ConcreteTypesEnvironment.of(argumentMap, receiverType);
+    }
+
+    // Adds the rule {receiverType}.method({argumentType}) -> {returnType}
+    // to cache.
+    void rule(ClassBaseType receiverType, String method,
+              BaseType argumentType, BaseType returnType) {
+      // The following line shouldn't be needed but the mock compiler doesn't
+      // resolve num for some reason.
+      receiverType.element.ensureResolved(compiler);
+      FunctionElement methodElement =
+          receiverType.element.lookupMember(new SourceString(method));
+      ConcreteTypesEnvironment environment =
+          makeEnvironment(receiverType, methodElement, argumentType);
+      Map<ConcreteTypesEnvironment, ConcreteType> map =
+          cache.containsKey(methodElement)
+              ? cache[methodElement]
+              : new Map<ConcreteTypesEnvironment, ConcreteType>();
+      map[environment] = new ConcreteType.singleton(returnType);
+      cache[methodElement] = map;
+    }
+
+    // The hardcoded typing rules.
+    final ClassBaseType int = baseTypes.intBaseType;
+    final ClassBaseType double = baseTypes.doubleBaseType;
+    final ClassBaseType num = baseTypes.numBaseType;
+    for (String operator in ['add', 'mul', 'sub']) {
+      final String method = r"operator$".concat(operator);
+
+      rule(int, method, int, int);
+      rule(int, method, double, num);
+      rule(int, method, num, num);
+
+      rule(double, method, double, double);
+      rule(double, method, int, num);
+      rule(double, method, num, num);
+
+      rule(num, method, int, num);
+      rule(num, method, double, num);
+      rule(num, method, num, num);
+    }
+  }
 
   // --- utility methods ---
 
@@ -554,7 +625,7 @@ class ConcreteTypesInferrer {
   Map<Element, ConcreteType> associateArguments(FunctionElement function,
                                                 ArgumentsTypes argumentsTypes) {
     final Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
-    final FunctionSignature signature = function.functionSignature;
+    final FunctionSignature signature = function.computeSignature(compiler);
     // too many arguments
     if (argumentsTypes.length > signature.parameterCount) {
       return null;
@@ -568,7 +639,7 @@ class ConcreteTypesInferrer {
     // we attach each positional parameter to its corresponding positional
     // argument
     for (Link<Element> requiredParameters = signature.requiredParameters;
-         !requiredParameters.isEmpty();
+         !requiredParameters.isEmpty;
          requiredParameters = requiredParameters.tail) {
       final Element requiredParameter = requiredParameters.head;
       // we know next() is defined because of the guard above
@@ -577,7 +648,7 @@ class ConcreteTypesInferrer {
     // we attach the remaining positional arguments to their corresponding
     // named arguments
     Link<Element> remainingNamedParameters = signature.optionalParameters;
-    while (remainingPositionalArguments.hasNext()) {
+    while (remainingPositionalArguments.hasNext) {
       final Element namedParameter = remainingNamedParameters.head;
       result[namedParameter] = remainingPositionalArguments.next();
       // we know tail is defined because of the guard above
@@ -587,14 +658,14 @@ class ConcreteTypesInferrer {
     final Map<SourceString, Element> leftOverNamedParameters =
         new Map<SourceString, Element>();
     for (;
-         !remainingNamedParameters.isEmpty();
+         !remainingNamedParameters.isEmpty;
          remainingNamedParameters = remainingNamedParameters.tail) {
       final Element namedParameter = remainingNamedParameters.head;
       leftOverNamedParameters[namedParameter.name] = namedParameter;
     }
     // we attach the named arguments to their corresponding named paramaters
     // (we don't use foreach because we want to be able to return early)
-    for (Identifier identifier in argumentsTypes.named.getKeys()) {
+    for (Identifier identifier in argumentsTypes.named.keys) {
       final ConcreteType concreteType = argumentsTypes.named[identifier];
       SourceString source = identifier.source;
       final Element namedParameter = leftOverNamedParameters[source];
@@ -644,6 +715,11 @@ class ConcreteTypesInferrer {
   ConcreteType analyzeMethod(FunctionElement element,
                              ConcreteTypesEnvironment environment) {
     FunctionExpression tree = element.parseNode(compiler);
+    // This should never happen since we only deal with concrete types, except
+    // for external methods whose typing rules have not been hardcoded yet.
+    if (!tree.hasBody()) {
+      return new ConcreteType.unknown();
+    }
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element];
     Visitor visitor =
@@ -702,10 +778,11 @@ class ConcreteTypesInferrer {
   void analyzeMain(Element element) {
     baseTypes = new BaseTypes(compiler);
     cache[element] = new Map<ConcreteTypesEnvironment, ConcreteType>();
+    populateCacheWithBuiltinRules();
     try {
       workQueue.addLast(
           new InferenceWorkItem(element, new ConcreteTypesEnvironment()));
-      while (!workQueue.isEmpty()) {
+      while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
         ConcreteType concreteType = analyze(item.method, item.environment);
         var template = cache[item.method];
@@ -802,7 +879,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     final positional = new List<ConcreteType>();
     final named = new Map<Identifier, ConcreteType>();
     for(Link<Node> iterator = arguments;
-        !iterator.isEmpty();
+        !iterator.isEmpty;
         iterator = iterator.tail) {
       Node node = iterator.head;
       NamedArgument namedArgument = node.asNamedArgument();
@@ -861,7 +938,23 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitFor(For node) {
-    inferrer.fail(node, 'not yet implemented');
+    if (node.initializer != null) {
+      analyze(node.initializer);
+    }
+    analyze(node.conditionStatement);
+    ConcreteType result = new ConcreteType.empty();
+    ConcreteTypesEnvironment oldEnvironment;
+    do {
+      oldEnvironment = environment;
+      analyze(node.conditionStatement);
+      analyze(node.body);
+      analyze(node.update);
+      environment = oldEnvironment.join(environment);
+    // TODO(polux): Maybe have a destructive join-method that returns a boolean
+    // value indicating whether something changed to avoid performing this
+    // comparison twice.
+    } while (oldEnvironment != environment);
+    return result;
   }
 
   ConcreteType visitFunctionDeclaration(FunctionDeclaration node) {
@@ -991,7 +1084,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType type = new ConcreteType.empty();
     // The concrete type of a sequence of statements is the union of the
     // statement's types.
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       type = type.union(analyze(link.head));
     }
     return type;
@@ -1022,7 +1115,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitVariableDefinitions(VariableDefinitions node) {
-    for (Link<Node> link = node.definitions.nodes; !link.isEmpty();
+    for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {
       analyze(link.head);
     }
@@ -1098,6 +1191,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralMapEntry(LiteralMapEntry node) {
+    // We don't need to visit the key, it's always a string.
     return analyze(node.value);
   }
 
@@ -1138,7 +1232,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitOperatorSend(Send node) {
-    inferrer.fail(node, 'not implemented');
+    return visitDynamicSend(node);
   }
 
   ConcreteType visitGetterSend(Send node) {
@@ -1205,14 +1299,58 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not implemented');
   }
 
+  // TODO(polux): handle unary operators and share this list with the rest of
+  // dart2js.
+  final Set<SourceString> operators = new Set<SourceString>()
+      ..add(const SourceString('=='))
+      ..add(const SourceString('!='))
+      ..add(const SourceString('~'))
+      ..add(const SourceString('[]'))
+      ..add(const SourceString('[]='))
+      ..add(const SourceString('*'))
+      ..add(const SourceString('*='))
+      ..add(const SourceString('/'))
+      ..add(const SourceString('/='))
+      ..add(const SourceString('%'))
+      ..add(const SourceString('%='))
+      ..add(const SourceString('~/'))
+      ..add(const SourceString('~/='))
+      ..add(const SourceString('+'))
+      ..add(const SourceString('+='))
+      ..add(const SourceString('-'))
+      ..add(const SourceString('-='))
+      ..add(const SourceString('<<'))
+      ..add(const SourceString('<<='))
+      ..add(const SourceString('>>'))
+      ..add(const SourceString('>>='))
+      ..add(const SourceString('>='))
+      ..add(const SourceString('>'))
+      ..add(const SourceString('<='))
+      ..add(const SourceString('<'))
+      ..add(const SourceString('&'))
+      ..add(const SourceString('&='))
+      ..add(const SourceString('^'))
+      ..add(const SourceString('^='))
+      ..add(const SourceString('|'))
+      ..add(const SourceString('|='));
+
+  SourceString canonicalizeMethodName(SourceString s) {
+    return operators.contains(s)
+        ? Elements.constructOperatorName(s, false)
+        : s;
+  }
+
   ConcreteType visitDynamicSend(Send node) {
-    ConcreteType receiverType = analyze(node.receiver);
+    ConcreteType receiverType = (node.receiver != null)
+        ? analyze(node.receiver)
+        : new ConcreteType.singleton(
+            new ClassBaseType(currentMethod.getEnclosingClass()));
     ConcreteType result = new ConcreteType.empty();
     final argumentsTypes = analyzeArguments(node.arguments);
 
     if (receiverType.isUnkown()) {
-      List<FunctionElement> methods =
-          inferrer.getMembersByName(node.selector.asIdentifier().source);
+      List<FunctionElement> methods = inferrer.getMembersByName(
+          canonicalizeMethodName(node.selector.asIdentifier().source));
       for (final method in methods) {
         inferrer.addCaller(method, currentMethod);
         Element classElem = method.enclosingElement;
@@ -1224,8 +1362,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     } else {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
         if (!baseReceiverType.isNull()) {
-          FunctionElement method = (baseReceiverType as ClassBaseType).element
-              .lookupMember(node.selector.asIdentifier().source);
+          ClassBaseType classBaseReceiverType = baseReceiverType;
+          FunctionElement method = classBaseReceiverType.element
+              .lookupMember(canonicalizeMethodName(node.selector.asIdentifier().source));
           if (method != null) {
             inferrer.addCaller(method, currentMethod);
             result = result.union(inferrer.getSendReturnType(method,

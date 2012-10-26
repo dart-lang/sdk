@@ -88,7 +88,7 @@ testTypeVariables() {
                   length(type.arguments));
     int index = 0;
     Link<DartType> arguments = type.arguments;
-    while (!arguments.isEmpty()) {
+    while (!arguments.isEmpty) {
       Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], arguments.head.element);
       index++;
@@ -149,7 +149,8 @@ testSuperCalls() {
   ClassElement classA = compiler.mainApp.find(buildSourceString("A"));
   FunctionElement fooA = classA.lookupLocalMember(buildSourceString("foo"));
 
-  ResolverVisitor visitor = new ResolverVisitor(compiler, fooB);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, fooB, new CollectingTreeElements(fooB));
   FunctionExpression node = fooB.parseNode(compiler);
   visitor.visit(node.body);
   Map mapping = map(visitor);
@@ -167,11 +168,13 @@ testThis() {
   ClassElement fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   FunctionElement funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  ResolverVisitor visitor = new ResolverVisitor(compiler, funElement);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, funElement,
+                          new CollectingTreeElements(funElement));
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
-  List<Element> values = mapping.getValues();
+  List<Element> values = mapping.values;
   Expect.equals(0, mapping.length);
   Expect.equals(0, compiler.warnings.length);
 
@@ -188,7 +191,8 @@ testThis() {
   fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  visitor = new ResolverVisitor(compiler, funElement);
+  visitor = new ResolverVisitor(compiler, funElement,
+                                new CollectingTreeElements(funElement));
   function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
@@ -228,7 +232,7 @@ testLocalsTwo() {
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
 
-  List<Element> elements = map(visitor).getValues();
+  List<Element> elements = map(visitor).values;
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -241,7 +245,7 @@ testLocalsThree() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(3, map(visitor).length);
-  List<Element> elements = map(visitor).getValues();
+  List<Element> elements = map(visitor).values;
   Expect.equals(elements[0], elements[1]);
 }
 
@@ -254,7 +258,7 @@ testLocalsFour() {
   MethodScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
-  List<Element> elements = map(visitor).getValues();
+  List<Element> elements = map(visitor).values;
   Expect.notEquals(elements[0], elements[1]);
 }
 
@@ -321,8 +325,8 @@ testFor() {
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
   Expect.isTrue(map(visitor) is LinkedHashMap);
-  List<Node> nodes = map(visitor).getKeys();
-  List<Element> elements = map(visitor).getValues();
+  List<Node> nodes = map(visitor).keys;
+  List<Element> elements = map(visitor).values;
 
 
   // for (int i = 0; i < 10; i = i + 1) { i = 5; };
@@ -436,8 +440,8 @@ testSuperclass() {
   ClassElement barElement = compiler.mainApp.find(buildSourceString('Bar'));
   Expect.equals(barElement.computeType(compiler),
                 fooElement.supertype);
-  Expect.isTrue(fooElement.interfaces.isEmpty());
-  Expect.isTrue(barElement.interfaces.isEmpty());
+  Expect.isTrue(fooElement.interfaces.isEmpty);
+  Expect.isTrue(barElement.interfaces.isEmpty);
 }
 
 testVarSuperclass() {
@@ -464,14 +468,15 @@ testOneInterface() {
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");
 
-  ResolverVisitor visitor = new ResolverVisitor(compiler, null);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, null, new CollectingTreeElements(null));
   compiler.resolveStatement("Foo bar;");
 
   ClassElement fooElement = compiler.mainApp.find(buildSourceString('Foo'));
   ClassElement barElement = compiler.mainApp.find(buildSourceString('Bar'));
 
   Expect.equals(null, barElement.supertype);
-  Expect.isTrue(barElement.interfaces.isEmpty());
+  Expect.isTrue(barElement.interfaces.isEmpty);
 
   Expect.equals(barElement.computeType(compiler),
                 fooElement.interfaces.head);
@@ -563,12 +568,20 @@ resolveConstructor(String script, String statement, String className,
   compiler.resolveStatement(statement);
   ClassElement classElement =
       compiler.mainApp.find(buildSourceString(className));
-  Element element =
-      classElement.lookupConstructor(
-          new Selector.callConstructor(buildSourceString(constructor),
-                                       classElement.getLibrary()));
+  Element element;
+  if (constructor !== '') {
+    element = classElement.lookupConstructor(
+        new Selector.callConstructor(buildSourceString(constructor),
+                                     classElement.getLibrary()));
+  } else {
+    element = classElement.lookupConstructor(
+        new Selector.callDefaultConstructor(classElement.getLibrary()));
+  }
+
   FunctionExpression tree = element.parseNode(compiler);
-  ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+  ResolverVisitor visitor =
+      new ResolverVisitor(compiler, element,
+                          new CollectingTreeElements(element));
   new InitializerResolver(visitor).resolveInitializers(element, tree);
   visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
@@ -623,13 +636,13 @@ testInitializers() {
                 int foo; int bar;
                 A() : this.foo = 1, bar = 2;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 2);
+  resolveConstructor(script, "A a = new A();", "A", "", 2);
 
   script = """class A {
                 int foo; A a;
                 A() : a.foo = 1;
                 }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors:
                          [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
@@ -638,14 +651,14 @@ testInitializers() {
                 int foo;
                 A() : this.foo = 1, this.foo = 2;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 2,
+  resolveConstructor(script, "A a = new A();", "A", "", 2,
                      expectedWarnings: [MessageKind.ALREADY_INITIALIZED],
                      expectedErrors: [MessageKind.DUPLICATE_INITIALIZER]);
 
   script = """class A {
                 A() : this.foo = 1;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.CANNOT_RESOLVE]);
 
@@ -654,7 +667,7 @@ testInitializers() {
                 int bar;
                 A() : this.foo = bar;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 3,
+  resolveConstructor(script, "A a = new A();", "A", "", 3,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
 
@@ -662,7 +675,7 @@ testInitializers() {
                 int foo() => 42;
                 A() : foo();
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
 
@@ -690,7 +703,7 @@ testInitializers() {
               class B extends A {
                 B() : super(0);
               }""";
-  resolveConstructor(script, "B a = new B();", "B", "B", 1);
+  resolveConstructor(script, "B a = new B();", "B", "", 1);
 
   script = """class A {
                 int i;
@@ -699,7 +712,7 @@ testInitializers() {
               class B extends A {
                 B() : super(0), super(1);
               }""";
-  resolveConstructor(script, "B b = new B();", "B", "B", 2,
+  resolveConstructor(script, "B b = new B();", "B", "", 2,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
 
@@ -718,7 +731,7 @@ testInitializers() {
          class Null {}
          class Dynamic_ {}
          class Object { Object() : super(); }''';
-  resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
+  resolveConstructor(script, "Object o = new Object();", "Object", "", 1,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
                      corelib: CORELIB_WITH_INVALID_OBJECT);
@@ -733,7 +746,7 @@ at(Link link, int index) => (index == 0) ? link.head : at(link.tail, index - 1);
 
 List<String> asSortedStrings(Link link) {
   List<String> result = <String>[];
-  for (; !link.isEmpty(); link = link.tail) result.add(link.head.toString());
+  for (; !link.isEmpty; link = link.tail) result.add(link.head.toString());
   result.sort((s1, s2) => s1.compareTo(s2));
   return result;
 }

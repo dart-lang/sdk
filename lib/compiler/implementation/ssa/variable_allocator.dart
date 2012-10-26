@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 /**
  * The [LiveRange] class covers a range where an instruction is live.
  */
@@ -180,7 +182,7 @@ class LiveEnvironment {
     loopMarkers.remove(header);
   }
 
-  bool isEmpty() => liveInstructions.isEmpty() && loopMarkers.isEmpty();
+  bool get isEmpty => liveInstructions.isEmpty && loopMarkers.isEmpty;
   bool contains(HInstruction instruction) =>
       liveInstructions.containsKey(instruction);
   String toString() => liveInstructions.toString();
@@ -219,7 +221,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
-    if (!liveInstructions[graph.entry].isEmpty()) {
+    if (!liveInstructions[graph.entry].isEmpty) {
       compiler.internalError('LiveIntervalBuilder',
           node: compiler.currentElement.parseNode(compiler));
     }
@@ -358,7 +360,7 @@ class CopyHandler {
   }
 
   String toString() => 'Copies: $copies, assignments: $assignments';
-  bool isEmpty() => copies.isEmpty() && assignments.isEmpty();
+  bool get isEmpty => copies.isEmpty && assignments.isEmpty;
 }
 
 /**
@@ -389,7 +391,7 @@ class VariableNames {
   /** Returns a fresh variable with the given prefix. */
   static String computeFreshWithPrefix(String prefix,
                                        Map<Element, String> parameterNames) {
-    Set<String> parameters = new Set<String>.from(parameterNames.getValues());
+    Set<String> parameters = new Set<String>.from(parameterNames.values);
     String name = '${prefix}0';
     int i = 1;
     while (parameters.contains(name)) name = '$prefix${i++}';
@@ -458,7 +460,7 @@ class VariableNamer {
   }
 
   String allocateTemporary() {
-    while (!freeTemporaryNames.isEmpty()) {
+    while (!freeTemporaryNames.isEmpty) {
       String name = freeTemporaryNames.removeLast();
       if (!usedNames.contains(name)) return name;
     }
@@ -590,7 +592,7 @@ class SsaVariableAllocator extends HBaseVisitor {
    * have no users or that are generated at use site does not need a name.
    */
   bool needsName(HInstruction instruction) {
-    if (instruction.usedBy.isEmpty()) return false;
+    if (instruction.usedBy.isEmpty) return false;
     // TODO(ngeoffray): locals/parameters are being generated at use site,
     // but we need a name for them. We should probably not make
     // them generate at use site to make things simpler.

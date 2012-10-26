@@ -410,11 +410,11 @@ RawObject* Exceptions::Create(
       break;
     case kClosureArgumentMismatch:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("ClosureArgumentMismatchException");
+      class_name = Symbols::New("_ClosureArgumentMismatchException");
       break;
     case kObjectNotClosure:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("ObjectNotClosureException");
+      class_name = Symbols::New("_ObjectNotClosureException");
       break;
     case kFormat:
       library = Library::CoreLibrary();
@@ -422,15 +422,11 @@ RawObject* Exceptions::Create(
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("StackOverflowException");
+      class_name = Symbols::New("StackOverflowError");
       break;
     case kOutOfMemory:
       library = Library::CoreLibrary();
       class_name = Symbols::New("OutOfMemoryError");
-      break;
-    case kWrongArgumentCount:
-      library = Library::CoreLibrary();
-      class_name = Symbols::New("WrongArgumentCountException");
       break;
     case kInternalError:
       library = Library::CoreLibrary();

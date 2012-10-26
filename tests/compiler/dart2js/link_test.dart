@@ -26,7 +26,7 @@ testFromList(List list) {
 }
 
 test(Link link, List list) {
-  Expect.equals(list.isEmpty(), link.isEmpty());
+  Expect.equals(list.isEmpty, link.isEmpty);
   int i = 0;
   for (var element in link.toList()) {
     Expect.equals(list[i++], element);
@@ -38,9 +38,9 @@ test(Link link, List list) {
   }
   Expect.equals(list.length, i);
   i = 0;
-  for (; !link.isEmpty(); link = link.tail) {
+  for (; !link.isEmpty; link = link.tail) {
     Expect.equals(list[i++], link.head);
   }
   Expect.equals(list.length, i);
-  Expect.isTrue(link.isEmpty());
+  Expect.isTrue(link.isEmpty);
 }

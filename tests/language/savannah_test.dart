@@ -14,7 +14,7 @@ class Giraffe implements BigGame {
 
   Giraffe(this.name) : identityHash_ = nextId() {}
 
-  int hashCode() {
+  int get hashCode {
     return identityHash_;
   }
 
@@ -44,8 +44,8 @@ class SavannahTest {
     Giraffe giraffe2 = new Giraffe("Rose");
     savannah[giraffe1] = giraffe1.name;
     savannah[giraffe2] = giraffe2.name;
-    print("giraffe1 hash: ${giraffe1.hashCode()}");
-    print("giraffe2 hash: ${giraffe2.hashCode()}");
+    print("giraffe1 hash: ${giraffe1.hashCode}");
+    print("giraffe2 hash: ${giraffe2.hashCode}");
 
     var count = savannah.length;
     print("getCount is $count");
@@ -60,8 +60,8 @@ class SavannahTest {
     Zebra zebra2 = new Zebra("Zeeta");
     savannah[zebra1] = zebra1.name;
     savannah[zebra2] = zebra2.name;
-    print("zebra1 hash: ${zebra1.hashCode()}");
-    print("zebra2 hash: ${zebra2.hashCode()}");
+    print("zebra1 hash: ${zebra1.hashCode}");
+    print("zebra2 hash: ${zebra2.hashCode}");
 
     count = savannah.length;
     print("getCount is $count");

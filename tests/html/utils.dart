@@ -48,13 +48,13 @@ verifyGraph(expected, actual) {
 
     if (expected is Map) {
       Expect.isTrue(actual is Map, message(path, '$actual is Map'));
-      for (var key in expected.getKeys()) {
+      for (var key in expected.keys) {
         if (!actual.containsKey(key)) {
           Expect.fail(message(path, 'missing key "$key"'));
         }
         walk('$path["$key"]',  expected[key], actual[key]);
       }
-      for (var key in actual.getKeys()) {
+      for (var key in actual.keys) {
         if (!expected.containsKey(key)) {
           Expect.fail(message(path, 'extra key "$key"'));
         }

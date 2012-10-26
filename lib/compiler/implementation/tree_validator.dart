@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart2js;
+
 class TreeValidatorTask extends CompilerTask {
   TreeValidatorTask(Compiler compiler) : super(compiler);
 
@@ -19,7 +21,7 @@ class TreeValidatorTask extends CompilerTask {
     final validator = new ValidatorVisitor(report);
     tree.accept(new TraversingVisitor(validator));
 
-    return errors.isEmpty();
+    return errors.isEmpty;
   }
 }
 
@@ -44,12 +46,12 @@ class ValidatorVisitor extends Visitor {
     if (identical(name, '++') || identical(name, '--')) {
       expect(node, node.assignmentOperator is Operator);
       if (node.isIndex) {
-        expect(node.arguments.tail.head, node.arguments.tail.isEmpty());
+        expect(node.arguments.tail.head, node.arguments.tail.isEmpty);
       } else {
-        expect(node.arguments.head, node.arguments.isEmpty());
+        expect(node.arguments.head, node.arguments.isEmpty);
       }
     } else {
-      expect(node, !node.arguments.isEmpty());
+      expect(node, !node.arguments.isEmpty);
     }
   }
 

@@ -13,7 +13,7 @@ class StackOverflowTest {
     bool exceptionCaught = false;
     try {
       curseTheRecurse(1, 2, 3);
-    } on StackOverflowException catch (e) {
+    } on StackOverflowError catch (e) {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);

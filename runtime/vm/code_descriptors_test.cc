@@ -36,17 +36,17 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   cls.SetFunctions(functions);
   Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(cls);
-  ParsedFunction parsed_function(function);
+  ParsedFunction* parsed_function = new ParsedFunction(function);
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
-  parsed_function.SetNodeSequence(test->node_sequence());
-  parsed_function.set_instantiator(NULL);
-  parsed_function.set_default_parameter_values(Array::Handle());
-  parsed_function.AllocateVariables();
+  parsed_function->SetNodeSequence(test->node_sequence());
+  parsed_function->set_instantiator(NULL);
+  parsed_function->set_default_parameter_values(Array::Handle());
+  parsed_function->AllocateVariables();
   bool retval;
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
@@ -133,7 +133,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stackmap_table_builder->AddEntry(3, stack_bitmap, 0);
 
     const Error& error =
-        Error::Handle(Compiler::CompileParsedFunction(parsed_function));
+        Error::Handle(Compiler::CompileParsedFunction(*parsed_function));
     EXPECT(error.IsNull());
     const Code& code = Code::Handle(function.CurrentCode());
 

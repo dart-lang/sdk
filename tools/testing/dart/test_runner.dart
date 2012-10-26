@@ -77,7 +77,6 @@ class TestCase {
   String displayName;
   TestOutput output;
   bool isNegative;
-  bool usesWebDriver;
   Set<String> expectedOutcomes;
   TestCaseEvent completedHandler;
   TestInformation info;
@@ -88,8 +87,7 @@ class TestCase {
            this.completedHandler,
            this.expectedOutcomes,
            {this.isNegative: false,
-            this.info: null,
-            this.usesWebDriver: false}) {
+            this.info: null}) {
     if (!isNegative) {
       this.isNegative = displayName.contains("negative_test");
     }
@@ -165,6 +163,8 @@ class TestCase {
 
   List<String> get batchRunnerArguments => ['-batch'];
   List<String> get batchTestArguments => commands.last().arguments;
+
+  bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
   void completed() { completedHandler(this); }
 }
@@ -594,6 +594,9 @@ class RunningProcess {
       (testCase as BrowserTestCase).numRetries--;
       print("Potential flake. Re-running ${testCase.displayName} "
           "(${(testCase as BrowserTestCase).numRetries} attempt(s) remains)");
+      // When retrying we need to reset the timeout as well.
+      // Otherwise there will be no timeout handling for the retry.
+      timeoutTimer = null;
       this.start();
     } else {
       testCase.completed();
@@ -611,7 +614,9 @@ class RunningProcess {
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
     if (timedOut) {
-      // Test timed out before it could complete.
+      // Non-webdriver test timed out before it could complete. Webdriver tests
+      // run their own timeouts by timing from the launch of the browser (which
+      // could be delayed).
       testComplete(0, true);
     } else if (currentStep == totalSteps) {
       // Done with all test commands.
@@ -627,8 +632,8 @@ class RunningProcess {
       stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
-        // Note: processQueue will always be non-null for runtime == ie9, ff,
-        // safari, chrome, opera. (It is only null for runtime == vm)
+        // Note: processQueue will always be non-null for runtime == ie9, ie10,
+        // ff, safari, chrome, opera. (It is only null for runtime == vm)
         // This RunningProcess object is done, and hands over control to
         // BatchRunner.startTest(), which handles reporting, etc.
         timeoutTimer.cancel();
@@ -678,7 +683,7 @@ class RunningProcess {
       }
       // If the timeout fired in between two commands, kill the just
       // started process immediately.
-      if (timedOut) process.kill();
+      if (timedOut) safeKill(process);
     });
     processFuture.handleException((e) {
       print("Process error:");
@@ -691,7 +696,17 @@ class RunningProcess {
 
   void timeoutHandler(Timer unusedTimer) {
     timedOut = true;
-    if (process != null) process.kill();
+    safeKill(process);
+  }
+
+  void safeKill(Process p) {
+    if (p != null) {
+      try {
+        p.kill();
+      } on ProcessException {
+        // Hopefully, this means that the process died on its own.
+      }
+    }
   }
 }
 

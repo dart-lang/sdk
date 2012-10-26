@@ -170,7 +170,7 @@ class Utf8Decoder implements Iterator<int> {
   List<int> decodeRest() {
     List<int> codepoints = new List<int>(utf8EncodedBytesIterator.remaining);
     int i = 0;
-    while (hasNext()) {
+    while (hasNext) {
       codepoints[i++] = next();
     }
     if (i == codepoints.length) {
@@ -182,7 +182,7 @@ class Utf8Decoder implements Iterator<int> {
     }
   }
 
-  bool hasNext() => utf8EncodedBytesIterator.hasNext();
+  bool get hasNext => utf8EncodedBytesIterator.hasNext;
 
   int next() {
     int value = utf8EncodedBytesIterator.next();
@@ -226,7 +226,7 @@ class Utf8Decoder implements Iterator<int> {
           "Invalid UTF8 at ${utf8EncodedBytesIterator.position}");
     }
     int j = 0;
-    while (j < additionalBytes && utf8EncodedBytesIterator.hasNext()) {
+    while (j < additionalBytes && utf8EncodedBytesIterator.hasNext) {
       int nextValue = utf8EncodedBytesIterator.next();
       if (nextValue > _UTF8_ONE_BYTE_MAX &&
           nextValue < _UTF8_FIRST_BYTE_OF_TWO_BASE) {

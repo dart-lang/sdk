@@ -70,7 +70,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   int _probeForAdding(K key) {
     if (key == null) throw const NullPointerException();
-    int hash = _firstProbe(key.hashCode(), _keys.length);
+    int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
     // insertionIndex points to a slot where a key was deleted.
@@ -104,7 +104,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
 
   int _probeForLookup(K key) {
     if (key == null) throw const NullPointerException();
-    int hash = _firstProbe(key.hashCode(), _keys.length);
+    int hash = _firstProbe(key.hashCode, _keys.length);
     int numberOfProbes = 1;
     int initialHash = hash;
     while (true) {
@@ -219,7 +219,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
     return null;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _numberOfEntries == 0;
   }
 
@@ -238,7 +238,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
   }
 
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     List<K> list = new List<K>(length);
     int i = 0;
     forEach(void _(K key, V value) {
@@ -247,7 +247,7 @@ class HashMapImplementation<K, V> implements HashMap<K, V> {
     return list;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> list = new List<V>(length);
     int i = 0;
     forEach(void _(K key, V value) {
@@ -366,17 +366,17 @@ class HashSetImplementation<E > implements HashSet<E> {
   }
 
   bool every(bool f(E element)) {
-    Collection<E> keys = _backingMap.getKeys();
+    Collection<E> keys = _backingMap.keys;
     return keys.every(f);
   }
 
   bool some(bool f(E element)) {
-    Collection<E> keys = _backingMap.getKeys();
+    Collection<E> keys = _backingMap.keys;
     return keys.some(f);
   }
 
-  bool isEmpty() {
-    return _backingMap.isEmpty();
+  bool get isEmpty {
+    return _backingMap.isEmpty;
   }
 
   int get length {
@@ -406,7 +406,7 @@ class HashSetIterator<E> implements Iterator<E> {
     _advance();
   }
 
-  bool hasNext() {
+  bool get hasNext {
     if (_nextValidIndex >= _entries.length) return false;
     if (_entries[_nextValidIndex] === HashMapImplementation._DELETED_KEY) {
       // This happens in case the set was modified in the meantime.
@@ -418,8 +418,8 @@ class HashSetIterator<E> implements Iterator<E> {
   }
 
   E next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
     E res = _entries[_nextValidIndex];
     _advance();

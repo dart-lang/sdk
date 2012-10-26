@@ -11,6 +11,7 @@
 namespace dart {
 
 class BlockEntryInstr;
+class ConstantInstr;
 class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
@@ -104,8 +105,12 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
+  ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
+  void AddToInitialDefinitions(Definition* defn);
+
   // Operations on the flow graph.
-  void ComputeSSA(intptr_t next_virtual_register_number);
+  void ComputeSSA(intptr_t next_virtual_register_number,
+                  GrowableArray<Definition*>* inlining_parameters);
   void ComputeUseLists();
 
   // Finds natural loops in the flow graph and attaches a list of loop
@@ -113,6 +118,7 @@ class FlowGraph : public ZoneAllocated {
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
   void InlineCall(Definition* call, FlowGraph* callee_graph);
+  void RepairGraphAfterInlining();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
@@ -137,7 +143,8 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<intptr_t>* parent,
       GrowableArray<intptr_t>* label);
 
-  void Rename(GrowableArray<PhiInstr*>* live_phis);
+  void Rename(GrowableArray<PhiInstr*>* live_phis,
+              GrowableArray<Definition*>* inlining_parameters);
   void RenameRecursive(
       BlockEntryInstr* block_entry,
       GrowableArray<Definition*>* env,
@@ -149,6 +156,9 @@ class FlowGraph : public ZoneAllocated {
       const GrowableArray<BitVector*>& dom_frontier);
 
   void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
+
+  void ReplacePredecessor(BlockEntryInstr* old_block,
+                          BlockEntryInstr* new_block);
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
@@ -168,6 +178,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   ZoneGrowableArray<ReturnInstr*>* exits_;
+  bool invalid_dominator_tree_;
 };
 
 }  // namespace dart

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of tree;
+
 /**
  * Pretty-prints Node tree in XML-like format.
  *
@@ -25,7 +27,7 @@ class PrettyPrinter implements Visitor {
   }
 
   String popTag() {
-    assert(!tagStack.isEmpty());
+    assert(!tagStack.isEmpty);
     String tag = tagStack.head;
     tagStack = tagStack.tail;
     return tag;

@@ -160,7 +160,7 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener === null) {
+    if (_listener == null) {
       _listener = (Event e) {
         var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
@@ -174,7 +174,7 @@ class ReceivePortSync {
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener !== null) window.on[_listenerName].remove(_listener);
+    if (_listener != null) window.on[_listenerName].remove(_listener);
   }
 
   SendPortSync toSendPort() {

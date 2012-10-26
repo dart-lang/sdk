@@ -1,7 +1,7 @@
-#library('dart:html');
+library html;
 
-#import('dart:isolate');
-#import('dart:json');
+import 'dart:isolate';
+import 'dart:json';
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15,12 +15,12 @@
 
 
 
-LocalWindow get window() => JS('LocalWindow', 'window');
-_LocalWindowImpl get _window() => JS('_LocalWindowImpl', 'window');
+LocalWindow get window => JS('LocalWindow', 'window');
+_LocalWindowImpl get _window => JS('_LocalWindowImpl', 'window');
 
-Document get document() => JS('Document', 'document');
+Document get document => JS('Document', 'document');
 
-_DocumentImpl get _document() => JS('_DocumentImpl', 'document');
+_DocumentImpl get _document => JS('_DocumentImpl', 'document');
 
 Element query(String selector) => _document.query(selector);
 List<Element> queryAll(String selector) => _document.queryAll(selector);
@@ -135,7 +135,7 @@ abstract class AnchorElement implements Element {
   String name;
 
   /** @domName HTMLAnchorElement.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName HTMLAnchorElement.pathname */
   String pathname;
@@ -237,31 +237,31 @@ abstract class Animation {
   static const int FILL_NONE = 0;
 
   /** @domName WebKitAnimation.delay */
-  abstract num get delay;
+  num get delay;
 
   /** @domName WebKitAnimation.direction */
-  abstract int get direction;
+  int get direction;
 
   /** @domName WebKitAnimation.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName WebKitAnimation.elapsedTime */
   num elapsedTime;
 
   /** @domName WebKitAnimation.ended */
-  abstract bool get ended;
+  bool get ended;
 
   /** @domName WebKitAnimation.fillMode */
-  abstract int get fillMode;
+  int get fillMode;
 
   /** @domName WebKitAnimation.iterationCount */
-  abstract int get iterationCount;
+  int get iterationCount;
 
   /** @domName WebKitAnimation.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebKitAnimation.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName WebKitAnimation.pause */
   void pause();
@@ -279,10 +279,10 @@ abstract class Animation {
 abstract class AnimationEvent implements Event {
 
   /** @domName WebKitAnimationEvent.animationName */
-  abstract String get animationName;
+  String get animationName;
 
   /** @domName WebKitAnimationEvent.elapsedTime */
-  abstract num get elapsedTime;
+  num get elapsedTime;
 }
 
 class _AnimationEventImpl extends _EventImpl implements AnimationEvent native "*WebKitAnimationEvent" {
@@ -401,13 +401,13 @@ abstract class AreaElement implements Element {
   String coords;
 
   /** @domName HTMLAreaElement.hash */
-  abstract String get hash;
+  String get hash;
 
   /** @domName HTMLAreaElement.host */
-  abstract String get host;
+  String get host;
 
   /** @domName HTMLAreaElement.hostname */
-  abstract String get hostname;
+  String get hostname;
 
   /** @domName HTMLAreaElement.href */
   String href;
@@ -416,19 +416,19 @@ abstract class AreaElement implements Element {
   bool noHref;
 
   /** @domName HTMLAreaElement.pathname */
-  abstract String get pathname;
+  String get pathname;
 
   /** @domName HTMLAreaElement.ping */
   String ping;
 
   /** @domName HTMLAreaElement.port */
-  abstract String get port;
+  String get port;
 
   /** @domName HTMLAreaElement.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName HTMLAreaElement.search */
-  abstract String get search;
+  String get search;
 
   /** @domName HTMLAreaElement.shape */
   String shape;
@@ -479,7 +479,7 @@ abstract class ArrayBuffer {
   factory ArrayBuffer(int length) => _ArrayBufferFactoryProvider.createArrayBuffer(length);
 
   /** @domName ArrayBuffer.byteLength */
-  abstract int get byteLength;
+  int get byteLength;
 
   /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]);
@@ -501,13 +501,13 @@ class _ArrayBufferImpl implements ArrayBuffer native "*ArrayBuffer" {
 abstract class ArrayBufferView {
 
   /** @domName ArrayBufferView.buffer */
-  abstract ArrayBuffer get buffer;
+  ArrayBuffer get buffer;
 
   /** @domName ArrayBufferView.byteLength */
-  abstract int get byteLength;
+  int get byteLength;
 
   /** @domName ArrayBufferView.byteOffset */
-  abstract int get byteOffset;
+  int get byteOffset;
 }
 
 class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" {
@@ -528,16 +528,16 @@ class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" 
 abstract class Attr implements Node {
 
   /** @domName Attr.isId */
-  abstract bool get isId;
+  bool get isId;
 
   /** @domName Attr.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Attr.ownerElement */
-  abstract Element get ownerElement;
+  Element get ownerElement;
 
   /** @domName Attr.specified */
-  abstract bool get specified;
+  bool get specified;
 
   /** @domName Attr.value */
   String value;
@@ -565,19 +565,19 @@ class _AttrImpl extends _NodeImpl implements Attr native "*Attr" {
 abstract class AudioBuffer {
 
   /** @domName AudioBuffer.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName AudioBuffer.gain */
   num gain;
 
   /** @domName AudioBuffer.length */
-  abstract int get length;
+  int get length;
 
   /** @domName AudioBuffer.numberOfChannels */
-  abstract int get numberOfChannels;
+  int get numberOfChannels;
 
   /** @domName AudioBuffer.sampleRate */
-  abstract num get sampleRate;
+  num get sampleRate;
 
   /** @domName AudioBuffer.getChannelData */
   Float32Array getChannelData(int channelIndex);
@@ -587,6 +587,7 @@ abstract class AudioBuffer {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
@@ -625,7 +626,7 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   AudioBuffer buffer;
 
   /** @domName AudioBufferSourceNode.gain */
-  abstract AudioGain get gain;
+  AudioGain get gain;
 
   /** @domName AudioBufferSourceNode.loop */
   bool loop;
@@ -634,10 +635,10 @@ abstract class AudioBufferSourceNode implements AudioSourceNode {
   bool looping;
 
   /** @domName AudioBufferSourceNode.playbackRate */
-  abstract AudioParam get playbackRate;
+  AudioParam get playbackRate;
 
   /** @domName AudioBufferSourceNode.playbackState */
-  abstract int get playbackState;
+  int get playbackState;
 
   /** @domName AudioBufferSourceNode.start */
   void start(num when, [num grainOffset, num grainDuration]);
@@ -724,6 +725,7 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName AudioContext
 abstract class AudioContext implements EventTarget {
   factory AudioContext() => _AudioContextFactoryProvider.createAudioContext();
@@ -734,19 +736,19 @@ abstract class AudioContext implements EventTarget {
   AudioContextEvents get on;
 
   /** @domName AudioContext.activeSourceCount */
-  abstract int get activeSourceCount;
+  int get activeSourceCount;
 
   /** @domName AudioContext.currentTime */
-  abstract num get currentTime;
+  num get currentTime;
 
   /** @domName AudioContext.destination */
-  abstract AudioDestinationNode get destination;
+  AudioDestinationNode get destination;
 
   /** @domName AudioContext.listener */
-  abstract AudioListener get listener;
+  AudioListener get listener;
 
   /** @domName AudioContext.sampleRate */
-  abstract num get sampleRate;
+  num get sampleRate;
 
   /** @domName AudioContext.createAnalyser */
   RealtimeAnalyserNode createAnalyser();
@@ -880,7 +882,7 @@ class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents 
 abstract class AudioDestinationNode implements AudioNode {
 
   /** @domName AudioDestinationNode.numberOfChannels */
-  abstract int get numberOfChannels;
+  int get numberOfChannels;
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode native "*AudioDestinationNode" {
@@ -928,7 +930,7 @@ class _AudioGainImpl extends _AudioParamImpl implements AudioGain native "*Audio
 abstract class AudioGainNode implements AudioNode {
 
   /** @domName AudioGainNode.gain */
-  abstract AudioGain get gain;
+  AudioGain get gain;
 }
 
 class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode native "*AudioGainNode" {
@@ -982,13 +984,13 @@ class _AudioListenerImpl implements AudioListener native "*AudioListener" {
 abstract class AudioNode {
 
   /** @domName AudioNode.context */
-  abstract AudioContext get context;
+  AudioContext get context;
 
   /** @domName AudioNode.numberOfInputs */
-  abstract int get numberOfInputs;
+  int get numberOfInputs;
 
   /** @domName AudioNode.numberOfOutputs */
-  abstract int get numberOfOutputs;
+  int get numberOfOutputs;
 
   /** @domName AudioNode.connect */
   void connect(destination, int output, [int input]);
@@ -1031,7 +1033,7 @@ abstract class AudioPannerNode implements AudioNode {
   static const int SOUNDFIELD = 2;
 
   /** @domName AudioPannerNode.coneGain */
-  abstract AudioGain get coneGain;
+  AudioGain get coneGain;
 
   /** @domName AudioPannerNode.coneInnerAngle */
   num coneInnerAngle;
@@ -1043,7 +1045,7 @@ abstract class AudioPannerNode implements AudioNode {
   num coneOuterGain;
 
   /** @domName AudioPannerNode.distanceGain */
-  abstract AudioGain get distanceGain;
+  AudioGain get distanceGain;
 
   /** @domName AudioPannerNode.distanceModel */
   int distanceModel;
@@ -1108,19 +1110,19 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode nat
 abstract class AudioParam {
 
   /** @domName AudioParam.defaultValue */
-  abstract num get defaultValue;
+  num get defaultValue;
 
   /** @domName AudioParam.maxValue */
-  abstract num get maxValue;
+  num get maxValue;
 
   /** @domName AudioParam.minValue */
-  abstract num get minValue;
+  num get minValue;
 
   /** @domName AudioParam.name */
-  abstract String get name;
+  String get name;
 
   /** @domName AudioParam.units */
-  abstract int get units;
+  int get units;
 
   /** @domName AudioParam.value */
   num value;
@@ -1180,10 +1182,10 @@ class _AudioParamImpl implements AudioParam native "*AudioParam" {
 abstract class AudioProcessingEvent implements Event {
 
   /** @domName AudioProcessingEvent.inputBuffer */
-  abstract AudioBuffer get inputBuffer;
+  AudioBuffer get inputBuffer;
 
   /** @domName AudioProcessingEvent.outputBuffer */
-  abstract AudioBuffer get outputBuffer;
+  AudioBuffer get outputBuffer;
 }
 
 class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEvent native "*AudioProcessingEvent" {
@@ -1233,7 +1235,7 @@ class _BRElementImpl extends _ElementImpl implements BRElement native "*HTMLBREl
 abstract class BarInfo {
 
   /** @domName BarInfo.visible */
-  abstract bool get visible;
+  bool get visible;
 }
 
 class _BarInfoImpl implements BarInfo native "*BarInfo" {
@@ -1306,16 +1308,16 @@ abstract class BatteryManager implements EventTarget {
   BatteryManagerEvents get on;
 
   /** @domName BatteryManager.charging */
-  abstract bool get charging;
+  bool get charging;
 
   /** @domName BatteryManager.chargingTime */
-  abstract num get chargingTime;
+  num get chargingTime;
 
   /** @domName BatteryManager.dischargingTime */
-  abstract num get dischargingTime;
+  num get dischargingTime;
 
   /** @domName BatteryManager.level */
-  abstract num get level;
+  num get level;
 
   /** @domName BatteryManager.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -1379,7 +1381,7 @@ class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEve
 abstract class BeforeLoadEvent implements Event {
 
   /** @domName BeforeLoadEvent.url */
-  abstract String get url;
+  String get url;
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
@@ -1412,13 +1414,13 @@ abstract class BiquadFilterNode implements AudioNode {
   static const int PEAKING = 5;
 
   /** @domName BiquadFilterNode.Q */
-  abstract AudioParam get Q;
+  AudioParam get Q;
 
   /** @domName BiquadFilterNode.frequency */
-  abstract AudioParam get frequency;
+  AudioParam get frequency;
 
   /** @domName BiquadFilterNode.gain */
-  abstract AudioParam get gain;
+  AudioParam get gain;
 
   /** @domName BiquadFilterNode.type */
   int type;
@@ -1459,10 +1461,10 @@ abstract class Blob {
   }
 
   /** @domName Blob.size */
-  abstract int get size;
+  int get size;
 
   /** @domName Blob.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Blob.slice */
   Blob slice([int start, int end, String contentType]);
@@ -1600,7 +1602,7 @@ abstract class ButtonElement implements Element {
   bool disabled;
 
   /** @domName HTMLButtonElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLButtonElement.formAction */
   String formAction;
@@ -1618,7 +1620,7 @@ abstract class ButtonElement implements Element {
   String formTarget;
 
   /** @domName HTMLButtonElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLButtonElement.name */
   String name;
@@ -1627,16 +1629,16 @@ abstract class ButtonElement implements Element {
   String type;
 
   /** @domName HTMLButtonElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLButtonElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLButtonElement.value */
   String value;
 
   /** @domName HTMLButtonElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLButtonElement.checkValidity */
   bool checkValidity();
@@ -1720,7 +1722,7 @@ class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule native 
 abstract class CSSFontFaceRule implements CSSRule {
 
   /** @domName CSSFontFaceRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule native "*CSSFontFaceRule" {
@@ -1737,13 +1739,13 @@ class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule nativ
 abstract class CSSImportRule implements CSSRule {
 
   /** @domName CSSImportRule.href */
-  abstract String get href;
+  String get href;
 
   /** @domName CSSImportRule.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName CSSImportRule.styleSheet */
-  abstract CSSStyleSheet get styleSheet;
+  CSSStyleSheet get styleSheet;
 }
 
 class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule native "*CSSImportRule" {
@@ -1767,7 +1769,7 @@ abstract class CSSKeyframeRule implements CSSRule {
   String keyText;
 
   /** @domName WebKitCSSKeyframeRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule native "*WebKitCSSKeyframeRule" {
@@ -1786,7 +1788,7 @@ class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule nativ
 abstract class CSSKeyframesRule implements CSSRule {
 
   /** @domName WebKitCSSKeyframesRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName WebKitCSSKeyframesRule.name */
   String name;
@@ -2002,10 +2004,10 @@ class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 abstract class CSSMediaRule implements CSSRule {
 
   /** @domName CSSMediaRule.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName CSSMediaRule.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName CSSMediaRule.deleteRule */
   void deleteRule(int index);
@@ -2037,7 +2039,7 @@ abstract class CSSPageRule implements CSSRule {
   String selectorText;
 
   /** @domName CSSPageRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule native "*CSSPageRule" {
@@ -2114,7 +2116,7 @@ abstract class CSSPrimitiveValue implements CSSValue {
   static const int CSS_VW = 26;
 
   /** @domName CSSPrimitiveValue.primitiveType */
-  abstract int get primitiveType;
+  int get primitiveType;
 
   /** @domName CSSPrimitiveValue.getCounterValue */
   Counter getCounterValue();
@@ -2187,13 +2189,13 @@ abstract class CSSRule {
   String cssText;
 
   /** @domName CSSRule.parentRule */
-  abstract CSSRule get parentRule;
+  CSSRule get parentRule;
 
   /** @domName CSSRule.parentStyleSheet */
-  abstract CSSStyleSheet get parentStyleSheet;
+  CSSStyleSheet get parentStyleSheet;
 
   /** @domName CSSRule.type */
-  abstract int get type;
+  int get type;
 }
 
 class _CSSRuleImpl implements CSSRule native "*CSSRule" {
@@ -2214,7 +2216,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   _CSSRuleImpl operator[](int index) => JS("_CSSRuleImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSRuleImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSRule> mixins.
   // CSSRule is the element type.
@@ -2231,15 +2233,15 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
   // From Collection<CSSRule>:
 
   void add(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSRule value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSRule> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSRule element) => _Collections.contains(this, element);
@@ -2255,38 +2257,38 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
   bool some(bool f(CSSRule element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<CSSRule>:
 
   void sort([Comparator<CSSRule> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSRule element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSRule element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  CSSRule last() => this[length - 1];
+  CSSRule get last => this[length - 1];
 
   CSSRule removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSRule> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSRule initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSRule> getRange(int start, int rangeLength) =>
@@ -2302,6 +2304,7 @@ class _CSSRuleListImpl implements List<CSSRule>, JavaScriptIndexingBehavior nati
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CSSStyleDeclaration
 abstract class CSSStyleDeclaration  {
   factory CSSStyleDeclaration() => _CSSStyleDeclarationFactoryProvider.createCSSStyleDeclaration();
@@ -2312,10 +2315,10 @@ abstract class CSSStyleDeclaration  {
   String cssText;
 
   /** @domName CSSStyleDeclaration.length */
-  abstract int get length;
+  int get length;
 
   /** @domName CSSStyleDeclaration.parentRule */
-  abstract CSSRule get parentRule;
+  CSSRule get parentRule;
 
   /** @domName CSSStyleDeclaration.getPropertyCSSValue */
   CSSValue getPropertyCSSValue(String propertyName);
@@ -4191,7 +4194,7 @@ abstract class CSSStyleDeclaration  {
 String _cachedBrowserPrefix;
 
 String get _browserPrefix {
-  if (_cachedBrowserPrefix === null) {
+  if (_cachedBrowserPrefix == null) {
     if (_Device.isFirefox) {
       _cachedBrowserPrefix = '-moz-';
     } else if (_Device.isIE) {
@@ -7019,7 +7022,7 @@ abstract class CSSStyleRule implements CSSRule {
   String selectorText;
 
   /** @domName CSSStyleRule.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 }
 
 class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CSSStyleRule" {
@@ -7038,13 +7041,13 @@ class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CS
 abstract class CSSStyleSheet implements StyleSheet {
 
   /** @domName CSSStyleSheet.cssRules */
-  abstract List<CSSRule> get cssRules;
+  List<CSSRule> get cssRules;
 
   /** @domName CSSStyleSheet.ownerRule */
-  abstract CSSRule get ownerRule;
+  CSSRule get ownerRule;
 
   /** @domName CSSStyleSheet.rules */
-  abstract List<CSSRule> get rules;
+  List<CSSRule> get rules;
 
   /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
@@ -7127,7 +7130,7 @@ abstract class CSSTransformValue implements List<CSSValue> {
   static const int CSS_TRANSLATEZ = 12;
 
   /** @domName WebKitCSSTransformValue.operationType */
-  abstract int get operationType;
+  int get operationType;
 }
 
 class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue native "*WebKitCSSTransformValue" {
@@ -7167,7 +7170,7 @@ abstract class CSSValue {
   String cssText;
 
   /** @domName CSSValue.cssValueType */
-  abstract int get cssValueType;
+  int get cssValueType;
 }
 
 class _CSSValueImpl implements CSSValue native "*CSSValue" {
@@ -7184,7 +7187,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   _CSSValueImpl operator[](int index) => JS("_CSSValueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _CSSValueImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<CSSValue> mixins.
   // CSSValue is the element type.
@@ -7201,15 +7204,15 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
   // From Collection<CSSValue>:
 
   void add(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(CSSValue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<CSSValue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(CSSValue element) => _Collections.contains(this, element);
@@ -7225,38 +7228,38 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 
   bool some(bool f(CSSValue element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<CSSValue>:
 
   void sort([Comparator<CSSValue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(CSSValue element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(CSSValue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  CSSValue last() => this[length - 1];
+  CSSValue get last => this[length - 1];
 
   CSSValue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CSSValue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [CSSValue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<CSSValue> getRange(int start, int rangeLength) =>
@@ -7271,6 +7274,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements List<CSSValue>, JavaScr
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName HTMLCanvasElement
 abstract class CanvasElement implements Element {
@@ -7355,7 +7359,7 @@ class _CanvasPatternImpl implements CanvasPattern native "*CanvasPattern" {
 abstract class CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext.canvas */
-  abstract CanvasElement get canvas;
+  CanvasElement get canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7363,11 +7367,12 @@ abstract class CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CanvasRenderingContext2D
 abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.fillStyle */
-  Dynamic fillStyle;
+  dynamic fillStyle;
 
   /** @domName CanvasRenderingContext2D.font */
   String font;
@@ -7406,7 +7411,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   num shadowOffsetY;
 
   /** @domName CanvasRenderingContext2D.strokeStyle */
-  Dynamic strokeStyle;
+  dynamic strokeStyle;
 
   /** @domName CanvasRenderingContext2D.textAlign */
   String textAlign;
@@ -7415,7 +7420,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
   String textBaseline;
 
   /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
-  abstract num get webkitBackingStorePixelRatio;
+  num get webkitBackingStorePixelRatio;
 
   /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
   bool webkitImageSmoothingEnabled;
@@ -7599,7 +7604,7 @@ abstract class CanvasRenderingContext2D implements CanvasRenderingContext {
 
 class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
-  Dynamic fillStyle;
+  dynamic fillStyle;
 
   String font;
 
@@ -7625,7 +7630,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   num shadowOffsetY;
 
-  Dynamic strokeStyle;
+  dynamic strokeStyle;
 
   String textAlign;
 
@@ -7656,13 +7661,13 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void closePath() native;
 
   ImageData createImageData(imagedata_OR_sw, [sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw === null) &&
+    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
         !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
       return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
     }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw === null) &&
-        (sh is num || sh === null)) {
+    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) &&
+        (sh is num || sh == null)) {
       return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
     }
     throw const Exception("Incorrect number or type of arguments");
@@ -7710,10 +7715,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX === null) &&
-        (dirtyY is num || dirtyY === null) &&
-        (dirtyWidth is num || dirtyWidth === null) &&
-        (dirtyHeight is num || dirtyHeight === null)) {
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -7777,10 +7782,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
       _webkitPutImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if ((dirtyX is num || dirtyX === null) &&
-        (dirtyY is num || dirtyY === null) &&
-        (dirtyWidth is num || dirtyWidth === null) &&
-        (dirtyHeight is num || dirtyHeight === null)) {
+    if ((dirtyX is num || dirtyX == null) &&
+        (dirtyY is num || dirtyY == null) &&
+        (dirtyWidth is num || dirtyWidth == null) &&
+        (dirtyHeight is num || dirtyHeight == null)) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -7825,7 +7830,7 @@ abstract class CharacterData implements Node {
   String data;
 
   /** @domName CharacterData.length */
-  abstract int get length;
+  int get length;
 
   /** @domName CharacterData.appendData */
   void appendData(String data);
@@ -7874,22 +7879,22 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*Cha
 abstract class ClientRect {
 
   /** @domName ClientRect.bottom */
-  abstract num get bottom;
+  num get bottom;
 
   /** @domName ClientRect.height */
-  abstract num get height;
+  num get height;
 
   /** @domName ClientRect.left */
-  abstract num get left;
+  num get left;
 
   /** @domName ClientRect.right */
-  abstract num get right;
+  num get right;
 
   /** @domName ClientRect.top */
-  abstract num get top;
+  num get top;
 
   /** @domName ClientRect.width */
-  abstract num get width;
+  num get width;
 }
 
 class _ClientRectImpl implements ClientRect native "*ClientRect" {
@@ -7914,7 +7919,7 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   _ClientRectImpl operator[](int index) => JS("_ClientRectImpl", "#[#]", this, index);
 
   void operator[]=(int index, _ClientRectImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<ClientRect> mixins.
   // ClientRect is the element type.
@@ -7931,15 +7936,15 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
   // From Collection<ClientRect>:
 
   void add(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(ClientRect value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<ClientRect> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(ClientRect element) => _Collections.contains(this, element);
@@ -7955,38 +7960,38 @@ class _ClientRectListImpl implements List<ClientRect>, JavaScriptIndexingBehavio
 
   bool some(bool f(ClientRect element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<ClientRect>:
 
   void sort([Comparator<ClientRect> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(ClientRect element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(ClientRect element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect last() => this[length - 1];
+  ClientRect get last => this[length - 1];
 
   ClientRect removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<ClientRect> getRange(int start, int rangeLength) =>
@@ -8012,13 +8017,13 @@ abstract class Clipboard {
   String effectAllowed;
 
   /** @domName Clipboard.files */
-  abstract List<File> get files;
+  List<File> get files;
 
   /** @domName Clipboard.items */
-  abstract DataTransferItemList get items;
+  DataTransferItemList get items;
 
   /** @domName Clipboard.types */
-  abstract List get types;
+  List get types;
 
   /** @domName Clipboard.clearData */
   void clearData([String type]);
@@ -8063,13 +8068,13 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 abstract class CloseEvent implements Event {
 
   /** @domName CloseEvent.code */
-  abstract int get code;
+  int get code;
 
   /** @domName CloseEvent.reason */
-  abstract String get reason;
+  String get reason;
 
   /** @domName CloseEvent.wasClean */
-  abstract bool get wasClean;
+  bool get wasClean;
 }
 
 class _CloseEventImpl extends _EventImpl implements CloseEvent native "*CloseEvent" {
@@ -8102,7 +8107,7 @@ class _CommentImpl extends _CharacterDataImpl implements Comment native "*Commen
 abstract class CompositionEvent implements UIEvent {
 
   /** @domName CompositionEvent.data */
-  abstract String get data;
+  String get data;
 
   /** @domName CompositionEvent.initCompositionEvent */
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
@@ -8124,10 +8129,10 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent nat
 abstract class Console {
 
   /** @domName Console.memory */
-  abstract MemoryInfo get memory;
+  MemoryInfo get memory;
 
   /** @domName Console.profiles */
-  abstract List<ScriptProfile> get profiles;
+  List<ScriptProfile> get profiles;
 
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
@@ -8249,11 +8254,16 @@ abstract class ContentElement implements Element {
 
   factory ContentElement() => _Elements.createContentElement();
 
+  /** @domName HTMLContentElement.resetStyleInheritance */
+  bool resetStyleInheritance;
+
   /** @domName HTMLContentElement.select */
   String select;
 }
 
 class _ContentElementImpl extends _ElementImpl implements ContentElement native "*HTMLContentElement" {
+
+  bool resetStyleInheritance;
 
   String select;
 }
@@ -8289,25 +8299,25 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode native 
 abstract class Coordinates {
 
   /** @domName Coordinates.accuracy */
-  abstract num get accuracy;
+  num get accuracy;
 
   /** @domName Coordinates.altitude */
-  abstract num get altitude;
+  num get altitude;
 
   /** @domName Coordinates.altitudeAccuracy */
-  abstract num get altitudeAccuracy;
+  num get altitudeAccuracy;
 
   /** @domName Coordinates.heading */
-  abstract num get heading;
+  num get heading;
 
   /** @domName Coordinates.latitude */
-  abstract num get latitude;
+  num get latitude;
 
   /** @domName Coordinates.longitude */
-  abstract num get longitude;
+  num get longitude;
 
   /** @domName Coordinates.speed */
-  abstract num get speed;
+  num get speed;
 }
 
 class _CoordinatesImpl implements Coordinates native "*Coordinates" {
@@ -8336,13 +8346,13 @@ class _CoordinatesImpl implements Coordinates native "*Coordinates" {
 abstract class Counter {
 
   /** @domName Counter.identifier */
-  abstract String get identifier;
+  String get identifier;
 
   /** @domName Counter.listStyle */
-  abstract String get listStyle;
+  String get listStyle;
 
   /** @domName Counter.separator */
-  abstract String get separator;
+  String get separator;
 }
 
 class _CounterImpl implements Counter native "*Counter" {
@@ -8376,6 +8386,7 @@ class _CryptoImpl implements Crypto native "*Crypto" {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName CustomEvent
 abstract class CustomEvent implements Event {
 
@@ -8385,7 +8396,7 @@ abstract class CustomEvent implements Event {
 
 
   /** @domName CustomEvent.detail */
-  abstract Object get detail;
+  Object get detail;
 
   /** @domName CustomEvent.initCustomEvent */
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
@@ -8443,7 +8454,7 @@ abstract class DOMApplicationCache implements EventTarget {
   static const int UPDATEREADY = 4;
 
   /** @domName DOMApplicationCache.status */
-  abstract int get status;
+  int get status;
 
   /** @domName DOMApplicationCache.abort */
   void abort();
@@ -8532,7 +8543,7 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
 abstract class DOMError {
 
   /** @domName DOMError.name */
-  abstract String get name;
+  String get name;
 }
 
 class _DOMErrorImpl implements DOMError native "*DOMError" {
@@ -8599,13 +8610,13 @@ abstract class DOMException {
   static const int WRONG_DOCUMENT_ERR = 4;
 
   /** @domName DOMException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName DOMException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName DOMException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMException.toString */
   String toString();
@@ -8631,10 +8642,10 @@ class _DOMExceptionImpl implements DOMException native "*DOMException" {
 abstract class DOMFileSystem {
 
   /** @domName DOMFileSystem.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMFileSystem.root */
-  abstract DirectoryEntry get root;
+  DirectoryEntry get root;
 }
 
 class _DOMFileSystemImpl implements DOMFileSystem native "*DOMFileSystem" {
@@ -8653,10 +8664,10 @@ class _DOMFileSystemImpl implements DOMFileSystem native "*DOMFileSystem" {
 abstract class DOMFileSystemSync {
 
   /** @domName DOMFileSystemSync.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DOMFileSystemSync.root */
-  abstract DirectoryEntrySync get root;
+  DirectoryEntrySync get root;
 }
 
 class _DOMFileSystemSyncImpl implements DOMFileSystemSync native "*DOMFileSystemSync" {
@@ -8712,16 +8723,16 @@ class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementa
 abstract class DOMMimeType {
 
   /** @domName MimeType.description */
-  abstract String get description;
+  String get description;
 
   /** @domName MimeType.enabledPlugin */
-  abstract DOMPlugin get enabledPlugin;
+  DOMPlugin get enabledPlugin;
 
   /** @domName MimeType.suffixes */
-  abstract String get suffixes;
+  String get suffixes;
 
   /** @domName MimeType.type */
-  abstract String get type;
+  String get type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8733,7 +8744,7 @@ abstract class DOMMimeType {
 abstract class DOMMimeTypeArray implements List<DOMMimeType> {
 
   /** @domName MimeTypeArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MimeTypeArray.item */
   DOMMimeType item(int index);
@@ -8749,7 +8760,7 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   _DOMMimeTypeImpl operator[](int index) => JS("_DOMMimeTypeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMMimeTypeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMMimeType> mixins.
   // DOMMimeType is the element type.
@@ -8766,15 +8777,15 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
   // From Collection<DOMMimeType>:
 
   void add(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMMimeType value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMMimeType> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMMimeType element) => _Collections.contains(this, element);
@@ -8790,38 +8801,38 @@ class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray, JavaScriptIndexingBehav
 
   bool some(bool f(DOMMimeType element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<DOMMimeType>:
 
   void sort([Comparator<DOMMimeType> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMMimeType element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMMimeType element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  DOMMimeType last() => this[length - 1];
+  DOMMimeType get last => this[length - 1];
 
   DOMMimeType removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMMimeType> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMMimeType initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMMimeType> getRange(int start, int rangeLength) =>
@@ -8873,16 +8884,16 @@ class _DOMParserImpl implements DOMParser native "*DOMParser" {
 abstract class DOMPlugin {
 
   /** @domName Plugin.description */
-  abstract String get description;
+  String get description;
 
   /** @domName Plugin.filename */
-  abstract String get filename;
+  String get filename;
 
   /** @domName Plugin.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Plugin.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Plugin.item */
   DOMMimeType item(int index);
@@ -8900,7 +8911,7 @@ abstract class DOMPlugin {
 abstract class DOMPluginArray implements List<DOMPlugin> {
 
   /** @domName PluginArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName PluginArray.item */
   DOMPlugin item(int index);
@@ -8919,7 +8930,7 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   _DOMPluginImpl operator[](int index) => JS("_DOMPluginImpl", "#[#]", this, index);
 
   void operator[]=(int index, _DOMPluginImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<DOMPlugin> mixins.
   // DOMPlugin is the element type.
@@ -8936,15 +8947,15 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
   // From Collection<DOMPlugin>:
 
   void add(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(DOMPlugin value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<DOMPlugin> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(DOMPlugin element) => _Collections.contains(this, element);
@@ -8960,38 +8971,38 @@ class _DOMPluginArrayImpl implements DOMPluginArray, JavaScriptIndexingBehavior 
 
   bool some(bool f(DOMPlugin element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<DOMPlugin>:
 
   void sort([Comparator<DOMPlugin> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(DOMPlugin element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(DOMPlugin element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  DOMPlugin last() => this[length - 1];
+  DOMPlugin get last => this[length - 1];
 
   DOMPlugin removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DOMPlugin> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [DOMPlugin initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<DOMPlugin> getRange(int start, int rangeLength) =>
@@ -9030,37 +9041,37 @@ class _DOMPluginImpl implements DOMPlugin native "*Plugin" {
 abstract class DOMSelection {
 
   /** @domName Selection.anchorNode */
-  abstract Node get anchorNode;
+  Node get anchorNode;
 
   /** @domName Selection.anchorOffset */
-  abstract int get anchorOffset;
+  int get anchorOffset;
 
   /** @domName Selection.baseNode */
-  abstract Node get baseNode;
+  Node get baseNode;
 
   /** @domName Selection.baseOffset */
-  abstract int get baseOffset;
+  int get baseOffset;
 
   /** @domName Selection.extentNode */
-  abstract Node get extentNode;
+  Node get extentNode;
 
   /** @domName Selection.extentOffset */
-  abstract int get extentOffset;
+  int get extentOffset;
 
   /** @domName Selection.focusNode */
-  abstract Node get focusNode;
+  Node get focusNode;
 
   /** @domName Selection.focusOffset */
-  abstract int get focusOffset;
+  int get focusOffset;
 
   /** @domName Selection.isCollapsed */
-  abstract bool get isCollapsed;
+  bool get isCollapsed;
 
   /** @domName Selection.rangeCount */
-  abstract int get rangeCount;
+  int get rangeCount;
 
   /** @domName Selection.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Selection.addRange */
   void addRange(Range range);
@@ -9187,7 +9198,7 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -9204,15 +9215,15 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   // contains() defined by IDL.
@@ -9228,38 +9239,38 @@ class _DOMStringListImpl implements List<String>, JavaScriptIndexingBehavior nat
 
   bool some(bool f(String element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String last() => this[length - 1];
+  String get last => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -9290,7 +9301,7 @@ abstract class DOMStringMap {
 abstract class DOMTokenList {
 
   /** @domName DOMTokenList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName DOMTokenList.contains */
   bool contains(String token);
@@ -9353,7 +9364,7 @@ abstract class DataListElement implements Element {
   factory DataListElement() => _Elements.createDataListElement();
 
   /** @domName HTMLDataListElement.options */
-  abstract HTMLCollection get options;
+  HTMLCollection get options;
 }
 
 class _DataListElementImpl extends _ElementImpl implements DataListElement native "*HTMLDataListElement" {
@@ -9370,10 +9381,10 @@ class _DataListElementImpl extends _ElementImpl implements DataListElement nativ
 abstract class DataTransferItem {
 
   /** @domName DataTransferItem.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName DataTransferItem.type */
-  abstract String get type;
+  String get type;
 
   /** @domName DataTransferItem.getAsFile */
   Blob getAsFile();
@@ -9407,7 +9418,7 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 abstract class DataTransferItemList {
 
   /** @domName DataTransferItemList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName DataTransferItemList.add */
   void add(data_OR_file, [String type]);
@@ -9449,49 +9460,49 @@ abstract class DataView implements ArrayBufferView {
   }
 
   /** @domName DataView.getFloat32 */
-  num getFloat32(int byteOffset, [bool littleEndian]);
+  num getFloat32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getFloat64 */
-  num getFloat64(int byteOffset, [bool littleEndian]);
+  num getFloat64(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt16 */
-  int getInt16(int byteOffset, [bool littleEndian]);
+  int getInt16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt32 */
-  int getInt32(int byteOffset, [bool littleEndian]);
+  int getInt32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getInt8 */
   int getInt8(int byteOffset);
 
   /** @domName DataView.getUint16 */
-  int getUint16(int byteOffset, [bool littleEndian]);
+  int getUint16(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint32 */
-  int getUint32(int byteOffset, [bool littleEndian]);
+  int getUint32(int byteOffset, {bool littleEndian});
 
   /** @domName DataView.getUint8 */
   int getUint8(int byteOffset);
 
   /** @domName DataView.setFloat32 */
-  void setFloat32(int byteOffset, num value, [bool littleEndian]);
+  void setFloat32(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setFloat64 */
-  void setFloat64(int byteOffset, num value, [bool littleEndian]);
+  void setFloat64(int byteOffset, num value, {bool littleEndian});
 
   /** @domName DataView.setInt16 */
-  void setInt16(int byteOffset, int value, [bool littleEndian]);
+  void setInt16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt32 */
-  void setInt32(int byteOffset, int value, [bool littleEndian]);
+  void setInt32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setInt8 */
   void setInt8(int byteOffset, int value);
 
   /** @domName DataView.setUint16 */
-  void setUint16(int byteOffset, int value, [bool littleEndian]);
+  void setUint16(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint32 */
-  void setUint32(int byteOffset, int value, [bool littleEndian]);
+  void setUint32(int byteOffset, int value, {bool littleEndian});
 
   /** @domName DataView.setUint8 */
   void setUint8(int byteOffset, int value);
@@ -9499,35 +9510,35 @@ abstract class DataView implements ArrayBufferView {
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*DataView" {
 
-  num getFloat32(int byteOffset, [bool littleEndian]) native;
+  num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  num getFloat64(int byteOffset, [bool littleEndian]) native;
+  num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  int getInt16(int byteOffset, [bool littleEndian]) native;
+  int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  int getInt32(int byteOffset, [bool littleEndian]) native;
+  int getInt32(int byteOffset, {bool littleEndian}) native;
 
   int getInt8(int byteOffset) native;
 
-  int getUint16(int byteOffset, [bool littleEndian]) native;
+  int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  int getUint32(int byteOffset, [bool littleEndian]) native;
+  int getUint32(int byteOffset, {bool littleEndian}) native;
 
   int getUint8(int byteOffset) native;
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  void setInt16(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  void setInt32(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
   void setInt8(int byteOffset, int value) native;
 
-  void setUint16(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  void setUint32(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
   void setUint8(int byteOffset, int value) native;
 }
@@ -9541,7 +9552,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*Da
 abstract class Database {
 
   /** @domName Database.version */
-  abstract String get version;
+  String get version;
 
   /** @domName Database.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
@@ -9557,6 +9568,7 @@ abstract class Database {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void DatabaseCallback(database);
 
@@ -9580,10 +9592,10 @@ class _DatabaseImpl implements Database native "*Database" {
 abstract class DatabaseSync {
 
   /** @domName DatabaseSync.lastErrorMessage */
-  abstract String get lastErrorMessage;
+  String get lastErrorMessage;
 
   /** @domName DatabaseSync.version */
-  abstract String get version;
+  String get version;
 
   /** @domName DatabaseSync.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
@@ -9664,7 +9676,7 @@ class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl impleme
 abstract class DelayNode implements AudioNode {
 
   /** @domName DelayNode.delayTime */
-  abstract AudioParam get delayTime;
+  AudioParam get delayTime;
 }
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayNode" {
@@ -9700,7 +9712,7 @@ class _DetailsElementImpl extends _ElementImpl implements DetailsElement native 
 abstract class DeviceMotionEvent implements Event {
 
   /** @domName DeviceMotionEvent.interval */
-  abstract num get interval;
+  num get interval;
 }
 
 class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent native "*DeviceMotionEvent" {
@@ -9717,16 +9729,16 @@ class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent nat
 abstract class DeviceOrientationEvent implements Event {
 
   /** @domName DeviceOrientationEvent.absolute */
-  abstract bool get absolute;
+  bool get absolute;
 
   /** @domName DeviceOrientationEvent.alpha */
-  abstract num get alpha;
+  num get alpha;
 
   /** @domName DeviceOrientationEvent.beta */
-  abstract num get beta;
+  num get beta;
 
   /** @domName DeviceOrientationEvent.gamma */
-  abstract num get gamma;
+  num get gamma;
 
   /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
@@ -9774,10 +9786,10 @@ abstract class DirectoryEntry implements Entry {
   DirectoryReader createReader();
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback});
 
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
@@ -9787,7 +9799,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [options, successCallback, errorCallback]) {
+  void getDirectory(String path, {options, successCallback, errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9811,7 +9823,7 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
   void _getDirectory_3(path, options) native "getDirectory";
   void _getDirectory_4(path) native "getDirectory";
 
-  void getFile(String path, [options, successCallback, errorCallback]) {
+  void getFile(String path, {options, successCallback, errorCallback}) {
     if (?errorCallback) {
       var options_1 = _convertDartToNative_Dictionary(options);
       _getFile_1(path, options_1, successCallback, errorCallback);
@@ -9934,6 +9946,7 @@ class _DivElementImpl extends _ElementImpl implements DivElement native "*HTMLDi
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName Document
 abstract class Document extends HtmlElement {
 
@@ -9944,7 +9957,7 @@ abstract class Document extends HtmlElement {
   DocumentEvents get on;
 
   /** @domName HTMLDocument.activeElement */
-  abstract Element get activeElement;
+  Element get activeElement;
 
   /** @domName Document.body */
   Element body;
@@ -9956,64 +9969,64 @@ abstract class Document extends HtmlElement {
   String cookie;
 
   /** @domName Document.defaultView */
-  abstract Window get window;
+  Window get window;
 
   /** @domName Document.documentElement */
-  abstract Element get documentElement;
+  Element get documentElement;
 
   /** @domName Document.domain */
-  abstract String get domain;
+  String get domain;
 
   /** @domName Document.head */
-  abstract HeadElement get head;
+  HeadElement get head;
 
   /** @domName Document.implementation */
-  abstract DOMImplementation get implementation;
+  DOMImplementation get implementation;
 
   /** @domName Document.lastModified */
-  abstract String get lastModified;
+  String get lastModified;
 
   /** @domName Document.preferredStylesheetSet */
-  abstract String get preferredStylesheetSet;
+  String get preferredStylesheetSet;
 
   /** @domName Document.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName Document.referrer */
-  abstract String get referrer;
+  String get referrer;
 
   /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
   /** @domName Document.styleSheets */
-  abstract List<StyleSheet> get styleSheets;
+  List<StyleSheet> get styleSheets;
 
   /** @domName Document.title */
   String title;
 
   /** @domName Document.webkitCurrentFullScreenElement */
-  abstract Element get webkitCurrentFullScreenElement;
+  Element get webkitCurrentFullScreenElement;
 
   /** @domName Document.webkitFullScreenKeyboardInputAllowed */
-  abstract bool get webkitFullScreenKeyboardInputAllowed;
+  bool get webkitFullScreenKeyboardInputAllowed;
 
   /** @domName Document.webkitFullscreenElement */
-  abstract Element get webkitFullscreenElement;
+  Element get webkitFullscreenElement;
 
   /** @domName Document.webkitFullscreenEnabled */
-  abstract bool get webkitFullscreenEnabled;
+  bool get webkitFullscreenEnabled;
 
   /** @domName Document.webkitHidden */
-  abstract bool get webkitHidden;
+  bool get webkitHidden;
 
   /** @domName Document.webkitIsFullScreen */
-  abstract bool get webkitIsFullScreen;
+  bool get webkitIsFullScreen;
 
   /** @domName Document.webkitPointerLockElement */
-  abstract Element get webkitPointerLockElement;
+  Element get webkitPointerLockElement;
 
   /** @domName Document.webkitVisibilityState */
-  abstract String get webkitVisibilityState;
+  String get webkitVisibilityState;
 
   /** @domName Document.caretRangeFromPoint */
   Range caretRangeFromPoint(int x, int y);
@@ -10202,6 +10215,7 @@ abstract class DocumentEvents implements ElementEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName DocumentFragment
 abstract class DocumentFragment extends Element {
 
@@ -10262,7 +10276,7 @@ class _FilteredElementList implements List {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const ArgumentError("Invalid list length");
+      throw new ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -10285,7 +10299,7 @@ class _FilteredElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -10307,7 +10321,7 @@ class _FilteredElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       result.remove();
     }
@@ -10318,7 +10332,7 @@ class _FilteredElementList implements List {
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
-  bool isEmpty() => _filtered.isEmpty();
+  bool get isEmpty => _filtered.isEmpty;
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
@@ -10328,11 +10342,11 @@ class _FilteredElementList implements List {
     _filtered.indexOf(element, start);
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _filtered.lastIndexOf(element, start);
   }
 
-  Element last() => _filtered.last();
+  Element get last => _filtered.last;
 }
 
 Future<CSSStyleDeclaration> _emptyStyleFuture() {
@@ -10354,7 +10368,7 @@ class _FrozenCSSClassSet extends _CssClassSet {
   _FrozenCSSClassSet() : super(null);
 
   void _write(Set s) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'frozen class set cannot be modified');
   }
   Set<String> _read() => new Set<String>();
@@ -10468,7 +10482,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
     }
     return null;
   }
-  Element get $m_lastElementChild() => elements.last();
+  Element get $m_lastElementChild() => elements.last;
   Element get nextElementSibling => null;
   Element get previousElementSibling => null;
   Element get offsetParent => null;
@@ -10497,97 +10511,97 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
   void set attributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Attributes can't be set for document fragments.");
   }
 
   void set classes(Collection<String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Classes can't be set for document fragments.");
   }
 
   void set dataAttributes(Map<String, String> value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Data attributes can't be set for document fragments.");
   }
 
   void set contentEditable(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Content editable can't be set for document fragments.");
   }
 
   String get dir {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set dir(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support text direction.");
   }
 
   void set draggable(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Draggable can't be set for document fragments.");
   }
 
   void set hidden(bool value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Hidden can't be set for document fragments.");
   }
 
   void set id(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "ID can't be set for document fragments.");
   }
 
   String get lang {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set lang(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support language.");
   }
 
   void set scrollLeft(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set scrollTop(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Document fragments don't support scrolling.");
   }
 
   void set spellcheck(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set translate(bool value) {
-     throw new UnsupportedOperationException(
+     throw new UnsupportedError(
       "Spellcheck can't be set for document fragments.");
   }
 
   void set tabIndex(int value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Tab index can't be set for document fragments.");
   }
 
   void set title(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "Title can't be set for document fragments.");
   }
 
   void set webkitdropzone(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit drop zone can't be set for document fragments.");
   }
 
   void set webkitRegionOverflow(String value) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
       "WebKit region overflow can't be set for document fragments.");
   }
 
@@ -10621,7 +10635,7 @@ class _DocumentImpl extends _NodeImpl implements Document
   String cookie;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() => JS("Window", "#.defaultView", this);
+  Window get _window => JS("Window", "#.defaultView", this);
 
   final _ElementImpl documentElement;
 
@@ -10865,22 +10879,22 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 abstract class DocumentType implements Node {
 
   /** @domName DocumentType.entities */
-  abstract NamedNodeMap get entities;
+  NamedNodeMap get entities;
 
   /** @domName DocumentType.internalSubset */
-  abstract String get internalSubset;
+  String get internalSubset;
 
   /** @domName DocumentType.name */
-  abstract String get name;
+  String get name;
 
   /** @domName DocumentType.notations */
-  abstract NamedNodeMap get notations;
+  NamedNodeMap get notations;
 
   /** @domName DocumentType.publicId */
-  abstract String get publicId;
+  String get publicId;
 
   /** @domName DocumentType.systemId */
-  abstract String get systemId;
+  String get systemId;
 
   /** @domName DocumentType.remove */
   void remove();
@@ -10912,22 +10926,22 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*Docum
 abstract class DynamicsCompressorNode implements AudioNode {
 
   /** @domName DynamicsCompressorNode.attack */
-  abstract AudioParam get attack;
+  AudioParam get attack;
 
   /** @domName DynamicsCompressorNode.knee */
-  abstract AudioParam get knee;
+  AudioParam get knee;
 
   /** @domName DynamicsCompressorNode.ratio */
-  abstract AudioParam get ratio;
+  AudioParam get ratio;
 
   /** @domName DynamicsCompressorNode.reduction */
-  abstract AudioParam get reduction;
+  AudioParam get reduction;
 
   /** @domName DynamicsCompressorNode.release */
-  abstract AudioParam get release;
+  AudioParam get release;
 
   /** @domName DynamicsCompressorNode.threshold */
-  abstract AudioParam get threshold;
+  AudioParam get threshold;
 }
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
@@ -10965,6 +10979,7 @@ class _EXTTextureFilterAnisotropicImpl implements EXTTextureFilterAnisotropic na
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /**
  * All your attribute manipulation needs in one place.
@@ -11081,7 +11096,7 @@ abstract class Element implements Node, NodeSelector {
   ElementEvents get on;
 
   /** @domName HTMLElement.children */
-  abstract HTMLCollection get $dom_children;
+  HTMLCollection get $dom_children;
 
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
@@ -11102,13 +11117,13 @@ abstract class Element implements Node, NodeSelector {
   String innerHTML;
 
   /** @domName HTMLElement.isContentEditable */
-  abstract bool get isContentEditable;
+  bool get isContentEditable;
 
   /** @domName HTMLElement.lang */
   String lang;
 
   /** @domName HTMLElement.outerHTML */
-  abstract String get outerHTML;
+  String get outerHTML;
 
   /** @domName HTMLElement.spellcheck */
   bool spellcheck;
@@ -11140,55 +11155,55 @@ abstract class Element implements Node, NodeSelector {
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   /** @domName Element.childElementCount */
-  abstract int get $dom_childElementCount;
+  int get $dom_childElementCount;
 
   /** @domName Element.className */
   String $dom_className;
 
   /** @domName Element.clientHeight */
-  abstract int get clientHeight;
+  int get clientHeight;
 
   /** @domName Element.clientLeft */
-  abstract int get clientLeft;
+  int get clientLeft;
 
   /** @domName Element.clientTop */
-  abstract int get clientTop;
+  int get clientTop;
 
   /** @domName Element.clientWidth */
-  abstract int get clientWidth;
+  int get clientWidth;
 
   /** @domName Element.dataset */
-  abstract Map<String, String> get dataset;
+  Map<String, String> get dataset;
 
   /** @domName Element.firstElementChild */
-  abstract Element get $dom_firstElementChild;
+  Element get $dom_firstElementChild;
 
   /** @domName Element.lastElementChild */
-  abstract Element get $dom_lastElementChild;
+  Element get $dom_lastElementChild;
 
   /** @domName Element.nextElementSibling */
-  abstract Element get nextElementSibling;
+  Element get nextElementSibling;
 
   /** @domName Element.offsetHeight */
-  abstract int get offsetHeight;
+  int get offsetHeight;
 
   /** @domName Element.offsetLeft */
-  abstract int get offsetLeft;
+  int get offsetLeft;
 
   /** @domName Element.offsetParent */
-  abstract Element get offsetParent;
+  Element get offsetParent;
 
   /** @domName Element.offsetTop */
-  abstract int get offsetTop;
+  int get offsetTop;
 
   /** @domName Element.offsetWidth */
-  abstract int get offsetWidth;
+  int get offsetWidth;
 
   /** @domName Element.previousElementSibling */
-  abstract Element get previousElementSibling;
+  Element get previousElementSibling;
 
   /** @domName Element.scrollHeight */
-  abstract int get scrollHeight;
+  int get scrollHeight;
 
   /** @domName Element.scrollLeft */
   int scrollLeft;
@@ -11197,13 +11212,13 @@ abstract class Element implements Node, NodeSelector {
   int scrollTop;
 
   /** @domName Element.scrollWidth */
-  abstract int get scrollWidth;
+  int get scrollWidth;
 
   /** @domName Element.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 
   /** @domName Element.tagName */
-  abstract String get tagName;
+  String get tagName;
 
   /** @domName Element.blur */
   void blur();
@@ -11432,7 +11447,7 @@ class _ChildrenElementList implements List {
     return out;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
@@ -11450,7 +11465,7 @@ class _ChildrenElementList implements List {
 
    void set length(int newLength) {
      // TODO(jacobr): remove children when length is reduced.
-     throw const UnsupportedOperationException('');
+     throw new UnsupportedError('');
    }
 
   Element add(_ElementImpl value) {
@@ -11469,7 +11484,7 @@ class _ChildrenElementList implements List {
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -11493,7 +11508,7 @@ class _ChildrenElementList implements List {
   }
 
   int lastIndexOf(Element element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -11503,14 +11518,14 @@ class _ChildrenElementList implements List {
   }
 
   Element removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _element.$dom_removeChild(result);
     }
     return result;
   }
 
-  Element last() {
+  Element get last {
     return _element.$dom_lastElementChild;
   }
 }
@@ -11575,14 +11590,14 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  bool isEmpty() => _nodeList.isEmpty();
+  bool get isEmpty => _nodeList.isEmpty;
 
   int get length => _nodeList.length;
 
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void set length(int newLength) {
@@ -11590,33 +11605,33 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void addLast(Element value) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Iterator<Element> iterator() => new _FrozenElementListIterator(this);
 
   void addAll(Collection<Element> collection) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void sort([Comparator<Element> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   List<Element> getRange(int start, int rangeLength) =>
@@ -11629,14 +11644,14 @@ class _FrozenElementList implements List {
     _nodeList.lastIndexOf(element, start);
 
   void clear() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
   Element removeLast() {
-    throw const UnsupportedOperationException('');
+    throw new UnsupportedError('');
   }
 
-  Element last() => _nodeList.last();
+  Element get last => _nodeList.last;
 }
 
 class _FrozenElementListIterator implements Iterator<Element> {
@@ -11647,11 +11662,11 @@ class _FrozenElementListIterator implements Iterator<Element> {
 
   /**
    * Gets the next element in the iteration. Throws a
-   * [NoMoreElementsException] if no element is left.
+   * [StateError("No more elements")] if no element is left.
    */
   Element next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
 
     return _list[_index++];
@@ -11660,7 +11675,7 @@ class _FrozenElementListIterator implements Iterator<Element> {
   /**
    * Returns whether the [Iterator] has elements left.
    */
-  bool hasNext() => _index < _list.length;
+  bool get hasNext => _index < _list.length;
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -11719,7 +11734,7 @@ class _ElementAttributeMap implements AttributeMap {
     }
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final keys = new List<String>(attributes.length);
@@ -11729,7 +11744,7 @@ class _ElementAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     // TODO(jacobr): generate a lazy collection instead.
     final attributes = _element.$dom_attributes;
     final values = new List<String>(attributes.length);
@@ -11749,7 +11764,7 @@ class _ElementAttributeMap implements AttributeMap {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty() {
+  bool get isEmpty {
     return length == 0;
   }
 }
@@ -11767,7 +11782,7 @@ class _DataAttributeMap implements AttributeMap {
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
+  bool containsValue(String value) => values.some((v) => v == value);
 
   bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
@@ -11784,7 +11799,7 @@ class _DataAttributeMap implements AttributeMap {
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
-    for (String key in getKeys()) {
+    for (String key in keys) {
       remove(key);
     }
   }
@@ -11797,7 +11812,7 @@ class _DataAttributeMap implements AttributeMap {
     });
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -11807,7 +11822,7 @@ class _DataAttributeMap implements AttributeMap {
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -11817,10 +11832,10 @@ class _DataAttributeMap implements AttributeMap {
     return values;
   }
 
-  int get length => getKeys().length;
+  int get length => keys.length;
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   // Helpers.
   String _attr(String key) => 'data-$key';
@@ -11853,7 +11868,7 @@ class _CssClassSet implements CSSClassSet {
 
   bool some(bool f(String element)) => _read().some(f);
 
-  bool isEmpty() => _read().isEmpty();
+  bool get isEmpty => _read().isEmpty;
 
   bool get frozen => false;
 
@@ -11937,7 +11952,7 @@ class _CssClassSet implements CSSClassSet {
     Set<String> s = new Set<String>();
     for (String name in _classname().split(' ')) {
       String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
+      if (!trimmed.isEmpty) {
         s.add(trimmed);
       }
     }
@@ -11976,7 +11991,7 @@ class _SimpleClientRect implements ClientRect {
   const _SimpleClientRect(this.left, this.top, this.width, this.height);
 
   bool operator ==(ClientRect other) {
-    return other !== null && left == other.left && top == other.top
+    return other != null && left == other.left && top == other.top
         && width == other.width && height == other.height;
   }
 
@@ -12039,7 +12054,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       attributes[key] = value[key];
     }
   }
@@ -12071,7 +12086,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   void set dataAttributes(Map<String, String> value) {
     final dataAttributes = this.dataAttributes;
     dataAttributes.clear();
-    for (String key in value.getKeys()) {
+    for (String key in value.keys) {
       dataAttributes[key] = value[key];
     }
   }
@@ -12167,7 +12182,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   _ElementEventsImpl get on =>
     new _ElementEventsImpl(this);
 
-  _HTMLCollectionImpl get $dom_children() => JS("_HTMLCollectionImpl", "#.children", this);
+  _HTMLCollectionImpl get $dom_children => JS("_HTMLCollectionImpl", "#.children", this);
 
   String contentEditable;
 
@@ -12199,9 +12214,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void click() native;
 
-  int get $dom_childElementCount() => JS("int", "#.childElementCount", this);
+  int get $dom_childElementCount => JS("int", "#.childElementCount", this);
 
-  String get $dom_className() => JS("String", "#.className", this);
+  String get $dom_className => JS("String", "#.className", this);
 
   void set $dom_className(String value) {
     JS("void", "#.className = #", this, value);
@@ -12217,9 +12232,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   final Map<String, String> dataset;
 
-  _ElementImpl get $dom_firstElementChild() => JS("_ElementImpl", "#.firstElementChild", this);
+  _ElementImpl get $dom_firstElementChild => JS("_ElementImpl", "#.firstElementChild", this);
 
-  _ElementImpl get $dom_lastElementChild() => JS("_ElementImpl", "#.lastElementChild", this);
+  _ElementImpl get $dom_lastElementChild => JS("_ElementImpl", "#.lastElementChild", this);
 
   final _ElementImpl nextElementSibling;
 
@@ -12317,7 +12332,7 @@ class _ElementFactoryProvider {
     String parentTag = 'div';
     String tag;
     final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
+    if (match != null) {
       tag = match.group(1).toLowerCase();
       if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -12493,19 +12508,19 @@ abstract class ElementTimeControl {
 abstract class ElementTraversal {
 
   /** @domName ElementTraversal.childElementCount */
-  abstract int get childElementCount;
+  int get childElementCount;
 
   /** @domName ElementTraversal.firstElementChild */
-  abstract Element get firstElementChild;
+  Element get firstElementChild;
 
   /** @domName ElementTraversal.lastElementChild */
-  abstract Element get lastElementChild;
+  Element get lastElementChild;
 
   /** @domName ElementTraversal.nextElementSibling */
-  abstract Element get nextElementSibling;
+  Element get nextElementSibling;
 
   /** @domName ElementTraversal.previousElementSibling */
-  abstract Element get previousElementSibling;
+  Element get previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12569,6 +12584,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference native "
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12580,19 +12596,19 @@ typedef void EntriesCallback(List<Entry> entries);
 abstract class Entry {
 
   /** @domName Entry.filesystem */
-  abstract DOMFileSystem get filesystem;
+  DOMFileSystem get filesystem;
 
   /** @domName Entry.fullPath */
-  abstract String get fullPath;
+  String get fullPath;
 
   /** @domName Entry.isDirectory */
-  abstract bool get isDirectory;
+  bool get isDirectory;
 
   /** @domName Entry.isFile */
-  abstract bool get isFile;
+  bool get isFile;
 
   /** @domName Entry.name */
-  abstract String get name;
+  String get name;
 
   /** @domName Entry.copyTo */
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
@@ -12620,7 +12636,7 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   _EntryImpl operator[](int index) => JS("_EntryImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntryImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Entry> mixins.
   // Entry is the element type.
@@ -12637,15 +12653,15 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
   // From Collection<Entry>:
 
   void add(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Entry value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Entry> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Entry element) => _Collections.contains(this, element);
@@ -12661,38 +12677,38 @@ class _EntryArrayImpl implements List<Entry>, JavaScriptIndexingBehavior native 
 
   bool some(bool f(Entry element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Entry>:
 
   void sort([Comparator<Entry> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Entry element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Entry element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Entry last() => this[length - 1];
+  Entry get last => this[length - 1];
 
   Entry removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Entry initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Entry> getRange(int start, int rangeLength) =>
@@ -12710,7 +12726,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   _EntrySyncImpl operator[](int index) => JS("_EntrySyncImpl", "#[#]", this, index);
 
   void operator[]=(int index, _EntrySyncImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<EntrySync> mixins.
   // EntrySync is the element type.
@@ -12727,15 +12743,15 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
   // From Collection<EntrySync>:
 
   void add(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(EntrySync value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<EntrySync> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(EntrySync element) => _Collections.contains(this, element);
@@ -12751,38 +12767,38 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 
   bool some(bool f(EntrySync element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<EntrySync>:
 
   void sort([Comparator<EntrySync> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(EntrySync element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(EntrySync element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync last() => this[length - 1];
+  EntrySync get last => this[length - 1];
 
   EntrySync removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<EntrySync> getRange(int start, int rangeLength) =>
@@ -12797,6 +12813,7 @@ class _EntryArraySyncImpl implements List<EntrySync>, JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void EntryCallback(Entry entry);
 
@@ -12834,19 +12851,19 @@ class _EntryImpl implements Entry native "*Entry" {
 abstract class EntrySync {
 
   /** @domName EntrySync.filesystem */
-  abstract DOMFileSystemSync get filesystem;
+  DOMFileSystemSync get filesystem;
 
   /** @domName EntrySync.fullPath */
-  abstract String get fullPath;
+  String get fullPath;
 
   /** @domName EntrySync.isDirectory */
-  abstract bool get isDirectory;
+  bool get isDirectory;
 
   /** @domName EntrySync.isFile */
-  abstract bool get isFile;
+  bool get isFile;
 
   /** @domName EntrySync.name */
-  abstract String get name;
+  String get name;
 
   /** @domName EntrySync.copyTo */
   EntrySync copyTo(DirectoryEntrySync parent, String name);
@@ -12897,6 +12914,7 @@ class _EntrySyncImpl implements EntrySync native "*EntrySync" {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12908,13 +12926,13 @@ typedef void ErrorCallback(FileError error);
 abstract class ErrorEvent implements Event {
 
   /** @domName ErrorEvent.filename */
-  abstract String get filename;
+  String get filename;
 
   /** @domName ErrorEvent.lineno */
-  abstract int get lineno;
+  int get lineno;
 
   /** @domName ErrorEvent.message */
-  abstract String get message;
+  String get message;
 }
 
 class _ErrorEventImpl extends _EventImpl implements ErrorEvent native "*ErrorEvent" {
@@ -12930,6 +12948,7 @@ class _ErrorEventImpl extends _EventImpl implements ErrorEvent native "*ErrorEve
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Event
 abstract class Event {
@@ -12984,40 +13003,40 @@ abstract class Event {
   static const int SELECT = 16384;
 
   /** @domName Event.bubbles */
-  abstract bool get bubbles;
+  bool get bubbles;
 
   /** @domName Event.cancelBubble */
   bool cancelBubble;
 
   /** @domName Event.cancelable */
-  abstract bool get cancelable;
+  bool get cancelable;
 
   /** @domName Event.clipboardData */
-  abstract Clipboard get clipboardData;
+  Clipboard get clipboardData;
 
   /** @domName Event.currentTarget */
-  abstract EventTarget get currentTarget;
+  EventTarget get currentTarget;
 
   /** @domName Event.defaultPrevented */
-  abstract bool get defaultPrevented;
+  bool get defaultPrevented;
 
   /** @domName Event.eventPhase */
-  abstract int get eventPhase;
+  int get eventPhase;
 
   /** @domName Event.returnValue */
   bool returnValue;
 
   /** @domName Event.srcElement */
-  abstract EventTarget get srcElement;
+  EventTarget get srcElement;
 
   /** @domName Event.target */
-  abstract EventTarget get target;
+  EventTarget get target;
 
   /** @domName Event.timeStamp */
-  abstract int get timeStamp;
+  int get timeStamp;
 
   /** @domName Event.type */
-  abstract String get type;
+  String get type;
 
   /** @domName Event.initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
@@ -13045,13 +13064,13 @@ abstract class EventException {
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   /** @domName EventException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName EventException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName EventException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName EventException.toString */
   String toString();
@@ -13079,7 +13098,7 @@ class _EventImpl implements Event native "*Event" {
   final _ClipboardImpl clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
-  EventTarget get _currentTarget() => JS("EventTarget", "#.currentTarget", this);
+  EventTarget get _currentTarget => JS("EventTarget", "#.currentTarget", this);
 
   final bool defaultPrevented;
 
@@ -13088,10 +13107,10 @@ class _EventImpl implements Event native "*Event" {
   bool returnValue;
 
   EventTarget get srcElement => _convertNativeToDart_EventTarget(this._srcElement);
-  EventTarget get _srcElement() => JS("EventTarget", "#.srcElement", this);
+  EventTarget get _srcElement => JS("EventTarget", "#.srcElement", this);
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() => JS("EventTarget", "#.target", this);
+  EventTarget get _target => JS("EventTarget", "#.target", this);
 
   final int timeStamp;
 
@@ -13128,13 +13147,13 @@ abstract class EventSource implements EventTarget {
   static const int OPEN = 1;
 
   /** @domName EventSource.URL */
-  abstract String get URL;
+  String get URL;
 
   /** @domName EventSource.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName EventSource.url */
-  abstract String get url;
+  String get url;
 
   /** @domName EventSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -13193,6 +13212,7 @@ class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
 
 // WARNING: Do not edit - generated code.
 
+
 abstract class EventListenerList {
   EventListenerList add(EventListener handler, [bool useCapture]);
 
@@ -13229,7 +13249,7 @@ class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
   // _EventTargetImpl or EventTarget
-  final Dynamic _ptr;
+  final _ptr;
 
   _EventsImpl(this._ptr);
 
@@ -13241,7 +13261,7 @@ class _EventsImpl implements Events {
 class _EventListenerListImpl implements EventListenerList {
 
   // TODO(jacobr): make this _EventTargetImpl
-  final Dynamic _ptr;
+  final _ptr;
   final String _type;
 
   _EventListenerListImpl(this._ptr, this._type);
@@ -13300,25 +13320,25 @@ abstract class FieldSetElement implements Element {
   bool disabled;
 
   /** @domName HTMLFieldSetElement.elements */
-  abstract HTMLCollection get elements;
+  HTMLCollection get elements;
 
   /** @domName HTMLFieldSetElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLFieldSetElement.name */
   String name;
 
   /** @domName HTMLFieldSetElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLFieldSetElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLFieldSetElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLFieldSetElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLFieldSetElement.checkValidity */
   bool checkValidity();
@@ -13359,19 +13379,20 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 abstract class File implements Blob {
 
   /** @domName File.lastModifiedDate */
-  abstract Date get lastModifiedDate;
+  Date get lastModifiedDate;
 
   /** @domName File.name */
-  abstract String get name;
+  String get name;
 
   /** @domName File.webkitRelativePath */
-  abstract String get webkitRelativePath;
+  String get webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13452,7 +13473,7 @@ abstract class FileError {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _FileErrorImpl implements FileError native "*FileError" {
@@ -13493,13 +13514,13 @@ abstract class FileException {
   static const int TYPE_MISMATCH_ERR = 11;
 
   /** @domName FileException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName FileException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName FileException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName FileException.toString */
   String toString();
@@ -13532,7 +13553,7 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   _FileImpl operator[](int index) => JS("_FileImpl", "#[#]", this, index);
 
   void operator[]=(int index, _FileImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<File> mixins.
   // File is the element type.
@@ -13549,15 +13570,15 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
   // From Collection<File>:
 
   void add(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(File value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<File> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(File element) => _Collections.contains(this, element);
@@ -13573,38 +13594,38 @@ class _FileListImpl implements List<File>, JavaScriptIndexingBehavior native "*F
 
   bool some(bool f(File element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<File>:
 
   void sort([Comparator<File> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(File element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(File element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  File last() => this[length - 1];
+  File get last => this[length - 1];
 
   File removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<File> getRange(int start, int rangeLength) =>
@@ -13637,13 +13658,13 @@ abstract class FileReader implements EventTarget {
   static const int LOADING = 1;
 
   /** @domName FileReader.error */
-  abstract FileError get error;
+  FileError get error;
 
   /** @domName FileReader.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName FileReader.result */
-  abstract Object get result;
+  Object get result;
 
   /** @domName FileReader.abort */
   void abort();
@@ -13768,6 +13789,7 @@ class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13790,16 +13812,16 @@ abstract class FileWriter implements EventTarget {
   static const int WRITING = 1;
 
   /** @domName FileWriter.error */
-  abstract FileError get error;
+  FileError get error;
 
   /** @domName FileWriter.length */
-  abstract int get length;
+  int get length;
 
   /** @domName FileWriter.position */
-  abstract int get position;
+  int get position;
 
   /** @domName FileWriter.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName FileWriter.abort */
   void abort();
@@ -13842,6 +13864,7 @@ abstract class FileWriterEvents implements Events {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void FileWriterCallback(FileWriter fileWriter);
 
@@ -13898,10 +13921,10 @@ class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
 abstract class FileWriterSync {
 
   /** @domName FileWriterSync.length */
-  abstract int get length;
+  int get length;
 
   /** @domName FileWriterSync.position */
-  abstract int get position;
+  int get position;
 
   /** @domName FileWriterSync.seek */
   void seek(int position);
@@ -13946,7 +13969,7 @@ abstract class Float32Array implements ArrayBufferView, List<num> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Float32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Float32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -13977,15 +14000,15 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -14001,38 +14024,38 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   bool some(bool f(num element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  num last() => this[length - 1];
+  num get last => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -14065,7 +14088,7 @@ abstract class Float64Array implements ArrayBufferView, List<num> {
   static const int BYTES_PER_ELEMENT = 8;
 
   /** @domName Float64Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Float64Array.setElements */
   void setElements(Object array, [int offset]);
@@ -14096,15 +14119,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   // From Collection<num>:
 
   void add(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(num value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<num> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(num element) => _Collections.contains(this, element);
@@ -14120,38 +14143,38 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   bool some(bool f(num element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<num>:
 
   void sort([Comparator<num> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(num element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  num last() => this[length - 1];
+  num get last => this[length - 1];
 
   num removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<num> getRange(int start, int rangeLength) =>
@@ -14241,7 +14264,7 @@ abstract class FormElement implements Element {
   String enctype;
 
   /** @domName HTMLFormElement.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLFormElement.method */
   String method;
@@ -14302,17 +14325,14 @@ class _FormElementImpl extends _ElementImpl implements FormElement native "*HTML
 /// @domName HTMLFrameElement
 abstract class FrameElement implements Element {
 
-  /** @domName HTMLFrameElement.contentDocument */
-  abstract Document get contentDocument;
-
   /** @domName HTMLFrameElement.contentWindow */
-  abstract Window get contentWindow;
+  Window get contentWindow;
 
   /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
 
   /** @domName HTMLFrameElement.height */
-  abstract int get height;
+  int get height;
 
   /** @domName HTMLFrameElement.location */
   String location;
@@ -14339,18 +14359,13 @@ abstract class FrameElement implements Element {
   String src;
 
   /** @domName HTMLFrameElement.width */
-  abstract int get width;
-
-  /** @domName HTMLFrameElement.getSVGDocument */
-  SVGDocument getSVGDocument();
+  int get width;
 }
 
 class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HTMLFrameElement" {
 
-  final _DocumentImpl contentDocument;
-
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
+  Window get _contentWindow => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -14373,8 +14388,6 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
   String src;
 
   final int width;
-
-  _SVGDocumentImpl getSVGDocument() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14475,19 +14488,19 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 abstract class Gamepad {
 
   /** @domName Gamepad.axes */
-  abstract List<num> get axes;
+  List<num> get axes;
 
   /** @domName Gamepad.buttons */
-  abstract List<num> get buttons;
+  List<num> get buttons;
 
   /** @domName Gamepad.id */
-  abstract String get id;
+  String get id;
 
   /** @domName Gamepad.index */
-  abstract int get index;
+  int get index;
 
   /** @domName Gamepad.timestamp */
-  abstract int get timestamp;
+  int get timestamp;
 }
 
 class _GamepadImpl implements Gamepad native "*Gamepad" {
@@ -14510,7 +14523,7 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   _GamepadImpl operator[](int index) => JS("_GamepadImpl", "#[#]", this, index);
 
   void operator[]=(int index, _GamepadImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Gamepad> mixins.
   // Gamepad is the element type.
@@ -14527,15 +14540,15 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
   // From Collection<Gamepad>:
 
   void add(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Gamepad value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Gamepad> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Gamepad element) => _Collections.contains(this, element);
@@ -14551,38 +14564,38 @@ class _GamepadListImpl implements List<Gamepad>, JavaScriptIndexingBehavior nati
 
   bool some(bool f(Gamepad element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Gamepad>:
 
   void sort([Comparator<Gamepad> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Gamepad element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Gamepad element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Gamepad last() => this[length - 1];
+  Gamepad get last => this[length - 1];
 
   Gamepad removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Gamepad> getRange(int start, int rangeLength) =>
@@ -14629,10 +14642,10 @@ class _GeolocationImpl implements Geolocation native "*Geolocation" {
 abstract class Geoposition {
 
   /** @domName Geoposition.coords */
-  abstract Coordinates get coords;
+  Coordinates get coords;
 
   /** @domName Geoposition.timestamp */
-  abstract int get timestamp;
+  int get timestamp;
 }
 
 class _GeopositionImpl implements Geoposition native "*Geoposition" {
@@ -14685,7 +14698,7 @@ class _HRElementImpl extends _ElementImpl implements HRElement native "*HTMLHREl
 abstract class HTMLAllCollection implements List<Node> {
 
   /** @domName HTMLAllCollection.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLAllCollection.item */
   Node item(int index);
@@ -14704,7 +14717,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -14721,15 +14734,15 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -14745,38 +14758,38 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -14800,7 +14813,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection, JavaScriptIndexingBeh
 abstract class HTMLCollection implements List<Node> {
 
   /** @domName HTMLCollection.length */
-  abstract int get length;
+  int get length;
 
   /** @domName HTMLCollection.item */
   Node item(int index);
@@ -14816,7 +14829,7 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -14833,15 +14846,15 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -14857,38 +14870,38 @@ class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior 
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -14922,7 +14935,7 @@ abstract class HTMLOptionsCollection implements HTMLCollection {
 class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
-  int get length() => JS("int", "#.length", this);
+  int get length => JS("int", "#.length", this);
 
   void set length(int value) {
     JS("void", "#.length = #", this, value);
@@ -14942,10 +14955,10 @@ class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOpti
 abstract class HashChangeEvent implements Event {
 
   /** @domName HashChangeEvent.newURL */
-  abstract String get newURL;
+  String get newURL;
 
   /** @domName HashChangeEvent.oldURL */
-  abstract String get oldURL;
+  String get oldURL;
 
   /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
@@ -15027,6 +15040,7 @@ class _HtmlElementImpl extends _ElementImpl implements HtmlElement native "*HTML
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName XMLHttpRequest
 abstract class HttpRequest implements EventTarget {
   factory HttpRequest.get(String url, onSuccess(HttpRequest request)) =>
@@ -15053,28 +15067,28 @@ abstract class HttpRequest implements EventTarget {
   static const int UNSENT = 0;
 
   /** @domName XMLHttpRequest.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName XMLHttpRequest.response */
-  abstract Object get response;
+  Object get response;
 
   /** @domName XMLHttpRequest.responseText */
-  abstract String get responseText;
+  String get responseText;
 
   /** @domName XMLHttpRequest.responseType */
   String responseType;
 
   /** @domName XMLHttpRequest.responseXML */
-  abstract Document get responseXML;
+  Document get responseXML;
 
   /** @domName XMLHttpRequest.status */
-  abstract int get status;
+  int get status;
 
   /** @domName XMLHttpRequest.statusText */
-  abstract String get statusText;
+  String get statusText;
 
   /** @domName XMLHttpRequest.upload */
-  abstract HttpRequestUpload get upload;
+  HttpRequestUpload get upload;
 
   /** @domName XMLHttpRequest.withCredentials */
   bool withCredentials;
@@ -15140,13 +15154,13 @@ abstract class HttpRequestException {
   static const int NETWORK_ERR = 101;
 
   /** @domName XMLHttpRequestException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName XMLHttpRequestException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName XMLHttpRequestException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName XMLHttpRequestException.toString */
   String toString();
@@ -15234,10 +15248,10 @@ class _HttpRequestEventsImpl extends _EventsImpl implements HttpRequestEvents {
 abstract class HttpRequestProgressEvent implements ProgressEvent {
 
   /** @domName XMLHttpRequestProgressEvent.position */
-  abstract int get position;
+  int get position;
 
   /** @domName XMLHttpRequestProgressEvent.totalSize */
-  abstract int get totalSize;
+  int get totalSize;
 }
 
 class _HttpRequestProgressEventImpl extends _ProgressEventImpl implements HttpRequestProgressEvent native "*XMLHttpRequestProgressEvent" {
@@ -15342,16 +15356,16 @@ abstract class IDBCursor {
   static const int PREV_NO_DUPLICATE = 3;
 
   /** @domName IDBCursor.direction */
-  abstract String get direction;
+  String get direction;
 
   /** @domName IDBCursor.key */
-  abstract Dynamic get key;
+  dynamic get key;
 
   /** @domName IDBCursor.primaryKey */
-  abstract Dynamic get primaryKey;
+  dynamic get primaryKey;
 
   /** @domName IDBCursor.source */
-  abstract Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBCursor.advance */
   void advance(int count);
@@ -15370,13 +15384,13 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final String direction;
 
-  Dynamic get key => _convertNativeToDart_IDBKey(this._key);
-  Dynamic get _key() => JS("Dynamic", "#.key", this);
+  dynamic get key => _convertNativeToDart_IDBKey(this._key);
+  dynamic get _key => JS("dynamic", "#.key", this);
 
-  Dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
-  Dynamic get _primaryKey() => JS("Dynamic", "#.primaryKey", this);
+  dynamic get primaryKey => _convertNativeToDart_IDBKey(this._primaryKey);
+  dynamic get _primaryKey => JS("dynamic", "#.primaryKey", this);
 
-  final Dynamic source;
+  final dynamic source;
 
   void advance(int count) native;
 
@@ -15410,13 +15424,13 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 abstract class IDBCursorWithValue implements IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  abstract Dynamic get value;
+  dynamic get value;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  Dynamic get value => _convertNativeToDart_IDBAny(this._value);
-  Dynamic get _value() => JS("Dynamic", "#.value", this);
+  dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  dynamic get _value => JS("dynamic", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15433,13 +15447,13 @@ abstract class IDBDatabase implements EventTarget {
   IDBDatabaseEvents get on;
 
   /** @domName IDBDatabase.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBDatabase.objectStoreNames */
-  abstract List<String> get objectStoreNames;
+  List<String> get objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  abstract Dynamic get version;
+  dynamic get version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -15510,13 +15524,13 @@ abstract class IDBDatabaseException {
   static const int VER_ERR = 12;
 
   /** @domName IDBDatabaseException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName IDBDatabaseException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName IDBDatabaseException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBDatabaseException.toString */
   String toString();
@@ -15587,7 +15601,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final _DOMStringListImpl objectStoreNames;
 
-  final Dynamic version;
+  final dynamic version;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -15672,19 +15686,19 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 abstract class IDBIndex {
 
   /** @domName IDBIndex.keyPath */
-  abstract Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBIndex.multiEntry */
-  abstract bool get multiEntry;
+  bool get multiEntry;
 
   /** @domName IDBIndex.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBIndex.objectStore */
-  abstract IDBObjectStore get objectStore;
+  IDBObjectStore get objectStore;
 
   /** @domName IDBIndex.unique */
-  abstract bool get unique;
+  bool get unique;
 
   /** @domName IDBIndex.count */
   IDBRequest count([key_OR_range]);
@@ -15696,15 +15710,15 @@ abstract class IDBIndex {
   IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]);
+  IDBRequest openCursor([key_OR_range, String direction]);
 
   /** @domName IDBIndex.openKeyCursor */
-  IDBRequest openKeyCursor([key_OR_range, direction]);
+  IDBRequest openKeyCursor([key_OR_range, String direction]);
 }
 
 class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
-  final Dynamic keyPath;
+  final dynamic keyPath;
 
   final bool multiEntry;
 
@@ -15718,7 +15732,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -15732,7 +15746,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _count_3(key) native "count";
 
   _IDBRequestImpl get(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _get_1(key);
     }
     if (?key) {
@@ -15745,7 +15759,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _get_2(key) native "get";
 
   _IDBRequestImpl getKey(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _getKey_1(key);
     }
     if (?key) {
@@ -15762,12 +15776,12 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -15776,26 +15790,9 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       return _openCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
-    }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_9(key_3, direction);
     }
     throw const Exception("Incorrect number or type of arguments");
   }
@@ -15804,22 +15801,18 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
   _IDBRequestImpl _openCursor_4(key) native "openCursor";
   _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
-  _IDBRequestImpl _openCursor_6() native "openCursor";
-  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
-  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
-  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
   _IDBRequestImpl openKeyCursor([key_OR_range, direction]) {
     if (!?key_OR_range &&
         !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -15828,26 +15821,9 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
       return _openKeyCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_5(key_2, direction);
-    }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openKeyCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openKeyCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openKeyCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_9(key_3, direction);
     }
     throw const Exception("Incorrect number or type of arguments");
   }
@@ -15856,10 +15832,6 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
   _IDBRequestImpl _openKeyCursor_3(_IDBKeyRangeImpl range, String direction) native "openKeyCursor";
   _IDBRequestImpl _openKeyCursor_4(key) native "openKeyCursor";
   _IDBRequestImpl _openKeyCursor_5(key, String direction) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_6() native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_7(_IDBKeyRangeImpl range) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_8(_IDBKeyRangeImpl range, int direction) native "openKeyCursor";
-  _IDBRequestImpl _openKeyCursor_9(key, int direction) native "openKeyCursor";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15878,6 +15850,7 @@ class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName IDBKeyRange
 abstract class IDBKeyRange {
@@ -15910,16 +15883,16 @@ abstract class IDBKeyRange {
 
 
   /** @domName IDBKeyRange.lower */
-  abstract Dynamic get lower;
+  dynamic get lower;
 
   /** @domName IDBKeyRange.lowerOpen */
-  abstract bool get lowerOpen;
+  bool get lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  abstract Dynamic get upper;
+  dynamic get upper;
 
   /** @domName IDBKeyRange.upperOpen */
-  abstract bool get upperOpen;
+  bool get upperOpen;
 
   /** @domName IDBKeyRange.bound_ */
   static final bound_ = _IDBKeyRangeImpl.bound_;
@@ -15936,13 +15909,13 @@ abstract class IDBKeyRange {
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  Dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  Dynamic get _lower() => JS("Dynamic", "#.lower", this);
+  dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
+  dynamic get _lower => JS("dynamic", "#.lower", this);
 
   final bool lowerOpen;
 
-  Dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  Dynamic get _upper() => JS("Dynamic", "#.upper", this);
+  dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
+  dynamic get _upper => JS("dynamic", "#.upper", this);
 
   final bool upperOpen;
 
@@ -16003,19 +15976,19 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 abstract class IDBObjectStore {
 
   /** @domName IDBObjectStore.autoIncrement */
-  abstract bool get autoIncrement;
+  bool get autoIncrement;
 
   /** @domName IDBObjectStore.indexNames */
-  abstract List<String> get indexNames;
+  List<String> get indexNames;
 
   /** @domName IDBObjectStore.keyPath */
-  abstract Dynamic get keyPath;
+  dynamic get keyPath;
 
   /** @domName IDBObjectStore.name */
-  abstract String get name;
+  String get name;
 
   /** @domName IDBObjectStore.transaction */
-  abstract IDBTransaction get transaction;
+  IDBTransaction get transaction;
 
   /** @domName IDBObjectStore.add */
   IDBRequest add(Object value, [/*IDBKey*/ key]);
@@ -16042,7 +16015,7 @@ abstract class IDBObjectStore {
   IDBIndex index(String name);
 
   /** @domName IDBObjectStore.openCursor */
-  IDBRequest openCursor([key_OR_range, direction]);
+  IDBRequest openCursor([key_OR_range, String direction]);
 
   /** @domName IDBObjectStore.put */
   IDBRequest put(Object value, [/*IDBKey*/ key]);
@@ -16054,7 +16027,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _DOMStringListImpl indexNames;
 
-  final Dynamic keyPath;
+  final dynamic keyPath;
 
   final String name;
 
@@ -16078,7 +16051,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
     if (!?key_OR_range) {
       return _count_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null)) {
       return _count_2(key_OR_range);
     }
     if (?key_OR_range) {
@@ -16092,23 +16065,23 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _count_3(key) native "count";
 
   _IDBIndexImpl createIndex(String name, keyPath, [options]) {
-    if ((keyPath is List<String> || keyPath === null) &&
+    if ((keyPath is List<String> || keyPath == null) &&
         !?options) {
       List keyPath_1 = _convertDartToNative_StringArray(keyPath);
       return _createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath === null) &&
-        (options is Map || options === null)) {
+    if ((keyPath is List<String> || keyPath == null) &&
+        (options is Map || options == null)) {
       List keyPath_2 = _convertDartToNative_StringArray(keyPath);
       var options_3 = _convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath_2, options_3);
     }
-    if ((keyPath is String || keyPath === null) &&
+    if ((keyPath is String || keyPath == null) &&
         !?options) {
       return _createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath === null) &&
-        (options is Map || options === null)) {
+    if ((keyPath is String || keyPath == null) &&
+        (options is Map || options == null)) {
       var options_4 = _convertDartToNative_Dictionary(options);
       return _createIndex_4(name, keyPath, options_4);
     }
@@ -16120,7 +16093,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBIndexImpl _createIndex_4(name, String keyPath, options) native "createIndex";
 
   _IDBRequestImpl delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange === null)) {
+    if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
     if (?key_OR_keyRange) {
@@ -16135,7 +16108,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   void deleteIndex(String name) native;
 
   _IDBRequestImpl getObject(key) {
-    if ((key is IDBKeyRange || key === null)) {
+    if ((key is IDBKeyRange || key == null)) {
       return _getObject_1(key);
     }
     if (?key) {
@@ -16154,12 +16127,12 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
         !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
         !?direction) {
       return _openCursor_2(key_OR_range);
     }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is String || direction === null)) {
+    if ((key_OR_range is IDBKeyRange || key_OR_range == null) &&
+        (direction is String || direction == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
     if (?key_OR_range &&
@@ -16168,26 +16141,9 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
       return _openCursor_4(key_1);
     }
     if (?key_OR_range &&
-        (direction is String || direction === null)) {
+        (direction is String || direction == null)) {
       var key_2 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_5(key_2, direction);
-    }
-    if (!?key_OR_range &&
-        !?direction) {
-      return _openCursor_6();
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        !?direction) {
-      return _openCursor_7(key_OR_range);
-    }
-    if ((key_OR_range is IDBKeyRange || key_OR_range === null) &&
-        (direction is int || direction === null)) {
-      return _openCursor_8(key_OR_range, direction);
-    }
-    if (?key_OR_range &&
-        (direction is int || direction === null)) {
-      var key_3 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_9(key_3, direction);
     }
     throw const Exception("Incorrect number or type of arguments");
   }
@@ -16196,10 +16152,6 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl _openCursor_3(_IDBKeyRangeImpl range, String direction) native "openCursor";
   _IDBRequestImpl _openCursor_4(key) native "openCursor";
   _IDBRequestImpl _openCursor_5(key, String direction) native "openCursor";
-  _IDBRequestImpl _openCursor_6() native "openCursor";
-  _IDBRequestImpl _openCursor_7(_IDBKeyRangeImpl range) native "openCursor";
-  _IDBRequestImpl _openCursor_8(_IDBKeyRangeImpl range, int direction) native "openCursor";
-  _IDBRequestImpl _openCursor_9(key, int direction) native "openCursor";
 
   _IDBRequestImpl put(/*any*/ value, [key]) {
     if (?key) {
@@ -16271,25 +16223,25 @@ abstract class IDBRequest implements EventTarget {
   IDBRequestEvents get on;
 
   /** @domName IDBRequest.error */
-  abstract DOMError get error;
+  DOMError get error;
 
   /** @domName IDBRequest.errorCode */
-  abstract int get errorCode;
+  int get errorCode;
 
   /** @domName IDBRequest.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName IDBRequest.result */
-  abstract Dynamic get result;
+  dynamic get result;
 
   /** @domName IDBRequest.source */
-  abstract Dynamic get source;
+  dynamic get source;
 
   /** @domName IDBRequest.transaction */
-  abstract IDBTransaction get transaction;
+  IDBTransaction get transaction;
 
   /** @domName IDBRequest.webkitErrorMessage */
-  abstract String get webkitErrorMessage;
+  String get webkitErrorMessage;
 
   /** @domName IDBRequest.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -16319,10 +16271,10 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final String readyState;
 
-  Dynamic get result => _convertNativeToDart_IDBAny(this._result);
-  Dynamic get _result() => JS("Dynamic", "#.result", this);
+  dynamic get result => _convertNativeToDart_IDBAny(this._result);
+  dynamic get _result => JS("dynamic", "#.result", this);
 
-  final Dynamic source;
+  final dynamic source;
 
   final _IDBTransactionImpl transaction;
 
@@ -16363,13 +16315,13 @@ abstract class IDBTransaction implements EventTarget {
   static const int VERSION_CHANGE = 2;
 
   /** @domName IDBTransaction.db */
-  abstract IDBDatabase get db;
+  IDBDatabase get db;
 
   /** @domName IDBTransaction.error */
-  abstract DOMError get error;
+  DOMError get error;
 
   /** @domName IDBTransaction.mode */
-  abstract String get mode;
+  String get mode;
 
   /** @domName IDBTransaction.abort */
   void abort();
@@ -16437,10 +16389,10 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
 abstract class IDBUpgradeNeededEvent implements Event {
 
   /** @domName IDBVersionChangeEvent.newVersion */
-  abstract int get newVersion;
+  int get newVersion;
 
   /** @domName IDBVersionChangeEvent.oldVersion */
-  abstract int get oldVersion;
+  int get oldVersion;
 }
 
 class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent native "*IDBVersionChangeEvent" {
@@ -16459,7 +16411,7 @@ class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededE
 abstract class IDBVersionChangeEvent implements Event {
 
   /** @domName IDBVersionChangeEvent.version */
-  abstract String get version;
+  String get version;
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -16520,7 +16472,7 @@ abstract class IFrameElement implements Element {
   String align;
 
   /** @domName HTMLIFrameElement.contentWindow */
-  abstract Window get contentWindow;
+  Window get contentWindow;
 
   /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
@@ -16554,9 +16506,6 @@ abstract class IFrameElement implements Element {
 
   /** @domName HTMLIFrameElement.width */
   String width;
-
-  /** @domName HTMLIFrameElement.getSVGDocument */
-  SVGDocument getSVGDocument();
 }
 
 class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*HTMLIFrameElement" {
@@ -16564,7 +16513,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String align;
 
   Window get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  Window get _contentWindow() => JS("Window", "#.contentWindow", this);
+  Window get _contentWindow => JS("Window", "#.contentWindow", this);
 
   String frameBorder;
 
@@ -16587,14 +16536,13 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String srcdoc;
 
   String width;
-
-  _SVGDocumentImpl getSVGDocument() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16609,7 +16557,7 @@ abstract class IceCandidate {
   factory IceCandidate(String label, String candidateLine) => _IceCandidateFactoryProvider.createIceCandidate(label, candidateLine);
 
   /** @domName IceCandidate.label */
-  abstract String get label;
+  String get label;
 
   /** @domName IceCandidate.toSdp */
   String toSdp();
@@ -16631,13 +16579,13 @@ class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
 abstract class ImageData {
 
   /** @domName ImageData.data */
-  abstract Uint8ClampedArray get data;
+  Uint8ClampedArray get data;
 
   /** @domName ImageData.height */
-  abstract int get height;
+  int get height;
 
   /** @domName ImageData.width */
-  abstract int get width;
+  int get width;
 }
 
 class _ImageDataImpl implements ImageData native "*ImageData" {
@@ -16680,7 +16628,7 @@ abstract class ImageElement implements Element {
   String border;
 
   /** @domName HTMLImageElement.complete */
-  abstract bool get complete;
+  bool get complete;
 
   /** @domName HTMLImageElement.crossOrigin */
   String crossOrigin;
@@ -16704,10 +16652,10 @@ abstract class ImageElement implements Element {
   String name;
 
   /** @domName HTMLImageElement.naturalHeight */
-  abstract int get naturalHeight;
+  int get naturalHeight;
 
   /** @domName HTMLImageElement.naturalWidth */
-  abstract int get naturalWidth;
+  int get naturalWidth;
 
   /** @domName HTMLImageElement.src */
   String src;
@@ -16722,10 +16670,10 @@ abstract class ImageElement implements Element {
   int width;
 
   /** @domName HTMLImageElement.x */
-  abstract int get x;
+  int get x;
 
   /** @domName HTMLImageElement.y */
-  abstract int get y;
+  int get y;
 }
 
 class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HTMLImageElement" {
@@ -16820,7 +16768,7 @@ abstract class InputElement implements Element {
   List<File> files;
 
   /** @domName HTMLInputElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLInputElement.formAction */
   String formAction;
@@ -16847,10 +16795,10 @@ abstract class InputElement implements Element {
   bool indeterminate;
 
   /** @domName HTMLInputElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLInputElement.list */
-  abstract Element get list;
+  Element get list;
 
   /** @domName HTMLInputElement.max */
   String max;
@@ -16904,10 +16852,10 @@ abstract class InputElement implements Element {
   String useMap;
 
   /** @domName HTMLInputElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLInputElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLInputElement.value */
   String value;
@@ -16919,7 +16867,7 @@ abstract class InputElement implements Element {
   num valueAsNumber;
 
   /** @domName HTMLInputElement.webkitEntries */
-  abstract List<Entry> get webkitEntries;
+  List<Entry> get webkitEntries;
 
   /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
@@ -16934,7 +16882,7 @@ abstract class InputElement implements Element {
   int width;
 
   /** @domName HTMLInputElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLInputElement.checkValidity */
   bool checkValidity();
@@ -17102,7 +17050,7 @@ abstract class Int16Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Int16Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17133,15 +17081,15 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17157,38 +17105,38 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -17221,7 +17169,7 @@ abstract class Int32Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Int32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17252,15 +17200,15 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17276,38 +17224,38 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -17340,7 +17288,7 @@ abstract class Int8Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Int8Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Int8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -17371,15 +17319,15 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -17395,38 +17343,38 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -17453,7 +17401,7 @@ abstract class JavaScriptAudioNode implements AudioNode, EventTarget {
   JavaScriptAudioNodeEvents get on;
 
   /** @domName JavaScriptAudioNode.bufferSize */
-  abstract int get bufferSize;
+  int get bufferSize;
 }
 
 abstract class JavaScriptAudioNodeEvents implements Events {
@@ -17502,28 +17450,28 @@ abstract class JavaScriptCallFrame {
   static const int WITH_SCOPE = 2;
 
   /** @domName JavaScriptCallFrame.caller */
-  abstract JavaScriptCallFrame get caller;
+  JavaScriptCallFrame get caller;
 
   /** @domName JavaScriptCallFrame.column */
-  abstract int get column;
+  int get column;
 
   /** @domName JavaScriptCallFrame.functionName */
-  abstract String get functionName;
+  String get functionName;
 
   /** @domName JavaScriptCallFrame.line */
-  abstract int get line;
+  int get line;
 
   /** @domName JavaScriptCallFrame.scopeChain */
-  abstract List get scopeChain;
+  List get scopeChain;
 
   /** @domName JavaScriptCallFrame.sourceID */
-  abstract int get sourceID;
+  int get sourceID;
 
   /** @domName JavaScriptCallFrame.thisObject */
-  abstract Object get thisObject;
+  Object get thisObject;
 
   /** @domName JavaScriptCallFrame.type */
-  abstract String get type;
+  String get type;
 
   /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
@@ -17569,25 +17517,25 @@ class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScrip
 abstract class KeyboardEvent implements UIEvent {
 
   /** @domName KeyboardEvent.altGraphKey */
-  abstract bool get altGraphKey;
+  bool get altGraphKey;
 
   /** @domName KeyboardEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName KeyboardEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName KeyboardEvent.keyIdentifier */
-  abstract String get keyIdentifier;
+  String get keyIdentifier;
 
   /** @domName KeyboardEvent.keyLocation */
-  abstract int get keyLocation;
+  int get keyLocation;
 
   /** @domName KeyboardEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName KeyboardEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, LocalWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
@@ -17632,28 +17580,28 @@ abstract class KeygenElement implements Element {
   bool disabled;
 
   /** @domName HTMLKeygenElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLKeygenElement.keytype */
   String keytype;
 
   /** @domName HTMLKeygenElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLKeygenElement.name */
   String name;
 
   /** @domName HTMLKeygenElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLKeygenElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLKeygenElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLKeygenElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLKeygenElement.checkValidity */
   bool checkValidity();
@@ -17726,10 +17674,10 @@ abstract class LabelElement implements Element {
   factory LabelElement() => _Elements.createLabelElement();
 
   /** @domName HTMLLabelElement.control */
-  abstract Element get control;
+  Element get control;
 
   /** @domName HTMLLabelElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
@@ -17758,7 +17706,7 @@ abstract class LegendElement implements Element {
   String align;
 
   /** @domName HTMLLegendElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 }
 
 class _LegendElementImpl extends _ElementImpl implements LegendElement native "*HTMLLegendElement" {
@@ -17800,7 +17748,7 @@ abstract class LinkElement implements Element {
   String rev;
 
   /** @domName HTMLLinkElement.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName HTMLLinkElement.sizes */
   DOMSettableTokenList sizes;
@@ -17846,10 +17794,10 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTML
 abstract class LocalHistory implements History {
 
   /** @domName History.length */
-  abstract int get length;
+  int get length;
 
   /** @domName History.state */
-  abstract Dynamic get state;
+  dynamic get state;
 
   /** @domName History.back */
   void back();
@@ -17871,7 +17819,7 @@ class _LocalHistoryImpl implements LocalHistory native "*History" {
 
   final int length;
 
-  final Dynamic state;
+  final dynamic state;
 
   void back() native;
 
@@ -17893,7 +17841,7 @@ class _LocalHistoryImpl implements LocalHistory native "*History" {
 abstract class LocalLocation implements Location {
 
   /** @domName Location.ancestorOrigins */
-  abstract List<String> get ancestorOrigins;
+  List<String> get ancestorOrigins;
 
   /** @domName Location.hash */
   String hash;
@@ -17908,7 +17856,7 @@ abstract class LocalLocation implements Location {
   String href;
 
   /** @domName Location.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName Location.pathname */
   String pathname;
@@ -17996,6 +17944,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Window
 abstract class LocalWindow implements EventTarget, Window {
 
@@ -18040,19 +17989,19 @@ abstract class LocalWindow implements EventTarget, Window {
   static const int TEMPORARY = 0;
 
   /** @domName Window.applicationCache */
-  abstract DOMApplicationCache get applicationCache;
+  DOMApplicationCache get applicationCache;
 
   /** @domName Window.clientInformation */
-  abstract Navigator get clientInformation;
+  Navigator get clientInformation;
 
   /** @domName Window.closed */
-  abstract bool get closed;
+  bool get closed;
 
   /** @domName Window.console */
-  abstract Console get console;
+  Console get console;
 
   /** @domName Window.crypto */
-  abstract Crypto get crypto;
+  Crypto get crypto;
 
   /** @domName Window.defaultStatus */
   String defaultStatus;
@@ -18061,130 +18010,130 @@ abstract class LocalWindow implements EventTarget, Window {
   String defaultstatus;
 
   /** @domName Window.devicePixelRatio */
-  abstract num get devicePixelRatio;
+  num get devicePixelRatio;
 
   /** @domName Window.document */
-  abstract Document get document;
+  Document get document;
 
   /** @domName Window.event */
-  abstract Event get event;
+  Event get event;
 
   /** @domName Window.history */
-  abstract LocalHistory get history;
+  LocalHistory get history;
 
   /** @domName DOMWindow.indexedDB */
-  abstract IDBFactory get indexedDB;
+  IDBFactory get indexedDB;
 
   /** @domName Window.innerHeight */
-  abstract int get innerHeight;
+  int get innerHeight;
 
   /** @domName Window.innerWidth */
-  abstract int get innerWidth;
+  int get innerWidth;
 
   /** @domName Window.localStorage */
-  abstract Storage get localStorage;
+  Storage get localStorage;
 
   /** @domName Window.location */
   LocalLocation location;
 
   /** @domName Window.locationbar */
-  abstract BarInfo get locationbar;
+  BarInfo get locationbar;
 
   /** @domName Window.menubar */
-  abstract BarInfo get menubar;
+  BarInfo get menubar;
 
   /** @domName Window.name */
   String name;
 
   /** @domName Window.navigator */
-  abstract Navigator get navigator;
+  Navigator get navigator;
 
   /** @domName Window.offscreenBuffering */
-  abstract bool get offscreenBuffering;
+  bool get offscreenBuffering;
 
   /** @domName Window.opener */
-  abstract Window get opener;
+  Window get opener;
 
   /** @domName Window.outerHeight */
-  abstract int get outerHeight;
+  int get outerHeight;
 
   /** @domName Window.outerWidth */
-  abstract int get outerWidth;
+  int get outerWidth;
 
   /** @domName DOMWindow.pagePopupController */
-  abstract PagePopupController get pagePopupController;
+  PagePopupController get pagePopupController;
 
   /** @domName Window.pageXOffset */
-  abstract int get pageXOffset;
+  int get pageXOffset;
 
   /** @domName Window.pageYOffset */
-  abstract int get pageYOffset;
+  int get pageYOffset;
 
   /** @domName Window.parent */
-  abstract Window get parent;
+  Window get parent;
 
   /** @domName Window.performance */
-  abstract Performance get performance;
+  Performance get performance;
 
   /** @domName Window.personalbar */
-  abstract BarInfo get personalbar;
+  BarInfo get personalbar;
 
   /** @domName Window.screen */
-  abstract Screen get screen;
+  Screen get screen;
 
   /** @domName Window.screenLeft */
-  abstract int get screenLeft;
+  int get screenLeft;
 
   /** @domName Window.screenTop */
-  abstract int get screenTop;
+  int get screenTop;
 
   /** @domName Window.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName Window.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName Window.scrollX */
-  abstract int get scrollX;
+  int get scrollX;
 
   /** @domName Window.scrollY */
-  abstract int get scrollY;
+  int get scrollY;
 
   /** @domName Window.scrollbars */
-  abstract BarInfo get scrollbars;
+  BarInfo get scrollbars;
 
   /** @domName Window.self */
-  abstract Window get self;
+  Window get self;
 
   /** @domName Window.sessionStorage */
-  abstract Storage get sessionStorage;
+  Storage get sessionStorage;
 
   /** @domName Window.status */
   String status;
 
   /** @domName Window.statusbar */
-  abstract BarInfo get statusbar;
+  BarInfo get statusbar;
 
   /** @domName Window.styleMedia */
-  abstract StyleMedia get styleMedia;
+  StyleMedia get styleMedia;
 
   /** @domName Window.toolbar */
-  abstract BarInfo get toolbar;
+  BarInfo get toolbar;
 
   /** @domName Window.top */
-  abstract Window get top;
+  Window get top;
 
   /** @domName DOMWindow.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
+  IDBFactory get webkitIndexedDB;
 
   /** @domName DOMWindow.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
+  NotificationCenter get webkitNotifications;
 
   /** @domName DOMWindow.webkitStorageInfo */
-  abstract StorageInfo get webkitStorageInfo;
+  StorageInfo get webkitStorageInfo;
 
   /** @domName Window.window */
-  abstract Window get window;
+  Window get window;
 
   /** @domName Window.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -18200,6 +18149,9 @@ abstract class LocalWindow implements EventTarget, Window {
 
   /** @domName Window.btoa */
   String btoa(String string);
+
+  /** @domName Window.cancelAnimationFrame */
+  void cancelAnimationFrame(int id);
 
   /** @domName Window.captureEvents */
   void captureEvents();
@@ -18264,6 +18216,9 @@ abstract class LocalWindow implements EventTarget, Window {
   /** @domName Window.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName Window.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+
   /** @domName Window.resizeBy */
   void resizeBy(num x, num y);
 
@@ -18292,7 +18247,7 @@ abstract class LocalWindow implements EventTarget, Window {
   void stop();
 
   /** @domName Window.webkitCancelAnimationFrame */
-  void cancelAnimationFrame(int id);
+  void webkitCancelAnimationFrame(int id);
 
   /** @domName Window.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
@@ -18301,7 +18256,7 @@ abstract class LocalWindow implements EventTarget, Window {
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
   /** @domName Window.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
@@ -18465,7 +18420,7 @@ abstract class LocalWindowEvents implements Events {
 
 class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@*DOMWindow" {
 
-  _DocumentImpl get document() => JS('_DocumentImpl', '#.document', this);
+  _DocumentImpl get document => JS('_DocumentImpl', '#.document', this);
 
   Window _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
 
@@ -18515,7 +18470,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   var _location_wrapper;  // Cached wrapped Location object.
 
   // Native getter and setter to access raw Location object.
-  Location get _location() => JS('Location', '#.location', this);
+  Location get _location => JS('Location', '#.location', this);
   void set _location(Location value) {
     JS('void', '#.location = #', this, value);
   }
@@ -18650,7 +18605,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final bool offscreenBuffering;
 
   Window get opener => _convertNativeToDart_Window(this._opener);
-  Window get _opener() => JS("Window", "#.opener", this);
+  Window get _opener => JS("Window", "#.opener", this);
 
   final int outerHeight;
 
@@ -18663,7 +18618,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final int pageYOffset;
 
   Window get parent => _convertNativeToDart_Window(this._parent);
-  Window get _parent() => JS("Window", "#.parent", this);
+  Window get _parent => JS("Window", "#.parent", this);
 
   final _PerformanceImpl performance;
 
@@ -18686,7 +18641,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl scrollbars;
 
   Window get self => _convertNativeToDart_Window(this._self);
-  Window get _self() => JS("Window", "#.self", this);
+  Window get _self => JS("Window", "#.self", this);
 
   final _StorageImpl sessionStorage;
 
@@ -18699,7 +18654,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _BarInfoImpl toolbar;
 
   Window get top => _convertNativeToDart_Window(this._top);
-  Window get _top() => JS("Window", "#.top", this);
+  Window get _top => JS("Window", "#.top", this);
 
   final _IDBFactoryImpl webkitIndexedDB;
 
@@ -18708,7 +18663,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
   final _StorageInfoImpl webkitStorageInfo;
 
   Window get window => _convertNativeToDart_Window(this._window);
-  Window get _window() => JS("Window", "#.window", this);
+  Window get _window => JS("Window", "#.window", this);
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -18758,7 +18713,7 @@ class _LocalWindowImpl extends _EventTargetImpl implements LocalWindow native "@
       return;
     }
     if (?message &&
-        (messagePorts is List || messagePorts === null)) {
+        (messagePorts is List || messagePorts == null)) {
       var message_2 = _convertDartToNative_SerializedScriptValue(message);
       _postMessage_2(message_2, targetOrigin, messagePorts);
       return;
@@ -18965,7 +18920,7 @@ abstract class MapElement implements Element {
   factory MapElement() => _Elements.createMapElement();
 
   /** @domName HTMLMapElement.areas */
-  abstract HTMLCollection get areas;
+  HTMLCollection get areas;
 
   /** @domName HTMLMapElement.name */
   String name;
@@ -19066,7 +19021,7 @@ abstract class MediaController implements EventTarget {
   factory MediaController() => _MediaControllerFactoryProvider.createMediaController();
 
   /** @domName MediaController.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName MediaController.currentTime */
   num currentTime;
@@ -19075,22 +19030,22 @@ abstract class MediaController implements EventTarget {
   num defaultPlaybackRate;
 
   /** @domName MediaController.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName MediaController.muted */
   bool muted;
 
   /** @domName MediaController.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName MediaController.playbackRate */
   num playbackRate;
 
   /** @domName MediaController.played */
-  abstract TimeRanges get played;
+  TimeRanges get played;
 
   /** @domName MediaController.seekable */
-  abstract TimeRanges get seekable;
+  TimeRanges get seekable;
 
   /** @domName MediaController.volume */
   num volume;
@@ -19179,7 +19134,7 @@ abstract class MediaElement implements Element {
   bool autoplay;
 
   /** @domName HTMLMediaElement.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName HTMLMediaElement.controller */
   MediaController controller;
@@ -19188,7 +19143,7 @@ abstract class MediaElement implements Element {
   bool controls;
 
   /** @domName HTMLMediaElement.currentSrc */
-  abstract String get currentSrc;
+  String get currentSrc;
 
   /** @domName HTMLMediaElement.currentTime */
   num currentTime;
@@ -19200,16 +19155,16 @@ abstract class MediaElement implements Element {
   num defaultPlaybackRate;
 
   /** @domName HTMLMediaElement.duration */
-  abstract num get duration;
+  num get duration;
 
   /** @domName HTMLMediaElement.ended */
-  abstract bool get ended;
+  bool get ended;
 
   /** @domName HTMLMediaElement.error */
-  abstract MediaError get error;
+  MediaError get error;
 
   /** @domName HTMLMediaElement.initialTime */
-  abstract num get initialTime;
+  num get initialTime;
 
   /** @domName HTMLMediaElement.loop */
   bool loop;
@@ -19221,55 +19176,55 @@ abstract class MediaElement implements Element {
   bool muted;
 
   /** @domName HTMLMediaElement.networkState */
-  abstract int get networkState;
+  int get networkState;
 
   /** @domName HTMLMediaElement.paused */
-  abstract bool get paused;
+  bool get paused;
 
   /** @domName HTMLMediaElement.playbackRate */
   num playbackRate;
 
   /** @domName HTMLMediaElement.played */
-  abstract TimeRanges get played;
+  TimeRanges get played;
 
   /** @domName HTMLMediaElement.preload */
   String preload;
 
   /** @domName HTMLMediaElement.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName HTMLMediaElement.seekable */
-  abstract TimeRanges get seekable;
+  TimeRanges get seekable;
 
   /** @domName HTMLMediaElement.seeking */
-  abstract bool get seeking;
+  bool get seeking;
 
   /** @domName HTMLMediaElement.src */
   String src;
 
   /** @domName HTMLMediaElement.startTime */
-  abstract num get startTime;
+  num get startTime;
 
   /** @domName HTMLMediaElement.textTracks */
-  abstract TextTrackList get textTracks;
+  TextTrackList get textTracks;
 
   /** @domName HTMLMediaElement.volume */
   num volume;
 
   /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
-  abstract int get webkitAudioDecodedByteCount;
+  int get webkitAudioDecodedByteCount;
 
   /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
   bool webkitClosedCaptionsVisible;
 
   /** @domName HTMLMediaElement.webkitHasClosedCaptions */
-  abstract bool get webkitHasClosedCaptions;
+  bool get webkitHasClosedCaptions;
 
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
-  abstract int get webkitVideoDecodedByteCount;
+  int get webkitVideoDecodedByteCount;
 
   /** @domName HTMLMediaElement.addTextTrack */
   TextTrack addTextTrack(String kind, [String label, String language]);
@@ -19358,7 +19313,7 @@ abstract class MediaElementEvents implements ElementEvents {
 abstract class MediaElementAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaElementAudioSourceNode.mediaElement */
-  abstract MediaElement get mediaElement;
+  MediaElement get mediaElement;
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -19525,7 +19480,7 @@ abstract class MediaError {
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   /** @domName MediaError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _MediaErrorImpl implements MediaError native "*MediaError" {
@@ -19554,7 +19509,7 @@ abstract class MediaKeyError {
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   /** @domName MediaKeyError.code */
-  abstract int get code;
+  int get code;
 }
 
 class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
@@ -19571,25 +19526,25 @@ class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
 abstract class MediaKeyEvent implements Event {
 
   /** @domName MediaKeyEvent.defaultURL */
-  abstract String get defaultURL;
+  String get defaultURL;
 
   /** @domName MediaKeyEvent.errorCode */
-  abstract MediaKeyError get errorCode;
+  MediaKeyError get errorCode;
 
   /** @domName MediaKeyEvent.initData */
-  abstract Uint8Array get initData;
+  Uint8Array get initData;
 
   /** @domName MediaKeyEvent.keySystem */
-  abstract String get keySystem;
+  String get keySystem;
 
   /** @domName MediaKeyEvent.message */
-  abstract Uint8Array get message;
+  Uint8Array get message;
 
   /** @domName MediaKeyEvent.sessionId */
-  abstract String get sessionId;
+  String get sessionId;
 
   /** @domName MediaKeyEvent.systemCode */
-  abstract int get systemCode;
+  int get systemCode;
 }
 
 class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*MediaKeyEvent" {
@@ -19618,7 +19573,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*Me
 abstract class MediaList {
 
   /** @domName MediaList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MediaList.mediaText */
   String mediaText;
@@ -19655,10 +19610,10 @@ class _MediaListImpl implements MediaList native "*MediaList" {
 abstract class MediaQueryList {
 
   /** @domName MediaQueryList.matches */
-  abstract bool get matches;
+  bool get matches;
 
   /** @domName MediaQueryList.media */
-  abstract String get media;
+  String get media;
 
   /** @domName MediaQueryList.addListener */
   void addListener(MediaQueryListListener listener);
@@ -19701,16 +19656,16 @@ abstract class MediaSource implements EventTarget {
   factory MediaSource() => _MediaSourceFactoryProvider.createMediaSource();
 
   /** @domName MediaSource.activeSourceBuffers */
-  abstract SourceBufferList get activeSourceBuffers;
+  SourceBufferList get activeSourceBuffers;
 
   /** @domName MediaSource.duration */
   num duration;
 
   /** @domName MediaSource.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName MediaSource.sourceBuffers */
-  abstract SourceBufferList get sourceBuffers;
+  SourceBufferList get sourceBuffers;
 
   /** @domName MediaSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -19774,16 +19729,16 @@ abstract class MediaStream implements EventTarget {
   static const int LIVE = 1;
 
   /** @domName MediaStream.audioTracks */
-  abstract MediaStreamTrackList get audioTracks;
+  MediaStreamTrackList get audioTracks;
 
   /** @domName MediaStream.label */
-  abstract String get label;
+  String get label;
 
   /** @domName MediaStream.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName MediaStream.videoTracks */
-  abstract MediaStreamTrackList get videoTracks;
+  MediaStreamTrackList get videoTracks;
 
   /** @domName MediaStream.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -19809,7 +19764,7 @@ abstract class MediaStreamEvents implements Events {
 abstract class MediaStreamAudioSourceNode implements AudioSourceNode {
 
   /** @domName MediaStreamAudioSourceNode.mediaStream */
-  abstract MediaStream get mediaStream;
+  MediaStream get mediaStream;
 }
 
 class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode native "*MediaStreamAudioSourceNode" {
@@ -19826,7 +19781,7 @@ class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements Me
 abstract class MediaStreamEvent implements Event {
 
   /** @domName MediaStreamEvent.stream */
-  abstract MediaStream get stream;
+  MediaStream get stream;
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent native "*MediaStreamEvent" {
@@ -19867,7 +19822,7 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   _MediaStreamImpl operator[](int index) => JS("_MediaStreamImpl", "#[#]", this, index);
 
   void operator[]=(int index, _MediaStreamImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<MediaStream> mixins.
   // MediaStream is the element type.
@@ -19884,15 +19839,15 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
   // From Collection<MediaStream>:
 
   void add(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(MediaStream value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<MediaStream> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(MediaStream element) => _Collections.contains(this, element);
@@ -19908,38 +19863,38 @@ class _MediaStreamListImpl implements List<MediaStream>, JavaScriptIndexingBehav
 
   bool some(bool f(MediaStream element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<MediaStream>:
 
   void sort([Comparator<MediaStream> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(MediaStream element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(MediaStream element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  MediaStream last() => this[length - 1];
+  MediaStream get last => this[length - 1];
 
   MediaStream removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<MediaStream> getRange(int start, int rangeLength) =>
@@ -19973,13 +19928,13 @@ abstract class MediaStreamTrack implements EventTarget {
   bool enabled;
 
   /** @domName MediaStreamTrack.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName MediaStreamTrack.label */
-  abstract String get label;
+  String get label;
 
   /** @domName MediaStreamTrack.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName MediaStreamTrack.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -20009,7 +19964,7 @@ abstract class MediaStreamTrackEvents implements Events {
 abstract class MediaStreamTrackEvent implements Event {
 
   /** @domName MediaStreamTrackEvent.track */
-  abstract MediaStreamTrack get track;
+  MediaStreamTrack get track;
 }
 
 class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
@@ -20061,7 +20016,7 @@ abstract class MediaStreamTrackList implements EventTarget {
   MediaStreamTrackListEvents get on;
 
   /** @domName MediaStreamTrackList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName MediaStreamTrackList.add */
   void add(MediaStreamTrack track);
@@ -20126,13 +20081,13 @@ class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStream
 abstract class MemoryInfo {
 
   /** @domName MemoryInfo.jsHeapSizeLimit */
-  abstract int get jsHeapSizeLimit;
+  int get jsHeapSizeLimit;
 
   /** @domName MemoryInfo.totalJSHeapSize */
-  abstract int get totalJSHeapSize;
+  int get totalJSHeapSize;
 
   /** @domName MemoryInfo.usedJSHeapSize */
-  abstract int get usedJSHeapSize;
+  int get usedJSHeapSize;
 }
 
 class _MemoryInfoImpl implements MemoryInfo native "*MemoryInfo" {
@@ -20174,10 +20129,10 @@ abstract class MessageChannel {
   factory MessageChannel() => _MessageChannelFactoryProvider.createMessageChannel();
 
   /** @domName MessageChannel.port1 */
-  abstract MessagePort get port1;
+  MessagePort get port1;
 
   /** @domName MessageChannel.port2 */
-  abstract MessagePort get port2;
+  MessagePort get port2;
 }
 
 class _MessageChannelImpl implements MessageChannel native "*MessageChannel" {
@@ -20196,19 +20151,19 @@ class _MessageChannelImpl implements MessageChannel native "*MessageChannel" {
 abstract class MessageEvent implements Event {
 
   /** @domName MessageEvent.data */
-  abstract Object get data;
+  Object get data;
 
   /** @domName MessageEvent.lastEventId */
-  abstract String get lastEventId;
+  String get lastEventId;
 
   /** @domName MessageEvent.origin */
-  abstract String get origin;
+  String get origin;
 
   /** @domName MessageEvent.ports */
-  abstract List get ports;
+  List get ports;
 
   /** @domName MessageEvent.source */
-  abstract Window get source;
+  Window get source;
 
   /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, LocalWindow sourceArg, List messagePorts);
@@ -20219,8 +20174,8 @@ abstract class MessageEvent implements Event {
 
 class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
-  Dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
-  Dynamic get _data() => JS("Dynamic", "#.data", this);
+  dynamic get data => _convertNativeToDart_SerializedScriptValue(this._data);
+  dynamic get _data => JS("dynamic", "#.data", this);
 
   final String lastEventId;
 
@@ -20229,7 +20184,7 @@ class _MessageEventImpl extends _EventImpl implements MessageEvent native "*Mess
   final List ports;
 
   Window get source => _convertNativeToDart_Window(this._source);
-  Window get _source() => JS("Window", "#.source", this);
+  Window get _source => JS("Window", "#.source", this);
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _LocalWindowImpl sourceArg, List messagePorts) native;
 
@@ -20349,16 +20304,17 @@ class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTML
 abstract class Metadata {
 
   /** @domName Metadata.modificationTime */
-  abstract Date get modificationTime;
+  Date get modificationTime;
 
   /** @domName Metadata.size */
-  abstract int get size;
+  int get size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void MetadataCallback(Metadata metadata);
 
@@ -20383,7 +20339,7 @@ abstract class MeterElement implements Element {
   num high;
 
   /** @domName HTMLMeterElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLMeterElement.low */
   num low;
@@ -20445,6 +20401,7 @@ class _ModElementImpl extends _ElementImpl implements ModElement native "*HTMLMo
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName MouseEvent
 abstract class MouseEvent implements UIEvent {
 
@@ -20461,61 +20418,61 @@ abstract class MouseEvent implements UIEvent {
 
 
   /** @domName MouseEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName MouseEvent.button */
-  abstract int get button;
+  int get button;
 
   /** @domName MouseEvent.clientX */
-  abstract int get clientX;
+  int get clientX;
 
   /** @domName MouseEvent.clientY */
-  abstract int get clientY;
+  int get clientY;
 
   /** @domName MouseEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName MouseEvent.dataTransfer */
-  abstract Clipboard get dataTransfer;
+  Clipboard get dataTransfer;
 
   /** @domName MouseEvent.fromElement */
-  abstract Node get fromElement;
+  Node get fromElement;
 
   /** @domName MouseEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName MouseEvent.offsetX */
-  abstract int get offsetX;
+  int get offsetX;
 
   /** @domName MouseEvent.offsetY */
-  abstract int get offsetY;
+  int get offsetY;
 
   /** @domName MouseEvent.relatedTarget */
-  abstract EventTarget get relatedTarget;
+  EventTarget get relatedTarget;
 
   /** @domName MouseEvent.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName MouseEvent.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName MouseEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName MouseEvent.toElement */
-  abstract Node get toElement;
+  Node get toElement;
 
   /** @domName MouseEvent.webkitMovementX */
-  abstract int get webkitMovementX;
+  int get webkitMovementX;
 
   /** @domName MouseEvent.webkitMovementY */
-  abstract int get webkitMovementY;
+  int get webkitMovementY;
 
   /** @domName MouseEvent.x */
-  abstract int get x;
+  int get x;
 
   /** @domName MouseEvent.y */
-  abstract int get y;
+  int get y;
 
   /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
@@ -20543,7 +20500,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   final bool metaKey;
 
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
-  EventTarget get _relatedTarget() => JS("EventTarget", "#.relatedTarget", this);
+  EventTarget get _relatedTarget => JS("EventTarget", "#.relatedTarget", this);
 
   final int screenX;
 
@@ -20576,7 +20533,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
       // Firefox does not support offsetX.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
       return this.clientX - this.target.getBoundingClientRect().left;
@@ -20590,7 +20547,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
       // Firefox does not support offsetY.
       var target = this.target;
       if (!(target is Element)) {
-        throw const UnsupportedOperationException(
+        throw new UnsupportedError(
             'offsetY is only supported on elements');
       }
       return this.clientY - this.target.getBoundingClientRect().top;
@@ -20602,6 +20559,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20620,19 +20578,19 @@ abstract class MutationEvent implements Event {
   static const int REMOVAL = 3;
 
   /** @domName MutationEvent.attrChange */
-  abstract int get attrChange;
+  int get attrChange;
 
   /** @domName MutationEvent.attrName */
-  abstract String get attrName;
+  String get attrName;
 
   /** @domName MutationEvent.newValue */
-  abstract String get newValue;
+  String get newValue;
 
   /** @domName MutationEvent.prevValue */
-  abstract String get prevValue;
+  String get prevValue;
 
   /** @domName MutationEvent.relatedNode */
-  abstract Node get relatedNode;
+  Node get relatedNode;
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
@@ -20657,6 +20615,7 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName MutationObserver
 abstract class MutationObserver {
@@ -20712,7 +20671,7 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
     if (options != null) {
       options.forEach((k, v) {
           if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true === v);
+            _add(parsedOptions, k, true == v);
           } else if (k == 'attributeFilter') {
             _add(parsedOptions, k, _fixupList(v));
           } else {
@@ -20767,31 +20726,31 @@ class _MutationObserverImpl implements MutationObserver native "*MutationObserve
 abstract class MutationRecord {
 
   /** @domName MutationRecord.addedNodes */
-  abstract List<Node> get addedNodes;
+  List<Node> get addedNodes;
 
   /** @domName MutationRecord.attributeName */
-  abstract String get attributeName;
+  String get attributeName;
 
   /** @domName MutationRecord.attributeNamespace */
-  abstract String get attributeNamespace;
+  String get attributeNamespace;
 
   /** @domName MutationRecord.nextSibling */
-  abstract Node get nextSibling;
+  Node get nextSibling;
 
   /** @domName MutationRecord.oldValue */
-  abstract String get oldValue;
+  String get oldValue;
 
   /** @domName MutationRecord.previousSibling */
-  abstract Node get previousSibling;
+  Node get previousSibling;
 
   /** @domName MutationRecord.removedNodes */
-  abstract List<Node> get removedNodes;
+  List<Node> get removedNodes;
 
   /** @domName MutationRecord.target */
-  abstract Node get target;
+  Node get target;
 
   /** @domName MutationRecord.type */
-  abstract String get type;
+  String get type;
 }
 
 class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
@@ -20824,7 +20783,7 @@ class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
 abstract class NamedNodeMap implements List<Node> {
 
   /** @domName NamedNodeMap.length */
-  abstract int get length;
+  int get length;
 
   /** @domName NamedNodeMap.getNamedItem */
   Node getNamedItem(String name);
@@ -20855,7 +20814,7 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   _NodeImpl operator[](int index) => JS("_NodeImpl", "#[#]", this, index);
 
   void operator[]=(int index, _NodeImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
   // Node is the element type.
@@ -20872,15 +20831,15 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
   // From Collection<Node>:
 
   void add(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Node value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Node> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Node element) => _Collections.contains(this, element);
@@ -20896,38 +20855,38 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Node element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
 
   Node removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Node> getRange(int start, int rangeLength) =>
@@ -20959,52 +20918,52 @@ class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior nati
 abstract class Navigator {
 
   /** @domName Navigator.appCodeName */
-  abstract String get appCodeName;
+  String get appCodeName;
 
   /** @domName Navigator.appName */
-  abstract String get appName;
+  String get appName;
 
   /** @domName Navigator.appVersion */
-  abstract String get appVersion;
+  String get appVersion;
 
   /** @domName Navigator.cookieEnabled */
-  abstract bool get cookieEnabled;
+  bool get cookieEnabled;
 
   /** @domName Navigator.geolocation */
-  abstract Geolocation get geolocation;
+  Geolocation get geolocation;
 
   /** @domName Navigator.language */
-  abstract String get language;
+  String get language;
 
   /** @domName Navigator.mimeTypes */
-  abstract DOMMimeTypeArray get mimeTypes;
+  DOMMimeTypeArray get mimeTypes;
 
   /** @domName Navigator.onLine */
-  abstract bool get onLine;
+  bool get onLine;
 
   /** @domName Navigator.platform */
-  abstract String get platform;
+  String get platform;
 
   /** @domName Navigator.plugins */
-  abstract DOMPluginArray get plugins;
+  DOMPluginArray get plugins;
 
   /** @domName Navigator.product */
-  abstract String get product;
+  String get product;
 
   /** @domName Navigator.productSub */
-  abstract String get productSub;
+  String get productSub;
 
   /** @domName Navigator.userAgent */
-  abstract String get userAgent;
+  String get userAgent;
 
   /** @domName Navigator.vendor */
-  abstract String get vendor;
+  String get vendor;
 
   /** @domName Navigator.vendorSub */
-  abstract String get vendorSub;
+  String get vendorSub;
 
   /** @domName Navigator.webkitBattery */
-  abstract BatteryManager get webkitBattery;
+  BatteryManager get webkitBattery;
 
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
@@ -21084,13 +21043,14 @@ abstract class NavigatorUserMediaError {
   static const int PERMISSION_DENIED = 1;
 
   /** @domName NavigatorUserMediaError.code */
-  abstract int get code;
+  int get code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 
@@ -21104,12 +21064,14 @@ class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*N
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 /// @domName Node
 abstract class Node implements EventTarget {
@@ -21167,31 +21129,31 @@ abstract class Node implements EventTarget {
   static const int TEXT_NODE = 3;
 
   /** @domName Node.attributes */
-  abstract NamedNodeMap get $dom_attributes;
+  NamedNodeMap get $dom_attributes;
 
   /** @domName Node.childNodes */
-  abstract List<Node> get $dom_childNodes;
+  List<Node> get $dom_childNodes;
 
   /** @domName Node.firstChild */
-  abstract Node get $dom_firstChild;
+  Node get $dom_firstChild;
 
   /** @domName Node.lastChild */
-  abstract Node get $dom_lastChild;
+  Node get $dom_lastChild;
 
   /** @domName Node.nextSibling */
-  abstract Node get nextNode;
+  Node get nextNode;
 
   /** @domName Node.nodeType */
-  abstract int get $dom_nodeType;
+  int get $dom_nodeType;
 
   /** @domName Node.ownerDocument */
-  abstract Document get document;
+  Document get document;
 
   /** @domName Node.parentNode */
-  abstract Node get parent;
+  Node get parent;
 
   /** @domName Node.previousSibling */
-  abstract Node get previousNode;
+  Node get previousNode;
 
   /** @domName Node.textContent */
   String text;
@@ -21292,7 +21254,7 @@ class _ChildNodeListLazy implements List {
 
 
   _NodeImpl get first => JS('_NodeImpl', '#.firstChild', _this);
-  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
+  _NodeImpl get last => JS('_NodeImpl', '#.lastChild', _this);
 
   void add(_NodeImpl value) {
     _this.$dom_appendChild(value);
@@ -21310,7 +21272,7 @@ class _ChildNodeListLazy implements List {
   }
 
   _NodeImpl removeLast() {
-    final result = last();
+    final result = last;
     if (result != null) {
       _this.$dom_removeChild(result);
     }
@@ -21342,14 +21304,14 @@ class _ChildNodeListLazy implements List {
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -21360,15 +21322,15 @@ class _ChildNodeListLazy implements List {
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
@@ -21418,25 +21380,25 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   }
 
 
-  _NamedNodeMapImpl get $dom_attributes() => JS("_NamedNodeMapImpl", "#.attributes", this);
+  _NamedNodeMapImpl get $dom_attributes => JS("_NamedNodeMapImpl", "#.attributes", this);
 
-  List<Node> get $dom_childNodes() => JS("List<Node>", "#.childNodes", this);
+  List<Node> get $dom_childNodes => JS("List<Node>", "#.childNodes", this);
 
-  _NodeImpl get $dom_firstChild() => JS("_NodeImpl", "#.firstChild", this);
+  _NodeImpl get $dom_firstChild => JS("_NodeImpl", "#.firstChild", this);
 
-  _NodeImpl get $dom_lastChild() => JS("_NodeImpl", "#.lastChild", this);
+  _NodeImpl get $dom_lastChild => JS("_NodeImpl", "#.lastChild", this);
 
-  _NodeImpl get nextNode() => JS("_NodeImpl", "#.nextSibling", this);
+  _NodeImpl get nextNode => JS("_NodeImpl", "#.nextSibling", this);
 
-  int get $dom_nodeType() => JS("int", "#.nodeType", this);
+  int get $dom_nodeType => JS("int", "#.nodeType", this);
 
-  _DocumentImpl get document() => JS("_DocumentImpl", "#.ownerDocument", this);
+  _DocumentImpl get document => JS("_DocumentImpl", "#.ownerDocument", this);
 
-  _NodeImpl get parent() => JS("_NodeImpl", "#.parentNode", this);
+  _NodeImpl get parent => JS("_NodeImpl", "#.parentNode", this);
 
-  _NodeImpl get previousNode() => JS("_NodeImpl", "#.previousSibling", this);
+  _NodeImpl get previousNode => JS("_NodeImpl", "#.previousSibling", this);
 
-  String get text() => JS("String", "#.textContent", this);
+  String get text => JS("String", "#.textContent", this);
 
   void set text(String value) {
     JS("void", "#.textContent = #", this, value);
@@ -21473,22 +21435,22 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 abstract class NodeIterator {
 
   /** @domName NodeIterator.expandEntityReferences */
-  abstract bool get expandEntityReferences;
+  bool get expandEntityReferences;
 
   /** @domName NodeIterator.filter */
-  abstract NodeFilter get filter;
+  NodeFilter get filter;
 
   /** @domName NodeIterator.pointerBeforeReferenceNode */
-  abstract bool get pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode;
 
   /** @domName NodeIterator.referenceNode */
-  abstract Node get referenceNode;
+  Node get referenceNode;
 
   /** @domName NodeIterator.root */
-  abstract Node get root;
+  Node get root;
 
   /** @domName NodeIterator.whatToShow */
-  abstract int get whatToShow;
+  int get whatToShow;
 
   /** @domName NodeIterator.detach */
   void detach();
@@ -21526,6 +21488,7 @@ class _NodeIteratorImpl implements NodeIterator native "*NodeIterator" {
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName NodeList
 abstract class NodeList implements List<Node> {
 
@@ -21537,7 +21500,7 @@ abstract class NodeList implements List<Node> {
 
 
   /** @domName NodeList.length */
-  abstract int get length;
+  int get length;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21565,7 +21528,7 @@ class _ListWrapper<E> implements List<E> {
 
   bool some(bool f(E element)) => _list.some(f);
 
-  bool isEmpty() => _list.isEmpty();
+  bool get isEmpty => _list.isEmpty;
 
   int get length => _list.length;
 
@@ -21592,7 +21555,7 @@ class _ListWrapper<E> implements List<E> {
 
   E removeLast() => _list.removeLast();
 
-  E last() => _list.last();
+  E get last => _list.last;
 
   List<E> getRange(int start, int rangeLength) =>
     _list.getRange(start, rangeLength);
@@ -21655,7 +21618,7 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   }
 
   _NodeImpl removeLast() {
-    final result = this.last();
+    final result = this.last;
     if (result != null) {
       _parent.$dom_removeChild(result);
     }
@@ -21683,12 +21646,12 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 
   bool some(bool f(Node element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Node>:
 
   void sort([Comparator<Node> compare = Comparable.compare]) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Node element, [int start = 0]) =>
@@ -21697,18 +21660,18 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  Node last() => this[length - 1];
+  Node get last => this[length - 1];
   Node get first => this[0];
 
   // FIXME: implement thesee.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
   void removeRange(int start, int rangeLength) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
   void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
   List<Node> getRange(int start, int rangeLength) =>
     new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
@@ -21733,10 +21696,10 @@ class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*Nod
 abstract class Notation implements Node {
 
   /** @domName Notation.publicId */
-  abstract String get publicId;
+  String get publicId;
 
   /** @domName Notation.systemId */
-  abstract String get systemId;
+  String get systemId;
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -21770,7 +21733,7 @@ abstract class Notification implements EventTarget {
   String dir;
 
   /** @domName Notification.permission */
-  abstract String get permission;
+  String get permission;
 
   /** @domName Notification.replaceId */
   String replaceId;
@@ -21891,6 +21854,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22016,9 +21980,6 @@ abstract class ObjectElement implements Element {
   /** @domName HTMLObjectElement.codeType */
   String codeType;
 
-  /** @domName HTMLObjectElement.contentDocument */
-  abstract Document get contentDocument;
-
   /** @domName HTMLObjectElement.data */
   String data;
 
@@ -22026,7 +21987,7 @@ abstract class ObjectElement implements Element {
   bool declare;
 
   /** @domName HTMLObjectElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLObjectElement.height */
   String height;
@@ -22047,10 +22008,10 @@ abstract class ObjectElement implements Element {
   String useMap;
 
   /** @domName HTMLObjectElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLObjectElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLObjectElement.vspace */
   int vspace;
@@ -22059,7 +22020,7 @@ abstract class ObjectElement implements Element {
   String width;
 
   /** @domName HTMLObjectElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLObjectElement.checkValidity */
   bool checkValidity();
@@ -22081,8 +22042,6 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
   String codeBase;
 
   String codeType;
-
-  final _DocumentImpl contentDocument;
 
   String data;
 
@@ -22126,7 +22085,7 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*
 abstract class OfflineAudioCompletionEvent implements Event {
 
   /** @domName OfflineAudioCompletionEvent.renderedBuffer */
-  abstract AudioBuffer get renderedBuffer;
+  AudioBuffer get renderedBuffer;
 }
 
 class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
@@ -22189,10 +22148,10 @@ abstract class OptionElement implements Element {
   bool disabled;
 
   /** @domName HTMLOptionElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLOptionElement.index */
-  abstract int get index;
+  int get index;
 
   /** @domName HTMLOptionElement.label */
   String label;
@@ -22248,13 +22207,13 @@ abstract class Oscillator implements AudioSourceNode {
   static const int UNSCHEDULED_STATE = 0;
 
   /** @domName Oscillator.detune */
-  abstract AudioParam get detune;
+  AudioParam get detune;
 
   /** @domName Oscillator.frequency */
-  abstract AudioParam get frequency;
+  AudioParam get frequency;
 
   /** @domName Oscillator.playbackState */
-  abstract int get playbackState;
+  int get playbackState;
 
   /** @domName Oscillator.type */
   int type;
@@ -22300,31 +22259,31 @@ abstract class OutputElement implements Element {
   String defaultValue;
 
   /** @domName HTMLOutputElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLOutputElement.htmlFor */
   DOMSettableTokenList htmlFor;
 
   /** @domName HTMLOutputElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLOutputElement.name */
   String name;
 
   /** @domName HTMLOutputElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLOutputElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLOutputElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLOutputElement.value */
   String value;
 
   /** @domName HTMLOutputElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLOutputElement.checkValidity */
   bool checkValidity();
@@ -22375,13 +22334,13 @@ abstract class OverflowEvent implements Event {
   static const int VERTICAL = 1;
 
   /** @domName OverflowEvent.horizontalOverflow */
-  abstract bool get horizontalOverflow;
+  bool get horizontalOverflow;
 
   /** @domName OverflowEvent.orient */
-  abstract int get orient;
+  int get orient;
 
   /** @domName OverflowEvent.verticalOverflow */
-  abstract bool get verticalOverflow;
+  bool get verticalOverflow;
 }
 
 class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*OverflowEvent" {
@@ -22424,7 +22383,7 @@ class _PagePopupControllerImpl implements PagePopupController native "*PagePopup
 abstract class PageTransitionEvent implements Event {
 
   /** @domName PageTransitionEvent.persisted */
-  abstract bool get persisted;
+  bool get persisted;
 }
 
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
@@ -22529,22 +22488,22 @@ abstract class PeerConnection00 implements EventTarget {
   static const int SDP_PRANSWER = 0x200;
 
   /** @domName PeerConnection00.iceState */
-  abstract int get iceState;
+  int get iceState;
 
   /** @domName PeerConnection00.localDescription */
-  abstract SessionDescription get localDescription;
+  SessionDescription get localDescription;
 
   /** @domName PeerConnection00.localStreams */
-  abstract List<MediaStream> get localStreams;
+  List<MediaStream> get localStreams;
 
   /** @domName PeerConnection00.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName PeerConnection00.remoteDescription */
-  abstract SessionDescription get remoteDescription;
+  SessionDescription get remoteDescription;
 
   /** @domName PeerConnection00.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  List<MediaStream> get remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -22697,16 +22656,16 @@ class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection0
 abstract class Performance implements EventTarget {
 
   /** @domName Performance.memory */
-  abstract MemoryInfo get memory;
+  MemoryInfo get memory;
 
   /** @domName Performance.navigation */
-  abstract PerformanceNavigation get navigation;
+  PerformanceNavigation get navigation;
 
   /** @domName Performance.timing */
-  abstract PerformanceTiming get timing;
+  PerformanceTiming get timing;
 
-  /** @domName Performance.webkitNow */
-  num webkitNow();
+  /** @domName Performance.now */
+  num now();
 }
 
 class _PerformanceImpl extends _EventTargetImpl implements Performance native "*Performance" {
@@ -22717,7 +22676,7 @@ class _PerformanceImpl extends _EventTargetImpl implements Performance native "*
 
   final _PerformanceTimingImpl timing;
 
-  num webkitNow() native;
+  num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22737,10 +22696,10 @@ abstract class PerformanceNavigation {
   static const int TYPE_RESERVED = 255;
 
   /** @domName PerformanceNavigation.redirectCount */
-  abstract int get redirectCount;
+  int get redirectCount;
 
   /** @domName PerformanceNavigation.type */
-  abstract int get type;
+  int get type;
 }
 
 class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
@@ -22759,67 +22718,67 @@ class _PerformanceNavigationImpl implements PerformanceNavigation native "*Perfo
 abstract class PerformanceTiming {
 
   /** @domName PerformanceTiming.connectEnd */
-  abstract int get connectEnd;
+  int get connectEnd;
 
   /** @domName PerformanceTiming.connectStart */
-  abstract int get connectStart;
+  int get connectStart;
 
   /** @domName PerformanceTiming.domComplete */
-  abstract int get domComplete;
+  int get domComplete;
 
   /** @domName PerformanceTiming.domContentLoadedEventEnd */
-  abstract int get domContentLoadedEventEnd;
+  int get domContentLoadedEventEnd;
 
   /** @domName PerformanceTiming.domContentLoadedEventStart */
-  abstract int get domContentLoadedEventStart;
+  int get domContentLoadedEventStart;
 
   /** @domName PerformanceTiming.domInteractive */
-  abstract int get domInteractive;
+  int get domInteractive;
 
   /** @domName PerformanceTiming.domLoading */
-  abstract int get domLoading;
+  int get domLoading;
 
   /** @domName PerformanceTiming.domainLookupEnd */
-  abstract int get domainLookupEnd;
+  int get domainLookupEnd;
 
   /** @domName PerformanceTiming.domainLookupStart */
-  abstract int get domainLookupStart;
+  int get domainLookupStart;
 
   /** @domName PerformanceTiming.fetchStart */
-  abstract int get fetchStart;
+  int get fetchStart;
 
   /** @domName PerformanceTiming.loadEventEnd */
-  abstract int get loadEventEnd;
+  int get loadEventEnd;
 
   /** @domName PerformanceTiming.loadEventStart */
-  abstract int get loadEventStart;
+  int get loadEventStart;
 
   /** @domName PerformanceTiming.navigationStart */
-  abstract int get navigationStart;
+  int get navigationStart;
 
   /** @domName PerformanceTiming.redirectEnd */
-  abstract int get redirectEnd;
+  int get redirectEnd;
 
   /** @domName PerformanceTiming.redirectStart */
-  abstract int get redirectStart;
+  int get redirectStart;
 
   /** @domName PerformanceTiming.requestStart */
-  abstract int get requestStart;
+  int get requestStart;
 
   /** @domName PerformanceTiming.responseEnd */
-  abstract int get responseEnd;
+  int get responseEnd;
 
   /** @domName PerformanceTiming.responseStart */
-  abstract int get responseStart;
+  int get responseStart;
 
   /** @domName PerformanceTiming.secureConnectionStart */
-  abstract int get secureConnectionStart;
+  int get secureConnectionStart;
 
   /** @domName PerformanceTiming.unloadEventEnd */
-  abstract int get unloadEventEnd;
+  int get unloadEventEnd;
 
   /** @domName PerformanceTiming.unloadEventStart */
-  abstract int get unloadEventStart;
+  int get unloadEventStart;
 }
 
 class _PerformanceTimingImpl implements PerformanceTiming native "*PerformanceTiming" {
@@ -22872,6 +22831,7 @@ class _PerformanceTimingImpl implements PerformanceTiming native "*PerformanceTi
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebKitPoint
 abstract class Point {
 
@@ -22900,7 +22860,7 @@ class _PointImpl implements Point native "*WebKitPoint" {
 abstract class PopStateEvent implements Event {
 
   /** @domName PopStateEvent.state */
-  abstract Object get state;
+  Object get state;
 }
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*PopStateEvent" {
@@ -22912,6 +22872,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*Po
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22930,16 +22891,17 @@ abstract class PositionError {
   static const int TIMEOUT = 3;
 
   /** @domName PositionError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName PositionError.message */
-  abstract String get message;
+  String get message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void PositionErrorCallback(PositionError error);
 
@@ -22986,10 +22948,10 @@ abstract class ProcessingInstruction implements Node {
   String data;
 
   /** @domName ProcessingInstruction.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName ProcessingInstruction.target */
-  abstract String get target;
+  String get target;
 }
 
 class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruction native "*ProcessingInstruction" {
@@ -23012,13 +22974,13 @@ abstract class ProgressElement implements Element {
   factory ProgressElement() => _Elements.createProgressElement();
 
   /** @domName HTMLProgressElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLProgressElement.max */
   num max;
 
   /** @domName HTMLProgressElement.position */
-  abstract num get position;
+  num get position;
 
   /** @domName HTMLProgressElement.value */
   num value;
@@ -23044,13 +23006,13 @@ class _ProgressElementImpl extends _ElementImpl implements ProgressElement nativ
 abstract class ProgressEvent implements Event {
 
   /** @domName ProgressEvent.lengthComputable */
-  abstract bool get lengthComputable;
+  bool get lengthComputable;
 
   /** @domName ProgressEvent.loaded */
-  abstract int get loaded;
+  int get loaded;
 
   /** @domName ProgressEvent.total */
-  abstract int get total;
+  int get total;
 }
 
 class _ProgressEventImpl extends _EventImpl implements ProgressEvent native "*ProgressEvent" {
@@ -23088,13 +23050,13 @@ class _QuoteElementImpl extends _ElementImpl implements QuoteElement native "*HT
 abstract class RGBColor {
 
   /** @domName RGBColor.blue */
-  abstract CSSPrimitiveValue get blue;
+  CSSPrimitiveValue get blue;
 
   /** @domName RGBColor.green */
-  abstract CSSPrimitiveValue get green;
+  CSSPrimitiveValue get green;
 
   /** @domName RGBColor.red */
-  abstract CSSPrimitiveValue get red;
+  CSSPrimitiveValue get red;
 }
 
 class _RGBColorImpl implements RGBColor native "*RGBColor" {
@@ -23111,6 +23073,117 @@ class _RGBColorImpl implements RGBColor native "*RGBColor" {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RTCDataChannel
+abstract class RTCDataChannel implements EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  RTCDataChannelEvents get on;
+
+  /** @domName RTCDataChannel.binaryType */
+  String binaryType;
+
+  /** @domName RTCDataChannel.bufferedAmount */
+  int get bufferedAmount;
+
+  /** @domName RTCDataChannel.label */
+  String get label;
+
+  /** @domName RTCDataChannel.readyState */
+  String get readyState;
+
+  /** @domName RTCDataChannel.reliable */
+  bool get reliable;
+
+  /** @domName RTCDataChannel.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCDataChannel.close */
+  void close();
+
+  /** @domName RTCDataChannel.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName RTCDataChannel.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCDataChannel.send */
+  void send(data);
+}
+
+abstract class RTCDataChannelEvents implements Events {
+
+  EventListenerList get close;
+
+  EventListenerList get error;
+
+  EventListenerList get message;
+
+  EventListenerList get open;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCDataChannelEvent
+abstract class RTCDataChannelEvent implements Event {
+
+  /** @domName RTCDataChannelEvent.channel */
+  RTCDataChannel get channel;
+}
+
+class _RTCDataChannelEventImpl extends _EventImpl implements RTCDataChannelEvent native "*RTCDataChannelEvent" {
+
+  final _RTCDataChannelImpl channel;
+}
+
+class _RTCDataChannelImpl extends _EventTargetImpl implements RTCDataChannel native "*RTCDataChannel" {
+
+  _RTCDataChannelEventsImpl get on =>
+    new _RTCDataChannelEventsImpl(this);
+
+  String binaryType;
+
+  final int bufferedAmount;
+
+  final String label;
+
+  final String readyState;
+
+  final bool reliable;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  void close() native;
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+
+  void send(data) native;
+}
+
+class _RTCDataChannelEventsImpl extends _EventsImpl implements RTCDataChannelEvents {
+  _RTCDataChannelEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get close => this['close'];
+
+  EventListenerList get error => this['error'];
+
+  EventListenerList get message => this['message'];
+
+  EventListenerList get open => this['open'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 typedef void RTCErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23124,13 +23197,13 @@ abstract class RTCIceCandidate {
   factory RTCIceCandidate(Map dictionary) => _RTCIceCandidateFactoryProvider.createRTCIceCandidate(dictionary);
 
   /** @domName RTCIceCandidate.candidate */
-  abstract String get candidate;
+  String get candidate;
 
   /** @domName RTCIceCandidate.sdpMLineIndex */
-  abstract int get sdpMLineIndex;
+  int get sdpMLineIndex;
 
   /** @domName RTCIceCandidate.sdpMid */
-  abstract String get sdpMid;
+  String get sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23142,7 +23215,7 @@ abstract class RTCIceCandidate {
 abstract class RTCIceCandidateEvent implements Event {
 
   /** @domName RTCIceCandidateEvent.candidate */
-  abstract RTCIceCandidate get candidate;
+  RTCIceCandidate get candidate;
 }
 
 class _RTCIceCandidateEventImpl extends _EventImpl implements RTCIceCandidateEvent native "*RTCIceCandidateEvent" {
@@ -23180,22 +23253,22 @@ abstract class RTCPeerConnection implements EventTarget {
   RTCPeerConnectionEvents get on;
 
   /** @domName RTCPeerConnection.iceState */
-  abstract String get iceState;
+  String get iceState;
 
   /** @domName RTCPeerConnection.localDescription */
-  abstract RTCSessionDescription get localDescription;
+  RTCSessionDescription get localDescription;
 
   /** @domName RTCPeerConnection.localStreams */
-  abstract List<MediaStream> get localStreams;
+  List<MediaStream> get localStreams;
 
   /** @domName RTCPeerConnection.readyState */
-  abstract String get readyState;
+  String get readyState;
 
   /** @domName RTCPeerConnection.remoteDescription */
-  abstract RTCSessionDescription get remoteDescription;
+  RTCSessionDescription get remoteDescription;
 
   /** @domName RTCPeerConnection.remoteStreams */
-  abstract List<MediaStream> get remoteStreams;
+  List<MediaStream> get remoteStreams;
 
   /** @domName RTCPeerConnection.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -23211,6 +23284,9 @@ abstract class RTCPeerConnection implements EventTarget {
 
   /** @domName RTCPeerConnection.createAnswer */
   void createAnswer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
+
+  /** @domName RTCPeerConnection.createDataChannel */
+  RTCDataChannel createDataChannel(String label, Map options);
 
   /** @domName RTCPeerConnection.createOffer */
   void createOffer(RTCSessionDescriptionCallback successCallback, [RTCErrorCallback failureCallback, Map mediaConstraints]);
@@ -23291,6 +23367,12 @@ class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnecti
   }
   void _createAnswer_1(RTCSessionDescriptionCallback successCallback, RTCErrorCallback failureCallback, mediaConstraints) native "createAnswer";
 
+  _RTCDataChannelImpl createDataChannel(String label, Map options) {
+    var options_1 = _convertDartToNative_Dictionary(options);
+    return _createDataChannel_1(label, options_1);
+  }
+  _RTCDataChannelImpl _createDataChannel_1(label, options) native "createDataChannel";
+
   void createOffer(RTCSessionDescriptionCallback successCallback, [failureCallback, mediaConstraints]) {
     var mediaConstraints_1 = _convertDartToNative_Dictionary(mediaConstraints);
     _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
@@ -23359,6 +23441,7 @@ abstract class RTCSessionDescription {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void RTCSessionDescriptionCallback(RTCSessionDescription sdp);
 
 class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSessionDescription" {
@@ -23373,6 +23456,7 @@ class _RTCSessionDescriptionImpl implements RTCSessionDescription native "*RTCSe
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void RTCStatsCallback(RTCStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23384,7 +23468,7 @@ typedef void RTCStatsCallback(RTCStatsResponse response);
 abstract class RTCStatsElement {
 
   /** @domName RTCStatsElement.timestamp */
-  abstract int get timestamp;
+  Date get timestamp;
 
   /** @domName RTCStatsElement.stat */
   String stat(String name);
@@ -23392,7 +23476,7 @@ abstract class RTCStatsElement {
 
 class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" {
 
-  final int timestamp;
+  final Date timestamp;
 
   String stat(String name) native;
 }
@@ -23406,17 +23490,17 @@ class _RTCStatsElementImpl implements RTCStatsElement native "*RTCStatsElement" 
 abstract class RTCStatsReport {
 
   /** @domName RTCStatsReport.local */
-  List<RTCStatsElement> local();
+  RTCStatsElement get local;
 
   /** @domName RTCStatsReport.remote */
-  List<RTCStatsElement> remote();
+  RTCStatsElement get remote;
 }
 
 class _RTCStatsReportImpl implements RTCStatsReport native "*RTCStatsReport" {
 
-  List<RTCStatsElement> local() native;
+  final _RTCStatsElementImpl local;
 
-  List<RTCStatsElement> remote() native;
+  final _RTCStatsElementImpl remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23478,22 +23562,22 @@ abstract class Range {
   static const int START_TO_START = 0;
 
   /** @domName Range.collapsed */
-  abstract bool get collapsed;
+  bool get collapsed;
 
   /** @domName Range.commonAncestorContainer */
-  abstract Node get commonAncestorContainer;
+  Node get commonAncestorContainer;
 
   /** @domName Range.endContainer */
-  abstract Node get endContainer;
+  Node get endContainer;
 
   /** @domName Range.endOffset */
-  abstract int get endOffset;
+  int get endOffset;
 
   /** @domName Range.startContainer */
-  abstract Node get startContainer;
+  Node get startContainer;
 
   /** @domName Range.startOffset */
-  abstract int get startOffset;
+  int get startOffset;
 
   /** @domName Range.cloneContents */
   DocumentFragment cloneContents();
@@ -23584,13 +23668,13 @@ abstract class RangeException {
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   /** @domName RangeException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName RangeException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName RangeException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName RangeException.toString */
   String toString();
@@ -23684,7 +23768,7 @@ abstract class RealtimeAnalyserNode implements AudioNode {
   int fftSize;
 
   /** @domName RealtimeAnalyserNode.frequencyBinCount */
-  abstract int get frequencyBinCount;
+  int get frequencyBinCount;
 
   /** @domName RealtimeAnalyserNode.maxDecibels */
   num maxDecibels;
@@ -23733,16 +23817,16 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 abstract class Rect {
 
   /** @domName Rect.bottom */
-  abstract CSSPrimitiveValue get bottom;
+  CSSPrimitiveValue get bottom;
 
   /** @domName Rect.left */
-  abstract CSSPrimitiveValue get left;
+  CSSPrimitiveValue get left;
 
   /** @domName Rect.right */
-  abstract CSSPrimitiveValue get right;
+  CSSPrimitiveValue get right;
 
   /** @domName Rect.top */
-  abstract CSSPrimitiveValue get top;
+  CSSPrimitiveValue get top;
 }
 
 class _RectImpl implements Rect native "*Rect" {
@@ -23761,7 +23845,8 @@ class _RectImpl implements Rect native "*Rect" {
 
 // WARNING: Do not edit - generated code.
 
-typedef void RequestAnimationFrameCallback(int time);
+
+typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23788,10 +23873,10 @@ abstract class SQLError {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SQLError.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SQLErrorImpl implements SQLError native "*SQLError" {
@@ -23826,10 +23911,10 @@ abstract class SQLException {
   static const int VERSION_ERR = 2;
 
   /** @domName SQLException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SQLException.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SQLExceptionImpl implements SQLException native "*SQLException" {
@@ -23848,13 +23933,13 @@ class _SQLExceptionImpl implements SQLException native "*SQLException" {
 abstract class SQLResultSet {
 
   /** @domName SQLResultSet.insertId */
-  abstract int get insertId;
+  int get insertId;
 
   /** @domName SQLResultSet.rows */
-  abstract SQLResultSetRowList get rows;
+  SQLResultSetRowList get rows;
 
   /** @domName SQLResultSet.rowsAffected */
-  abstract int get rowsAffected;
+  int get rowsAffected;
 }
 
 class _SQLResultSetImpl implements SQLResultSet native "*SQLResultSet" {
@@ -23875,7 +23960,7 @@ class _SQLResultSetImpl implements SQLResultSet native "*SQLResultSet" {
 abstract class SQLResultSetRowList implements List<Map> {
 
   /** @domName SQLResultSetRowList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SQLResultSetRowList.item */
   Map item(int index);
@@ -23888,7 +23973,7 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   Map operator[](int index) => JS("Map", "#[#]", this, index);
 
   void operator[]=(int index, Map value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Map> mixins.
   // Map is the element type.
@@ -23905,15 +23990,15 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
   // From Collection<Map>:
 
   void add(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Map value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Map> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Map element) => _Collections.contains(this, element);
@@ -23929,38 +24014,38 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
   bool some(bool f(Map element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Map>:
 
   void sort([Comparator<Map> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Map element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Map element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Map last() => this[length - 1];
+  Map get last => this[length - 1];
 
   Map removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Map> getRange(int start, int rangeLength) =>
@@ -23979,12 +24064,14 @@ class _SQLResultSetRowListImpl implements SQLResultSetRowList, JavaScriptIndexin
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24005,12 +24092,14 @@ abstract class SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void SQLTransactionCallback(SQLTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void SQLTransactionErrorCallback(SQLError error);
 
@@ -24036,6 +24125,7 @@ abstract class SQLTransactionSync {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransactionSync" {
@@ -24052,7 +24142,7 @@ class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransact
 abstract class SVGAElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGAElement.target */
-  abstract SVGAnimatedString get target;
+  SVGAnimatedString get target;
 }
 
 class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*SVGAElement" {
@@ -24085,7 +24175,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24180,7 +24270,7 @@ abstract class SVGAngle {
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   /** @domName SVGAngle.unitType */
-  abstract int get unitType;
+  int get unitType;
 
   /** @domName SVGAngle.value */
   num value;
@@ -24270,10 +24360,10 @@ class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implement
 abstract class SVGAnimatedAngle {
 
   /** @domName SVGAnimatedAngle.animVal */
-  abstract SVGAngle get animVal;
+  SVGAngle get animVal;
 
   /** @domName SVGAnimatedAngle.baseVal */
-  abstract SVGAngle get baseVal;
+  SVGAngle get baseVal;
 }
 
 class _SVGAnimatedAngleImpl implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
@@ -24292,7 +24382,7 @@ class _SVGAnimatedAngleImpl implements SVGAnimatedAngle native "*SVGAnimatedAngl
 abstract class SVGAnimatedBoolean {
 
   /** @domName SVGAnimatedBoolean.animVal */
-  abstract bool get animVal;
+  bool get animVal;
 
   /** @domName SVGAnimatedBoolean.baseVal */
   bool baseVal;
@@ -24314,7 +24404,7 @@ class _SVGAnimatedBooleanImpl implements SVGAnimatedBoolean native "*SVGAnimated
 abstract class SVGAnimatedEnumeration {
 
   /** @domName SVGAnimatedEnumeration.animVal */
-  abstract int get animVal;
+  int get animVal;
 
   /** @domName SVGAnimatedEnumeration.baseVal */
   int baseVal;
@@ -24336,7 +24426,7 @@ class _SVGAnimatedEnumerationImpl implements SVGAnimatedEnumeration native "*SVG
 abstract class SVGAnimatedInteger {
 
   /** @domName SVGAnimatedInteger.animVal */
-  abstract int get animVal;
+  int get animVal;
 
   /** @domName SVGAnimatedInteger.baseVal */
   int baseVal;
@@ -24358,10 +24448,10 @@ class _SVGAnimatedIntegerImpl implements SVGAnimatedInteger native "*SVGAnimated
 abstract class SVGAnimatedLength {
 
   /** @domName SVGAnimatedLength.animVal */
-  abstract SVGLength get animVal;
+  SVGLength get animVal;
 
   /** @domName SVGAnimatedLength.baseVal */
-  abstract SVGLength get baseVal;
+  SVGLength get baseVal;
 }
 
 class _SVGAnimatedLengthImpl implements SVGAnimatedLength native "*SVGAnimatedLength" {
@@ -24380,10 +24470,10 @@ class _SVGAnimatedLengthImpl implements SVGAnimatedLength native "*SVGAnimatedLe
 abstract class SVGAnimatedLengthList implements List<SVGAnimatedLength> {
 
   /** @domName SVGAnimatedLengthList.animVal */
-  abstract SVGLengthList get animVal;
+  SVGLengthList get animVal;
 
   /** @domName SVGAnimatedLengthList.baseVal */
-  abstract SVGLengthList get baseVal;
+  SVGLengthList get baseVal;
 }
 
 class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptIndexingBehavior native "*SVGAnimatedLengthList" {
@@ -24395,7 +24485,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   _SVGAnimatedLengthImpl operator[](int index) => JS("_SVGAnimatedLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedLengthImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedLength> mixins.
   // SVGAnimatedLength is the element type.
@@ -24412,15 +24502,15 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
   // From Collection<SVGAnimatedLength>:
 
   void add(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedLength element) => _Collections.contains(this, element);
@@ -24436,38 +24526,38 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 
   bool some(bool f(SVGAnimatedLength element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimatedLength>:
 
   void sort([Comparator<SVGAnimatedLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedLength element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedLength last() => this[length - 1];
+  SVGAnimatedLength get last => this[length - 1];
 
   SVGAnimatedLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedLength> getRange(int start, int rangeLength) =>
@@ -24485,7 +24575,7 @@ class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList, JavaScriptInd
 abstract class SVGAnimatedNumber {
 
   /** @domName SVGAnimatedNumber.animVal */
-  abstract num get animVal;
+  num get animVal;
 
   /** @domName SVGAnimatedNumber.baseVal */
   num baseVal;
@@ -24507,10 +24597,10 @@ class _SVGAnimatedNumberImpl implements SVGAnimatedNumber native "*SVGAnimatedNu
 abstract class SVGAnimatedNumberList implements List<SVGAnimatedNumber> {
 
   /** @domName SVGAnimatedNumberList.animVal */
-  abstract SVGNumberList get animVal;
+  SVGNumberList get animVal;
 
   /** @domName SVGAnimatedNumberList.baseVal */
-  abstract SVGNumberList get baseVal;
+  SVGNumberList get baseVal;
 }
 
 class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptIndexingBehavior native "*SVGAnimatedNumberList" {
@@ -24522,7 +24612,7 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   _SVGAnimatedNumberImpl operator[](int index) => JS("_SVGAnimatedNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimatedNumberImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimatedNumber> mixins.
   // SVGAnimatedNumber is the element type.
@@ -24539,15 +24629,15 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
   // From Collection<SVGAnimatedNumber>:
 
   void add(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimatedNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimatedNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimatedNumber element) => _Collections.contains(this, element);
@@ -24563,38 +24653,38 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 
   bool some(bool f(SVGAnimatedNumber element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimatedNumber>:
 
   void sort([Comparator<SVGAnimatedNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimatedNumber element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimatedNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimatedNumber last() => this[length - 1];
+  SVGAnimatedNumber get last => this[length - 1];
 
   SVGAnimatedNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimatedNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimatedNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimatedNumber> getRange(int start, int rangeLength) =>
@@ -24612,10 +24702,10 @@ class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList, JavaScriptInd
 abstract class SVGAnimatedPreserveAspectRatio {
 
   /** @domName SVGAnimatedPreserveAspectRatio.animVal */
-  abstract SVGPreserveAspectRatio get animVal;
+  SVGPreserveAspectRatio get animVal;
 
   /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
-  abstract SVGPreserveAspectRatio get baseVal;
+  SVGPreserveAspectRatio get baseVal;
 }
 
 class _SVGAnimatedPreserveAspectRatioImpl implements SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
@@ -24634,10 +24724,10 @@ class _SVGAnimatedPreserveAspectRatioImpl implements SVGAnimatedPreserveAspectRa
 abstract class SVGAnimatedRect {
 
   /** @domName SVGAnimatedRect.animVal */
-  abstract SVGRect get animVal;
+  SVGRect get animVal;
 
   /** @domName SVGAnimatedRect.baseVal */
-  abstract SVGRect get baseVal;
+  SVGRect get baseVal;
 }
 
 class _SVGAnimatedRectImpl implements SVGAnimatedRect native "*SVGAnimatedRect" {
@@ -24656,7 +24746,7 @@ class _SVGAnimatedRectImpl implements SVGAnimatedRect native "*SVGAnimatedRect" 
 abstract class SVGAnimatedString {
 
   /** @domName SVGAnimatedString.animVal */
-  abstract String get animVal;
+  String get animVal;
 
   /** @domName SVGAnimatedString.baseVal */
   String baseVal;
@@ -24678,10 +24768,10 @@ class _SVGAnimatedStringImpl implements SVGAnimatedString native "*SVGAnimatedSt
 abstract class SVGAnimatedTransformList implements List<SVGAnimateTransformElement> {
 
   /** @domName SVGAnimatedTransformList.animVal */
-  abstract SVGTransformList get animVal;
+  SVGTransformList get animVal;
 
   /** @domName SVGAnimatedTransformList.baseVal */
-  abstract SVGTransformList get baseVal;
+  SVGTransformList get baseVal;
 }
 
 class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScriptIndexingBehavior native "*SVGAnimatedTransformList" {
@@ -24693,7 +24783,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   _SVGAnimateTransformElementImpl operator[](int index) => JS("_SVGAnimateTransformElementImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGAnimateTransformElementImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGAnimateTransformElement> mixins.
   // SVGAnimateTransformElement is the element type.
@@ -24710,15 +24800,15 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
   // From Collection<SVGAnimateTransformElement>:
 
   void add(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGAnimateTransformElement value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGAnimateTransformElement> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGAnimateTransformElement element) => _Collections.contains(this, element);
@@ -24734,38 +24824,38 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 
   bool some(bool f(SVGAnimateTransformElement element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGAnimateTransformElement>:
 
   void sort([Comparator<SVGAnimateTransformElement> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGAnimateTransformElement element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGAnimateTransformElement element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGAnimateTransformElement last() => this[length - 1];
+  SVGAnimateTransformElement get last => this[length - 1];
 
   SVGAnimateTransformElement removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGAnimateTransformElement> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGAnimateTransformElement initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGAnimateTransformElement> getRange(int start, int rangeLength) =>
@@ -24783,7 +24873,7 @@ class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList, JavaScr
 abstract class SVGAnimationElement implements SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
   /** @domName SVGAnimationElement.targetElement */
-  abstract SVGElement get targetElement;
+  SVGElement get targetElement;
 
   /** @domName SVGAnimationElement.getCurrentTime */
   num getCurrentTime();
@@ -24839,13 +24929,13 @@ class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationEl
 abstract class SVGCircleElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGCircleElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGCircleElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
 
   /** @domName SVGCircleElement.r */
-  abstract SVGAnimatedLength get r;
+  SVGAnimatedLength get r;
 }
 
 class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement native "*SVGCircleElement" {
@@ -24878,7 +24968,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24913,7 +25003,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 abstract class SVGClipPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGClipPathElement.clipPathUnits */
-  abstract SVGAnimatedEnumeration get clipPathUnits;
+  SVGAnimatedEnumeration get clipPathUnits;
 }
 
 class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElement native "*SVGClipPathElement" {
@@ -24942,7 +25032,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -24985,10 +25075,10 @@ abstract class SVGColor implements CSSValue {
   static const int SVG_COLORTYPE_UNKNOWN = 0;
 
   /** @domName SVGColor.colorType */
-  abstract int get colorType;
+  int get colorType;
 
   /** @domName SVGColor.rgbColor */
-  abstract RGBColor get rgbColor;
+  RGBColor get rgbColor;
 
   /** @domName SVGColor.setColor */
   void setColor(int colorType, String rgbColor, String iccColor);
@@ -25034,25 +25124,25 @@ abstract class SVGComponentTransferFunctionElement implements SVGElement {
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
   /** @domName SVGComponentTransferFunctionElement.amplitude */
-  abstract SVGAnimatedNumber get amplitude;
+  SVGAnimatedNumber get amplitude;
 
   /** @domName SVGComponentTransferFunctionElement.exponent */
-  abstract SVGAnimatedNumber get exponent;
+  SVGAnimatedNumber get exponent;
 
   /** @domName SVGComponentTransferFunctionElement.intercept */
-  abstract SVGAnimatedNumber get intercept;
+  SVGAnimatedNumber get intercept;
 
   /** @domName SVGComponentTransferFunctionElement.offset */
-  abstract SVGAnimatedNumber get offset;
+  SVGAnimatedNumber get offset;
 
   /** @domName SVGComponentTransferFunctionElement.slope */
-  abstract SVGAnimatedNumber get slope;
+  SVGAnimatedNumber get slope;
 
   /** @domName SVGComponentTransferFunctionElement.tableValues */
-  abstract SVGAnimatedNumberList get tableValues;
+  SVGAnimatedNumberList get tableValues;
 
   /** @domName SVGComponentTransferFunctionElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 }
 
 class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
@@ -25081,10 +25171,10 @@ class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implement
 abstract class SVGCursorElement implements SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
 
   /** @domName SVGCursorElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGCursorElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement native "*SVGCursorElement" {
@@ -25145,7 +25235,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25190,7 +25280,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25207,7 +25297,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 abstract class SVGDocument implements Document {
 
   /** @domName SVGDocument.rootElement */
-  abstract SVGSVGElement get rootElement;
+  SVGSVGElement get rootElement;
 
   /** @domName SVGDocument.createEvent */
   Event $dom_createEvent(String eventType);
@@ -25222,6 +25312,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument native "*SVG
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 /// @domName SVGElement
 abstract class SVGElement implements Element {
@@ -25238,10 +25329,10 @@ abstract class SVGElement implements Element {
   String id;
 
   /** @domName SVGElement.ownerSVGElement */
-  abstract SVGSVGElement get ownerSVGElement;
+  SVGSVGElement get ownerSVGElement;
 
   /** @domName SVGElement.viewportElement */
-  abstract SVGElement get viewportElement;
+  SVGElement get viewportElement;
 
   /** @domName SVGElement.xmlbase */
   String xmlbase;
@@ -25263,7 +25354,7 @@ class _AttributeClassSet extends _CssClassSet {
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGElement" {
   CSSClassSet get classes {
-    if (_cssClassSet === null) {
+    if (_cssClassSet == null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;
@@ -25301,7 +25392,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 
   // Shadowing definition.
-  String get id() => JS("String", "#.id", this);
+  String get id => JS("String", "#.id", this);
 
   void set id(String value) {
     JS("void", "#.id = #", this, value);
@@ -25329,28 +25420,28 @@ abstract class SVGElementInstance implements EventTarget {
   SVGElementInstanceEvents get on;
 
   /** @domName SVGElementInstance.childNodes */
-  abstract List<SVGElementInstance> get childNodes;
+  List<SVGElementInstance> get childNodes;
 
   /** @domName SVGElementInstance.correspondingElement */
-  abstract SVGElement get correspondingElement;
+  SVGElement get correspondingElement;
 
   /** @domName SVGElementInstance.correspondingUseElement */
-  abstract SVGUseElement get correspondingUseElement;
+  SVGUseElement get correspondingUseElement;
 
   /** @domName SVGElementInstance.firstChild */
-  abstract SVGElementInstance get firstChild;
+  SVGElementInstance get firstChild;
 
   /** @domName SVGElementInstance.lastChild */
-  abstract SVGElementInstance get lastChild;
+  SVGElementInstance get lastChild;
 
   /** @domName SVGElementInstance.nextSibling */
-  abstract SVGElementInstance get nextSibling;
+  SVGElementInstance get nextSibling;
 
   /** @domName SVGElementInstance.parentNode */
-  abstract SVGElementInstance get parentNode;
+  SVGElementInstance get parentNode;
 
   /** @domName SVGElementInstance.previousSibling */
-  abstract SVGElementInstance get previousSibling;
+  SVGElementInstance get previousSibling;
 }
 
 abstract class SVGElementInstanceEvents implements Events {
@@ -25549,7 +25640,7 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   _SVGElementInstanceImpl operator[](int index) => JS("_SVGElementInstanceImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGElementInstanceImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGElementInstance> mixins.
   // SVGElementInstance is the element type.
@@ -25566,15 +25657,15 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
   // From Collection<SVGElementInstance>:
 
   void add(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGElementInstance value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGElementInstance> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGElementInstance element) => _Collections.contains(this, element);
@@ -25590,38 +25681,38 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 
   bool some(bool f(SVGElementInstance element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGElementInstance>:
 
   void sort([Comparator<SVGElementInstance> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGElementInstance element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGElementInstance element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGElementInstance last() => this[length - 1];
+  SVGElementInstance get last => this[length - 1];
 
   SVGElementInstance removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGElementInstance> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGElementInstance initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGElementInstance> getRange(int start, int rangeLength) =>
@@ -25641,16 +25732,16 @@ class _SVGElementInstanceListImpl implements List<SVGElementInstance>, JavaScrip
 abstract class SVGEllipseElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGEllipseElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGEllipseElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
 
   /** @domName SVGEllipseElement.rx */
-  abstract SVGAnimatedLength get rx;
+  SVGAnimatedLength get rx;
 
   /** @domName SVGEllipseElement.ry */
-  abstract SVGAnimatedLength get ry;
+  SVGAnimatedLength get ry;
 }
 
 class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElement native "*SVGEllipseElement" {
@@ -25685,7 +25776,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25726,13 +25817,13 @@ abstract class SVGException {
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   /** @domName SVGException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SVGException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName SVGException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName SVGException.toString */
   String toString();
@@ -25758,7 +25849,7 @@ class _SVGExceptionImpl implements SVGException native "*SVGException" {
 abstract class SVGExternalResourcesRequired {
 
   /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
-  abstract SVGAnimatedBoolean get externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25782,13 +25873,13 @@ abstract class SVGFEBlendElement implements SVGElement, SVGFilterPrimitiveStanda
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   /** @domName SVGFEBlendElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEBlendElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFEBlendElement.mode */
-  abstract SVGAnimatedEnumeration get mode;
+  SVGAnimatedEnumeration get mode;
 }
 
 class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement native "*SVGFEBlendElement" {
@@ -25813,7 +25904,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25840,13 +25931,13 @@ abstract class SVGFEColorMatrixElement implements SVGElement, SVGFilterPrimitive
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFEColorMatrixElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEColorMatrixElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 
   /** @domName SVGFEColorMatrixElement.values */
-  abstract SVGAnimatedNumberList get values;
+  SVGAnimatedNumberList get values;
 }
 
 class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
@@ -25871,7 +25962,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25888,7 +25979,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 abstract class SVGFEComponentTransferElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEComponentTransferElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGFEComponentTransferElement native "*SVGFEComponentTransferElement" {
@@ -25909,7 +26000,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -25940,25 +26031,25 @@ abstract class SVGFECompositeElement implements SVGElement, SVGFilterPrimitiveSt
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   /** @domName SVGFECompositeElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFECompositeElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFECompositeElement.k1 */
-  abstract SVGAnimatedNumber get k1;
+  SVGAnimatedNumber get k1;
 
   /** @domName SVGFECompositeElement.k2 */
-  abstract SVGAnimatedNumber get k2;
+  SVGAnimatedNumber get k2;
 
   /** @domName SVGFECompositeElement.k3 */
-  abstract SVGAnimatedNumber get k3;
+  SVGAnimatedNumber get k3;
 
   /** @domName SVGFECompositeElement.k4 */
-  abstract SVGAnimatedNumber get k4;
+  SVGAnimatedNumber get k4;
 
   /** @domName SVGFECompositeElement.operator */
-  abstract SVGAnimatedEnumeration get operator;
+  SVGAnimatedEnumeration get operator;
 }
 
 class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement native "*SVGFECompositeElement" {
@@ -25991,7 +26082,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26016,40 +26107,40 @@ abstract class SVGFEConvolveMatrixElement implements SVGElement, SVGFilterPrimit
   static const int SVG_EDGEMODE_WRAP = 2;
 
   /** @domName SVGFEConvolveMatrixElement.bias */
-  abstract SVGAnimatedNumber get bias;
+  SVGAnimatedNumber get bias;
 
   /** @domName SVGFEConvolveMatrixElement.divisor */
-  abstract SVGAnimatedNumber get divisor;
+  SVGAnimatedNumber get divisor;
 
   /** @domName SVGFEConvolveMatrixElement.edgeMode */
-  abstract SVGAnimatedEnumeration get edgeMode;
+  SVGAnimatedEnumeration get edgeMode;
 
   /** @domName SVGFEConvolveMatrixElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
-  abstract SVGAnimatedNumberList get kernelMatrix;
+  SVGAnimatedNumberList get kernelMatrix;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
-  abstract SVGAnimatedNumber get kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
-  abstract SVGAnimatedNumber get kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEConvolveMatrixElement.orderX */
-  abstract SVGAnimatedInteger get orderX;
+  SVGAnimatedInteger get orderX;
 
   /** @domName SVGFEConvolveMatrixElement.orderY */
-  abstract SVGAnimatedInteger get orderY;
+  SVGAnimatedInteger get orderY;
 
   /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
-  abstract SVGAnimatedBoolean get preserveAlpha;
+  SVGAnimatedBoolean get preserveAlpha;
 
   /** @domName SVGFEConvolveMatrixElement.targetX */
-  abstract SVGAnimatedInteger get targetX;
+  SVGAnimatedInteger get targetX;
 
   /** @domName SVGFEConvolveMatrixElement.targetY */
-  abstract SVGAnimatedInteger get targetY;
+  SVGAnimatedInteger get targetY;
 }
 
 class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
@@ -26092,7 +26183,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26109,19 +26200,19 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 abstract class SVGFEDiffuseLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
-  abstract SVGAnimatedNumber get diffuseConstant;
+  SVGAnimatedNumber get diffuseConstant;
 
   /** @domName SVGFEDiffuseLightingElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
-  abstract SVGAnimatedNumber get kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX;
 
   /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
-  abstract SVGAnimatedNumber get kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY;
 
   /** @domName SVGFEDiffuseLightingElement.surfaceScale */
-  abstract SVGAnimatedNumber get surfaceScale;
+  SVGAnimatedNumber get surfaceScale;
 }
 
 class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFEDiffuseLightingElement native "*SVGFEDiffuseLightingElement" {
@@ -26150,7 +26241,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26177,19 +26268,19 @@ abstract class SVGFEDisplacementMapElement implements SVGElement, SVGFilterPrimi
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   /** @domName SVGFEDisplacementMapElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDisplacementMapElement.in2 */
-  abstract SVGAnimatedString get in2;
+  SVGAnimatedString get in2;
 
   /** @domName SVGFEDisplacementMapElement.scale */
-  abstract SVGAnimatedNumber get scale;
+  SVGAnimatedNumber get scale;
 
   /** @domName SVGFEDisplacementMapElement.xChannelSelector */
-  abstract SVGAnimatedEnumeration get xChannelSelector;
+  SVGAnimatedEnumeration get xChannelSelector;
 
   /** @domName SVGFEDisplacementMapElement.yChannelSelector */
-  abstract SVGAnimatedEnumeration get yChannelSelector;
+  SVGAnimatedEnumeration get yChannelSelector;
 }
 
 class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
@@ -26218,7 +26309,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26235,10 +26326,10 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 abstract class SVGFEDistantLightElement implements SVGElement {
 
   /** @domName SVGFEDistantLightElement.azimuth */
-  abstract SVGAnimatedNumber get azimuth;
+  SVGAnimatedNumber get azimuth;
 
   /** @domName SVGFEDistantLightElement.elevation */
-  abstract SVGAnimatedNumber get elevation;
+  SVGAnimatedNumber get elevation;
 }
 
 class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDistantLightElement native "*SVGFEDistantLightElement" {
@@ -26257,19 +26348,19 @@ class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDist
 abstract class SVGFEDropShadowElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEDropShadowElement.dx */
-  abstract SVGAnimatedNumber get dx;
+  SVGAnimatedNumber get dx;
 
   /** @domName SVGFEDropShadowElement.dy */
-  abstract SVGAnimatedNumber get dy;
+  SVGAnimatedNumber get dy;
 
   /** @domName SVGFEDropShadowElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEDropShadowElement.stdDeviationX */
-  abstract SVGAnimatedNumber get stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEDropShadowElement.stdDeviationY */
-  abstract SVGAnimatedNumber get stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEDropShadowElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -26303,7 +26394,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26336,7 +26427,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26401,13 +26492,13 @@ class _SVGFEFuncRElementImpl extends _SVGComponentTransferFunctionElementImpl im
 abstract class SVGFEGaussianBlurElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEGaussianBlurElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationX */
-  abstract SVGAnimatedNumber get stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX;
 
   /** @domName SVGFEGaussianBlurElement.stdDeviationY */
-  abstract SVGAnimatedNumber get stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY;
 
   /** @domName SVGFEGaussianBlurElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
@@ -26437,7 +26528,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26454,7 +26545,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 abstract class SVGFEImageElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEImageElement.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 }
 
 class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElement native "*SVGFEImageElement" {
@@ -26489,7 +26580,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26522,7 +26613,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26539,7 +26630,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 abstract class SVGFEMergeNodeElement implements SVGElement {
 
   /** @domName SVGFEMergeNodeElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
@@ -26562,16 +26653,16 @@ abstract class SVGFEMorphologyElement implements SVGElement, SVGFilterPrimitiveS
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   /** @domName SVGFEMorphologyElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFEMorphologyElement.operator */
-  abstract SVGAnimatedEnumeration get operator;
+  SVGAnimatedEnumeration get operator;
 
   /** @domName SVGFEMorphologyElement.radiusX */
-  abstract SVGAnimatedNumber get radiusX;
+  SVGAnimatedNumber get radiusX;
 
   /** @domName SVGFEMorphologyElement.radiusY */
-  abstract SVGAnimatedNumber get radiusY;
+  SVGAnimatedNumber get radiusY;
 
   /** @domName SVGFEMorphologyElement.setRadius */
   void setRadius(num radiusX, num radiusY);
@@ -26603,7 +26694,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26620,13 +26711,13 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 abstract class SVGFEOffsetElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFEOffsetElement.dx */
-  abstract SVGAnimatedNumber get dx;
+  SVGAnimatedNumber get dx;
 
   /** @domName SVGFEOffsetElement.dy */
-  abstract SVGAnimatedNumber get dy;
+  SVGAnimatedNumber get dy;
 
   /** @domName SVGFEOffsetElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElement native "*SVGFEOffsetElement" {
@@ -26651,7 +26742,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26668,13 +26759,13 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 abstract class SVGFEPointLightElement implements SVGElement {
 
   /** @domName SVGFEPointLightElement.x */
-  abstract SVGAnimatedNumber get x;
+  SVGAnimatedNumber get x;
 
   /** @domName SVGFEPointLightElement.y */
-  abstract SVGAnimatedNumber get y;
+  SVGAnimatedNumber get y;
 
   /** @domName SVGFEPointLightElement.z */
-  abstract SVGAnimatedNumber get z;
+  SVGAnimatedNumber get z;
 }
 
 class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
@@ -26695,16 +26786,16 @@ class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointL
 abstract class SVGFESpecularLightingElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFESpecularLightingElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 
   /** @domName SVGFESpecularLightingElement.specularConstant */
-  abstract SVGAnimatedNumber get specularConstant;
+  SVGAnimatedNumber get specularConstant;
 
   /** @domName SVGFESpecularLightingElement.specularExponent */
-  abstract SVGAnimatedNumber get specularExponent;
+  SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpecularLightingElement.surfaceScale */
-  abstract SVGAnimatedNumber get surfaceScale;
+  SVGAnimatedNumber get surfaceScale;
 }
 
 class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFESpecularLightingElement native "*SVGFESpecularLightingElement" {
@@ -26731,7 +26822,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26748,28 +26839,28 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 abstract class SVGFESpotLightElement implements SVGElement {
 
   /** @domName SVGFESpotLightElement.limitingConeAngle */
-  abstract SVGAnimatedNumber get limitingConeAngle;
+  SVGAnimatedNumber get limitingConeAngle;
 
   /** @domName SVGFESpotLightElement.pointsAtX */
-  abstract SVGAnimatedNumber get pointsAtX;
+  SVGAnimatedNumber get pointsAtX;
 
   /** @domName SVGFESpotLightElement.pointsAtY */
-  abstract SVGAnimatedNumber get pointsAtY;
+  SVGAnimatedNumber get pointsAtY;
 
   /** @domName SVGFESpotLightElement.pointsAtZ */
-  abstract SVGAnimatedNumber get pointsAtZ;
+  SVGAnimatedNumber get pointsAtZ;
 
   /** @domName SVGFESpotLightElement.specularExponent */
-  abstract SVGAnimatedNumber get specularExponent;
+  SVGAnimatedNumber get specularExponent;
 
   /** @domName SVGFESpotLightElement.x */
-  abstract SVGAnimatedNumber get x;
+  SVGAnimatedNumber get x;
 
   /** @domName SVGFESpotLightElement.y */
-  abstract SVGAnimatedNumber get y;
+  SVGAnimatedNumber get y;
 
   /** @domName SVGFESpotLightElement.z */
-  abstract SVGAnimatedNumber get z;
+  SVGAnimatedNumber get z;
 }
 
 class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
@@ -26800,7 +26891,7 @@ class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLig
 abstract class SVGFETileElement implements SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   /** @domName SVGFETileElement.in1 */
-  abstract SVGAnimatedString get in1;
+  SVGAnimatedString get in1;
 }
 
 class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement native "*SVGFETileElement" {
@@ -26821,7 +26912,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26850,22 +26941,22 @@ abstract class SVGFETurbulenceElement implements SVGElement, SVGFilterPrimitiveS
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyX */
-  abstract SVGAnimatedNumber get baseFrequencyX;
+  SVGAnimatedNumber get baseFrequencyX;
 
   /** @domName SVGFETurbulenceElement.baseFrequencyY */
-  abstract SVGAnimatedNumber get baseFrequencyY;
+  SVGAnimatedNumber get baseFrequencyY;
 
   /** @domName SVGFETurbulenceElement.numOctaves */
-  abstract SVGAnimatedInteger get numOctaves;
+  SVGAnimatedInteger get numOctaves;
 
   /** @domName SVGFETurbulenceElement.seed */
-  abstract SVGAnimatedNumber get seed;
+  SVGAnimatedNumber get seed;
 
   /** @domName SVGFETurbulenceElement.stitchTiles */
-  abstract SVGAnimatedEnumeration get stitchTiles;
+  SVGAnimatedEnumeration get stitchTiles;
 
   /** @domName SVGFETurbulenceElement.type */
-  abstract SVGAnimatedEnumeration get type;
+  SVGAnimatedEnumeration get type;
 }
 
 class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
@@ -26896,7 +26987,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26913,28 +27004,28 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 abstract class SVGFilterElement implements SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGFilterElement.filterResX */
-  abstract SVGAnimatedInteger get filterResX;
+  SVGAnimatedInteger get filterResX;
 
   /** @domName SVGFilterElement.filterResY */
-  abstract SVGAnimatedInteger get filterResY;
+  SVGAnimatedInteger get filterResY;
 
   /** @domName SVGFilterElement.filterUnits */
-  abstract SVGAnimatedEnumeration get filterUnits;
+  SVGAnimatedEnumeration get filterUnits;
 
   /** @domName SVGFilterElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGFilterElement.primitiveUnits */
-  abstract SVGAnimatedEnumeration get primitiveUnits;
+  SVGAnimatedEnumeration get primitiveUnits;
 
   /** @domName SVGFilterElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGFilterElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGFilterElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 
   /** @domName SVGFilterElement.setFilterRes */
   void setFilterRes(int filterResX, int filterResY);
@@ -26976,7 +27067,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -26993,19 +27084,19 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 
   /** @domName SVGFilterPrimitiveStandardAttributes.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.result */
-  abstract SVGAnimatedString get result;
+  SVGAnimatedString get result;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGFilterPrimitiveStandardAttributes.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27017,10 +27108,10 @@ abstract class SVGFilterPrimitiveStandardAttributes implements SVGStylable {
 abstract class SVGFitToViewBox {
 
   /** @domName SVGFitToViewBox.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGFitToViewBox.viewBox */
-  abstract SVGAnimatedRect get viewBox;
+  SVGAnimatedRect get viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27104,16 +27195,16 @@ class _SVGFontFaceUriElementImpl extends _SVGElementImpl implements SVGFontFaceU
 abstract class SVGForeignObjectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGForeignObjectElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGForeignObjectElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGForeignObjectElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGForeignObjectElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeignObjectElement native "*SVGForeignObjectElement" {
@@ -27148,7 +27239,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27207,7 +27298,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27292,7 +27383,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27317,13 +27408,13 @@ abstract class SVGGradientElement implements SVGElement, SVGURIReference, SVGExt
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   /** @domName SVGGradientElement.gradientTransform */
-  abstract SVGAnimatedTransformList get gradientTransform;
+  SVGAnimatedTransformList get gradientTransform;
 
   /** @domName SVGGradientElement.gradientUnits */
-  abstract SVGAnimatedEnumeration get gradientUnits;
+  SVGAnimatedEnumeration get gradientUnits;
 
   /** @domName SVGGradientElement.spreadMethod */
-  abstract SVGAnimatedEnumeration get spreadMethod;
+  SVGAnimatedEnumeration get spreadMethod;
 }
 
 class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement native "*SVGGradientElement" {
@@ -27344,7 +27435,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27373,19 +27464,19 @@ class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement na
 abstract class SVGImageElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGImageElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGImageElement.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGImageElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGImageElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGImageElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement native "*SVGImageElement" {
@@ -27426,7 +27517,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27498,7 +27589,7 @@ abstract class SVGLength {
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   /** @domName SVGLength.unitType */
-  abstract int get unitType;
+  int get unitType;
 
   /** @domName SVGLength.value */
   num value;
@@ -27540,7 +27631,7 @@ class _SVGLengthImpl implements SVGLength native "*SVGLength" {
 abstract class SVGLengthList implements List<SVGLength> {
 
   /** @domName SVGLengthList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGLengthList.appendItem */
   SVGLength appendItem(SVGLength item);
@@ -27571,7 +27662,7 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   _SVGLengthImpl operator[](int index) => JS("_SVGLengthImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGLengthImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGLength> mixins.
   // SVGLength is the element type.
@@ -27588,15 +27679,15 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
   // From Collection<SVGLength>:
 
   void add(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGLength value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGLength> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGLength element) => _Collections.contains(this, element);
@@ -27612,38 +27703,38 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 
   bool some(bool f(SVGLength element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGLength>:
 
   void sort([Comparator<SVGLength> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGLength element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGLength element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGLength last() => this[length - 1];
+  SVGLength get last => this[length - 1];
 
   SVGLength removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGLength> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGLength initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGLength> getRange(int start, int rangeLength) =>
@@ -27675,16 +27766,16 @@ class _SVGLengthListImpl implements SVGLengthList, JavaScriptIndexingBehavior na
 abstract class SVGLineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGLineElement.x1 */
-  abstract SVGAnimatedLength get x1;
+  SVGAnimatedLength get x1;
 
   /** @domName SVGLineElement.x2 */
-  abstract SVGAnimatedLength get x2;
+  SVGAnimatedLength get x2;
 
   /** @domName SVGLineElement.y1 */
-  abstract SVGAnimatedLength get y1;
+  SVGAnimatedLength get y1;
 
   /** @domName SVGLineElement.y2 */
-  abstract SVGAnimatedLength get y2;
+  SVGAnimatedLength get y2;
 }
 
 class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement native "*SVGLineElement" {
@@ -27719,7 +27810,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27754,16 +27845,16 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 abstract class SVGLinearGradientElement implements SVGGradientElement {
 
   /** @domName SVGLinearGradientElement.x1 */
-  abstract SVGAnimatedLength get x1;
+  SVGAnimatedLength get x1;
 
   /** @domName SVGLinearGradientElement.x2 */
-  abstract SVGAnimatedLength get x2;
+  SVGAnimatedLength get x2;
 
   /** @domName SVGLinearGradientElement.y1 */
-  abstract SVGAnimatedLength get y1;
+  SVGAnimatedLength get y1;
 
   /** @domName SVGLinearGradientElement.y2 */
-  abstract SVGAnimatedLength get y2;
+  SVGAnimatedLength get y2;
 }
 
 class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements SVGLinearGradientElement native "*SVGLinearGradientElement" {
@@ -27786,10 +27877,10 @@ class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements S
 abstract class SVGLocatable {
 
   /** @domName SVGLocatable.farthestViewportElement */
-  abstract SVGElement get farthestViewportElement;
+  SVGElement get farthestViewportElement;
 
   /** @domName SVGLocatable.nearestViewportElement */
-  abstract SVGElement get nearestViewportElement;
+  SVGElement get nearestViewportElement;
 
   /** @domName SVGLocatable.getBBox */
   SVGRect getBBox();
@@ -27845,25 +27936,25 @@ abstract class SVGMarkerElement implements SVGElement, SVGLangSpace, SVGExternal
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   /** @domName SVGMarkerElement.markerHeight */
-  abstract SVGAnimatedLength get markerHeight;
+  SVGAnimatedLength get markerHeight;
 
   /** @domName SVGMarkerElement.markerUnits */
-  abstract SVGAnimatedEnumeration get markerUnits;
+  SVGAnimatedEnumeration get markerUnits;
 
   /** @domName SVGMarkerElement.markerWidth */
-  abstract SVGAnimatedLength get markerWidth;
+  SVGAnimatedLength get markerWidth;
 
   /** @domName SVGMarkerElement.orientAngle */
-  abstract SVGAnimatedAngle get orientAngle;
+  SVGAnimatedAngle get orientAngle;
 
   /** @domName SVGMarkerElement.orientType */
-  abstract SVGAnimatedEnumeration get orientType;
+  SVGAnimatedEnumeration get orientType;
 
   /** @domName SVGMarkerElement.refX */
-  abstract SVGAnimatedLength get refX;
+  SVGAnimatedLength get refX;
 
   /** @domName SVGMarkerElement.refY */
-  abstract SVGAnimatedLength get refY;
+  SVGAnimatedLength get refY;
 
   /** @domName SVGMarkerElement.setOrientToAngle */
   void setOrientToAngle(SVGAngle angle);
@@ -27904,7 +27995,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -27927,22 +28018,22 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 abstract class SVGMaskElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   /** @domName SVGMaskElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGMaskElement.maskContentUnits */
-  abstract SVGAnimatedEnumeration get maskContentUnits;
+  SVGAnimatedEnumeration get maskContentUnits;
 
   /** @domName SVGMaskElement.maskUnits */
-  abstract SVGAnimatedEnumeration get maskUnits;
+  SVGAnimatedEnumeration get maskUnits;
 
   /** @domName SVGMaskElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGMaskElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGMaskElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement native "*SVGMaskElement" {
@@ -27981,7 +28072,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -28136,7 +28227,7 @@ class _SVGNumberImpl implements SVGNumber native "*SVGNumber" {
 abstract class SVGNumberList implements List<SVGNumber> {
 
   /** @domName SVGNumberList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGNumberList.appendItem */
   SVGNumber appendItem(SVGNumber item);
@@ -28167,7 +28258,7 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   _SVGNumberImpl operator[](int index) => JS("_SVGNumberImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGNumberImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGNumber> mixins.
   // SVGNumber is the element type.
@@ -28184,15 +28275,15 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
   // From Collection<SVGNumber>:
 
   void add(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGNumber value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGNumber> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGNumber element) => _Collections.contains(this, element);
@@ -28208,38 +28299,38 @@ class _SVGNumberListImpl implements SVGNumberList, JavaScriptIndexingBehavior na
 
   bool some(bool f(SVGNumber element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGNumber>:
 
   void sort([Comparator<SVGNumber> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGNumber element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGNumber element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGNumber last() => this[length - 1];
+  SVGNumber get last => this[length - 1];
 
   SVGNumber removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGNumber> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGNumber initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGNumber> getRange(int start, int rangeLength) =>
@@ -28291,10 +28382,10 @@ abstract class SVGPaint implements SVGColor {
   static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
   /** @domName SVGPaint.paintType */
-  abstract int get paintType;
+  int get paintType;
 
   /** @domName SVGPaint.uri */
-  abstract String get uri;
+  String get uri;
 
   /** @domName SVGPaint.setPaint */
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
@@ -28323,19 +28414,19 @@ class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint native "*SVGPaint"
 abstract class SVGPathElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPathElement.animatedNormalizedPathSegList */
-  abstract SVGPathSegList get animatedNormalizedPathSegList;
+  SVGPathSegList get animatedNormalizedPathSegList;
 
   /** @domName SVGPathElement.animatedPathSegList */
-  abstract SVGPathSegList get animatedPathSegList;
+  SVGPathSegList get animatedPathSegList;
 
   /** @domName SVGPathElement.normalizedPathSegList */
-  abstract SVGPathSegList get normalizedPathSegList;
+  SVGPathSegList get normalizedPathSegList;
 
   /** @domName SVGPathElement.pathLength */
-  abstract SVGAnimatedNumber get pathLength;
+  SVGAnimatedNumber get pathLength;
 
   /** @domName SVGPathElement.pathSegList */
-  abstract SVGPathSegList get pathSegList;
+  SVGPathSegList get pathSegList;
 
   /** @domName SVGPathElement.createSVGPathSegArcAbs */
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
@@ -28482,7 +28573,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -28557,10 +28648,10 @@ abstract class SVGPathSeg {
   static const int PATHSEG_UNKNOWN = 0;
 
   /** @domName SVGPathSeg.pathSegType */
-  abstract int get pathSegType;
+  int get pathSegType;
 
   /** @domName SVGPathSeg.pathSegTypeAsLetter */
-  abstract String get pathSegTypeAsLetter;
+  String get pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29053,7 +29144,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 abstract class SVGPathSegList implements List<SVGPathSeg> {
 
   /** @domName SVGPathSegList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGPathSegList.appendItem */
   SVGPathSeg appendItem(SVGPathSeg newItem);
@@ -29084,7 +29175,7 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   _SVGPathSegImpl operator[](int index) => JS("_SVGPathSegImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGPathSegImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGPathSeg> mixins.
   // SVGPathSeg is the element type.
@@ -29101,15 +29192,15 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
   // From Collection<SVGPathSeg>:
 
   void add(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGPathSeg value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGPathSeg> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGPathSeg element) => _Collections.contains(this, element);
@@ -29125,38 +29216,38 @@ class _SVGPathSegListImpl implements SVGPathSegList, JavaScriptIndexingBehavior 
 
   bool some(bool f(SVGPathSeg element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGPathSeg>:
 
   void sort([Comparator<SVGPathSeg> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGPathSeg element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGPathSeg element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGPathSeg last() => this[length - 1];
+  SVGPathSeg get last => this[length - 1];
 
   SVGPathSeg removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGPathSeg> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGPathSeg initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGPathSeg> getRange(int start, int rangeLength) =>
@@ -29232,25 +29323,25 @@ class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMove
 abstract class SVGPatternElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
   /** @domName SVGPatternElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGPatternElement.patternContentUnits */
-  abstract SVGAnimatedEnumeration get patternContentUnits;
+  SVGAnimatedEnumeration get patternContentUnits;
 
   /** @domName SVGPatternElement.patternTransform */
-  abstract SVGAnimatedTransformList get patternTransform;
+  SVGAnimatedTransformList get patternTransform;
 
   /** @domName SVGPatternElement.patternUnits */
-  abstract SVGAnimatedEnumeration get patternUnits;
+  SVGAnimatedEnumeration get patternUnits;
 
   /** @domName SVGPatternElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGPatternElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGPatternElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElement native "*SVGPatternElement" {
@@ -29295,7 +29386,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29345,7 +29436,7 @@ class _SVGPointImpl implements SVGPoint native "*SVGPoint" {
 abstract class SVGPointList {
 
   /** @domName SVGPointList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGPointList.appendItem */
   SVGPoint appendItem(SVGPoint item);
@@ -29397,10 +29488,10 @@ class _SVGPointListImpl implements SVGPointList native "*SVGPointList" {
 abstract class SVGPolygonElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolygonElement.animatedPoints */
-  abstract SVGPointList get animatedPoints;
+  SVGPointList get animatedPoints;
 
   /** @domName SVGPolygonElement.points */
-  abstract SVGPointList get points;
+  SVGPointList get points;
 }
 
 class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElement native "*SVGPolygonElement" {
@@ -29431,7 +29522,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29466,10 +29557,10 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 abstract class SVGPolylineElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGPolylineElement.animatedPoints */
-  abstract SVGPointList get animatedPoints;
+  SVGPointList get animatedPoints;
 
   /** @domName SVGPolylineElement.points */
-  abstract SVGPointList get points;
+  SVGPointList get points;
 }
 
 class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElement native "*SVGPolylineElement" {
@@ -29500,7 +29591,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29585,19 +29676,22 @@ class _SVGPreserveAspectRatioImpl implements SVGPreserveAspectRatio native "*SVG
 abstract class SVGRadialGradientElement implements SVGGradientElement {
 
   /** @domName SVGRadialGradientElement.cx */
-  abstract SVGAnimatedLength get cx;
+  SVGAnimatedLength get cx;
 
   /** @domName SVGRadialGradientElement.cy */
-  abstract SVGAnimatedLength get cy;
+  SVGAnimatedLength get cy;
+
+  /** @domName SVGRadialGradientElement.fr */
+  SVGAnimatedLength get fr;
 
   /** @domName SVGRadialGradientElement.fx */
-  abstract SVGAnimatedLength get fx;
+  SVGAnimatedLength get fx;
 
   /** @domName SVGRadialGradientElement.fy */
-  abstract SVGAnimatedLength get fy;
+  SVGAnimatedLength get fy;
 
   /** @domName SVGRadialGradientElement.r */
-  abstract SVGAnimatedLength get r;
+  SVGAnimatedLength get r;
 }
 
 class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements SVGRadialGradientElement native "*SVGRadialGradientElement" {
@@ -29605,6 +29699,8 @@ class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements S
   final _SVGAnimatedLengthImpl cx;
 
   final _SVGAnimatedLengthImpl cy;
+
+  final _SVGAnimatedLengthImpl fr;
 
   final _SVGAnimatedLengthImpl fx;
 
@@ -29643,22 +29739,22 @@ abstract class SVGRect {
 abstract class SVGRectElement implements SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGRectElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGRectElement.rx */
-  abstract SVGAnimatedLength get rx;
+  SVGAnimatedLength get rx;
 
   /** @domName SVGRectElement.ry */
-  abstract SVGAnimatedLength get ry;
+  SVGAnimatedLength get ry;
 
   /** @domName SVGRectElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGRectElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGRectElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement native "*SVGRectElement" {
@@ -29697,7 +29793,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -29761,6 +29857,7 @@ class _SVGRenderingIntentImpl implements SVGRenderingIntent native "*SVGRenderin
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName SVGSVGElement
 abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
   factory SVGSVGElement() => _SVGSVGElementFactoryProvider.createSVGSVGElement();
@@ -29776,40 +29873,40 @@ abstract class SVGSVGElement extends SVGElement implements SVGTests, SVGLangSpac
   num currentScale;
 
   /** @domName SVGSVGElement.currentTranslate */
-  abstract SVGPoint get currentTranslate;
+  SVGPoint get currentTranslate;
 
   /** @domName SVGSVGElement.currentView */
-  abstract SVGViewSpec get currentView;
+  SVGViewSpec get currentView;
 
   /** @domName SVGSVGElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterX */
-  abstract num get pixelUnitToMillimeterX;
+  num get pixelUnitToMillimeterX;
 
   /** @domName SVGSVGElement.pixelUnitToMillimeterY */
-  abstract num get pixelUnitToMillimeterY;
+  num get pixelUnitToMillimeterY;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterX */
-  abstract num get screenPixelToMillimeterX;
+  num get screenPixelToMillimeterX;
 
   /** @domName SVGSVGElement.screenPixelToMillimeterY */
-  abstract num get screenPixelToMillimeterY;
+  num get screenPixelToMillimeterY;
 
   /** @domName SVGSVGElement.useCurrentView */
-  abstract bool get useCurrentView;
+  bool get useCurrentView;
 
   /** @domName SVGSVGElement.viewport */
-  abstract SVGRect get viewport;
+  SVGRect get viewport;
 
   /** @domName SVGSVGElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGSVGElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGSVGElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 
   /** @domName SVGSVGElement.animationsPaused */
   bool animationsPaused();
@@ -29982,7 +30079,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30060,7 +30157,7 @@ class _SVGSetElementImpl extends _SVGAnimationElementImpl implements SVGSetEleme
 abstract class SVGStopElement implements SVGElement, SVGStylable {
 
   /** @domName SVGStopElement.offset */
-  abstract SVGAnimatedNumber get offset;
+  SVGAnimatedNumber get offset;
 }
 
 class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement native "*SVGStopElement" {
@@ -30069,7 +30166,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30086,7 +30183,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 abstract class SVGStringList implements List<String> {
 
   /** @domName SVGStringList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGStringList.appendItem */
   String appendItem(String item);
@@ -30117,7 +30214,7 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   String operator[](int index) => JS("String", "#[#]", this, index);
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<String> mixins.
   // String is the element type.
@@ -30134,15 +30231,15 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
   // From Collection<String>:
 
   void add(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(String value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<String> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(String element) => _Collections.contains(this, element);
@@ -30158,38 +30255,38 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 
   bool some(bool f(String element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<String>:
 
   void sort([Comparator<String> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(String element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(String element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  String last() => this[length - 1];
+  String get last => this[length - 1];
 
   String removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<String> getRange(int start, int rangeLength) =>
@@ -30221,10 +30318,10 @@ class _SVGStringListImpl implements SVGStringList, JavaScriptIndexingBehavior na
 abstract class SVGStylable {
 
   /** @domName SVGStylable.className */
-  abstract SVGAnimatedString get $dom_svgClassName;
+  SVGAnimatedString get $dom_svgClassName;
 
   /** @domName SVGStylable.style */
-  abstract CSSStyleDeclaration get style;
+  CSSStyleDeclaration get style;
 
   /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
@@ -30258,7 +30355,7 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   String media;
 
   // Shadowing definition.
-  String get title() => JS("String", "#.title", this);
+  String get title => JS("String", "#.title", this);
 
   void set title(String value) {
     JS("void", "#.title = #", this, value);
@@ -30306,7 +30403,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30355,7 +30452,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30406,13 +30503,13 @@ class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVG
 abstract class SVGTests {
 
   /** @domName SVGTests.requiredExtensions */
-  abstract SVGStringList get requiredExtensions;
+  SVGStringList get requiredExtensions;
 
   /** @domName SVGTests.requiredFeatures */
-  abstract SVGStringList get requiredFeatures;
+  SVGStringList get requiredFeatures;
 
   /** @domName SVGTests.systemLanguage */
-  abstract SVGStringList get systemLanguage;
+  SVGStringList get systemLanguage;
 
   /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
@@ -30433,10 +30530,10 @@ abstract class SVGTextContentElement implements SVGElement, SVGTests, SVGLangSpa
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   /** @domName SVGTextContentElement.lengthAdjust */
-  abstract SVGAnimatedEnumeration get lengthAdjust;
+  SVGAnimatedEnumeration get lengthAdjust;
 
   /** @domName SVGTextContentElement.textLength */
-  abstract SVGAnimatedLength get textLength;
+  SVGAnimatedLength get textLength;
 
   /** @domName SVGTextContentElement.getCharNumAtPosition */
   int getCharNumAtPosition(SVGPoint point);
@@ -30512,7 +30609,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30571,13 +30668,13 @@ abstract class SVGTextPathElement implements SVGTextContentElement, SVGURIRefere
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   /** @domName SVGTextPathElement.method */
-  abstract SVGAnimatedEnumeration get method;
+  SVGAnimatedEnumeration get method;
 
   /** @domName SVGTextPathElement.spacing */
-  abstract SVGAnimatedEnumeration get spacing;
+  SVGAnimatedEnumeration get spacing;
 
   /** @domName SVGTextPathElement.startOffset */
-  abstract SVGAnimatedLength get startOffset;
+  SVGAnimatedLength get startOffset;
 }
 
 class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement native "*SVGTextPathElement" {
@@ -30602,19 +30699,19 @@ class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGT
 abstract class SVGTextPositioningElement implements SVGTextContentElement {
 
   /** @domName SVGTextPositioningElement.dx */
-  abstract SVGAnimatedLengthList get dx;
+  SVGAnimatedLengthList get dx;
 
   /** @domName SVGTextPositioningElement.dy */
-  abstract SVGAnimatedLengthList get dy;
+  SVGAnimatedLengthList get dy;
 
   /** @domName SVGTextPositioningElement.rotate */
-  abstract SVGAnimatedNumberList get rotate;
+  SVGAnimatedNumberList get rotate;
 
   /** @domName SVGTextPositioningElement.x */
-  abstract SVGAnimatedLengthList get x;
+  SVGAnimatedLengthList get x;
 
   /** @domName SVGTextPositioningElement.y */
-  abstract SVGAnimatedLengthList get y;
+  SVGAnimatedLengthList get y;
 }
 
 class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
@@ -30649,7 +30746,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -30680,13 +30777,13 @@ abstract class SVGTransform {
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   /** @domName SVGTransform.angle */
-  abstract num get angle;
+  num get angle;
 
   /** @domName SVGTransform.matrix */
-  abstract SVGMatrix get matrix;
+  SVGMatrix get matrix;
 
   /** @domName SVGTransform.type */
-  abstract int get type;
+  int get type;
 
   /** @domName SVGTransform.setMatrix */
   void setMatrix(SVGMatrix matrix);
@@ -30737,7 +30834,7 @@ class _SVGTransformImpl implements SVGTransform native "*SVGTransform" {
 abstract class SVGTransformList implements List<SVGTransform> {
 
   /** @domName SVGTransformList.numberOfItems */
-  abstract int get numberOfItems;
+  int get numberOfItems;
 
   /** @domName SVGTransformList.appendItem */
   SVGTransform appendItem(SVGTransform item);
@@ -30774,7 +30871,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   _SVGTransformImpl operator[](int index) => JS("_SVGTransformImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SVGTransformImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SVGTransform> mixins.
   // SVGTransform is the element type.
@@ -30791,15 +30888,15 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
   // From Collection<SVGTransform>:
 
   void add(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SVGTransform value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SVGTransform> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SVGTransform element) => _Collections.contains(this, element);
@@ -30815,38 +30912,38 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 
   bool some(bool f(SVGTransform element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SVGTransform>:
 
   void sort([Comparator<SVGTransform> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SVGTransform element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SVGTransform element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SVGTransform last() => this[length - 1];
+  SVGTransform get last => this[length - 1];
 
   SVGTransform removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SVGTransform> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SVGTransform initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SVGTransform> getRange(int start, int rangeLength) =>
@@ -30882,7 +30979,7 @@ class _SVGTransformListImpl implements SVGTransformList, JavaScriptIndexingBehav
 abstract class SVGTransformable implements SVGLocatable {
 
   /** @domName SVGTransformable.transform */
-  abstract SVGAnimatedTransformList get transform;
+  SVGAnimatedTransformList get transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30894,7 +30991,7 @@ abstract class SVGTransformable implements SVGLocatable {
 abstract class SVGURIReference {
 
   /** @domName SVGURIReference.href */
-  abstract SVGAnimatedString get href;
+  SVGAnimatedString get href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30924,22 +31021,22 @@ class _SVGUnitTypesImpl implements SVGUnitTypes native "*SVGUnitTypes" {
 abstract class SVGUseElement implements SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
   /** @domName SVGUseElement.animatedInstanceRoot */
-  abstract SVGElementInstance get animatedInstanceRoot;
+  SVGElementInstance get animatedInstanceRoot;
 
   /** @domName SVGUseElement.height */
-  abstract SVGAnimatedLength get height;
+  SVGAnimatedLength get height;
 
   /** @domName SVGUseElement.instanceRoot */
-  abstract SVGElementInstance get instanceRoot;
+  SVGElementInstance get instanceRoot;
 
   /** @domName SVGUseElement.width */
-  abstract SVGAnimatedLength get width;
+  SVGAnimatedLength get width;
 
   /** @domName SVGUseElement.x */
-  abstract SVGAnimatedLength get x;
+  SVGAnimatedLength get x;
 
   /** @domName SVGUseElement.y */
-  abstract SVGAnimatedLength get y;
+  SVGAnimatedLength get y;
 }
 
 class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native "*SVGUseElement" {
@@ -30982,7 +31079,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get $dom_svgClassName() => JS("_SVGAnimatedStringImpl", "#.className", this);
+  _SVGAnimatedStringImpl get $dom_svgClassName => JS("_SVGAnimatedStringImpl", "#.className", this);
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -31029,7 +31126,7 @@ class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement na
 abstract class SVGViewElement implements SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
   /** @domName SVGViewElement.viewTarget */
-  abstract SVGStringList get viewTarget;
+  SVGStringList get viewTarget;
 }
 
 class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement native "*SVGViewElement" {
@@ -31060,28 +31157,28 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement nati
 abstract class SVGViewSpec {
 
   /** @domName SVGViewSpec.preserveAspectRatio */
-  abstract SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio;
 
   /** @domName SVGViewSpec.preserveAspectRatioString */
-  abstract String get preserveAspectRatioString;
+  String get preserveAspectRatioString;
 
   /** @domName SVGViewSpec.transform */
-  abstract SVGTransformList get transform;
+  SVGTransformList get transform;
 
   /** @domName SVGViewSpec.transformString */
-  abstract String get transformString;
+  String get transformString;
 
   /** @domName SVGViewSpec.viewBox */
-  abstract SVGAnimatedRect get viewBox;
+  SVGAnimatedRect get viewBox;
 
   /** @domName SVGViewSpec.viewBoxString */
-  abstract String get viewBoxString;
+  String get viewBoxString;
 
   /** @domName SVGViewSpec.viewTarget */
-  abstract SVGElement get viewTarget;
+  SVGElement get viewTarget;
 
   /** @domName SVGViewSpec.viewTargetString */
-  abstract String get viewTargetString;
+  String get viewTargetString;
 
   /** @domName SVGViewSpec.zoomAndPan */
   int zoomAndPan;
@@ -31135,19 +31232,19 @@ abstract class SVGZoomAndPan {
 abstract class SVGZoomEvent implements UIEvent {
 
   /** @domName SVGZoomEvent.newScale */
-  abstract num get newScale;
+  num get newScale;
 
   /** @domName SVGZoomEvent.newTranslate */
-  abstract SVGPoint get newTranslate;
+  SVGPoint get newTranslate;
 
   /** @domName SVGZoomEvent.previousScale */
-  abstract num get previousScale;
+  num get previousScale;
 
   /** @domName SVGZoomEvent.previousTranslate */
-  abstract SVGPoint get previousTranslate;
+  SVGPoint get previousTranslate;
 
   /** @domName SVGZoomEvent.zoomRectScreen */
-  abstract SVGRect get zoomRectScreen;
+  SVGRect get zoomRectScreen;
 }
 
 class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SVGZoomEvent" {
@@ -31172,28 +31269,28 @@ class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SV
 abstract class Screen {
 
   /** @domName Screen.availHeight */
-  abstract int get availHeight;
+  int get availHeight;
 
   /** @domName Screen.availLeft */
-  abstract int get availLeft;
+  int get availLeft;
 
   /** @domName Screen.availTop */
-  abstract int get availTop;
+  int get availTop;
 
   /** @domName Screen.availWidth */
-  abstract int get availWidth;
+  int get availWidth;
 
   /** @domName Screen.colorDepth */
-  abstract int get colorDepth;
+  int get colorDepth;
 
   /** @domName Screen.height */
-  abstract int get height;
+  int get height;
 
   /** @domName Screen.pixelDepth */
-  abstract int get pixelDepth;
+  int get pixelDepth;
 
   /** @domName Screen.width */
-  abstract int get width;
+  int get width;
 }
 
 class _ScreenImpl implements Screen native "*Screen" {
@@ -31278,13 +31375,13 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*
 abstract class ScriptProfile {
 
   /** @domName ScriptProfile.head */
-  abstract ScriptProfileNode get head;
+  ScriptProfileNode get head;
 
   /** @domName ScriptProfile.title */
-  abstract String get title;
+  String get title;
 
   /** @domName ScriptProfile.uid */
-  abstract int get uid;
+  int get uid;
 }
 
 class _ScriptProfileImpl implements ScriptProfile native "*ScriptProfile" {
@@ -31305,28 +31402,28 @@ class _ScriptProfileImpl implements ScriptProfile native "*ScriptProfile" {
 abstract class ScriptProfileNode {
 
   /** @domName ScriptProfileNode.callUID */
-  abstract int get callUID;
+  int get callUID;
 
   /** @domName ScriptProfileNode.functionName */
-  abstract String get functionName;
+  String get functionName;
 
   /** @domName ScriptProfileNode.lineNumber */
-  abstract int get lineNumber;
+  int get lineNumber;
 
   /** @domName ScriptProfileNode.numberOfCalls */
-  abstract int get numberOfCalls;
+  int get numberOfCalls;
 
   /** @domName ScriptProfileNode.selfTime */
-  abstract num get selfTime;
+  num get selfTime;
 
   /** @domName ScriptProfileNode.totalTime */
-  abstract num get totalTime;
+  num get totalTime;
 
   /** @domName ScriptProfileNode.url */
-  abstract String get url;
+  String get url;
 
   /** @domName ScriptProfileNode.visible */
-  abstract bool get visible;
+  bool get visible;
 
   /** @domName ScriptProfileNode.children */
   List<ScriptProfileNode> children();
@@ -31370,10 +31467,10 @@ abstract class SelectElement implements Element {
   bool disabled;
 
   /** @domName HTMLSelectElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLSelectElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLSelectElement.length */
   int length;
@@ -31385,7 +31482,7 @@ abstract class SelectElement implements Element {
   String name;
 
   /** @domName HTMLSelectElement.options */
-  abstract HTMLOptionsCollection get options;
+  HTMLOptionsCollection get options;
 
   /** @domName HTMLSelectElement.required */
   bool required;
@@ -31394,25 +31491,25 @@ abstract class SelectElement implements Element {
   int selectedIndex;
 
   /** @domName HTMLSelectElement.selectedOptions */
-  abstract HTMLCollection get selectedOptions;
+  HTMLCollection get selectedOptions;
 
   /** @domName HTMLSelectElement.size */
   int size;
 
   /** @domName HTMLSelectElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLSelectElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLSelectElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLSelectElement.value */
   String value;
 
   /** @domName HTMLSelectElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLSelectElement.checkValidity */
   bool checkValidity();
@@ -31473,11 +31570,11 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
-  List<OptionElement> get options() {
+  List<OptionElement> get options {
     return this.elements.filter((e) => e is OptionElement);
   }
 
-  List<OptionElement> get selectedOptions() {
+  List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       return this.options.filter((o) => o.selected);
@@ -31518,9 +31615,14 @@ class _SessionDescriptionImpl implements SessionDescription native "*SessionDesc
 
 /// @domName HTMLShadowElement
 abstract class ShadowElement implements Element {
+
+  /** @domName HTMLShadowElement.resetStyleInheritance */
+  bool resetStyleInheritance;
 }
 
 class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*HTMLShadowElement" {
+
+  bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31528,13 +31630,14 @@ class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName ShadowRoot
 abstract class ShadowRoot implements DocumentFragment {
 
   factory ShadowRoot(Element host) => _ShadowRootFactoryProvider.createShadowRoot(host);
 
   /** @domName ShadowRoot.activeElement */
-  abstract Element get activeElement;
+  Element get activeElement;
 
   /** @domName ShadowRoot.applyAuthorStyles */
   bool applyAuthorStyles;
@@ -31608,7 +31711,7 @@ abstract class SharedWorker implements AbstractWorker {
   }
 
   /** @domName SharedWorker.port */
-  abstract MessagePort get port;
+  MessagePort get port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31625,7 +31728,7 @@ abstract class SharedWorkerContext implements WorkerContext {
   SharedWorkerContextEvents get on;
 
   /** @domName SharedWorkerContext.name */
-  abstract String get name;
+  String get name;
 }
 
 abstract class SharedWorkerContextEvents implements WorkerContextEvents {
@@ -31661,7 +31764,7 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker nati
 abstract class SourceBuffer {
 
   /** @domName SourceBuffer.buffered */
-  abstract TimeRanges get buffered;
+  TimeRanges get buffered;
 
   /** @domName SourceBuffer.timestampOffset */
   num timestampOffset;
@@ -31690,10 +31793,10 @@ class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
 // WARNING: Do not edit - generated code.
 
 /// @domName SourceBufferList
-abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
+abstract class SourceBufferList implements EventTarget, List<SourceBuffer> {
 
   /** @domName SourceBufferList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SourceBufferList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -31708,14 +31811,14 @@ abstract class SourceBufferList implements List<SourceBuffer>, EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
-class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehavior native "*SourceBufferList" {
+class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList, JavaScriptIndexingBehavior native "*SourceBufferList" {
 
   final int length;
 
   _SourceBufferImpl operator[](int index) => JS("_SourceBufferImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SourceBufferImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SourceBuffer> mixins.
   // SourceBuffer is the element type.
@@ -31732,15 +31835,15 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
   // From Collection<SourceBuffer>:
 
   void add(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SourceBuffer value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SourceBuffer> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SourceBuffer element) => _Collections.contains(this, element);
@@ -31756,38 +31859,38 @@ class _SourceBufferListImpl implements SourceBufferList, JavaScriptIndexingBehav
 
   bool some(bool f(SourceBuffer element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SourceBuffer>:
 
   void sort([Comparator<SourceBuffer> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SourceBuffer element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SourceBuffer element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SourceBuffer last() => this[length - 1];
+  SourceBuffer get last => this[length - 1];
 
   SourceBuffer removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SourceBuffer> getRange(int start, int rangeLength) =>
@@ -31882,7 +31985,7 @@ abstract class SpeechGrammarList implements List<SpeechGrammar> {
   factory SpeechGrammarList() => _SpeechGrammarListFactoryProvider.createSpeechGrammarList();
 
   /** @domName SpeechGrammarList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SpeechGrammarList.addFromString */
   void addFromString(String string, [num weight]);
@@ -31901,7 +32004,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   _SpeechGrammarImpl operator[](int index) => JS("_SpeechGrammarImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechGrammarImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechGrammar> mixins.
   // SpeechGrammar is the element type.
@@ -31918,15 +32021,15 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
   // From Collection<SpeechGrammar>:
 
   void add(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechGrammar value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechGrammar> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechGrammar element) => _Collections.contains(this, element);
@@ -31942,38 +32045,38 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 
   bool some(bool f(SpeechGrammar element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechGrammar>:
 
   void sort([Comparator<SpeechGrammar> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechGrammar element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechGrammar element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechGrammar last() => this[length - 1];
+  SpeechGrammar get last => this[length - 1];
 
   SpeechGrammar removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
@@ -31997,7 +32100,7 @@ class _SpeechGrammarListImpl implements SpeechGrammarList, JavaScriptIndexingBeh
 abstract class SpeechInputEvent implements Event {
 
   /** @domName SpeechInputEvent.results */
-  abstract List<SpeechInputResult> get results;
+  List<SpeechInputResult> get results;
 }
 
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
@@ -32014,10 +32117,10 @@ class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent nativ
 abstract class SpeechInputResult {
 
   /** @domName SpeechInputResult.confidence */
-  abstract num get confidence;
+  num get confidence;
 
   /** @domName SpeechInputResult.utterance */
-  abstract String get utterance;
+  String get utterance;
 }
 
 class _SpeechInputResultImpl implements SpeechInputResult native "*SpeechInputResult" {
@@ -32034,7 +32137,7 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   _SpeechInputResultImpl operator[](int index) => JS("_SpeechInputResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechInputResultImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechInputResult> mixins.
   // SpeechInputResult is the element type.
@@ -32051,15 +32154,15 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
   // From Collection<SpeechInputResult>:
 
   void add(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechInputResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechInputResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechInputResult element) => _Collections.contains(this, element);
@@ -32075,38 +32178,38 @@ class _SpeechInputResultListImpl implements List<SpeechInputResult>, JavaScriptI
 
   bool some(bool f(SpeechInputResult element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechInputResult>:
 
   void sort([Comparator<SpeechInputResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechInputResult element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechInputResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechInputResult last() => this[length - 1];
+  SpeechInputResult get last => this[length - 1];
 
   SpeechInputResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
@@ -32137,6 +32240,9 @@ abstract class SpeechRecognition implements EventTarget {
 
   /** @domName SpeechRecognition.grammars */
   SpeechGrammarList grammars;
+
+  /** @domName SpeechRecognition.interimResults */
+  bool interimResults;
 
   /** @domName SpeechRecognition.lang */
   String lang;
@@ -32177,8 +32283,6 @@ abstract class SpeechRecognitionEvents implements Events {
 
   EventListenerList get result;
 
-  EventListenerList get resultDeleted;
-
   EventListenerList get soundEnd;
 
   EventListenerList get soundStart;
@@ -32199,10 +32303,10 @@ abstract class SpeechRecognitionEvents implements Events {
 abstract class SpeechRecognitionAlternative {
 
   /** @domName SpeechRecognitionAlternative.confidence */
-  abstract num get confidence;
+  num get confidence;
 
   /** @domName SpeechRecognitionAlternative.transcript */
-  abstract String get transcript;
+  String get transcript;
 }
 
 class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -32239,10 +32343,10 @@ abstract class SpeechRecognitionError implements Event {
   static const int SERVICE_NOT_ALLOWED = 6;
 
   /** @domName SpeechRecognitionError.code */
-  abstract int get code;
+  int get code;
 
   /** @domName SpeechRecognitionError.message */
-  abstract String get message;
+  String get message;
 }
 
 class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
@@ -32261,13 +32365,13 @@ class _SpeechRecognitionErrorImpl extends _EventImpl implements SpeechRecognitio
 abstract class SpeechRecognitionEvent implements Event {
 
   /** @domName SpeechRecognitionEvent.result */
-  abstract SpeechRecognitionResult get result;
+  SpeechRecognitionResult get result;
 
   /** @domName SpeechRecognitionEvent.resultHistory */
-  abstract List<SpeechRecognitionResult> get resultHistory;
+  List<SpeechRecognitionResult> get resultHistory;
 
   /** @domName SpeechRecognitionEvent.resultIndex */
-  abstract int get resultIndex;
+  int get resultIndex;
 }
 
 class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
@@ -32287,6 +32391,8 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   bool continuous;
 
   _SpeechGrammarListImpl grammars;
+
+  bool interimResults;
 
   String lang;
 
@@ -32320,8 +32426,6 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
 
   EventListenerList get result => this['result'];
 
-  EventListenerList get resultDeleted => this['resultdeleted'];
-
   EventListenerList get soundEnd => this['soundend'];
 
   EventListenerList get soundStart => this['soundstart'];
@@ -32342,13 +32446,13 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
 abstract class SpeechRecognitionResult {
 
   /** @domName SpeechRecognitionResult.emma */
-  abstract Document get emma;
+  Document get emma;
 
   /** @domName SpeechRecognitionResult.finalValue */
-  abstract bool get finalValue;
+  bool get finalValue;
 
   /** @domName SpeechRecognitionResult.length */
-  abstract int get length;
+  int get length;
 
   /** @domName SpeechRecognitionResult.item */
   SpeechRecognitionAlternative item(int index);
@@ -32358,7 +32462,7 @@ class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*S
 
   final _DocumentImpl emma;
 
-  bool get finalValue() => JS("bool", "#.final", this);
+  bool get finalValue => JS("bool", "#.final", this);
 
   final int length;
 
@@ -32372,7 +32476,7 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   _SpeechRecognitionResultImpl operator[](int index) => JS("_SpeechRecognitionResultImpl", "#[#]", this, index);
 
   void operator[]=(int index, _SpeechRecognitionResultImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<SpeechRecognitionResult> mixins.
   // SpeechRecognitionResult is the element type.
@@ -32389,15 +32493,15 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
   // From Collection<SpeechRecognitionResult>:
 
   void add(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(SpeechRecognitionResult value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<SpeechRecognitionResult> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(SpeechRecognitionResult element) => _Collections.contains(this, element);
@@ -32413,38 +32517,38 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 
   bool some(bool f(SpeechRecognitionResult element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<SpeechRecognitionResult>:
 
   void sort([Comparator<SpeechRecognitionResult> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(SpeechRecognitionResult element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  SpeechRecognitionResult last() => this[length - 1];
+  SpeechRecognitionResult get last => this[length - 1];
 
   SpeechRecognitionResult removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
@@ -32458,11 +32562,12 @@ class _SpeechRecognitionResultListImpl implements List<SpeechRecognitionResult>,
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName Storage
 abstract class Storage implements Map<String, String> {
 
   /** @domName Storage.length */
-  abstract int get $dom_length;
+  int get $dom_length;
 
   /** @domName Storage.clear */
   void $dom_clear();
@@ -32490,19 +32595,19 @@ abstract class Storage implements Map<String, String> {
 abstract class StorageEvent implements Event {
 
   /** @domName StorageEvent.key */
-  abstract String get key;
+  String get key;
 
   /** @domName StorageEvent.newValue */
-  abstract String get newValue;
+  String get newValue;
 
   /** @domName StorageEvent.oldValue */
-  abstract String get oldValue;
+  String get oldValue;
 
   /** @domName StorageEvent.storageArea */
-  abstract Storage get storageArea;
+  Storage get storageArea;
 
   /** @domName StorageEvent.url */
-  abstract String get url;
+  String get url;
 
   /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
@@ -32529,7 +32634,7 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent native "*Stor
 class _StorageImpl implements Storage native "*Storage" {
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => getValues().some((e) => e == value);
+  bool containsValue(String value) => values.some((e) => e == value);
 
   bool containsKey(String key) => $dom_getItem(key) != null;
 
@@ -32559,13 +32664,13 @@ class _StorageImpl implements Storage native "*Storage" {
     }
   }
 
-  Collection<String> getKeys() {
+  Collection<String> get keys {
     final keys = [];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
-  Collection<String> getValues() {
+  Collection<String> get values {
     final values = [];
     forEach((k, v) => values.add(v));
     return values;
@@ -32573,9 +32678,9 @@ class _StorageImpl implements Storage native "*Storage" {
 
   int get length => $dom_length;
 
-  bool isEmpty() => $dom_key(0) == null;
+  bool get isEmpty => $dom_key(0) == null;
 
-  int get $dom_length() => JS("int", "#.length", this);
+  int get $dom_length => JS("int", "#.length", this);
 
   void $dom_clear() native "clear";
 
@@ -32613,6 +32718,7 @@ abstract class StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoErrorCallback(DOMException error);
 
 class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
@@ -32627,6 +32733,7 @@ class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32634,12 +32741,14 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32663,7 +32772,7 @@ abstract class StyleElement implements Element {
   bool scoped;
 
   /** @domName HTMLStyleElement.sheet */
-  abstract StyleSheet get sheet;
+  StyleSheet get sheet;
 
   /** @domName HTMLStyleElement.type */
   String type;
@@ -32691,7 +32800,7 @@ class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HT
 abstract class StyleMedia {
 
   /** @domName StyleMedia.type */
-  abstract String get type;
+  String get type;
 
   /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery);
@@ -32716,22 +32825,22 @@ abstract class StyleSheet {
   bool disabled;
 
   /** @domName StyleSheet.href */
-  abstract String get href;
+  String get href;
 
   /** @domName StyleSheet.media */
-  abstract MediaList get media;
+  MediaList get media;
 
   /** @domName StyleSheet.ownerNode */
-  abstract Node get ownerNode;
+  Node get ownerNode;
 
   /** @domName StyleSheet.parentStyleSheet */
-  abstract StyleSheet get parentStyleSheet;
+  StyleSheet get parentStyleSheet;
 
   /** @domName StyleSheet.title */
-  abstract String get title;
+  String get title;
 
   /** @domName StyleSheet.type */
-  abstract String get type;
+  String get type;
 }
 
 class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
@@ -32758,7 +32867,7 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   _StyleSheetImpl operator[](int index) => JS("_StyleSheetImpl", "#[#]", this, index);
 
   void operator[]=(int index, _StyleSheetImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<StyleSheet> mixins.
   // StyleSheet is the element type.
@@ -32775,15 +32884,15 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(StyleSheet value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<StyleSheet> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(StyleSheet element) => _Collections.contains(this, element);
@@ -32799,38 +32908,38 @@ class _StyleSheetListImpl implements List<StyleSheet>, JavaScriptIndexingBehavio
 
   bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<StyleSheet>:
 
   void sort([Comparator<StyleSheet> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(StyleSheet element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(StyleSheet element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  StyleSheet last() => this[length - 1];
+  StyleSheet get last => this[length - 1];
 
   StyleSheet removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
@@ -32883,7 +32992,7 @@ abstract class TableCellElement implements Element {
   String bgColor;
 
   /** @domName HTMLTableCellElement.cellIndex */
-  abstract int get cellIndex;
+  int get cellIndex;
 
   /** @domName HTMLTableCellElement.ch */
   String ch;
@@ -33025,7 +33134,7 @@ abstract class TableElement implements Element {
   String frame;
 
   /** @domName HTMLTableElement.rows */
-  abstract HTMLCollection get rows;
+  HTMLCollection get rows;
 
   /** @domName HTMLTableElement.rules */
   String rules;
@@ -33034,7 +33143,7 @@ abstract class TableElement implements Element {
   String summary;
 
   /** @domName HTMLTableElement.tBodies */
-  abstract HTMLCollection get tBodies;
+  HTMLCollection get tBodies;
 
   /** @domName HTMLTableElement.tFoot */
   TableSectionElement tFoot;
@@ -33152,7 +33261,7 @@ abstract class TableRowElement implements Element {
   String bgColor;
 
   /** @domName HTMLTableRowElement.cells */
-  abstract HTMLCollection get cells;
+  HTMLCollection get cells;
 
   /** @domName HTMLTableRowElement.ch */
   String ch;
@@ -33161,10 +33270,10 @@ abstract class TableRowElement implements Element {
   String chOff;
 
   /** @domName HTMLTableRowElement.rowIndex */
-  abstract int get rowIndex;
+  int get rowIndex;
 
   /** @domName HTMLTableRowElement.sectionRowIndex */
-  abstract int get sectionRowIndex;
+  int get sectionRowIndex;
 
   /** @domName HTMLTableRowElement.vAlign */
   String vAlign;
@@ -33217,7 +33326,7 @@ abstract class TableSectionElement implements Element {
   String chOff;
 
   /** @domName HTMLTableSectionElement.rows */
-  abstract HTMLCollection get rows;
+  HTMLCollection get rows;
 
   /** @domName HTMLTableSectionElement.vAlign */
   String vAlign;
@@ -33251,13 +33360,14 @@ class _TableSectionElementImpl extends _ElementImpl implements TableSectionEleme
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName Text
 abstract class Text implements CharacterData {
 
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
   /** @domName Text.wholeText */
-  abstract String get wholeText;
+  String get wholeText;
 
   /** @domName Text.replaceWholeText */
   Text replaceWholeText(String content);
@@ -33289,10 +33399,10 @@ abstract class TextAreaElement implements Element {
   bool disabled;
 
   /** @domName HTMLTextAreaElement.form */
-  abstract FormElement get form;
+  FormElement get form;
 
   /** @domName HTMLTextAreaElement.labels */
-  abstract List<Node> get labels;
+  List<Node> get labels;
 
   /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
@@ -33322,22 +33432,22 @@ abstract class TextAreaElement implements Element {
   int selectionStart;
 
   /** @domName HTMLTextAreaElement.textLength */
-  abstract int get textLength;
+  int get textLength;
 
   /** @domName HTMLTextAreaElement.type */
-  abstract String get type;
+  String get type;
 
   /** @domName HTMLTextAreaElement.validationMessage */
-  abstract String get validationMessage;
+  String get validationMessage;
 
   /** @domName HTMLTextAreaElement.validity */
-  abstract ValidityState get validity;
+  ValidityState get validity;
 
   /** @domName HTMLTextAreaElement.value */
   String value;
 
   /** @domName HTMLTextAreaElement.willValidate */
-  abstract bool get willValidate;
+  bool get willValidate;
 
   /** @domName HTMLTextAreaElement.wrap */
   String wrap;
@@ -33419,7 +33529,7 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
 abstract class TextEvent implements UIEvent {
 
   /** @domName TextEvent.data */
-  abstract String get data;
+  String get data;
 
   /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, LocalWindow viewArg, String dataArg);
@@ -33450,7 +33560,7 @@ class _TextImpl extends _CharacterDataImpl implements Text native "*Text" {
 abstract class TextMetrics {
 
   /** @domName TextMetrics.width */
-  abstract num get width;
+  num get width;
 }
 
 class _TextMetricsImpl implements TextMetrics native "*TextMetrics" {
@@ -33472,19 +33582,19 @@ abstract class TextTrack implements EventTarget {
   TextTrackEvents get on;
 
   /** @domName TextTrack.activeCues */
-  abstract TextTrackCueList get activeCues;
+  TextTrackCueList get activeCues;
 
   /** @domName TextTrack.cues */
-  abstract TextTrackCueList get cues;
+  TextTrackCueList get cues;
 
   /** @domName TextTrack.kind */
-  abstract String get kind;
+  String get kind;
 
   /** @domName TextTrack.label */
-  abstract String get label;
+  String get label;
 
   /** @domName TextTrack.language */
-  abstract String get language;
+  String get language;
 
   /** @domName TextTrack.mode */
   String mode;
@@ -33556,7 +33666,7 @@ abstract class TextTrackCue implements EventTarget {
   String text;
 
   /** @domName TextTrackCue.track */
-  abstract TextTrack get track;
+  TextTrack get track;
 
   /** @domName TextTrackCue.vertical */
   String vertical;
@@ -33636,7 +33746,7 @@ class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents 
 abstract class TextTrackCueList implements List<TextTrackCue> {
 
   /** @domName TextTrackCueList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TextTrackCueList.getCueById */
   TextTrackCue getCueById(String id);
@@ -33652,7 +33762,7 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   _TextTrackCueImpl operator[](int index) => JS("_TextTrackCueImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackCueImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrackCue> mixins.
   // TextTrackCue is the element type.
@@ -33669,15 +33779,15 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
   // From Collection<TextTrackCue>:
 
   void add(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrackCue value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrackCue> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrackCue element) => _Collections.contains(this, element);
@@ -33693,38 +33803,38 @@ class _TextTrackCueListImpl implements TextTrackCueList, JavaScriptIndexingBehav
 
   bool some(bool f(TextTrackCue element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<TextTrackCue>:
 
   void sort([Comparator<TextTrackCue> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrackCue element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrackCue element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrackCue last() => this[length - 1];
+  TextTrackCue get last => this[length - 1];
 
   TextTrackCue removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrackCue> getRange(int start, int rangeLength) =>
@@ -33777,7 +33887,7 @@ class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-abstract class TextTrackList implements List<TextTrack>, EventTarget {
+abstract class TextTrackList implements EventTarget, List<TextTrack> {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -33785,7 +33895,7 @@ abstract class TextTrackList implements List<TextTrack>, EventTarget {
   TextTrackListEvents get on;
 
   /** @domName TextTrackList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TextTrackList.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -33805,7 +33915,7 @@ abstract class TextTrackListEvents implements Events {
   EventListenerList get addTrack;
 }
 
-class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior native "*TextTrackList" {
+class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList, JavaScriptIndexingBehavior native "*TextTrackList" {
 
   _TextTrackListEventsImpl get on =>
     new _TextTrackListEventsImpl(this);
@@ -33815,7 +33925,7 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
   _TextTrackImpl operator[](int index) => JS("_TextTrackImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TextTrackImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<TextTrack> mixins.
   // TextTrack is the element type.
@@ -33832,15 +33942,15 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
   // From Collection<TextTrack>:
 
   void add(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(TextTrack value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<TextTrack> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(TextTrack element) => _Collections.contains(this, element);
@@ -33856,38 +33966,38 @@ class _TextTrackListImpl implements TextTrackList, JavaScriptIndexingBehavior na
 
   bool some(bool f(TextTrack element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<TextTrack>:
 
   void sort([Comparator<TextTrack> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(TextTrack element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(TextTrack element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  TextTrack last() => this[length - 1];
+  TextTrack get last => this[length - 1];
 
   TextTrack removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<TextTrack> getRange(int start, int rangeLength) =>
@@ -33919,7 +34029,7 @@ class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvent
 abstract class TimeRanges {
 
   /** @domName TimeRanges.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TimeRanges.end */
   num end(int index);
@@ -33941,6 +34051,7 @@ class _TimeRangesImpl implements TimeRanges native "*TimeRanges" {
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
+
 
 typedef void TimeoutHandler();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33967,40 +34078,40 @@ class _TitleElementImpl extends _ElementImpl implements TitleElement native "*HT
 abstract class Touch {
 
   /** @domName Touch.clientX */
-  abstract int get clientX;
+  int get clientX;
 
   /** @domName Touch.clientY */
-  abstract int get clientY;
+  int get clientY;
 
   /** @domName Touch.identifier */
-  abstract int get identifier;
+  int get identifier;
 
   /** @domName Touch.pageX */
-  abstract int get pageX;
+  int get pageX;
 
   /** @domName Touch.pageY */
-  abstract int get pageY;
+  int get pageY;
 
   /** @domName Touch.screenX */
-  abstract int get screenX;
+  int get screenX;
 
   /** @domName Touch.screenY */
-  abstract int get screenY;
+  int get screenY;
 
   /** @domName Touch.target */
-  abstract EventTarget get target;
+  EventTarget get target;
 
   /** @domName Touch.webkitForce */
-  abstract num get webkitForce;
+  num get webkitForce;
 
   /** @domName Touch.webkitRadiusX */
-  abstract int get webkitRadiusX;
+  int get webkitRadiusX;
 
   /** @domName Touch.webkitRadiusY */
-  abstract int get webkitRadiusY;
+  int get webkitRadiusY;
 
   /** @domName Touch.webkitRotationAngle */
-  abstract num get webkitRotationAngle;
+  num get webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34012,25 +34123,25 @@ abstract class Touch {
 abstract class TouchEvent implements UIEvent {
 
   /** @domName TouchEvent.altKey */
-  abstract bool get altKey;
+  bool get altKey;
 
   /** @domName TouchEvent.changedTouches */
-  abstract TouchList get changedTouches;
+  TouchList get changedTouches;
 
   /** @domName TouchEvent.ctrlKey */
-  abstract bool get ctrlKey;
+  bool get ctrlKey;
 
   /** @domName TouchEvent.metaKey */
-  abstract bool get metaKey;
+  bool get metaKey;
 
   /** @domName TouchEvent.shiftKey */
-  abstract bool get shiftKey;
+  bool get shiftKey;
 
   /** @domName TouchEvent.targetTouches */
-  abstract TouchList get targetTouches;
+  TouchList get targetTouches;
 
   /** @domName TouchEvent.touches */
-  abstract TouchList get touches;
+  TouchList get touches;
 
   /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -34072,7 +34183,7 @@ class _TouchImpl implements Touch native "*Touch" {
   final int screenY;
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
-  EventTarget get _target() => JS("EventTarget", "#.target", this);
+  EventTarget get _target => JS("EventTarget", "#.target", this);
 
   final num webkitForce;
 
@@ -34092,7 +34203,7 @@ class _TouchImpl implements Touch native "*Touch" {
 abstract class TouchList implements List<Touch> {
 
   /** @domName TouchList.length */
-  abstract int get length;
+  int get length;
 
   /** @domName TouchList.item */
   Touch item(int index);
@@ -34105,7 +34216,7 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   _TouchImpl operator[](int index) => JS("_TouchImpl", "#[#]", this, index);
 
   void operator[]=(int index, _TouchImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Touch> mixins.
   // Touch is the element type.
@@ -34122,15 +34233,15 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Touch value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Touch> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Touch element) => _Collections.contains(this, element);
@@ -34146,38 +34257,38 @@ class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*T
 
   bool some(bool f(Touch element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Touch>:
 
   void sort([Comparator<Touch> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Touch element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Touch element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Touch last() => this[length - 1];
+  Touch get last => this[length - 1];
 
   Touch removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Touch> getRange(int start, int rangeLength) =>
@@ -34216,7 +34327,7 @@ abstract class TrackElement implements Element {
   String label;
 
   /** @domName HTMLTrackElement.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName HTMLTrackElement.src */
   String src;
@@ -34225,12 +34336,12 @@ abstract class TrackElement implements Element {
   String srclang;
 
   /** @domName HTMLTrackElement.track */
-  abstract TextTrack get track;
+  TextTrack get track;
 }
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
 
-  bool get defaultValue() => JS("bool", "#.default", this);
+  bool get defaultValue => JS("bool", "#.default", this);
 
   void set defaultValue(bool value) {
     JS("void", "#.default = #", this, value);
@@ -34258,7 +34369,7 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
 abstract class TrackEvent implements Event {
 
   /** @domName TrackEvent.track */
-  abstract Object get track;
+  Object get track;
 }
 
 class _TrackEventImpl extends _EventImpl implements TrackEvent native "*TrackEvent" {
@@ -34275,10 +34386,10 @@ class _TrackEventImpl extends _EventImpl implements TrackEvent native "*TrackEve
 abstract class TransitionEvent implements Event {
 
   /** @domName WebKitTransitionEvent.elapsedTime */
-  abstract num get elapsedTime;
+  num get elapsedTime;
 
   /** @domName WebKitTransitionEvent.propertyName */
-  abstract String get propertyName;
+  String get propertyName;
 }
 
 class _TransitionEventImpl extends _EventImpl implements TransitionEvent native "*WebKitTransitionEvent" {
@@ -34300,16 +34411,16 @@ abstract class TreeWalker {
   Node currentNode;
 
   /** @domName TreeWalker.expandEntityReferences */
-  abstract bool get expandEntityReferences;
+  bool get expandEntityReferences;
 
   /** @domName TreeWalker.filter */
-  abstract NodeFilter get filter;
+  NodeFilter get filter;
 
   /** @domName TreeWalker.root */
-  abstract Node get root;
+  Node get root;
 
   /** @domName TreeWalker.whatToShow */
-  abstract int get whatToShow;
+  int get whatToShow;
 
   /** @domName TreeWalker.firstChild */
   Node firstChild();
@@ -34369,31 +34480,31 @@ class _TreeWalkerImpl implements TreeWalker native "*TreeWalker" {
 abstract class UIEvent implements Event {
 
   /** @domName UIEvent.charCode */
-  abstract int get charCode;
+  int get charCode;
 
   /** @domName UIEvent.detail */
-  abstract int get detail;
+  int get detail;
 
   /** @domName UIEvent.keyCode */
-  abstract int get keyCode;
+  int get keyCode;
 
   /** @domName UIEvent.layerX */
-  abstract int get layerX;
+  int get layerX;
 
   /** @domName UIEvent.layerY */
-  abstract int get layerY;
+  int get layerY;
 
   /** @domName UIEvent.pageX */
-  abstract int get pageX;
+  int get pageX;
 
   /** @domName UIEvent.pageY */
-  abstract int get pageY;
+  int get pageY;
 
   /** @domName UIEvent.view */
-  abstract Window get view;
+  Window get view;
 
   /** @domName UIEvent.which */
-  abstract int get which;
+  int get which;
 
   /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, LocalWindow view, int detail);
@@ -34416,7 +34527,7 @@ class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
   final int pageY;
 
   Window get view => _convertNativeToDart_Window(this._view);
-  Window get _view() => JS("Window", "#.view", this);
+  Window get _view => JS("Window", "#.view", this);
 
   final int which;
 
@@ -34467,7 +34578,7 @@ abstract class Uint16Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 2;
 
   /** @domName Uint16Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint16Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34498,15 +34609,15 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34522,38 +34633,38 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -34586,7 +34697,7 @@ abstract class Uint32Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 4;
 
   /** @domName Uint32Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint32Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34617,15 +34728,15 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34641,38 +34752,38 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -34705,7 +34816,7 @@ abstract class Uint8Array implements ArrayBufferView, List<int> {
   static const int BYTES_PER_ELEMENT = 1;
 
   /** @domName Uint8Array.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint8Array.setElements */
   void setElements(Object array, [int offset]);
@@ -34736,15 +34847,15 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   // From Collection<int>:
 
   void add(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(int value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<int> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(int element) => _Collections.contains(this, element);
@@ -34760,38 +34871,38 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   bool some(bool f(int element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<int>:
 
   void sort([Comparator<int> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int last() => this[length - 1];
+  int get last => this[length - 1];
 
   int removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<int> getRange(int start, int rangeLength) =>
@@ -34822,7 +34933,7 @@ abstract class Uint8ClampedArray implements Uint8Array {
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   /** @domName Uint8ClampedArray.length */
-  abstract int get length;
+  int get length;
 
   /** @domName Uint8ClampedArray.setElements */
   void setElements(Object array, [int offset]);
@@ -34862,31 +34973,31 @@ class _UnknownElementImpl extends _ElementImpl implements UnknownElement native 
 abstract class ValidityState {
 
   /** @domName ValidityState.customError */
-  abstract bool get customError;
+  bool get customError;
 
   /** @domName ValidityState.patternMismatch */
-  abstract bool get patternMismatch;
+  bool get patternMismatch;
 
   /** @domName ValidityState.rangeOverflow */
-  abstract bool get rangeOverflow;
+  bool get rangeOverflow;
 
   /** @domName ValidityState.rangeUnderflow */
-  abstract bool get rangeUnderflow;
+  bool get rangeUnderflow;
 
   /** @domName ValidityState.stepMismatch */
-  abstract bool get stepMismatch;
+  bool get stepMismatch;
 
   /** @domName ValidityState.tooLong */
-  abstract bool get tooLong;
+  bool get tooLong;
 
   /** @domName ValidityState.typeMismatch */
-  abstract bool get typeMismatch;
+  bool get typeMismatch;
 
   /** @domName ValidityState.valid */
-  abstract bool get valid;
+  bool get valid;
 
   /** @domName ValidityState.valueMissing */
-  abstract bool get valueMissing;
+  bool get valueMissing;
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {
@@ -34927,22 +35038,22 @@ abstract class VideoElement implements MediaElement {
   String poster;
 
   /** @domName HTMLVideoElement.videoHeight */
-  abstract int get videoHeight;
+  int get videoHeight;
 
   /** @domName HTMLVideoElement.videoWidth */
-  abstract int get videoWidth;
+  int get videoWidth;
 
   /** @domName HTMLVideoElement.webkitDecodedFrameCount */
-  abstract int get webkitDecodedFrameCount;
+  int get webkitDecodedFrameCount;
 
   /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
-  abstract bool get webkitDisplayingFullscreen;
+  bool get webkitDisplayingFullscreen;
 
   /** @domName HTMLVideoElement.webkitDroppedFrameCount */
-  abstract int get webkitDroppedFrameCount;
+  int get webkitDroppedFrameCount;
 
   /** @domName HTMLVideoElement.webkitSupportsFullscreen */
-  abstract bool get webkitSupportsFullscreen;
+  bool get webkitSupportsFullscreen;
 
   /** @domName HTMLVideoElement.width */
   int width;
@@ -34994,6 +35105,7 @@ class _VideoElementImpl extends _MediaElementImpl implements VideoElement native
 
 // WARNING: Do not edit - generated code.
 
+
 typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35034,13 +35146,13 @@ class _WaveTableImpl implements WaveTable native "*WaveTable" {
 abstract class WebGLActiveInfo {
 
   /** @domName WebGLActiveInfo.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebGLActiveInfo.size */
-  abstract int get size;
+  int get size;
 
   /** @domName WebGLActiveInfo.type */
-  abstract int get type;
+  int get type;
 }
 
 class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
@@ -35135,7 +35247,7 @@ class _WebGLContextAttributesImpl implements WebGLContextAttributes native "*Web
 abstract class WebGLContextEvent implements Event {
 
   /** @domName WebGLContextEvent.statusMessage */
-  abstract String get statusMessage;
+  String get statusMessage;
 }
 
 class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent native "*WebGLContextEvent" {
@@ -35847,10 +35959,10 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   static const int ZERO = 0;
 
   /** @domName WebGLRenderingContext.drawingBufferHeight */
-  abstract int get drawingBufferHeight;
+  int get drawingBufferHeight;
 
   /** @domName WebGLRenderingContext.drawingBufferWidth */
-  abstract int get drawingBufferWidth;
+  int get drawingBufferWidth;
 
   /** @domName WebGLRenderingContext.activeTexture */
   void activeTexture(int texture);
@@ -36021,7 +36133,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
   /** @domName WebGLRenderingContext.getAttachedShaders */
-  List<Object> getAttachedShaders(WebGLProgram program);
+  void getAttachedShaders(WebGLProgram program);
 
   /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
@@ -36036,7 +36148,7 @@ abstract class WebGLRenderingContext implements CanvasRenderingContext {
   int getError();
 
   /** @domName WebGLRenderingContext.getExtension */
-  Object getExtension(String name);
+  void getExtension(String name);
 
   /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
@@ -36382,7 +36494,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   _WebGLActiveInfoImpl getActiveUniform(_WebGLProgramImpl program, int index) native;
 
-  List<Object> getAttachedShaders(_WebGLProgramImpl program) native;
+  void getAttachedShaders(_WebGLProgramImpl program) native;
 
   int getAttribLocation(_WebGLProgramImpl program, String name) native;
 
@@ -36392,7 +36504,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   int getError() native;
 
-  Object getExtension(String name) native;
+  void getExtension(String name) native;
 
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
@@ -36475,14 +36587,14 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [format, type, pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
-        (format is int || format === null) &&
-        (type is int || type === null) &&
-        (pixels is ArrayBufferView || pixels === null)) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
+        (format is int || format == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -36490,21 +36602,21 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video === null) &&
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) &&
         !?format &&
         !?type &&
         !?pixels) {
@@ -36524,32 +36636,32 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [type, pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
-        (type is int || type === null) &&
-        (pixels is ArrayBufferView || pixels === null)) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
+        (type is int || type == null) &&
+        (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video === null) &&
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) &&
         !?type &&
         !?pixels) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
@@ -36647,13 +36759,13 @@ class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
 abstract class WebGLShaderPrecisionFormat {
 
   /** @domName WebGLShaderPrecisionFormat.precision */
-  abstract int get precision;
+  int get precision;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMax */
-  abstract int get rangeMax;
+  int get rangeMax;
 
   /** @domName WebGLShaderPrecisionFormat.rangeMin */
-  abstract int get rangeMin;
+  int get rangeMin;
 }
 
 class _WebGLShaderPrecisionFormatImpl implements WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
@@ -36708,7 +36820,7 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   _AnimationImpl operator[](int index) => JS("_AnimationImpl", "#[#]", this, index);
 
   void operator[]=(int index, _AnimationImpl value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    throw new UnsupportedError("Cannot assign element of immutable List.");
   }
   // -- start List<Animation> mixins.
   // Animation is the element type.
@@ -36725,15 +36837,15 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
   // From Collection<Animation>:
 
   void add(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addLast(Animation value) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   void addAll(Collection<Animation> collection) {
-    throw const UnsupportedOperationException("Cannot add to immutable List.");
+    throw new UnsupportedError("Cannot add to immutable List.");
   }
 
   bool contains(Animation element) => _Collections.contains(this, element);
@@ -36749,38 +36861,38 @@ class _WebKitAnimationListImpl implements List<Animation>, JavaScriptIndexingBeh
 
   bool some(bool f(Animation element)) => _Collections.some(this, f);
 
-  bool isEmpty() => this.length == 0;
+  bool get isEmpty => this.length == 0;
 
   // From List<Animation>:
 
   void sort([Comparator<Animation> compare = Comparable.compare]) {
-    throw const UnsupportedOperationException("Cannot sort immutable List.");
+    throw new UnsupportedError("Cannot sort immutable List.");
   }
 
   int indexOf(Animation element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Animation element, [int start]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  Animation last() => this[length - 1];
+  Animation get last => this[length - 1];
 
   Animation removeLast() {
-    throw const UnsupportedOperationException("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Animation> from, [int startFrom]) {
-    throw const UnsupportedOperationException("Cannot setRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
   void removeRange(int start, int rangeLength) {
-    throw const UnsupportedOperationException("Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
   void insertRange(int start, int rangeLength, [Animation initialValue]) {
-    throw const UnsupportedOperationException("Cannot insertRange on immutable List.");
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   List<Animation> getRange(int start, int rangeLength) =>
@@ -36824,7 +36936,7 @@ abstract class WebKitCSSFilterValue implements List<CSSValue> {
   static const int CSS_FILTER_SEPIA = 3;
 
   /** @domName WebKitCSSFilterValue.operationType */
-  abstract int get operationType;
+  int get operationType;
 }
 
 class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
@@ -36841,13 +36953,13 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
 abstract class WebKitNamedFlow implements EventTarget {
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
-  abstract int get firstEmptyRegionIndex;
+  int get firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
-  abstract String get name;
+  String get name;
 
   /** @domName WebKitNamedFlow.overset */
-  abstract bool get overset;
+  bool get overset;
 
   /** @domName WebKitNamedFlow.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -36894,6 +37006,7 @@ class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow n
 
 // WARNING: Do not edit - generated code.
 
+
 /// @domName WebSocket
 abstract class WebSocket implements EventTarget {
 
@@ -36913,25 +37026,25 @@ abstract class WebSocket implements EventTarget {
   static const int OPEN = 1;
 
   /** @domName WebSocket.URL */
-  abstract String get URL;
+  String get URL;
 
   /** @domName WebSocket.binaryType */
   String binaryType;
 
   /** @domName WebSocket.bufferedAmount */
-  abstract int get bufferedAmount;
+  int get bufferedAmount;
 
   /** @domName WebSocket.extensions */
-  abstract String get extensions;
+  String get extensions;
 
   /** @domName WebSocket.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName WebSocket.readyState */
-  abstract int get readyState;
+  int get readyState;
 
   /** @domName WebSocket.url */
-  abstract String get url;
+  String get url;
 
   /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -37005,17 +37118,18 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
 /// @domName WheelEvent
 abstract class WheelEvent implements MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
-  abstract bool get webkitDirectionInvertedFromDevice;
+  bool get webkitDirectionInvertedFromDevice;
 
   /** @domName WheelEvent.wheelDeltaX */
-  abstract int get $dom_wheelDeltaX;
+  int get $dom_wheelDeltaX;
 
   /** @domName WheelEvent.wheelDeltaY */
-  abstract int get $dom_wheelDeltaY;
+  int get $dom_wheelDeltaY;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, LocalWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -37064,7 +37178,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaY is not supported');
   }
 
@@ -37092,7 +37206,7 @@ class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*Whe
       }
       return 0;
     }
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         'deltaX is not supported');
   }
 
@@ -37158,22 +37272,22 @@ abstract class WorkerContext implements EventTarget {
   static const int TEMPORARY = 0;
 
   /** @domName WorkerContext.indexedDB */
-  abstract IDBFactory get indexedDB;
+  IDBFactory get indexedDB;
 
   /** @domName WorkerContext.location */
-  abstract WorkerLocation get location;
+  WorkerLocation get location;
 
   /** @domName WorkerContext.navigator */
-  abstract WorkerNavigator get navigator;
+  WorkerNavigator get navigator;
 
   /** @domName WorkerContext.self */
-  abstract WorkerContext get self;
+  WorkerContext get self;
 
   /** @domName WorkerContext.webkitIndexedDB */
-  abstract IDBFactory get webkitIndexedDB;
+  IDBFactory get webkitIndexedDB;
 
   /** @domName WorkerContext.webkitNotifications */
-  abstract NotificationCenter get webkitNotifications;
+  NotificationCenter get webkitNotifications;
 
   /** @domName WorkerContext.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -37316,28 +37430,28 @@ class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvent
 abstract class WorkerLocation {
 
   /** @domName WorkerLocation.hash */
-  abstract String get hash;
+  String get hash;
 
   /** @domName WorkerLocation.host */
-  abstract String get host;
+  String get host;
 
   /** @domName WorkerLocation.hostname */
-  abstract String get hostname;
+  String get hostname;
 
   /** @domName WorkerLocation.href */
-  abstract String get href;
+  String get href;
 
   /** @domName WorkerLocation.pathname */
-  abstract String get pathname;
+  String get pathname;
 
   /** @domName WorkerLocation.port */
-  abstract String get port;
+  String get port;
 
   /** @domName WorkerLocation.protocol */
-  abstract String get protocol;
+  String get protocol;
 
   /** @domName WorkerLocation.search */
-  abstract String get search;
+  String get search;
 
   /** @domName WorkerLocation.toString */
   String toString();
@@ -37373,19 +37487,19 @@ class _WorkerLocationImpl implements WorkerLocation native "*WorkerLocation" {
 abstract class WorkerNavigator {
 
   /** @domName WorkerNavigator.appName */
-  abstract String get appName;
+  String get appName;
 
   /** @domName WorkerNavigator.appVersion */
-  abstract String get appVersion;
+  String get appVersion;
 
   /** @domName WorkerNavigator.onLine */
-  abstract bool get onLine;
+  bool get onLine;
 
   /** @domName WorkerNavigator.platform */
-  abstract String get platform;
+  String get platform;
 
   /** @domName WorkerNavigator.userAgent */
-  abstract String get userAgent;
+  String get userAgent;
 }
 
 class _WorkerNavigatorImpl implements WorkerNavigator native "*WorkerNavigator" {
@@ -37462,13 +37576,13 @@ abstract class XPathException {
   static const int TYPE_ERR = 52;
 
   /** @domName XPathException.code */
-  abstract int get code;
+  int get code;
 
   /** @domName XPathException.message */
-  abstract String get message;
+  String get message;
 
   /** @domName XPathException.name */
-  abstract String get name;
+  String get name;
 
   /** @domName XPathException.toString */
   String toString();
@@ -37548,25 +37662,25 @@ abstract class XPathResult {
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   /** @domName XPathResult.booleanValue */
-  abstract bool get booleanValue;
+  bool get booleanValue;
 
   /** @domName XPathResult.invalidIteratorState */
-  abstract bool get invalidIteratorState;
+  bool get invalidIteratorState;
 
   /** @domName XPathResult.numberValue */
-  abstract num get numberValue;
+  num get numberValue;
 
   /** @domName XPathResult.resultType */
-  abstract int get resultType;
+  int get resultType;
 
   /** @domName XPathResult.singleNodeValue */
-  abstract Node get singleNodeValue;
+  Node get singleNodeValue;
 
   /** @domName XPathResult.snapshotLength */
-  abstract int get snapshotLength;
+  int get snapshotLength;
 
   /** @domName XPathResult.stringValue */
-  abstract String get stringValue;
+  String get stringValue;
 
   /** @domName XPathResult.iterateNext */
   Node iterateNext();
@@ -37734,6 +37848,7 @@ class _DataViewFactoryProvider {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 
 class _Elements {
 
@@ -38335,9 +38450,7 @@ abstract class Window {
   void focus();
   void blur();
   void close();
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-		   [List messagePorts = null]);
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]);
 }
 
 abstract class Location {
@@ -38348,7 +38461,8 @@ abstract class History {
   void back();
   void forward();
   void go(int distance);
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38999,7 +39113,7 @@ class _Collections {
   }
 
   static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
+    return !iterable.iterator().hasNext;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39192,7 +39306,7 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener === null) {
+    if (_listener == null) {
       _listener = (Event e) {
         var data = JSON.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
@@ -39206,7 +39320,7 @@ class ReceivePortSync {
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener !== null) window.on[_listenerName].remove(_listener);
+    if (_listener != null) window.on[_listenerName].remove(_listener);
   }
 
   SendPortSync toSendPort() {
@@ -39364,7 +39478,7 @@ void _maybeScheduleMeasurementFrame() {
  * no measurements were actually requested.
  */
 void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks === null) {
+  if (_pendingMeasurementFrameCallbacks == null) {
     _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -39381,7 +39495,7 @@ void _addMeasurementFrameCallback(TimeoutHandler callback) {
  */
 Future _createMeasurementFuture(ComputeValue computeValue,
                                 Completer completer) {
-  if (_pendingRequests === null) {
+  if (_pendingRequests == null) {
     _pendingRequests = <_MeasurementRequest>[];
     _maybeScheduleMeasurementFrame();
   }
@@ -39397,7 +39511,7 @@ void _completeMeasurementFutures() {
   // We must compute all new values before fulfilling the futures as
   // the onComplete callbacks for the futures could modify the DOM making
   // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests !== null) {
+  if (_pendingRequests != null) {
     for (_MeasurementRequest request in _pendingRequests) {
       try {
         request.value = request.computeValue();
@@ -39412,7 +39526,7 @@ void _completeMeasurementFutures() {
   final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
   _pendingRequests = null;
   _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests !== null) {
+  if (completedRequests != null) {
     for (_MeasurementRequest request in completedRequests) {
       if (request.exception) {
         request.completer.completeException(request.value);
@@ -39422,7 +39536,7 @@ void _completeMeasurementFutures() {
     }
   }
 
-  if (readyMeasurementFrameCallbacks !== null) {
+  if (readyMeasurementFrameCallbacks != null) {
     for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
       // TODO(jacobr): wrap each call to a handler in a try-catch block.
       handler();
@@ -39491,7 +39605,7 @@ class _MessageTraverser {
   }
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
@@ -39503,7 +39617,7 @@ class _Copier extends _MessageTraverser {
 
   List visitList(List list) {
     List copy = _visited[list];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     int len = list.length;
 
@@ -39518,7 +39632,7 @@ class _Copier extends _MessageTraverser {
 
   Map visitMap(Map map) {
     Map copy = _visited[map];
-    if (copy !== null) return copy;
+    if (copy != null) return copy;
 
     // TODO(floitsch): we loose the generic type of the map.
     copy = new Map();
@@ -39539,7 +39653,7 @@ class _Serializer extends _MessageTraverser {
 
   visitList(List list) {
     int copyId = _visited[list];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[list] = id;
@@ -39550,12 +39664,12 @@ class _Serializer extends _MessageTraverser {
 
   visitMap(Map map) {
     int copyId = _visited[map];
-    if (copyId !== null) return ['ref', copyId];
+    if (copyId != null) return ['ref', copyId];
 
     int id = _nextFreeRefId++;
     _visited[map] = id;
-    var keys = _serializeList(map.getKeys());
-    var values = _serializeList(map.getValues());
+    var keys = _serializeList(map.keys);
+    var values = _serializeList(map.values);
     // TODO(floitsch): we are losing the generic type.
     return ['map', id, keys, values];
   }
@@ -39572,17 +39686,17 @@ class _Serializer extends _MessageTraverser {
 
 /** Deserializes arrays created with [_Serializer]. */
 class _Deserializer {
-  Map<int, Dynamic> _deserialized;
+  Map<int, dynamic> _deserialized;
 
   _Deserializer();
 
   static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
+    return (x == null) || (x is String) || (x is num) || (x is bool);
   }
 
   deserialize(x) {
     if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    // TODO(floitsch): this should be new HashMap<int, dynamic>()
     _deserialized = new HashMap();
     return _deserializeHelper(x);
   }
@@ -39602,7 +39716,7 @@ class _Deserializer {
   _deserializeRef(List x) {
     int id = x[1];
     var result = _deserialized[id];
-    assert(result !== null);
+    assert(result != null);
     return result;
   }
 
@@ -39959,7 +40073,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
@@ -40058,7 +40172,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
         for ( ; i < length; i++) {
           var element = e[i];
           var elementCopy = walk(element);
-          if (elementCopy !== element) {
+          if (!identical(elementCopy, element)) {
             copy = readSlot(slot);   // Cyclic reference may have created it.
             if (true == copy) {
               copy = JS('List', 'new Array(#)', length);
@@ -40124,7 +40238,7 @@ _convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (values[i] === value) return i;
+      if (identical(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
@@ -40232,9 +40346,7 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-                   [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {
@@ -40246,7 +40358,7 @@ class _DOMWindowCrossFrameImpl implements Window {
   _DOMWindowCrossFrameImpl(this._window);
 
   static Window _createSafe(w) {
-    if (w === window) {
+    if (identical(w, window)) {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -40270,7 +40382,7 @@ class _LocationCrossFrameImpl implements Location {
   _LocationCrossFrameImpl(this._location);
 
   static Location _createSafe(location) {
-    if (location === window.location) {
+    if (identical(location, window.location)) {
       return location;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -40295,7 +40407,7 @@ class _HistoryCrossFrameImpl implements History {
   _HistoryCrossFrameImpl(this._history);
 
   static History _createSafe(h) {
-    if (h === window.history) {
+    if (identical(h, window.history)) {
       return h;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -40668,7 +40780,7 @@ class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
       : super(array),
         _length = array.length;
 
-  bool hasNext() => _length > _pos;
+  bool get hasNext => _length > _pos;
 
   final int _length;  // Cache array length for faster access.
 }
@@ -40679,11 +40791,11 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
       : _array = array,
         _pos = 0;
 
-  bool hasNext() => _array.length > _pos;
+  bool get hasNext => _array.length > _pos;
 
   T next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

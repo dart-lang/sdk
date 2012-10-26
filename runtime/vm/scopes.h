@@ -175,6 +175,10 @@ class SourceLabel : public ZoneAllocated {
   void ResolveForwardReference() { kind_ = kCase; }
 
  private:
+  // TODO(zerny): Remove this hack when the builder no longer stores state in
+  // the ast/scopes.
+  friend class SourceLabelResetter;
+
   const intptr_t token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this label.

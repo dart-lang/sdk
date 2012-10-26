@@ -69,12 +69,12 @@ interface Map<K, V> default HashMapImplementation<K, V> {
   /**
    * Returns a collection containing all the keys in the map.
    */
-  Collection<K> getKeys();
+  Collection<K> get keys;
 
   /**
    * Returns a collection containing all the values in the map.
    */
-  Collection<V> getValues();
+  Collection<V> get values;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -84,13 +84,13 @@ interface Map<K, V> default HashMapImplementation<K, V> {
   /**
    * Returns true if there is no {key, value} pair in the map.
    */
-  bool isEmpty();
+  bool get isEmpty;
 }
 
 /**
  * Hash map version of the [Map] interface. A [HashMap] does not
- * provide any guarantees on the order of keys and values in [getKeys]
- * and [getValues].
+ * provide any guarantees on the order of keys and values in [keys]
+ * and [values].
  */
 interface HashMap<K, V> extends Map<K, V>
     default HashMapImplementation<K, V> {

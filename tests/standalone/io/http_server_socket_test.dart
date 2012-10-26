@@ -109,7 +109,7 @@ class SocketMock implements Socket {
 
   OutputStream get outputStream => _outputStream;
 
-  int hashCode() => _hashCode;
+  int get hashCode => _hashCode;
 
   List<int> _read;
   bool _closed = false;
@@ -127,9 +127,9 @@ class ServerSocketMock implements ServerSocket {
       _sockets = new Set<Socket>();
 
   void spawnSocket(var data, String response, int cutOff, bool closeAsError) {
-    if (data is String) data = data.charCodes();
+    if (data is String) data = data.charCodes;
     SocketMock socket = new SocketMock(data,
-                                       response.charCodes(),
+                                       response.charCodes,
                                        cutOff,
                                        closeAsError);
     _sockets.add(socket);

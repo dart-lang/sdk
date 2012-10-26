@@ -48,7 +48,7 @@ render(idl_node, [indent_str='  ']) {
     if (node == null) {
       return;
     } else if (node is String) {
-      if (output.last().endsWith('\n'))
+      if (output.last.endsWith('\n'))
         output.addAll(indent_stack);
       output.add(node);
     } else if (node is List) {
@@ -75,13 +75,13 @@ render(idl_node, [indent_str='  ']) {
       w(node.extAttrs);
       w('interface ${node.id}');
       indented(() {
-          if (!node.parents.isEmpty()) {
+          if (!node.parents.isEmpty) {
             wln(' :');
             w(node.parents, ',\n');
           }
           wln(' {');
           section(list, comment) {
-            if (list != null && !list.isEmpty()) {
+            if (list != null && !list.isEmpty) {
               wln();
               wln(comment);
               w(sort(list));
@@ -97,14 +97,14 @@ render(idl_node, [indent_str='  ']) {
       w(node.annotations);
       w(node.type.id);
     } else if (node is IDLAnnotations) {
-      for (var name in sorted(node.map.getKeys())) {
+      for (var name in sorted(node.map.keys)) {
         IDLAnnotation annotation = node.map[name];
         var args = annotation.map;
-        if (args.isEmpty()) {
+        if (args.isEmpty) {
           w('@$name');
         } else {
           var formattedArgs = [];
-          for (var argName in sorted(args.getKeys())) {
+          for (var argName in sorted(args.keys)) {
             var argValue = args[argName];
             if (argValue == null)
               formattedArgs.add(argName);
@@ -116,10 +116,10 @@ render(idl_node, [indent_str='  ']) {
         w(' ');
       }
     } else if (node is IDLExtAttrs) {
-      if(!node.map.isEmpty()) {
+      if(!node.map.isEmpty) {
         w('[');
         var sep = null;
-        for (var name in sorted(node.map.getKeys())) {
+        for (var name in sorted(node.map.keys)) {
           w(sep);
           sep = ', ';
           w(name);
@@ -149,7 +149,7 @@ render(idl_node, [indent_str='  ']) {
     } else if (node is IDLOperation) {
       w(node.annotations);
       w(node.extAttrs);
-      if (node.specials != null && !node.specials.isEmpty()) {
+      if (node.specials != null && !node.specials.isEmpty) {
         w(node.specials, ' ');
         w(' ');
       }

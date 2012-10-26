@@ -16,7 +16,7 @@ class _Visitor {
   /** Visits each key and value in [map] and returns a map of the results. */
   visitMapping(_MappingNode map) {
     var out = new YamlMap();
-    for (var key in map.content.getKeys()) {
+    for (var key in map.content.keys) {
       out[key.visit(this)] = map.content[key].visit(this);
     }
     return out;

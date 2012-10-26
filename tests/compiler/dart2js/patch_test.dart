@@ -112,9 +112,9 @@ testPatchFunction() {
   ensure(compiler, "test", compiler.coreLibrary.find, isPatched: true);
   ensure(compiler, "test", compiler.coreLibrary.patch.find, isPatch: true);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -141,9 +141,9 @@ testPatchMember() {
   ensure(compiler, "toString", container.patch.lookupLocalMember,
          isPatch: true);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -173,9 +173,9 @@ testPatchGetter() {
          isGetter: true,
          isPatch: true);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -199,9 +199,9 @@ testRegularMember() {
   ensure(compiler, "regular", container.lookupLocalMember);
   ensure(compiler, "regular", container.patch.lookupLocalMember);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -225,9 +225,9 @@ testGhostMember() {
   ensure(compiler, "ghost", container.lookupLocalMember, isFound: false);
   ensure(compiler, "ghost", container.patch.lookupLocalMember);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -243,9 +243,9 @@ testInjectFunction() {
          "_function",
          compiler.coreLibrary.patch.find);
 
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isTrue(compiler.errors.isEmpty(),
+  Expect.isTrue(compiler.errors.isEmpty,
                 "Unexpected errors: ${compiler.errors}");
 }
 
@@ -283,9 +283,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method1", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method1:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -293,9 +293,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method2", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method2:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -303,9 +303,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method3", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method3:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -313,9 +313,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method4", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method4:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -323,9 +323,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method5", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method5:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -333,9 +333,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method6", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method6:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -343,9 +343,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method7", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method7:${compiler.errors}');
 
   compiler.warnings.clear();
@@ -353,9 +353,9 @@ testPatchSignatureCheck() {
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method8", container.lookupLocalMember,
           isPatched: true));
-  Expect.isTrue(compiler.warnings.isEmpty(),
+  Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty());
+  Expect.isFalse(compiler.errors.isEmpty);
   print('method8:${compiler.errors}');
 }
 

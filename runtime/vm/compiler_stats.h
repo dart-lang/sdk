@@ -32,8 +32,19 @@ class CompilerStats : AllStatic {
   static Timer scanner_timer;        // Cumulative runtime of scanner.
   static Timer codegen_timer;        // Cumulative runtime of code generator.
   static Timer graphbuilder_timer;   // Included in codegen_timer.
-  static Timer graphcompiler_timer;  // Included in codegen_timer.
-  static Timer codefinalizer_timer;  // Included in codegen_timer.
+  static Timer ssa_timer;            // Included in codegen_timer.
+  static Timer graphinliner_timer;   // Included in codegen_timer.
+  static Timer graphinliner_parse_timer;  // Included in codegen_timer.
+  static Timer graphinliner_build_timer;  // Included in codegen_timer.
+  static Timer graphinliner_ssa_timer;    // Included in codegen_timer.
+  static Timer graphinliner_opt_timer;    // Included in codegen_timer.
+  static Timer graphinliner_find_timer;   // Included in codegen_timer.
+  static Timer graphinliner_plug_timer;   // Included in codegen_timer.
+  static Timer graphinliner_subst_timer;  // Included in codegen_timer.
+
+  static Timer graphoptimizer_timer;  // Included in codegen_timer.
+  static Timer graphcompiler_timer;   // Included in codegen_timer.
+  static Timer codefinalizer_timer;   // Included in codegen_timer.
 
   static void Print();
 };

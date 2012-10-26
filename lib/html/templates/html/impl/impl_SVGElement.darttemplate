@@ -14,7 +14,7 @@ class _AttributeClassSet extends _CssClassSet {
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   CSSClassSet get classes {
-    if (_cssClassSet === null) {
+    if (_cssClassSet == null) {
       _cssClassSet = new _AttributeClassSet(_ptr);
     }
     return _cssClassSet;

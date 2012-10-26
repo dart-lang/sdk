@@ -11,7 +11,7 @@ class ConstantMap<V> implements Map<String, V> {
   final List<String> _keys;
 
   bool containsValue(V needle) {
-    return getValues().some((V value) => value == needle);
+    return values.some((V value) => value == needle);
   }
 
   bool containsKey(String key) {
@@ -28,25 +28,25 @@ class ConstantMap<V> implements Map<String, V> {
     _keys.forEach((String key) => f(key, this[key]));
   }
 
-  Collection<String> getKeys() => _keys;
+  Collection<String> get keys => _keys;
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     List<V> result = <V>[];
     _keys.forEach((String key) => result.add(this[key]));
     return result;
   }
 
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 
   String toString() => Maps.mapToString(this);
 
-  _throwImmutable() {
-    throw const IllegalAccessException();
+  _throwUnmodifiable() {
+    throw new UnsupportedError("Cannot modify unmodifiable Map");
   }
-  void operator []=(String key, V val) => _throwImmutable();
-  V putIfAbsent(String key, V ifAbsent()) => _throwImmutable();
-  V remove(String key) => _throwImmutable();
-  void clear() => _throwImmutable();
+  void operator []=(String key, V val) => _throwUnmodifiable();
+  V putIfAbsent(String key, V ifAbsent()) => _throwUnmodifiable();
+  V remove(String key) => _throwUnmodifiable();
+  void clear() => _throwUnmodifiable();
 }
 
 // This class has no constructor. This is on purpose since the instantiation

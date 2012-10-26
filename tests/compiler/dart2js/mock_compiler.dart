@@ -56,12 +56,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}
-  abstract class int extends num {}
-  abstract class double extends num {}
+  abstract class num {}
+  abstract class int extends num { }
+  abstract class double extends num { }
   class bool {}
   class String {}
   class Object {}
-  abstract class num {}
   class Function {}
   interface List default ListImplementation { List([length]);}
   class ListImplementation { factory List([length]) => null; }
@@ -97,6 +97,10 @@ class MockCompiler extends Compiler {
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
+    // We need to make sure the Object class is resolved. When registering a
+    // dynamic invocation the ArgumentTypesRegistry eventually iterates over
+    // the interfaces of the Object class which would be 'null' if the class
+    // wasn't resolved.
     objectClass.ensureResolved(this);
   }
 
@@ -109,7 +113,7 @@ class MockCompiler extends Compiler {
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElement(script);
     parseScript(source, library);
-    library.setExports(library.localScope.getValues());
+    library.setExports(library.localScope.values);
     return library;
   }
 
@@ -138,7 +142,7 @@ class MockCompiler extends Compiler {
     print(message);
   }
 
-  bool get compilationFailed => !errors.isEmpty();
+  bool get compilationFailed => !errors.isEmpty;
 
   void clearWarnings() {
     warnings = [];
@@ -154,19 +158,22 @@ class MockCompiler extends Compiler {
   }
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
-    ResolverVisitor visitor = new ResolverVisitor(this, element);
-    if (visitor.scope is TopScope) {
+    ResolverVisitor visitor =
+        new ResolverVisitor(this, element, new CollectingTreeElements(element));
+    if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
-    visitor.scope = new TopScope(element.getLibrary());
+    visitor.scope = new LibraryScope(element.getLibrary());
     return visitor.mapping;
   }
 
   resolverVisitor() {
     Element mockElement =
         new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
-    ResolverVisitor visitor = new ResolverVisitor(this, mockElement);
+    ResolverVisitor visitor =
+        new ResolverVisitor(this, mockElement,
+                            new CollectingTreeElements(mockElement));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -202,19 +209,19 @@ void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
   var fail = (message) => Expect.fail('$text: $message');
   Iterator<MessageKind> expected = expectedWarnings.iterator();
   Iterator<WarningMessage> found = foundWarnings.iterator();
-  while (expected.hasNext() && found.hasNext()) {
+  while (expected.hasNext && found.hasNext) {
     Expect.equals(expected.next(), found.next().message.kind);
   }
-  if (expected.hasNext()) {
+  if (expected.hasNext) {
     do {
       print('Expected warning "${expected.next()}" did not occur');
-    } while (expected.hasNext());
+    } while (expected.hasNext);
     fail('Too few warnings');
   }
-  if (found.hasNext()) {
+  if (found.hasNext) {
     do {
       print('Additional warning "${found.next()}"');
-    } while (found.hasNext());
+    } while (found.hasNext);
     fail('Too many warnings');
   }
 }
@@ -233,4 +240,20 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
+}
+
+class CollectingTreeElements extends TreeElementMapping {
+  final Map<Node, Element> map = new LinkedHashMap<Node, Element>();
+
+  CollectingTreeElements(Element currentElement) : super(currentElement);
+
+  operator []=(Node node, Element element) {
+    map[node] = element;
+  }
+
+  operator [](Node node) => map[node];
+
+  void remove(Node node) {
+    map.remove(node);
+  }
 }

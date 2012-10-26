@@ -193,8 +193,10 @@ class Intl {
   }
 
   /**
-   * Return a locale name turned into xx_YY where it might possibly be
-   * in the wrong case or with a hyphen instead of an underscore.
+   * Return the name [aLocale] turned into xx_YY where it might possibly be
+   * in the wrong case or with a hyphen instead of an underscore. If
+   * [aLocale] is null, for example, if you tried to get it from IE,
+   * return the current system locale.
    */
   static String canonicalizedLocale(String aLocale) {
     // Locales of length < 5 are presumably two-letter forms, or else malformed.
@@ -203,6 +205,7 @@ class Intl {
     // We treat C as a special case, and assume it wants en_ISO for formatting.
     // TODO(alanknight): en_ISO is probably not quite right for the C/Posix
     // locale for formatting. Consider adding C to the formats database.
+    if (aLocale == null) return systemLocale;
     if (aLocale == "C") return "en_ISO";
     if ((aLocale.length < 5) || (aLocale.length > 6)) return aLocale;
     if (aLocale[2] != '-' && (aLocale[2] != '_')) return aLocale;

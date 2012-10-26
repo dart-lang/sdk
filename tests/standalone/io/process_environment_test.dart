@@ -23,10 +23,10 @@ runEnvironmentProcess(Map environment, name, callback) {
 testEnvironment() {
   var donePort = new ReceivePort();
   Map env = Platform.environment;
-  Expect.isFalse(env.isEmpty());
+  Expect.isFalse(env.isEmpty);
   // Check that some value in the environment stays the same when passed
   // to another process.
-  for (var k in env.getKeys()) {
+  for (var k in env.keys) {
     runEnvironmentProcess(env, k, (output) {
       // Only check startsWith. The print statements will add
       // newlines at the end.

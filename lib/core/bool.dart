@@ -6,7 +6,7 @@
 
 class bool {
   factory bool._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "class bool cannot be instantiated");
   }
 }

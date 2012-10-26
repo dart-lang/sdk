@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of tree;
+
 /**
  * This visitor takes another visitor and applies it to every
  * node in the tree. There is currently no way to control the

@@ -141,8 +141,8 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Determine correct behavior for mixing ints and floats.
   static testIntegerMethods() {
     var y = 9;
-    assertEquals(y.isEven(), false);
-    assertEquals(y.isOdd(), true);
+    assertEquals(y.isEven, false);
+    assertEquals(y.isOdd, true);
     assertEquals(y.toRadixString(2), '1001');
     assertEquals(y.toRadixString(3), '100');
     assertEquals(y.toRadixString(16), '9');
@@ -171,7 +171,7 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Fill out full set of string methods.
   static testStringMethods() {
     var s = "abcdef";
-    assertEquals(s.isEmpty(), false);
+    assertEquals(s.isEmpty, false);
     assertEquals(s.startsWith("abc"), true);
     assertEquals(s.endsWith("def"), true);
     assertEquals(s.startsWith("aa"), false);
@@ -199,7 +199,7 @@ class CoreRuntimeTypesTest {
   // TODO(jimhug): Fill out full set of list methods.
   static testListMethods() {
     var a = [1,2,3,4];
-    assertEquals(a.isEmpty(), false);
+    assertEquals(a.isEmpty, false);
     assertEquals(a.length, 4);
     var exception = null;
     a.clear();
@@ -223,20 +223,20 @@ class CoreRuntimeTypesTest {
     assertEquals(d.containsValue(3), false);
     assertEquals(d.containsKey('a'), true);
     assertEquals(d.containsKey('c'), false);
-    assertEquals(d.getKeys().length, 2);
-    assertEquals(d.getValues().length, 2);
+    assertEquals(d.keys.length, 2);
+    assertEquals(d.values.length, 2);
 
     assertEquals(d.remove('c'), null);
     assertEquals(d.remove('b'), 2);
-    assertListEquals(d.getKeys(), ['a']);
-    assertListEquals(d.getValues(), [1]);
+    assertListEquals(d.keys, ['a']);
+    assertListEquals(d.values, [1]);
 
     d['c'] = 3;
     d['f'] = 4;
-    assertEquals(d.getKeys().length, 3);
-    assertEquals(d.getValues().length, 3);
-    assertListContains(d.getKeys(), ['a', 'c', 'f']);
-    assertListContains(d.getValues(), [1, 3, 4]);
+    assertEquals(d.keys.length, 3);
+    assertEquals(d.values.length, 3);
+    assertListContains(d.keys, ['a', 'c', 'f']);
+    assertListContains(d.values, [1, 3, 4]);
 
     var count = 0;
     d.forEach((key, value) {
@@ -250,8 +250,8 @@ class CoreRuntimeTypesTest {
     assertEquals(d.containsValue(3), false);
     assertEquals(d.containsKey('a'), true);
     assertEquals(d.containsKey('c'), false);
-    assertEquals(d.getKeys().length, 2);
-    assertEquals(d.getValues().length, 2);
+    assertEquals(d.keys.length, 2);
+    assertEquals(d.values.length, 2);
 
     d['g'] = null;
     assertEquals(d.containsKey('g'), true);

@@ -2038,7 +2038,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ Bind(&update_ic_data);
 
   // ECX: ICData
-  const String& equal_name = String::ZoneHandle(Symbols::New("=="));
+  const String& equal_name = String::ZoneHandle(Symbols::EqualOperator());
   __ movl(EAX, Address(ESP, 1 * kWordSize));
   __ movl(EDI, Address(ESP, 2 * kWordSize));
   AssemblerMacros::EnterStubFrame(assembler);

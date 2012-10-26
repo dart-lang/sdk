@@ -21,6 +21,7 @@ import java.util.Set;
  */
 abstract class AbstractParser {
 
+  private final TerminalAnnotationsCache terminalAnnotationsCache = new TerminalAnnotationsCache();
   protected final ParserContext ctx;
   private int lastErrorPosition = Integer.MIN_VALUE;
 
@@ -33,10 +34,10 @@ abstract class AbstractParser {
   }
 
   private static class TerminalAnnotationsCache {
-    private static Map<String, Class<?>> classes;
-    private static Map<String, List<Token>> methods;
+    private Map<String, Class<?>> classes;
+    private Map<String, List<Token>> methods;
 
-    private static void init(StackTraceElement[] stackTrace) {
+    private void init(StackTraceElement[] stackTrace) {
       if (classes == null) {
         classes = Maps.newHashMap();
         methods = Maps.newHashMap();
@@ -72,7 +73,7 @@ abstract class AbstractParser {
       }
     }
 
-    public static Set<Token> terminalsForStack(StackTraceElement[] stackTrace) {
+    public Set<Token> terminalsForStack(StackTraceElement[] stackTrace) {
       Set<Token> results = Sets.newHashSet();
       for (StackTraceElement frame: stackTrace) {
         List<Token> found = methods.get(frame.getClassName() + "." + frame.getMethodName());
@@ -94,9 +95,9 @@ abstract class AbstractParser {
   protected Set<Token> collectTerminalAnnotations() {
     StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
     // Get methods for every class and associated Terminals annotations & stick them in a hash
-    TerminalAnnotationsCache.init(stackTrace);
+    terminalAnnotationsCache.init(stackTrace);
     // Create the set of terminals to return
-    return TerminalAnnotationsCache.terminalsForStack(stackTrace);
+    return terminalAnnotationsCache.terminalsForStack(stackTrace);
   }
 
   /**

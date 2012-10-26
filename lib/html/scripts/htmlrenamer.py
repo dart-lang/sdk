@@ -99,9 +99,6 @@ _renamed_html_members = {
     'SVGElement.className': '$dom_svgClassName',
     'SVGAnimatedString.className': '$dom_svgClassName',
     'SVGStylable.className': '$dom_svgClassName',
-    'LocalWindow.webkitCancelAnimationFrame': 'cancelAnimationFrame',
-    'LocalWindow.webkitCancelRequestAnimationFrame': 'cancelRequestAnimationFrame',
-    'LocalWindow.webkitRequestAnimationFrame': 'requestAnimationFrame',
 }
 
 # Members and classes from the dom that should be removed completely from
@@ -211,7 +208,6 @@ _removed_html_members = set([
     "Element.get:itemProp",
     'Element.scrollIntoView',
     'Element.get:classList',
-    "EmbedElement.getSVGDocument",
     "FormElement.get:elements",
     "HTMLFrameElement.*",
     "HTMLFrameSetElement.*",
@@ -219,10 +215,8 @@ _removed_html_members = set([
     "HtmlElement.manifest",
     "Document.version",
     "Document.manifest",
-#    "IFrameElement.getSVGDocument",  #TODO(jacobr): should this be removed
     "InputElement.dirName",
     "HTMLIsIndexElement.*",
-    "ObjectElement.getSVGDocument",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
     "SelectElement.remove",
@@ -265,8 +259,6 @@ _removed_html_members = set([
     "Node.lookupPrefix",
     "Node.get:PROCESSING_INSTRUCTION_NODE",
     'ShadowRoot.getElementsByTagNameNS',
-    "IFrameElement.get:contentDocument",
-    "LocalWindow.get:frameElement",
     "LocalWindow.get:frames",
     "LocalWindow.get:length",
     "LocalWindow.webkitCancelRequestAnimationFrame",
@@ -286,7 +278,7 @@ class HtmlRenamer(object):
       return html_interface_renames[interface.id]
     return interface.id
 
-  def RenameMember(self, interface_name, member, member_prefix=''):
+  def RenameMember(self, interface_name, member_node, member, member_prefix=''):
     """
     Returns the name of the member in the HTML library or None if the member is
     suppressed in the HTML library
@@ -294,6 +286,9 @@ class HtmlRenamer(object):
     interface = self._database.GetInterface(interface_name)
 
     if self._FindMatch(interface, member, member_prefix, _removed_html_members):
+      return None
+
+    if 'CheckSecurityForNode' in member_node.ext_attrs:
       return None
 
     name = self._FindMatch(interface, member, member_prefix,

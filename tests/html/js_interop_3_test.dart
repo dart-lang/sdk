@@ -31,7 +31,7 @@ main() {
       Expect.equals('Hello', message['a']);
       Expect.equals('World', message['b']);
       Expect.equals(42, message['c']);
-      Expect.equals(3, message.getKeys().length);
+      Expect.equals(3, message.keys.length);
       return 42;
     };
 

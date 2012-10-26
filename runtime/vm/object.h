@@ -1268,9 +1268,7 @@ class Function : public Object {
   bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
 
-  bool is_inlinable() const {
-    return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
-  }
+  bool IsInlineable() const;
   void set_is_inlinable(bool value) const;
 
   bool HasOptimizedCode() const;
@@ -2427,6 +2425,11 @@ class Code : public Object {
   }
   void set_stackmaps(const Array& maps) const;
   RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
+
+  RawGrowableObjectArray* resolved_static_calls() const {
+    return raw_ptr()->resolved_static_calls_;
+  }
+  void set_resolved_static_calls(const GrowableObjectArray& val) const;
 
   class Comments : public ZoneAllocated {
    public:

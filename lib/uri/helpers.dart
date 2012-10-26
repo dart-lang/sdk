@@ -13,7 +13,7 @@ String removeDotSegments(String path) {
   for (String segment in path.split("/")) {
     appendSlash = false;
     if (segment == "..") {
-      if (!output.isEmpty() &&
+      if (!output.isEmpty &&
           ((output.length != 1) || (output[0] != ""))) output.removeLast();
       appendSlash = true;
     } else if ("." == segment) {

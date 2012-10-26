@@ -6,17 +6,12 @@
 
 #source("arrays.dart");
 #source("collections.dart");
-#source("date.dart");
-#source("dual_pivot_quicksort.dart");
-#source("future_implementation.dart");
 #source("hash_map_set.dart");
 #source("linked_hash_map.dart");
 #source("list.dart");
 #source("maps.dart");
-#source("options.dart");
 #source("queue.dart");
 #source("regexp.dart");
 #source("splay_tree.dart");
 #source("stopwatch_implementation.dart");
 #source("string.dart");
-#source("string_buffer.dart");

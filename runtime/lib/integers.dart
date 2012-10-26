@@ -6,7 +6,7 @@
 // - shift amount must be a Smi.
 class _IntegerImplementation {
   factory _IntegerImplementation._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_IntegerImplementation can only be allocated by the VM");
   }
   num operator +(num other) {
@@ -89,11 +89,11 @@ class _IntegerImplementation {
   int abs() {
     return this < 0 ? -this : this;
   }
-  bool isEven() { return ((this & 1) === 0); }
-  bool isOdd() { return !isEven(); }
-  bool isNaN() { return false; }
-  bool isNegative() { return this < 0; }
-  bool isInfinite() { return false; }
+  bool get isEven => ((this & 1) == 0);
+  bool get isOdd => !isEven;
+  bool get isNaN => false;
+  bool get isNegative => this < 0;
+  bool get isInfinite => false;
 
   int compareTo(num other) {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
@@ -102,10 +102,10 @@ class _IntegerImplementation {
       int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
       int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
       double d = other;
-      if (d.isInfinite()) {
+      if (d.isInfinite) {
         return d == double.NEGATIVE_INFINITY ? GREATER : LESS;
       }
-      if (d.isNaN()) {
+      if (d.isNaN) {
         return LESS;
       }
       if (MIN_EXACT_INT_TO_DOUBLE <= this && this <= MAX_EXACT_INT_TO_DOUBLE) {
@@ -136,7 +136,7 @@ class _IntegerImplementation {
 
   int pow(int exponent) {
     double res = this.toDouble().pow(exponent);
-    if (res.isInfinite()) {
+    if (res.isInfinite) {
       // Use Bigint instead.
       throw "_IntegerImplementation.pow not implemented for large integers.";
     }
@@ -168,7 +168,7 @@ class _IntegerImplementation {
       value ~/= radix;
       temp.add(digit);
     }
-    if (temp.isEmpty()) {
+    if (temp.isEmpty) {
       return "0";
     }
     StringBuffer buffer = new StringBuffer();
@@ -182,10 +182,10 @@ class _IntegerImplementation {
 
 class _Smi extends _IntegerImplementation implements int {
   factory _Smi._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Smi can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Smi_bitNegate";
@@ -196,10 +196,10 @@ class _Smi extends _IntegerImplementation implements int {
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class _Mint extends _IntegerImplementation implements int {
   factory _Mint._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Mint can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Mint_bitNegate";
@@ -221,10 +221,10 @@ class _Mint extends _IntegerImplementation implements int {
 // Bigint.
 class _Bigint extends _IntegerImplementation implements int {
   factory _Bigint._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_Bigint can only be allocated by the VM");
   }
-  int hashCode() {
+  int get hashCode {
     return this;
   }
   int operator ~() native "Bigint_bitNegate";

@@ -35,6 +35,8 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
     case kArrayCid:
     case kImmutableArrayCid:
       return FieldAddress(array, index, TIMES_2, sizeof(RawArray));
+    case kFloat32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
     case kFloat64ArrayCid:
       return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
     default:
@@ -1105,22 +1107,13 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        LocationSummary* locs) {
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
-  if (function.HasCode()) {
-    const Code& code = Code::Handle(function.CurrentCode());
-    ExternalLabel target_label(function.ToFullyQualifiedCString(),
-                               code.EntryPoint());
-    GenerateDartCall(deopt_id,
-                     token_pos,
-                     &target_label,
-                     PcDescriptors::kFuncCall,
-                     locs);
-  } else {
-    GenerateDartCall(deopt_id,
-                     token_pos,
-                     &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kFuncCall,
-                     locs);
-  }
+  // Do not use the code from the function, but let the code be patched so that
+  // we can record the outgoing edges to other code.
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
   __ Drop(argument_count);
 }
 
@@ -1132,6 +1125,34 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
   } else {
     __ CompareObject(reg, obj);
   }
+}
+
+
+// Implement equality spec: if any of the arguments is null do identity check.
+// Fallthrough calls super equality.
+void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
+                                                      Label* skip_call) {
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label check_identity, fall_through;
+  __ cmpl(Address(ESP, 0 * kWordSize), raw_null);
+  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ cmpl(Address(ESP, 1 * kWordSize), raw_null);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ Bind(&check_identity);
+  __ popl(result);
+  __ cmpl(result, Address(ESP, 0 * kWordSize));
+  Label is_false;
+  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
+  __ LoadObject(result, bool_true());
+  __ Drop(1);
+  __ jmp(skip_call);
+  __ Bind(&is_false);
+  __ LoadObject(result, bool_false());
+  __ Drop(1);
+  __ jmp(skip_call);
+  __ Bind(&fall_through);
 }
 
 

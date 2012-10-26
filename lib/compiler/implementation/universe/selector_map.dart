@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of universe;
+
 class SelectorMap<T> extends PartialTypeTree {
 
   SelectorMap(Compiler compiler) : super(compiler);
@@ -14,7 +16,7 @@ class SelectorMap<T> extends PartialTypeTree {
     if (node == null) return null;
     Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
     if (selectors == null) return null;
-    for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+    for (Link link = selectors; !link.isEmpty; link = link.tail) {
       SelectorValue<T> existing = link.head;
       if (existing.selector.equalsUntyped(selector)) return existing.value;
     }
@@ -33,7 +35,7 @@ class SelectorMap<T> extends PartialTypeTree {
     } else {
       // Run through the linked list of selectors with the same name. If
       // we find one that matches, we update the value in the mapping.
-      for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+      for (Link link = selectors; !link.isEmpty; link = link.tail) {
         SelectorValue<T> existing = link.head;
         // It is safe to ignore the type here, because all selector
         // mappings that are stored in a single node have the same type.
@@ -55,7 +57,7 @@ class SelectorMap<T> extends PartialTypeTree {
     if (node == null) return false;
     Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
     if (selectors == null) return false;
-    for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+    for (Link link = selectors; !link.isEmpty; link = link.tail) {
       SelectorValue<T> existing = link.head;
       if (existing.selector.equalsUntyped(selector)) return true;
     }
@@ -83,7 +85,7 @@ class SelectorMap<T> extends PartialTypeTree {
     root.visitRecursively((SelectorMapNode<T> node) {
       Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
       if (selectors == null) return true;
-      for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+      for (Link link = selectors; !link.isEmpty; link = link.tail) {
         SelectorValue<T> existing = link.head;
         Selector selector = existing.selector;
         // Since we're running through the entire tree we have to use
@@ -100,7 +102,7 @@ class SelectorMap<T> extends PartialTypeTree {
     visitHierarchy(member.getEnclosingClass(), (SelectorMapNode<T> node) {
       Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
       if (selectors == null) return true;
-      for (Link link = selectors; !link.isEmpty(); link = link.tail) {
+      for (Link link = selectors; !link.isEmpty; link = link.tail) {
         SelectorValue<T> existing = link.head;
         Selector selector = existing.selector;
         if (selector.appliesUntyped(member, compiler)) {

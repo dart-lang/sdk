@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart2js;
 
 /**
  * If true, print a warning for each method that was resolved, but not
@@ -106,7 +107,7 @@ abstract class Compiler implements DiagnosticListener {
 
   // TODO(5074): Remove this field once we don't accept the
   // deprecated parameter specification.
-  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = false;
+  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = true;
 
   final Tracer tracer;
 
@@ -143,7 +144,7 @@ abstract class Compiler implements DiagnosticListener {
       return f();
     } on CompilerCancelledException catch (ex) {
       throw;
-    } on StackOverflowException catch (ex) {
+    } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       throw;
@@ -511,7 +512,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void processQueue(Enqueuer world, Element main) {
-    backend.processNativeClasses(world, libraries.getValues());
+    backend.processNativeClasses(world, libraries.values);
     world.addToWorkList(main);
     progress.reset();
     world.forEach((WorkItem work) {
@@ -537,8 +538,8 @@ abstract class Compiler implements DiagnosticListener {
         internalErrorOnElement(work.element, "Work list is not empty.");
       });
     }
-    var resolved = new Set.from(enqueuer.resolution.resolvedElements.getKeys());
-    for (Element e in codegenWorld.generatedCode.getKeys()) {
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
+    for (Element e in codegenWorld.generatedCode.keys) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
@@ -601,7 +602,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
       return work.resolutionTree;
     }
-    if (progress.elapsedInMs() > 500) {
+    if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
@@ -625,7 +626,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void codegen(WorkItem work, Enqueuer world) {
     if (!identical(world, enqueuer.codegen)) return null;
-    if (progress.elapsedInMs() > 500) {
+    if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       log('Compiled ${codegenWorld.generatedCode.length} methods.');
@@ -783,7 +784,7 @@ class CompilerTask {
   CompilerTask(this.compiler) : watch = new Stopwatch();
 
   String get name => 'Unknown task';
-  int get timing => watch.elapsedInMs();
+  int get timing => watch.elapsedMilliseconds;
 
   measure(Function action) {
     // TODO(kasperl): Do we have to worry about exceptions here?

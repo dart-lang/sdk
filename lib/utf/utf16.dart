@@ -202,9 +202,9 @@ List<int> _stringToUtf16CodeUnits(String str) {
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
   if (_is16BitCodeUnit()) {
-    return str.charCodes();
+    return str.charCodes;
   } else {
-    return _codepointsToUtf16CodeUnits(str.charCodes());
+    return _codepointsToUtf16CodeUnits(str.charCodes);
   }
 }
 
@@ -264,7 +264,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   List<int> decodeRest() {
     List<int> codeunits = new List<int>(remaining);
     int i = 0;
-    while (hasNext()) {
+    while (hasNext) {
       codeunits[i++] = next();
     }
     if (i == codeunits.length) {
@@ -276,7 +276,7 @@ class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
     }
   }
 
-  bool hasNext() => utf16EncodedBytesIterator.hasNext();
+  bool get hasNext => utf16EncodedBytesIterator.hasNext;
 
   int next() {
     if (utf16EncodedBytesIterator.remaining < 2) {

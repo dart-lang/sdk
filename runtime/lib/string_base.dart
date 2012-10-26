@@ -9,11 +9,11 @@
 class _StringBase {
 
   factory _StringBase._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_StringBase can't be instaniated");
   }
 
-  int hashCode() native "String_hashCode";
+  int get hashCode native "String_getHashCode";
 
   /**
    *  Create the most efficient string representation for specified
@@ -42,7 +42,7 @@ class _StringBase {
 
   int get length native "String_getLength";
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
@@ -84,7 +84,7 @@ class _StringBase {
   }
 
   bool _substringMatches(int start, String other) {
-    if (other.isEmpty()) return true;
+    if (other.isEmpty) return true;
     if ((start < 0) || (start >= this.length)) {
       return false;
     }
@@ -109,7 +109,7 @@ class _StringBase {
   }
 
   int indexOf(String other, [int start = 0]) {
-    if (other.isEmpty()) {
+    if (other.isEmpty) {
       return start < this.length ? start : this.length;
     }
     if ((start < 0) || (start >= this.length)) {
@@ -126,7 +126,7 @@ class _StringBase {
 
   int lastIndexOf(String other, [int start = null]) {
     if (start == null) start = length - 1;
-    if (other.isEmpty()) {
+    if (other.isEmpty) {
       return min(this.length, start);
     }
     if (start >= this.length) {
@@ -189,7 +189,7 @@ class _StringBase {
     if (pattern is String) {
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext();
+    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext;
   }
 
   String replaceFirst(Pattern pattern, String replacement) {
@@ -202,10 +202,10 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     Iterator iterator = pattern.allMatches(this).iterator();
-    if (iterator.hasNext()) {
+    if (iterator.hasNext) {
       Match match = iterator.next();
-      buffer.add(this.substring(startIndex, match.start())).add(replacement);
-      startIndex = match.end();
+      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      startIndex = match.end;
     }
     return buffer.add(this.substring(startIndex)).toString();
   }
@@ -220,8 +220,8 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
-      buffer.add(this.substring(startIndex, match.start())).add(replacement);
-      startIndex = match.end();
+      buffer.add(this.substring(startIndex, match.start)).add(replacement);
+      startIndex = match.end;
     }
     return buffer.add(this.substring(startIndex)).toString();
   }
@@ -265,7 +265,7 @@ class _StringBase {
   List<String> split(Pattern pattern) {
     int length = this.length;
     Iterator iterator = pattern.allMatches(this).iterator();
-    if (length == 0 && iterator.hasNext()) {
+    if (length == 0 && iterator.hasNext) {
       // A matched empty string input returns the empty list.
       return <String>[];
     }
@@ -273,21 +273,21 @@ class _StringBase {
     int startIndex = 0;
     int previousIndex = 0;
     while (true) {
-      if (startIndex == length || !iterator.hasNext()) {
+      if (startIndex == length || !iterator.hasNext) {
         result.add(this.substring(previousIndex, length));
         break;
       }
       Match match = iterator.next();
-      if (match.start() == length) {
+      if (match.start == length) {
         result.add(this.substring(previousIndex, length));
         break;
       }
-      int endIndex = match.end();
+      int endIndex = match.end;
       if (startIndex == endIndex && endIndex == previousIndex) {
         ++startIndex;  // empty match, advance and restart
         continue;
       }
-      result.add(this.substring(previousIndex, match.start()));
+      result.add(this.substring(previousIndex, match.start));
       startIndex = previousIndex = endIndex;
     }
     return result;
@@ -302,7 +302,7 @@ class _StringBase {
     return result;
   }
 
-  List<int> charCodes() {
+  List<int> get charCodes {
     int len = this.length;
     final result = new List<int>(len);
     for (int i = 0; i < len; i++) {
@@ -356,7 +356,7 @@ class _StringBase {
 
 class _OneByteString extends _StringBase implements String {
   factory _OneByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
   }
 
@@ -374,7 +374,7 @@ class _OneByteString extends _StringBase implements String {
 
 class _TwoByteString extends _StringBase implements String {
   factory _TwoByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
   }
 
@@ -391,7 +391,7 @@ class _TwoByteString extends _StringBase implements String {
 
 class _FourByteString extends _StringBase implements String {
   factory _FourByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_FourByteString can only be allocated by the VM");
   }
 
@@ -408,7 +408,7 @@ class _FourByteString extends _StringBase implements String {
 
 class _ExternalOneByteString extends _StringBase implements String {
   factory _ExternalOneByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");
   }
 
@@ -425,7 +425,7 @@ class _ExternalOneByteString extends _StringBase implements String {
 
 class _ExternalTwoByteString extends _StringBase implements String {
   factory ExternalTwoByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");
   }
 
@@ -442,7 +442,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
 
 class _ExternalFourByteString extends _StringBase implements String {
   factory _ExternalFourByteString._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "ExternalFourByteString can only be allocated by the VM");
   }
 
@@ -458,14 +458,13 @@ class _ExternalFourByteString extends _StringBase implements String {
 
 
 class _StringMatch implements Match {
-  const _StringMatch(int this._start,
+  const _StringMatch(int this.start,
                      String this.str,
                      String this.pattern);
 
-  int start() => _start;
-  int end() => _start + pattern.length;
+  int get end => start + pattern.length;
   String operator[](int g) => group(g);
-  int groupCount() => 0;
+  int get groupCount => 0;
 
   String group(int group) {
     if (group != 0) {
@@ -482,7 +481,7 @@ class _StringMatch implements Match {
     return result;
   }
 
-  final int _start;
+  final int start;
   final String str;
   final String pattern;
 }

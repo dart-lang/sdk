@@ -249,7 +249,7 @@ class DateFormat {
    * Returns a list of all locales for which we have date formatting
    * information.
    */
-  static List<String> allLocalesWithSymbols() => dateTimeSymbols.getKeys();
+  static List<String> allLocalesWithSymbols() => dateTimeSymbols.keys;
 
   /**
    * The named constructors for this class are all conveniences for creating
@@ -533,7 +533,7 @@ class DateFormat {
 
   /** Recursive helper for parsing the template pattern. */
   List _parsePatternHelper(String pattern) {
-    if (pattern.isEmpty()) return [];
+    if (pattern.isEmpty) return [];
 
     var matched = _match(pattern);
     if (matched == null) return [];

@@ -22,6 +22,7 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
     return 0;
   }
 
+  bool is_executable = (page->type() == HeapPage::kExecutable);
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -51,6 +52,9 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
         free_end += next_obj->Size();
       }
       obj_size = free_end - current;
+      if (is_executable) {
+        memset(reinterpret_cast<void*>(current), 0xcc, obj_size);
+      }
       freelist->Free(current, obj_size);
     }
     current += obj_size;

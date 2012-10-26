@@ -1,62 +1,12 @@
 
 // This file introduces / supplements and forces Dart declarations.
 
-module default {
-  ClientRectList implements sequence<ClientRect>;
-  CSSRuleList implements sequence<CSSRule>;
-  CSSValueList implements sequence<CSSValue>;
-  DOMMimeTypeArray implements sequence<DOMMimeType>;
-  DOMPluginArray implements sequence<DOMPlugin>;
-  EntryArray implements sequence<Entry>;
-  EntryArraySync implements sequence<EntrySync>;
-  FileList implements sequence<File>;
-  GamepadList implements sequence<Gamepad>;
-  HTMLAllCollection implements sequence<Node>;
-  HTMLCollection implements sequence<Node>;
-  MediaStreamList implements sequence<MediaStream>;
-  NamedNodeMap implements sequence<Node>;
-  NodeList implements sequence<Node>;
-  SVGAnimatedLengthList implements sequence<SVGAnimatedLength>;
-  SVGAnimatedNumberList implements sequence<SVGAnimatedNumber>;
-  SVGAnimatedTransformList implements sequence<SVGAnimateTransformElement>;
-  SVGElementInstanceList implements sequence<SVGElementInstance>;
-  SVGLengthList implements sequence<SVGLength>;
-  SVGNumberList implements sequence<SVGNumber>;
-  SVGPathSegList implements sequence<SVGPathSeg>;
-  SVGStringList implements sequence<DOMString>;
-  SVGTransformList implements sequence<SVGTransform>;
-  SourceBufferList implements sequence<SourceBuffer>;
-  SpeechGrammarList implements sequence<SpeechGrammar>;
-  SpeechInputResultList implements sequence<SpeechInputResult>;
-  SpeechRecognitionResultList implements sequence<SpeechRecognitionResult>;
-  SQLResultSetRowList implements sequence<Dictionary>;
-  StyleSheetList implements sequence<StyleSheet>;
-  TextTrackList implements sequence<TextTrack>;
-  TextTrackCueList implements sequence<TextTrackCue>;
-  TouchList implements sequence<Touch>;
-  WebKitAnimationList implements sequence<WebKitAnimation>;
-
-  Float32Array implements sequence<double>;
-  Float64Array implements sequence<double>;
-  Int8Array implements sequence<int>;
-  Int16Array implements sequence<int>;
-  Int32Array implements sequence<int>;
-  Uint8Array implements sequence<int>;
-  Uint16Array implements sequence<int>;
-  Uint32Array implements sequence<int>;
-
-  // Is List<int> because inherits from Uint8Array:
-  // Uint8ClampedArray implements sequence<int>;
-}
-
 module core {
   [Supplemental]
   interface Document {
     [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
     CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
   };
-
-  DOMStringList implements sequence<DOMString>;
 };
 
 module dom {

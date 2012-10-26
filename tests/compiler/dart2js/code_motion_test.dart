@@ -21,7 +21,7 @@ main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = const RegExp('a \\+ b');
   Iterator matches = regexp.allMatches(generated).iterator();
-  Expect.isTrue(matches.hasNext());
+  Expect.isTrue(matches.hasNext);
   matches.next();
-  Expect.isFalse(matches.hasNext());
+  Expect.isFalse(matches.hasNext);
 }

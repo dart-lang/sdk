@@ -284,7 +284,7 @@ class StringTest {
 
   static testCharCodes() {
     test(str) {
-      var list = str.charCodes();
+      var list = str.charCodes;
       Expect.equals(str.length, list.length);
       for (int i = 0; i < str.length; i++) {
         Expect.equals(str.charCodeAt(i), list[i]);

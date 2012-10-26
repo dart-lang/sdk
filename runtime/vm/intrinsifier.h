@@ -48,11 +48,10 @@ namespace dart {
   V(_Double, -, Double_sub)                                                    \
   V(_Double, *, Double_mul)                                                    \
   V(_Double, /, Double_div)                                                    \
-  V(_Double, toDouble, Double_toDouble)                                        \
+  V(_Double, get:isNaN, Double_getIsNaN)                                       \
+  V(_Double, get:isNegative, Double_getIsNegative)                             \
   V(_Double, _mulFromInteger, Double_mulFromInteger)                           \
   V(_Double, .fromInteger, Double_fromInteger)                                 \
-  V(_Double, isNaN, Double_isNaN)                                              \
-  V(_Double, isNegative, Double_isNegative)                                    \
   V(_Double, toInt, Double_toInt)                                              \
   V(_ObjectArray, ., ObjectArray_Allocate)                                     \
   V(_ObjectArray, get:length, Array_getLength)                                 \
@@ -72,12 +71,12 @@ namespace dart {
   V(::, sin, Math_sin)                                                         \
   V(::, cos, Math_cos)                                                         \
   V(Object, ==, Object_equal)                                                  \
+  V(_FixedSizeArrayIterator, get:hasNext, FixedSizeArrayIterator_getHasNext)   \
   V(_FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                \
-  V(_FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)          \
+  V(_StringBase, get:hashCode, String_getHashCode)                             \
+  V(_StringBase, get:isEmpty, String_getIsEmpty)                               \
   V(_StringBase, get:length, String_getLength)                                 \
   V(_StringBase, charCodeAt, String_charCodeAt)                                \
-  V(_StringBase, hashCode, String_hashCode)                                    \
-  V(_StringBase, isEmpty, String_isEmpty)                                      \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
   V(_Int8Array, [], Int8Array_getIndexed)                                      \
   V(_Int8Array, []=, Int8Array_setIndexed)                                     \

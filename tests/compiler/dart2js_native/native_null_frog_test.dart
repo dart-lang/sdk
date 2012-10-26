@@ -27,7 +27,7 @@ main() {
   Expect.equals(null, a.returnUndefined());
 
   Expect.equals('', a.returnEmptyString());
-  Expect.isTrue(a.returnEmptyString().isEmpty());
+  Expect.isTrue(a.returnEmptyString().isEmpty);
   Expect.isTrue(a.returnEmptyString() is String);
 
   Expect.isTrue(a.returnZero() is int);

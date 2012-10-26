@@ -13,7 +13,7 @@ class ConstListLiteralTest {
     var exception = null;
     try {
       list.add(4);
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -23,7 +23,7 @@ class ConstListLiteralTest {
     exception = null;
     try {
       list.addAll([4, 5]);
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -32,7 +32,7 @@ class ConstListLiteralTest {
     exception = null;
     try {
       list[0] = 0;
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -41,7 +41,7 @@ class ConstListLiteralTest {
     exception = null;
     try {
       list.sort((a, b) => a < b);
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);
@@ -53,7 +53,7 @@ class ConstListLiteralTest {
     exception = null;
     try {
       list.setRange(0, 1, [1], 0);
-    } on UnsupportedOperationException catch (e) {
+    } on UnsupportedError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

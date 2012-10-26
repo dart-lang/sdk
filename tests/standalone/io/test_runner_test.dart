@@ -16,7 +16,7 @@ class TestController {
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
     TestOutput output = testCase.output;
-    print("Test: ${testCase.commands.last().commandLine}");
+    print("Test: ${testCase.commands.last.commandLine}");
     if (output.unexpectedOutput) {
       throw "Unexpected output: ${output.result}";
     }
@@ -75,7 +75,7 @@ void main() {
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.
   var arguments = new Options().arguments;
-  if (arguments.isEmpty()) {
+  if (arguments.isEmpty) {
     testTestRunner();
   } else {
     switch (arguments[0]) {

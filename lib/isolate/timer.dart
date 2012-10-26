@@ -9,7 +9,7 @@ abstract class Timer {
    */
   factory Timer(int milliSeconds, void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
-      throw new UnsupportedOperationException("Timer interface not supported.");
+      throw new UnsupportedError("Timer interface not supported.");
     }
     return _TimerFactory._factory(milliSeconds, callback, false);
   }
@@ -20,7 +20,7 @@ abstract class Timer {
    */
   factory Timer.repeating(int milliSeconds, void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
-      throw new UnsupportedOperationException("Timer interface not supported.");
+      throw new UnsupportedError("Timer interface not supported.");
     }
     return _TimerFactory._factory(milliSeconds, callback, true);
   }

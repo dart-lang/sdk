@@ -2703,6 +2703,18 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle source);
 // TODO(turnidge): Rename to Dart_LibraryLoadSource?
 
+
+/**
+ * Loads a patch source string into a library.
+ *
+ * \param library A library
+ * \param url A url identifying the origin of the patch source
+ * \param source A string of Dart patch source
+ */
+DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
+                                       Dart_Handle url,
+                                       Dart_Handle patch_source);
+
 /**
  * Sets the callback used to resolve native functions for a library.
  *

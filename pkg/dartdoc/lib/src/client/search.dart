@@ -17,13 +17,13 @@ class SearchText {
   SearchText(String searchText)
       : text = searchText,
         lowerCase = searchText.toLowerCase(),
-        camelCase = searchText.isEmpty() ? ''
+        camelCase = searchText.isEmpty ? ''
             : '${searchText.substring(0, 1).toUpperCase()}'
               '${searchText.substring(1)}';
 
   int get length => text.length;
 
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 }
 
 /**
@@ -149,7 +149,7 @@ class Result {
  * [searchText], or returns [: null :] if no match is found.
  */
 StringMatch obtainMatch(SearchText searchText, String text) {
-  if (searchText.isEmpty()) {
+  if (searchText.isEmpty) {
     return new StringMatch(searchText, text, 0, 0);
   }
   int offset = text.toLowerCase().indexOf(searchText.lowerCase);

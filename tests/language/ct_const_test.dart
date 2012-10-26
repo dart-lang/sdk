@@ -82,7 +82,7 @@ class CTConstTest {
     Expect.equals(true, c11dItaly === Roman.VivaItalia);
 
     Expect.equals(3, c11dItaly.length);
-    Expect.equals(3, c11dItaly.getKeys().length);
+    Expect.equals(3, c11dItaly.keys.length);
     Expect.equals(true, c11dItaly.containsKey("white"));
     Expect.equals(false, c11dItaly.containsKey("black"));
 
@@ -90,7 +90,7 @@ class CTConstTest {
     bool caughtException = false;
     try {
       c11dItaly["green"] = 0;
-    } on IllegalAccessException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -99,7 +99,7 @@ class CTConstTest {
     caughtException = false;
     try {
       c11dItaly.clear();
-    } on IllegalAccessException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);
@@ -108,7 +108,7 @@ class CTConstTest {
     caughtException = false;
     try {
       c11dItaly.remove("orange");
-    } on IllegalAccessException catch (e) {
+    } on UnsupportedError catch (e) {
       caughtException = true;
     }
     Expect.equals(true, caughtException);

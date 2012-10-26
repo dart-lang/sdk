@@ -61,5 +61,5 @@ main() {
 
   // Try to make it even harder.
   var string = new String.fromCharCodes([new Date.now().year % 100 + 1]);
-  check([string.charCodes(), string, null]);
+  check([string.charCodes, string, null]);
 }

@@ -252,7 +252,7 @@ class _HttpHeaders implements HttpHeaders {
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
       List<int> data;
-      data = name.charCodes();
+      data = name.charCodes;
       connection._write(data);
       connection._write(COLONSP);
       for (int i = 0; i < values.length; i++) {
@@ -261,12 +261,12 @@ class _HttpHeaders implements HttpHeaders {
             connection._write(COMMASP);
           } else {
             connection._write(CRLF);
-            data = name.charCodes();
+            data = name.charCodes;
             connection._write(data);
             connection._write(COLONSP);
           }
         }
-        data = values[i].charCodes();
+        data = values[i].charCodes;
         connection._write(data);
       }
       connection._write(CRLF);
@@ -853,6 +853,16 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
 
   String get protocolVersion => _protocolVersion;
 
+  HttpSession session([init(HttpSession session)]) {
+    if (_session != null) {
+      // It's already mapped, use it.
+      return _session;
+    }
+    // Create session, store it in connection, and return.
+    var sessionManager = _httpConnection._server._sessionManager;
+    return _session = sessionManager.createSession(init);
+  }
+
   void _onRequestStart(String method, String uri, String version) {
     _method = method;
     _uri = uri;
@@ -864,6 +874,22 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _onHeadersComplete() {
+    if (_httpConnection._server._sessionManagerInstance != null) {
+      // Map to session if exists.
+      var sessionId = cookies.reduce(null, (last, cookie) {
+        if (last != null) return last;
+        return cookie.name.toUpperCase() == _DART_SESSION_ID ?
+            cookie.value : null;
+      });
+      if (sessionId != null) {
+        var sessionManager = _httpConnection._server._sessionManager;
+        _session = sessionManager.getSession(sessionId);
+        if (_session != null) {
+          _session._markSeen();
+        }
+      }
+    }
+
     _headers._mutable = false;
     // Prepare for receiving data.
     _buffer = new _BufferList();
@@ -921,6 +947,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   _BufferList _buffer;
   bool _dataEndCalled = false;
   Function _streamErrorHandler;
+  _HttpSession _session;
 }
 
 
@@ -1083,10 +1110,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _httpConnection._write(_Const.HTTP10);
     }
     _writeSP();
-    data = _statusCode.toString().charCodes();
+    data = _statusCode.toString().charCodes;
     _httpConnection._write(data);
     _writeSP();
-    data = reasonPhrase.charCodes();
+    data = reasonPhrase.charCodes;
     _httpConnection._write(data);
     _writeCRLF();
 
@@ -1098,6 +1125,21 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
 
+    var session = _httpConnection._request._session;
+    if (session != null && !session._destroyed) {
+      // Make sure we only send the current session id.
+      bool found = false;
+      for (int i = 0; i < cookies.length; i++) {
+        if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
+          cookie.value = session.id;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        cookies.add(new Cookie(_DART_SESSION_ID, session.id));
+      }
+    }
     // Add all the cookies set to the headers.
     if (_cookies != null) {
       _cookies.forEach((cookie) {
@@ -1202,8 +1244,8 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 class _HttpConnectionBase {
   _HttpConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new _HttpParser() {
-    _hashCode = _nextHashCode;
+                          _httpParser = new _HttpParser(),
+                          hashCode = _nextHashCode {
     _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
 
@@ -1307,8 +1349,6 @@ class _HttpConnectionBase {
     }
   }
 
-  int hashCode() => _hashCode;
-
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
   bool _error = false;  // Is the socket closed due to an error?
@@ -1319,7 +1359,7 @@ class _HttpConnectionBase {
   Function onDetach;
 
   // Hash code for HTTP connection. Currently this is just a counter.
-  int _hashCode;
+  final int hashCode;
   static int _nextHashCode = 0;
 }
 
@@ -1441,7 +1481,6 @@ class _RequestHandlerRegistration {
   Function _handler;
 }
 
-
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
@@ -1487,7 +1526,11 @@ class _HttpServer implements HttpServer {
   }
 
   void close() {
-    if (_server !== null && _closeServer) {
+    if (_sessionManagerInstance != null) {
+      _sessionManagerInstance.close();
+      _sessionManagerInstance = null;
+    }
+    if (_server != null && _closeServer) {
       _server.close();
     }
     _server = null;
@@ -1506,6 +1549,10 @@ class _HttpServer implements HttpServer {
 
   void set onError(void callback(e)) {
     _onError = callback;
+  }
+
+  int set sessionTimeout(int timeout) {
+    _sessionManager.sessionTimeout = timeout;
   }
 
   void _handleRequest(HttpRequest request, HttpResponse response) {
@@ -1534,6 +1581,14 @@ class _HttpServer implements HttpServer {
     }
   }
 
+  _HttpSessionManager get _sessionManager {
+    // Lazy init.
+    if (_sessionManagerInstance == null) {
+      _sessionManagerInstance = new _HttpSessionManager();
+    }
+    return _sessionManagerInstance;
+  }
+
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
@@ -1541,6 +1596,7 @@ class _HttpServer implements HttpServer {
   List<_RequestHandlerRegistration> _handlers;
   Object _defaultHandler;
   Function _onError;
+  _HttpSessionManager _sessionManagerInstance;
 }
 
 
@@ -1613,25 +1669,24 @@ class _HttpClientRequest
     List<int> data;
 
     // Write request line.
-    data = _method.toString().charCodes();
+    data = _method.toString().charCodes;
     _httpConnection._write(data);
     _writeSP();
     // Send the path for direct connections and the whole URL for
     // proxy connections.
     if (!_connection._usingProxy) {
-      String path;
+      String path = _uri.path;
+      if (path.length == 0) path = "/";
       if (_uri.query != "") {
         if (_uri.fragment != "") {
-          path = "${_uri.path}?${_uri.query}#${_uri.fragment}";
+          path = "${path}?${_uri.query}#${_uri.fragment}";
         } else {
-          path = "${_uri.path}?${_uri.query}";
+          path = "${path}?${_uri.query}";
         }
-      } else {
-         path = _uri.path;
       }
-      data = path.charCodes();
+      data = path.charCodes;
     } else {
-      data = _uri.toString().charCodes();
+      data = _uri.toString().charCodes;
     }
     _httpConnection._write(data);
     _writeSP();
@@ -1964,7 +2019,7 @@ class _SocketConnection {
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
-  int hashCode() => _socket.hashCode();
+  int get hashCode => _socket.hashCode;
 
   String _host;
   int _port;
@@ -1983,7 +2038,7 @@ class _ProxyConfiguration {
     List<String> list = configuration.split(";");
     list.forEach((String proxy) {
       proxy = proxy.trim();
-      if (!proxy.isEmpty()) {
+      if (!proxy.isEmpty) {
         if (proxy.startsWith(PROXY_PREFIX)) {
           int colon = proxy.indexOf(":");
           if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
@@ -2045,7 +2100,7 @@ class _HttpClient implements HttpClient {
                              Uri uri,
                              [_HttpClientConnection connection]) {
     if (_shutdown) throw new HttpException("HttpClient shutdown");
-    if (method == null || uri.domain.isEmpty() == null) {
+    if (method == null || uri.domain.isEmpty) {
       throw new ArgumentError(null);
     }
     return _prepareHttpClientConnection(method, uri, connection);
@@ -2083,7 +2138,7 @@ class _HttpClient implements HttpClient {
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
-       while (!connections.isEmpty()) {
+       while (!connections.isEmpty) {
          _SocketConnection socketConn = connections.removeFirst();
          socketConn._socket.close();
        }
@@ -2147,7 +2202,7 @@ class _HttpClient implements HttpClient {
       // otherwise create a new one.
       String key = _connectionKey(connectHost, connectPort);
       Queue socketConnections = _openSockets[key];
-      if (socketConnections == null || socketConnections.isEmpty()) {
+      if (socketConnections == null || socketConnections.isEmpty) {
         Socket socket = new Socket(connectHost, connectPort);
         // Until the connection is established handle connection errors
         // here as the HttpClientConnection object is not yet associated
@@ -2181,8 +2236,8 @@ class _HttpClient implements HttpClient {
                   _connectionOpened(socketConn, connection, !proxy.isDirect));
 
         // Get rid of eviction timer if there are no more active connections.
-        if (socketConnections.isEmpty()) _openSockets.remove(key);
-        if (_openSockets.isEmpty()) _cancelEvictionTimer();
+        if (socketConnections.isEmpty) _openSockets.remove(key);
+        if (_openSockets.isEmpty) _cancelEvictionTimer();
       }
     }
 
@@ -2238,13 +2293,13 @@ class _HttpClient implements HttpClient {
             void _(String key, Queue<_SocketConnection> connections) {
               // As returned connections are added at the head of the
               // list remove from the tail.
-              while (!connections.isEmpty()) {
-                _SocketConnection socketConn = connections.last();
+              while (!connections.isEmpty) {
+                _SocketConnection socketConn = connections.last;
                 if (socketConn._idleTime(now).inMilliseconds >
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();
                   socketConn._socket.close();
-                  if (connections.isEmpty()) emptyKeys.add(key);
+                  if (connections.isEmpty) emptyKeys.add(key);
                 } else {
                   break;
                 }
@@ -2255,7 +2310,7 @@ class _HttpClient implements HttpClient {
         emptyKeys.forEach((String key) => _openSockets.remove(key));
 
         // If all connections where evicted cancel the eviction timer.
-        if (_openSockets.isEmpty()) _cancelEvictionTimer();
+        if (_openSockets.isEmpty) _cancelEvictionTimer();
       }
       _evictionTimer = new Timer.repeating(10000, _handleEviction);
     }

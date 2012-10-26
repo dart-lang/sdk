@@ -247,6 +247,21 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 21, 1));
   }
 
+  public void test_cascade() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            " var v;",
+            " const c = v..foo;",
+            "}",
+            "class Object {}",
+            "class int {}",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 12, 1),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 13, 5));
+  }
+
   public void test_stringInterpolation_referenceConstVar_String() {
     resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",

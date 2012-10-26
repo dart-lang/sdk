@@ -25,7 +25,7 @@ class _ObjectArray<E> implements List<E> {
       native "ObjectArray_copyFromObjectArray";
 
   E removeAt(int index) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
   }
 
@@ -41,12 +41,12 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove range of a non-extendable array");
   }
 
   void insertRange(int start, int length, [E initialValue = null]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insert range in a non-extendable array");
   }
 
@@ -88,12 +88,12 @@ class _ObjectArray<E> implements List<E> {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
   void sort([Comparator<E> compare = Comparable.compare]) {
-    DualPivotQuicksort.sort(this, compare);
+    coreSort(this, compare);
   }
 
   int indexOf(E element, [int start = 0]) {
@@ -110,7 +110,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void add(E element) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
@@ -119,26 +119,26 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void addAll(Collection<E> elements) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to a non-extendable array");
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot clear a non-extendable array");
   }
 
   void set length(int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot change the length of a non-extendable array");
   }
 
   E removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove in a non-extendable array");
   }
 
-  E last() {
+  E get last {
     return this[length - 1];
   }
 }
@@ -154,41 +154,41 @@ class _ObjectArray<E> implements List<E> {
 class _ImmutableArray<E> implements List<E> {
 
   factory _ImmutableArray._uninstantiable() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "ImmutableArray can only be allocated by the VM");
   }
 
   E operator [](int index) native "ObjectArray_getIndexed";
 
   void operator []=(int index, E value) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
   int get length native "ObjectArray_getLength";
 
   E removeAt(int index) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
   void copyFrom(List src, int srcStart, int dstStart, int count) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
   void removeRange(int start, int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove range of an immutable array");
   }
 
   void insertRange(int start, int length, [E initialValue = null]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot insert range in an immutable array");
   }
 
@@ -230,12 +230,12 @@ class _ImmutableArray<E> implements List<E> {
     return Collections.some(this, f);
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return this.length === 0;
   }
 
   void sort([Comparator<E> compare]) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
@@ -257,7 +257,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   void add(E element) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to an immutable array");
   }
 
@@ -266,26 +266,26 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   void addAll(Collection<E> elements) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot add to an immutable array");
   }
 
   void clear() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot clear an immutable array");
   }
 
   void set length(int length) {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot change the length of an immutable array");
   }
 
   E removeLast() {
-    throw const UnsupportedOperationException(
+    throw new UnsupportedError(
         "Cannot remove in a non-extendable array");
   }
 
-  E last() {
+  E get last {
     return this[length - 1];
   }
 }
@@ -298,13 +298,13 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _ObjectArray || array is _ImmutableArray);
   }
 
-  bool hasNext() {
+  bool get hasNext {
     return _length > _pos;
   }
 
   E next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
+    if (!hasNext) {
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

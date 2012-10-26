@@ -91,12 +91,12 @@ class Logger {
   }
 
   /** Override the level for this particular [Logger] and its children. */
-  Level set level(value) {
+  set level(value) {
     if (hierarchicalLoggingEnabled && parent != null) {
       _level = value;
     } else {
       if (parent != null) {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedError(
             'Please set "hierarchicalLoggingEnabled" to true if you want to '
             'change the level on a non-root logger.');
       }
@@ -296,7 +296,7 @@ class Level implements Comparable {
   bool operator >(Level other) => value > other.value;
   bool operator >=(Level other) => value >= other.value;
   int compareTo(Level other) => value - other.value;
-  int hashCode() => value;
+  int get hashCode => value;
   String toString() => name;
 }
 

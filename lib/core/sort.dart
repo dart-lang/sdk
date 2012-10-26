@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ajohnsen): Remove once coreimpl is eliminated.
+/**
+ * WARNING: This method is temporary and will go away soon.
+ */
+void coreSort(List l, int compare(a, b)) => _Sort.sort(l, compare);
+
 /**
  * Dual-Pivot Quicksort algorithm.
  *
@@ -10,7 +16,7 @@
  *
  * Some improvements have been copied from Android's implementation.
  */
-class DualPivotQuicksort {
+class _Sort {
   // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
   static const int _INSERTION_SORT_THRESHOLD = 32;

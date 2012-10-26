@@ -21,7 +21,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return null;
   }
 
-  bool isEmpty() {
+  bool get isEmpty {
     return kvPairs_.length === 0;
   }
 
@@ -35,7 +35,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     }
   }
 
-  Collection<K> getKeys() {
+  Collection<K> get keys {
     int numKeys = length;
     List<K> list = new List<K>(numKeys);
     for (int i = 0; i < numKeys; i++) {
@@ -44,7 +44,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
     return list;
   }
 
-  Collection<V> getValues() {
+  Collection<V> get values {
     int numValues = length;
     List<V> list = new List<V>(numValues);
     for (int i = 0; i < numValues; i++) {
@@ -72,19 +72,19 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   void operator []=(K key, V value) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot set value in unmodifiable Map");
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot set value in unmodifiable Map");
   }
 
   void clear() {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot clear unmodifiable Map");
   }
 
   V remove(K key) {
-    throw const IllegalAccessException();
+    throw new UnsupportedError("Cannot remove from unmodifiable Map");
   }
 
   String toString() {

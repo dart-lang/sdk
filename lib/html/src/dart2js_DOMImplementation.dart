@@ -32,9 +32,7 @@ class _DOMWindowCrossFrameImpl implements Window {
 
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-                   [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
     } else {
@@ -46,7 +44,7 @@ class _DOMWindowCrossFrameImpl implements Window {
   _DOMWindowCrossFrameImpl(this._window);
 
   static Window _createSafe(w) {
-    if (w === window) {
+    if (identical(w, window)) {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -70,7 +68,7 @@ class _LocationCrossFrameImpl implements Location {
   _LocationCrossFrameImpl(this._location);
 
   static Location _createSafe(location) {
-    if (location === window.location) {
+    if (identical(location, window.location)) {
       return location;
     } else {
       // TODO(vsm): Cache or implement equality.
@@ -95,7 +93,7 @@ class _HistoryCrossFrameImpl implements History {
   _HistoryCrossFrameImpl(this._history);
 
   static History _createSafe(h) {
-    if (h === window.history) {
+    if (identical(h, window.history)) {
       return h;
     } else {
       // TODO(vsm): Cache or implement equality.

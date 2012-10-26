@@ -20,7 +20,7 @@ Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
   type = type.declaration;
   var subtypes = <InterfaceMirror>[];
   type.system.libraries.forEach((_, library) {
-    for (InterfaceMirror otherType in library.types.getValues()) {
+    for (InterfaceMirror otherType in library.types.values) {
       var superClass = otherType.superclass;
       if (superClass !== null) {
         superClass = superClass.declaration;
@@ -119,9 +119,9 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
 
   InterfaceMirror next() {
     InterfaceMirror type;
-    if (queue.isEmpty()) {
+    if (queue.isEmpty) {
       if (object === null) {
-        throw new NoMoreElementsException();
+        throw new StateError("No more elements");
       }
       type = object;
       object = null;
@@ -131,5 +131,5 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     }
   }
 
-  bool hasNext() => !queue.isEmpty() || object !== null;
+  bool get hasNext => !queue.isEmpty || object !== null;
 }

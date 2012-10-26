@@ -23,10 +23,10 @@ class MockSource extends Source {
 main() {
   group('Pubspec', () {
     group('parse()', () {
-      test("allows a version constraint for dependencies", () {
-        var sources = new SourceRegistry();
-        sources.register(new MockSource());
+      var sources = new SourceRegistry();
+      sources.register(new MockSource());
 
+      test("allows a version constraint for dependencies", () {
         var pubspec = new Pubspec.parse('''
 dependencies:
   foo:
@@ -42,11 +42,8 @@ dependencies:
       });
 
       test("throws if the description isn't valid", () {
-        var sources = new SourceRegistry();
-        sources.register(new MockSource());
-
         expect(() {
-        new Pubspec.parse('''
+          new Pubspec.parse('''
 dependencies:
   foo:
     mock: bad
@@ -54,10 +51,49 @@ dependencies:
         }, throwsFormatException);
       });
 
-      test("allows comment-only files", () {
-        var sources = new SourceRegistry();
-        sources.register(new MockSource());
+      test("throws if 'name' is not a string", () {
+        expect(() => new Pubspec.parse('name: [not, a, string]', sources),
+            throwsFormatException);
+      });
 
+      test("throws if 'homepage' is not a string", () {
+        expect(() => new Pubspec.parse('homepage: [not, a, string]', sources),
+            throwsFormatException);
+      });
+
+      test("throws if 'authors' is not a string or a list of strings", () {
+        new Pubspec.parse('authors: ok fine', sources);
+        new Pubspec.parse('authors: [also, ok, fine]', sources);
+
+        expect(() => new Pubspec.parse('authors: 123', sources),
+            throwsFormatException);
+
+        expect(() => new Pubspec.parse('authors: {not: {a: string}}', sources),
+            throwsFormatException);
+
+        expect(() => new Pubspec.parse('authors: [ok, {not: ok}]', sources),
+            throwsFormatException);
+      });
+
+      test("throws if 'author' is not a string", () {
+        new Pubspec.parse('author: ok fine', sources);
+
+        expect(() => new Pubspec.parse('author: 123', sources),
+            throwsFormatException);
+
+        expect(() => new Pubspec.parse('author: {not: {a: string}}', sources),
+            throwsFormatException);
+
+        expect(() => new Pubspec.parse('author: [not, ok]', sources),
+            throwsFormatException);
+      });
+
+      test("throws if both 'author' and 'authors' are present", () {
+        expect(() => new Pubspec.parse('{author: abe, authors: ted}', sources),
+            throwsFormatException);
+      });
+
+      test("allows comment-only files", () {
         var pubspec = new Pubspec.parse('''
 # No external dependencies yet
 # Including for completeness

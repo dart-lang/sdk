@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_backend;
+
 Function get _compareNodes =>
     compareBy((n) => n.getBeginToken().charOffset);
 
@@ -76,7 +78,7 @@ void renamePlaceholders(
   }
 
   sortedForEach(Map<Element, Dynamic> map, f) {
-    for (Element element in sortElements(map.getKeys())) {
+    for (Element element in sortElements(map.keys)) {
       f(element, map[element]);
     }
   }
@@ -112,7 +114,7 @@ void renamePlaceholders(
   if (compiler.enableMinification) {
     MinifyingGenerator generator = new MinifyingGenerator();
     Set<String> forbiddenIdentifiers = new Set<String>.from(['main']);
-    forbiddenIdentifiers.addAll(Keyword.keywords.getKeys());
+    forbiddenIdentifiers.addAll(Keyword.keywords.keys);
     forbiddenIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (_) =>
         generator.generate(forbiddenIdentifiers.contains);
@@ -120,14 +122,14 @@ void renamePlaceholders(
     Function renameElement = makeElementRenamer(rename, generateUniqueName);
 
     Set<String> allParameterIdentifiers = new Set<String>();
-    for (var functionScope in placeholderCollector.functionScopes.getValues()) {
+    for (var functionScope in placeholderCollector.functionScopes.values) {
       allParameterIdentifiers.addAll(functionScope.parameterIdentifiers);
     }
     // Build a sorted (by usage) list of local nodes that will be renamed to
     // the same identifier. So the top-used local variables in all functions
     // will be renamed first and will all share the same new identifier.
     List<Set<Node>> allSortedLocals = new List<Set<Node>>();
-    for (var functionScope in placeholderCollector.functionScopes.getValues()) {
+    for (var functionScope in placeholderCollector.functionScopes.values) {
       // Add current sorted local identifiers to the whole sorted list
       // of all local identifiers for all functions.
       List<LocalPlaceholder> currentSortedPlaceholders =
@@ -175,11 +177,10 @@ void renamePlaceholders(
       renameNodes(renamable.nodes, (_) => newName);
     }
   } else {
-    // TODO(antonm): we should also populate this set with top-level
-    // names from core library.
     // Never rename anything to 'main'.
     final usedTopLevelOrMemberIdentifiers = new Set<String>();
     usedTopLevelOrMemberIdentifiers.add('main');
+    usedTopLevelOrMemberIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (originalName) {
       String newName = conservativeGenerator(
           originalName, usedTopLevelOrMemberIdentifiers.contains);

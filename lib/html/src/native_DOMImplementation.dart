@@ -28,7 +28,7 @@ class _Utils {
   static Map createMap() => {};
 
   static makeNotImplementedException(String fileName, int lineNo) {
-    return new UnsupportedOperationException('[info: $fileName:$lineNo]');
+    return new UnsupportedError('[info: $fileName:$lineNo]');
   }
 
   static window() native "Utils_window";
@@ -100,16 +100,16 @@ class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, 
   String remove(String key) native "DOMStringMap_remove_Callback";
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
-  Collection<String> getValues() => Maps.getValues(this);
+  Collection<String> get keys native "DOMStringMap_getKeys_Callback";
+  Collection<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
-  bool isEmpty() => Maps.isEmpty(this);
+  bool get isEmpty => Maps.isEmpty(this);
 }
 
 get _printClosure => (s) {
   try {
     window.console.log(s);
-  } on Dynamic catch(_) {
+  } catch (_) {
     _Utils.print(s);
   }
 };

@@ -39,7 +39,7 @@ class _MimeMultipartParser {
   // [boundary]. The boundary should be as specified in the content
   // type parameter, that is without the -- prefix.
   _MimeMultipartParser(String boundary) {
-    List<int> charCodes = boundary.charCodes();
+    List<int> charCodes = boundary.charCodes;
     _boundary = new List<int>(4 + charCodes.length);
     // Set-up the matching boundary preceding it with CRLF and two
     // dashes.

@@ -374,7 +374,7 @@ class FileIOException implements Exception {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("FileIOException");
-    if (!message.isEmpty()) {
+    if (!message.isEmpty) {
       sb.add(": $message");
       if (osError != null) {
         sb.add(" ($osError)");

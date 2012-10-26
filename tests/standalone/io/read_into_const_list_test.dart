@@ -22,7 +22,7 @@ void main() {
     input.readInto(a, 0, 1);
     Expect.fail("no exception thrown");
   } catch (e) {
-    Expect.isTrue(e is UnsupportedOperationException);
+    Expect.isTrue(e is UnsupportedError);
   }
   Expect.equals(0, a[0]);
   Expect.equals(0, b[0]);

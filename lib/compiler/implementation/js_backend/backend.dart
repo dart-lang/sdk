@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of js_backend;
+
 typedef void Recompile(Element element);
 
 class ReturnInfo {
@@ -422,9 +424,9 @@ class FieldTypesRegistry {
 
   void dump() {
     Set<Element> allFields = new Set<Element>();
-    fieldInitializerTypeMap.getKeys().forEach(allFields.add);
-    fieldConstructorTypeMap.getKeys().forEach(allFields.add);
-    fieldTypeMap.getKeys().forEach(allFields.add);
+    fieldInitializerTypeMap.keys.forEach(allFields.add);
+    fieldConstructorTypeMap.keys.forEach(allFields.add);
+    fieldTypeMap.keys.forEach(allFields.add);
     allFields.forEach((Element field) {
       print("Inferred $field has type ${optimisticFieldType(field)}");
     });

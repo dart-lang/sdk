@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of js;
+
 class Printer implements NodeVisitor {
   final bool shouldCompressOutput;
   leg.Compiler compiler;
@@ -18,7 +20,7 @@ class Printer implements NodeVisitor {
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
         namer = determineRenamer(compiler.enableMinification);
-  
+
   static Namer determineRenamer(bool shouldCompressOutput) {
     // TODO(erikcorry): Re-enable the MinifyRenamer after M1.
     return new IdentityNamer();
@@ -331,7 +333,7 @@ class Printer implements NodeVisitor {
     visitNestedExpression(node.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
-    if (!node.body.statements.isEmpty()) {
+    if (!node.body.statements.isEmpty) {
       indentLevel++;
       blockOutWithoutBraces(node.body);
       indentLevel--;
@@ -340,7 +342,7 @@ class Printer implements NodeVisitor {
 
   visitDefault(Default node) {
     outIndentLn("default:");
-    if (!node.body.statements.isEmpty()) {
+    if (!node.body.statements.isEmpty) {
       indentLevel++;
       blockOutWithoutBraces(node.body);
       indentLevel--;
@@ -945,7 +947,7 @@ class MinifyRenamer implements Namer {
   String declareName(String oldName) {
     const LETTERS = 52;
     const DIGITS = 10;
-    if (maps.isEmpty()) return oldName;
+    if (maps.isEmpty) return oldName;
 
     String newName;
     int n = nameNumber;
@@ -978,7 +980,7 @@ class MinifyRenamer implements Namer {
     }
     assert(const RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     nameNumber++;
-    maps.last()[oldName] = newName;
+    maps.last[oldName] = newName;
     return newName;
   }
 }

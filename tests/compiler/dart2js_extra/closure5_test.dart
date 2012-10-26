@@ -4,7 +4,7 @@
 
 class A {
   foo() => 499;
-  bar([a = 1, b = 7, c = 99]) => a + b + c;
+  bar({a: 1, b: 7, c: 99}) => a + b + c;
   toto() => bar;
   gee(f) => f(toto);
 }
@@ -15,9 +15,9 @@ main() {
   Expect.equals(499, foo());
   var bar = a.bar;
   Expect.equals(107, bar());
-  Expect.equals(3, bar(1, 1, 1));
+  Expect.equals(3, bar(a: 1, b: 1, c: 1));
   Expect.equals(10, bar(c: 2));
   var toto = a.toto;
   var gee = a.gee;
-  Expect.equals(-10, gee((f) => f()(-1, -2, c: -7)));
+  Expect.equals(-10, gee((f) => f()(a: -1, b: -2, c: -7)));
 }

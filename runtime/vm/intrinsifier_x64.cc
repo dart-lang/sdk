@@ -1147,16 +1147,6 @@ bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_toDouble(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ ret();
-  // Generate enough code to satisfy patchability constraint.
-  intptr_t offset = __ CodeSize();
-  __ nop(JumpPattern::InstructionLength() - offset);
-  return true;
-}
-
-
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
@@ -1256,7 +1246,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_true;
@@ -1273,7 +1263,7 @@ bool Intrinsifier::Double_isNaN(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_false, is_true, is_zero;
@@ -1436,7 +1426,7 @@ static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
 //     return _array[_pos++];
 //   }
 // Intrinsify: return _array[_pos++];
-// TODO(srdjan): Throw a 'NoMoreElementsException' exception if the iterator
+// TODO(srdjan): Throw a 'StateError' exception if the iterator
 // has no more elements.
 bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
   Label fall_through;
@@ -1479,10 +1469,10 @@ bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
 
 
 // Class 'FixedSizeArrayIterator':
-//   bool hasNext() {
+//   bool get hasNext {
 //     return _length > _pos;
 //   }
-bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_getHasNext(Assembler* assembler) {
   Label fall_through, is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -1505,6 +1495,19 @@ bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
   __ LoadObject(RAX, bool_true);
   __ ret();
   __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::String_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
+  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
   return false;
 }
 
@@ -1539,20 +1542,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_hashCode(Assembler* assembler) {
-  Label fall_through;
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
-  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
-  __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  __ ret();
-  __ Bind(&fall_through);
-  // Hash not yet computed.
-  return false;
-}
-
-
-bool Intrinsifier::String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   Label is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());

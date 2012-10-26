@@ -148,11 +148,11 @@ class MapTest {
     other_map.clear();
     Expect.equals(0, other_map.length);
 
-    // Test Collection.getKeys.
+    // Test Collection.keys.
     void testForEachCollection(value) {
       other_map[value] = value;
     }
-    Collection keys = map.getKeys();
+    Collection keys = map.keys;
     keys.forEach(testForEachCollection);
     Expect.equals(true, other_map.containsKey(key1));
     Expect.equals(true, other_map.containsKey(key2));
@@ -166,8 +166,8 @@ class MapTest {
     other_map.clear();
     Expect.equals(0, other_map.length);
 
-    // Test Collection.getValues.
-    Collection values = map.getValues();
+    // Test Collection.values.
+    Collection values = map.values;
     values.forEach(testForEachCollection);
     Expect.equals(true, !other_map.containsKey(key1));
     Expect.equals(true, !other_map.containsKey(key2));
@@ -211,7 +211,7 @@ class MapTest {
     });
     Expect.equals(6, sum);
 
-    List values = m.getKeys();
+    List values = m.keys;
     Expect.equals(3, values.length);
     String first = values[0];
     String second = values[1];

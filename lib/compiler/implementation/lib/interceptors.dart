@@ -101,11 +101,11 @@ charCodeAt(var receiver, int index) {
   }
 }
 
-isEmpty(receiver) {
+get$isEmpty(receiver) {
   if (receiver is String || isJsArray(receiver)) {
     return JS('bool', r'#.length === 0', receiver);
   }
-  return UNINTERCEPTED(receiver.isEmpty());
+  return UNINTERCEPTED(receiver.isEmpty);
 }
 
 compareTo(a, b) {
@@ -116,15 +116,15 @@ compareTo(a, b) {
       return 1;
     } else if (a == b) {
       if (a == 0) {
-        bool aIsNegative = a.isNegative();
-        bool bIsNegative = b.isNegative();
+        bool aIsNegative = a.isNegative;
+        bool bIsNegative = b.isNegative;
         if (aIsNegative == bIsNegative) return 0;
         if (aIsNegative) return -1;
         return 1;
       }
       return 0;
-    } else if (a.isNaN()) {
-      if (b.isNaN()) {
+    } else if (a.isNaN) {
+      if (b.isNaN) {
         return 0;
       }
       return 1;
@@ -145,7 +145,7 @@ addAll(receiver, collection) {
 
   // TODO(ahe): Use for-in when it is implemented correctly.
   var iterator = collection.iterator();
-  while (iterator.hasNext()) {
+  while (iterator.hasNext) {
     receiver.add(iterator.next());
   }
 }
@@ -246,9 +246,9 @@ insertRange$3(receiver, start, length, initialValue) {
   return listInsertRange(receiver, start, length, initialValue);
 }
 
-last(receiver) {
+get$last(receiver) {
   if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.last());
+    return UNINTERCEPTED(receiver.last);
   }
   return receiver[receiver.length - 1];
 }
@@ -364,28 +364,28 @@ every(receiver, f) {
 sort$0(receiver) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort());
   checkMutable(receiver, 'sort');
-  DualPivotQuicksort.sort(receiver, Comparable.compare);
+  coreSort(receiver, Comparable.compare);
 }
 
 sort$1(receiver, compare) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
   checkMutable(receiver, 'sort');
-  DualPivotQuicksort.sort(receiver, compare);
+  coreSort(receiver, compare);
 }
 
-isNegative(receiver) {
+get$isNegative(receiver) {
   if (receiver is num) {
     return (receiver == 0) ? (1 / receiver) < 0 : receiver < 0;
   } else {
-    return UNINTERCEPTED(receiver.isNegative());
+    return UNINTERCEPTED(receiver.isNegative);
   }
 }
 
-isNaN(receiver) {
+get$isNaN(receiver) {
   if (receiver is num) {
     return JS('bool', r'isNaN(#)', receiver);
   } else {
-    return UNINTERCEPTED(receiver.isNaN());
+    return UNINTERCEPTED(receiver.isNaN);
   }
 }
 
@@ -406,9 +406,9 @@ abs(receiver) {
 toInt(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
-  if (receiver.isNaN()) throw new FormatException('NaN');
+  if (receiver.isNaN) throw new FormatException('NaN');
 
-  if (receiver.isInfinite()) throw new FormatException('Infinity');
+  if (receiver.isInfinite) throw new FormatException('Infinity');
 
   var truncated = receiver.truncate();
   return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
@@ -426,8 +426,8 @@ floor(receiver) {
   return JS('num', r'Math.floor(#)', receiver);
 }
 
-isInfinite(receiver) {
-  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
+get$isInfinite(receiver) {
+  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite);
 
   return JS('bool', r'# == Infinity', receiver)
     || JS('bool', r'# == -Infinity', receiver);
@@ -462,7 +462,7 @@ toStringAsFixed(receiver, fractionDigits) {
   checkNum(fractionDigits);
 
   String result = JS('String', r'#.toFixed(#)', receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -477,7 +477,7 @@ toStringAsExponential(receiver, fractionDigits) {
   } else {
     result = JS('String', r'#.toExponential()', receiver);
   }
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -489,7 +489,7 @@ toStringAsPrecision(receiver, fractionDigits) {
 
   String result = JS('String', r'#.toPrecision(#)',
                      receiver, fractionDigits);
-  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  if (receiver == 0 && receiver.isNegative) return "-$result";
   return result;
 }
 
@@ -626,14 +626,14 @@ trim(receiver) {
  *
  * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
  */
-hashCode(receiver) {
+get$hashCode(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
   if (receiver == null) return 0;
   if (receiver is num) return JS('int', r'# & 0x1FFFFFFF', receiver);
   if (receiver is bool) return receiver ? 0x40377024 : 0xc18c0076;
   if (isJsArray(receiver)) return Primitives.objectHashCode(receiver);
-  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode());
+  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode);
   int hash = 0;
   int length = JS('int', r'#.length', receiver);
   for (int i = 0; i < length; i++) {
@@ -646,8 +646,8 @@ hashCode(receiver) {
   return 0x1fffffff & (hash + JS('int', r'# << #', 0x00003fff & hash, 15));
 }
 
-charCodes(receiver) {
-  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes());
+get$charCodes(receiver) {
+  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes);
   int len = receiver.length;
   List<int> result = new List<int>(len);
   for (int i = 0; i < len; i++) {
@@ -656,13 +656,13 @@ charCodes(receiver) {
   return result;
 }
 
-isEven(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isEven());
+get$isEven(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isEven);
   return (receiver & 1) == 0;
 }
 
-isOdd(receiver) {
-  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd());
+get$isOdd(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd);
   return (receiver & 1) == 1;
 }
 
@@ -687,5 +687,3 @@ get$runtimeType(receiver) {
 // TODO(lrn): These getters should be generated automatically for all
 // intercepted methods.
 get$toString(receiver) => () => toString(receiver);
-
-get$hashCode(receiver) => () => hashCode(receiver);

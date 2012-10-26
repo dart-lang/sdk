@@ -40,7 +40,7 @@ Node parseBodyCode(String text, Function parseMethod) {
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
   Expect.isNotNull(node);
-  Expect.isTrue(listener.nodes.isEmpty(), 'Not empty: ${listener.nodes}');
+  Expect.isTrue(listener.nodes.isEmpty, 'Not empty: ${listener.nodes}');
   return node;
 }
 

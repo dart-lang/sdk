@@ -49,11 +49,11 @@ abstract class num implements Comparable {
   /** Relational greater than or equal operator. */
   bool operator >=(num other);
 
-  bool isNaN();
+  bool get isNaN;
 
-  bool isNegative();
+  bool get isNegative;
 
-  bool isInfinite();
+  bool get isInfinite;
 
   /** Returns the absolute value of this [num]. */
   num abs();

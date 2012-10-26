@@ -38,15 +38,18 @@ abstract class Directory {
   bool existsSync();
 
   /**
-   * Creates the directory with this name if it does not
-   * exist. Returns a [:Future<Directory>:] that completes with this
-   * directory once it has been created.
+   * Creates the directory with this name. If the directory already
+   * exists nothing is done. Returns a [:Future<Directory>:] that
+   * completes with this directory once it has been created. If the
+   * directory does not exist and cannot be created the future
+   * completes with an exception.
    */
   Future<Directory> create();
 
   /**
-   * Synchronously creates the directory with this name if it does not exist.
-   * Throws an exception if the directory already exists.
+   * Synchronously creates the directory with this name. If the
+   * directory already exists nothing is done. If the directory does
+   * not exist and cannot be created an exception is thrown.
    */
   void createSync();
 
@@ -179,7 +182,7 @@ class DirectoryIOException implements Exception {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("DirectoryIOException");
-    if (!message.isEmpty()) {
+    if (!message.isEmpty) {
       sb.add(": $message");
       if (path != null) {
         sb.add(", path = $path");

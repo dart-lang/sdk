@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of ssa;
+
 class ValueSet {
   int size = 0;
   List<HInstruction> table;
   ValueSetNode collisions;
   ValueSet() : table = new List<HInstruction>(8);
 
-  bool isEmpty() => size == 0;
+  bool get isEmpty => size == 0;
   int get length => size;
 
   void add(HInstruction instruction) {
@@ -38,7 +40,7 @@ class ValueSet {
     if (probe != null && probe.gvnEquals(instruction)) return probe;
     // Look in the collisions list.
     for (ValueSetNode node = collisions; node != null; node = node.next) {
-      if (node.hashCode() == hashCode) {
+      if (node.hashCode == hashCode) {
         HInstruction cached = node.value;
         if (cached.gvnEquals(instruction)) return cached;
       }
@@ -149,7 +151,7 @@ class ValueSet {
 class ValueSetNode {
   final HInstruction value;
   final int hash;
-  int hashCode() => hash;
+  int get hashCode => hash;
   ValueSetNode next;
   ValueSetNode(this.value, this.hash, this.next);
 }

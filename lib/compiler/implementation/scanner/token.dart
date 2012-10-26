@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 const int EOF_TOKEN = 0;
 
 const int KEYWORD_TOKEN = $k;
@@ -190,7 +192,7 @@ interface SourceString extends Iterable<int> default StringWrapper {
 
   String slowToString();
 
-  bool isEmpty();
+  bool get isEmpty;
 
   bool isPrivate();
 }
@@ -200,7 +202,7 @@ class StringWrapper implements SourceString {
 
   const StringWrapper(String this.stringValue);
 
-  int hashCode() => stringValue.hashCode();
+  int get hashCode => stringValue.hashCode;
 
   bool operator ==(other) {
     return other is SourceString && toString() == other.slowToString();
@@ -224,9 +226,9 @@ class StringWrapper implements SourceString {
         stringValue.substring(initial, stringValue.length - terminal));
   }
 
-  bool isEmpty() => stringValue.isEmpty();
+  bool get isEmpty => stringValue.isEmpty;
 
-  bool isPrivate() => !isEmpty() && identical(stringValue.charCodeAt(0), $_);
+  bool isPrivate() => !isEmpty && identical(stringValue.charCodeAt(0), $_);
 }
 
 class StringCodeIterator implements Iterator<int> {
@@ -243,7 +245,7 @@ class StringCodeIterator implements Iterator<int> {
     assert(end <= string.length);
   }
 
-  bool hasNext() => index < end;
+  bool get hasNext => index < end;
   int next() => string.charCodeAt(index++);
 }
 
