@@ -127,6 +127,8 @@ Language/13_Libraries_and_Scripts/2_Exports_A04_t04: Fail # TODO(analyzer-team):
 Language/13_Libraries_and_Scripts/2_Exports_A04_t05: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(analyzer-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
+LibTest/core/Set/Set.from_A01_t02: Fail # TODO(analyzer-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t08: pass # http://dartbug.com/5179
 Language/03_Overview/2_Privacy_A01_t11: pass # http://dartbug.com/5179
@@ -227,38 +229,12 @@ LibTest/isolate/SendPort/hashCode_A01_t01: Pass, OK
 LibTest/core/String/hashCode_A01_t01: Pass, OK
 LibTest/core/int/hashCode_A01_t01: Pass, OK
 
-LibTest/core/List/filter_A03_t01: Fail, OK # co19 issue 276
-LibTest/core/List/some_A03_t01: Fail, OK # co19 issue 276
-LibTest/core/List/every_A03_t01: Fail, OK # co19 issue 276
-LibTest/core/List/forEach_A02_t01: Fail, OK # co19 issue 276
-LibTest/core/Queue/forEach_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/some_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/every_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Queue/filter_A01_t03: Fail, OK # co19 issue 276
-LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
-LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
-LibTest/core/Map/forEach_A01_t02: Fail, OK # co19 issue 276
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
-Language/11_Statements/15_Assert_A04_t04: Fail, OK # co19 issue 276
-
-LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
-LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
-
 LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
-
-# The following tests use the deprecated catch syntax
 
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK
 Language/10_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t07: Fail, OK
