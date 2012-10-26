@@ -4422,6 +4422,34 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 }
 
 
+DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
+                                       Dart_Handle url,
+                                       Dart_Handle patch_source) {
+  TIMERSCOPE(time_script_loading);
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (FLAG_use_cha) {
+    RemoveOptimizedCode();
+  }
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  const String& url_str = Api::UnwrapStringHandle(isolate, url);
+  if (url_str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, url, String);
+  }
+  const String& source_str = Api::UnwrapStringHandle(isolate, patch_source);
+  if (source_str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, patch_source, String);
+  }
+  Dart_Handle result;
+  CompileSource(isolate, lib, url_str, source_str,
+                RawScript::kPatchTag, &result);
+  return result;
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver) {

@@ -5673,6 +5673,42 @@ TEST_CASE(LoadSource_LateLoad) {
 }
 
 
+TEST_CASE(LoadPatch) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');";
+  const char* kSourceChars =
+      "external int foo();";
+  const char* kPatchChars =
+      "patch int foo() => 42;";
+
+  // Load up a library.
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  url = Dart_NewString("source_url");
+  source = Dart_NewString(kSourceChars);
+
+  Dart_Handle result = Dart_LoadSource(lib, url, source);
+  EXPECT_VALID(result);
+
+  url = Dart_NewString("patch_url");
+  source = Dart_NewString(kPatchChars);
+
+  result = Dart_LoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, Dart_NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(42, value);
+}
+
+
 static void PatchNativeFunction(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
