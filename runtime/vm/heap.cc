@@ -33,7 +33,7 @@ DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
             "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
 
-  Heap::Heap() : read_only_(false) {
+Heap::Heap() : read_only_(false) {
   new_space_ = new Scavenger(this,
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
