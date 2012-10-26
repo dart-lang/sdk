@@ -94,6 +94,8 @@ Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(dart2dart-team)
 Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
+LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
+LibTest/core/Set/Set.from_A01_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/math/exp_A01_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 LibTest/math/parseDouble_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
@@ -169,15 +171,6 @@ LibTest/core/Map/putIfAbsent_A01_t08: Fail, OK # co19 issue 276
 LibTest/core/Map/putIfAbsent_A01_t06: Fail, OK # co19 issue 276
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 
-LibTest/core/List/add_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addAll_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/clear_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/length_A04_t01: Fail, OK # co19 issue 285
-LibTest/core/List/List_A01_t02: Fail, OK # co19 issue 285
-LibTest/core/List/removeLast_A02_t01: Fail, OK # co19 issue 285
-LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
 
@@ -191,8 +184,6 @@ LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK #
 LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
-
-LibTest/core/UnsupportedError/toString_A01_t01: Fail, OK # co19 issue 295
 
 Language/03_Overview/1_Scoping_A01_t39: Fail # http://dartbug.com/5519
 Language/03_Overview/1_Scoping_A01_t40: Fail # http://dartbug.com/5519

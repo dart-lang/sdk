@@ -198,6 +198,8 @@ Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(vm-team): Pleas
 Language/13_Libraries_and_Scripts/3_Parts_A03_t03: Fail # TODO(vm-team): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(vm-team): Please triage this failure.
 Language/14_Types/5_Function_Types_A02_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Set/Set.from_A01_t02: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # TODO(vm-team): Please triage this failure.
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # TODO(vm-team): Please triage this failure.
 LibTest/math/Random/nextDouble_A01_t01: Fail # TODO(vm-team): Please triage this failure.
@@ -226,8 +228,6 @@ LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
 LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
-
-LibTest/core/UnsupportedError/toString_A01_t01: Fail, OK # co19 issue 295
 
 
 [ $compiler == none && $runtime == vm && $checked ]

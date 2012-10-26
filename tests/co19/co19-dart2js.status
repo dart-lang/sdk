@@ -186,6 +186,8 @@ Language/13_Libraries_and_Scripts/2_Exports_A04_t06: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/3_Parts_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Queue/Queue.from_A01_t02: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Set/Set.from_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/String/replaceAll_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/String/replaceFirst_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
@@ -477,8 +479,6 @@ Language/03_Overview/2_Privacy_A01_t10: Fail, OK # co19 issue 198
 Language/10_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issue 273
 LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
-
-LibTest/core/UnsupportedError/toString_A01_t01: Fail, OK # co19 issue 295
 
 
 [ $compiler == dart2js && $jscl ]
