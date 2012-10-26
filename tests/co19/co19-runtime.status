@@ -238,6 +238,14 @@ LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
 
+LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/10_Expressions/09_Function_Expressions_A03_t02: Fail, OK # co19 issue 283
