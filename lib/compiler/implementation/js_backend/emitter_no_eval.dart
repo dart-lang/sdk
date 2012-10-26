@@ -83,7 +83,6 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
     List<String> fields = <String>[];
     visitClassFields(classElement, (Element member,
                                     String name,
-                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
@@ -124,22 +123,21 @@ $classesCollector.$mangledName = {'': function $mangledName(self, target) {
 
     visitClassFields(classElement, (Element member,
                                     String name,
-                                    String accessorName,
                                     bool needsGetter,
                                     bool needsSetter,
                                     bool needsCheckedSetter) {
       if (needsGetter) {
         emitComma();
-        generateGetter(member, name, accessorName, buffer);
+        generateGetter(member, name, buffer);
       }
       if (needsSetter) {
         emitComma();
-        generateSetter(member, name, accessorName, buffer);
+        generateSetter(member, name, buffer);
       }
       if (needsCheckedSetter) {
         assert(!needsSetter);
         emitComma();
-        generateCheckedSetter(member, name, accessorName, buffer);
+        generateCheckedSetter(member, name, buffer);
       }
     });
   }
