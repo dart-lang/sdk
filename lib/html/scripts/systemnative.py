@@ -66,7 +66,7 @@ class DartiumBackend(object):
           '\n'
           'bool $CLASS_NAME::handleEvent($PARAMETERS)\n'
           '{\n'
-          '    if (!m_callback.isolate()->isAlive())\n'
+          '    if (!m_callback.isIsolateAlive())\n'
           '        return false;\n'
           '    DartIsolate::Scope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
