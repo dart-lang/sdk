@@ -62,6 +62,8 @@ call_through_null_getter_test: Fail # issue 6124
 local_function_test: Fail # issue 6124
 naming_test: Fail # issue 6124
 
+invocation_mirror_test: Fail # issue 3326, 3622.
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 
@@ -147,6 +149,10 @@ getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 getter_no_setter2_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 interface_factory1_negative_test: Fail # language change 1031
+# Test expects signature of noSuchMethod to be correct according
+# to specification. Should start working when the library signature
+# changes.
+invocation_mirror_test: Fail, OK
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
@@ -197,7 +203,6 @@ bad_constructor_test/05: Fail, OK
 abstract_factory_constructor_test/none: Fail, OK
 abstract_syntax_test/none: Fail, OK
 interface_test/none: Fail, OK
-
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -434,3 +439,6 @@ call_through_getter_test: Fail # issue 6130
 call_through_null_getter_test: Fail # issue 6130
 local_function_test: Fail # issue 6130
 naming_test: Fail # issue 6130
+
+# This is a VM error when the compiled code is run.
+invocation_mirror_test: Fail # issue 3326, 3622.
