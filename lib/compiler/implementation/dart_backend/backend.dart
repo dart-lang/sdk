@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart_backend;
+
 // TODO(ahe): This class is simply wrong.  This backend should use
 // elements when it can, not AST nodes.  Perhaps a [Map<Element,
 // TreeElements>] is what is needed.

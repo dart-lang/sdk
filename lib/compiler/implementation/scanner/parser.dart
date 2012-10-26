@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 /**
  * An event generating parser of Dart programs. This parser expects
  * all tokens in a linked list (aka a token stream).

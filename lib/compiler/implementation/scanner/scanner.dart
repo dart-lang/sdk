@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of scanner;
+
 abstract class Scanner {
   Token tokenize();
 }
@@ -256,7 +258,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     // TODO(ahe): Would a range check be faster?
-    if (identical(next, $1) || identical(next, $2) || identical(next, $3) 
+    if (identical(next, $1) || identical(next, $2) || identical(next, $3)
         || identical(next, $4) ||  identical(next, $5) || identical(next, $6)
         || identical(next, $7) || identical(next, $8) || identical(next, $9)) {
       return tokenizeNumber(next);
