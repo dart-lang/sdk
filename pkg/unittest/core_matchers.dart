@@ -280,7 +280,7 @@ class Throws extends BaseMatcher {
       // completes.
       item.onComplete(expectAsync1((future) {
         if (future.hasValue) {
-          expect(false, isTrue, reason:
+          expect(false, isTrue,
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
           var reason;
@@ -289,7 +289,7 @@ class Throws extends BaseMatcher {
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
             reason = "Actual exception trace:\n$stackTrace";
           }
-          expect(future.exception, _matcher, reason: reason);
+          expect(future.exception, _matcher, reason);
         }
       }));
 
