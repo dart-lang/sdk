@@ -325,7 +325,8 @@ AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs);
+  return new StoreIndexedNode(token_pos(), array(), index_expr(),
+                              rhs, super_class());
 }
 
 

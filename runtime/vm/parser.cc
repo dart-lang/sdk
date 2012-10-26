@@ -1395,74 +1395,11 @@ AstNode* Parser::ParseSuperOperator() {
     ConsumeToken();
     AstNode* index_expr = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectToken(Token::kRBRACK);
-
-    if (Token::IsAssignmentOperator(CurrentToken()) &&
-        (CurrentToken() != Token::kASSIGN)) {
-      // Compound assignment. Ensure side effects in index expression
-      // only execute once. If the index is not a local variable or an
-      // literal, evaluate and save in a temporary local.
-      if (!IsSimpleLocalOrLiteralNode(index_expr)) {
-        LocalVariable* temp =
-            CreateTempConstVariable(operator_pos, "lix");
-        AstNode* save = new StoreLocalNode(operator_pos, temp, index_expr);
-        current_block_->statements->Add(save);
-        index_expr = new LoadLocalNode(operator_pos, temp);
-      }
-    }
-
-    // Resolve the [] operator function in the superclass.
-    const String& index_operator_name =
-        String::ZoneHandle(Symbols::IndexToken());
-    const bool kResolveGetter = false;
-    bool is_no_such_method = false;
-    const Function& index_operator = Function::ZoneHandle(
-        GetSuperFunction(operator_pos,
-                         index_operator_name,
-                         kResolveGetter,
-                         &is_no_such_method));
-
-    ArgumentListNode* index_op_arguments = new ArgumentListNode(operator_pos);
     AstNode* receiver = LoadReceiver(operator_pos);
-    index_op_arguments->Add(receiver);
-    index_op_arguments->Add(index_expr);
-
-    if (is_no_such_method) {
-      index_op_arguments = BuildNoSuchMethodArguments(index_operator_name,
-                                                      *index_op_arguments);
-    }
-    super_op = new StaticCallNode(
-        operator_pos, index_operator, index_op_arguments);
-
-    if (Token::IsAssignmentOperator(CurrentToken())) {
-      Token::Kind assignment_op = CurrentToken();
-      ConsumeToken();
-      AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
-
-      value = ExpandAssignableOp(operator_pos, assignment_op, super_op, value);
-
-      // Resolve the []= operator function in the superclass.
-      const String& assign_index_operator_name =
-          String::ZoneHandle(Symbols::AssignIndexToken());
-      const bool kResolveGetter = false;
-      bool is_no_such_method = false;
-      const Function& assign_index_operator = Function::ZoneHandle(
-          GetSuperFunction(operator_pos,
-                           assign_index_operator_name,
-                           kResolveGetter,
-                           &is_no_such_method));
-
-      ArgumentListNode* operator_args = new ArgumentListNode(operator_pos);
-      operator_args->Add(LoadReceiver(operator_pos));
-      operator_args->Add(index_expr);
-      operator_args->Add(value);
-
-      if (is_no_such_method) {
-        operator_args = BuildNoSuchMethodArguments(assign_index_operator_name,
-                                                   *operator_args);
-      }
-      super_op = new StaticCallNode(
-          operator_pos, assign_index_operator, operator_args);
-    }
+    const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
+    ASSERT(!super_class.IsNull());
+    super_op =
+        new LoadIndexedNode(operator_pos, receiver, index_expr, super_class);
   } else if (Token::CanBeOverloaded(CurrentToken()) ||
              (CurrentToken() == Token::kNE)) {
     Token::Kind op = CurrentToken();
@@ -6936,11 +6873,14 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
           CreateTempConstVariable(token_pos, "lia");
       StoreLocalNode* save =
           new StoreLocalNode(token_pos, temp, left_node->array());
-      left_node =
-          new LoadIndexedNode(token_pos, save, left_node->index_expr());
+      left_node = new LoadIndexedNode(token_pos,
+                                      save,
+                                      left_node->index_expr(),
+                                      left_node->super_class());
       right_node = new LoadIndexedNode(token_pos,
                                        new LoadLocalNode(token_pos, temp),
-                                       right_node->index_expr());
+                                       right_node->index_expr(),
+                                       right_node->super_class());
     }
     if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
@@ -6949,10 +6889,12 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
           new StoreLocalNode(token_pos, temp, left_node->index_expr());
       left_node = new LoadIndexedNode(token_pos,
                                       left_node->array(),
-                                      save);
+                                      save,
+                                      left_node->super_class());
       right_node = new LoadIndexedNode(token_pos,
                                        right_node->array(),
-                                       new LoadLocalNode(token_pos, temp));
+                                       new LoadLocalNode(token_pos, temp),
+                                       right_node->super_class());
     }
     *expr = right_node;
     return left_node;
@@ -7513,7 +7455,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           UNREACHABLE();  // Internal parser error.
         }
       }
-      selector = new LoadIndexedNode(bracket_pos, array, index);
+      selector =  new LoadIndexedNode(bracket_pos,
+                                      array,
+                                      index,
+                                      Class::ZoneHandle());
     } else if (CurrentToken() == Token::kLPAREN) {
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary = left->AsPrimaryNode();
@@ -9508,6 +9453,10 @@ AstNode* Parser::ParsePrimary() {
   } else if (CurrentToken() == Token::kSUPER) {
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
+    }
+    if (current_class().SuperClass() == Class::null()) {
+      ErrorMsg("class '%s' does not have a superclass",
+               String::Handle(current_class().Name()).ToCString());
     }
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {

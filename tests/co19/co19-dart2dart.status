@@ -524,7 +524,6 @@ Language/10_Expressions/27_Unary_Expressions_A01_t01: Fail # inherited from VM
 Language/10_Expressions/27_Unary_Expressions_A01_t02: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A01_t04: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A01_t05: Fail # Inherited from dart2js
-Language/10_Expressions/27_Unary_Expressions_A01_t10: Fail # inherited from VM
 Language/10_Expressions/27_Unary_Expressions_A01_t17: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A01_t18: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A01_t19: Fail # Inherited from dart2js
@@ -532,7 +531,6 @@ Language/10_Expressions/27_Unary_Expressions_A01_t20: Fail # Inherited from dart
 Language/10_Expressions/27_Unary_Expressions_A01_t21: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A01_t22: Fail # Inherited from dart2js
 Language/10_Expressions/27_Unary_Expressions_A08_t01: Fail # inherited from VM
-Language/10_Expressions/28_Postfix_Expressions_A01_t01: Fail # inherited from VM
 Language/10_Expressions/28_Postfix_Expressions_A01_t02: Fail # Inherited from dart2js
 Language/10_Expressions/28_Postfix_Expressions_A01_t03: Fail # Inherited from dart2js
 Language/10_Expressions/28_Postfix_Expressions_A01_t05: Fail # Inherited from dart2js

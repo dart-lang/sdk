@@ -2002,7 +2002,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   if (node->is_super_getter()) {
     // Statically resolved instance getter, i.e. "super getter".
     getter_function =
-    Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+        Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
     ASSERT(!getter_function.IsNull());
     ASSERT(node->receiver() != NULL);
     ValueGraphVisitor receiver_value(owner(), temp_index());
@@ -2265,6 +2265,26 @@ void ValueGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 
 
 void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
+  Function* super_function = NULL;
+  if (node->IsSuperLoad()) {
+    // Resolve the load indexed operator in the super class.
+    const String& index_operator_name =
+        String::ZoneHandle(Symbols::IndexToken());
+    super_function = &Function::ZoneHandle(
+          Resolver::ResolveDynamicAnyArgs(node->super_class(),
+                                          index_operator_name));
+    if (super_function->IsNull()) {
+      // Could not resolve super operator. Generate call noSuchMethod() of the
+      // super class instead.
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->index_expr());
+      BuildStaticNoSuchMethodCall(node->super_class(),
+                                  node->array(),
+                                  index_operator_name,
+                                  arguments);
+      return;
+    }
+  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   ValueGraphVisitor for_array(owner(), temp_index());
@@ -2277,22 +2297,67 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   Append(for_index);
   arguments->Add(PushArgument(for_index.value()));
 
-  const intptr_t checked_argument_count = 1;
-  const String& name =
-      String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
-  InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
-                                                  name,
-                                                  Token::kINDEX,
-                                                  arguments,
-                                                  Array::ZoneHandle(),
-                                                  checked_argument_count);
-  ReturnDefinition(load);
+  if (super_function != NULL) {
+    // Generate static call to super operator.
+    StaticCallInstr* load = new StaticCallInstr(node->token_pos(),
+                                                *super_function,
+                                                Array::ZoneHandle(),
+                                                arguments);
+    ReturnDefinition(load);
+  } else {
+    // Generate dynamic call to index operator.
+    const intptr_t checked_argument_count = 1;
+    const String& name = String::ZoneHandle(Symbols::IndexToken());
+    InstanceCallInstr* load = new InstanceCallInstr(node->token_pos(),
+                                                    name,
+                                                    Token::kINDEX,
+                                                    arguments,
+                                                    Array::ZoneHandle(),
+                                                    checked_argument_count);
+    ReturnDefinition(load);
+  }
 }
 
 
 Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     StoreIndexedNode* node,
     bool result_is_needed) {
+  Function* super_function = NULL;
+  if (node->IsSuperStore()) {
+    // Resolve the store indexed operator in the super class.
+    const String& store_index_op_name =
+        String::ZoneHandle(Symbols::AssignIndexToken());
+    super_function = &Function::ZoneHandle(
+        Resolver::ResolveDynamicAnyArgs(node->super_class(),
+                                        store_index_op_name));
+    if (super_function->IsNull()) {
+      // Could not resolve super operator. Generate call noSuchMethod() of the
+      // super class instead.
+      if (result_is_needed) {
+        // Even though noSuchMethod most likely does not return,
+        // we save the stored value if the result is needed.
+        ValueGraphVisitor for_value(owner(), temp_index());
+        node->value()->Visit(&for_value);
+        Append(for_value);
+        Bind(BuildStoreExprTemp(for_value.value()));
+      }
+      ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
+      arguments->Add(node->index_expr());
+      arguments->Add(node->value());
+      StaticCallInstr* call =
+          BuildStaticNoSuchMethodCall(node->super_class(),
+                                      node->array(),
+                                      store_index_op_name,
+                                      arguments);
+      if (result_is_needed) {
+        Do(call);
+        return BuildLoadExprTemp();
+      } else {
+        return call;
+      }
+    }
+  }
+
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(3);
   ValueGraphVisitor for_array(owner(), temp_index());
@@ -2316,20 +2381,38 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   }
   arguments->Add(PushArgument(value));
 
-  const intptr_t checked_argument_count = 3;
-  const String& name =
-      String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
-  InstanceCallInstr* store = new InstanceCallInstr(node->token_pos(),
-                                                   name,
-                                                   Token::kASSIGN_INDEX,
-                                                   arguments,
-                                                   Array::ZoneHandle(),
-                                                   checked_argument_count);
-  if (result_is_needed) {
-    Do(store);
-    return BuildLoadExprTemp();
+  if (super_function != NULL) {
+    // Generate static call to super operator []=.
+
+    StaticCallInstr* store =
+        new StaticCallInstr(node->token_pos(),
+                            *super_function,
+                            Array::ZoneHandle(),
+                            arguments);
+    if (result_is_needed) {
+      Do(store);
+      return BuildLoadExprTemp();
+    } else {
+      return store;
+    }
   } else {
-    return store;
+    // Generate dynamic call to operator []=.
+    const intptr_t checked_argument_count = 3;
+    const String& name =
+        String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
+    InstanceCallInstr* store =
+        new InstanceCallInstr(node->token_pos(),
+                              name,
+                              Token::kASSIGN_INDEX,
+                              arguments,
+                              Array::ZoneHandle(),
+                              checked_argument_count);
+    if (result_is_needed) {
+      Do(store);
+      return BuildLoadExprTemp();
+    } else {
+      return store;
+    }
   }
 }
 
@@ -2580,6 +2663,45 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     node->finally_block()->Visit(&for_finally_block);
     Append(for_finally_block);
   }
+}
+
+
+// Looks up dynamic method noSuchMethod in target_class
+// (including its super class chain) and builds a static call to it.
+StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
+      const Class& target_class,
+      AstNode* receiver,
+      const String& method_name,
+      ArgumentListNode* method_arguments) {
+  const String& no_such_method_name =
+      String::ZoneHandle(Symbols::NoSuchMethod());
+  const Function& no_such_method_func = Function::ZoneHandle(
+      Resolver::ResolveDynamicAnyArgs(target_class, no_such_method_name));
+  // We are guaranteed to find noSuchMethod of class Object.
+  ASSERT(!no_such_method_func.IsNull());
+
+  const intptr_t args_pos = method_arguments->token_pos();
+  ArgumentListNode* arguments = new ArgumentListNode(args_pos);
+  // The first argument is the receiver.
+  arguments->Add(receiver);
+  // The second argument is the original method name.
+  // TODO(regis): This will change once mirrors are supported.
+  arguments->Add(new LiteralNode(args_pos, method_name));
+  // The third argument is an array containing the original method arguments.
+  ArrayNode* args_array =
+      new ArrayNode(args_pos, Type::ZoneHandle(Type::ListInterface()));
+  for (intptr_t i = 0; i < method_arguments->length(); i++) {
+    args_array->AddElement(method_arguments->NodeAt(i));
+  }
+  arguments->Add(args_array);
+
+  ZoneGrowableArray<PushArgumentInstr*>* args =
+      new ZoneGrowableArray<PushArgumentInstr*>(arguments->length());
+  BuildPushArguments(*arguments, args);
+  return new StaticCallInstr(args_pos,
+                             no_such_method_func,
+                             Array::ZoneHandle(),
+                             args);
 }
 
 
