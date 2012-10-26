@@ -28,6 +28,8 @@ DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
             "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool, array_bounds_check_elimination, true,
+            "Eliminate redundant bounds checks.");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -920,7 +922,8 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
 void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
                                                  intptr_t length_offset,
-                                                 bool is_immutable) {
+                                                 bool is_immutable,
+                                                 MethodRecognizer::Kind kind) {
   // Check receiver class.
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
@@ -930,6 +933,7 @@ void FlowGraphOptimizer::InlineArrayLengthGetter(InstanceCallInstr* call,
       Type::ZoneHandle(Type::SmiType()),
       is_immutable);
   load->set_result_cid(kSmiCid);
+  load->set_recognized_kind(kind);
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }
@@ -952,6 +956,7 @@ void FlowGraphOptimizer::InlineGArrayCapacityGetter(InstanceCallInstr* call) {
       Array::length_offset(),
       Type::ZoneHandle(Type::SmiType()));
   length_load->set_result_cid(kSmiCid);
+  length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
 
   call->ReplaceWith(length_load, current_iterator());
   RemovePushArguments(call);
@@ -1032,12 +1037,16 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     switch (recognized_kind) {
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength:
-        InlineArrayLengthGetter(call, Array::length_offset(), true);
+        InlineArrayLengthGetter(call,
+                                Array::length_offset(),
+                                true,
+                                recognized_kind);
         break;
       case MethodRecognizer::kGrowableArrayLength:
         InlineArrayLengthGetter(call,
                                 GrowableObjectArray::length_offset(),
-                                false);
+                                false,
+                                recognized_kind);
         break;
       default:
         UNREACHABLE();
@@ -2080,11 +2089,17 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
   }
 
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    Definition* defn = it.Current()->AsDefinition();
+    Instruction* current = it.Current();
+
+    Definition* defn = current->AsDefinition();
     if ((defn != NULL) &&
         (defn->ssa_temp_index() != -1) &&
         smi_definitions_->Contains(defn->ssa_temp_index())) {
       defn->InferRange();
+    } else if (FLAG_array_bounds_check_elimination &&
+               current->IsCheckArrayBound() &&
+               current->AsCheckArrayBound()->IsRedundant()) {
+      it.RemoveCurrentFromGraph();
     }
   }
 

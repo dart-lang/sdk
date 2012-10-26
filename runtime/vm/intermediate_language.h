@@ -1580,9 +1580,7 @@ class RangeBoundary : public ValueObject {
     return RangeBoundary(kConstant, val, 0);
   }
 
-  static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0) {
-    return RangeBoundary(kSymbol, reinterpret_cast<intptr_t>(defn), offs);
-  }
+  static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0);
 
   static RangeBoundary MinSmi() {
     return FromConstant(Smi::kMinValue);
@@ -1603,19 +1601,9 @@ class RangeBoundary : public ValueObject {
     return FromConstant(Smi::kMaxValue + 1);
   }
 
-  static RangeBoundary Min(RangeBoundary a, RangeBoundary b) {
-    const intptr_t min_a = a.LowerBound().value();
-    const intptr_t min_b = b.LowerBound().value();
+  static RangeBoundary Min(RangeBoundary a, RangeBoundary b);
 
-    return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
-  }
-
-  static RangeBoundary Max(RangeBoundary a, RangeBoundary b) {
-    const intptr_t max_a = a.UpperBound().value();
-    const intptr_t max_b = b.UpperBound().value();
-
-    return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
-  }
+  static RangeBoundary Max(RangeBoundary a, RangeBoundary b);
 
   bool Overflowed() const {
     return !Smi::IsValid(value());
@@ -1647,10 +1635,15 @@ class RangeBoundary : public ValueObject {
     return reinterpret_cast<Definition*>(value_);
   }
 
+  intptr_t offset() const {
+    return offset_;
+  }
+
   RangeBoundary LowerBound() const;
   RangeBoundary UpperBound() const;
 
   void PrintTo(BufferFormatter* f) const;
+  const char* ToCString() const;
 
   static RangeBoundary Add(const RangeBoundary& a,
                            const RangeBoundary& b,
@@ -2947,7 +2940,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
         result_cid_(kDynamicCid),
-        immutable_(immutable) {
+        immutable_(immutable),
+        recognized_kind_(MethodRecognizer::kUnknown) {
     ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
@@ -2973,11 +2967,23 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   virtual bool AffectedBySideEffect() const { return !immutable_; }
 
+  virtual void InferRange();
+
+  void set_recognized_kind(MethodRecognizer::Kind kind) {
+    recognized_kind_ = kind;
+  }
+
+  MethodRecognizer::Kind recognized_kind() const {
+    return recognized_kind_;
+  }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
   intptr_t result_cid_;
   const bool immutable_;
+
+  MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -3948,6 +3954,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   Value* index() const { return inputs_[1]; }
 
   intptr_t array_type() const { return array_type_; }
+
+  bool IsRedundant();
 
  private:
   intptr_t array_type_;

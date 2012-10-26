@@ -87,7 +87,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,
                                intptr_t length_offset,
-                               bool is_immutable);
+                               bool is_immutable,
+                               MethodRecognizer::Kind kind);
   void InlineGArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);

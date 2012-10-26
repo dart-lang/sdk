@@ -251,6 +251,14 @@ void RangeBoundary::PrintTo(BufferFormatter* f) const {
 }
 
 
+const char* RangeBoundary::ToCString() const {
+  char buffer[256];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
+
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   f->Print(", %s, '%s'%s",
