@@ -1216,6 +1216,8 @@ $classesCollector.$mangledName = {'':
     for (Constant constant in constants) {
       // No need to emit functions. We already did that.
       if (constant.isFunction()) continue;
+      // Numbers, strings and booleans are currently always inlined.
+      if (constant.isPrimitive()) continue;
 
       String name = namer.constantName(constant);
       // The name is null when the constant is already a JS constant.
