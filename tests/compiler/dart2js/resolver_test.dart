@@ -568,10 +568,16 @@ resolveConstructor(String script, String statement, String className,
   compiler.resolveStatement(statement);
   ClassElement classElement =
       compiler.mainApp.find(buildSourceString(className));
-  Element element =
-      classElement.lookupConstructor(
-          new Selector.callConstructor(buildSourceString(constructor),
-                                       classElement.getLibrary()));
+  Element element;
+  if (constructor !== '') {
+    element = classElement.lookupConstructor(
+        new Selector.callConstructor(buildSourceString(constructor),
+                                     classElement.getLibrary()));
+  } else {
+    element = classElement.lookupConstructor(
+        new Selector.callDefaultConstructor(classElement.getLibrary()));
+  }
+
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor =
       new ResolverVisitor(compiler, element,
@@ -630,13 +636,13 @@ testInitializers() {
                 int foo; int bar;
                 A() : this.foo = 1, bar = 2;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 2);
+  resolveConstructor(script, "A a = new A();", "A", "", 2);
 
   script = """class A {
                 int foo; A a;
                 A() : a.foo = 1;
                 }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors:
                          [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
@@ -645,14 +651,14 @@ testInitializers() {
                 int foo;
                 A() : this.foo = 1, this.foo = 2;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 2,
+  resolveConstructor(script, "A a = new A();", "A", "", 2,
                      expectedWarnings: [MessageKind.ALREADY_INITIALIZED],
                      expectedErrors: [MessageKind.DUPLICATE_INITIALIZER]);
 
   script = """class A {
                 A() : this.foo = 1;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.CANNOT_RESOLVE]);
 
@@ -661,7 +667,7 @@ testInitializers() {
                 int bar;
                 A() : this.foo = bar;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 3,
+  resolveConstructor(script, "A a = new A();", "A", "", 3,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
 
@@ -669,7 +675,7 @@ testInitializers() {
                 int foo() => 42;
                 A() : foo();
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 0,
+  resolveConstructor(script, "A a = new A();", "A", "", 0,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
 
@@ -697,7 +703,7 @@ testInitializers() {
               class B extends A {
                 B() : super(0);
               }""";
-  resolveConstructor(script, "B a = new B();", "B", "B", 1);
+  resolveConstructor(script, "B a = new B();", "B", "", 1);
 
   script = """class A {
                 int i;
@@ -706,7 +712,7 @@ testInitializers() {
               class B extends A {
                 B() : super(0), super(1);
               }""";
-  resolveConstructor(script, "B b = new B();", "B", "B", 2,
+  resolveConstructor(script, "B b = new B();", "B", "", 2,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
 
@@ -725,7 +731,7 @@ testInitializers() {
          class Null {}
          class Dynamic_ {}
          class Object { Object() : super(); }''';
-  resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
+  resolveConstructor(script, "Object o = new Object();", "Object", "", 1,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
                      corelib: CORELIB_WITH_INVALID_OBJECT);

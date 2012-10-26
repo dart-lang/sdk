@@ -1482,9 +1482,7 @@ abstract class ClassElement extends ScopeContainerElement
     SourceString normalizedName;
     SourceString className = this.name;
     SourceString constructorName = selector.name;
-    if (!identical(constructorName, const SourceString('')) &&
-        ((className == null) ||
-         (constructorName.slowToString() != className.slowToString()))) {
+    if (constructorName != const SourceString('')) {
       normalizedName = Elements.constructConstructorName(className,
                                                          constructorName);
     } else {

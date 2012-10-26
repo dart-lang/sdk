@@ -95,50 +95,14 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  bool isNamedConstructor(Send node) => node.receiver != null;
-
-  SourceString getConstructorName(Send node) {
-    return node.selector.asIdentifier().source;
-  }
-
   String constructorNameForDiagnostics(SourceString className,
                                    SourceString constructorName) {
     String classNameString = className.slowToString();
     String constructorNameString = constructorName.slowToString();
-    return (identical(constructorName, const SourceString('')))
+    return (constructorName == const SourceString(''))
         ? classNameString
         : "$classNameString.$constructorNameString";
    }
-
-  FunctionElement resolveConstructorRedirection(InitializerResolver resolver,
-                                                FunctionElement constructor) {
-    if (constructor.isPatched) {
-      checkMatchingPatchSignatures(constructor, constructor.patch);
-      constructor = constructor.patch;
-    }
-    FunctionExpression node = constructor.parseNode(compiler);
-
-    // A synthetic constructor does not have a node.
-    if (node == null) return null;
-    if (node.initializers == null) return null;
-    Link<Node> initializers = node.initializers.nodes;
-    if (!initializers.isEmpty &&
-        Initializers.isConstructorRedirect(initializers.head)) {
-      final ClassElement classElement = constructor.getEnclosingClass();
-      Selector selector;
-      if (isNamedConstructor(initializers.head)) {
-        SourceString constructorName = getConstructorName(initializers.head);
-        selector = new Selector.callConstructor(
-            constructorName,
-            resolver.visitor.enclosingElement.getLibrary());
-      } else {
-        selector = new Selector.callDefaultConstructor(
-            resolver.visitor.enclosingElement.getLibrary());
-      }
-      return classElement.lookupConstructor(selector);
-    }
-    return null;
-  }
 
   void resolveRedirectingConstructor(InitializerResolver resolver,
                                      Node node,
@@ -152,7 +116,12 @@ class ResolverTask extends CompilerTask {
         return;
       }
       seen.add(redirection);
-      redirection = resolveConstructorRedirection(resolver, redirection);
+
+      if (redirection.isPatched) {
+        checkMatchingPatchSignatures(constructor, redirection.patch);
+        redirection = redirection.patch;
+      }
+      redirection = resolver.visitor.resolveConstructorRedirection(redirection);
     }
   }
 
@@ -756,35 +725,23 @@ class InitializerResolver {
     ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
                                                            isSuperCall,
                                                            call);
-    final SourceString className = lookupTarget.name;
-
-    SourceString constructorName;
-    Selector lookupSelector;
-    if (resolver.isNamedConstructor(call)) {
-      constructorName = resolver.getConstructorName(call);
-      lookupSelector = new Selector.callConstructor(
-          constructorName,
-          visitor.enclosingElement.getLibrary());
-    } else {
-      constructorName = const SourceString('');
-      lookupSelector = new Selector.callDefaultConstructor(
-          visitor.enclosingElement.getLibrary());
-    }
-
-    FunctionElement lookedupConstructor =
-        lookupTarget.lookupConstructor(lookupSelector);
+    Selector constructorSelector =
+        visitor.getRedirectingThisOrSuperConstructorSelector(call);
+    FunctionElement calledConstructor =
+        lookupTarget.lookupConstructor(constructorSelector);
 
     final bool isImplicitSuperCall = false;
-    verifyThatConstructorMatchesCall(lookedupConstructor,
+    final SourceString className = lookupTarget.name;
+    verifyThatConstructorMatchesCall(calledConstructor,
                                      selector,
                                      isImplicitSuperCall,
                                      call,
-                                     constructorName,
-                                     className);
+                                     className,
+                                     constructorSelector);
 
-    visitor.useElement(call, lookedupConstructor);
-    visitor.world.registerStaticUse(lookedupConstructor);
-    return lookedupConstructor;
+    visitor.useElement(call, calledConstructor);
+    visitor.world.registerStaticUse(calledConstructor);
+    return calledConstructor;
   }
 
   void resolveImplicitSuperConstructorSend(FunctionElement constructor,
@@ -805,18 +762,19 @@ class InitializerResolver {
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
                                                              isSuperCall,
                                                              functionNode);
-      final SourceString className = lookupTarget.name;
+      Selector constructorSelector = new Selector.callDefaultConstructor(
+          visitor.enclosingElement.getLibrary());
       Element calledConstructor = lookupTarget.lookupConstructor(
-          new Selector.callDefaultConstructor(
-              visitor.enclosingElement.getLibrary()));
+          constructorSelector);
 
+      final SourceString className = lookupTarget.name;
       final bool isImplicitSuperCall = true;
       verifyThatConstructorMatchesCall(calledConstructor,
                                        callToMatch,
                                        isImplicitSuperCall,
                                        functionNode,
                                        className,
-                                       const SourceString(''));
+                                       constructorSelector);
 
       visitor.world.registerStaticUse(calledConstructor);
     }
@@ -828,12 +786,13 @@ class InitializerResolver {
       bool isImplicitSuperCall,
       Node diagnosticNode,
       SourceString className,
-      SourceString constructorName) {
+      Selector constructorSelector) {
     if (lookedupConstructor == null
         || !lookedupConstructor.isGenerativeConstructor()) {
       var fullConstructorName =
-          visitor.compiler.resolver.constructorNameForDiagnostics(className,
-                                                              constructorName);
+          visitor.compiler.resolver.constructorNameForDiagnostics(
+              className,
+              constructorSelector.name);
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
@@ -1361,6 +1320,37 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       useElement(annotation, type.element);
     }
     return type;
+  }
+
+  bool isNamedConstructor(Send node) => node.receiver != null;
+
+  Selector getRedirectingThisOrSuperConstructorSelector(Send node) {
+    if (isNamedConstructor(node)) {
+      SourceString constructorName = node.selector.asIdentifier().source;
+      return new Selector.callConstructor(
+          constructorName,
+          enclosingElement.getLibrary());
+    } else {
+      return new Selector.callDefaultConstructor(
+          enclosingElement.getLibrary());
+    }
+  }
+
+  FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
+    FunctionExpression node = constructor.parseNode(compiler);
+
+    // A synthetic constructor does not have a node.
+    if (node == null) return null;
+    if (node.initializers == null) return null;
+    Link<Node> initializers = node.initializers.nodes;
+    if (!initializers.isEmpty &&
+        Initializers.isConstructorRedirect(initializers.head)) {
+      Selector selector =
+          getRedirectingThisOrSuperConstructorSelector(initializers.head);
+      final ClassElement classElement = constructor.getEnclosingClass();
+      return classElement.lookupConstructor(selector);
+    }
+    return null;
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {

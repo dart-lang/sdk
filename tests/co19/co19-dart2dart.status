@@ -744,7 +744,7 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail # inherited from VM
 # Partially implemented redirecting constructors makes this fail.
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # Redirecting constructors can not use initializing formals. This bug was previously masked - compilation failed, but for different, wrong reason.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
 
 Language/07_Classes/6_Constructors/2_Factories_A01_t01: Fail, OK # Uses deprecated factory syntax.
 
