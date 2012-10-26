@@ -2263,10 +2263,12 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const {
     return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
         && (receiver_class_id() != kSmiCid);
   }
   virtual bool HasSideEffect() const {
     return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
         && (receiver_class_id() != kSmiCid);
   }
 
