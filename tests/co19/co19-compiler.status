@@ -253,6 +253,13 @@ LibTest/core/List/insertRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/List/addLast_A02_t01: Fail, OK # co19 issue 285
 
+LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
+
 # The following tests use the deprecated catch syntax
 
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail, OK
