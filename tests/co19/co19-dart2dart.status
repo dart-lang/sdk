@@ -5,6 +5,7 @@
 [ $compiler == dart2dart ]
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Crash # TODO(dart2dart-team): Please triage this crash.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Crash # TODO(dart2dart-team): Please triage this crash.
+Language/11_Statements/10_Try_A06_t01: Fail, Pass # Fails in minified, TRIAGE
 
 Language/05_Variables/05_Variables_A03_t09: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/05_Variables/05_Variables_A03_t11: Fail # TODO(dart2dart-team): Please triage this failure.
