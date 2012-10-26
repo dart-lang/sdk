@@ -280,7 +280,7 @@ class Throws extends BaseMatcher {
       // completes.
       item.onComplete(expectAsync1((future) {
         if (future.hasValue) {
-          expect(false, isTrue,
+          expect(false, isTrue, reason:
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
           var reason;
@@ -289,7 +289,7 @@ class Throws extends BaseMatcher {
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
             reason = "Actual exception trace:\n$stackTrace";
           }
-          expect(future.exception, _matcher, reason);
+          expect(future.exception, _matcher, reason: reason);
         }
       }));
 
@@ -624,4 +624,55 @@ class _Predicate extends BaseMatcher {
 
   Description describe(Description description) =>
       description.add(_description);
+}
+
+/**
+ * A useful utility class for implementing other matchers through inheritance.
+ * Derived classes should call the base constructor with a feature name and
+ * description, and an instance matcher, and should implement the
+ * [featureValueOf] abstract method.
+ *
+ * The feature description will typically describe the item and the feature,
+ * while the feature name will just name the feature. For example, we may
+ * have a Widget class where each Widget has a price; we could make a
+ * FeatureMatcher that can make assertions about prices with:
+ *
+ *     class HasPrice extends FeatureMatcher {
+ *       const HasPrice(matcher) :
+ *           super("Widget with price that is", "price", matcher);
+ *       featureValueOf(actual) => actual.price;
+ *     }
+ *
+ * and then use this for example like:
+ *
+ *      expect(inventoryItem, new HasPrice(greaterThan(0)));
+ */
+abstract class CustomMatcher extends BaseMatcher {
+  final String _featureDescription;
+  final String _featureName;
+  final Matcher _matcher;
+
+  const CustomMatcher(this._featureDescription, this._featureName,
+      this._matcher);
+
+  /** Implement this to extract the interesting feature.*/
+  featureValueOf(actual);
+
+  bool matches(item, MatchState matchState) {
+    var f = featureValueOf(item);
+    if (_matcher.matches(f, matchState)) return true;
+    matchState.state = { 'innerState': matchState.state, 'feature': f };
+    return false;
+  }
+
+  Description describe(Description description) =>
+      description.add(_featureDescription).add(' ').addDescriptionOf(_matcher);
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    mismatchDescription.add(_featureName).add(' ');
+    _matcher.describeMismatch(matchState.state['feature'], mismatchDescription,
+        matchState.state['innerState'], verbose);
+    return mismatchDescription;
+  }
 }

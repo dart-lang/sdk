@@ -23,6 +23,16 @@ class PrefixMatcher extends BaseMatcher {
         add(' ignoring whitespace');
 }
 
+class Widget {
+  int price;
+}
+
+class HasPrice extends CustomMatcher {
+  const HasPrice(matcher) :
+    super("Widget with a price that is", "price", matcher);
+  featureValueOf(actual) => actual.price;
+}
+
 void main() {
 
   initUtils();
@@ -522,6 +532,17 @@ void main() {
           "Expected: an instance of String but: was <0>.");
       shouldPass('cow', predicate((x) => x is String,
                                   description: "an instance of String"));
+    });
+  });
+
+  group('Feature Matchers', () {
+    test("Feature Matcher", () {
+      var w = new Widget();
+      w.price = 10;
+      shouldPass(w, new HasPrice(greaterThan(0)));
+      shouldFail(w, new HasPrice(greaterThan(10)),
+          'Expected: Widget with a price that is a value greater than <10> '
+          'but: price was <10>.');
     });
   });
 }
