@@ -38,7 +38,7 @@ void toolMain(List<String> arguments) {
   void printStats() {
     int kb = (charCount / 1024).round().toInt();
     String stats =
-        '$classCount classes (${kb}Kb) in ${stopwatch.elapsedInMs()}ms';
+        '$classCount classes (${kb}Kb) in ${stopwatch.elapsedMilliseconds}ms';
     if (errorCount != 0) {
       stats = '$stats with $errorCount errors';
     }

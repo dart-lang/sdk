@@ -602,7 +602,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
       return work.resolutionTree;
     }
-    if (progress.elapsedInMs() > 500) {
+    if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
@@ -626,7 +626,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void codegen(WorkItem work, Enqueuer world) {
     if (!identical(world, enqueuer.codegen)) return null;
-    if (progress.elapsedInMs() > 500) {
+    if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       log('Compiled ${codegenWorld.generatedCode.length} methods.');
@@ -784,7 +784,7 @@ class CompilerTask {
   CompilerTask(this.compiler) : watch = new Stopwatch();
 
   String get name => 'Unknown task';
-  int get timing => watch.elapsedInMs();
+  int get timing => watch.elapsedMilliseconds;
 
   measure(Function action) {
     // TODO(kasperl): Do we have to worry about exceptions here?

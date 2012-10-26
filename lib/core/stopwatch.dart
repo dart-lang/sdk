@@ -45,21 +45,20 @@ abstract class Stopwatch {
    * Returns 0 if the [Stopwatch] has never been started.
    * The elapsed number of clock ticks increases by [frequency] every second.
    */
-  int elapsed();
+  int get elapsedTicks;
 
   /**
-   * Returns the [elapsed] counter converted to microseconds.
+   * Returns the [elapsedTicks] counter converted to microseconds.
    */
-  int elapsedInUs();
+  int get elapsedMicroseconds;
 
   /**
-   * Returns the [elapsed] counter converted to milliseconds.
+   * Returns the [elapsedTicks] counter converted to milliseconds.
    */
-  int elapsedInMs();
+  int get elapsedMilliseconds;
 
   /**
    * Returns the frequency of the elapsed counter in Hz.
    */
-  int frequency();
-
+  int get frequency;
 }

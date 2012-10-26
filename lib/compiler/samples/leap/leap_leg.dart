@@ -127,7 +127,7 @@ class Runner {
     Stopwatch sw = new Stopwatch()..start();
     compiler.scanBuiltinLibraries();
     sw.stop();
-    return 'Scanned core libraries in ${sw.elapsedInMs()}ms';
+    return 'Scanned core libraries in ${sw.elapsedMilliseconds}ms';
   }
 
   String update(String codeText) {
@@ -197,7 +197,7 @@ class Runner {
       }
     }
 
-    compiler.log("Outline ${sw.elapsedInMs()}");
+    compiler.log("Outline ${sw.elapsedMilliseconds}");
     return sb.toString();
   }
 
@@ -270,7 +270,7 @@ class LeapCompiler extends Compiler {
       log('compilation failed');
       return null;
     }
-    log('compilation succeeded: ${sw.elapsedInMs()}ms');
+    log('compilation succeeded: ${sw.elapsedMilliseconds}ms');
     return e;
   }
 

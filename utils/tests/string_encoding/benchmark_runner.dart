@@ -273,7 +273,7 @@ class BenchmarkRunner extends Runner {
       test();
     }
     s.stop();
-    return new BlockSample(count, s.elapsedInUs() * 1000);
+    return new BlockSample(count, s.elapsedMicroseconds * 1000);
   }
 }
 

@@ -18,7 +18,7 @@ num time(callback()) {
   watch.start();
   callback();
   watch.stop();
-  return watch.elapsedInMs();
+  return watch.elapsedMilliseconds;
 }
 
 printStats(num elapsed, [String filename = '']) {

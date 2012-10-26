@@ -158,7 +158,7 @@ class World {
     sw.start();
     var result = f();
     sw.stop();
-    info('$name in ${sw.elapsedInMs()}msec');
+    info('$name in ${sw.elapsedMilliseconds}msec');
     return result;
   }
 }

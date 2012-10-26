@@ -60,7 +60,7 @@ class BenchmarkBase {
     int elapsed = 0;
     while (elapsed < timeMinimum || iter < 32) {
       f();
-      elapsed = watch.elapsedInMs();
+      elapsed = watch.elapsedMilliseconds;
       iter++;
     }
     return (1000.0 * iter) / elapsed;

@@ -50,22 +50,22 @@ class StopwatchImplementation implements Stopwatch {
     }
   }
 
-  int elapsed() {
+  int get elapsedTicks {
     if (_start === null) {
       return 0;
     }
     return (_stop === null) ? (_now() - _start) : (_stop - _start);
   }
 
-  int elapsedInUs() {
-    return (elapsed() * 1000000) ~/ frequency();
+  int get elapsedMicroseconds {
+    return (elapsedTicks * 1000000) ~/ frequency;
   }
 
-  int elapsedInMs() {
-    return (elapsed() * 1000) ~/ frequency();
+  int get elapsedMilliseconds {
+    return (elapsedTicks * 1000) ~/ frequency;
   }
 
-  int frequency() => _frequency();
+  int get frequency => _frequency();
 
   external static int _frequency();
   external static int _now();

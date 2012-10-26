@@ -364,6 +364,19 @@ LibTest/core/Map/getKeys_A01_t02: Fail, OK # co19 issue 293
 LibTest/core/Map/getValues_A01_t02: Fail, OK # co19 issue 293
 LibTest/core/Map/getValues_A01_t01: Fail, OK # co19 issue 293
 
+LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/frequency_A01_t01: Fail, OK # co19 issue 297
+
+
 LibTest/core/Match/end_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/Match/group_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/Match/groupCount_A01_t01: Fail, OK # co19 issue 294

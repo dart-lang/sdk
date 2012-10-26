@@ -71,7 +71,7 @@ class Legpad {
     setText("input", readAll(mainFile));
     Stopwatch stopwatch = new Stopwatch()..start();
     runLeg();
-    int elapsedMillis = stopwatch.elapsedInMs();
+    int elapsedMillis = stopwatch.elapsedMilliseconds;
     if (output === null) {
       output = "throw 'dart2js compilation error';\n";
     }

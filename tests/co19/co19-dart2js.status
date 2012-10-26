@@ -311,6 +311,18 @@ Language/14_Types/5_Function_Types_A01_t21: Fail, OK
 
 LibTest/core/String/charCodes_A01_t01: Fail, OK # co19 issue 289
 
+LibTest/core/Stopwatch/Stopwatch_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsed_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t02: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/start_A01_t03: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/stop_A01_t01: Fail, OK # co19 issue 297
+LibTest/core/Stopwatch/frequency_A01_t01: Fail, OK # co19 issue 297
+
 LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t04: Fail, OK # co19 issue 293
