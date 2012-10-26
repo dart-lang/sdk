@@ -341,7 +341,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "get foo() {}",
+            "get foo {}",
             "set bar(x) {}",
             "class foo {}",
             "class bar{}"),
@@ -355,7 +355,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class foo {}",
             "class bar {}",
-            "get foo() {}",
+            "get foo {}",
             "set bar(x) {}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3));
@@ -370,7 +370,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void test_nameShadow_topLevel_getter_setter() {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "get bar() {}",
+        "get bar {}",
         "set bar(x) {}"));
   }
 
@@ -378,7 +378,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "set bar(x) {}",
-        "get bar() {}"));
+        "get bar {}"));
   }
   
   public void test_nameShadow_topLevel_setter_variable() {
@@ -405,8 +405,8 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkSourceErrors(
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "get bar() {}",
-            "get bar() {}"),
+            "get bar {}",
+            "get bar {}"),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
     assertEquals(
@@ -681,7 +681,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "  var foo;",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
@@ -737,7 +737,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  var foo;",
-            "  get foo() {}",
+            "  get foo {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
@@ -751,9 +751,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  get foo() {}",
+            "  get foo {}",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
@@ -768,7 +768,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  set foo(x) {}",
-            "  get foo() {}",
+            "  get foo {}",
             "  set foo(x) {}",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
@@ -783,7 +783,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  get foo() {}",
+            "  get foo {}",
             "  var foo;",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),

@@ -78,7 +78,7 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("getter.dart", Joiner.on("\n").join(
         "class G {",
         "  // Old getter syntax",
-        "  int get g1() => 1;",
+        "  int get g1 => 1;",
         "  // New getter syntax",
         "  int get g2 => 2;",
         "}"));

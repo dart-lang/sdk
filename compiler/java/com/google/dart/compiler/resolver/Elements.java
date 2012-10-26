@@ -727,6 +727,10 @@ static FieldElementImplementation fieldFromNode(DartField node,
         || Elements.isLibrarySource(source, "/core/core.dart")
         || Elements.isLibrarySource(source, "/core/coreimpl.dart");
   }
+  
+  public static boolean isHtmlLibrarySource(Source source) {
+    return Elements.isLibrarySource(source, "/html/dartium/html_dartium.dart");
+  }
 
   /**
    * @return the {@link LibraryElement} which declares given {@link Element}.

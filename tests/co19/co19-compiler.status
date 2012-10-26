@@ -167,13 +167,51 @@ Language/10_Expressions/30_Identifier_Reference_A04_t07: pass # http://dartbug.c
 Language/10_Expressions/30_Identifier_Reference_A05_t06: pass # http://dartbug.com/5179
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: pass # http://dartbug.com/5179
 
-Language/07_Classes/2_Getters_A01_t05: Fail # No issue: waiting to remove old getter syntax
 Language/07_Classes/3_Setters_A04_t03: Fail, OK # getter and method with the same name
 Language/07_Classes/3_Setters_A04_t06: Fail OK # getter and method with the same name
 
 # co19 issue 217
 Language/07_Classes/07_Classes_A07_t03: Fail, OK
 Language/07_Classes/07_Classes_A07_t06: Fail, OK
+
+# co19 issue 298
+Language/03_Overview/1_Scoping_A03_t02: Fail, OK
+Language/03_Overview/2_Privacy_A01_t01: Fail, OK
+Language/03_Overview/2_Privacy_A01_t02: Fail, OK
+Language/03_Overview/2_Privacy_A01_t06: Fail, OK
+Language/03_Overview/2_Privacy_A01_t07: Fail, OK
+Language/03_Overview/2_Privacy_A01_t12: Fail, OK
+Language/03_Overview/2_Privacy_A01_t16: Fail, OK
+Language/07_Classes/07_Classes_A02_t01: Fail, OK
+Language/07_Classes/07_Classes_A03_t01: Fail, OK
+Language/07_Classes/07_Classes_A02_t34: Fail, OK
+Language/07_Classes/07_Classes_A03_t04: Fail, OK
+Language/07_Classes/07_Classes_A03_t10: Fail, OK
+Language/07_Classes/07_Classes_A07_t10: Fail, OK
+Language/07_Classes/1_Instance_Methods_A05_t02: Fail, OK
+Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t04: Fail, OK
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK
+Language/10_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail, OK
+Language/10_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: Fail, OK
+Language/10_Expressions/16_Getter_Lookup_A02_t04: Fail, OK
+Language/10_Expressions/18_Assignment_A04_t05: Fail, OK
+Language/10_Expressions/23_Relational_Expressions_A01_t01: Fail, OK
+Language/10_Expressions/24_Shift_A01_t01: Fail, OK
+Language/10_Expressions/30_Identifier_Reference_A12_t01: Fail, OK
+Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A01_t01: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t04: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t06: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t11: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t20: Fail, OK
+Language/13_Libraries_and_Scripts/3_Parts_A02_t04: Fail, OK
+
+
 
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # contains syntax error
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Fail, OK # contains syntax error
@@ -193,7 +231,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # c
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
 
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
-Language/07_Classes/2_Getters_A01_t03: Fail, OK # out of date - getters are not allowed to have parameters
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
@@ -280,7 +317,6 @@ Language/10_Expressions/19_Conditional_A01_t12: Fail, OK
 Language/10_Expressions/01_Constants_A16_t03: Fail, OK
 Language/10_Expressions/01_Constants_A16_t01: Fail, OK
 Language/10_Expressions/24_Shift_A01_t12: Fail, OK
-Language/07_Classes/2_Getters_A01_t03: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: Fail, OK
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail, OK

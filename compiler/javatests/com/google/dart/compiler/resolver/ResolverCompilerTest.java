@@ -794,7 +794,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A<B extends A> {",
             "  var a1;",
-            "  get a2() {}",
+            "  get a2 {}",
             "  A() {}",
             "}",
             "var c;",

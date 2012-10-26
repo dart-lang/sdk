@@ -865,11 +865,11 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         Joiner.on("\n").join(
             "class Object {}",
             "class Function {}",
-            "Function get topLevelGetter() => () {};",
+            "Function get topLevelGetter => () {};",
             "topLevel([var x = topLevelGetter]) { x(); }",
             "main() { topLevel(); }"),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 14),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 1, 39));
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 1, 37));
   }
   
   /** 

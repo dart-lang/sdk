@@ -710,7 +710,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             getName(),
             makeCode(
                 "class A {",
-                "  abstract get x();",
+                "  abstract get x;",
                 "}",
                 "main() {",
                 "  new A();",
@@ -747,11 +747,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_warnAbstract_whenInstantiate_implementsOnlyGetter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "interface I {",
-        "  get foo();",
+        "  get foo;",
         "  set foo(x);",
         "}",
         "class A implements I {",
-        "  get foo() => 0;",
+        "  get foo => 0;",
         "}",
         "main() {",
         "  new A();",
@@ -768,15 +768,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_warnAbstract_whenInstantiate_implementsSetter_inSuperClass() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "interface I {",
-        "  get foo();",
+        "  get foo;",
         "  set foo(x);",
         "}",
         "abstract class A implements I {",
-        "  abstract get foo();",
+        "  abstract get foo;",
         "  set foo(x) {}",
         "}",
         "class B extends A {",
-        "  get foo() => 0;",
+        "  get foo => 0;",
         "}",
         "main() {",
         "  new B();",
@@ -928,9 +928,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         getName(),
         makeCode(
             "class Test {",
-            "  Iterable get iter() {}",
+            "  Iterable get iter {}",
             "}",
-            "Test get test() {}",
+            "Test get test {}",
             "f() {",
             "  for (var v in test.iter) {}",
             "}",
@@ -1092,7 +1092,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             getName(),
             makeCode(
                 "class A {",
-                "  get foo() {}",
+                "  get foo {}",
                 "}",
                 "class B extends A {",
                 "  set foo(arg) {}",
@@ -1113,7 +1113,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             getName(),
             makeCode(
                 "interface A {",
-                "  get foo() {}",
+                "  get foo {}",
                 "}",
                 "abstract class B implements A {",
                 "  set foo(arg) {}",
@@ -1136,7 +1136,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             getName(),
             makeCode(
                 "class GetOnly {",
-                "  get foo() {}",
+                "  get foo {}",
                 "}",
                 "class GetOnlyWrapper {",
                 "  GetOnly getOnly;",
@@ -1168,7 +1168,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  set foo(arg) {}",
                 "}",
                 "class B extends A {",
-                "  get foo() {}",
+                "  get foo {}",
                 "}",
                 "",
                 "main() {",
@@ -1189,7 +1189,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  set foo(arg) {}",
                 "}",
                 "abstract class B implements A {",
-                "  get foo() {}",
+                "  get foo {}",
                 "}",
                 "",
                 "main() {",
@@ -1794,11 +1794,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  static get field() => 0;",
+            "  static get field => 0;",
             "         set field(var v) {}",
             "}",
             "class B {",
-            "         get field() => 0;",
+            "         get field => 0;",
             "  static set field(var v) {}",
             "}",
             "");
@@ -1820,7 +1820,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class C {",
             "  A getterField; ",
             "  B setterField; ",
-            "  A get field() { return getterField; }",
+            "  A get field { return getterField; }",
             "  void set field(B arg) { setterField = arg; }",
             "}",
             "main() {",
@@ -1841,12 +1841,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class A {} ",
             "A topGetterField; ",
             "var topSetterField; ",
-            "A get topField() { return topGetterField; }",
+            "A get topField { return topGetterField; }",
             "void set topField(arg) { topSetterField = arg; }",
             "class C {",
             "  A getterField; ",
             "  var setterField; ",
-            "  A get field() { return getterField; }",
+            "  A get field { return getterField; }",
             "  void set field(arg) { setterField = arg; }",
             "}");
     assertErrors(result.getErrors());
@@ -1859,12 +1859,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class A {} ",
             "var topGetterField; ",
             "A topSetterField; ",
-            "get topField() { return topGetterField; }",
+            "get topField { return topGetterField; }",
             "void set topField(A arg) { topSetterField = arg; }",
             "class C {",
             "  var getterField; ",
             "  A setterField; ",
-            "  get field() { return getterField; }",
+            "  get field { return getterField; }",
             "  void set field(A arg) { setterField = arg; }",
             "}");
     assertErrors(result.getErrors());
@@ -1878,12 +1878,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class B {}",
             "A topGetterField; ",
             "B topSetterField; ",
-            "A get topField() { return topGetterField; }",
+            "A get topField { return topGetterField; }",
             "void set topField(B arg) { topSetterField = arg; }",
             "class C {",
             "  A getterField; ",
             "  B setterField; ",
-            "  A get field() { return getterField; }",
+            "  A get field { return getterField; }",
             "  void set field(B arg) { setterField = arg; }",
             "}");
     assertErrors(result.getErrors(),
@@ -1988,7 +1988,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class Base1<T1> {",
-            "  T1 get val() {}",
+            "  T1 get val {}",
             "}",
             "class Base2<T2> extends Base1<T2> {",
             "}",
@@ -3257,8 +3257,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_getType_getterInNegation() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "class A {",
-        "  int get intProperty() => 42;",
-        "  bool get boolProperty() => true;",
+        "  int get intProperty => 42;",
+        "  bool get boolProperty => true;",
         "}",
         "f() {",
         "  var a = new A();",
@@ -3279,7 +3279,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "class A<T> {",
         "  T field;",
-        "  T get prop() => null;",
+        "  T get prop => null;",
         "}",
         "f() {",
         "  var a = new A<bool>();",
@@ -3303,7 +3303,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_getType_getterInSwitch_default() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "int get foo() {}",
+        "int get foo {}",
         "f() {",
         "  switch (true) {",
         "    default:",
@@ -3321,7 +3321,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_getType_getterInSwitchExpression_topLevel() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "int get foo() => 42;",
+        "int get foo => 42;",
         "f() {",
         "  switch (foo) {",
         "    case 2:",
@@ -3340,7 +3340,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A<T> {",
-        "  T get foo() => null;",
+        "  T get foo => null;",
         "}",
         "f() {",
         "  A<int> a = new A<int>();",
@@ -3441,7 +3441,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  bar();",
             "}",
             "interface J extends I {",
-            "  get foo();",
+            "  get foo;",
             "  set bar();",
             "}");
       assertErrors(libraryResult.getTypeErrors(),
@@ -3534,7 +3534,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "interface I {",
-        "  get foo();",
+        "  get foo;",
         "  set bar();",
         "}",
         "interface J extends I {",
@@ -3861,7 +3861,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class C {" +
-        "  get method() { }",
+        "  get method { }",
         "}",
         "main () {",
         "  new C().method = _() {};",
@@ -3880,7 +3880,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class C {" +
-        "  get method() { }",
+        "  get method { }",
         "  operator []=(k, v) {}",
         "}",
         "main () {",
@@ -4330,7 +4330,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "external topFunction();",
-        "external get topGetter();",
+        "external get topGetter;",
         "external set topSetter(var v);",
         "class A {",
         "  external const A.con();",
@@ -4338,7 +4338,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  external factory A.named();",
         "  external classMethod();",
         "  external static classMethodStatic();",
-        "  external get classGetter();",
+        "  external get classGetter;",
         "  external set classSetter(var v);",
         "}",
         "");
@@ -5292,7 +5292,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  static get f() => 0;",
+        "  static get f => 0;",
         "}",
         "main() {",
         "  A.f = 0;",

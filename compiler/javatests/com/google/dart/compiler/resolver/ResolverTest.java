@@ -1403,12 +1403,12 @@ public class ResolverTest extends ResolverTestCase {
   public void testNoGetterOrSetter() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "get getter1() {}",
+        "get getter1 {}",
         "set setter1(arg) {}",
         "class A {",
-        "  static get getter2() {}",
+        "  static get getter2 {}",
         "  static set setter2(arg) {}",
-        "  get getter3() {}",
+        "  get getter3 {}",
         "  set setter3(arg) {}",
         "}",
         "method() {",

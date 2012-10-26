@@ -103,6 +103,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
+import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.util.Lists;
 import com.google.dart.compiler.util.apache.StringUtils;
 
@@ -1692,12 +1693,16 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the parameters definitions.
     FormalParameters parametersInfo;
-    if (modifiers.isGetter() && peek(0) != Token.LPAREN) {
-      // TODO: For now the parameters are optional so that both the old and new style will be
-      // accepted, but eventually parameters should be disallowed.
+    if (modifiers.isGetter()) {
       parametersInfo = new FormalParameters(new ArrayList<DartParameter>(), -1, -1);
+      if (peek(0) == Token.LPAREN) {
+        // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6297
+        if (!Elements.isHtmlLibrarySource(source)) {
+          reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
+        }
+        parametersInfo = parseFormalParameterList();
+      }
     } else {
-      //reportError(position(), ParserErrorCode.DEPRECATED_GETTER);
       parametersInfo = parseFormalParameterList();
     }
     List<DartParameter> parameters = parametersInfo.val;

@@ -33,7 +33,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_CATCH("This style of catch clause has been deprecated. Please use the 'on' <type> " +
       "'catch' '(' <identifier> (',' <identifier>)? ')' form."),
-  DEPRECATED_GETTER(ErrorSeverity.WARNING, "The presence of parentheses afer the name of the getter "
+  DEPRECATED_GETTER("The presence of parentheses after the name of the getter "
       + "has been deprecated and will soon be disallowed. Please remove the parentheses."),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DEPRECATED_RAW_STRING("The use of '@' to prefix a raw string has been deprecated; use 'r' instead"),

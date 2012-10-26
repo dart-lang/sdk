@@ -21,13 +21,17 @@ import java.util.Set;
  * Negative Parser/Syntax tests.
  */
 public class NegativeParserTest extends CompilerTestCase {
+  public void test_deprecatedGetterSyntax() {
+    parseExpectErrors("get foo() {}", errEx(ParserErrorCode.DEPRECATED_GETTER, 1, 5, 3));
+  }
+
   public void testFieldInitializerInRedirectionConstructor1() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : this(5), y = 5; var y; }",
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_OTHER, 1, 39, 5),
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_ITSELF, 1, 30, 7));
   }
-
+  
   public void testFieldInitializerInRedirectionConstructor2() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : y = 5, this(5); var y; }",
@@ -578,7 +582,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "class MyClass {}",
             "class MyInterface {}",
             "topLevelMethod() {}",
-            "int get topLevelGetter() {return 0;}",
+            "int get topLevelGetter {return 0;}",
             "void set topLevelSetter(int v) {}",
             "typedef void MyTypeDef();",
             ""));
@@ -630,7 +634,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "  }",
             "}",
             "topLevelMethod() {}",
-            "int get topLevelGetter() {return 0;}",
+            "int get topLevelGetter {return 0;}",
             "void set topLevelSetter(int setterParam) {}",
             "typedef void MyTypeDef();",
             ""));
