@@ -22,13 +22,13 @@ abstract class Queue<E> extends Collection<E> {
 
   /**
    * Removes and returns the first element of this queue. Throws an
-   * [EmptyQueueException] exception if this queue is empty.
+   * [StateError] exception if this queue is empty.
    */
   E removeFirst();
 
   /**
    * Removes and returns the last element of the queue. Throws an
-   * [EmptyQueueException] exception if this queue is empty.
+   * [StateError] exception if this queue is empty.
    */
   E removeLast();
 
@@ -55,13 +55,13 @@ abstract class Queue<E> extends Collection<E> {
 
   /**
    * Returns the first element of the queue. Throws an
-   * [EmptyQueueException] exception if this queue is empty.
+   * [StateError] exception if this queue is empty.
    */
   E get first;
 
   /**
    * Returns the last element of the queue. Throws an
-   * [EmptyQueueException] exception if this queue is empty.
+   * [StateError] exception if this queue is empty.
    */
   E get last;
 

@@ -232,7 +232,7 @@ class ConcreteTypeCartesianProductIterator implements Iterator {
   }
 
   ConcreteTypesEnvironment next() {
-    if (!hasNext) throw new NoMoreElementsException();
+    if (!hasNext) throw new StateError("No more elements");
     Element keyToIncrement = null;
     for (final key in concreteTypes.keys) {
       final iterator = state[key];

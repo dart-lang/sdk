@@ -13,7 +13,7 @@
 abstract class Iterator<E> {
   /**
    * Gets the next element in the iteration. Throws a
-   * [NoMoreElementsException] if no element is left.
+   * [StateError] if no element is left.
    */
   E next();
 

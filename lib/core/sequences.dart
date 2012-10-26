@@ -198,7 +198,7 @@ class SequenceIterator<E> implements Iterator<E> {
   bool get hasNext => _position < _sequence.length;
   E next() {
     if (hasNext) return _sequence[_position++];
-    throw new NoMoreElementsException();
+    throw new StateError("No more elements");
   }
 }
 

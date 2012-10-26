@@ -28,7 +28,7 @@ class _FilteredElementList implements List {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const ArgumentError("Invalid list length");
+      throw new ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);

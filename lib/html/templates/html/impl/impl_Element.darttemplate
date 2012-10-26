@@ -280,11 +280,11 @@ class _FrozenElementListIterator implements Iterator<Element> {
 
   /**
    * Gets the next element in the iteration. Throws a
-   * [NoMoreElementsException] if no element is left.
+   * [StateError("No more elements")] if no element is left.
    */
   Element next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
 
     return _list[_index++];

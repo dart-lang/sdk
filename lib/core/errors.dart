@@ -156,7 +156,7 @@ class NoSuchMethodError implements Error {
 class UnsupportedError implements Error {
   final String message;
   UnsupportedError(this.message);
-  String toString() => message;
+  String toString() => "Unsupported operation: message";
 }
 
 /**
@@ -168,7 +168,7 @@ class UnsupportedError implements Error {
 class StateError implements Error {
   final String message;
   StateError(this.message);
-  String toString() => message;
+  String toString() => "Bad state: message";
 }
 
 

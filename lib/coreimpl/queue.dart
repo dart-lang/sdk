@@ -74,7 +74,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
   }
 
   E remove() {
-    throw const EmptyQueueException();
+    throw new StateError("Empty queue");
   }
 
   DoubleLinkedQueueEntry<E> _asNonSentinelEntry() {
@@ -87,7 +87,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
   }
 
   E get element {
-    throw const EmptyQueueException();
+    throw new StateError("Empty queue");
   }
 }
 
@@ -255,7 +255,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 
   E next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
     _currentEntry = _currentEntry._next;
     return _currentEntry.element;

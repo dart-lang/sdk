@@ -176,7 +176,7 @@ class _AllMatchesIterator implements Iterator<Match> {
 
   Match next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
 
     // _next is set by [hasNext].

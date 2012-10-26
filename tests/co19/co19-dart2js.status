@@ -231,6 +231,17 @@ LibTest/core/List/removeRange_A02_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/toString_A01_t01: Fail, OK # co19 issue 285
 LibTest/core/UnsupportedOperationException/UnsupportedOperationException_A01_t01: Fail, OK # co19 issue 285
 
+LibTest/core/List/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/first_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeLast_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/last_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/Queue/removeFirst_A02_t01: Fail, OK # co19 issue 288
+LibTest/core/NoMoreElementsException/NoMoreElementsException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/NoMoreElementsException/toString_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/EmptyQueueException/EmptyQueueException_A01_t01: Fail, OK # co19 issue 288
+LibTest/core/EmptyQueueException/toString_A01_t01: Fail, OK # co19 issue 288
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
 

@@ -23,7 +23,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
   T next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

@@ -73,18 +73,6 @@ class NullPointerException implements Exception {
 }
 
 
-class NoMoreElementsException implements Exception {
-  const NoMoreElementsException();
-  String toString() => "NoMoreElementsException";
-}
-
-
-class EmptyQueueException implements Exception {
-  const EmptyQueueException();
-  String toString() => "EmptyQueueException";
-}
-
-
 class NotImplementedException implements Exception {
   const NotImplementedException([String message]) : this._message = message;
   String toString() => (this._message !== null

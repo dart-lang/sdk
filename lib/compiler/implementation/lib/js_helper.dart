@@ -345,7 +345,7 @@ class ListIterator<T> implements Iterator<T> {
   ListIterator(List<T> this.list) : i = 0;
   bool get hasNext => i < JS('int', r'#.length', list);
   T next() {
-    if (!hasNext) throw new NoMoreElementsException();
+    if (!hasNext) throw new StateError("No more elements");
     var value = JS('Object', r'#[#]', list, i);
     i += 1;
     return value;

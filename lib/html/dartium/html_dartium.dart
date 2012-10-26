@@ -11547,7 +11547,7 @@ class _FilteredElementList implements List {
     if (newLength >= len) {
       return;
     } else if (newLength < 0) {
-      throw const ArgumentError("Invalid list length");
+      throw new ArgumentError("Invalid list length");
     }
 
     removeRange(newLength - 1, len - newLength);
@@ -12964,11 +12964,11 @@ class _FrozenElementListIterator implements Iterator<Element> {
 
   /**
    * Gets the next element in the iteration. Throws a
-   * [NoMoreElementsException] if no element is left.
+   * [StateError("No more elements")] if no element is left.
    */
   Element next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
 
     return _list[_index++];
@@ -44201,7 +44201,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
   T next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

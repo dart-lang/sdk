@@ -1494,7 +1494,7 @@ class _ByteArrayIterator<E> implements Iterator<E> {
 
   E next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
     return _array[_pos++];
   }

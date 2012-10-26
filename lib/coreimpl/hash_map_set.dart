@@ -419,7 +419,7 @@ class HashSetIterator<E> implements Iterator<E> {
 
   E next() {
     if (!hasNext) {
-      throw const NoMoreElementsException();
+      throw new StateError("No more elements");
     }
     E res = _entries[_nextValidIndex];
     _advance();

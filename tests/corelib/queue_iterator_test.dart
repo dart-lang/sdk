@@ -14,7 +14,7 @@ class QueueIteratorTest {
     var exception = null;
     try {
       it.next();
-    } on NoMoreElementsException catch (e) {
+    } on StateError catch (e) {
       exception = e;
     }
     Expect.equals(true, exception != null);

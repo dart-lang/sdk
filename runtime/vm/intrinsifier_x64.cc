@@ -1426,7 +1426,7 @@ static const char* kFixedSizeArrayIteratorClassName = "_FixedSizeArrayIterator";
 //     return _array[_pos++];
 //   }
 // Intrinsify: return _array[_pos++];
-// TODO(srdjan): Throw a 'NoMoreElementsException' exception if the iterator
+// TODO(srdjan): Throw a 'StateError' exception if the iterator
 // has no more elements.
 bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
   Label fall_through;

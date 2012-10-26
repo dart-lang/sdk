@@ -121,7 +121,7 @@ class HierarchyIterator implements Iterator<InterfaceMirror> {
     InterfaceMirror type;
     if (queue.isEmpty) {
       if (object === null) {
-        throw new NoMoreElementsException();
+        throw new StateError("No more elements");
       }
       type = object;
       object = null;
