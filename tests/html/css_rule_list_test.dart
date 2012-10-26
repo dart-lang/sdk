@@ -5,11 +5,14 @@
 
 main() {
 
+  var isCSSRuleList =
+      predicate((x) => x is List<CSSRule>, 'is a List<CSSRule>');
+
   useHtmlConfiguration();
 
   test("ClientRectList test", () {
     var sheet = document.styleSheets[0];
     List<CSSRule> rulesList = sheet.cssRules;
-    Expect.isTrue(rulesList is List<CSSRule>);
+    expect(rulesList, isCSSRuleList);
   });
 }

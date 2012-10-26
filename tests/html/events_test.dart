@@ -9,7 +9,7 @@ main() {
     Event event = new Event('test');
 
     int timeStamp = event.timeStamp;
-    Expect.isTrue(timeStamp > 0);
+    expect(timeStamp, greaterThan(0));
   });
   // The next test is not asynchronous because [on['test'].dispatch(event)] fires the event
   // and event listener synchronously.
@@ -20,9 +20,9 @@ main() {
 
     int invocationCounter = 0;
     void handler(Event e) {
-      Expect.equals('test', e.type);
+      expect(e.type, equals('test'));
       Element target = e.target;
-      Expect.identical(element, target);
+      expect(element, equals(target));
       invocationCounter++;
     }
 
@@ -30,27 +30,27 @@ main() {
 
     invocationCounter = 0;
     element.on['test'].dispatch(event);
-    Expect.equals(0, invocationCounter);
+    expect(invocationCounter, isZero);
 
     element.on['test'].add(handler, false);
     invocationCounter = 0;
     element.on['test'].dispatch(event);
-    Expect.equals(1, invocationCounter);
+    expect(invocationCounter, 1);
 
     element.on['test'].remove(handler, false);
     invocationCounter = 0;
     element.on['test'].dispatch(event);
-    Expect.equals(0, invocationCounter);
+    expect(invocationCounter, isZero);
 
     element.on['test'].add(handler, false);
     invocationCounter = 0;
     element.on['test'].dispatch(event);
-    Expect.equals(1, invocationCounter);
+    expect(invocationCounter, 1);
 
     element.on['test'].add(handler, false);
     invocationCounter = 0;
     element.on['test'].dispatch(event);
-    Expect.equals(1, invocationCounter);
+    expect(invocationCounter, 1);
   });
   test('InitMouseEvent', () {
     DivElement div = new Element.tag('div');

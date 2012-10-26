@@ -14,53 +14,66 @@
 main() {
   useHtmlConfiguration();
 
+  var isAnchorElement = 
+      predicate((x) => x is AnchorElement, 'is an AnchorElement');
+  var isAreaElement = 
+      predicate((x) => x is AreaElement, 'is an AreaElement');
+  var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
+  var isCanvasElement = 
+      predicate((x) => x is CanvasElement, 'is a CanvasElement');
+  var isParagraphElement =
+      predicate((x) => x is ParagraphElement, 'is a ParagraphElement');
+  var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
+  var isSelectElement = 
+      predicate((x) => x is SelectElement, 'is a SelectElement');
+
   test('anchor1', () {
       var e = new AnchorElement();
-      Expect.isTrue(e is AnchorElement);
+      expect(e, isAnchorElement);
     });
 
   test('anchor2', () {
       var e = new AnchorElement(href: '#blah');
-      Expect.isTrue(e is AnchorElement);
-      Expect.isTrue(e.href.endsWith('#blah'));
+      expect(e, isAnchorElement);
+      expect(e.href, endsWith('#blah'));
     });
 
   test('area', () {
       var e = new AreaElement();
-      Expect.isTrue(e is AreaElement);
+      expect(e, isAreaElement);
     });
 
   // AudioElement tested in audioelement_test.dart
 
   test('div', () {
       var e = new DivElement();
-      Expect.isTrue(e is DivElement);
+      expect(e, isDivElement);
     });
 
   test('canvas1', () {
       var e = new CanvasElement();
-      Expect.isTrue(e is CanvasElement);
+      expect(e, isCanvasElement);
     });
 
   test('canvas2', () {
       var e = new CanvasElement(height: 100, width: 200);
-      Expect.isTrue(e is CanvasElement);
-      Expect.equals(200, e.width);
-      Expect.equals(100, e.height);
+      expect(e, isCanvasElement);
+      expect(e.width, 200);
+      expect(e.height, 100);
     });
 
   test('p', () {
       var e = new ParagraphElement();
-      Expect.isTrue(e is ParagraphElement);
+      expect(e, isParagraphElement);
     });
 
   test('span', () {
       var e = new SpanElement();
-      Expect.isTrue(e is SpanElement);
+      expect(e, isSpanElement);
     });
 
   test('select', () {
       var e = new SelectElement();
-      Expect.isTrue(e is SelectElement);
+      expect(e, isSelectElement);
     });
 }

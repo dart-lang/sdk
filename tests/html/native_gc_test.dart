@@ -23,7 +23,7 @@ main() {
         div.on['test'].add((_) {
             // Only the final iteration's listener should be invoked.
             // Note: the reference to l keeps the entire list alive.
-            Expect.equals(M - 1, l[N - 1]);
+            expect(l[N - 1], M - 1);
           }, false);
       }
 

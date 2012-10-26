@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of unittest;
 
 /**
  * Returns a matcher that matches empty strings, maps or collections.
@@ -215,6 +216,11 @@ class _IsAnything extends BaseMatcher {
  * Type wrapper; e.g.:
  *
  *     expect(bar, new isInstanceOf<Foo>('Foo'));
+ *
+ * Note that this does not currently work in dart2js; it will
+ * match any type, and isNot(new isInstanceof<T>()) will always
+ * fail. This is because dart2js currently ignores template type
+ * parameters.
  */
 class isInstanceOf<T> extends BaseMatcher {
   final String _name;
@@ -280,7 +286,7 @@ class Throws extends BaseMatcher {
       // completes.
       item.onComplete(expectAsync1((future) {
         if (future.hasValue) {
-          expect(false, isTrue,
+          expect(false, isTrue, reason:
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
           var reason;
@@ -289,7 +295,7 @@ class Throws extends BaseMatcher {
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
             reason = "Actual exception trace:\n$stackTrace";
           }
-          expect(future.exception, _matcher, reason);
+          expect(future.exception, _matcher, reason: reason);
         }
       }));
 
@@ -393,9 +399,9 @@ class _ReturnsNormally extends BaseMatcher {
  * for each exception type.
  */
 
-abstract class ExceptionMatcher extends BaseMatcher {
+abstract class TypeMatcher extends BaseMatcher {
   final String _name;
-  const ExceptionMatcher(this._name);
+  const TypeMatcher(this._name);
   Description describe(Description description) =>
       description.add(_name);
 }
@@ -403,11 +409,11 @@ abstract class ExceptionMatcher extends BaseMatcher {
 /** A matcher for FormatExceptions. */
 const isFormatException = const _FormatException();
 
-/** A matcher for functions that throw FormatException */
+/** A matcher for functions that throw FormatException. */
 const Matcher throwsFormatException =
     const Throws(isFormatException);
 
-class _FormatException extends ExceptionMatcher {
+class _FormatException extends TypeMatcher {
   const _FormatException() : super("FormatException");
   bool matches(item, MatchState matchState) => item is FormatException;
 }
@@ -415,10 +421,10 @@ class _FormatException extends ExceptionMatcher {
 /** A matcher for Exceptions. */
 const isException = const _Exception();
 
-/** A matcher for functions that throw Exception */
+/** A matcher for functions that throw Exception. */
 const Matcher throwsException = const Throws(isException);
 
-class _Exception extends ExceptionMatcher {
+class _Exception extends TypeMatcher {
   const _Exception() : super("Exception");
   bool matches(item, MatchState matchState) => item is Exception;
 }
@@ -426,11 +432,11 @@ class _Exception extends ExceptionMatcher {
 /** A matcher for ArgumentErrors. */
 const isArgumentError = const _ArgumentError();
 
-/** A matcher for functions that throw ArgumentError */
+/** A matcher for functions that throw ArgumentError. */
 const Matcher throwsArgumentError =
     const Throws(isArgumentError);
 
-class _ArgumentError extends ExceptionMatcher {
+class _ArgumentError extends TypeMatcher {
   const _ArgumentError() : super("ArgumentError");
   bool matches(item, MatchState matchState) => item is ArgumentError;
 }
@@ -438,11 +444,11 @@ class _ArgumentError extends ExceptionMatcher {
 /** A matcher for IllegalJSRegExpExceptions. */
 const isIllegalJSRegExpException = const _IllegalJSRegExpException();
 
-/** A matcher for functions that throw IllegalJSRegExpException */
+/** A matcher for functions that throw IllegalJSRegExpException. */
 const Matcher throwsIllegalJSRegExpException =
     const Throws(isIllegalJSRegExpException);
 
-class _IllegalJSRegExpException extends ExceptionMatcher {
+class _IllegalJSRegExpException extends TypeMatcher {
   const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
   bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
 }
@@ -450,11 +456,11 @@ class _IllegalJSRegExpException extends ExceptionMatcher {
 /** A matcher for IndexOutOfRangeExceptions. */
 const isIndexOutOfRangeException = const _IndexOutOfRangeException();
 
-/** A matcher for functions that throw IndexOutOfRangeException */
+/** A matcher for functions that throw IndexOutOfRangeException. */
 const Matcher throwsIndexOutOfRangeException =
     const Throws(isIndexOutOfRangeException);
 
-class _IndexOutOfRangeException extends ExceptionMatcher {
+class _IndexOutOfRangeException extends TypeMatcher {
   const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
   bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
 }
@@ -462,11 +468,11 @@ class _IndexOutOfRangeException extends ExceptionMatcher {
 /** A matcher for NoSuchMethodErrors. */
 const isNoSuchMethodError = const _NoSuchMethodError();
 
-/** A matcher for functions that throw NoSuchMethodError */
+/** A matcher for functions that throw NoSuchMethodError. */
 const Matcher throwsNoSuchMethodError =
     const Throws(isNoSuchMethodError);
 
-class _NoSuchMethodError extends ExceptionMatcher {
+class _NoSuchMethodError extends TypeMatcher {
   const _NoSuchMethodError() : super("NoSuchMethodError");
   bool matches(item, MatchState matchState) => item is NoSuchMethodError;
 }
@@ -474,11 +480,11 @@ class _NoSuchMethodError extends ExceptionMatcher {
 /** A matcher for NotImplementedExceptions. */
 const isNotImplementedException = const _NotImplementedException();
 
-/** A matcher for functions that throw Exception */
+/** A matcher for functions that throw Exception. */
 const Matcher throwsNotImplementedException =
     const Throws(isNotImplementedException);
 
-class _NotImplementedException extends ExceptionMatcher {
+class _NotImplementedException extends TypeMatcher {
   const _NotImplementedException() : super("NotImplementedException");
   bool matches(item, MatchState matchState) => item is NotImplementedException;
 }
@@ -486,27 +492,41 @@ class _NotImplementedException extends ExceptionMatcher {
 /** A matcher for NullPointerExceptions. */
 const isNullPointerException = const _NullPointerException();
 
-/** A matcher for functions that throw NotNullPointerException */
+/** A matcher for functions that throw NotNullPointerException. */
 const Matcher throwsNullPointerException =
     const Throws(isNullPointerException);
 
-class _NullPointerException extends ExceptionMatcher {
+class _NullPointerException extends TypeMatcher {
   const _NullPointerException() : super("NullPointerException");
   bool matches(item, MatchState matchState) => item is NullPointerException;
 }
 
-/** A matcher for UnsupportedErrors. */
+/** A matcher for UnsupportedError. */
 const isUnsupportedError = const _UnsupportedError();
 
-/** A matcher for functions that throw UnsupportedError */
-const Matcher throwsUnsupportedError =
-    const Throws(isUnsupportedError);
+/** A matcher for functions that throw UnsupportedError. */
+const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);
 
-class _UnsupportedError extends ExceptionMatcher {
+class _UnsupportedError extends TypeMatcher {
   const _UnsupportedError() :
       super("UnsupportedError");
-  bool matches(item, MatchState matchState) =>
-      item is UnsupportedError;
+  bool matches(item, MatchState matchState) => item is UnsupportedError;
+}
+
+/** A matcher for Map types. */
+const isMap = const _IsMap();
+
+class _IsMap extends TypeMatcher {
+  const _IsMap() : super("Map");
+  bool matches(item, MatchState matchState) => item is Map;
+}
+
+/** A matcher for List types. */
+const isList = const _IsList();
+
+class _IsList extends TypeMatcher {
+  const _IsList() : super("List");
+  bool matches(item, MatchState matchState) => item is List;
 }
 
 /**
@@ -610,7 +630,7 @@ class _In extends BaseMatcher {
  * Returns a matcher that uses an arbitrary function that returns
  * true or false for the actual value.
  */
-Matcher predicate(f, {description: 'satisfies function'}) =>
+Matcher predicate(f, [description ='satisfies function']) =>
     new _Predicate(f, description);
 
 class _Predicate extends BaseMatcher {
@@ -647,7 +667,7 @@ class _Predicate extends BaseMatcher {
  *
  *      expect(inventoryItem, new HasPrice(greaterThan(0)));
  */
-abstract class CustomMatcher extends BaseMatcher {
+class CustomMatcher extends BaseMatcher {
   final String _featureDescription;
   final String _featureName;
   final Matcher _matcher;
@@ -655,8 +675,8 @@ abstract class CustomMatcher extends BaseMatcher {
   const CustomMatcher(this._featureDescription, this._featureName,
       this._matcher);
 
-  /** Implement this to extract the interesting feature.*/
-  featureValueOf(actual);
+  /** Override this to extract the interesting feature.*/
+  featureValueOf(actual) => actual;
 
   bool matches(item, MatchState matchState) {
     var f = featureValueOf(item);

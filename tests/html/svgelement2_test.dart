@@ -17,6 +17,6 @@ main() {
   // The svgelement_test requires the field "_this" to map to "_this". In this
   // test-case we use another library's '_this' first (see issue 3039 and
   // _ChildNodeListLazy.first).
-  Expect.equals(499, new A(499)._this);
+  expect(new A(499)._this, 499);
   originalTest.main();
 }

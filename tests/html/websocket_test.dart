@@ -7,9 +7,11 @@ main() {
 
   useHtmlConfiguration();
 
+  var isWebSocket = predicate((x) => x is WebSocket, 'is a WebSocket');
+
   test('constructorTest', () {
       var socket = new WebSocket('ws://localhost');
-      Expect.isTrue(socket != null);
-      Expect.isTrue(socket is WebSocket);
+      expect(socket, isNotNull);
+      expect(socket, isWebSocket);
   });
 }

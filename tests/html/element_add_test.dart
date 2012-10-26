@@ -11,8 +11,12 @@
 main() {
   useHtmlConfiguration();
 
+  var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElemt');
+  var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
+  var isText = predicate((x) => x is Text, 'is a Text');
+
   void expectNoSuchMethod(void fn()) =>
-    Expect.throws(fn, (e) => e is NoSuchMethodError);
+    expect(fn, throwsNoSuchMethodError);
 
   group('addHTML', () {
     test('htmlelement', () {
@@ -20,20 +24,20 @@ main() {
       el.addHTML('<span></span>');
       expect(el.elements.length, equals(1));
       var span = el.elements[0];
-      expect(span is SpanElement);
+      expect(span, isSpanElement);
 
       el.addHTML('<div></div>');
       expect(el.elements.length, equals(2));
       // Validate that the first item is still first.
-      expect(el.elements[0] == span);
-      expect(el.elements[1] is DivElement);
+      expect(el.elements[0], equals(span));
+      expect(el.elements[1], isDivElement);
     });
 
     test('documentFragment', () {
       var fragment = new DocumentFragment();
       fragment.addHTML('<span>something</span>');
       expect(fragment.elements.length, equals(1));
-      expect(fragment.elements[0] is SpanElement);
+      expect(fragment.elements[0], isSpanElement);
     });
   });
 
@@ -67,7 +71,7 @@ main() {
       child.insertAdjacentElement('beforebegin', newChild);
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[0] is SpanElement);
+      expect(parent.elements[0], isSpanElement);
     });
 
     test('afterend', () {
@@ -79,7 +83,7 @@ main() {
       child.insertAdjacentElement('afterend', newChild);
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[1] is SpanElement);
+      expect(parent.elements[1], isSpanElement);
     });
 
     test('afterbegin', () {
@@ -91,7 +95,7 @@ main() {
       parent.insertAdjacentElement('afterbegin', newChild);
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[0] is SpanElement);
+      expect(parent.elements[0], isSpanElement);
     });
 
     test('beforeend', () {
@@ -103,7 +107,7 @@ main() {
       parent.insertAdjacentElement('beforeend', newChild);
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[1] is SpanElement);
+      expect(parent.elements[1], isSpanElement);
     });
   });
 
@@ -116,7 +120,7 @@ main() {
       child.insertAdjacentHTML('beforebegin', '<span></span>');
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[0] is SpanElement);
+      expect(parent.elements[0], isSpanElement);
     });
 
     test('afterend', () {
@@ -127,7 +131,7 @@ main() {
       child.insertAdjacentHTML('afterend', '<span></span>');
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[1] is SpanElement);
+      expect(parent.elements[1], isSpanElement);
     });
 
     test('afterbegin', () {
@@ -138,7 +142,7 @@ main() {
       parent.insertAdjacentHTML('afterbegin', '<span></span>');
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[0] is SpanElement);
+      expect(parent.elements[0], isSpanElement);
     });
 
     test('beforeend', () {
@@ -149,7 +153,7 @@ main() {
       parent.insertAdjacentHTML('beforeend', '<span></span>');
 
       expect(parent.elements.length, 2);
-      expect(parent.elements[1] is SpanElement);
+      expect(parent.elements[1], isSpanElement);
     });
   });
 
@@ -162,7 +166,7 @@ main() {
       child.insertAdjacentText('beforebegin', 'test');
 
       expect(parent.nodes.length, 2);
-      expect(parent.nodes[0] is Text);
+      expect(parent.nodes[0], isText);
     });
 
     test('afterend', () {
@@ -173,7 +177,7 @@ main() {
       child.insertAdjacentText('afterend', 'test');
 
       expect(parent.nodes.length, 2);
-      expect(parent.nodes[1] is Text);
+      expect(parent.nodes[1], isText);
     });
 
     test('afterbegin', () {
@@ -184,7 +188,7 @@ main() {
       parent.insertAdjacentText('afterbegin', 'test');
 
       expect(parent.nodes.length, 2);
-      expect(parent.nodes[0] is Text);
+      expect(parent.nodes[0], isText);
     });
 
     test('beforeend', () {
@@ -195,7 +199,7 @@ main() {
       parent.insertAdjacentText('beforeend', 'test');
 
       expect(parent.nodes.length, 2);
-      expect(parent.nodes[1] is Text);
+      expect(parent.nodes[1], isText);
     });
   });
 }

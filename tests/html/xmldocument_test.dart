@@ -10,27 +10,30 @@
 main() {
   useHtmlConfiguration();
 
+  var isXMLDocument = predicate((x) => x is XMLDocument, 'is an XMLDocument');
+  var isXMLElement = predicate((x) => x is XMLElement, 'is an XMLElement');
+
   XMLDocument makeDocument() => new XMLDocument.xml("<xml><foo/><bar/></xml>");
 
   group('constructor', () {
     test('with a well-formed document', () {
       final doc = makeDocument();
-      Expect.isTrue(doc is XMLDocument);
-      Expect.equals('foo', doc.elements[0].tagName);
-      Expect.equals('bar', doc.elements[1].tagName);
+      expect(doc, isXMLDocument);
+      expect(doc.elements[0].tagName, 'foo');
+      expect(doc.elements[1].tagName, 'bar');
     });
 
     // TODO(nweiz): re-enable this when Document#query matches the root-level
     // element. Otherwise it fails on Firefox.
     //
     // test('with a parse error', () {
-    //   Expect.throws(() => new XMLDocument.xml("<xml></xml>foo"),
-    //       (e) => e is ArgumentError);
+    //   expect(() => new XMLDocument.xml("<xml></xml>foo"),
+    //       throwsArgumentError);
     // });
 
     test('with a PARSERERROR tag', () {
       final doc = new XMLDocument.xml("<xml><parsererror /></xml>");
-      Expect.equals('parsererror', doc.elements[0].tagName);
+      expect(doc.elements[0].tagName, 'parsererror');
     });
   });
 
@@ -38,13 +41,13 @@ main() {
   group('elements', () {
     test('filters out non-element nodes', () {
       final doc = new XMLDocument.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      Expect.listEquals(["a", "b", "c", "d"], doc.elements.map((e) => e.tagName));
+      expect(doc.elements.map((e) => e.tagName), ["a", "b", "c", "d"]);
     });
 
     test('overwrites nodes when set', () {
       final doc = new XMLDocument.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
       doc.elements = [new XMLElement.tag('x'), new XMLElement.tag('y')];
-      Expect.equals("<xml><x></x><y></y></xml>", doc.outerHTML);
+      expect(doc.outerHTML, "<xml><x></x><y></y></xml>");
     });
   });
 
@@ -62,32 +65,32 @@ main() {
     test('affects the "class" attribute', () {
       final doc = makeDocumentWithClasses();
       doc.classes.add('qux');
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux'], extractClasses(doc));
+      expect(extractClasses(doc), ["foo", "bar", "baz", "qux"]);
     });
 
     test('is affected by the "class" attribute', () {
       final doc = makeDocumentWithClasses();
       doc.attributes['class'] = 'foo qux';
-      Expect.setEquals(['foo', 'qux'], doc.classes);
+      expect(doc.classes, ["foo", "qux"]);
     });
 
     test('classes=', () {
       final doc = makeDocumentWithClasses();
       doc.classes = ['foo', 'qux'];
-      Expect.setEquals(['foo', 'qux'], doc.classes);
-      Expect.setEquals(['foo', 'qux'], extractClasses(doc));
+      expect(doc.classes, ["foo", "qux"]);
+      expect(extractClasses(doc), ["foo", "qux"]);
     });
 
     test('toString', () {
-      Expect.setEquals(['foo', 'bar', 'baz'],
-          makeClassSet().toString().split(' '));
-      Expect.equals('', makeDocument().classes.toString());
+      expect(makeClassSet().toString().split(' '),
+          unorderedEquals(['foo', 'bar', 'baz']));
+      expect(makeDocument().classes.toString(), '');
     });
 
     test('forEach', () {
       final classes = <String>[];
       makeClassSet().forEach(classes.add);
-      Expect.setEquals(['foo', 'bar', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
     });
 
     test('iterator', () {
@@ -95,101 +98,99 @@ main() {
       for (var doc in makeClassSet()) {
         classes.add(doc);
       }
-      Expect.setEquals(['foo', 'bar', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
     });
 
     test('map', () {
-      Expect.setEquals(['FOO', 'BAR', 'BAZ'],
-          makeClassSet().map((c) => c.toUpperCase()));
+      expect(makeClassSet().map((c) => c.toUpperCase()),
+          unorderedEquals(['FOO', 'BAR', 'BAZ']));
     });
 
     test('filter', () {
-      Expect.setEquals(['bar', 'baz'],
-          makeClassSet().filter((c) => c.contains('a')));
+      expect(makeClassSet().filter((c) => c.contains('a')),
+          unorderedEquals(['bar', 'baz']));
     });
 
     test('every', () {
-      Expect.isTrue(makeClassSet().every((c) => c is String));
-      Expect.isFalse(
-          makeClassSet().every((c) => c.contains('a')));
+      expect(makeClassSet().every((c) => c is String), isTrue);
+      expect(makeClassSet().every((c) => c.contains('a')), isFalse);
     });
 
     test('some', () {
-      Expect.isTrue(
-          makeClassSet().some((c) => c.contains('a')));
-      Expect.isFalse(makeClassSet().some((c) => c is num));
+      expect(makeClassSet().some((c) => c.contains('a')), isTrue);
+      expect(makeClassSet().some((c) => c is num), isFalse);
     });
 
     test('isEmpty', () {
-      Expect.isFalse(makeClassSet().isEmpty);
-      Expect.isTrue(makeDocument().classes.isEmpty);
+      expect(makeClassSet().isEmpty, isFalse);
+      expect(makeDocument().classes.isEmpty, isTrue);
     });
 
     test('length', () {
-      Expect.equals(3, makeClassSet().length);
-      Expect.equals(0, makeDocument().classes.length);
+      expect(makeClassSet().length, 3);
+      expect(makeDocument().classes.length, 0);
     });
 
     test('contains', () {
-      Expect.isTrue(makeClassSet().contains('foo'));
-      Expect.isFalse(makeClassSet().contains('qux'));
+      expect(makeClassSet().contains('foo'), isTrue);
+      expect(makeClassSet().contains('qux'), isFalse);
     });
 
     test('add', () {
       final classes = makeClassSet();
       classes.add('qux');
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux']);
 
       classes.add('qux');
       final list = new List.from(classes);
       list.sort((a, b) => a.compareTo(b));
-      Expect.listEquals(['bar', 'baz', 'foo', 'qux'], list,
-          "The class set shouldn't have duplicate elements.");
+      expect(list, ['bar', 'baz', 'foo', 'qux'],
+          reason: "The class set shouldn't have duplicate elements.");
     });
 
     test('remove', () {
       final classes = makeClassSet();
       classes.remove('bar');
-      Expect.setEquals(['foo', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'baz']));
       classes.remove('qux');
-      Expect.setEquals(['foo', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'baz']));
     });
 
     test('addAll', () {
       final classes = makeClassSet();
       classes.addAll(['bar', 'qux', 'bip']);
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux', 'bip'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux', 'bip']));
     });
 
     test('removeAll', () {
       final classes = makeClassSet();
       classes.removeAll(['bar', 'baz', 'qux']);
-      Expect.setEquals(['foo'], classes);
+      expect(classes, ['foo']);
     });
 
     test('isSubsetOf', () {
       final classes = makeClassSet();
-      Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz']));
-      Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']));
-      Expect.isFalse(classes.isSubsetOf(['foo', 'bar', 'qux']));
+      expect(classes.isSubsetOf(['foo', 'bar', 'baz']), isTrue);
+      expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']), isTrue);
+      expect(classes.isSubsetOf(['foo', 'bar', 'qux']), isFalse);
     });
 
     test('containsAll', () {
       final classes = makeClassSet();
-      Expect.isTrue(classes.containsAll(['foo', 'baz']));
-      Expect.isFalse(classes.containsAll(['foo', 'qux']));
+      expect(classes.containsAll(['foo', 'baz']), isTrue);
+      expect(classes.containsAll(['foo', 'qux']), isFalse);
     });
 
     test('intersection', () {
       final classes = makeClassSet();
-      Expect.setEquals(['foo', 'baz'],
-          classes.intersection(['foo', 'qux', 'baz']));
+      expect(classes.intersection(['foo', 'qux', 'baz']),
+          unorderedEquals(['foo', 'baz']))
     });
 
     test('clear', () {
       final classes = makeClassSet();
       classes.clear();
-      Expect.setEquals([], classes);
+      expect(classes, []);
     });
   });
 
@@ -201,14 +202,14 @@ main() {
     test('affects the "class" attribute', () {
       final doc = makeDocumentWithClasses();
       doc.classes.add('qux');
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux'],
-          doc.attributes['class'].split(' '));
+      expect(doc.attributes['class'].split(' '),
+          unorderedEquals(['foo', 'bar', 'baz', 'qux']));
     });
 
     test('is affected by the "class" attribute', () {
       final doc = makeDocumentWithClasses();
       doc.attributes['class'] = 'foo qux';
-      Expect.setEquals(['foo', 'qux'], doc.classes);
+      expect(doc.classes, unorderedEquals(['foo', 'qux']));
     });
   });
 
@@ -220,131 +221,131 @@ main() {
     doc.scrollByLines(2);
     doc.scrollByPages(2);
     doc.scrollIntoView();
-    Expect.isFalse(doc.execCommand("foo", false, "bar"));
+    expect(doc.execCommand("foo", false, "bar"), isFalse);
   });
 
   group('properties that map to attributes', () {
     group('contentEditable', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals('inherit', doc.contentEditable);
+        expect(doc.contentEditable, 'inherit');
         doc.attributes['contentEditable'] = 'foo';
-        Expect.equals('foo', doc.contentEditable);
+        expect(doc.contentEditable, 'foo');
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.contentEditable = 'foo';
-        Expect.equals('foo', doc.attributes['contentEditable']);
+        expect(doc.attributes['contentEditable'], 'foo');
       });
 
       test('isContentEditable', () {
         final doc = makeDocument();
-        Expect.isFalse(doc.isContentEditable);
+        expect(doc.isContentEditable, isFalse);
         doc.contentEditable = 'true';
-        Expect.isFalse(doc.isContentEditable);
+        expect(doc.isContentEditable, isFalse);
       });
     });
 
     group('draggable', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.isFalse(doc.draggable);
+        expect(doc.draggable, isFalse);
         doc.attributes['draggable'] = 'true';
-        Expect.isTrue(doc.draggable);
+        expect(doc.draggable, isTrue);
         doc.attributes['draggable'] = 'foo';
-        Expect.isFalse(doc.draggable);
+        expect(doc.draggable, isFalse);
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.draggable = true;
-        Expect.equals('true', doc.attributes['draggable']);
+        expect(doc.attributes['draggable'], 'true');
         doc.draggable = false;
-        Expect.equals('false', doc.attributes['draggable']);
+        expect(doc.attributes['draggable'], 'false');
       });
     });
 
     group('spellcheck', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.isFalse(doc.spellcheck);
+        expect(doc.spellcheck, isFalse);
         doc.attributes['spellcheck'] = 'true';
-        Expect.isTrue(doc.spellcheck);
+        expect(doc.spellcheck, isTrue);
         doc.attributes['spellcheck'] = 'foo';
-        Expect.isFalse(doc.spellcheck);
+        expect(doc.spellcheck, isFalse);
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.spellcheck = true;
-        Expect.equals('true', doc.attributes['spellcheck']);
+        expect(doc.attributes['spellcheck'], 'true');
         doc.spellcheck = false;
-        Expect.equals('false', doc.attributes['spellcheck']);
+        expect(doc.attributes['spellcheck'], 'false');
       });
     });
 
     group('hidden', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.isFalse(doc.hidden);
+        expect(doc.hidden, isFalse);
         doc.attributes['hidden'] = '';
-        Expect.isTrue(doc.hidden);
+        expect(doc.hidden, isTrue);
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.hidden = true;
-        Expect.equals('', doc.attributes['hidden']);
+        expect(doc.attributes['hidden'], '');
         doc.hidden = false;
-        Expect.isFalse(doc.attributes.containsKey('hidden'));
+        expect(doc.attributes.containsKey('hidden'), isFalse);
       });
     });
 
     group('tabIndex', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals(0, doc.tabIndex);
+        expect(doc.tabIndex, 0);
         doc.attributes['tabIndex'] = '2';
-        Expect.equals(2, doc.tabIndex);
+        expect(doc.tabIndex, 2);
         doc.attributes['tabIndex'] = 'foo';
-        Expect.equals(0, doc.tabIndex);
+        expect(doc.tabIndex, 0);
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.tabIndex = 15;
-        Expect.equals('15', doc.attributes['tabIndex']);
+        expect(doc.attributes['tabIndex'], '15');
       });
     });
 
     group('id', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals('', doc.id);
+        expect(doc.id, '');
         doc.attributes['id'] = 'foo';
-        Expect.equals('foo', doc.id);
+        expect(doc.id, 'foo');
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.id = 'foo';
-        Expect.equals('foo', doc.attributes['id']);
+        expect(doc.attributes['id'], 'foo');
       });
     });
 
     group('title', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals('', doc.title);
+        expect(doc.title, '');
         doc.attributes['title'] = 'foo';
-        Expect.equals('foo', doc.title);
+        expect(doc.title, 'foo');
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.title = 'foo';
-        Expect.equals('foo', doc.attributes['title']);
+        expect(doc.attributes['title'], 'foo');
       });
     });
 
@@ -354,45 +355,45 @@ main() {
     // group('webkitdropzone', () {
     //   test('get', () {
     //     final doc = makeDocument();
-    //     Expect.equals('', doc.webkitdropzone);
+    //     expect(doc.webkitdropzone, '');
     //     doc.attributes['webkitdropzone'] = 'foo';
-    //     Expect.equals('foo', doc.webkitdropzone);
+    //     expect(doc.webkitdropzone, 'foo');
     //   });
     //
     //   test('set', () {
     //     final doc = makeDocument();
     //     doc.webkitdropzone = 'foo';
-    //     Expect.equals('foo', doc.attributes['webkitdropzone']);
+    //     expect(doc.attributes['webkitdropzone'], 'foo');
     //   });
     // });
 
     group('lang', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals('', doc.lang);
+        expect(doc.lang, '');
         doc.attributes['lang'] = 'foo';
-        Expect.equals('foo', doc.lang);
+        expect(doc.lang, 'foo');
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.lang = 'foo';
-        Expect.equals('foo', doc.attributes['lang']);
+        expect(doc.attributes['lang'], 'foo');
       });
     });
 
     group('dir', () {
       test('get', () {
         final doc = makeDocument();
-        Expect.equals('', doc.dir);
+        expect(doc.dir, '');
         doc.attributes['dir'] = 'foo';
-        Expect.equals('foo', doc.dir);
+        expect(doc.dir, 'foo');
       });
 
       test('set', () {
         final doc = makeDocument();
         doc.dir = 'foo';
-        Expect.equals('foo', doc.attributes['dir']);
+        expect(doc.attributes['dir'], 'foo');
       });
     });
   });
@@ -400,43 +401,43 @@ main() {
   test('set innerHTML', () {
     final doc = makeDocument();
     doc.innerHTML = "<foo>Bar<baz/></foo>";
-    Expect.equals(1, doc.nodes.length);
+    expect(doc.nodes.length, 1);
     final node = doc.nodes[0];
-    Expect.isTrue(node is XMLElement);
-    Expect.equals('foo', node.tagName);
-    Expect.equals('Bar', node.nodes[0].text);
-    Expect.equals('baz', node.nodes[1].tagName);
+    expect(node, isXMLElement);
+    expect(node.tagName, 'foo');
+    expect(node.nodes[0].text, 'Bar');
+    expect(node.nodes[1].tagName, 'baz');
   });
 
   test('get innerHTML/outerHTML', () {
     final doc = makeDocument();
-    Expect.equals("<foo></foo><bar></bar>", doc.innerHTML);
+    expect(doc.innerHTML, "<foo></foo><bar></bar>");
     doc.nodes.clear();
     doc.nodes.addAll([new Text("foo"), new XMLElement.xml("<a>bar</a>")]);
-    Expect.equals("foo<a>bar</a>", doc.innerHTML);
-    Expect.equals("<xml>foo<a>bar</a></xml>", doc.outerHTML);
+    expect(doc.innertHTML, "foo<a>bar</a>");
+    expect(doc.outerHTML, "<xml>foo<a>bar</a></xml>");
   });
 
   test('query', () {
     final doc = makeDocument();
-    Expect.equals("foo", doc.query('foo').tagName);
-    Expect.isNull(doc.query('baz'));
+    expect(doc.query('foo').tagName, 'foo');
+    expect(doc.query('baz'), isNull);
   });
 
   test('queryAll', () {
     final doc = new XMLDocument.xml(
         "<xml><foo id='f1' /><bar><foo id='f2' /></bar></xml>");
-    Expect.listEquals(["f1", "f2"], doc.queryAll('foo').map((e) => e.id));
-    Expect.listEquals([], doc.queryAll('baz'));
+    expect(doc.queryAll('foo').map((e) => e.id), ['f1', 'f2']);
+    expect(doc.queryAll('baz'), []);
   });
 
   // TODO(nweiz): re-enable this when matchesSelector works cross-browser.
   //
   // test('matchesSelector', () {
   //   final doc = makeDocument();
-  //   Expect.isTrue(doc.matchesSelector('*'));
-  //   Expect.isTrue(doc.matchesSelector('xml'));
-  //   Expect.isFalse(doc.matchesSelector('html'));
+  //   expect(doc.matchesSelector('*'), isTrue);
+  //   expect(doc.matchesSelector('xml'), isTrue);
+  //   expect(doc.matchesSelector('html'), isFalse);
   // });
 
   group('insertAdjacentElement', () {
@@ -444,30 +445,30 @@ main() {
 
     test('beforeBegin does nothing', () {
       final doc = getDoc();
-      Expect.isNull(
-        doc.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")));
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")),
+          isNull);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
-      Expect.isNull(
-        doc.insertAdjacentElement("afterEnd", new XMLElement.tag("b")));
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.insertAdjacentElement("afterEnd", new XMLElement.tag("b")),
+          isNull);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the element', () {
       final doc = getDoc();
       final el = new XMLElement.tag("b");
-      Expect.equals(el, doc.insertAdjacentElement("afterBegin", el));
-      Expect.equals("<b></b><a>foo</a>", doc.innerHTML);
+      expect(doc.insertAdjacentElement("afterBegin", el), el);
+      expect(doc.innerHTML, "<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the element', () {
       final doc = getDoc();
       final el = new XMLElement.tag("b");
-      Expect.equals(el, doc.insertAdjacentElement("beforeEnd", el));
-      Expect.equals("<a>foo</a><b></b>", doc.innerHTML);
+      expect(doc.insertAdjacentElement("beforeEnd", el), el);
+      expect(doc.innerHTML, "<a>foo</a><b></b>");
     });
   });
 
@@ -477,25 +478,25 @@ main() {
     test('beforeBegin does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentText("beforeBegin", "foo");
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentText("afterEnd", "foo");
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the text', () {
       final doc = getDoc();
       doc.insertAdjacentText("afterBegin", "foo");
-      Expect.equals("foo<a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "foo<a>foo</a>");
     });
 
     test('beforeEnd inserts the text', () {
       final doc = getDoc();
       doc.insertAdjacentText("beforeEnd", "foo");
-      Expect.equals("<a>foo</a>foo", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a>foo");
     });
   });
 
@@ -505,25 +506,25 @@ main() {
     test('beforeBegin does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterEnd does nothing', () {
       final doc = getDoc();
       doc.insertAdjacentHTML("afterEnd", "<b/>foo");
-      Expect.equals("<a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a>");
     });
 
     test('afterBegin inserts the HTML', () {
       final doc = getDoc();
       doc.insertAdjacentHTML("afterBegin", "foo<b/>");
-      Expect.equals("foo<b></b><a>foo</a>", doc.innerHTML);
+      expect(doc.innerHTML, "foo<b></b><a>foo</a>");
     });
 
     test('beforeEnd inserts the HTML', () {
       final doc = getDoc();
       doc.insertAdjacentHTML("beforeEnd", "<b/>foo");
-      Expect.equals("<a>foo</a><b></b>foo", doc.innerHTML);
+      expect(doc.innerHTML, "<a>foo</a><b></b>foo");
     });
   });
 
@@ -534,37 +535,36 @@ main() {
         expectEmptyRect(rect.offset);
         expectEmptyRect(rect.scroll);
         expectEmptyRect(rect.bounding);
-        Expect.isTrue(rect.clientRects.isEmpty);
+        expect(rect.clientRects.isEmpty, isTrue);
       }));
     });
 
     test('nextElementSibling', () =>
-        Expect.isNull(makeDocument().nextElementSibling));
+        expect(makeDocument().nextElementSibling), isNull);
     test('previousElementSibling', () =>
-        Expect.isNull(makeDocument().previousElementSibling));
-    test('parent', () => Expect.isNull(makeDocument().parent));
-    test('offsetParent', () => Expect.isNull(makeDocument().offsetParent));
-    test('activeElement', () => Expect.isNull(makeDocument().activeElement));
-    test('body', () => Expect.isNull(makeDocument().body));
-    test('window', () => Expect.isNull(makeDocument().window));
-    test('domain', () => Expect.equals('', makeDocument().domain));
-    test('head', () => Expect.isNull(makeDocument().head));
-    test('referrer', () => Expect.equals('', makeDocument().referrer));
-    test('styleSheets', () =>
-        Expect.listEquals([], makeDocument().styleSheets));
-    test('title', () => Expect.equals('', makeDocument().title));
+        expect(makeDocument().previousElementSibling), isNull);
+    test('parent', () => expect(makeDocument().parent), isNull);
+    test('offsetParent', () => expect(makeDocument().offsetParent), isNull);
+    test('activeElement', () => expect(makeDocument().activeElement), isNull);
+    test('body', () => expect(makeDocument().body), isNull);
+    test('window', () => expect(makeDocument().window), isNull);
+    test('domain', () => expect(makeDocument().domain), '');
+    test('head', () => expect(makeDocument().head), isNull);
+    test('referrer', () => expect(makeDocument().referrer), '');
+    test('styleSheets', () => expect(makeDocument().styleSheets), []);
+    test('title', () => expect(makeDocument().title), '');
 
     // TODO(nweiz): IE sets the charset to "windows-1252". How do we want to
     // handle that?
     //
-    // test('charset', () => Expect.isNull(makeDocument().charset));
+    // test('charset', () => expect(makeDocument().charset), isNull);
 
     // TODO(nweiz): re-enable these when the WebKit-specificness won't break
     // non-WebKit browsers.
     //
-    // test('webkitHidden', () => Expect.isFalse(makeDocument().webkitHidden));
+    // test('webkitHidden', () => expect(makeDocument().webkitHidden), isFalse);
     // test('webkitVisibilityState', () =>
-    //     Expect.equals('visible', makeDocument().webkitVisibilityState));
+    //     expect(makeDocument().webkitVisibilityState), 'visible');
 
     test('caretRangeFromPoint', () {
       final doc = makeDocument();
@@ -573,7 +573,7 @@ main() {
         doc.caretRangeFromPoint(0, 0),
         doc.caretRangeFromPoint(5, 5)
       ]).then(expectAsync1((ranges) {
-        Expect.listEquals([null, null, null], ranges);
+        expect(ranges, [null, null, null]);
       }));
     });
 
@@ -584,31 +584,31 @@ main() {
         doc.elementFromPoint(0, 0),
         doc.elementFromPoint(5, 5)
       ]).then(expectAsync1((ranges) {
-        Expect.listEquals([null, null, null], ranges);
+        expect(ranges, [null, null, null]);
       }));
     });
 
     test('queryCommandEnabled', () {
-      Expect.isFalse(makeDocument().queryCommandEnabled('foo'));
-      Expect.isFalse(makeDocument().queryCommandEnabled('bold'));
+      expect(makeDocument().queryCommandEnabled('foo'), isFalse);
+      expect(makeDocument().queryCommandEnabled('bold'), isFalse);
     });
 
     test('queryCommandIndeterm', () {
-      Expect.isFalse(makeDocument().queryCommandIndeterm('foo'));
-      Expect.isFalse(makeDocument().queryCommandIndeterm('bold'));
+      expect(makeDocument().queryCommandIndeterm('foo'), isFalse);
+      expect(makeDocument().queryCommandIndeterm('bold'), isFalse);
     });
 
     test('queryCommandState', () {
-      Expect.isFalse(makeDocument().queryCommandState('foo'));
-      Expect.isFalse(makeDocument().queryCommandState('bold'));
+      expect(makeDocument().queryCommandState('foo'), isFalse);
+      expect(makeDocument().queryCommandState('bold'), isFalse);
     });
 
     test('queryCommandSupported', () {
-      Expect.isFalse(makeDocument().queryCommandSupported('foo'));
-      Expect.isFalse(makeDocument().queryCommandSupported('bold'));
+      expect(makeDocument().queryCommandSupported('foo'), isFalse);
+      expect(makeDocument().queryCommandSupported('bold'), isFalse);
     });
 
-    test('manifest', () => Expect.equals('', makeDocument().manifest));
+    test('manifest', () => expect(makeDocument().manifest), '');
   });
 
   test('unsupported operations', () {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of unittest;
+
 /**
  * The error formatter for mocking is a bit different from the default one
  * for unit testing; instead of the third argument being a 'reason'
@@ -432,7 +434,7 @@ class LogEntryList {
       _mockFailureHandler =
           new _MockFailureHandler(getOrCreateExpectFailureHandler());
     }
-    expect(logs, matcher, filter, _mockFailureHandler);
+    expect(logs, matcher, reason:filter, failureHandler: _mockFailureHandler);
     return this;
   }
 

@@ -10,6 +10,8 @@
 main() {
   useHtmlConfiguration();
 
+  var isXMLElement = predicate((x) => x is XMLElement, 'is an XMLElement');
+
   XMLElement makeElement() => new XMLElement.xml("<xml><foo/><bar/></xml>");
 
   makeElementWithParent() {
@@ -22,34 +24,32 @@ main() {
     group('.xml', () {
       test('with a well-formed document', () {
         final el = makeElement();
-        Expect.isTrue(el is XMLElement);
-        Expect.equals('foo', el.elements[0].tagName);
-        Expect.equals('bar', el.elements[1].tagName);
+        expect(el, isXMLElement);
+        expect(el.elements[0].tagName, 'foo');
+        expect(el.elements[1].tagName, 'bar');
       });
 
       test('with too many nodes', () {
-        Expect.throws(() => new XMLElement.xml("<xml></xml>foo"),
-            (e) => e is ArgumentError);
+        expect(() => new XMLElement.xml("<xml></xml>foo"), throwsArgumentError);
       });
 
       test('with a parse error', () {
-        Expect.throws(() => new XMLElement.xml("<xml></xml>>"),
-            (e) => e is ArgumentError);
+        expect(() => new XMLElement.xml("<xml></xml>>"), throwsArgumentError);
       });
 
       test('with a PARSERERROR tag', () {
         final el = new XMLElement.xml("<xml><parsererror /></xml>");
-        Expect.equals('parsererror', el.elements[0].tagName);
+        expect('parsererror', el.elements[0].tagName, 'parsererror');
       });
 
       test('has no parent', () =>
-          Expect.isNull(new XMLElement.xml('<foo/>').parent));
+          expect(new XMLElement.xml('<foo/>').parent), isNull);
     });
 
     test('.tag', () {
       final el = new XMLElement.tag('foo');
-      Expect.isTrue(el is XMLElement);
-      Expect.equals('foo', el.tagName);
+      expect(el, isXMLElement);
+      expect(el.tagName, 'foo');
     });
   });
 
@@ -57,13 +57,13 @@ main() {
   group('elements', () {
     test('filters out non-element nodes', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
-      Expect.listEquals(["a", "b", "c", "d"], el.elements.map((e) => e.tagName));
+      expect(el.elements.map((e) => e.tagName), ["a", "b", "c", "d"]);
     });
 
     test('overwrites nodes when set', () {
       final el = new XMLElement.xml("<xml>1<a/><b/>2<c/>3<d/></xml>");
       el.elements = [new XMLElement.tag('x'), new XMLElement.tag('y')];
-      Expect.equals("<xml><x></x><y></y></xml>", el.outerHTML);
+      expect(el.outerHTML, "<xml><x></x><y></y></xml>");
     });
   });
 
@@ -76,33 +76,34 @@ main() {
     test('affects the "class" attribute', () {
       final el = makeElementWithClasses();
       el.classes.add('qux');
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux'],
-          el.attributes['class'].split(' '));
+      expect(el.attributes['class'].split(' '),
+          unorderedEquals(['foo', 'bar', 'baz', 'qux']));
     });
 
     test('is affected by the "class" attribute', () {
       final el = makeElementWithClasses();
       el.attributes['class'] = 'foo qux';
-      Expect.setEquals(['foo', 'qux'], el.classes);
+      expect(el.classes, unorderedEquals(['foo', 'qux']));
     });
 
     test('classes=', () {
       final el = makeElementWithClasses();
       el.classes = ['foo', 'qux'];
-      Expect.setEquals(['foo', 'qux'], el.classes);
-      Expect.setEquals(['foo', 'qux'], el.attributes['class'].split(' '));
+      expect(el.classes, unorderedEquals(['foo', 'qux']));
+      expect(el.attributes['class'].split(' '),
+          unorderedEquals(['foo', 'qux']));
     });
 
     test('toString', () {
-      Expect.setEquals(['foo', 'bar', 'baz'],
-          makeClassSet().toString().split(' '));
-      Expect.equals('', makeElement().classes.toString());
+      expect(makeClassSet().toString().split(' '),
+          unorderedEquals(['foo', 'bar', 'baz']));
+      expect(makeElement().classes.toString(), '');
     });
 
     test('forEach', () {
       final classes = <String>[];
       makeClassSet().forEach(classes.add);
-      Expect.setEquals(['foo', 'bar', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
     });
 
     test('iterator', () {
@@ -110,101 +111,99 @@ main() {
       for (var el in makeClassSet()) {
         classes.add(el);
       }
-      Expect.setEquals(['foo', 'bar', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
     });
 
     test('map', () {
-      Expect.setEquals(['FOO', 'BAR', 'BAZ'],
-          makeClassSet().map((c) => c.toUpperCase()));
+      expect(makeClassSet().map((c) => c.toUpperCase()),
+          unorderedEquals(['FOO', 'BAR', 'BAZ']));
     });
 
     test('filter', () {
-      Expect.setEquals(['bar', 'baz'],
-          makeClassSet().filter((c) => c.contains('a')));
+      expect(makeClassSet().filter((c) => c.contains('a')),
+          unorderedEquals(['bar', 'baz']));
     });
 
     test('every', () {
-      Expect.isTrue(makeClassSet().every((c) => c is String));
-      Expect.isFalse(
-          makeClassSet().every((c) => c.contains('a')));
+      expect(makeClassSet().every((c) => c is String), isTrue);
+      expect(makeClassSet().every((c) => c.contains('a')), isFalse);
     });
 
     test('some', () {
-      Expect.isTrue(
-          makeClassSet().some((c) => c.contains('a')));
-      Expect.isFalse(makeClassSet().some((c) => c is num));
+      expect(makeClassSet().some((c) => c.contains('a')), isTrue);
+      expect(makeClassSet().some((c) => c is num), isFalse);
     });
 
     test('isEmpty', () {
-      Expect.isFalse(makeClassSet().isEmpty);
-      Expect.isTrue(makeElement().classes.isEmpty);
+      expect(makeClassSet().isEmpty, isFalse);
+      expect(makeElement().classes.isEmpty, isTrue);
     });
 
     test('length', () {
-      Expect.equals(3, makeClassSet().length);
-      Expect.equals(0, makeElement().classes.length);
+      expect(makeClassSet().length, 3);
+      expect(makeElement().classes.length, 0);
     });
 
     test('contains', () {
-      Expect.isTrue(makeClassSet().contains('foo'));
-      Expect.isFalse(makeClassSet().contains('qux'));
+      expect(makeClassSet().contains('foo'), isTrue);
+      expect(makeClassSet().contains('qux'), isFalse);
     });
 
     test('add', () {
       final classes = makeClassSet();
       classes.add('qux');
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux']));
 
       classes.add('qux');
       final list = new List.from(classes);
       list.sort((a, b) => a.compareTo(b));
-      Expect.listEquals(['bar', 'baz', 'foo', 'qux'], list,
-          "The class set shouldn't have duplicate elements.");
+      expect(list, ['bar', 'baz', 'foo', 'qux'],
+          reason: "The class set shouldn't have duplicate elements.");
     });
 
     test('remove', () {
       final classes = makeClassSet();
       classes.remove('bar');
-      Expect.setEquals(['foo', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'baz']));
       classes.remove('qux');
-      Expect.setEquals(['foo', 'baz'], classes);
+      expect(classes, unorderedEquals(['foo', 'baz']));
     });
 
     test('addAll', () {
       final classes = makeClassSet();
       classes.addAll(['bar', 'qux', 'bip']);
-      Expect.setEquals(['foo', 'bar', 'baz', 'qux', 'bip'], classes);
+      expect(classes, unorderedEquals(['foo', 'bar', 'baz', 'qux', 'bip']));
     });
 
     test('removeAll', () {
       final classes = makeClassSet();
       classes.removeAll(['bar', 'baz', 'qux']);
-      Expect.setEquals(['foo'], classes);
+      expect(classes, ['foo']);
     });
 
     test('isSubsetOf', () {
       final classes = makeClassSet();
-      Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz']));
-      Expect.isTrue(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']));
-      Expect.isFalse(classes.isSubsetOf(['foo', 'bar', 'qux']));
+      expect(classes.isSubsetOf(['foo', 'bar', 'baz']), isTrue);
+      expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']), isTrue);
+      expect(classes.isSubsetOf(['foo', 'bar', 'qux']), isFalse);
     });
 
     test('containsAll', () {
       final classes = makeClassSet();
-      Expect.isTrue(classes.containsAll(['foo', 'baz']));
-      Expect.isFalse(classes.containsAll(['foo', 'qux']));
+      expect(classes.containsAll(['foo', 'baz']), isTrue);
+      expect(classes.containsAll(['foo', 'qux']), isFalse);
     });
 
     test('intersection', () {
       final classes = makeClassSet();
-      Expect.setEquals(['foo', 'baz'],
-          classes.intersection(['foo', 'qux', 'baz']));
+      expect(classes.intersection(['foo', 'qux', 'baz']),
+          unorderedEquals(['foo', 'baz']));
     });
 
     test('clear', () {
       final classes = makeClassSet();
       classes.clear();
-      Expect.setEquals([], classes);
+      expect(classes, []);
     });
   });
 
@@ -222,169 +221,169 @@ main() {
     group('contentEditable', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('inherit', el.contentEditable);
+        expect(el.contentEditable, 'inherit');
         el.attributes['contentEditable'] = 'foo';
-        Expect.equals('foo', el.contentEditable);
+        expect(el.contentEditable, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.contentEditable = 'foo';
-        Expect.equals('foo', el.attributes['contentEditable']);
+        expect(el.attributes['contentEditable'], 'foo');
       });
 
       test('isContentEditable', () {
         final el = makeElement();
-        Expect.isFalse(el.isContentEditable);
+        expect(el.isContentEditable, isFalse);
         el.contentEditable = 'true';
-        Expect.isFalse(el.isContentEditable);
+        expect(el.isContentEditable, isFalse);
       });
     });
 
     group('draggable', () {
       test('get', () {
         final el = makeElement();
-        Expect.isFalse(el.draggable);
+        expect(el.draggable, isFalse);
         el.attributes['draggable'] = 'true';
-        Expect.isTrue(el.draggable);
+        expect(el.draggable, isTrue);
         el.attributes['draggable'] = 'foo';
-        Expect.isFalse(el.draggable);
+        expect(el.draggable, isFalse);
       });
 
       test('set', () {
         final el = makeElement();
         el.draggable = true;
-        Expect.equals('true', el.attributes['draggable']);
+        expect(el.attributes['draggable'], 'true');
         el.draggable = false;
-        Expect.equals('false', el.attributes['draggable']);
+        expect(el.attributes['draggable'], 'false');
       });
     });
 
     group('spellcheck', () {
       test('get', () {
         final el = makeElement();
-        Expect.isFalse(el.spellcheck);
+        expect(el.spellcheck, isFalse);
         el.attributes['spellcheck'] = 'true';
-        Expect.isTrue(el.spellcheck);
+        expect(el.spellcheck, isTrue);
         el.attributes['spellcheck'] = 'foo';
-        Expect.isFalse(el.spellcheck);
+        expect(el.spellcheck, isFalse);
       });
 
       test('set', () {
         final el = makeElement();
         el.spellcheck = true;
-        Expect.equals('true', el.attributes['spellcheck']);
+        expect(el.attributes['spellcheck'], 'true');
         el.spellcheck = false;
-        Expect.equals('false', el.attributes['spellcheck']);
+        expect(el.attributes['spellcheck'], 'false');
       });
     });
 
     group('hidden', () {
       test('get', () {
         final el = makeElement();
-        Expect.isFalse(el.hidden);
+        expect(el.hidden, isFalse);
         el.attributes['hidden'] = '';
-        Expect.isTrue(el.hidden);
+        expect(el.hidden, isTrue);
       });
 
       test('set', () {
         final el = makeElement();
         el.hidden = true;
-        Expect.equals('', el.attributes['hidden']);
+        expect(el.attributes['hidden'], '');
         el.hidden = false;
-        Expect.isFalse(el.attributes.containsKey('hidden'));
+        expect(el.attributes.containsKey('hidden'), isFalse);
       });
     });
 
     group('tabIndex', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals(0, el.tabIndex);
+        expect(el.tabIndex, 0);
         el.attributes['tabIndex'] = '2';
-        Expect.equals(2, el.tabIndex);
+        expect(el.tabIndex, 2);
         el.attributes['tabIndex'] = 'foo';
-        Expect.equals(0, el.tabIndex);
+        expect(el.tabIndex, 0);
       });
 
       test('set', () {
         final el = makeElement();
         el.tabIndex = 15;
-        Expect.equals('15', el.attributes['tabIndex']);
+        expect(el.attributes['tabIndex'], '15');
       });
     });
 
     group('id', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('', el.id);
+        expect(el.id, '');
         el.attributes['id'] = 'foo';
-        Expect.equals('foo', el.id);
+        expect(el.id, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.id = 'foo';
-        Expect.equals('foo', el.attributes['id']);
+        expect(el.attributes['id'], 'foo');
       });
     });
 
     group('title', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('', el.title);
+        expect(el.title, '');
         el.attributes['title'] = 'foo';
-        Expect.equals('foo', el.title);
+        expect(el.title, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.title = 'foo';
-        Expect.equals('foo', el.attributes['title']);
+        expect(el.attributes['title'], 'foo');
       });
     });
 
     group('webkitdropzone', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('', el.webkitdropzone);
+        expect(el.webkitdropzone, '');
         el.attributes['webkitdropzone'] = 'foo';
-        Expect.equals('foo', el.webkitdropzone);
+        expect(el.webkitdropzone, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.webkitdropzone = 'foo';
-        Expect.equals('foo', el.attributes['webkitdropzone']);
+        expect(el.attributes['webkitdropzone'], 'foo');
       });
     });
 
     group('lang', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('', el.lang);
+        expect(el.lang, '');
         el.attributes['lang'] = 'foo';
-        Expect.equals('foo', el.lang);
+        expect(el.lang, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.lang = 'foo';
-        Expect.equals('foo', el.attributes['lang']);
+        expect(el.attributes['lang'], 'foo');
       });
     });
 
     group('dir', () {
       test('get', () {
         final el = makeElement();
-        Expect.equals('', el.dir);
+        expect(el.dir, '');
         el.attributes['dir'] = 'foo';
-        Expect.equals('foo', el.dir);
+        expect(el.dir, 'foo');
       });
 
       test('set', () {
         final el = makeElement();
         el.dir = 'foo';
-        Expect.equals('foo', el.attributes['dir']);
+        expect(el.attributes['dir'], 'foo');
       });
     });
   });
@@ -392,90 +391,92 @@ main() {
   test('set innerHTML', () {
     final el = makeElement();
     el.innerHTML = "<foo>Bar<baz/></foo>";
-    Expect.equals(1, el.nodes.length);
+    expect(el.nodes.length, 1);
     final node = el.nodes[0];
-    Expect.isTrue(node is XMLElement);
-    Expect.equals('foo', node.tagName);
-    Expect.equals('Bar', node.nodes[0].text);
-    Expect.equals('baz', node.nodes[1].tagName);
+    expect(node, isXMLElement);
+    expect(node.tagName, 'foo');
+    expect(node.nodes[0].text, 'Bar');
+    expect(node.nodes[1].tagName, 'baz');
   });
 
   test('get innerHTML/outerHTML', () {
     final el = makeElement();
-    Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+    expect(el.innerHTML, "<foo></foo><bar></bar>");
     el.nodes.clear();
     el.nodes.addAll([new Text("foo"), new XMLElement.xml("<a>bar</a>")]);
-    Expect.equals("foo<a>bar</a>", el.innerHTML);
-    Expect.equals("<xml>foo<a>bar</a></xml>", el.outerHTML);
+    expect(el.innerHTML, "foo<a>bar</a>");
+    expect(el.outerHTML, "<xml>foo<a>bar</a></xml>");
   });
 
   test('query', () {
     final el = makeElement();
-    Expect.equals("foo", el.query('foo').tagName);
-    Expect.isNull(el.query('baz'));
+    expect(el.query('foo').tagName, 'foo');
+    expect(el.query('baz'), isNull);
   });
 
   test('queryAll', () {
     final el = new XMLElement.xml(
         "<xml><foo id='f1' /><bar><foo id='f2' /></bar></xml>");
-    Expect.listEquals(["f1", "f2"], el.queryAll('foo').map((e) => e.id));
-    Expect.listEquals([], el.queryAll('baz'));
+    expect(el.queryAll('foo').map((e) => e.id), ['f1', 'f2']);
+    expect(el.queryAll('baz'), []);
   });
 
   // TODO(nweiz): re-enable this when matchesSelector works cross-browser.
   //
   // test('matchesSelector', () {
   //   final el = makeElement();
-  //   Expect.isTrue(el.matchesSelector('*'));
-  //   Expect.isTrue(el.matchesSelector('xml'));
-  //   Expect.isFalse(el.matchesSelector('html'));
+  //   expect(el.matchesSelector('*'), isTrue);
+  //   expect(el.matchesSelector('xml'), isTrue);
+  //   expect(el.matchesSelector('html'), isFalse);
   // });
 
   group('insertAdjacentElement', () {
     test('beforeBegin with no parent does nothing', () {
       final el = makeElement();
-      Expect.isNull(
-        el.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")));
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.insertAdjacentElement("beforeBegin", new XMLElement.tag("b")),
+          isNull);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
-      Expect.isNull(
-        el.insertAdjacentElement("afterEnd", new XMLElement.tag("b")));
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(
+        el.insertAdjacentElement("afterEnd", new XMLElement.tag("b")), isNull);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the element', () {
       final el = makeElementWithParent();
       final newEl = new XMLElement.tag("b");
-      Expect.equals(newEl, el.insertAdjacentElement("beforeBegin", newEl));
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before><b></b><xml><foo></foo><bar></bar>" +
-          "</xml><after></after>", el.parent.innerHTML);
+      expect(el.insertAdjacentElement("beforeBegin", newEl), newEl);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML, 
+          "<before></before><b></b><xml><foo></foo><bar></bar>"
+          "</xml><after></after>");
     });
 
     test('afterEnd with parent inserts the element', () {
       final el = makeElementWithParent();
       final newEl = new XMLElement.tag("b");
-      Expect.equals(newEl, el.insertAdjacentElement("afterEnd", newEl));
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before><xml><foo></foo><bar></bar></xml><b>" +
-          "</b><after></after>", el.parent.innerHTML);
+      expect(el.insertAdjacentElement("afterEnd", newEl), newEl);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML, 
+          "<before></before><xml><foo></foo><bar></bar></xml><b>"
+          "</b><after></after>");
     });
 
     test('afterBegin inserts the element', () {
       final el = makeElement();
       final newEl = new XMLElement.tag("b");
-      Expect.equals(newEl, el.insertAdjacentElement("afterBegin", newEl));
-      Expect.equals("<b></b><foo></foo><bar></bar>", el.innerHTML);
+      expect(el.insertAdjacentElement("afterBegin", newEl), newEl);
+      expect(el.innerHTML, "<b></b><foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the element', () {
       final el = makeElement();
       final newEl = new XMLElement.tag("b");
-      Expect.equals(newEl, el.insertAdjacentElement("beforeEnd", newEl));
-      Expect.equals("<foo></foo><bar></bar><b></b>", el.innerHTML);
+      expect(el.insertAdjacentElement("beforeEnd", newEl), newEl);
+      expect(el.innerHTML, "<foo></foo><bar></bar><b></b>");
     });
   });
 
@@ -483,41 +484,43 @@ main() {
     test('beforeBegin with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentText("beforeBegin", "foo");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentText("afterEnd", "foo");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the text', () {
       final el = makeElementWithParent();
       el.insertAdjacentText("beforeBegin", "foo");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before>foo<xml><foo></foo><bar></bar></xml>" +
-          "<after></after>", el.parent.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML, 
+          "<before></before>foo<xml><foo></foo><bar></bar></xml>"
+          "<after></after>");
     });
 
     test('afterEnd with parent inserts the text', () {
       final el = makeElementWithParent();
       el.insertAdjacentText("afterEnd", "foo");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before><xml><foo></foo><bar></bar></xml>foo" +
-          "<after></after>", el.parent.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML, 
+          "<before></before><xml><foo></foo><bar></bar></xml>foo"
+          "<after></after>");
     });
 
     test('afterBegin inserts the text', () {
       final el = makeElement();
       el.insertAdjacentText("afterBegin", "foo");
-      Expect.equals("foo<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "foo<foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the text', () {
       final el = makeElement();
       el.insertAdjacentText("beforeEnd", "foo");
-      Expect.equals("<foo></foo><bar></bar>foo", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>foo");
     });
   });
 
@@ -525,41 +528,43 @@ main() {
     test('beforeBegin with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('afterEnd with no parent does nothing', () {
       final el = makeElement();
       el.insertAdjacentHTML("afterEnd", "<b/>foo");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
     });
 
     test('beforeBegin with parent inserts the HTML', () {
       final el = makeElementWithParent();
       el.insertAdjacentHTML("beforeBegin", "foo<b/>");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before>foo<b></b><xml><foo></foo><bar></bar>" +
-          "</xml><after></after>", el.parent.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML,
+          "<before></before>foo<b></b><xml><foo></foo><bar></bar>"
+          "</xml><after></after>");
     });
 
     test('afterEnd with parent inserts the HTML', () {
       final el = makeElementWithParent();
       el.insertAdjacentHTML("afterEnd", "foo<b/>");
-      Expect.equals("<foo></foo><bar></bar>", el.innerHTML);
-      Expect.equals("<before></before><xml><foo></foo><bar></bar></xml>foo" +
-          "<b></b><after></after>", el.parent.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar>");
+      expect(el.parent.innerHTML,
+          "<before></before><xml><foo></foo><bar></bar></xml>foo"
+          "<b></b><after></after>");
     });
 
     test('afterBegin inserts the HTML', () {
       final el = makeElement();
       el.insertAdjacentHTML("afterBegin", "foo<b/>");
-      Expect.equals("foo<b></b><foo></foo><bar></bar>", el.innerHTML);
+      expect(el.innerHTML, "foo<b></b><foo></foo><bar></bar>");
     });
 
     test('beforeEnd inserts the HTML', () {
       final el = makeElement();
       el.insertAdjacentHTML("beforeEnd", "<b/>foo");
-      Expect.equals("<foo></foo><bar></bar><b></b>foo", el.innerHTML);
+      expect(el.innerHTML, "<foo></foo><bar></bar><b></b>foo");
     });
   });
 
@@ -570,7 +575,7 @@ main() {
         expectEmptyRect(rect.offset);
         expectEmptyRect(rect.scroll);
         expectEmptyRect(rect.bounding);
-        Expect.isTrue(rect.clientRects.isEmpty);
+        expect(rect.clientRects.isEmpty, isTrue);
       }));
   });
 }

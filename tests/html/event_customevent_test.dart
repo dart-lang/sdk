@@ -19,7 +19,7 @@ eventTest(String name, Event eventFn(), void validate(Event),
       validate(ev);
     });
     el.on[type].dispatch(eventFn());
-    expect(fired, isTrue, 'Expected event to be dispatched.');
+    expect(fired, isTrue, reason: 'Expected event to be dispatched.');
   });
 }
 

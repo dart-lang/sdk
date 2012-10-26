@@ -6,6 +6,9 @@
  * Returns a matcher which matches if the match argument is a string and
  * is equal to [value] when compared case-insensitively.
  */
+
+part of unittest;
+
 Matcher equalsIgnoringCase(String value) => new _IsEqualIgnoringCase(value);
 
 class _IsEqualIgnoringCase extends _StringMatcher {
@@ -127,6 +130,7 @@ class _StringEndsWith extends _StringMatcher {
  * For example, `stringContainsInOrder(["a", "e", "i", "o", "u"])` will match
  * "abcdefghijklmnopqrstuvwxyz".
  */
+
 Matcher stringContainsInOrder(substrings) =>
     new _StringContainsInOrder(substrings);
 

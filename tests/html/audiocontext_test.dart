@@ -7,10 +7,13 @@ main() {
 
   useHtmlConfiguration();
 
+  var isAudioContext =
+      predicate((x) => x is AudioContext, 'is an AudioContext');
+
   test('constructorTest', () {
       var ctx = new AudioContext();
       expect(ctx, isNotNull);
-      expect(ctx is AudioContext);
+      expect(ctx, isAudioContext);
   });
   test('createBuffer', () {
       var ctx = new AudioContext();

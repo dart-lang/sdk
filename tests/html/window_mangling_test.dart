@@ -20,16 +20,16 @@ main() {
   test('windowMethod', () {
       final message = navigator;
       final x = win.navigator;
-      Expect.notEquals(message, x);
+      expect(x, isNot(equals(message)));
     });
 
   test('windowEquals', () {
-      Expect.isFalse($eq(win, win));
-      Expect.isTrue(win == win);
+      expect($eq(win, win), isFalse);
+      expect(win == win, isTrue);
     });
 
   test('windowEquals', () {
-      Expect.isFalse($eq$(win, win));
-      Expect.isTrue(win == win);
+      expect($eq$(win, win), isFalse);
+      expect(win == win, isTrue);
     });
 }

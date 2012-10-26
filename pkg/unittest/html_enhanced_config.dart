@@ -8,7 +8,7 @@
  * Provides enhanced HTML output with collapsible group headers
  * and other at-a-glance information about the test results.
  */
-#library('unittest');
+#library('unittest_html_enhanced_config');
 
 #import('dart:html');
 #import('unittest.dart');

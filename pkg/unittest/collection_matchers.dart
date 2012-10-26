@@ -6,6 +6,9 @@
  * Returns a matcher which matches [Collection]s in which all elements
  * match the given [matcher].
  */
+
+part of unittest;
+
 Matcher everyElement(matcher) => new _EveryElement(wrapMatcher(matcher));
 
 class _EveryElement extends _CollectionMatcher {

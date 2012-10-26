@@ -13,6 +13,9 @@
  * state, if set, will typically be a [Map] with a number of key-value
  * pairs containing relevant state information.
  */
+
+part of unittest;
+
 class MatchState {
   var state = null;
 

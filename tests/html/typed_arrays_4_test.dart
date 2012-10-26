@@ -16,13 +16,13 @@ main() {
         a1[i] = i;
       }
 
-      Expect.equals(50, a1.indexOf(50));
-      Expect.equals(50, a1.indexOf(50, 50));
-      Expect.equals(256 + 50, a1.indexOf(50, 51));
+      expect(a1.indexOf(50), 50);
+      expect(a1.indexOf(50, 50), 50);
+      expect(a1.indexOf(50, 51), 256 + 50);
 
-      Expect.equals(768 + 50, a1.lastIndexOf(50));
-      Expect.equals(768 + 50, a1.lastIndexOf(50, 768 + 50));
-      Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
+      expect(a1.lastIndexOf(50), 768 + 50);
+      expect(a1.lastIndexOf(50, 768 + 50), 768 + 50);
+      expect(a1.lastIndexOf(50, 768 + 50 - 1), 512 + 50);
   });
 
   test('indexOf_typed', () {
@@ -31,12 +31,12 @@ main() {
         a1[i] = i;
       }
 
-      Expect.equals(50, a1.indexOf(50));
-      Expect.equals(50, a1.indexOf(50, 50));
-      Expect.equals(256 + 50, a1.indexOf(50, 51));
+      expect(a1.indexOf(50), 50);
+      expect(a1.indexOf(50, 50), 50);
+      expect(a1.indexOf(50, 51), 256 + 50);
 
-      Expect.equals(768 + 50, a1.lastIndexOf(50));
-      Expect.equals(768 + 50, a1.lastIndexOf(50, 768 + 50));
-      Expect.equals(512 + 50, a1.lastIndexOf(50, 768 + 50 - 1));
+      expect(a1.lastIndexOf(50), 768 + 50);
+      expect(a1.lastIndexOf(50, 768 + 50), 768 + 50);
+      expect(a1.lastIndexOf(50, 768 + 50 - 1), 512 + 50);
   });
 }

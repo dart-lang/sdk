@@ -5,7 +5,7 @@
 
 void fail(message) {
   guardAsync(() {
-      Expect.fail(message);
+      expect(false, isTrue, reason: message);
     });
 }
 
@@ -94,7 +94,7 @@ main() {
 
     final db = window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
 
-    Expect.isNotNull(db, 'Unable to open database');
+    expect(db, isNotNull, reason: 'Unable to open database');
 
     createTransaction(db)
       // Attempt to clear out any tables which may be lurking from previous
@@ -104,10 +104,10 @@ main() {
       .chain(insert(tableName, columnName, 'Some text data'))
       .chain(queryTable(tableName, (resultSet) {
         guardAsync(() {
-          Expect.equals(1, resultSet.rows.length);
+          expect(resultSet.rows.length, 1);
           var row = resultSet.rows.item(0);
-          Expect.isTrue(row.containsKey(columnName));
-          Expect.equals('Some text data', row[columnName]);
+          expect(row.containsKey(columnName), isTrue);
+          expect(row[columnName], 'Some text data');
         });
       }))
       .chain(dropTable(tableName))

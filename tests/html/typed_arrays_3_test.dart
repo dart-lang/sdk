@@ -16,12 +16,12 @@ main() {
       a1.setElements([0x50,0x60,0x70], 4);
 
       var a2 = new Uint32Array.fromBuffer(a1.buffer);
-      Expect.equals(0x00000000, a2[0]);
-      Expect.equals(0x00706050, a2[1]);
+      expect(a2[0], 0x00000000);
+      expect(a2[1], 0x00706050);
 
       a2.setElements([0x01020304], 2);
-      Expect.equals(0x04, a1[8]);
-      Expect.equals(0x01, a1[11]);
+      expect(a1[8], 0x04);
+      expect(a1[11], 0x01);
   });
 
   test('setElementsTest_typed', () {
@@ -30,11 +30,11 @@ main() {
       a1.setElements([0x50,0x60,0x70], 4);
 
       Uint32Array a2 = new Uint32Array.fromBuffer(a1.buffer);
-      Expect.equals(0x00000000, a2[0]);
-      Expect.equals(0x00706050, a2[1]);
+      expect(a2[0], 0x00000000);
+      expect(a2[1], 0x00706050);
 
       a2.setElements([0x01020304], 2);
-      Expect.equals(0x04, a1[8]);
-      Expect.equals(0x01, a1[11]);
+      expect(a1[8], 0x04);
+      expect(a1[11], 0x01);
   });
 }

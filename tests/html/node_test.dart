@@ -14,114 +14,124 @@ Node makeNodeWithChildren() =>
 main() {
   useHtmlConfiguration();
 
+  var isText = predicate((x) => x is Text, 'is a Text');
+  var isComment = predicate((x) => x is Comment, 'is a Comment');
+  var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');
+  var isHRElement = predicate((x) => x is HRElement, 'is a HRElement');
+  var isNodeList = predicate((x) => x is List<Node>, 'is a List<Node>');
+  var isImageElement =
+      predicate((x) => x is ImageElement, 'is an ImageElement');
+  var isInputElement =
+      predicate((x) => x is InputElement, 'is an InputElement');
+
   test('replaceWith', () {
     final node = makeNodeWithChildren();
     final subnode = node.nodes[1];
     final out = subnode.replaceWith(new Text('Bar'));
-    Expect.equals(subnode, out, '#replaceWith should be chainable');
-    Expect.equals(3, node.nodes.length);
-    Expect.isTrue(node.nodes[0] is Text);
-    Expect.equals('Foo', node.nodes[0].text);
-    Expect.isTrue(node.nodes[1] is Text);
-    Expect.equals('Bar', node.nodes[1].text);
-    Expect.isTrue(node.nodes[2] is Comment);
+    expect(out, equals(subnode), reason: '#replaceWith should be chainable');
+    expect(node.nodes.length, 3);
+    expect(node.nodes[0], isText);
+    expect(node.nodes[0].text, 'Foo');
+    expect(node.nodes[1], isText);
+    expect(node.nodes[1].text, 'Bar');
+    expect(node.nodes[2], isComment);
   });
 
   test('remove', () {
     final node = makeNodeWithChildren();
     final subnode = node.nodes[1];
     final out = subnode.remove();
-    Expect.isNull(out);
-    Expect.equals(2, node.nodes.length);
-    Expect.isTrue(node.nodes[0] is Text);
-    Expect.isTrue(node.nodes[1] is Comment);
+    expect(out, isNull);
+    expect(node.nodes.length, 2);
+    expect(node.nodes[0], isText);
+    expect(node.nodes[1], isComment);
   });
 
   test('contains', () {
     final Node node = new Element.html("<div>Foo<span>Bar</span></div>");
-    Expect.isTrue(node.contains(node.nodes.first));
-    Expect.isTrue(node.contains(node.nodes[1].nodes.first));
-    Expect.isFalse(node.contains(new Text('Foo')));
+    expect(node.contains(node.nodes.first), isTrue);
+    expect(node.contains(node.nodes[1].nodes.first), isTrue);
+    expect(node.contains(new Text('Foo')), isFalse);
   });
 
   group('nodes', () {
     test('is a NodeList', () {
-      Expect.isTrue(makeNodeWithChildren().nodes is List<Node>);
+      expect(makeNodeWithChildren().nodes, isNodeList);
     });
 
     test('first', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.first is Text);
+      expect(node.nodes.first, isText);
     });
 
     test('last', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.last is Comment);
+      expect(node.nodes.last, isComment);
     });
 
     test('forEach', () {
       var nodes = [];
       var node = makeNodeWithChildren();
       node.nodes.forEach((n) => nodes.add(n));
-      Expect.isTrue(nodes[0] is Text);
-      Expect.isTrue(nodes[1] is BRElement);
-      Expect.isTrue(nodes[2] is Comment);
+      expect(nodes[0], isText);
+      expect(nodes[1], isBRElement);
+      expect(nodes[2], isComment);
     });
 
     test('filter', () {
       var filtered = makeNodeWithChildren().nodes.filter((n) => n is BRElement);
-      Expect.equals(1, filtered.length);
-      Expect.isTrue(filtered[0] is BRElement);
-      Expect.isTrue(filtered is List<Node>);
+      expect(filtered.length, 1);
+      expect(filtered[0], isBRElement);
+      expect(filtered, isNodeList);
     });
 
     test('every', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.every((n) => n is Node));
-      Expect.isFalse(node.nodes.every((n) => n is Comment));
+      expect(node.nodes.every((n) => n is Node), isTrue);
+      expect(node.nodes.every((n) => n is Comment), isFalse);
     });
 
     test('some', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.some((n) => n is Comment));
-      Expect.isFalse(node.nodes.some((n) => n is SVGElement));
+      expect(node.nodes.some((n) => n is Comment), isTrue);
+      expect(node.nodes.some((n) => n is SVGElement), isFalse);
     });
 
     test('isEmpty', () {
-      Expect.isTrue(makeNode().nodes.isEmpty);
-      Expect.isFalse(makeNodeWithChildren().nodes.isEmpty);
+      expect(makeNode().nodes.isEmpty, isTrue);
+      expect(makeNodeWithChildren().nodes.isEmpty, isFalse);
     });
 
     test('length', () {
-      Expect.equals(0, makeNode().nodes.length);
-      Expect.equals(3, makeNodeWithChildren().nodes.length);
+      expect(makeNode().nodes.length, 0);
+      expect(makeNodeWithChildren().nodes.length, 3);
     });
 
     test('[]', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes[0] is Text);
-      Expect.isTrue(node.nodes[1] is BRElement);
-      Expect.isTrue(node.nodes[2] is Comment);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isBRElement);
+      expect(node.nodes[2], isComment);
     });
 
     test('[]=', () {
       var node = makeNodeWithChildren();
       node.nodes[1] = new Element.tag('hr');
-      Expect.isTrue(node.nodes[0] is Text);
-      Expect.isTrue(node.nodes[1] is HRElement);
-      Expect.isTrue(node.nodes[2] is Comment);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isHRElement);
+      expect(node.nodes[2], isComment);
     });
 
     test('add', () {
       var node = makeNode();
       node.nodes.add(new Element.tag('hr'));
-      Expect.isTrue(node.nodes.last is HRElement);
+      expect(node.nodes.last, isHRElement);
     });
 
     test('addLast', () {
       var node = makeNode();
       node.nodes.addLast(new Element.tag('hr'));
-      Expect.isTrue(node.nodes.last is HRElement);
+      expect(node.nodes.last, isHRElement);
     });
 
     test('iterator', () {
@@ -130,9 +140,9 @@ main() {
       for (var subnode in node.nodes) {
         nodes.add(subnode);
       }
-      Expect.isTrue(nodes[0] is Text);
-      Expect.isTrue(nodes[1] is BRElement);
-      Expect.isTrue(nodes[2] is Comment);
+      expect(nodes[0], isText);
+      expect(nodes[1], isBRElement);
+      expect(nodes[2], isComment);
     });
 
     test('addAll', () {
@@ -142,31 +152,31 @@ main() {
         new Element.tag('img'),
         new Element.tag('input')
       ]);
-      Expect.isTrue(node.nodes[0] is Text);
-      Expect.isTrue(node.nodes[1] is BRElement);
-      Expect.isTrue(node.nodes[2] is Comment);
-      Expect.isTrue(node.nodes[3] is HRElement);
-      Expect.isTrue(node.nodes[4] is ImageElement);
-      Expect.isTrue(node.nodes[5] is InputElement);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isBRElement);
+      expect(node.nodes[2], isComment);
+      expect(node.nodes[3], isHRElement);
+      expect(node.nodes[4], isImageElement);
+      expect(node.nodes[5], isInputElement);
     });
 
     test('clear', () {
       var node = makeNodeWithChildren();
       node.nodes.clear();
-      Expect.listEquals([], node.nodes);
+      expect(node.nodes, []);
     });
 
     test('removeLast', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.removeLast() is Comment);
-      Expect.equals(2, node.nodes.length);
-      Expect.isTrue(node.nodes.removeLast() is BRElement);
-      Expect.equals(1, node.nodes.length);
+      expect(node.nodes.removeLast(), isComment);
+      expect(node.nodes.length, 2);
+      expect(node.nodes.removeLast(), isBRElement);
+      expect(node.nodes.length, 1);
     });
 
     test('getRange', () {
       var node = makeNodeWithChildren();
-      Expect.isTrue(node.nodes.getRange(1, 2) is List<Node>);
+      expect(node.nodes.getRange(1, 2), isNodeList);
     });
   });
 
@@ -176,21 +186,21 @@ main() {
 
     test('first', () {
       var nodes = makeNodeList();
-      Expect.isTrue(nodes.first is Text);
+      expect(nodes.first, isText);
     });
 
     test('filter', () {
       var filtered = makeNodeList().filter((n) => n is BRElement);
-      Expect.equals(1, filtered.length);
-      Expect.isTrue(filtered[0] is BRElement);
-      Expect.isTrue(filtered is List<Node>);
+      expect(filtered.length, 1);
+      expect(filtered[0], isBRElement);
+      expect(filtered, isNodeList);
     });
 
     test('getRange', () {
       var range = makeNodeList().getRange(1, 2);
-      Expect.isTrue(range is List<Node>);
-      Expect.isTrue(range[0] is BRElement);
-      Expect.isTrue(range[1] is Comment);
+      expect(range, isNodeList);
+      expect(range[0], isBRElement);
+      expect(range[1], isComment);
     });
   });
 }

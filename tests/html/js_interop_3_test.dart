@@ -28,10 +28,10 @@ main() {
 
   test('js-to-dart', () {
     var fun1 = (message) {
-      Expect.equals('Hello', message['a']);
-      Expect.equals('World', message['b']);
-      Expect.equals(42, message['c']);
-      Expect.equals(3, message.keys.length);
+      expect(message['a'], 'Hello');
+      expect(message['b'], 'World');
+      expect(message['c'], 42);
+      expect(message.keys.length, 3);
       return 42;
     };
 
@@ -42,7 +42,7 @@ main() {
     // TODO(vsm): Investigate why this needs to be called asynchronously.
     var done = expectAsync0(() {});
     var fun2 = (message) {
-      Expect.equals(42, message);
+      expect(message, 42);
       window.setTimeout(done, 0);
     };
 

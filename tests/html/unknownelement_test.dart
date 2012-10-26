@@ -10,6 +10,9 @@
 main() {
   useHtmlConfiguration();
 
+  var isUnknownElement =
+      predicate((x) => x is UnknownElement, 'is an UnknownELement');
+
   var foo = new Element.tag('foo');
   foo.id = 'foo';
   var bar = new Element.tag('bar');
@@ -17,8 +20,8 @@ main() {
   document.body.nodes.addAll([foo, bar]);
 
   test('type-check', () {
-      expect(foo is UnknownElement, isTrue);
-      expect(bar is UnknownElement, isTrue);
+      expect(foo, isUnknownElement);
+      expect(bar, isUnknownElement);
       expect(query('#foo'), equals(foo));
       expect(query('#bar'), equals(bar));
     });

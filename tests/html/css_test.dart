@@ -38,6 +38,6 @@ main() {
 }
 
 void checkPoint(expectedX, expectedY, Point point) {
-  expect(point.x.round(), equals(expectedX), 'Wrong point.x');
-  expect(point.y.round(), equals(expectedY), 'Wrong point.y');
+  expect(point.x.round(), equals(expectedX), reason: 'Wrong point.x');
+  expect(point.y.round(), equals(expectedY), reason: 'Wrong point.y');
 }

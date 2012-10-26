@@ -7,6 +7,6 @@ main() {
   useHtmlConfiguration();
   test('FileReader', () {
     FileReader fileReader = new FileReader();
-    Expect.equals(FileReader.EMPTY, fileReader.readyState);
+    expect(fileReader.readyState, equals(FileReader.EMPTY));
   });
 }

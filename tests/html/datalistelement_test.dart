@@ -10,6 +10,9 @@
 main() {
   useHtmlConfiguration();
 
+  var isDataListElement =
+      predicate((x) => x is DataListElement, 'is a DataListElement');
+
   var div;
 
   setUp(() {
@@ -34,7 +37,7 @@ main() {
 
   test('is', () {
       var list = document.query('#browsers');
-      expect(list is DataListElement);
+      expect(list, isDataListElement);
   });
 
   test('list', () {
@@ -51,6 +54,6 @@ main() {
 
   test('create', () {
       var list = new DataListElement();
-      expect(list is DataListElement);
+      expect(list, isDataListElement);
     });
 }

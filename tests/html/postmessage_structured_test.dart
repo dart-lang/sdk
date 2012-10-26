@@ -34,7 +34,7 @@ main() {
         guardAsync(() {
             var data = e.data;
             if (data is String) return;    // Messages from unit test protocol.
-            expect(data is Map);
+            expect(data, isMap);
             expect(data['eggs'], equals(3));
             onSuccess(e);
           });
@@ -66,7 +66,7 @@ main() {
         guardAsync(() {
             var data = e.data;
             if (data is String) return;    // Messages from unit test protocol.
-            expect(data is Map);
+            expect(data, isMap);
             if (data['recipient'] != 'DART') return;  // Hearing the sent message.
             expect(data['peas'], equals(50));
             onSuccess(e);
@@ -98,7 +98,7 @@ main() {
             guardAsync(() {
                 var data = e.data;
                 if (data is String) return;    // Messages from unit test protocol.
-                expect(data is Map);
+                expect(data, isMap);
                 if (data['recipient'] != 'DART') return;  // Not for me.
                 var returnedValue = data['data'];
 

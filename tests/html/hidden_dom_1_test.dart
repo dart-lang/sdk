@@ -15,7 +15,7 @@ main() {
 Hello World!
 </div>'''));
     Element e = document.query('#div1');
-    Expect.isTrue(e != null);
+    expect(e, isNotNull);
 
     checkNoSuchMethod(() { confuse(e).onfocus = null; });
   });
@@ -39,7 +39,7 @@ checkNoSuchMethod(action()) {
     ex = e;
   }
   if (ex === null)
-    Expect.fail('Action should have thrown exception');
+    expect(false, isTrue, reason: 'Action should have thrown exception');
 
-  Expect.isTrue(ex is NoSuchMethodError, 'ex is NoSuchMethodError');
+  expect(ex, isNoSuchMethodError);
 }

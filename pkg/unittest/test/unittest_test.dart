@@ -133,8 +133,8 @@ runTest() {
       test('testOne', () {
         var f = expectAsync0(() {});
         _defer(protectAsync0(() {
-          _defer(protectAsync0(() => expect(false)));
-          expect(false);
+          _defer(protectAsync0(() => expect(false, isTrue)));
+          expect(false, isTrue);
         }));
       });
       test('testTwo', () {

@@ -24,9 +24,9 @@ main() {
     expect(style.item(0), isEmpty);
     expect(style, hasLength(0));
     // These assertions throw a NotImplementedException in dartium:
-    // Expect.isNull(style.parentRule);
-    // Expect.isNull(style.getPropertyCSSValue('color'));
-    // Expect.isNull(style.getPropertyShorthand('color'));
+    // expect(style.parentRule, isNull);
+    // expect(style.getPropertyCSSValue('color'), isNull);
+    // expect(style.getPropertyShorthand('color'), isNull);
   });
 
   test('length is wrapped', () {

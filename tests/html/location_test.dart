@@ -6,13 +6,15 @@
 main() {
   useHtmlConfiguration();
 
+  var isLocation = predicate((x) => x is Location, 'is a Location');
+
   test('location hash', () {
       final location = window.location;
-      Expect.isTrue(location is Location);
+      expect(location, isLocation);
 
       // The only navigation we dare try is hash.
       location.hash = 'hello';
       var h = location.hash;
-      Expect.equals('#hello', h);
+      expect(h, '#hello');
     });
 }

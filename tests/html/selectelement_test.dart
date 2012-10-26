@@ -23,7 +23,7 @@ main() {
     ];
     element.elements.addAll(options);
     expect(element.selectedOptions.length, 1);
-    expect(element.selectedOptions[0] == options[4]);
+    expect(element.selectedOptions[0], equals(options[4]));
   });
 
   test('multiple selectedOptions', () {
@@ -39,8 +39,8 @@ main() {
     ];
     element.elements.addAll(options);
     expect(element.selectedOptions.length, 2);
-    expect(element.selectedOptions[0] == options[2]);
-    expect(element.selectedOptions[1] == options[4]);
+    expect(element.selectedOptions[0], equals(options[2]));
+    expect(element.selectedOptions[1], equals(options[4]));
   });
 
   test('options', () {
@@ -53,6 +53,6 @@ main() {
     ];
     element.elements.addAll(options);
     // Use last to make sure that the list was correctly wrapped.
-    expect(element.options.last, options[3]);
+    expect(element.options.last, equals(options[3]));
   });
 }

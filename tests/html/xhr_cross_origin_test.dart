@@ -18,7 +18,7 @@ main() {
     var validate = expectAsync1((data) {
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));
-      expect(data is Map, isTrue);
+      expect(data, isMap);
     });
     xhr.on.readyStateChange.add((e) {
       guardAsync(() {
@@ -36,7 +36,7 @@ main() {
       var data = JSON.parse(xhr.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));
-      expect(data is Map, isTrue);
+      expect(data, isMap);
     }));
   });
 }

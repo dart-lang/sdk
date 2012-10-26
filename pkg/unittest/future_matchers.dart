@@ -11,6 +11,9 @@
  * To test that a Future completes with an exception, you can use [throws] and
  * [throwsA].
  */
+
+part of unittest;
+
 Matcher completes = const _Completes(null);
 
 /**
@@ -41,7 +44,7 @@ class _Completes extends BaseMatcher {
         reason = '$reason\nStack trace:\n$stackTrace';
       }
 
-      expect(future.hasValue, isTrue, reason);
+      expect(future.hasValue, isTrue, reason: reason);
       if (_matcher != null) expect(future.value, _matcher);
     }));
 

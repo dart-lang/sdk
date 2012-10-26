@@ -21,7 +21,8 @@ main() {
             window.requestAnimationFrame(
                 expectAsync1((timestamp2) {
                     // Not monotonic on Safari and IE.
-                    // Expect.isTrue(timestamp2 > timestamp1, 'timestamps ordered');
+                    // expect(timestamp2, greaterThan(timestamp1),
+                    //    reason: 'timestamps ordered');
                   }));
           }));
     });

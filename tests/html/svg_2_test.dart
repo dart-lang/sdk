@@ -21,27 +21,44 @@ main() {
 
   useHtmlConfiguration();
 
+  var isElement = predicate((x) => x is Element, 'is an Element');
+  var isSVGElement = predicate((x) => x is SVGElement, 'is a SVGElement');
+  var isSVGSVGElement =
+      predicate((x) => x is SVGSVGElement, 'is a SVGSVGElement');
+  var isNode = predicate((x) => x is Node, 'is a Node');
+  var isSVGTests = predicate((x) => x is SVGTests, 'is a SVGTests');
+  var isSVGLangSpace = predicate((x) => x is SVGLangSpace, 'is a SVGLangSpace');
+  var isSVGExternalResourcesRequired =
+      predicate((x) => x is SVGExternalResourcesRequired,
+          'is a SVGExternalResourcesRequired');
+  var isSVGStylable = predicate((x) => x is SVGStylable, 'is a SVGStylable');
+  var isSVGTransformable =
+      predicate((x) => x is SVGTransformable, 'is a SVGTransformable');
+  var isSVGLocatable = predicate((x) => x is SVGLocatable, 'is a SVGLocatable');
+  var isSVGNumber = predicate((x) => x is SVGNumber, 'is a SVGNumber');
+  var isSVGRect = predicate((x) => x is SVGRect, 'is a SVGRect');
+
   test('rect_isChecks', () {
       var div = insertTestDiv();
       var r = document.query('#rect1');
 
       // Direct inheritance chain
-      Expect.isTrue(r is SVGElement);
-      Expect.isTrue(r is Element);
-      Expect.isTrue(r is Node);
+      expect(r, isSVGElement);
+      expect(r, isElement);
+      expect(r, isNode);
 
       // Other implemented interfaces.
-      Expect.isTrue(r is SVGTests);
-      Expect.isTrue(r is SVGLangSpace);
-      Expect.isTrue(r is SVGExternalResourcesRequired);
-      Expect.isTrue(r is SVGStylable);
-      Expect.isTrue(r is SVGTransformable);
-      Expect.isTrue(r is SVGLocatable);
+      expect(r, isSVGTests);
+      expect(r, isSVGLangSpace);
+      expect(r, isSVGExternalResourcesRequired);
+      expect(r, isSVGStylable);
+      expect(r, isSVGTransformable);
+      expect(r, isSVGLocatable);
 
       // Interfaces not implemented.
-      Expect.isFalse(r is SVGNumber);
-      Expect.isFalse(r is SVGRect);
-      Expect.isFalse(r is SVGSVGElement);
+      expect(r, isNot(isSVGNumber));
+      expect(r, isNot(isSVGRect));
+      expect(r, isNot(isSVGSVGElement));
 
       div.remove();
     });

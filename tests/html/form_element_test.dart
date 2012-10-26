@@ -11,10 +11,12 @@
 void main() {
   useHtmlConfiguration();
 
+  var isFormElement = predicate((x) => x is FormElement, 'is a FormElement');
+
   test('constructorTest1', () {
     var form = new FormElement();
     expect(form, isNotNull);
-    expect(form is FormElement);
+    expect(form, isFormElement);
   });
 
   test('checkValidityTest', () {

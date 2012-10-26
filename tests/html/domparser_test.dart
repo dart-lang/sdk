@@ -7,9 +7,11 @@ main() {
 
   useHtmlConfiguration();
 
+  var isDOMParser = predicate((x) => x is DOMParser, 'is a DOMParser');
+
   test('constructorTest', () {
       var ctx = new DOMParser();
-      Expect.isTrue(ctx != null);
-      Expect.isTrue(ctx is DOMParser);
+      expect(ctx, isNotNull);
+      expect(ctx, isDOMParser);
   });
 }

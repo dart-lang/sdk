@@ -17,37 +17,41 @@ main() {
       new Element.html("<div><br/><img/><input/><img/></div>");
   document.body.nodes.addAll([div, canvas,  element]);
   
+  var isCanvasElement =
+      predicate((x) => x is CanvasElement, 'is a CanvasElement');
+  var isImageElement =
+      predicate((x) => x is ImageElement, 'is an ImageElement');
 
   test('query', () {
       Element e = query('#testcanvas');
-      Expect.isNotNull(e);
-      Expect.stringEquals('testcanvas', e.id);
-      Expect.isTrue(e is CanvasElement);
-      Expect.equals(canvas, e);
+      expect(e, isNotNull);
+      expect(e.id, 'testcanvas');
+      expect(e, isCanvasElement);
+      expect(e, canvas);
     });
 
   test('query (None)', () {
       Element e = query('#nothere');
-      Expect.isNull(e);
+      expect(e, isNull);
     });
 
   test('queryAll (One)', () {
       List l = queryAll('canvas');
-      Expect.equals(1, l.length);
-      Expect.equals(canvas, l[0]);
+      expect(l.length, 1);
+      expect(l[0], canvas);
     });
 
 
   test('queryAll (Multiple)', () {
       List l = queryAll('img');
-      Expect.equals(2, l.length);
-      Expect.isTrue(l[0] is ImageElement);
-      Expect.isTrue(l[1] is ImageElement);
-      Expect.notEquals(l[0], l[1]);
+      expect(l.length, 2);
+      expect(l[0], isImageElement);
+      expect(l[1], isImageElement);
+      expect(l[0], isNot(equals(l[1])));
     });
 
   test('queryAll (None)', () {
       List l = queryAll('video');
-      Expect.isTrue(l.isEmpty);
+      expect(l.isEmpty, isTrue);
     });
 }

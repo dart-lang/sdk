@@ -5,7 +5,7 @@
 
 void fail(message) {
   guardAsync(() {
-    Expect.fail(message);
+    expect(false, isTrue, reason: message);
   });
 }
 
@@ -69,7 +69,7 @@ main() {
           options: {'create': true},
           successCallback: expectAsync1((FileEntry e) {
             expect(e.name, equals('file4'));
-            expect(e.isFile, equals(true));
+            expect(e.isFile, isTrue);
           }),
           errorCallback: (e) {
             fail('Got file error: ${e.code}');

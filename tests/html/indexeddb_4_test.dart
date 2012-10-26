@@ -12,7 +12,7 @@ const int VERSION = 1;
 class Test {
   fail(message) => (e) {
     guardAsync(() {
-      Expect.fail('IndexedDB failure: $message');
+      expect(false, isTrue, reason: 'IndexedDB failure: $message');
     });
   };
 
@@ -99,16 +99,16 @@ class Test {
         if (firstKey == null) firstKey = cursor.key;
         lastKey = cursor.key;
         itemCount += 1;
-        Expect.equals('Item ${cursor.key}', cursor.value);
+        expect(cursor.value, 'Item ${cursor.key}');
         cursor.continueFunction();
       } else {
         // Done
-        Expect.equals(expectedFirst, firstKey);
-        Expect.equals(expectedLast, lastKey);
+        expect(firstKey, expectedFirst);
+        expect(lastKey, expectedLast);
         if (expectedFirst == null) {
-          Expect.equals(0, itemCount);
+          expect(itemCount, isZero);
         } else {
-          Expect.equals(expectedLast - expectedFirst + 1, itemCount);
+          expect(itemCount, expectedLast - expectedFirst + 1);
         }
       }
     },

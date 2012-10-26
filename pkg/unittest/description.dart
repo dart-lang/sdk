@@ -7,6 +7,8 @@
  * could be supported.
  */
 
+part of unittest;
+
 class StringDescription implements Description {
   var _out;
 

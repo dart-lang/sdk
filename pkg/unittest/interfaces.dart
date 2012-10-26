@@ -13,6 +13,9 @@
  * is replaced it may be desirable to replace the [stringDescription]
  * error formatter with another.
  */
+
+part of unittest;
+
 typedef String ErrorFormatter(actual, Matcher matcher, String reason,
     MatchState matchState, bool verbose);
 

@@ -7,16 +7,19 @@ main() {
 
   useHtmlConfiguration();
 
+  var isAudioElement =
+      predicate((x) => x is AudioElement, 'is an AudioElement');
+
   test('constructorTest1', () {
       var audio = new AudioElement();   // would be new Audio() in JS
-      Expect.isTrue(audio != null);
-      Expect.isTrue(audio is AudioElement);
+      expect(audio, isNotNull);
+      expect(audio, isAudioElement);
     });
 
   test('constructorTest2', () {
       var audio = new AudioElement('hahaURL');
-      Expect.isTrue(audio != null);
-      Expect.isTrue(audio is AudioElement);
-      Expect.isTrue(audio.src.indexOf('hahaURL') >= 0);
+      expect(audio, isNotNull);
+      expect(audio, isAudioElement);
+      expect(audio.src.indexOf('hahaURL'), greaterThanOrEqualTo(0));
     });
 }

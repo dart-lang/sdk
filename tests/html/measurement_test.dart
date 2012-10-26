@@ -18,10 +18,10 @@ main() {
     final computedStyle = element.computedStyle;
     computedStyle.then(expectAsync1((style) {
       expect(style.getPropertyValue('left'), equals('auto'));
-      expect(fnComplete);
+      expect(fnComplete, isTrue);
       expect(timeout0, isFalse);
     }));
-    Expect.isFalse(computedStyle.isComplete);
+    expect(computedStyle.isComplete, isFalse);
     fnComplete = true;
   });
 
@@ -29,8 +29,8 @@ main() {
     var rect;
     var computedStyle;
     window.requestLayoutFrame(expectAsync0(() {
-      expect(rect.isComplete);
-      expect(computedStyle.isComplete);
+      expect(rect.isComplete, isTrue);
+      expect(computedStyle.isComplete, isTrue);
     }));
 
     final element = document.body;

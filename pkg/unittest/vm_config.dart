@@ -5,7 +5,7 @@
 /**
  * A simple unit test library for running tests on the VM.
  */
-#library('unittest');
+#library('unittest_vm_config');
 
 #import('dart:io');
 #import('unittest.dart');

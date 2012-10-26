@@ -9,7 +9,7 @@
  * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
  */
-#library('interactive_config');
+#library('unittest_interactive_html_config');
 
 // TODO(gram) - add options for: remove IFrame on done/keep
 // IFrame for failed tests/keep IFrame for all tests.

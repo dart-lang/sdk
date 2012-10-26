@@ -339,6 +339,20 @@ main() {
 
 testResolve(description, packages, {lockfile, result, error}) {
   test(description, () {
+    var isNoVersionException = predicate((x)=> x is NoVersionException,
+        "is a NoVersionException");
+    var isDisjointConstraintException =
+        predicate((x)=> x is DisjointConstraintException,
+       "    is a DisjointConstraintException");
+    var isSourceMismatchException =
+        predicate((x)=> x is SourceMismatchException,
+            "is a SourceMismatchException");
+    var isDescriptionMismatchException =
+        predicate((x)=> x is DescriptionMismatchException,
+            "is a DescriptionMismatchException");
+    var isCouldNotSolveException = predicate((x)=> x is CouldNotSolveException,
+            "is a CouldNotSolveException");
+
     var sources = new SourceRegistry();
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
@@ -405,17 +419,17 @@ testResolve(description, packages, {lockfile, result, error}) {
           if (actualId != expectedId) return false;
         }
         return result.isEmpty;
-      }, description: 'packages to match $result')));
+      }, 'packages to match $result')));
     } else if (error == noVersion) {
-      expect(future, throwsA(new isInstanceOf<NoVersionException>()));
+      expect(future, throwsA(isNoVersionException));
     } else if (error == disjointConstraint) {
-      expect(future, throwsA(new isInstanceOf<DisjointConstraintException>()));
+      expect(future, throwsA(isDisjointConstraintException));
     } else if (error == sourceMismatch) {
-      expect(future, throwsA(new isInstanceOf<SourceMismatchException>()));
+      expect(future, throwsA(isSourceMismatchException));
     } else if (error == descriptionMismatch) {
-      expect(future, throwsA(new isInstanceOf<DescriptionMismatchException>()));
+      expect(future, throwsA(isDescriptionMismatchException));
     } else if (error == couldNotSolve) {
-      expect(future, throwsA(new isInstanceOf<CouldNotSolveException>()));
+      expect(future, throwsA(isCouldNotSolveException));
     } else {
       expect(future, throwsA(error));
     }

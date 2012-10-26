@@ -39,10 +39,10 @@ main() {
     final msg2 = 'bar';
     port.call(msg1).then((response) {
       guardAsync(() {
-        Expect.equals(responseFor(msg1), response);
+        expect(response, equals(responseFor(msg1)));
         port.call(msg2).then((response) {
           guardAsync(() {
-            Expect.equals(responseFor(msg2), response);
+            expect(response, equals(responseFor(msg2)));
             callback();
           });
         });
