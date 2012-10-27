@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
 
+import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
+import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -23,11 +28,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-
-import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
-import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import junit.framework.AssertionFailedError;
 
@@ -935,40 +936,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 7),
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 11, 7));
-  }
-  
-  /**
-   * When we resolve factory constructors, we should check if "lib" is library prefix, it is not
-   * always have to be name of type.  
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=2478
-   */
-  public void test_factoryClass_fromPrefixImportedLibrary() throws Exception {
-    appSource.setContent(
-        "A.dart",
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler filler",
-            "library A;",
-            "import '" + APP + "';",
-            "interface I default A {",
-            "  I();",
-            "  I.named();",
-            "}",
-            ""));
-    appSource.setContent(
-        APP,
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler filler",
-            "library application;",
-            "import 'A.dart' as lib;",
-            "class A {",
-            "  factory lib.I() {}",
-            "  factory lib.I.named() {}",
-            "}",
-            ""));
-    // do compile, no errors expected
-    compile();
-    assertErrors(errors);
   }
 
   /**

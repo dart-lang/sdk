@@ -177,9 +177,9 @@ public class ResolverTest extends ResolverTestCase {
     // but the spec mentions no such error
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
-        "interface bool {}",
-        "interface I<X> {",
+        "class int {}",
+        "class bool {}",
+        "abstract class I<X> {",
         "}",
         "class A extends C implements I<int> {}",
         "class B extends C implements I<bool> {}",
@@ -196,28 +196,6 @@ public class ResolverTest extends ResolverTestCase {
     /*
      * We should check for signature mismatch but that is a TypeAnalyzer issue.
      */
-  }
-
-  public void testImplicitDefaultConstructor_OnInterfaceWithoutFactory() {
-    // Check that the implicit constructor is resolved correctly
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface B {}",
-        "class C { main() { new B(); } }"),
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
-
-    /*
-     * We should check for signature mismatch but that is a TypeAnalyzer issue.
-     */
-  }
-
-  public void testImplicitDefaultConstructor_ThroughFactories() {
-    // Check that we generate implicit constructors through factories also.
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface B default C {}",
-        "class C {}",
-        "class D { main() { new B(); } }"));
   }
 
   public void testImplicitDefaultConstructor_WithConstCtor() {
@@ -272,30 +250,16 @@ public class ResolverTest extends ResolverTestCase {
 
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
-        "interface bool {}",
+        "class int {}",
+        "class bool {}",
         "class Cyclic extends Cyclic {",
         "}",
         "class A extends B {",
         "}",
         "class B extends A {",
         "}",
-        "interface I extends I {",
-        "}",
-        "class C implements I1, I {",
-        "}",
-        "interface I1 {",
-        "}",
-        "class D implements I1, I2 {",
-        "}",
-        "interface I2 extends I3 {",
-        "}",
-        "interface I3 extends I2 {",
+        "class C implements C {",
         "}"),
-        ResolverErrorCode.CYCLIC_CLASS,
-        ResolverErrorCode.CYCLIC_CLASS,
-        ResolverErrorCode.CYCLIC_CLASS,
-        ResolverErrorCode.CYCLIC_CLASS,
         ResolverErrorCode.CYCLIC_CLASS,
         ResolverErrorCode.CYCLIC_CLASS,
         ResolverErrorCode.CYCLIC_CLASS,
@@ -313,265 +277,6 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR);
   }
 
-
-  public void testDefaultTypeArgs1() {
-    // Type arguments match
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T> {",
-        "  A();",
-        "}",
-        "class B<T> implements A<T> {",
-        "  B() {}",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs2() {
-    // Type arguments match
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A<T> default B<T> {",
-        "}",
-        "class B<T> {",
-        "  factory A.construct () {}",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs3() {
-    // Type arguments match
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A<T> default B<T> {",
-        "}",
-        "class B<T> {",
-        "  B() {}",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs4() {
-    // Type arguments match
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A<T> default B<T> {",
-        "}",
-        "class B<T> implements A<T> {",
-        "  B() {}",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs5() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B {",
-        "}",
-        "class B<T> {",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs6() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B {",
-        "}",
-        "class B<T extends int> {",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs7() {
-    // Example from spec v0.6
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object{}",
-        "interface Hashable {}",
-        "class HashMapImplementation<K extends Hashable, V> {",
-        "}",
-        "interface Map<K, V> default HashMapImplementation<K extends Hashable, V> {",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs8() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object{}",
-        "interface A<K,V> default B<K, V extends K> {",
-        "}",
-        "class B<K, V extends K> {",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs9() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object{}",
-        "interface List<T> {}",
-        "interface A<K,V> default B<K, V extends List<K>> {}",
-        "class B<K, V extends List<K>> {",
-        "}"));
-  }
-
-  public void testDefaultTypeArgs10() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object{}",
-        "interface List<T> {}",
-        "class A<T, U, V> {}",
-        "interface I2<T> default B<T extends A> {}",
-        "class B<T extends A> {}",
-        ""));
-  }
-
-
-  public void testDefaultTypeArgsNew() {
-    // Invoke constructor in factory method with type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T> {",
-        "  B();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<T> {",
-        "  factory B() { return new C<T>();}",
-        "}"));
-  }
-
-  public void testFactoryBadTypeArgs1() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T> {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<T> {",
-        "  factory A() { return new C<K>();}",
-        "}"),
-        TypeErrorCode.NO_SUCH_TYPE);
-  }
-
-  public void testFactoryBadTypeArgs2() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B {",
-        "  factory A() { return new C<int>();}",
-        "}"),
-        ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
-  }
-
-  public void testFactoryBadTypeArgs3() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<K> {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<T> {",
-        "  factory A() { return new C<T>();}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
-  }
-
-  public void testFactoryBadTypeArgs4() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T> {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<K> {",
-        "  factory A() { return new C<K>();}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY,
-        ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH);
-  }
-
-  public void testFactoryBadTypeArgs5() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T,L> {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<T> {",
-        "  factory A() { return new C<T>();}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
-  }
-
-  public void testFactoryBadTypeArgs6() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<K> {",
-        "  A();",
-        "}",
-        "class C<T> implements A<T> {}",
-        "class B<K> {",
-        "  factory A() { return new C<K>();}",
-        "}"),
-        ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH);
-  }
-
-  public void testFactoryBadTypeArgs7() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T,K> default B<T,K> {",
-        "  A();",
-        "}",
-        "class C<T,K> implements A<T,K> {}",
-        "class B<K,T> {",
-        "  factory A() { return new C<int, Object>();}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY,
-        ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH,
-        ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH);
-  }
-
-  public void testFactoryBadTypeArgs8() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T> {",
-        "  A();",
-        "}",
-        "class B<T extends int> {",
-        "  factory A() {}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
-  }
-
-  public void testFactoryBadTypeArgs9() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B<T extends int> {",
-        "  A();",
-        "}",
-        "class B<T> {",
-        "  factory A() {}",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
-  }
-
   public void test_constFactory() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -579,44 +284,6 @@ public class ResolverTest extends ResolverTestCase {
         "  const factory A() { }",
         "}"),
         errEx(ResolverErrorCode.FACTORY_CANNOT_BE_CONST, 3, 17, 1));
-  }
-
-  public void testFactoryBadTypeArgs11() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default Bogus {",
-        "}",
-        "class B<T> {",
-        "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
-  }
-
-  public void testFactoryBadTypeArgs10() {
-    // Invoke constructor in factory method with (wrong) type args
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "interface A<T> default B {",
-        "  A();",
-        "}",
-        "class B {",
-        "  factory A() {}",
-        "}"),
-        ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
-  }
-
-  public void testBadDefaultTypeArgs11() {
-    // Example from spec v0.6
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object{}",
-        "interface Hashable {}",
-        "class HashMapImplementation<K extends Hashable, V> {",
-        "}",
-        "interface Map<K, V> default HashMapImplementation<K, V> {",
-        "}"),
-        ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
   }
 
   public void testBadGenerativeConstructor1() {
@@ -638,18 +305,6 @@ public class ResolverTest extends ResolverTestCase {
         "  A.foo.bar() : this.val = 1;",
         "}"),
         ResolverErrorCode.TOO_MANY_QUALIFIERS_FOR_METHOD);
-  }
-
-  public void testBadGenerativeConstructor3() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object { }",
-        "interface B { }",
-        "class A extends B {",
-        "  var val; ",
-        "  B.foo() : this.val = 1;",
-        "}"),
-        ResolverErrorCode.NOT_A_CLASS,
-        ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
   }
 
   public void testGenerativeConstructor() {
@@ -750,19 +405,6 @@ public class ResolverTest extends ResolverTestCase {
       TypeErrorCode.NO_SUCH_TYPE);
   }
 
-  public void testNewExpression6() {
-    resolveAndTest(Joiner.on("\n").join(
-      "class Object {}",
-      "interface int {}",
-      "interface A<T> default B<T> {",
-      "  A.construct(); ",
-      "}",
-      "class B<T> implements A<T> {",
-      "  B() { }",
-      "  factory B.construct() { return new B<T>(); }",
-      "}"));
-  }
-
   public void test_noSuchType_field() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -857,7 +499,7 @@ public class ResolverTest extends ResolverTestCase {
     String source =
         Joiner.on("\n").join(
             "class Object {}",
-            "interface Base<T> {}",
+            "abstract class Base<T> {}",
             "class MyClass implements Base<Unknown> {",
             "}");
     List<DartCompilationError> errors = resolveAndTest(source, ResolverErrorCode.NO_SUCH_TYPE);
@@ -1080,8 +722,8 @@ public class ResolverTest extends ResolverTestCase {
   public void test_noSuchType_mapLiteral_num_type_args() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
-        "interface String {}",
+        "class int {}",
+        "class String {}",
         "class MyClass {",
         "  foo() {",
         "    var map0 = {};",
@@ -1248,7 +890,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testConstClass() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "class GoodBase {",
         "  const GoodBase() : foo = 1;",
         "  final foo;",
@@ -1286,7 +928,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testFinalInit1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "final f1 = 1;",
         "final f2;",  // error
         "class A {",
@@ -1343,18 +985,6 @@ public class ResolverTest extends ResolverTestCase {
         "}"));
   }
 
-  public void testFinalInit6() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface I1 {",
-        "  final a;",        // not initialized, but in an interface
-        "}",
-        "interface I2 {",
-        "  final a;",        // not initialized, but in an interface
-        "  C(arg);",
-        "}"));
-  }
-
   public void testFinalInit7() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1376,7 +1006,7 @@ public class ResolverTest extends ResolverTestCase {
     resolveAndTest(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "const f;",
         ""),
         errEx(ResolverErrorCode.CONST_REQUIRES_VALUE, 4, 7, 1));
@@ -1434,7 +1064,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testErrorInUnqualifiedInvocation1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "class Foo {",
         "  Foo() {}",
         "}",
@@ -1447,7 +1077,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testErrorInUnqualifiedInvocation2() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "class Foo {}",
         "method() {",
         " Foo();",
@@ -1458,7 +1088,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testErrorInUnqualifiedInvocation3() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "class Foo<T> {",
         "  method() {",
         "   T();",
@@ -1471,7 +1101,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testErrorInUnqualifiedInvocation4() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "typedef int foo();",
         "method() {",
         " foo();",
@@ -1482,7 +1112,7 @@ public class ResolverTest extends ResolverTestCase {
   public void testErrorInUnqualifiedInvocation5() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "method() {",
         "  outer: for(int i = 0; i < 1; i++) {",
         "    outer();",
@@ -1581,7 +1211,7 @@ public class ResolverTest extends ResolverTestCase {
   public void test_redirectConstructor() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "int topLevel() {}",
         "class A {",
         "  method() {}",
@@ -1627,23 +1257,17 @@ public class ResolverTest extends ResolverTestCase {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class A {",
-        "  abstract A();",
-        "  abstract A.named();",
-        "}",
-        "class B {",
-        "  static B() {}",
-        "  static B.named() {}",
+        "  static A() {}",
+        "  static A.named() {}",
         "}"),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 3, 12, 1),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 4, 12, 7),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 7, 10, 1),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 8, 10, 7));
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 3, 10, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 4, 10, 7));
   }
 
   public void test_illegalConstructorReturnType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface int {}",
+        "class int {}",
         "class A {",
         "  void A();",
         "  void A.named();",
@@ -1692,18 +1316,6 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 4, 3, 6));
   }
 
-  public void test_defaultTargetInterface() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A default B {",
-        "  A();",
-        "}",
-        "interface B {",
-        "}"),
-        errEx(ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS, 2, 21, 1),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
-  }
-
   public void test_initializerErrors() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1719,15 +1331,6 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_METHOD, 6, 12, 6),
         errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_PARAMETER, 7, 12, 3),
         errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, 8, 12, 1));
-  }
-
-  public void test_noDefaultOnInterface() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface I {",
-        "  I();",
-        "}"),
-        errEx(ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE, 3, 3, 1));
   }
 
   public void test_illegalAccessFromStatic() throws Exception {

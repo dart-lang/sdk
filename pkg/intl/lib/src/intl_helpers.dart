@@ -39,7 +39,7 @@ class LocaleDataException implements Exception {
  *  An abstract superclass for data readers to keep the type system happy.
  */
 abstract class LocaleDataReader {
-  abstract Future read(String locale);
+  Future read(String locale);
 }
 
 /**

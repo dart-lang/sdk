@@ -111,16 +111,16 @@ class Baz extends Kuk implements A, B, C {
   Baz(x, y, z) : super(x, y, z) {}
 }
 
-interface Foo extends D, E {
+abstract class Foo implements D, E {
   bar();
 }
 
 // Test bounds on type parameters
-interface Bar<K extends Foo, V> extends Foo {
+abstract class Bar<K extends Foo, V> implements Foo {
 }
 
-interface Bar<K extends Foo, V extends Foo> extends Foo {
+abstract class Bar<K extends Foo, V extends Foo> implements Foo {
 }
 
-interface Bar<K, V extends Foo> extends Foo {
+abstract class Bar<K, V extends Foo> implements Foo {
 }

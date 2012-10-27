@@ -246,20 +246,6 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   /**
-   * Section 7.8: It is a compile-time error if the extends clause of a class C includes a type
-   * expression that does not denote a class available in the lexical scope of C.
-   */
-  public void test_classExtendsInterface() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "interface I {}",
-            "class A extends I {",
-            "}"),
-        errEx(ResolverErrorCode.NOT_A_CLASS, 3, 17, 1));
-  }
-
-  /**
    * Class can implement class, this causes implementation of an implicit interface.
    */
   public void test_classImplementsClass() {
@@ -267,17 +253,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "class B implements A {",
-        "}"));
-  }
-
-  /**
-   * Interface can extend class, this causes implementation of an implicit interface.
-   */
-  public void test_interfaceExtendsClass() {
-    checkSourceErrors(makeCode(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "interface B extends A {",
         "}"));
   }
 
@@ -648,7 +623,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void test_nameShadow_field_interfaceMethodParameter() {
     checkSourceErrors(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface A {",
+        "abstract class A {",
         "  var a;",
         "  foo(a);",
         "}"));
@@ -864,10 +839,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 9, 1));
   }
 
-  public void testRawTypesNegativeTest() {
-    checkNumErrors("RawTypesNegativeTest.dart", 6);
-  }
-
   public void testConstConstructorNonFinalFieldsNegativeTest() {
     checkSourceErrors(
         makeCode(
@@ -881,7 +852,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  final bar;",
             "  var baz;",
             "}",
-            "interface C {",
+            "abstract class C {",
             "  var x;",
             "}"),
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 3, 7, 1),
@@ -1046,17 +1017,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 3, 25, 4),
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 4, 36, 4),
         errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 5, 25, 4));
-  }
-
-  public void testInterfaceWithConcreteConstructorAndDefaultNonImlplementing() throws Exception {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {}",
-            "interface I default A {",
-            "  I();",
-            "}"),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 4, 3, 4));
   }
 
   public void test_resolvedTypeVariableBounds_inFunctionTypeAlias() throws Exception {

@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface A {
+abstract class A {
 }
 
-interface B extends A {
+abstract class B extends A {
 }
 
-interface C extends A {
+abstract class C extends A {
 }
 
-interface D {
+abstract class D {
 }
 
 class Super {

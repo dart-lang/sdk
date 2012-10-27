@@ -80,7 +80,7 @@ class BlockParser {
   }
 }
 
-class BlockSyntax {
+abstract class BlockSyntax {
   /// Gets the collection of built-in block parsers. To turn a series of lines
   /// into blocks, each of these will be tried in turn. Order matters here.
   static List<BlockSyntax> get syntaxes {
@@ -114,7 +114,7 @@ class BlockSyntax {
     return pattern.firstMatch(parser.current) != null;
   }
 
-  abstract Node parse(BlockParser parser);
+  Node parse(BlockParser parser);
 
   List<String> parseChildLines(BlockParser parser) {
     // Grab all of the lines that form the blockquote, stripping off the ">".
@@ -259,10 +259,10 @@ class ListItem {
 }
 
 /// Base class for both ordered and unordered lists.
-class ListSyntax extends BlockSyntax {
+abstract class ListSyntax extends BlockSyntax {
   bool get canEndBlock => false;
 
-  abstract String get listTag;
+  String get listTag;
 
   Node parse(BlockParser parser) {
     final items = <ListItem>[];

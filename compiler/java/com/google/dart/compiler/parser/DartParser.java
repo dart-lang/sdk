@@ -332,6 +332,13 @@ public class DartParser extends CompletionHooksParserBase {
         } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
           consume(Token.IDENTIFIER);
           isParsingInterface = true;
+          // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6318 
+          if (!Elements.isCoreLibrarySource(source)
+              && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
+              && !Elements.isLibrarySource(source, "crypto/crypto.dart")
+              && !Elements.isDart2JsLibrarySource(source)) {
+            reportError(position(), ParserErrorCode.DEPRECATED_INTERFACE);
+          }
           node = done(parseClass());
         } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
             && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID) || peek(1).equals(Token.AS))) {
@@ -1258,9 +1265,6 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
     if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-      if (isParsingInterface) {
-        reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
-      }
       if (modifiers.isStatic()) {
         reportError(position(), ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT);
       }
@@ -1289,6 +1293,22 @@ public class DartParser extends CompletionHooksParserBase {
       }
       if (modifiers.isFactory()) {
         reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
+      }
+    }
+    
+    // report "abstract" warning after all other checks to don't hide error with warning
+    // we ignore problems if there was already reported problem after given position
+    if (modifiers.isAbstract()) {
+      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6322
+      // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6323
+      if (!Elements.isCoreLibrarySource(source)
+          && !Elements.isLibrarySource(source, "html/dartium/html_dartium.dart")
+          && !Elements.isLibrarySource(source, "/math/math.dart")
+          && !Elements.isLibrarySource(source, "/io/io_runtime.dart")
+          && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
+          && !Elements.isLibrarySource(source, "/utf/utf.dart")
+          && !Elements.isDart2JsLibrarySource(source)) {
+        reportError(position(), ParserErrorCode.DEPRECATED_ABSTRACT_METHOD);
       }
     }
 

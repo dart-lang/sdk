@@ -36,7 +36,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
@@ -538,83 +537,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       }
     });
     return invocationRef[0];
-  }
-
-  /**
-   * From specification 0.05, 11/14/2011.
-   * <p>
-   * It is a static type warning if the type of the nth required formal parameter of kI is not
-   * identical to the type of the nth required formal parameter of kF.
-   * <p>
-   * It is a static type warning if the types of named optional parameters with the same name differ
-   * between kI and kF .
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=521
-   */
-  public void test_resolveInterfaceConstructor_hasByName_negative_notSameParametersType()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I default F {",
-                "  I.foo(int a, [int b, int c]);",
-                "}",
-                "class F implements I {",
-                "  factory F.foo(num any, [bool b, Object c]) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I.foo(0);",
-                "  }",
-                "}"));
-    // No compilation errors.
-    assertErrors(libraryResult.getCompilationErrors());
-    // Check type warnings.
-    {
-      List<DartCompilationError> errors = libraryResult.getTypeErrors();
-      assertErrors(errors, errEx(TypeErrorCode.DEFAULT_CONSTRUCTOR_TYPES, 2, 3, 29));
-      assertEquals(
-          "Constructor 'I.foo' in 'I' has parameters types (int,int,int), doesn't match 'F.foo' in 'F' with (num,bool,Object)",
-          errors.get(0).getMessage());
-    }
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-    // "new I.foo()" - resolved, but we produce error.
-    {
-      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.foo("));
-    }
-  }
-
-  /**
-   * There was problem that <code>this.fieldName</code> constructor parameter had no type, so we
-   * produced incompatible interface/default class warning.
-   */
-  public void test_resolveInterfaceConstructor_sameParametersType_thisFieldParameter()
-      throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I default F {",
-                "  I(int a);",
-                "}",
-                "class F implements I {",
-                "  int a;",
-                "  F(this.a) {}",
-                "}"));
-    // Check that parameter has resolved type.
-    {
-      DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
-      DartClass classF = (DartClass) unit.getTopLevelNodes().get(1);
-      DartMethodDefinition methodF = (DartMethodDefinition) classF.getMembers().get(1);
-      DartParameter parameter = methodF.getFunction().getParameters().get(0);
-      assertEquals("int", parameter.getElement().getType().toString());
-    }
-    // No errors or type warnings.
-    assertErrors(libraryResult.getCompilationErrors());
-    assertErrors(libraryResult.getTypeErrors());
   }
 
   /**
@@ -1621,7 +1543,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_noRequiredParameter() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "interface I {",
+            "abstract class I {",
             "  foo(x);",
             "}",
             "class C implements I {",
@@ -1638,7 +1560,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_additionalNamedParameter() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "interface I {",
+            "abstract class I {",
             "  foo({x});",
             "}",
             "class C implements I {",
@@ -1650,14 +1572,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_lessNamedParameter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "abstract class A {",
-        "  abstract foo({x, y});",
+        "  foo({x, y});",
         "}",
         "abstract class B extends A {",
-        "  abstract foo({x});",
+        "  foo({x});",
         "}");
     assertErrors(
         result.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 12, 3));
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
 
   /**
@@ -1668,7 +1590,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "abstract class A {",
-            "  abstract foo();",
+            "  foo();",
             "}",
             "class B extends A {",
             "  foo({x}) {}",
@@ -1683,23 +1605,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_lessOptionalPositionalParameter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "abstract class A {",
-        "  abstract foo([x, y]);",
+        "  foo([x, y]);",
         "}",
         "abstract class B extends A {",
-        "  abstract foo([x]);",
+        "  foo([x]);",
         "}");
     assertErrors(
         result.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS, 5, 12, 3));
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS, 5, 3, 3));
   }
   
   public void test_implementsAndOverrides_moreOptionalPositionalParameter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "abstract class A {",
-        "  abstract foo([x]);",
+        "  foo([x]);",
         "}",
         "abstract class B extends A {",
-        "  abstract foo([a, b]);",
+        "  foo([a, b]);",
         "}");
     assertErrors(result.getErrors());
   }
@@ -1710,7 +1632,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_extraRequiredParameter() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "interface I {",
+            "abstract class I {",
             "  foo();",
             "}",
             "class C implements I {",
@@ -1786,7 +1708,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_implementsAndOverrides_noNamedParameter() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "interface I {",
+            "abstract class I {",
             "  foo({x,y});",
             "}",
             "class C implements I {",
@@ -1829,7 +1751,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void testImplementsAndOverrides5() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
-            "interface I {",
+            "abstract class I {",
             "  foo({y,x});",
             "}",
             "class C implements I {",
@@ -2017,7 +1939,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "interface I<T extends num> { }",
+            "abstract class I<T extends num> { }",
             "class A<T extends num> implements I<T> { }",
             "class B<T> implements I<T> { }"); // static type error B.T not assignable to num
     assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
@@ -3209,10 +3131,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_typesPropagation_conditional() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I1 {",
+        "abstract class I1 {",
         "  f1();",
         "}",
-        "interface I2 {",
+        "abstract class I2 {",
         "  f2();",
         "}",
         "class A implements I1, I2 {",
@@ -3788,7 +3710,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_incompatibleTypesInHierarchy1() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface Interface<T> {",
+        "abstract class Interface<T> {",
         "  T m();",
         "}",
         "abstract class A implements Interface {",
@@ -3803,7 +3725,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_incompatibleTypesInHierarchy2() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface Interface<T> {",
+        "abstract class Interface<T> {",
         "  T m();",
         "}",
         "abstract class A implements Interface<String> {",
@@ -4457,7 +4379,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  external A() {}",
         "  external factory A.named() {}",
         "  external classMethod() {}",
-        "  external abstract classMethodAbstract();",
         "}",
         "");
     assertErrors(
@@ -4465,8 +4386,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 2, 24, 2),
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 4, 16, 2),
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 5, 30, 2),
-        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 6, 26, 2),
-        errEx(ParserErrorCode.EXTERNAL_ABSTRACT, 7, 12, 8));
+        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 6, 26, 2));
   }
 
   /**
@@ -5093,19 +5013,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 20, 1),
         errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 23, 1));
-  }
-
-  /**
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=5084
-   */
-  public void test_duplicateSuperInterface_okInInterfaceExtends() throws Exception {
-    AnalyzeLibraryResult result = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "interface A {}",
-        "interface B extends A, A {}",
-        "");
-    assertErrors(result.getErrors());
   }
 
   /**

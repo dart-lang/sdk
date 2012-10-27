@@ -880,7 +880,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(    
             "class Object {}",
-            "interface int {}",
+            "class int {}",
             "class A {",
             "  const int value1 = (1 << 5) - 1;",
             "  const int value2 = value1 & 0xFFFF;",
@@ -901,7 +901,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(    
             "class Object {}",
-            "interface double {}",
+            "class double {}",
             "class A {",
             "  const double value1 = (1.0 * 5.0) - 1.0;",
             "  const double value2 = value1 + 99.0;",
@@ -922,7 +922,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(    
             "class Object {}",
-            "interface double {}",
+            "class double {}",
             "class A {",
             "  const double value1 = (1 * 5) - 1.0;",
             "  const double value2 = value1 + 99.0;",
@@ -943,7 +943,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(    
             "class Object {}",
-            "interface int {}",
+            "class int {}",
             "class A {",
             "  const int value1 = ('Invalid') - 1;",
             "  const int value2 = value1 & 0xFFFF;",
@@ -958,7 +958,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(            
             "class Object {}",
-            "interface int {}",                             
+            "class int {}",                             
             "class A {",
             "  const int value3 = ('Invalid') + 1;",
             "  const int value4 = value3 & 0xFFFF;",
@@ -970,7 +970,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(            
             "class Object {}",
-            "interface int {}",
+            "class int {}",
             "class A {",                             
             "  const int value5 = ('Invalid') * 1;",
             "  const int value6 = value5 & 0xFFFF;",            
@@ -982,7 +982,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(                
             "class Object {}",
-            "interface int {}",
+            "class int {}",
             "class A {",
             "  const int value7 = ('Invalid') / 1;",
             "  const int value8 = value7 & 0xFFFF;",                        

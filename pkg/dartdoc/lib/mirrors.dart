@@ -13,7 +13,7 @@
 /**
  * [Compilation] encapsulates the compilation of a program.
  */
-class Compilation {
+abstract class Compilation {
   /**
    * Creates a new compilation which has [script] as its entry point.
    */
@@ -45,7 +45,7 @@ class Compilation {
   /**
    * Returns a future for the compiled JavaScript code.
    */
-  abstract Future<String> compileToJavaScript();
+  Future<String> compileToJavaScript();
 }
 
 /**

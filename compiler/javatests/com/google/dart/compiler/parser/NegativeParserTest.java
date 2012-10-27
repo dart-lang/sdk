@@ -25,6 +25,15 @@ public class NegativeParserTest extends CompilerTestCase {
     parseExpectErrors("get foo() {}", errEx(ParserErrorCode.DEPRECATED_GETTER, 1, 5, 3));
   }
 
+  public void test_deprecatedAbstract() {
+    parseExpectWarnings(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  abstract m();",
+        "}",
+        ""), errEx(ParserErrorCode.DEPRECATED_ABSTRACT_METHOD, 3, 3, 8));
+  }
+  
   public void testFieldInitializerInRedirectionConstructor1() {
     parseExpectErrors(
         "class A { A(x) { } A.foo() : this(5), y = 5; var y; }",
@@ -368,6 +377,7 @@ public class NegativeParserTest extends CompilerTestCase {
   public void testDeprecatedFactoryInInterface() {
     parseExpectWarnings(
         "interface foo factory bar {}",
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 1, 1, 9),
         errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
   }
 
@@ -397,7 +407,17 @@ public class NegativeParserTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "abstract interface A {",
             "}"),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 10, 9),
         errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 2, 1, 8));
+  }
+  
+  public void test_deprecatedInterface() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface A {",
+            "}"),
+            errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9));
   }
 
   public void test_abstractTopLevel_typedef() {
@@ -410,17 +430,6 @@ public class NegativeParserTest extends CompilerTestCase {
     parseExpectErrors(
         "abstract void foo() {}",
         errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 1, 1, 8));
-  }
-
-  public void test_abstractMethodWithBody() {
-    parseExpectErrors(
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  abstract foo() {",
-            "  }",
-            "}"),
-        errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
   }
 
   public void test_incompleteExpressionInInterpolation() {
@@ -437,6 +446,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "  foo() {",
             "  }",
             "}"),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9),
         errEx(ParserErrorCode.INTERFACE_METHOD_WITH_BODY, 3, 3, 3));
   }
 
@@ -766,6 +776,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "interface A native 'N' {",
             "}",
             ""),
+        errEx(ParserErrorCode.DEPRECATED_INTERFACE, 2, 1, 9),
         errEx(ParserErrorCode.NATIVE_ONLY_CLASS, 2, 13, 6));
   }
 

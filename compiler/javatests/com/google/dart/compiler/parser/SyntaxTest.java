@@ -1025,11 +1025,10 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("phony_test_missing_factory_body.dart",
         Joiner.on("\n").join(
             "class A {",
-            "  abstract factory A.c();",  // error - no body
+            "  factory A.c();",  // error - no body
             "  A() {}",
             "}"),
-            ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT, 2, 12,
-            ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY, 2, 25);
+            ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY, 2, 16);
   }
 
   public void test_factoryAbstractStatic() throws Exception {
@@ -1037,25 +1036,10 @@ public class SyntaxTest extends AbstractParserTest {
       Joiner.on("\n").join(
         "class A {",
         "  A() {}",
-        "  abstract factory A.named1() { return new A();}",
+        "  factory A.named1() { return new A();}",
         "  static factory A.named2() { return new A();}",
-        "  static abstract factory A.named3() { return new A();}",
         "}"),
-        ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT, 3, 12,
-        ParserErrorCode.FACTORY_CANNOT_BE_STATIC, 4, 10,
-        ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 5, 10,
-        ParserErrorCode.FACTORY_CANNOT_BE_STATIC, 5, 19);
-  }
-
-  public void test_staticAbstractMember() throws Exception {
-    parseUnit("phony_test_static_abstract_member.dart",
-        Joiner.on("\n").join(
-            "class A {",
-            "  static abstract var foo;",
-            "  static abstract bar();",
-            "}"),
-            ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 2, 10,
-            ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 3, 10);
+        ParserErrorCode.FACTORY_CANNOT_BE_STATIC, 4, 10);
   }
 
   public void test_factoryInInterface() throws Exception {
@@ -1064,19 +1048,9 @@ public class SyntaxTest extends AbstractParserTest {
             "interface A {",
             "  factory A();",
             "}"),
+            ParserErrorCode.DEPRECATED_INTERFACE, 1, 1,
             ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE, 2, 3,
             ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY, 2, 14);
-  }
-
-  public void test_AbstractVar() throws Exception {
-    parseUnit("phony_test_abstract_var.dart",
-        Joiner.on("\n").join(
-            "class A {",
-            "  abstract var a;",
-            "  abstract final b;",
-            "}"),
-            ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 2, 3,
-            ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 3, 3);
   }
 
   public void test_localVariable_const() {
@@ -1401,11 +1375,10 @@ public class SyntaxTest extends AbstractParserTest {
     parseUnit("phony_test_abstract_in_interface.dart",
         Joiner.on("\n").join(
             "interface A {",
-            "  abstract var foo;",
-            "  abstract bar();",
+            "  var foo;",
+            "  bar();",
             "}"),
-            ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE, 2, 3,
-            ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE, 3, 3);
+            ParserErrorCode.DEPRECATED_INTERFACE, 1, 1);
   }
 
   public void test_voidParameterField() throws Exception {
@@ -1458,6 +1431,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  static foo();",
             "  static var bar;",
             "}"),
+            ParserErrorCode.DEPRECATED_INTERFACE, 1, 1,
             ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE, 2, 3,
             ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE, 3, 3);
   }
@@ -1481,13 +1455,6 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.EXPECTED_ARRAY_OR_MAP_LITERAL, 2, 9,
             ParserErrorCode.EXPECTED_TOKEN, 2, 15);
-  }
-
-  public void test_abstractMethod_withModifier() {
-    parseUnit("test.dart", Joiner.on("\n").join(
-        "class C {",
-        "  abstract m(a, b, c);",
-        "}"));
   }
 
   public void test_abstractMethod_withoutModifier() {
