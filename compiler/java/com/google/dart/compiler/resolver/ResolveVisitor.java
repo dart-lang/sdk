@@ -55,10 +55,15 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     Elements.setType(element, type);
     for (DartParameter parameter : node.getParameters()) {
       if (!(parameter.getQualifier() instanceof DartThisExpression) &&
-          parameter.getModifiers().isNamed() &&
           DartIdentifier.isPrivateName(parameter.getElement().getName())) {
-        getContext().onError(parameter.getName(),
-            ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+        if (parameter.getModifiers().isOptional()) {
+          getContext().onError(parameter.getName(),
+              ResolverErrorCode.OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER);
+        }
+        if (parameter.getModifiers().isNamed()) {
+          getContext().onError(parameter.getName(),
+              ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+        }
       }
     }
     return element;

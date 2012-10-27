@@ -179,9 +179,15 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE, 1, 41, 5));
   }
 
-  public void test_namedParameterValue_inSetter() {
+  public void test_optionalPositionalParameterValue_inSetter() {
     parseExpectErrors(
         "class A { set f([int b]); }",
+        errEx(ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED, 1, 18, 5));
+  }
+  
+  public void test_namedParameterValue_inSetter() {
+    parseExpectErrors(
+        "class A { set f({int b}); }",
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 18, 5));
   }
 
@@ -191,9 +197,15 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.MISSING_OPTIONAL_PARAMETER_END, 1, 43, 1));
   }
 
-  public void test_namedParameterValue_inOperator() {
+  public void test_optionalPositionalParameterValue_inOperator() {
     parseExpectErrors(
         "class A { operator []=(int a, [int b]); }",
+        errEx(ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED, 1, 32, 5));
+  }
+  
+  public void test_namedParameterValue_inOperator() {
+    parseExpectErrors(
+        "class A { operator []=(int a, {int b}); }",
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 32, 5));
   }
 

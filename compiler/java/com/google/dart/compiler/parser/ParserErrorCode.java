@@ -117,6 +117,7 @@ public enum ParserErrorCode implements ErrorCode {
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
+  OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED("Optional positional parameter is not allowed for operator or setter method"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
   REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY("Redirecting constructor cannot have a body"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor cannot have initializers"),

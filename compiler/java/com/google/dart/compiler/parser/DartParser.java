@@ -1714,6 +1714,9 @@ public class DartParser extends CompletionHooksParserBase {
       }
       // In methods with required arity each parameter is required.
       for (DartParameter parameter : parameters) {
+        if (parameter.getModifiers().isOptional()) {
+          reportError(parameter, ParserErrorCode.OPTIONAL_POSITIONAL_PARAMETER_NOT_ALLOWED);
+        }
         if (parameter.getModifiers().isNamed()) {
           reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
         }
@@ -2144,8 +2147,6 @@ public class DartParser extends CompletionHooksParserBase {
 
     if (isOptional) {
       modifiers = modifiers.makeOptional();
-      // TODO(brianwilkerson) Remove the line below when we no longer need to support the old syntax.
-      modifiers = modifiers.makeNamed();
     }
     if (isNamed) {
       modifiers = modifiers.makeNamed();

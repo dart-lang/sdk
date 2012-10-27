@@ -682,10 +682,69 @@ public class ResolverCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * From specification 0.05, 11/14/2011.
+   * If two members override each other, it is a compile time error if the overriding member has
+   * fewer optional positional parameters than the member being overridden (7.1).
    * <p>
-   * It is a compile-time error if kI and kF do not have identically named optional parameters,
-   * declared in the same order.
+   * http://code.google.com/p/dart/issues/detail?id=521
+   */
+  public void test_resolveInterfaceConstructor_hasByName_negative_fewerOptionalPositionalParameters()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I default F {",
+            "  I.foo(int a, [int b, int c]);",
+            "  I.bar(int a, [int b]);",
+            "}",
+            "class F implements I {",
+            "  factory F.foo(int any, [int b = 1]) {}",
+            "  factory F.bar(int any) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I.foo(0);",
+            "    new I.bar(0);",
+            "  }",
+            "}"));
+    assertErrors(libraryResult.getTypeErrors());
+    // Check errors.
+    {
+      List<DartCompilationError> errors = libraryResult.getCompilationErrors();
+      assertErrors(
+          errors,
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_OPTIONAL_POSITIONAL_PARAMETERS, 2, 3, 29),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_OPTIONAL_POSITIONAL_PARAMETERS, 3, 3, 22));
+      {
+        String message = errors.get(0).getMessage();
+        assertEquals(
+            "Constructor 'I.foo' in 'I' has 2 optional positional parameters, doesn't match 'F.foo' in 'F' with 1",
+            message);
+      }
+      {
+        String message = errors.get(1).getMessage();
+        assertEquals(
+            "Constructor 'I.bar' in 'I' has 1 optional positional parameters, doesn't match 'F.bar' in 'F' with 0",
+            message);
+      }
+    }
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    // "new I.foo()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNodeBySource(unit, "new I.foo(0)");
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.foo("));
+    }
+    // "new I.bar()" - resolved, but we produce error.
+    {
+      DartNewExpression newExpression = findNodeBySource(unit, "new I.bar(0)");
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.bar("));
+    }
+  }
+  
+  /**
+   * If two members override each other, it is a compile time error if the overriding member does
+   * not have all the named parameters that the member being overridden has (7.1).
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=521
    */
@@ -695,14 +754,14 @@ public class ResolverCompilerTest extends CompilerTestCase {
         "Test.dart",
         Joiner.on("\n").join(
             "interface I default F {",
-            "  I.foo(int a, [int b, int c]);",
-            "  I.bar(int a, [int b, int c]);",
-            "  I.baz(int a, [int b]);",
+            "  I.foo(int a, {int b, int c});",
+            "  I.bar(int a, {int b, int c});",
+            "  I.baz(int a, {int b});",
             "}",
             "class F implements I {",
-            "  factory F.foo(int any, [int b = 1]) {}",
-            "  factory F.bar(int any, [int c = 1, int b = 2]) {}",
-            "  factory F.baz(int any, [int c = 1]) {}",
+            "  factory F.foo(int any, {int b: 1}) {}",
+            "  factory F.bar(int any, {int c: 1, int b: 2}) {}",
+            "  factory F.baz(int any, {int c: 1}) {}",
             "}",
             "class Test {",
             "  foo() {",

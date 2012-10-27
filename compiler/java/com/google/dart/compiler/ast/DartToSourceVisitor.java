@@ -255,7 +255,12 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p(")");
     }
     if (x.getDefaultExpr() != null) {
-      p(" = ");
+      if (x.getModifiers().isOptional()) {
+        p(" = ");
+      }
+      if (x.getModifiers().isNamed()) {
+        p(" : ");
+      }
       accept(x.getDefaultExpr());
     }
     return null;
@@ -350,20 +355,27 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   }
 
   private void pFormalParameters(List<DartParameter> params) {
-    boolean first = true, hasNamed = false;
+    boolean first = true, hasPositional = false, hasNamed = false;
     for (DartParameter param : params) {
       if (!first) {
         p(", ");
       }
+      if (!hasPositional && param.getModifiers().isOptional()) {
+        hasPositional = true;
+        p("[");
+      }
       if (!hasNamed && param.getModifiers().isNamed()) {
         hasNamed = true;
-        p("[");
+        p("{");
       }
       accept(param);
       first = false;
     }
-    if (hasNamed) {
+    if (hasPositional) {
       p("]");
+    }
+    if (hasNamed) {
+      p("}");
     }
   }
   

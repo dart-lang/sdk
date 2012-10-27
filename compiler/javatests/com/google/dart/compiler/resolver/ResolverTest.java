@@ -1501,28 +1501,42 @@ public class ResolverTest extends ResolverTestCase {
     // requested to disable this
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "method([_foo]) {}",
+        "method({_foo}) {}",
         "class Foo {",
         "  var _bar;",
-        "  //Foo([this._bar]){}",
-        "  method([_foo]){}",
+        "  //Foo({this._bar}){}",
+        "  method({_foo}){}",
         "}"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 9, 4),
 //        errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 5, 8, 9),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4));
   }
+  
+  public void testUndercoreInOptionalParameterMethodDefinition() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "method([_foo]) {}",
+        "typedef myFuncType([_foo]);",
+        "class Foo {",
+        "  var _bar;",
+        "  method([_foo]){}",
+        "}"),
+        errEx(ResolverErrorCode.OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 9, 4),
+        errEx(ResolverErrorCode.OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER, 6, 11, 4),
+        errEx(ResolverErrorCode.OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER, 3, 21, 4));
+  }
 
   public void testUndercoreInNamedParameterFunctionDefinition() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "var f = func([_foo]) {};"),
+        "var f = func({_foo}) {};"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 15, 4));
   }
 
   public void testUndercoreInNamedParameterFunctionAlias() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "typedef Object func([_foo]);"),
+        "typedef Object func({_foo});"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4));
   }
 

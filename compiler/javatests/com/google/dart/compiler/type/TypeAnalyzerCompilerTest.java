@@ -174,14 +174,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "typedef A A();",
         "typedef B(B b);",
         "typedef C([C c]);",
-        "typedef D<T extends D>();",
+        "typedef D({D d});",
+        "typedef E<T extends E>();",
         "");
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 2, 1, 14),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 3, 1, 15),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 4, 1, 17),
-        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 25));
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 17),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 6, 1, 25));
   }
 
   /**
@@ -199,8 +201,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "typedef B2(A2 a);",
         "typedef B3 A3();",
         "typedef B3([A3 a]);",
-        "typedef A4<T extends B4>();",
-        "typedef B4(A4 a);",
+        "typedef B4 A4();",
+        "typedef B4({A4 a});",
+        "typedef A5<T extends B5>();",
+        "typedef B5(A5 a);",
         "");
     assertErrors(
         libraryResult.getErrors(),
@@ -210,8 +214,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 5, 1, 17),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 6, 1, 16),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 7, 1, 19),
-        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 27),
-        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 17));
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 8, 1, 16),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 9, 1, 19),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1, 27),
+        errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 11, 1, 17));
   }
   
   /**
@@ -963,17 +969,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "/* 14 */   f_0_1(n1: 1);",
                 "/* 15 */   f_0_1(x: 1);",
                 "/* 16 */   f_0_1(n1: 1, n1: 2);",
-                "/* 17 */",
-                "/* 18 */   f_1_3(-1, 1, n3: 2);",
-                "/* 19 */   f_1_3(-1, 1, n1: 1);",
                 "}",
                 "",
                 "f_0_0() {}",
                 "f_1_0(r1) {}",
                 "f_2_0(r1, r2) {}",
-                "f_0_1([n1]) {}",
-                "f_0_2([n1, n2]) {}",
-                "f_1_3(r1, [n1, n2, n3]) {}",
+                "f_0_1({n1}) {}",
+                "f_0_2({n1, n2}) {}",
                 ""));
     assertErrors(
         libraryResult.getTypeErrors(),
@@ -982,12 +984,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 22, 2),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 26, 2),
         errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 5),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 12, 18, 1),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 13, 18, 1),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 13, 21, 1),
-        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4),
-        errEx(TypeErrorCode.DUPLICATE_NAMED_ARGUMENT, 19, 25, 5));
+        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4));
     assertErrors(
         libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.DUPLICATE_NAMED_ARGUMENT, 16, 25, 5));
+  }
+  
+  /**
+   * Test for errors and warnings related to positional and named arguments for required and
+   * optional parameters.
+   */
+  public void test_invocationArguments2() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "func([int np1, int np2, int np3]) {}",
+                "main() {",
+                "  func(np1: 1, np2: 2, np3: 2);",
+                "}",
+                ""));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 4, 8, 6),
+        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 4, 16, 6),
+        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 4, 24, 6));
   }
 
   /**
@@ -1614,21 +1639,21 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "interface I {",
-            "  foo([x]);",
+            "  foo({x});",
             "}",
             "class C implements I {",
-            "  foo([x,y]) {}",
+            "  foo({x,y}) {}",
             "}");
     assertErrors(result.getErrors());
   }
-  
+
   public void test_implementsAndOverrides_lessNamedParameter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "abstract class A {",
-        "  abstract foo([x, y]);",
+        "  abstract foo({x, y});",
         "}",
         "abstract class B extends A {",
-        "  abstract foo([x]);",
+        "  abstract foo({x});",
         "}");
     assertErrors(
         result.getErrors(),
@@ -1646,12 +1671,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  abstract foo();",
             "}",
             "class B extends A {",
-            "  foo([x]) {}",
+            "  foo({x}) {}",
             "}",
             "bar() {",
             "  new B();",
             "}",
             "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_implementsAndOverrides_lessOptionalPositionalParameter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "abstract class A {",
+        "  abstract foo([x, y]);",
+        "}",
+        "abstract class B extends A {",
+        "  abstract foo([x]);",
+        "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS, 5, 12, 3));
+  }
+  
+  public void test_implementsAndOverrides_moreOptionalPositionalParameter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "abstract class A {",
+        "  abstract foo([x]);",
+        "}",
+        "abstract class B extends A {",
+        "  abstract foo([a, b]);",
+        "}");
     assertErrors(result.getErrors());
   }
 
@@ -1676,7 +1725,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3183
    */
-  public void test_implementsAndOverrides_differentDefaultValue() throws Exception {
+  public void test_implementsAndOverrides_differentDefaultValue_optional() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "// filler filler filler filler filler filler filler filler filler filler",
@@ -1699,6 +1748,34 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 11, 7, 5),
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 12, 7, 7));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3183
+   */
+  public void test_implementsAndOverrides_differentDefaultValue_named() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  f1({x}) {}",
+            "  f2({x: 1}) {}",
+            "  f3({x: 1}) {}",
+            "  f4({x: 1}) {}",
+            "}",
+            "class B extends A {",
+            "  f1({x: 2}) {}",
+            "  f2({x]) {}",
+            "  f3({x: 2}) {}",
+            "  f4({x: '2'}) {}",
+            "}",
+            "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 10, 7, 1),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 11, 7, 4),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 12, 7, 6));
+  }
 
   /**
    * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
@@ -1710,10 +1787,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "interface I {",
-            "  foo([x,y]);",
+            "  foo({x,y});",
             "}",
             "class C implements I {",
-            "  foo([x]) {}",
+            "  foo({x}) {}",
             "}");
     assertErrors(
         result.getErrors(),
@@ -1749,24 +1826,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.INVALID_OVERRIDE_METADATA, 6, 3, 3));
   }
 
-  /**
-   * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
-   * not declare all the named parameters declared by m2 in the same order.
-   * <p>
-   * Here: wrong order.
-   */
   public void testImplementsAndOverrides5() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
             "interface I {",
-            "  foo([y,x]);",
+            "  foo({y,x});",
             "}",
             "class C implements I {",
-            "  foo([x,y]) {}",
+            "  foo({x,y}) {}",
             "}");
-    assertErrors(
-        result.getErrors(),
-        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
+    assertErrors(result.getErrors());
   }
 
   /**
@@ -3020,7 +3089,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "typedef void EventListener(Event event);",
-        "foo([EventListener listener]) {",
+        "foo({EventListener listener}) {",
         "}",
         "main() {",
         "  foo(listener: (e) {",

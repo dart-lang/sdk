@@ -281,10 +281,15 @@ public class Resolver {
           if (parameter.getQualifier() instanceof DartThisExpression) {
             onError(parameter.getName(), ResolverErrorCode.PARAMETER_INIT_OUTSIDE_CONSTRUCTOR);
           } else {
-            if (parameter.getModifiers().isNamed()
-                && DartIdentifier.isPrivateName(parameter.getElement().getName())) {
-              onError(parameter.getName(),
-                  ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+            if (DartIdentifier.isPrivateName(parameter.getElement().getName())) {
+              if (parameter.getModifiers().isOptional()) {
+                onError(parameter.getName(),
+                    ResolverErrorCode.OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER);
+              }
+              if (parameter.getModifiers().isNamed()) {
+                onError(parameter.getName(),
+                    ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER);
+              }
             }
             getContext().declare(parameter.getElement(), ResolverErrorCode.DUPLICATE_PARAMETER);
           }
@@ -573,6 +578,22 @@ public class Resolver {
                   Elements.getRawMethodName(defaultConstructor),
                   defaultClassName,
                   numReqDefault);
+            }
+          }
+          // Validate number of required parameters.
+          {
+            int numInterface = Elements.getNumberOfOptionalPositionalParameters(interfaceConstructor);
+            int numDefault = Elements.getNumberOfOptionalPositionalParameters(defaultConstructor);
+            if (numInterface != numDefault) {
+              onError(
+                  interfaceConstructor,
+                  ResolverErrorCode.DEFAULT_CONSTRUCTOR_OPTIONAL_POSITIONAL_PARAMETERS,
+                  Elements.getRawMethodName(interfaceConstructor),
+                  interfaceClassName,
+                  numInterface,
+                  Elements.getRawMethodName(defaultConstructor),
+                  defaultClassName,
+                  numDefault);
             }
           }
           // Validate names of named parameters.
@@ -2220,14 +2241,7 @@ public class Resolver {
         if (superCall != null) {
 
           // Do positional parameters match?
-          List<VariableElement> superParameters = superCall.getParameters();
-          // Count the number of positional parameters required by super call
-          int superPositionalCount = 0;
-          for (; superPositionalCount < superParameters.size(); superPositionalCount++) {
-            if (superParameters.get(superPositionalCount).isNamed()) {
-              break;
-            }
-          }
+          int superPositionalCount = Elements.getNumberOfRequiredParameters(superCall);
           if (superPositionalCount > 0) {
             onError(node, ResolverErrorCode.TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER,
                 superCall.getType().toString());

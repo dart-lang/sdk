@@ -34,8 +34,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
       "cannot override method %s from %s, wrong number of required parameters"),
-  CANNOT_OVERRIDE_METHOD_NAMED_PARAMS(
-      "cannot override method %s, named parameters don't match"),
+  CANNOT_OVERRIDE_METHOD_NAMED_PARAMS("cannot override method %s, named parameters don't match"),
+  CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS("cannot override method %s, optional positional parameters don't match"),
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
@@ -77,6 +77,8 @@ public enum ResolverErrorCode implements ErrorCode {
   DEFAULT_CONSTRUCTOR_UNRESOLVED("Cannot resolve constructor with name '%s' in default class '%s'"),
   DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
       "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
+  DEFAULT_CONSTRUCTOR_OPTIONAL_POSITIONAL_PARAMETERS(
+      "Constructor '%s' in '%s' has %s optional positional parameters, doesn't match '%s' in '%s' with %s"),
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
@@ -170,7 +172,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
-  REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
+  OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER("Optional parameters cannot start with an '_' character"),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(
       "Super method invocation is not allowed in constructor initializer"),
@@ -181,6 +183,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Parameter initializers cannot be used with redirected constructors"),
   // TODO(zundel): error message needs JUnit test
   PARAMETER_NOT_MATCH_FIELD("Could not match parameter initializer '%s' with any field"),
+  REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
   REDIRECTION_CONSTRUCTOR_TARGET_TYPE(
       "Target of redirecting factory constructor is not a type"),
   REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_CONST(

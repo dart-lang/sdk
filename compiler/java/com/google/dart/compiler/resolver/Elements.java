@@ -446,7 +446,21 @@ static FieldElementImplementation fieldFromNode(DartField node,
     int num = 0;
     List<VariableElement> parameters = method.getParameters();
     for (VariableElement parameter : parameters) {
-      if (!parameter.isNamed()) {
+      if (!parameter.isOptional() && !parameter.isNamed()) {
+        num++;
+      }
+    }
+    return num;
+  }
+  
+  /**
+   * @return the number of optional positional parameters in given {@link MethodElement}.
+   */
+  public static int getNumberOfOptionalPositionalParameters(MethodElement method) {
+    int num = 0;
+    List<VariableElement> parameters = method.getParameters();
+    for (VariableElement parameter : parameters) {
+      if (parameter.isOptional()) {
         num++;
       }
     }

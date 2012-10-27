@@ -127,6 +127,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1137,14 +1138,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
 
       // Check optional parameters.
-      // TODO(scheglov) currently this block does not work,
-      // because we handle all optional parameter as named
       {
         Map<String, Type> optionalParameterTypes = ftype.getOptionalParameterTypes();
         Iterator<Entry<String, Type>> optionalParameterTypesIterator =
             optionalParameterTypes.entrySet().iterator();
         while (optionalParameterTypesIterator.hasNext()
-            && argumentTypes.hasNext()) {
+            && argumentTypes.hasNext()
+            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
           Entry<String, Type> namedEntry = optionalParameterTypesIterator.next();
           Type optionalType = namedEntry.getValue();
           optionalType.getClass(); // quick null check
@@ -1171,28 +1171,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
         Iterator<Entry<String, Type>> namedParameterTypesIterator =
             namedParameterTypes.entrySet().iterator();
-        // Check positional arguments for named parameters.
-        while (namedParameterTypesIterator.hasNext()
-            && argumentTypes.hasNext()
-            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
-          Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
-          String parameterName = namedEntry.getKey();
-          usedNamedParametersPositional.add(parameterName);
-          Type namedType = namedEntry.getValue();
-          namedType.getClass(); // quick null check
-          Type argumentType = argumentTypes.next();
-          argumentType.getClass(); // quick null check
-          DartExpression argumentNode = argumentNodes.get(argumentIndex);
-          if (parameters != null) {
-            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
-          } else {
-            argumentNode.setInvocationParameterId(argumentIndex);
-          }
-          if (checkAssignable(argumentNode, namedType, argumentType)) {
-            inferFunctionLiteralParametersTypes(argumentNode, namedType);
-          }
-          argumentIndex++;
-        }
+//        // Check positional arguments for named parameters.
+//        while (namedParameterTypesIterator.hasNext()
+//            && argumentTypes.hasNext()
+//            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
+//          Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
+//          String parameterName = namedEntry.getKey();
+//          usedNamedParametersPositional.add(parameterName);
+//          Type namedType = namedEntry.getValue();
+//          namedType.getClass(); // quick null check
+//          Type argumentType = argumentTypes.next();
+//          argumentType.getClass(); // quick null check
+//          DartExpression argumentNode = argumentNodes.get(argumentIndex);
+//          if (parameters != null) {
+//            argumentNode.setInvocationParameterId(parameters.get(argumentIndex));
+//          } else {
+//            argumentNode.setInvocationParameterId(argumentIndex);
+//          }
+//          if (checkAssignable(argumentNode, namedType, argumentType)) {
+//            inferFunctionLiteralParametersTypes(argumentNode, namedType);
+//          }
+//          argumentIndex++;
+//        }
         // Check named arguments for named parameters.
         while (argumentTypes.hasNext()
             && argumentNodes.get(argumentIndex) instanceof DartNamedExpression) {
@@ -2947,6 +2947,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         referencedTypes.add(type.getReturnType());
         // parameters
         referencedTypes.addAll(type.getParameterTypes());
+        referencedTypes.addAll(type.getOptionalParameterTypes().values());
         referencedTypes.addAll(type.getNamedParameterTypes().values());
       }
       // check that referenced types do not have references on "target"
@@ -3328,62 +3329,159 @@ public class TypeAnalyzer implements DartCompilationPhase {
         List<VariableElement> superParameters = superMethod.getParameters();
         // Number of required parameters should be same.
         {
-          int numRequired = getNumRequiredParameters(parameters);
-          int superNumRequired = getNumRequiredParameters(superParameters);
+          int numRequired = Elements.getNumberOfRequiredParameters(method);
+          int superNumRequired = Elements.getNumberOfRequiredParameters(superMethod);
           if (numRequired != superNumRequired) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(method.getName());
-            builder.append("(");
-            boolean inNamed = false;
-            int parameterCount = superParameters.size();
-            for (int i = 0; i < parameterCount; i++) {
-              if (i > 0) {
-                builder.append(", ");
-              }
-              VariableElement parameter = superParameters.get(i);
-              if (!inNamed && parameter.isNamed()) {
-                builder.append("[");
-                inNamed = true;
-              }
-              builder.append(parameter.getType().toString());
-            }
-            if (inNamed) {
-              builder.append("]");
-            }
-            builder.append(")");
             onError(errorTarget,
                     ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS,
-                    builder.toString(),
+                    getMethodSignature(superMethod),
                     superMethod.getEnclosingElement().getName());
             return false;
           }
         }
-        // "method" should have at least all named parameters of "superMethod" in the same order.
-        List<VariableElement> named = getNamedParameters(parameters);
-        List<VariableElement> superNamed = getNamedParameters(superParameters);
-        Iterator<VariableElement> namedIterator = named.iterator();
-        Iterator<VariableElement> superNamedIterator = superNamed.iterator();
-        while (superNamedIterator.hasNext()) {
-          VariableElement superParameter = superNamedIterator.next();
-          if (namedIterator.hasNext()) {
-            VariableElement parameter = namedIterator.next();
-            if (Objects.equal(parameter.getName(), superParameter.getName())) {
-              DartExpression superDefValue = superParameter.getDefaultValue();
-              DartExpression defValue = parameter.getDefaultValue();
-              if (superDefValue != null
-                  && !Objects.equal(ObjectUtils.toString(defValue),
-                      ObjectUtils.toString(superDefValue))) {
-                onError(parameter.getSourceInfo(),
-                    TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
-                    superDefValue);
-              }
-              continue;
+        // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6306
+        if (Elements.isLibrarySource(errorTarget.getSourceInfo().getSource(), "/io/io_runtime.dart")) {
+          return true;
+        }
+        // "method" should have at least same number of optional positional parameters as "superMethod"
+        {
+          LinkedHashMap<VariableElement, DartExpression> defMethod = getParametersDefaultsOptional(parameters);
+          LinkedHashMap<VariableElement, DartExpression> defSuper = getParametersDefaultsOptional(superParameters);
+          if (defMethod.size() < defSuper.size()) {
+            onError(errorTarget,
+                    ResolverErrorCode.CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS,
+                    getMethodSignature(superMethod),
+                    superMethod.getEnclosingElement().getName());
+            return false;
+          }
+          Iterator<Entry<VariableElement, DartExpression>> defMethodIter = defMethod.entrySet().iterator();
+          Iterator<Entry<VariableElement, DartExpression>> defSuperIter = defSuper.entrySet().iterator();
+          while (defSuperIter.hasNext()) {
+            Entry<VariableElement, DartExpression> methodEntry = defMethodIter.next();
+            Entry<VariableElement, DartExpression> superEntry = defSuperIter.next();
+            DartExpression methodValue = methodEntry.getValue();
+            DartExpression superValue = superEntry.getValue();
+            if (superValue != null
+                && !Objects.equal(ObjectUtils.toString(methodValue),
+                    ObjectUtils.toString(superValue))) {
+              onError(methodEntry.getKey().getSourceInfo(),
+                  TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
+                  superValue);
             }
           }
-          onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
-          return false;
         }
+        // "method" should have at least all named parameters of "superMethod".
+        {
+          Map<String, VariableElement> methodNames = getParametersNamed(parameters);
+          Map<String, VariableElement> superNames = getParametersNamed(superParameters);
+          if (!methodNames.keySet().containsAll(superNames.keySet())) {
+            onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
+            return false;
+          }
+          Map<String, DartExpression> methodDefs = getParametersDefaultsNamed(parameters);
+          Map<String, DartExpression> superDefs = getParametersDefaultsNamed(superParameters);
+          for (Entry<String, DartExpression> entry : superDefs.entrySet()) {
+            String name = entry.getKey();
+            DartExpression defValue = methodDefs.get(name);
+            DartExpression superDefValue = superDefs.get(name);
+            if (superDefValue != null
+                && !Objects.equal(ObjectUtils.toString(defValue),
+                    ObjectUtils.toString(superDefValue))) {
+              onError(methodNames.get(name).getSourceInfo(),
+                  TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
+                  superDefValue);
+            }
+          }
+        }
+//        List<VariableElement> named = getNamedParameters(parameters);
+//        List<VariableElement> superNamed = getNamedParameters(superParameters);
+//        Iterator<VariableElement> namedIterator = named.iterator();
+//        Iterator<VariableElement> superNamedIterator = superNamed.iterator();
+//        while (superNamedIterator.hasNext()) {
+//          VariableElement superParameter = superNamedIterator.next();
+//          if (namedIterator.hasNext()) {
+//            VariableElement parameter = namedIterator.next();
+//            if (Objects.equal(parameter.getName(), superParameter.getName())) {
+//              DartExpression superDefValue = superParameter.getDefaultValue();
+//              DartExpression defValue = parameter.getDefaultValue();
+//              if (superDefValue != null
+//                  && !Objects.equal(ObjectUtils.toString(defValue),
+//                      ObjectUtils.toString(superDefValue))) {
+//                onError(parameter.getSourceInfo(),
+//                    TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, method.getName(),
+//                    superDefValue);
+//              }
+//              continue;
+//            }
+//          }
+//          onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
+//          return false;
+//        }
         return true;
+      }
+
+      private String getMethodSignature(MethodElement method) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(method.getName());
+        builder.append("(");
+        boolean inOptional = false;
+        boolean inNamed = false;
+        List<VariableElement> superParameters = method.getParameters();
+        int parameterCount = superParameters.size();
+        for (int i = 0; i < parameterCount; i++) {
+          if (i > 0) {
+            builder.append(", ");
+          }
+          VariableElement parameter = superParameters.get(i);
+          if (!inOptional && parameter.isOptional()) {
+            builder.append("[");
+            inOptional = true;
+          }
+          if (!inNamed && parameter.isNamed()) {
+            builder.append("{");
+            inNamed = true;
+          }
+          builder.append(parameter.getType().toString());
+        }
+        if (inOptional) {
+          builder.append("]");
+        }
+        if (inNamed) {
+          builder.append("}");
+        }
+        builder.append(")");
+        String methodSignature = builder.toString();
+        return methodSignature;
+      }
+
+      private LinkedHashMap<VariableElement, DartExpression> getParametersDefaultsOptional(List<VariableElement> parameters) {
+        LinkedHashMap<VariableElement, DartExpression> defaults = Maps.newLinkedHashMap();
+        for (VariableElement parameter : parameters) {
+          if (parameter.isOptional()) {
+            defaults.put(parameter, parameter.getDefaultValue());
+          }
+        }
+        return defaults;
+      }
+
+      private Map<String, VariableElement> getParametersNamed(List<VariableElement> parameters) {
+        Map<String, VariableElement> namedParameters = Maps.newHashMap();
+        for (VariableElement parameter : parameters) {
+          if (parameter.isNamed()) {
+            namedParameters.put(parameter.getName(), parameter);
+          }
+        }
+        return namedParameters;
+      }
+      
+      private Map<String, DartExpression> getParametersDefaultsNamed(List<VariableElement> parameters) {
+        Map<String, DartExpression> defaults = Maps.newHashMap();
+        for (VariableElement parameter : parameters) {
+          if (parameter.isNamed()) {
+            defaults.put(parameter.getName(), parameter.getDefaultValue());
+          }
+        }
+        return defaults;
       }
 
       private int getNumRequiredParameters(List<VariableElement> parameters) {
