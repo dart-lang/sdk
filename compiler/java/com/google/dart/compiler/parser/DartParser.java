@@ -922,6 +922,9 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartDeclaration<?> parseClass() {
     beginClassBody();
+    
+    int tokenOffset = ctx.getTokenLocation().getBegin();
+    int tokenLength = ctx.getTokenLocation().getEnd() - tokenOffset;
 
     // Parse modifiers.
     Modifiers modifiers = Modifiers.NONE;
@@ -960,8 +963,11 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Deal with factory clause for interfaces.
     DartParameterizedTypeNode defaultClass = null;
+    int defaultTokenOffset = -1;
     if (isParsingInterface &&
         (optionalDeprecatedFactory() || optional(Token.DEFAULT))) {
+      defaultTokenOffset = position();
+      beginTypeAnnotation();
       DartExpression qualified = parseQualified(false);
       List<DartTypeParameter> defaultTypeParameters = parseTypeParametersOpt();
       defaultClass = doneWithoutConsuming(new DartParameterizedTypeNode(qualified,
@@ -998,18 +1004,12 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (isParsingInterface) {
-      return done(new DartClass(name, superType, interfaces, openBraceOffset, closeBraceOffset,
-          members, typeParameters, defaultClass));
+      return done(new DartClass(tokenOffset, tokenLength, name, superType, interfaces,
+          defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters,
+          defaultClass));
     } else {
-      return done(new DartClass(name,
-          nativeName,
-          superType,
-          interfaces,
-          openBraceOffset,
-          closeBraceOffset,
-          members,
-          typeParameters,
-          modifiers));
+      return done(new DartClass(tokenOffset, tokenLength, name, nativeName, superType, interfaces,
+          defaultTokenOffset, openBraceOffset, closeBraceOffset, members, typeParameters, modifiers));
     }
   }
 

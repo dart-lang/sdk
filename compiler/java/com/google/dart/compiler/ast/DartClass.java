@@ -30,45 +30,41 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
   // points to the JS class. Otherwise it is null.
   private final DartStringLiteral nativeName;
 
+  private final int tokenOffset;
+  private final int tokenLength;
+  private final int defaultTokenOffset;
   private final int openBraceOffset;
   private final int closeBraceOffset;
 
-  public DartClass(DartIdentifier name, DartStringLiteral nativeName, DartTypeNode superclass,
-      List<DartTypeNode> interfaces, int openBraceOffset, int closeBraceOffset,
-      List<DartNode> members, List<DartTypeParameter> typeParameters, Modifiers modifiers) {
-    this(name, nativeName, superclass, interfaces, openBraceOffset, closeBraceOffset, members,
-        typeParameters, null, false, modifiers);
+
+  public DartClass(int tokenOffset, int tokenLength, DartIdentifier name,
+      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
+      int defaultTokenOffset,
+      int openBraceOffset, int closeBraceOffset, List<DartNode> members,
+      List<DartTypeParameter> typeParameters, Modifiers modifiers) {
+    this(tokenOffset, tokenLength, name, nativeName, superclass, interfaces, defaultTokenOffset, openBraceOffset,
+        closeBraceOffset, members, typeParameters, null, false, modifiers);
   }
 
-  public DartClass(DartIdentifier name, DartTypeNode superclass, List<DartTypeNode> interfaces,
-                   int openBraceOffset, int closeBraceOffset,
-                   List<DartNode> members,
-                   List<DartTypeParameter> typeParameters,
-                   DartParameterizedTypeNode defaultClass) {
-    this(name,
-        null,
-        superclass,
-        interfaces,
-        openBraceOffset,
-        closeBraceOffset,
-        members,
-        typeParameters,
-        defaultClass,
-        true,
-        Modifiers.NONE);
+  public DartClass(int tokenOffset, int tokenLength, DartIdentifier name, DartTypeNode superclass,
+      List<DartTypeNode> interfaces, int defaultTokenOffset, int openBraceOffset, int closeBraceOffset,
+      List<DartNode> members, List<DartTypeParameter> typeParameters,
+      DartParameterizedTypeNode defaultClass) {
+    this(tokenOffset, tokenLength, name, null, superclass, interfaces, defaultTokenOffset, openBraceOffset,
+        closeBraceOffset, members, typeParameters, defaultClass, true, Modifiers.NONE);
   }
 
-  public DartClass(DartIdentifier name, DartStringLiteral nativeName,
-                   DartTypeNode superclass, List<DartTypeNode> interfaces,
-                   int openBraceOffset, int closeBraceOffset,
-                   List<DartNode> members,
-                   List<DartTypeParameter> typeParameters,
-                   DartParameterizedTypeNode defaultClass,
-                   boolean isInterface,
-                   Modifiers modifiers) {
+  public DartClass(int tokenOffset, int tokenLength, DartIdentifier name,
+      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
+     int defaultTokenOffset, int openBraceOffset, int closeBraceOffset, List<DartNode> members,
+      List<DartTypeParameter> typeParameters, DartParameterizedTypeNode defaultClass,
+      boolean isInterface, Modifiers modifiers) {
     super(name);
+    this.tokenOffset = tokenOffset;
+    this.tokenLength = tokenLength;
     this.nativeName = becomeParentOf(nativeName);
     this.superclass = becomeParentOf(superclass);
+    this.defaultTokenOffset = defaultTokenOffset;
     this.openBraceOffset = openBraceOffset;
     this.closeBraceOffset = closeBraceOffset;
     this.members.addAll(members);
@@ -108,6 +104,18 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
       }
     }
     return false;
+  }
+
+  public int getTokenOffset() {
+    return tokenOffset;
+  }
+  
+  public int getTokenLength() {
+    return tokenLength;
+  }
+  
+  public int getDefaultTokenOffset() {
+    return defaultTokenOffset;
   }
   
   public int getOpenBraceOffset() {
