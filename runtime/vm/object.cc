@@ -37,9 +37,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
-DEFINE_FLAG(bool, reject_named_argument_as_positional, true,
-    "Enforce new rules for optional parameters and disallow passing of named "
-    "arguments to optional positional formal parameters");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -3422,80 +3419,23 @@ intptr_t Function::NumImplicitParameters() const {
 bool Function::AreValidArgumentCounts(int num_arguments,
                                       int num_named_arguments,
                                       String* error_message) const {
-  if (FLAG_reject_named_argument_as_positional) {
-    if (num_named_arguments > NumOptionalNamedParameters()) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%d named passed, at most %"Pd" expected",
-                    num_named_arguments,
-                    NumOptionalNamedParameters());
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too many named arguments.
-    }
-    const int num_pos_args = num_arguments - num_named_arguments;
-    const int num_opt_pos_params = NumOptionalPositionalParameters();
-    const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
-    if (num_pos_args > num_pos_params) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumImplicitParameters();
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%"Pd"%s passed, %s%"Pd" expected",
-                    num_pos_args - num_hidden_params,
-                    num_opt_pos_params > 0 ? " positional" : "",
-                    num_opt_pos_params > 0 ? "at most " : "",
-                    num_pos_params - num_hidden_params);
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too many fixed and/or positional arguments.
-    }
-    if (num_pos_args < num_fixed_parameters()) {
-      if (error_message != NULL) {
-        const intptr_t kMessageBufferSize = 64;
-        char message_buffer[kMessageBufferSize];
-        // Hide implicit parameters to the user.
-        const intptr_t num_hidden_params = NumImplicitParameters();
-        OS::SNPrint(message_buffer,
-                    kMessageBufferSize,
-                    "%"Pd"%s passed, %s%"Pd" expected",
-                    num_pos_args - num_hidden_params,
-                    num_opt_pos_params > 0 ? " positional" : "",
-                    num_opt_pos_params > 0 ? "at least " : "",
-                    num_fixed_parameters() - num_hidden_params);
-        *error_message = String::New(message_buffer);
-      }
-      return false;  // Too few fixed and/or positional arguments.
-    }
-    return true;
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
-  if (num_arguments > NumParameters()) {
+  if (num_named_arguments > NumOptionalNamedParameters()) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
-      // Hide implicit parameters to the user.
-      const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd" passed, %s%"Pd" expected",
-                  num_arguments - num_hidden_params,
-                  HasOptionalParameters() ? "at most " : "",
-                  NumParameters() - num_hidden_params);
+                  "%d named passed, at most %"Pd" expected",
+                  num_named_arguments,
+                  NumOptionalNamedParameters());
       *error_message = String::New(message_buffer);
     }
-    return false;  // Too many arguments.
+    return false;  // Too many named arguments.
   }
-  const int num_positional_args = num_arguments - num_named_arguments;
-  if (num_positional_args < num_fixed_parameters()) {
+  const int num_pos_args = num_arguments - num_named_arguments;
+  const int num_opt_pos_params = NumOptionalPositionalParameters();
+  const int num_pos_params = num_fixed_parameters() + num_opt_pos_params;
+  if (num_pos_args > num_pos_params) {
     if (error_message != NULL) {
       const intptr_t kMessageBufferSize = 64;
       char message_buffer[kMessageBufferSize];
@@ -3503,13 +3443,31 @@ bool Function::AreValidArgumentCounts(int num_arguments,
       const intptr_t num_hidden_params = NumImplicitParameters();
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
-                  "%"Pd" %spassed, %"Pd" expected",
-                  num_positional_args - num_hidden_params,
-                  HasOptionalParameters() ? "positional " : "",
+                  "%"Pd"%s passed, %s%"Pd" expected",
+                  num_pos_args - num_hidden_params,
+                  num_opt_pos_params > 0 ? " positional" : "",
+                  num_opt_pos_params > 0 ? "at most " : "",
+                  num_pos_params - num_hidden_params);
+      *error_message = String::New(message_buffer);
+    }
+    return false;  // Too many fixed and/or positional arguments.
+  }
+  if (num_pos_args < num_fixed_parameters()) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      // Hide implicit parameters to the user.
+      const intptr_t num_hidden_params = NumImplicitParameters();
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "%"Pd"%s passed, %s%"Pd" expected",
+                  num_pos_args - num_hidden_params,
+                  num_opt_pos_params > 0 ? " positional" : "",
+                  num_opt_pos_params > 0 ? "at least " : "",
                   num_fixed_parameters() - num_hidden_params);
       *error_message = String::New(message_buffer);
     }
-    return false;  // Too few arguments.
+    return false;  // Too few fixed and/or positional arguments.
   }
   return true;
 }
@@ -3625,63 +3583,35 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   // compatible although it has an additional phase parameter.
   const intptr_t num_ignored_params =
       (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
-  if (FLAG_reject_named_argument_as_positional) {
-    // The default values of optional parameters can differ.
-    if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-        (num_opt_pos_params < other_num_opt_pos_params) ||
-        (num_opt_named_params < other_num_opt_named_params)) {
-      return false;
-    }
-    if (other_num_opt_named_params == 0) {
-      return true;
-    }
-    // Check that for each optional named parameter of the other function there
-    // exists an optional named parameter of this function with an identical
-    // name.
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const int num_params = num_fixed_params + num_opt_named_params;
-    const int other_num_params =
-        other_num_fixed_params + other_num_opt_named_params;
-    bool found_param_name;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      found_param_name = false;
-      for (intptr_t j = num_fixed_params; j < num_params; j++) {
-        if (ParameterNameAt(j) == other_param_name.raw()) {
-          found_param_name = true;
-          break;
-        }
-      }
-      if (!found_param_name) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
   // The default values of optional parameters can differ.
-  const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
-  const intptr_t other_num_opt_params =
-      other_num_opt_pos_params + other_num_opt_named_params;
   if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-      (num_opt_params < other_num_opt_params)) {
+      (num_opt_pos_params < other_num_opt_pos_params) ||
+      (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  // Check that for each optional named parameter of the other function there is
-  // a corresponding optional named parameter of this function with an identical
-  // name at the same position.
-  // Note that SetParameterNameAt() guarantees that names are symbols, so we can
-  // compare their raw pointers.
-  const int other_num_params = other_num_fixed_params + other_num_opt_params;
+  if (other_num_opt_named_params == 0) {
+    return true;
+  }
+  // Check that for each optional named parameter of the other function there
+  // exists an optional named parameter of this function with an identical
+  // name.
+  // Note that SetParameterNameAt() guarantees that names are symbols, so we
+  // can compare their raw pointers.
+  const int num_params = num_fixed_params + num_opt_named_params;
+  const int other_num_params =
+      other_num_fixed_params + other_num_opt_named_params;
+  bool found_param_name;
+  String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-    const String& other_param_name = String::Handle(other.ParameterNameAt(i));
-    ASSERT(other_param_name.IsSymbol());
-    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
-    if (ParameterNameAt(i) != other_param_name.raw()) {
+    other_param_name = other.ParameterNameAt(i);
+    found_param_name = false;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      if (ParameterNameAt(j) == other_param_name.raw()) {
+        found_param_name = true;
+        break;
+      }
+    }
+    if (!found_param_name) {
       return false;
     }
   }
@@ -3779,83 +3709,48 @@ bool Function::TypeTest(TypeTestKind test_kind,
       }
     }
   }
-  if (FLAG_reject_named_argument_as_positional) {
-    // Check the types of fixed and optional positional parameters.
-    for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
-      if (!TestParameterType(test_kind,
-                             i, i, type_arguments, other, other_type_arguments,
-                             malformed_error)) {
-        return false;
-      }
-    }
-    // Check the names and types of optional named parameters.
-    if (other_num_opt_named_params == 0) {
-      return true;
-    }
-    // Check that for each optional named parameter of type T of the other
-    // function type, there exists an optional named parameter of this function
-    // type with an identical name and with a type S that is a either a subtype
-    // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-    // than T (if test_kind == kIsMoreSpecificThan).
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const int num_params = num_fixed_params + num_opt_named_params;
-    const int other_num_params =
-        other_num_fixed_params + other_num_opt_named_params;
-    bool found_param_name;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      ASSERT(other_param_name.IsSymbol());
-      found_param_name = false;
-      for (intptr_t j = num_fixed_params; j < num_params; j++) {
-        ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
-        if (ParameterNameAt(j) == other_param_name.raw()) {
-          found_param_name = true;
-          if (!TestParameterType(test_kind,
-                                 j, i,
-                                 type_arguments, other, other_type_arguments,
-                                 malformed_error)) {
-            return false;
-          }
-          break;
-        }
-      }
-      if (!found_param_name) {
-        return false;
-      }
-    }
-  }
-
-  // TODO(regis): Remove the following code once the flag is removed.
-
-  // Check the types of fixed parameters.
-  for (intptr_t i = 0; i < num_fixed_params; i++) {
+  // Check the types of fixed and optional positional parameters.
+  for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
     if (!TestParameterType(test_kind,
                            i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
       return false;
     }
   }
-  // Check the names and types of optional parameters.
+  // Check the names and types of optional named parameters.
+  if (other_num_opt_named_params == 0) {
+    return true;
+  }
   // Check that for each optional named parameter of type T of the other
-  // function type, there is a corresponding optional named parameter of this
-  // function at the same position with an identical name and with a type S
-  // that is a either a subtype or supertype of T (if test_kind == kIsSubtypeOf)
-  // or that is more specific than T (if test_kind == kIsMoreSpecificThan).
+  // function type, there exists an optional named parameter of this function
+  // type with an identical name and with a type S that is a either a subtype
+  // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
+  // than T (if test_kind == kIsMoreSpecificThan).
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t other_num_params = other_num_fixed_params +
-      other_num_opt_pos_params + other_num_opt_named_params;
+  const int num_params = num_fixed_params + num_opt_named_params;
+  const int other_num_params =
+      other_num_fixed_params + other_num_opt_named_params;
+  bool found_param_name;
   String& other_param_name = String::Handle();
   for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     ASSERT(other_param_name.IsSymbol());
-    ASSERT(String::Handle(ParameterNameAt(i)).IsSymbol());
-    if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(test_kind,
-                           i, i, type_arguments, other, other_type_arguments,
-                           malformed_error)) {
+    found_param_name = false;
+    for (intptr_t j = num_fixed_params; j < num_params; j++) {
+      ASSERT(String::Handle(ParameterNameAt(j)).IsSymbol());
+      if (ParameterNameAt(j) == other_param_name.raw()) {
+        found_param_name = true;
+        if (!TestParameterType(test_kind,
+                               j, i,
+                               type_arguments, other, other_type_arguments,
+                               malformed_error)) {
+          return false;
+        }
+        break;
+      }
+    }
+    if (!found_param_name) {
       return false;
     }
   }
@@ -4094,8 +3989,7 @@ RawString* Function::BuildSignature(
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
       // to be part of the signature, since it is not used.
-      if (!FLAG_reject_named_argument_as_positional ||
-          (num_opt_named_params > 0)) {
+      if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         pieces.Add(name);
         pieces.Add(kColonSpace);

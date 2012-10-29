@@ -20,7 +20,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, reject_named_argument_as_positional);
 DECLARE_FLAG(bool, trace_functions);
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
@@ -695,11 +694,6 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 
   // Copy or initialize optional named arguments.
-
-  if (!FLAG_reject_named_argument_as_positional) {
-    // Treat optional positional parameters as optional named parameters.
-    num_opt_named_params += num_opt_pos_params;
-  }
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label all_arguments_processed;
@@ -735,13 +729,6 @@ void FlowGraphCompiler::CopyParameters() {
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter, next_parameter;
       const int param_pos = opt_param_position[i];
-      if (!FLAG_reject_named_argument_as_positional) {
-        // Handle this optional parameter only if k or fewer positional
-        // arguments have been passed, where k is the position of this optional
-        // parameter in the formal parameter list.
-        __ cmpl(ECX, Immediate(param_pos));
-        __ j(GREATER, &next_parameter, Assembler::kNearJump);
-      }
       // Check if this named parameter was passed in.
       __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
       ASSERT(opt_param[i]->name().IsSymbol());
@@ -778,7 +765,6 @@ void FlowGraphCompiler::CopyParameters() {
     __ cmpl(Address(EDI, 0), raw_null);
     __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
   } else if (num_opt_pos_params > 0) {
-    ASSERT(FLAG_reject_named_argument_as_positional);
     // Number of positional args is the second Smi in descriptor array (EDX).
     __ movl(ECX, FieldAddress(EDX, Array::data_offset() + (1 * kWordSize)));
     __ SmiUntag(ECX);

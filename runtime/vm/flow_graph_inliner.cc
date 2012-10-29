@@ -29,7 +29,6 @@ DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, compiler_stats);
-DECLARE_FLAG(bool, reject_named_argument_as_positional);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -277,16 +276,6 @@ class CallSiteInliner : public ValueObject {
     if (Intrinsifier::CanIntrinsify(function)) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: can intrinsify\n"));
-      return false;
-    }
-
-    // Abort if we are running legacy support for optional parameters.
-    if (!FLAG_reject_named_argument_as_positional &&
-        function.HasOptionalPositionalParameters() &&
-        (!argument_names.IsNull() && (argument_names.Length() > 0))) {
-      function.set_is_inlinable(false);
-      TRACE_INLINING(OS::Print(
-          "     Bailout: named optional positional parameter\n"));
       return false;
     }
 
