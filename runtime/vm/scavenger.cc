@@ -50,6 +50,21 @@ static inline void ForwardTo(uword orignal, uword target) {
 }
 
 
+class BoolScope : public ValueObject {
+ public:
+  BoolScope(bool* addr, bool value) : _addr(addr), _value(*addr) {
+    *_addr = value;
+  }
+  ~BoolScope() {
+    *_addr = _value;
+  }
+
+ private:
+  bool* _addr;
+  bool _value;
+};
+
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
@@ -57,7 +72,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         scavenger_(scavenger),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
-        visiting_old_pointers_(false) {}
+        delayed_weak_stack_(),
+        visiting_old_pointers_(false),
+        in_scavenge_pointer_(false) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -65,7 +82,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
   }
 
-  void VisitingOldPointers(bool value) { visiting_old_pointers_ = value; }
+  GrowableArray<RawObject*>* DelayedWeakStack() {
+    return &delayed_weak_stack_;
+  }
+
+  bool* VisitingOldPointersAddr() { return &visiting_old_pointers_; }
 
   void DelayWeakProperty(RawWeakProperty* raw_weak) {
     RawObject* raw_key = raw_weak->ptr()->key_;
@@ -99,6 +120,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   }
 
   void ScavengePointer(RawObject** p) {
+    // ScavengePointer cannot be called recursively.
+    ASSERT(!in_scavenge_pointer_);
+    BoolScope bs(&in_scavenge_pointer_, true);
+
     RawObject* raw_obj = *p;
 
     // Fast exit if the raw object is a Smi or an old object.
@@ -122,26 +147,21 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     if (IsForwarding(header)) {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
-    } else if (raw_obj->IsWatched()) {
-      // Forward the object by scavenging its watchers.
-      raw_obj->ClearWatchedBit();
-      std::pair<DelaySet::iterator, DelaySet::iterator> ret;
-      // Visit all elements with a key equal to raw_obj.
-      ret = delay_set_.equal_range(raw_obj);
-      for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
-        // Scavenge the delayed WeakProperty.  These objects have been
-        // forwarded but have not been scavenged because their key
-        // object was not known to be reachable.  Now that the key
-        // object is known to be reachable we can scavenge the key and
-        // value pointers.
-        it->second->VisitPointers(this);
-      }
-      delay_set_.erase(ret.first, ret.second);
-      // Reread the header word to get the new location of the object.
-      header = *reinterpret_cast<uword*>(raw_addr);
-      ASSERT(IsForwarding(header));
-      new_addr = ForwardedAddr(header);
     } else {
+      if (raw_obj->IsWatched()) {
+        raw_obj->ClearWatchedBit();
+        std::pair<DelaySet::iterator, DelaySet::iterator> ret;
+        // Visit all elements with a key equal to this raw_obj.
+        ret = delay_set_.equal_range(raw_obj);
+        for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+          // Remember the delayed WeakProperty. These objects have been
+          // forwarded, but have not been scavenged because their key was not
+          // known to be reachable. Now that the key object is known to be
+          // reachable, we need to visit its key and value pointers.
+          delayed_weak_stack_.Add(it->second);
+        }
+        delay_set_.erase(ret.first, ret.second);
+      }
       intptr_t size = raw_obj->Size();
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
@@ -190,8 +210,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Heap* vm_heap_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
+  GrowableArray<RawObject*> delayed_weak_stack_;
 
   bool visiting_old_pointers_;
+  bool in_scavenge_pointer_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };
@@ -325,7 +347,7 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
   // Iterating through the store buffers.
-  visitor->VisitingOldPointers(true);
+  BoolScope bs(visitor->VisitingOldPointersAddr(), true);
   // Grab the deduplication sets out of the store buffer.
   StoreBuffer::DedupSet* pending = isolate->store_buffer()->DedupSets();
   intptr_t entries = 0;
@@ -381,8 +403,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     OS::PrintErr("StoreBufferBlock: %"Pd", %"Pd" (entries, dups)\n",
                  entries, duplicates);
   }
-  // Done iterating through the store buffers.
-  visitor->VisitingOldPointers(false);
 }
 
 
@@ -479,8 +499,12 @@ void Scavenger::IterateWeakRoots(Isolate* isolate,
 
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
+  GrowableArray<RawObject*>* delayed_weak_stack = visitor->DelayedWeakStack();
+
   // Iterate until all work has been drained.
-  while ((resolved_top_ < top_) || PromotedStackHasMore()) {
+  while ((resolved_top_ < top_) ||
+         PromotedStackHasMore() ||
+         !delayed_weak_stack->is_empty()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
@@ -491,15 +515,22 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
       }
     }
-    visitor->VisitingOldPointers(true);
-    while (PromotedStackHasMore()) {
-      RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
-      // Resolve or copy all objects referred to by the current object. This
-      // can potentially push more objects on this stack as well as add more
-      // objects to be resolved in the to space.
-      raw_object->VisitPointers(visitor);
+    {
+      BoolScope bs(visitor->VisitingOldPointersAddr(), true);
+      while (PromotedStackHasMore()) {
+        RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
+        // Resolve or copy all objects referred to by the current object. This
+        // can potentially push more objects on this stack as well as add more
+        // objects to be resolved in the to space.
+        raw_object->VisitPointers(visitor);
+      }
     }
-    visitor->VisitingOldPointers(false);
+    while (!delayed_weak_stack->is_empty()) {
+      // Pop the delayed weak object from the stack and visit its pointers.
+      RawObject* weak_property = delayed_weak_stack->Last();
+      delayed_weak_stack->RemoveLast();
+      weak_property->VisitPointers(visitor);
+    }
   }
 }
 
