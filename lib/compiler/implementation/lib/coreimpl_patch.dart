@@ -69,15 +69,6 @@ patch class ListImplementation<E> {
 }
 
 
-// Patch for Stopwatch implementation.
-// TODO(ager): Split out into stopwatch_patch.dart and allow #source
-// in patch files?
-patch class StopwatchImplementation {
-  patch static int _frequency() => 1000;
-  patch static int _now() => Primitives.dateNow();
-}
-
-
 // Patch for RegExp implementation.
 // TODO(ager): Split out into regexp_patch.dart and allow #source in
 // patch files?

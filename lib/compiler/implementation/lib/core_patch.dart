@@ -141,3 +141,10 @@ patch class _DateImpl {
 
   patch int get weekday => Primitives.getWeekday(this);
 }
+
+
+// Patch for Stopwatch implementation.
+patch class _StopwatchImpl {
+  patch static int _frequency() => 1000;
+  patch static int _now() => Primitives.dateNow();
+}

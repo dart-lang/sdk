@@ -9,7 +9,6 @@
     'list.dart',
     'queue.dart',
     'regexp.dart',
-    'stopwatch_implementation.dart',
     'string.dart',
   ],
 }

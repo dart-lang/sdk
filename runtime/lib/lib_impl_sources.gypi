@@ -20,7 +20,6 @@
     'regexp_jsc.cc',
     'regexp_jsc.h',
     'regexp_patch.dart',
-    'stopwatch_patch.dart',
     'string.cc',
     'string_base.dart',
     'string_patch.dart',

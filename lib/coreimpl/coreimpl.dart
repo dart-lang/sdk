@@ -11,5 +11,4 @@
 #source("list.dart");
 #source("queue.dart");
 #source("regexp.dart");
-#source("stopwatch_implementation.dart");
 #source("string.dart");

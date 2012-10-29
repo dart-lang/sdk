@@ -23,6 +23,7 @@
     'invocation_mirror_patch.dart',
     'object_patch.dart',
     'print_patch.dart',
+    'stopwatch_patch.dart',
     'stopwatch.cc',
     'type_patch.dart',
     'weak_property.dart',
