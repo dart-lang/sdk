@@ -3,6 +3,35 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+# Calling unresolved class constructor:
+Language/03_Overview/2_Privacy_A01_t19: Fail
+Language/03_Overview/2_Privacy_A01_t20: Fail
+Language/07_Classes/6_Constructors_A03_t03: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t06: Fail
+
+# Redirecting constructor (this, super):
+Language/07_Classes/07_Classes_A02_t01: Fail
+Language/07_Classes/07_Classes_A02_t34: Fail
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t01: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t01: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t03: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t10: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t11: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, Pass # Passes in conservative renaming mode.
+Language/07_Classes/6_Constructors/2_Factories_A01_t01: Fail, Pass # Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t10: Fail, Pass # Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t11: Fail, Pass # Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t12: Fail, Pass # Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t13: Fail, Pass # Passes in conservative renaming mode.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t14: Fail, Pass # Passes in conservative renaming mode.
+
+# Renaming type from platform library:
+Language/09_Generics/09_Generics_A02_t01: Fail
+Language/14_Types/4_Interface_Types_A10_t03: Fail
+
+
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: Crash # TODO(dart2dart-team): Please triage this crash.
 Language/13_Libraries_and_Scripts/2_Exports_A04_t03: Crash # TODO(dart2dart-team): Please triage this crash.
 Language/12_Statements/10_Try_A06_t01: Fail, Pass # Fails in minified, TRIAGE

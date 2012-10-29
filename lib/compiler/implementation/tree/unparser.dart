@@ -109,26 +109,13 @@ class Unparser implements Visitor {
     visit(node.function);
   }
 
-  visitFunctionExpression(FunctionExpression node) {
-    // Check length to not print unnecessary whitespace.
-    if (node.modifiers.nodes.length() > 0) {
-      visit(node.modifiers);
-      sb.add(' ');
-    }
-    if (node.returnType != null) {
-      visit(node.returnType);
-      sb.add(' ');
-    }
-    if (node.getOrSet != null) {
-      add(node.getOrSet.value);
-      sb.add(' ');
-    }
+  void unparseFunctionName(Node name) {
     // TODO(antonm): that's a workaround as currently FunctionExpression
     // names are modelled with Send and it emits operator[] as only
     // operator, without [] which are expected to be emitted with
     // arguments.
-    if (node.name is Send) {
-      Send send = node.name;
+    if (name is Send) {
+      Send send = name;
       assert(send is !SendSet);
       if (!send.isOperator) {
         // Looks like a factory method.
@@ -146,8 +133,25 @@ class Unparser implements Visitor {
       }
       visit(send.selector);
     } else {
-      visit(node.name);
+      visit(name);
     }
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    // Check length to not print unnecessary whitespace.
+    if (node.modifiers.nodes.length() > 0) {
+      visit(node.modifiers);
+      sb.add(' ');
+    }
+    if (node.returnType != null) {
+      visit(node.returnType);
+      sb.add(' ');
+    }
+    if (node.getOrSet != null) {
+      add(node.getOrSet.value);
+      sb.add(' ');
+    }
+    unparseFunctionName(node.name);
     visit(node.parameters);
     visit(node.initializers);
     visit(node.body);

@@ -83,12 +83,57 @@ void renamePlaceholders(
     }
   }
 
+  String renameType(DartType type, Function renameElement) {
+    // TODO(smok): Do not rename type if it is in platform library or
+    // js-helpers.
+    StringBuffer result = new StringBuffer(renameElement(type.element));
+    if (type is InterfaceType && !type.arguments.isEmpty) {
+      result.add('<');
+      Link<DartType> argumentsLink = type.arguments;
+      result.add(renameType(argumentsLink.head, renameElement));
+      for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
+           link = link.tail) {
+        result.add(',');
+        result.add(renameType(link.head, renameElement));
+      }
+      result.add('>');
+    }
+    return result.toString();
+  }
+
+  String renameConstructor(Element element, DartType type,
+      Function renameString, Function renameElement) {
+    assert(element.isConstructor());
+    StringBuffer result = new StringBuffer();
+    String name = element.name.slowToString();
+    if (element.name != element.getEnclosingClass().name) {
+      // Named constructor or factory. Is there a more reliable way to check
+      // this case?
+      result.add(renameType(type, renameElement));
+      result.add('.');
+      String prefix = '${element.getEnclosingClass().name.slowToString()}\$';
+      if (!name.startsWith(prefix)) {
+        // Factory for another interface (that is going away soon).
+        compiler.internalErrorOnElement(element,
+            "Factory constructors for external interfaces are not supported.");
+      }
+      name = name.substring(prefix.length);
+      result.add(name);
+    } else {
+      result.add(renameType(type, renameElement));
+    }
+    return result.toString();
+  }
+
   Function makeElementRenamer(rename, generateUniqueName) => (element) {
     assert(Elements.isStaticOrTopLevel(element)
            || element is TypeVariableElement);
     // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
+    if (identical(element.getLibrary(), compiler.coreLibrary)) {
+      return originalName;
+    }
     if (library.isPlatformLibrary) {
       assert(element.isTopLevel());
       final prefix =
@@ -108,6 +153,7 @@ void renamePlaceholders(
   // Renamer function that takes library and original name and returns a new
   // name for given identifier.
   Function rename;
+  Function renameElement;
   // A function that takes original identifier name and generates a new unique
   // identifier.
   Function generateUniqueName;
@@ -119,7 +165,7 @@ void renamePlaceholders(
     generateUniqueName = (_) =>
         generator.generate(forbiddenIdentifiers.contains);
     rename = makeRenamer(generateUniqueName);
-    Function renameElement = makeElementRenamer(rename, generateUniqueName);
+    renameElement = makeElementRenamer(rename, generateUniqueName);
 
     Set<String> allParameterIdentifiers = new Set<String>();
     for (var functionScope in placeholderCollector.functionScopes.values) {
@@ -188,7 +234,7 @@ void renamePlaceholders(
       return newName;
     };
     rename = makeRenamer(generateUniqueName);
-    Function renameElement = makeElementRenamer(rename, generateUniqueName);
+    renameElement = makeElementRenamer(rename, generateUniqueName);
     // Rename elements.
     sortedForEach(placeholderCollector.elementNodes,
         (Element element, Set<Node> nodes) {
@@ -230,6 +276,14 @@ void renamePlaceholders(
     });
   }
 
+  // Rename constructors.
+  placeholderCollector.constructorPlaceholders.forEach(
+      (Element constructor, List<ConstructorPlaceholder> placeholders) {
+        for (ConstructorPlaceholder ph in placeholders) {
+          renames[ph.node] =
+              renameConstructor(constructor, ph.type, rename, renameElement);
+        }
+  });
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
     renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
   });

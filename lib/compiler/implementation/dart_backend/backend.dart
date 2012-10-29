@@ -310,6 +310,10 @@ class DartBackend extends Backend {
       addClass(classElement);
     };
 
+    compiler.resolverWorld.instantiatedClasses.forEach(
+        (ClassElement classElement) {
+      if (shouldOutput(classElement)) addClass(classElement);
+    });
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
 
@@ -480,6 +484,14 @@ class EmitterUnparser extends Unparser {
     // TODO(smok): Remove ugly hack for library prefices.
     if (node.receiver != null && renames[node.receiver] == '') return;
     super.unparseSendReceiver(node, spacesNeeded: spacesNeeded);
+  }
+
+  unparseFunctionName(Node name) {
+    if (name != null && renames.containsKey(name)) {
+      sb.add(renames[name]);
+    } else {
+      super.unparseFunctionName(name);
+    }
   }
 }
 

@@ -327,6 +327,41 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $compiler == dart2dart ]
+# Calling unresolved class constructor:
+# call_constructor_on_unresolvable_class_test/07: Fail
+call_nonexistent_constructor_test: Fail
+
+# Redirecting (this, super):
+compile_time_constant_g_test: Fail, Pass # Passes in conservative renaming mode
+compile_time_constant_i_test: Fail, Pass # Passes in conservative renaming mode
+constructor_redirect_test/none: Fail, Pass # Passes in conservative renaming mode
+cyclic_constructor_test/none: Fail, Pass # Passes in conservative renaming mode
+field_initialization_order_test: Fail, Pass # Passes in conservative renaming mode
+field_parameter_test: Fail, Pass # Passes in conservative renaming mode
+instance_field_initializer_test: Fail, Pass # Passes in conservative renaming mode
+library_prefixes_test: Fail, Pass # Passes in conservative renaming mode
+non_const_constructor_without_body_test: Fail, Pass # Passes in conservative renaming mode
+super_test: Fail, Pass # Passes in conservative renaming mode
+
+# Renaming type from platform library:
+dynamic_test: Fail
+
+# Factory for another interface (will be obsolete soon).
+# factory2_negative_test: Fail
+# factory3_negative_test: Fail
+# factory_negative_test: Fail
+default_factory_test: Fail
+factory2_test: Fail
+factory3_test: Fail
+factory4_test: Fail
+factory5_test: Fail
+factory_implementation_test: Fail
+interface_factory_multi_test: Fail
+interface_factory_test: Fail
+non_parameterized_factory2_test: Fail
+non_parameterized_factory_test: Fail
+type_variable_scope_test: Fail
+
 class_literal_test/05: Fail # http://dartbug.com/5519
 class_literal_test/10: Fail # http://dartbug.com/5519
 class_literal_test/11: Fail # http://dartbug.com/5519
