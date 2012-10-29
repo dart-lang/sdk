@@ -49,6 +49,7 @@ package/*: Skip # Do not run those in Dartium.
 *: Skip
 
 [ $compiler == dart2js ]
+typed_array_test: Skip # This is a VM test
 float_array_test: Skip # This is a VM test
 int_array_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # cannot resolve type Mint
