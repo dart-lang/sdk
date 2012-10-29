@@ -443,41 +443,30 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
 
   void addParameterStubs(FunctionElement member,
                          DefineMemberFunction defineInstanceMember) {
-    // TODO(5074): Update this comment once we remove support for
-    // the deprecated parameter specification.
     // We fill the lists depending on the selector. For example,
     // take method foo:
-    //    foo(a, b, [c, d]);
+    //    foo(a, b, {c, d});
     //
     // We may have multiple ways of calling foo:
-    // (1) foo(1, 2, 3, 4)
-    // (2) foo(1, 2);
-    // (3) foo(1, 2, 3);
-    // (4) foo(1, 2, c: 3);
-    // (5) foo(1, 2, d: 4);
-    // (6) foo(1, 2, c: 3, d: 4);
-    // (7) foo(1, 2, d: 4, c: 3);
+    // (1) foo(1, 2);
+    // (2) foo(1, 2, c: 3);
+    // (3) foo(1, 2, d: 4);
+    // (4) foo(1, 2, c: 3, d: 4);
+    // (5) foo(1, 2, d: 4, c: 3);
     //
     // What we generate at the call sites are:
-    // (1) foo$4(1, 2, 3, 4)
-    // (2) foo$2(1, 2);
-    // (3) foo$3(1, 2, 3);
-    // (4) foo$3$c(1, 2, 3);
-    // (5) foo$3$d(1, 2, 4);
-    // (6) foo$4$c$d(1, 2, 3, 4);
-    // (7) foo$4$c$d(1, 2, 3, 4);
+    // (1) foo$2(1, 2);
+    // (2) foo$3$c(1, 2, 3);
+    // (3) foo$3$d(1, 2, 4);
+    // (4) foo$4$c$d(1, 2, 3, 4);
+    // (5) foo$4$c$d(1, 2, 3, 4);
     //
     // The stubs we generate are (expressed in Dart):
-    // (1) No stub generated, call is direct.
-    // (2) foo$2(a, b) => foo$4(a, b, null, null)
-    // (3) foo$3(a, b, c) => foo$4(a, b, c, null)
-    // (4) foo$3$c(a, b, c) => foo$4(a, b, c, null);
-    // (5) foo$3$d(a, b, d) => foo$4(a, b, null, d);
-    // (6) foo$4$c$d(a, b, c, d) => foo$4(a, b, c, d);
-    // (7) Same as (5).
-    //
-    // We need to generate a stub for (5) because the order of the
-    // stub arguments and the real method may be different.
+    // (1) foo$2(a, b) => foo$4$c$d(a, b, null, null)
+    // (2) foo$3$c(a, b, c) => foo$4$c$d(a, b, c, null);
+    // (3) foo$3$d(a, b, d) => foo$4$c$d(a, b, null, d);
+    // (4) No stub generated, call is direct.
+    // (5) No stub generated, call is direct.
 
     // Keep a cache of which stubs have already been generated, to
     // avoid duplicates. Note that even if selectors are
@@ -488,9 +477,6 @@ function(prototype, staticName, fieldName, getterName, lazyValue) {
         && member.name == Namer.CLOSURE_INVOCATION_NAME) {
       // If [Function.apply] is called, we pessimistically compile all
       // possible stubs for this closure.
-      // TODO(5074): This functionality only supports the new
-      // parameter specification, and this comment should be removed
-      // once the old specification is not supported.
       FunctionSignature signature = member.computeSignature(compiler);
       Set<Selector> selectors = signature.optionalParametersAreNamed
           ? computeNamedSelectors(signature, member)

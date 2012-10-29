@@ -105,10 +105,6 @@ abstract class Compiler implements DiagnosticListener {
 
   bool disableInlining = false;
 
-  // TODO(5074): Remove this field once we don't accept the
-  // deprecated parameter specification.
-  static final bool REJECT_NAMED_ARGUMENT_AS_POSITIONAL = true;
-
   final Tracer tracer;
 
   CompilerTask measuredTask;

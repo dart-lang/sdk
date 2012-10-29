@@ -239,18 +239,12 @@ class Selector {
     if (positionalArgumentCount < requiredParameterCount) return false;
 
     if (!parameters.optionalParametersAreNamed) {
-      // TODO(5074): Remove this check once we don't accept the
-      // deprecated parameter specification.
-      if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
-        return optionalParametersAppliesDEPRECATED(element, compiler);
-      } else {
-        // We have already checked that the number of arguments are
-        // not greater than the number of parameters. Therefore the
-        // number of positional arguments are not greater than the
-        // number of parameters.
-        assert(positionalArgumentCount <= parameters.parameterCount);
-        return namedArguments.isEmpty;
-      }
+      // We have already checked that the number of arguments are
+      // not greater than the number of parameters. Therefore the
+      // number of positional arguments are not greater than the
+      // number of parameters.
+      assert(positionalArgumentCount <= parameters.parameterCount);
+      return namedArguments.isEmpty;
     } else {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
@@ -269,98 +263,6 @@ class Selector {
       return true;
     }
   }
-
-  // TODO(5074): Remove this method once we don't accept the
-  // deprecated parameter specification.
-  bool optionalParametersAppliesDEPRECATED(FunctionElement function,
-                                           Compiler compiler) {
-    FunctionSignature parameters = function.computeSignature(compiler);
-    int requiredParameterCount = parameters.requiredParameterCount;
-    int optionalParameterCount = parameters.optionalParameterCount;
-
-    bool hasOptionalParameters = !parameters.optionalParameters.isEmpty;
-    if (namedArguments.isEmpty) {
-      if (!hasOptionalParameters) {
-        return requiredParameterCount == argumentCount;
-      } else {
-        return argumentCount >= requiredParameterCount &&
-            argumentCount <= requiredParameterCount + optionalParameterCount;
-      }
-    } else {
-      if (!hasOptionalParameters) return false;
-      Link<Element> remainingNamedParameters = parameters.optionalParameters;
-      for (int i = requiredParameterCount; i < positionalArgumentCount; i++) {
-        remainingNamedParameters = remainingNamedParameters.tail;
-      }
-      Set<SourceString> nameSet = new Set<SourceString>();
-      for (;
-           !remainingNamedParameters.isEmpty;
-           remainingNamedParameters = remainingNamedParameters.tail) {
-        nameSet.add(remainingNamedParameters.head.name);
-      }
-
-      for (SourceString name in namedArguments) {
-        if (!nameSet.contains(name)) {
-          return false;
-        }
-        nameSet.remove(name);
-      }
-      return true;
-    }
-  }
-
-  // TODO(5074): Remove this method once we don't accept the
-  // deprecated parameter specification.
-  bool addOptionalArgumentsToListDEPRECATED(Link<Node> arguments,
-                                            List list,
-                                            FunctionElement element,
-                                            compileArgument(Node argument),
-                                            compileConstant(Element element),
-                                            Compiler compiler) {
-    assert(invariant(element, element.isImplementation));
-    // If there are named arguments, provide them in the order
-    // expected by the called function, which is the source order.
-    FunctionSignature parameters = element.computeSignature(compiler);
-
-    // Visit positional arguments and add them to the list.
-    for (int i = parameters.requiredParameterCount;
-         i < positionalArgumentCount;
-         arguments = arguments.tail, i++) {
-      list.add(compileArgument(arguments.head));
-    }
-
-    // Visit named arguments and add them into a temporary list.
-    List compiledNamedArguments = [];
-    for (; !arguments.isEmpty; arguments = arguments.tail) {
-      NamedArgument namedArgument = arguments.head;
-      compiledNamedArguments.add(compileArgument(namedArgument.expression));
-    }
-
-    Link<Element> remainingNamedParameters = parameters.optionalParameters;
-    // Skip the optional parameters that have been given in the
-    // positional arguments.
-    for (int i = parameters.requiredParameterCount;
-         i < positionalArgumentCount;
-         i++) {
-      remainingNamedParameters = remainingNamedParameters.tail;
-    }
-
-    // Loop over the remaining named parameters, and try to find
-    // their values: either in the temporary list or using the
-    // default value.
-    for (;
-         !remainingNamedParameters.isEmpty;
-         remainingNamedParameters = remainingNamedParameters.tail) {
-      Element parameter = remainingNamedParameters.head;
-      int foundIndex = namedArguments.indexOf(parameter.name);
-      if (foundIndex != -1) {
-        list.add(compiledNamedArguments[foundIndex]);
-      } else {
-        list.add(compileConstant(parameter));
-      }
-    }
-  }
-
 
   /**
    * Returns [:true:] if the selector and the [element] match; [:false:]
@@ -384,22 +286,14 @@ class Selector {
     });
 
     if (!parameters.optionalParametersAreNamed) {
-      // TODO(5074): Remove this check once we don't accept the
-      // deprecated parameter specification.
-      if (!Compiler.REJECT_NAMED_ARGUMENT_AS_POSITIONAL) {
-        addOptionalArgumentsToListDEPRECATED(
-            arguments, list, element, compileArgument, compileConstant,
-            compiler);
-      } else {
-        parameters.forEachOptionalParameter((element) {
-          if (!arguments.isEmpty) {
-            list.add(compileArgument(arguments.head));
-            arguments = arguments.tail;
-          } else {
-            list.add(compileConstant(element));
-          }
-        });
-      }
+      parameters.forEachOptionalParameter((element) {
+        if (!arguments.isEmpty) {
+          list.add(compileArgument(arguments.head));
+          arguments = arguments.tail;
+        } else {
+          list.add(compileConstant(element));
+        }
+      });
     } else {
       // Visit named arguments and add them into a temporary list.
       List compiledNamedArguments = [];
