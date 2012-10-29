@@ -42,6 +42,30 @@ intl/test/intl_message_basic_example_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
+# pkg issue 6340
+dartdoc/test/dartdoc_search_test: Fail, OK
+dartdoc/test/markdown_test: Fail, OK
+dartdoc/test/dartdoc_test: Fail, OK
+fixnum/test/int_32_test: Fail, OK
+fixnum/test/int_64_test: Fail, OK
+intl/test/bidi_format_test: Fail, OK
+intl/test/bidi_utils_test: Fail, OK
+intl/test/date_time_format_file_even_test: Fail, OK
+intl/test/date_time_format_file_odd_test: Fail, OK
+intl/test/date_time_format_local_even_test: Fail, OK
+intl/test/date_time_format_local_odd_test: Fail, OK
+intl/test/date_time_format_http_request_test: Fail, OK
+intl/test/find_default_locale_standalone_test: Fail, OK
+intl/test/intl_message_test: Fail, OK
+intl/test/intl_message_basic_example_test: Fail, OK
+intl/test/find_default_locale_browser_test: Fail, OK
+intl/test/number_format_test: Fail, OK
+intl/test/intl_test: Fail, OK
+unittest/test/matchers_test: Fail, OK
+
+
+
+
 [ $compiler == dart2js || $compiler == dartc ]
 unittest/test/instance_test: Skip
 

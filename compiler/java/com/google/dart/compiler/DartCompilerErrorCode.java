@@ -17,12 +17,16 @@ public enum DartCompilerErrorCode implements ErrorCode {
   ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER(ErrorSeverity.WARNING,
       "Entry point \"%s\" may not be a setter"),
   ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("This part was included by %s via a "
-      + "part directive, so cannot itself contain directives other than a part of directive"),
+      + "part directive, so cannot itself contain directives other than a 'part of' directive"),
   IO("Input/Output error: %s"),
   MIRRORS_NOT_FULLY_IMPLEMENTED(ErrorSeverity.WARNING, "dart:mirrors is not fully implemented yet"),
   MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a library directive: %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
-  UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included");
+  MISSING_PART_OF_DIRECTIVE("Missing 'part of' directive"),
+  UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included"),
+  WRONG_PART_OF_NAME(
+      ErrorSeverity.WARNING,
+      "This part was included by '%s' via a 'part' directive, but uses name '%s' in 'part of' directive");
   private final ErrorSeverity severity;
   private final String message;
 

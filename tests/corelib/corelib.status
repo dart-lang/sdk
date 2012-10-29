@@ -67,3 +67,8 @@ compare_to2_test: Fail # inherited from VM
 null_nosuchmethod_test: Fail # inherited from VM
 null_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
+
+[ $compiler == dartc ]
+# test issue 6324
+list_sort_test: Fail, OK
+sort_test: Fail, OK

@@ -16,6 +16,7 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MemberBuilder;
 import com.google.dart.compiler.resolver.Resolver;
@@ -95,7 +96,11 @@ class DeltaAnalyzer {
     Scope scope = libraryUnit.getElement().getScope();
     for (Element member : enclosingLibrary.getMembers()) {
       if (member.getSourceInfo().getSource() != originalSource) {
-        scope.declareElement(member.getName(), member);
+        String name = member.getName();
+        if (ElementKind.of(member) == ElementKind.LIBRARY) {
+          name = "__library_" + ((LibraryElement) member).getLibraryUnit().getName();
+        }
+        scope.declareElement(name, member);
       }
     }
     return scope;

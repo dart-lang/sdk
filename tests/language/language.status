@@ -199,6 +199,28 @@ abstract_factory_constructor_test/none: Fail, OK
 abstract_syntax_test/none: Fail, OK
 interface_test/none: Fail, OK
 
+# test issue 6338
+application_negative_test: Pass
+application_test: Fail, OK
+generic_instanceof_test: Fail, OK
+hello_script_test: Fail, OK
+lazy_static6_test: Fail, OK
+library1_test: Fail, OK
+library_prefixes_test: Fail, OK
+many_generic_instanceof_test: Fail, OK
+many_overridden_no_such_method_test: Fail, OK
+multi_pass2_test: Fail, OK
+multi_pass_test: Fail, OK
+overridden_no_such_method_test: Fail, OK
+private2_test: Fail, OK
+private3_test: Fail, OK
+private_test: Fail, OK
+top_level_entry_test: Fail, OK
+top_level_multiple_files_test: Fail, OK
+top_level_non_prefixed_library_test: Fail, OK
+
+
+
 # test issue 6324
 class_test: Fail, OK
 compile_time_constant_h_test: Fail, OK

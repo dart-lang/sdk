@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -711,36 +712,50 @@ public class DartCompiler {
 
         // check that all sourced units have no directives
         for (DartUnit unit : lib.getUnits()) {
+          // don't need to check a unit that hasn't changed
           if (unit.isDiet()) {
-            // don't need to check a unit that hasn't changed
             continue;
           }
-          if (invalidDirectivesForPart(unit.getDirectives())) {
-            // find corresponding source node for this unit
-            for (LibraryNode sourceNode : lib.getSourcePaths()) {
-              if (sourceNode == lib.getSelfSourcePath()) {
-                // skip the special synthetic selfSourcePath node
-                continue;
-              }
-              DartSource dartSource = (DartSource) unit.getSourceInfo().getSource();
-              // check for directives
-              if (dartSource.getRelativePath().equals(sourceNode.getText())) {
-                context.onError(new DartCompilationError(unit.getDirectives().get(0),
-                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,
-                    Elements.getRelativeSourcePath(dartSource, lib.getSource())));
-              }
+          // ignore library unit
+          DartSource unitSource = (DartSource) unit.getSourceInfo().getSource();
+          if (isLibrarySelfUnit(lib, unitSource)) {
+            continue;
+          }
+          // analyze directives
+          List<DartDirective> directives = unit.getDirectives();
+          if (directives.isEmpty()) {
+            // TODO(scheglov) Remove after http://code.google.com/p/dart/issues/detail?id=6121
+            if (!StringUtils.startsWith(lib.getName(), "dart:")) {
+              context.onError(new DartCompilationError(unitSource,
+                  DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE));
             }
+          } else if (directives.size() == 1 && directives.get(0) instanceof DartPartOfDirective) {
+            DartPartOfDirective directive = (DartPartOfDirective) directives.get(0);
+            String dirName = directive.getLibraryName();
+            if (!Objects.equal(dirName, lib.getName())) {
+              context.onError(new DartCompilationError(directive,
+                  DartCompilerErrorCode.WRONG_PART_OF_NAME, lib.getName(), dirName));
+            }
+          } else {
+            context.onError(new DartCompilationError(directives.get(0),
+                DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,
+                Elements.getRelativeSourcePath(unitSource, lib.getSource())));
           }
         }
       }
     }
 
-    private boolean invalidDirectivesForPart(List<DartDirective> directives) {
-      int size = directives.size();
-      if (size == 1) {
-        return !(directives.get(0) instanceof DartPartOfDirective);
+    private static boolean isLibrarySelfUnit(LibraryUnit lib, DartSource unitSource) {
+      String unitRelativePath = unitSource.getRelativePath();
+      for (LibraryNode sourceNode : lib.getSourcePaths()) {
+        if (unitRelativePath.equals(sourceNode.getText())) {
+          if (sourceNode == lib.getSelfSourcePath()) {
+            return true;
+          }
+          return false;
+        }
       }
-      return size > 0;
+      return false;
     }
 
     private void setEntryPoint() {
