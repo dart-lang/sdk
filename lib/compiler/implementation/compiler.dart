@@ -128,9 +128,11 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement nullClass;
   ClassElement listClass;
   ClassElement mapClass;
+  ClassElement jsInvocationMirrorClass;
   Element assertMethod;
   Element identicalFunction;
   Element functionApplyMethod;
+  Element invokeOnMethod;
 
   Element get currentElement => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -181,12 +183,15 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const int NO_SUCH_METHOD_ARG_COUNT = 1;
+  static const SourceString INVOKE_ON = const SourceString('invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
+  bool enabledInvokeOn = false;
 
   Stopwatch progress;
 
@@ -342,6 +347,11 @@ abstract class Compiler implements DiagnosticListener {
     Selector selector = new Selector.noSuchMethod();
     enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
     enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+
+    Element createInvocationMirrorElement =
+        findHelper(const SourceString('createInvocationMirror'));
+    enqueuer.resolution.addToWorkList(createInvocationMirrorElement);
+    enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
   }
 
   void enableIsolateSupport(LibraryElement element) {
@@ -393,6 +403,8 @@ abstract class Compiler implements DiagnosticListener {
     functionClass = lookupSpecialClass(const SourceString('Function'));
     listClass = lookupSpecialClass(const SourceString('List'));
     mapClass = lookupSpecialClass(const SourceString('Map'));
+    jsInvocationMirrorClass =
+        lookupSpecialClass(const SourceString('JSInvocationMirror'));
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
@@ -425,6 +437,9 @@ abstract class Compiler implements DiagnosticListener {
     functionClass.ensureResolved(this);
     functionApplyMethod =
         functionClass.lookupLocalMember(const SourceString('apply'));
+    jsInvocationMirrorClass.ensureResolved(this);
+    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
+        const SourceString('invokeOn'));
   }
 
   void loadCoreImplLibrary() {

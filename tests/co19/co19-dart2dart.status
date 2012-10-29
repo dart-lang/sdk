@@ -411,14 +411,9 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: Fail #
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # co19 issue 251 or issue 5732
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: Fail # co19 issue 251 or issue 5732
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail # co19 issue 251 or issue 5732
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # inherited from VM
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # inherited from VM
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # co19 issue 251 or issue 5732
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # co19 issue 251 or issue 5732
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # inherited from VM
-Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t02: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t04: Fail # inherited from VM
 Language/11_Expressions/18_Assignment_A05_t05: Fail # inherited from VM
@@ -537,6 +532,8 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: Fail # http://dartbug.com/6242
 
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
+LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN

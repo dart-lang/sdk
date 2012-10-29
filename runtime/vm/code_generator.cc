@@ -1282,23 +1282,43 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   const String& original_function_name = String::Handle(ic_data.target_name());
   ASSERT(!Array::CheckedHandle(arguments.At(2)).IsNull());
   const Array& orig_arguments = Array::CheckedHandle(arguments.At(3));
-  // TODO(regis): The signature of the "noSuchMethod" method has to change from
-  // noSuchMethod(String name, Array arguments) to something like
-  // noSuchMethod(InvocationMirror call).
-  const int kNumArguments = 3;
-  const int kNumNamedArguments = 0;
+  // Allocate an InvocationMirror object.
+  // TODO(regis): Fill in the InvocationMirror object correctly at
+  // this point we do not deal with named arguments and treat them
+  // all as positional.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& invocation_mirror_name = String::Handle(
+      Symbols::InvocationMirror());
+  Class& invocation_mirror_class = Class::Handle(
+      core_lib.LookupClassAllowPrivate(invocation_mirror_name));
+  ASSERT(!invocation_mirror_class.IsNull());
+  const String& allocation_function_name = String::Handle(
+      Symbols::AllocateInvocationMirror());
+  const Function& allocation_function = Function::ZoneHandle(
+      Resolver::ResolveStaticByName(invocation_mirror_class,
+                                    allocation_function_name,
+                                    Resolver::kIsQualified));
+  ASSERT(!allocation_function.IsNull());
+  GrowableArray<const Object*> allocation_arguments(2);
+  allocation_arguments.Add(&original_function_name);
+  allocation_arguments.Add(&orig_arguments);
   const Array& kNoArgumentNames = Array::Handle();
-  const String& function_name =
-      String::Handle(Symbols::NoSuchMethod());
+  const Object& invocation_mirror = Object::Handle(
+      DartEntry::InvokeStatic(allocation_function,
+                              allocation_arguments,
+                              kNoArgumentNames));
+
+  const int kNumArguments = 2;
+  const int kNumNamedArguments = 0;
+  const String& function_name = String::Handle(Symbols::NoSuchMethod());
   const Function& function = Function::ZoneHandle(
       Resolver::ResolveDynamic(receiver,
                                function_name,
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  GrowableArray<const Object*> invoke_arguments(2);
-  invoke_arguments.Add(&original_function_name);
-  invoke_arguments.Add(&orig_arguments);
+  GrowableArray<const Object*> invoke_arguments(1);
+  invoke_arguments.Add(&invocation_mirror);
   const Object& result = Object::Handle(
       DartEntry::InvokeDynamic(receiver,
                                function,

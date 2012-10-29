@@ -12,7 +12,7 @@ class B native "*B" {
 
 class C {
   static create() => new C();
-  noSuchMethod(x, y) => "$x:$y";
+  noSuchMethod(x) => "${x.memberName}:${x.positionalArguments}";
 }
 
 makeA() native;

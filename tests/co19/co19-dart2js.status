@@ -68,7 +68,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A13_t04: Fail # TODO(ahe): Pl
 Language/11_Expressions/11_Instance_Creation/1_New_A14_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
@@ -384,11 +383,6 @@ Language/11_Expressions/01_Constants_A18_t03: Fail # Compile-time error: unexpec
 Language/11_Expressions/22_Equality_A02_t03: Fail # Compile-time error: unexpected token 'equals'
 Language/11_Expressions/05_Strings_A20_t01: Fail # Runtime error: Expect.identical(expected: <abyr, abyr
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Runtime error: Expect.throws() fails
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Runtime error: NoSuchMethodException : method not found: '$call'
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Runtime error: NoSuchMethodException : method not found: 'm'
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Runtime error: NoSuchMethodException : method not found: 'nonExistingMethod'
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
@@ -401,7 +395,6 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: Fail # 
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A07_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Runtime error: TypeError: Cannot call method '$call$2' of undefined
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Runtime error: TypeError: Object #<A> has no method '$call$0'
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # Runtime error: TypeError: Object 1 has no method '$call$0'
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
@@ -469,6 +462,8 @@ Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # co19 issu
 LibTest/core/String/hashCode_A01_t01: Fail, OK # co19 issue 273
 LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 issue 273
 
+LibTest/core/NoSuchMethodError/NoSuchMethodError_A01_t01: Fail, OK # co19 issue 300
+LibTest/core/NoSuchMethodError/toString_A01_t01: Fail, OK # co19 issue 300
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -654,9 +649,6 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail #
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
 
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
-
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail # http://dartbug.com/3566
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail # http://dartbug.com/3566
 
 Language/03_Overview/03_Overview_A01_t01: Fail # http://dartbug.com/3903
 
