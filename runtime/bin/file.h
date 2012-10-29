@@ -109,8 +109,6 @@ class File {
   // Returns whether the file has been closed.
   bool IsClosed();
 
-  const char* name() const { return name_; }
-
   // Open the file with the given name. The file is always opened for
   // reading. If mode contains kWrite the file is opened for both
   // reading and writing. If mode contains kWrite and the file does
@@ -139,12 +137,11 @@ class File {
   static Dart_Port GetServicePort();
 
  private:
-  File(const char* name, FileHandle* handle) : name_(name), handle_(handle) { }
+  explicit File(FileHandle* handle) : handle_(handle) { }
   void Close();
 
   static const int kClosedFd = -1;
 
-  const char* name_;
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
 

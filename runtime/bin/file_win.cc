@@ -114,7 +114,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
       return NULL;
     }
   }
-  return new File(name, new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 
