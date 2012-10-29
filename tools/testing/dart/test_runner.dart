@@ -104,7 +104,7 @@ class TestCase {
     // The new command will be:
     // PREFIX EXECUTABLE SUFFIX ARGUMENTS
     var specialCommand = configuration['special-command'];
-    if (!specialCommand.isEmpty()) {
+    if (!specialCommand.isEmpty) {
       Expect.isTrue(specialCommand.contains('@'),
                     "special-command must contain a '@' char");
       var specialCommandSplit = specialCommand.split('@');
@@ -121,7 +121,7 @@ class TestCase {
           newExecutablePath = prefixSplit[0];
           for (int i = 1; i < prefixSplit.length; i++) {
             var current = prefixSplit[i];
-            if (!current.isEmpty()) newArguments.add(current);
+            if (!current.isEmpty) newArguments.add(current);
           }
           newArguments.add(c.executable);
         }
@@ -129,7 +129,7 @@ class TestCase {
         // Add any suffixes to the arguments of the original executable.
         var suffixSplit = suffix.split(' ');
         suffixSplit.forEach((e) {
-          if (!e.isEmpty()) newArguments.add(e);
+          if (!e.isEmpty) newArguments.add(e);
         });
 
         newArguments.addAll(c.arguments);
@@ -162,7 +162,7 @@ class TestCase {
   }
 
   List<String> get batchRunnerArguments => ['-batch'];
-  List<String> get batchTestArguments => commands.last().arguments;
+  List<String> get batchTestArguments => commands.last.arguments;
 
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
@@ -189,7 +189,7 @@ class BrowserTestCase extends TestCase {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
-  List<String> get _lastArguments => commands.last().arguments;
+  List<String> get _lastArguments => commands.last.arguments;
 
   List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
@@ -436,7 +436,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     } else if (outcome.contains('static type warning')
         && staticWarnings.length > 0) {
       return true;
-    } else if (outcome.isEmpty()
+    } else if (outcome.isEmpty
         && (errors.length > 0 || staticWarnings.length > 0)) {
       return true;
     }
@@ -740,7 +740,7 @@ class BatchRunnerProcess {
   bool _isWebDriver;
 
   BatchRunnerProcess(TestCase testCase) {
-    _executable = testCase.commands.last().executable;
+    _executable = testCase.commands.last.executable;
     _batchArguments = testCase.batchRunnerArguments;
     _isWebDriver = testCase.usesWebDriver;
   }
@@ -752,14 +752,14 @@ class BatchRunnerProcess {
     _currentTest = testCase;
     if (_process === null) {
       // Start process if not yet started.
-      _executable = testCase.commands.last().executable;
+      _executable = testCase.commands.last.executable;
       _startProcess(() {
         doStartTest(testCase);
       });
-    } else if (testCase.commands.last().executable != _executable) {
+    } else if (testCase.commands.last.executable != _executable) {
       // Restart this runner with the right executable for this test
       // if needed.
-      _executable = testCase.commands.last().executable;
+      _executable = testCase.commands.last.executable;
       _batchArguments = testCase.batchRunnerArguments;
       _process.onExit = (exitCode) {
         _process.close();
@@ -786,7 +786,7 @@ class BatchRunnerProcess {
       // Use a graceful shutdown so our Selenium script can close
       // the open browser processes. On Windows, signals do not exist
       // and a kill is a hard kill.
-      _process.stdin.write('--terminate\n'.charCodes());
+      _process.stdin.write('--terminate\n'.charCodes);
 
       // In case the run_selenium process didn't close, kill it after 30s
       int shutdownMillisecs = 30000;
@@ -817,7 +817,7 @@ class BatchRunnerProcess {
       print('  Error: $err');
       throw err;
     };
-    _process.stdin.write(line.charCodes());
+    _process.stdin.write(line.charCodes);
   }
 
   String _createArgumentsLine(List<String> arguments) {
@@ -1071,7 +1071,7 @@ class ProcessQueue {
     // If there is still no work, we are done.
     if (_activeTestListers == 0) {
       _progress.allTestsKnown();
-      if (_tests.isEmpty() && _numProcesses == 0) {
+      if (_tests.isEmpty && _numProcesses == 0) {
         _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
       }
     }
@@ -1214,7 +1214,7 @@ class ProcessQueue {
 
   Future _terminateBatchRunners() {
     var futures = new List();
-    for (var runners in _batchProcesses.getValues()) {
+    for (var runners in _batchProcesses.values) {
       for (var runner in runners) {
         futures.add(runner.terminate());
       }
@@ -1242,13 +1242,13 @@ class ProcessQueue {
 
   void _tryRunTest() {
     _checkDone();
-    if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
+    if (_numProcesses < _maxProcesses && !_tests.isEmpty) {
       TestCase test = _tests.removeFirst();
       if (_listTests) {
         var fields = [test.displayName,
                       Strings.join(new List.from(test.expectedOutcomes), ','),
                       test.isNegative.toString()];
-        fields.addAll(test.commands.last().arguments);
+        fields.addAll(test.commands.last.arguments);
         print(Strings.join(fields, '\t'));
         return;
       }

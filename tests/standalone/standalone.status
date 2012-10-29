@@ -6,15 +6,6 @@ out_of_memory_test: Skip # Issue 2345
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm ]
-# The following tests require files in the tools-directory to be modified.
-# However the tools directory uses its own version of dart-binary. We reenable
-# these tests when we update the dart-binary.
-status_expression_test: Fail, OK
-io/status_file_parser_test: Fail, OK
-io/test_runner_exit_code_test: Fail, OK
-io/test_runner_test: Fail, OK
-
 [ $compiler == dart2js || ($compiler == none && $runtime == drt) ]
 # The following tests require files in the tools-directory to be modified.
 # However the tools directory uses its own version of dart-binary. We reenable

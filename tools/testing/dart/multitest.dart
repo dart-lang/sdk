@@ -72,7 +72,7 @@ void ExtractTestsFromMultitest(Path filePath,
       ? '\n'
       : '\r\n';
   List<String> lines = contents.split(line_separator);
-  if (lines.last() == '') lines.removeLast();
+  if (lines.last == '') lines.removeLast();
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['compile-time error', 'runtime error',
@@ -108,13 +108,13 @@ void ExtractTestsFromMultitest(Path filePath,
       }
     } else {
       testTemplate.add(line);
-      for (var test in testsAsLines.getValues()) test.add(line);
+      for (var test in testsAsLines.values) test.add(line);
     }
   }
 
   // Check that every key (other than the none case) has at least one outcome
-  for (var outcomeKey in outcomes.getKeys()) {
-    if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty()) {
+  for (var outcomeKey in outcomes.keys) {
+    if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty) {
       Expect.fail("Test ${outcomeKey} has no valid annotated outcomes.\n"
                   "Expected one of: ${validMultitestOutcomes.toString()}");
     }
@@ -125,7 +125,7 @@ void ExtractTestsFromMultitest(Path filePath,
   outcomes['none'] = new Set<String>();
 
   // Copy all the tests into the output map tests, as multiline strings.
-  for (String key in testsAsLines.getKeys()) {
+  for (String key in testsAsLines.keys) {
     tests[key] =
         Strings.join(testsAsLines[key], line_separator).concat(line_separator);
   }
@@ -161,7 +161,7 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
   // except dart:, dart-ext: or /, at the beginning of a line.
   RegExp relativeImportRegExp = const RegExp(
       '^#(import|source)[(]["\'](?!(dart:|dart-ext:|/))([^"\']*)["\']');
-  while (!toSearch.isEmpty()) {
+  while (!toSearch.isEmpty) {
     var thisPass = toSearch;
     toSearch = new HashSet<Path>();
     for (Path filename in thisPass) {
@@ -219,14 +219,14 @@ void DoMultitest(Path filePath,
   // Wait until all imports are copied before scheduling test cases.
   Futures.wait(futureCopies).then((ignored) {
     String baseFilename = filePath.filenameWithoutExtension;
-    for (String key in tests.getKeys()) {
+    for (String key in tests.keys) {
       final Path multitestFilename =
           targetDir.append('${baseFilename}_$key.dart');
       final File file = new File.fromPath(multitestFilename);
 
       file.createSync();
       RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
-      var bytes = tests[key].charCodes();
+      var bytes = tests[key].charCodes;
       openedFile.writeListSync(bytes, 0, bytes.length);
       openedFile.closeSync();
       Set<String> outcome = outcomes[key];
@@ -256,12 +256,12 @@ Path CreateMultitestDirectory(String outputDir, Path suiteDir) {
     generatedTestDir.createSync();
   }
   var split = suiteDir.segments();
-  if (split.last() == 'src') {
+  if (split.last == 'src') {
     // TODO(sigmund): remove this once all tests are migrated to use
     // TestSuite.forDirectory.
     split.removeLast();
   }
-  String path = '${generatedTestDir.path}/${split.last()}';
+  String path = '${generatedTestDir.path}/${split.last}';
   Directory dir = new Directory(path);
   if (!dir.existsSync()) {
     dir.createSync();

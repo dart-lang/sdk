@@ -182,7 +182,7 @@ class Scanner {
   bool hasMore() => current != null;
 
   void advance() {
-    current = tokenIterator.hasNext() ? tokenIterator.next() : null;
+    current = tokenIterator.hasNext ? tokenIterator.next() : null;
   }
 }
 

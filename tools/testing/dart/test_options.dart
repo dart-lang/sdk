@@ -353,7 +353,7 @@ Note: currently only implemented for dart2js.''',
       }
       // Parse the value for the option.
       if (spec.type == 'bool') {
-        if (!value.isEmpty()) {
+        if (!value.isEmpty) {
           print('No value expected for bool option $name');
           exit(1);
         }
@@ -367,7 +367,7 @@ Note: currently only implemented for dart2js.''',
         }
       } else {
         assert(spec.type == 'string');
-        if (!spec.values.isEmpty()) {
+        if (!spec.values.isEmpty) {
           for (var v in value.split(',')) {
             if (spec.values.lastIndexOf(v) == -1) {
               print('Unknown value ($v) for option $name');
@@ -388,7 +388,7 @@ Note: currently only implemented for dart2js.''',
 
     List<Map> expandedConfigs = _expandConfigurations(configuration);
     List<Map> result = expandedConfigs.filter(_isValidConfig);
-    return result.isEmpty() ? null : result;
+    return result.isEmpty ? null : result;
   }
 
   /**
@@ -624,11 +624,11 @@ Note: currently only implemented for dart2js.''',
         var buffer = new StringBuffer();;
         buffer.add(name);
         if (option.type == 'bool') {
-          assert(option.values.isEmpty());
+          assert(option.values.isEmpty);
         } else {
           buffer.add(name.startsWith('--') ? '=' : ' ');
           if (option.type == 'int') {
-            assert(option.values.isEmpty());
+            assert(option.values.isEmpty);
             buffer.add('n (default: ${option.defaultValue})');
           } else {
             buffer.add('[');

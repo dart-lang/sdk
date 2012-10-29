@@ -99,10 +99,10 @@ main() {
 
   var configurationIterator = configurations.iterator();
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) return;
+    if (!configurationIterator.hasNext) return;
 
     var conf = configurationIterator.next();
-    for (String key in selectors.getKeys()) {
+    for (String key in selectors.keys) {
       if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {

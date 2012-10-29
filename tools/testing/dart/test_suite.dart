@@ -127,7 +127,7 @@ class CCTestSuite implements TestSuite {
               String this.suiteName,
               String runnerName,
               List<String> this.statusFilePaths,
-              [this.testPrefix = ''])
+              {this.testPrefix: ''})
       : dartDir = TestUtils.dartDir().toNativePath() {
     runnerPath = '${TestUtils.buildDir(configuration)}/$runnerName';
   }
@@ -399,7 +399,7 @@ class StandardTestSuite implements TestSuite {
     int shards = configuration['shards'];
     if (shards > 1) {
       int shard = configuration['shard'];
-      if (testName.hashCode() % shards != shard - 1) {
+      if (testName.hashCode % shards != shard - 1) {
         return;
       }
     }
@@ -452,7 +452,7 @@ class StandardTestSuite implements TestSuite {
                                                   info.optionsFromFile);
 
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
-    Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
+    Expect.isFalse(vmOptionsList.isEmpty, "empty vmOptionsList");
 
     for (var vmOptions in vmOptionsList) {
       doTest(new TestCase('$suiteName/$testName',
@@ -489,7 +489,7 @@ class StandardTestSuite implements TestSuite {
       var additionalFlags =
           configuration['additional-compiler-flags'].split(' ');
       for (final flag in additionalFlags) {
-        if (flag.isEmpty()) continue;
+        if (flag.isEmpty) continue;
         compilerArguments.add(flag);
       }
       compilerArguments.add('--output-type=dart');
@@ -785,7 +785,7 @@ class StandardTestSuite implements TestSuite {
     Path relative = testPath.relativeTo(TestUtils.dartDir());
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = relative.toString().replaceAll('/', '_');
-    if (!optionsName.isEmpty()) {
+    if (!optionsName.isEmpty) {
       testUniqueName = '$testUniqueName-$optionsName';
     }
 
@@ -1006,7 +1006,7 @@ class StandardTestSuite implements TestSuite {
     for (var match in matches) {
       result.add(match[1].split(' ').filter((e) => e != ''));
     }
-    if (result.isEmpty()) result.add([]);
+    if (result.isEmpty) result.add([]);
 
     matches = dartOptionsRegExp.allMatches(contents);
     for (var match in matches) {

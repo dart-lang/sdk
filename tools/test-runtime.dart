@@ -68,7 +68,7 @@ main() {
 
   var configurationIterator = configurations.iterator();
   void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.hasNext()) return;
+    if (!configurationIterator.hasNext) return;
 
     var conf = configurationIterator.next();
     if (selectors.containsKey('co19')) {
