@@ -57,7 +57,6 @@
 #source('../../../../runtime/bin/socket.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/socket_impl.dart');
-#source('../../../../runtime/bin/socket_stream.dart');
 #source('../../../../runtime/bin/socket_stream_impl.dart');
 // Uses native keyword.
 // #source('../../../../runtime/bin/stdio.dart');
