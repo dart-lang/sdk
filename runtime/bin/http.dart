@@ -754,7 +754,7 @@ abstract class HttpClient {
    * server are passed in the arguments [url] and [realm].
    *
    * The function returns a [Future] which should complete when the
-   * authentication have been resolved. If credentials cannot be
+   * authentication has been resolved. If credentials cannot be
    * provided the [Future] should complete with [false]. If
    * credentials are available the function should add these using
    * [addCredentials] before completing the [Future] with the value
