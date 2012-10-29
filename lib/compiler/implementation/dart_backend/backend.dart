@@ -41,10 +41,10 @@ class AggregatedTreeElements extends TreeElementMapping {
         result : getFirstNotNullResult((e) => e.getSelector(send));
   }
 
-  DartType getType(TypeAnnotation annotation) {
-    final result = super.getType(annotation);
+  DartType getType(Node node) {
+    final result = super.getType(node);
     return result != null ?
-        result : getFirstNotNullResult((e) => e.getType(annotation));
+        result : getFirstNotNullResult((e) => e.getType(node));
   }
 
   getFirstNotNullResult(f(TreeElements element)) {
