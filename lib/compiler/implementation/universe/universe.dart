@@ -407,6 +407,8 @@ class TypedSelector extends Selector {
   }
 
   bool applies(Element element, Compiler compiler) {
+    // [TypedSelector] are only used when compiling.
+    assert(compiler.phase == Compiler.PHASE_COMPILING);
     if (!element.isMember()) return false;
 
     // A closure can be called through any typed selector:
@@ -420,7 +422,10 @@ class TypedSelector extends Selector {
     }
 
     ClassElement self = receiverType.element;
-    if (other.implementsInterface(self) || other.isSubclassOf(self)) {
+
+    if (other.implementsInterface(self)
+        || other.isSubclassOf(self)
+        || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
       return appliesUntyped(element, compiler);
     }
 

@@ -7,6 +7,7 @@ part of dart2js;
 class World {
   final Compiler compiler;
   final Map<ClassElement, Set<ClassElement>> subtypes;
+  final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final Set<ClassElement> classesNeedingRti;
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final FunctionSet userDefinedGetters;
@@ -14,6 +15,8 @@ class World {
 
   World(Compiler compiler)
       : subtypes = new Map<ClassElement, Set<ClassElement>>(),
+        typesImplementedBySubclasses =
+            new Map<ClassElement, Set<ClassElement>>(),
         userDefinedGetters = new FunctionSet(compiler),
         userDefinedSetters = new FunctionSet(compiler),
         classesNeedingRti = new Set<ClassElement>(),
@@ -26,10 +29,24 @@ class World {
         compiler.internalErrorOnElement(
             cls, 'Class "${cls.name.slowToString()}" is not resolved.');
       }
+
       for (DartType type in cls.allSupertypes) {
         Set<Element> subtypesOfCls =
           subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
         subtypesOfCls.add(cls);
+      }
+
+      // Walk through the superclasses, and record the types
+      // implemented by that type on the superclasses.
+      DartType type = cls.supertype;
+      while (type != null) {
+        Set<Element> typesImplementedBySubclassesOfCls =
+          typesImplementedBySubclasses.putIfAbsent(
+              type.element, () => new Set<ClassElement>());
+        for (DartType current in cls.allSupertypes) {
+          typesImplementedBySubclassesOfCls.add(current.element);
+        }
+        type = type.element.supertype;
       }
     }
 
@@ -105,6 +122,15 @@ class World {
   bool hasAnyUserDefinedSetter(Selector selector) {
     return userDefinedSetters.hasAnyElementMatchingSelector(selector);
   }
+
+  // Returns whether a subclass of [superclass] implements [type].
+  bool hasAnySubclassThatImplements(ClassElement superclass, DartType type) {
+    Set<ClassElement> typesImplementedBySubclasses =
+          typesImplementedBySubclasses[superclass];
+    if (typesImplementedBySubclasses == null) return false;
+    return typesImplementedBySubclasses.contains(type.element);
+  }
+
 
   void registerUsedElement(Element element) {
     if (element.isMember()) {
