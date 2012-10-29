@@ -97,6 +97,58 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AnalyserNode
+abstract class AnalyserNode implements AudioNode {
+
+  /** @domName AnalyserNode.fftSize */
+  int fftSize;
+
+  /** @domName AnalyserNode.frequencyBinCount */
+  int get frequencyBinCount;
+
+  /** @domName AnalyserNode.maxDecibels */
+  num maxDecibels;
+
+  /** @domName AnalyserNode.minDecibels */
+  num minDecibels;
+
+  /** @domName AnalyserNode.smoothingTimeConstant */
+  num smoothingTimeConstant;
+
+  /** @domName AnalyserNode.getByteFrequencyData */
+  void getByteFrequencyData(Uint8Array array);
+
+  /** @domName AnalyserNode.getByteTimeDomainData */
+  void getByteTimeDomainData(Uint8Array array);
+
+  /** @domName AnalyserNode.getFloatFrequencyData */
+  void getFloatFrequencyData(Float32Array array);
+}
+
+class _AnalyserNodeImpl extends _AudioNodeImpl implements AnalyserNode native "*AnalyserNode" {
+
+  int fftSize;
+
+  final int frequencyBinCount;
+
+  num maxDecibels;
+
+  num minDecibels;
+
+  num smoothingTimeConstant;
+
+  void getByteFrequencyData(_Uint8ArrayImpl array) native;
+
+  void getByteTimeDomainData(_Uint8ArrayImpl array) native;
+
+  void getFloatFrequencyData(_Float32ArrayImpl array) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName HTMLAnchorElement
 abstract class AnchorElement implements Element {
 
@@ -701,30 +753,6 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
 // WARNING: Do not edit - generated code.
 
-/// @domName AudioChannelMerger
-abstract class AudioChannelMerger implements AudioNode {
-}
-
-class _AudioChannelMergerImpl extends _AudioNodeImpl implements AudioChannelMerger native "*AudioChannelMerger" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioChannelSplitter
-abstract class AudioChannelSplitter implements AudioNode {
-}
-
-class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSplitter native "*AudioChannelSplitter" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 
 /// @domName AudioContext
 abstract class AudioContext implements EventTarget {
@@ -751,7 +779,7 @@ abstract class AudioContext implements EventTarget {
   num get sampleRate;
 
   /** @domName AudioContext.createAnalyser */
-  RealtimeAnalyserNode createAnalyser();
+  AnalyserNode createAnalyser();
 
   /** @domName AudioContext.createBiquadFilter */
   BiquadFilterNode createBiquadFilter();
@@ -763,10 +791,10 @@ abstract class AudioContext implements EventTarget {
   AudioBufferSourceNode createBufferSource();
 
   /** @domName AudioContext.createChannelMerger */
-  AudioChannelMerger createChannelMerger([int numberOfInputs]);
+  ChannelMergerNode createChannelMerger([int numberOfInputs]);
 
   /** @domName AudioContext.createChannelSplitter */
-  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]);
 
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
@@ -778,10 +806,10 @@ abstract class AudioContext implements EventTarget {
   DynamicsCompressorNode createDynamicsCompressor();
 
   /** @domName AudioContext.createGainNode */
-  AudioGainNode createGainNode();
+  GainNode createGainNode();
 
   /** @domName AudioContext.createJavaScriptNode */
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
+  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -790,10 +818,10 @@ abstract class AudioContext implements EventTarget {
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   /** @domName AudioContext.createOscillator */
-  Oscillator createOscillator();
+  OscillatorNode createOscillator();
 
   /** @domName AudioContext.createPanner */
-  AudioPannerNode createPanner();
+  PannerNode createPanner();
 
   /** @domName AudioContext.createWaveShaper */
   WaveShaperNode createWaveShaper();
@@ -828,7 +856,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   final num sampleRate;
 
-  _RealtimeAnalyserNodeImpl createAnalyser() native;
+  _AnalyserNodeImpl createAnalyser() native;
 
   _BiquadFilterNodeImpl createBiquadFilter() native;
 
@@ -836,9 +864,9 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _AudioBufferSourceNodeImpl createBufferSource() native;
 
-  _AudioChannelMergerImpl createChannelMerger([int numberOfInputs]) native;
+  _ChannelMergerNodeImpl createChannelMerger([int numberOfInputs]) native;
 
-  _AudioChannelSplitterImpl createChannelSplitter([int numberOfOutputs]) native;
+  _ChannelSplitterNodeImpl createChannelSplitter([int numberOfOutputs]) native;
 
   _ConvolverNodeImpl createConvolver() native;
 
@@ -846,17 +874,17 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
-  _AudioGainNodeImpl createGainNode() native;
+  _GainNodeImpl createGainNode() native;
 
-  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
+  _ScriptProcessorNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
   _MediaStreamAudioSourceNodeImpl createMediaStreamSource(_MediaStreamImpl mediaStream) native;
 
-  _OscillatorImpl createOscillator() native;
+  _OscillatorNodeImpl createOscillator() native;
 
-  _AudioPannerNodeImpl createPanner() native;
+  _PannerNodeImpl createPanner() native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
 
@@ -919,23 +947,6 @@ abstract class AudioGain implements AudioParam {
 }
 
 class _AudioGainImpl extends _AudioParamImpl implements AudioGain native "*AudioGain" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioGainNode
-abstract class AudioGainNode implements AudioNode {
-
-  /** @domName AudioGainNode.gain */
-  AudioGain get gain;
-}
-
-class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode native "*AudioGainNode" {
-
-  final _AudioGainImpl gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1010,95 +1021,6 @@ class _AudioNodeImpl implements AudioNode native "*AudioNode" {
   void connect(destination, int output, [int input]) native;
 
   void disconnect(int output) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName AudioPannerNode
-abstract class AudioPannerNode implements AudioNode {
-
-  static const int EQUALPOWER = 0;
-
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  static const int HRTF = 1;
-
-  static const int INVERSE_DISTANCE = 1;
-
-  static const int LINEAR_DISTANCE = 0;
-
-  static const int SOUNDFIELD = 2;
-
-  /** @domName AudioPannerNode.coneGain */
-  AudioGain get coneGain;
-
-  /** @domName AudioPannerNode.coneInnerAngle */
-  num coneInnerAngle;
-
-  /** @domName AudioPannerNode.coneOuterAngle */
-  num coneOuterAngle;
-
-  /** @domName AudioPannerNode.coneOuterGain */
-  num coneOuterGain;
-
-  /** @domName AudioPannerNode.distanceGain */
-  AudioGain get distanceGain;
-
-  /** @domName AudioPannerNode.distanceModel */
-  int distanceModel;
-
-  /** @domName AudioPannerNode.maxDistance */
-  num maxDistance;
-
-  /** @domName AudioPannerNode.panningModel */
-  int panningModel;
-
-  /** @domName AudioPannerNode.refDistance */
-  num refDistance;
-
-  /** @domName AudioPannerNode.rolloffFactor */
-  num rolloffFactor;
-
-  /** @domName AudioPannerNode.setOrientation */
-  void setOrientation(num x, num y, num z);
-
-  /** @domName AudioPannerNode.setPosition */
-  void setPosition(num x, num y, num z);
-
-  /** @domName AudioPannerNode.setVelocity */
-  void setVelocity(num x, num y, num z);
-}
-
-class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode native "*AudioPannerNode" {
-
-  final _AudioGainImpl coneGain;
-
-  num coneInnerAngle;
-
-  num coneOuterAngle;
-
-  num coneOuterGain;
-
-  final _AudioGainImpl distanceGain;
-
-  int distanceModel;
-
-  num maxDistance;
-
-  int panningModel;
-
-  num refDistance;
-
-  num rolloffFactor;
-
-  void setOrientation(num x, num y, num z) native;
-
-  void setPosition(num x, num y, num z) native;
-
-  void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7823,6 +7745,30 @@ class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*Can
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ChannelMergerNode
+abstract class ChannelMergerNode implements AudioNode {
+}
+
+class _ChannelMergerNodeImpl extends _AudioNodeImpl implements ChannelMergerNode native "*ChannelMergerNode" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName ChannelSplitterNode
+abstract class ChannelSplitterNode implements AudioNode {
+}
+
+class _ChannelSplitterNodeImpl extends _AudioNodeImpl implements ChannelSplitterNode native "*ChannelSplitterNode" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName CharacterData
 abstract class CharacterData implements Node {
 
@@ -8259,6 +8205,9 @@ abstract class ContentElement implements Element {
 
   /** @domName HTMLContentElement.select */
   String select;
+
+  /** @domName HTMLContentElement.getDistributedNodes */
+  List<Node> getDistributedNodes();
 }
 
 class _ContentElementImpl extends _ElementImpl implements ContentElement native "*HTMLContentElement" {
@@ -8266,6 +8215,8 @@ class _ContentElementImpl extends _ElementImpl implements ContentElement native 
   bool resetStyleInheritance;
 
   String select;
+
+  List<Node> getDistributedNodes() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9313,7 +9264,7 @@ abstract class DOMTokenList {
   String toString();
 
   /** @domName DOMTokenList.toggle */
-  bool toggle(String token);
+  bool toggle(String token, [bool force]);
 }
 
 class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
@@ -9326,7 +9277,7 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
   String toString() native;
 
-  bool toggle(String token) native;
+  bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14484,6 +14435,23 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
 
 // WARNING: Do not edit - generated code.
 
+/// @domName GainNode
+abstract class GainNode implements AudioNode {
+
+  /** @domName GainNode.gain */
+  AudioGain get gain;
+}
+
+class _GainNodeImpl extends _AudioNodeImpl implements GainNode native "*GainNode" {
+
+  final _AudioGainImpl gain;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Gamepad
 abstract class Gamepad {
 
@@ -16893,6 +16861,9 @@ abstract class InputElement implements Element {
   /** @domName HTMLInputElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLInputElement.setRangeText */
+  void setRangeText(String replacement, [int start, int end, String selectionMode]);
+
   /** @domName HTMLInputElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 
@@ -17016,6 +16987,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   void select() native;
 
   void setCustomValidity(String error) native;
+
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   void setSelectionRange(int start, int end, [String direction]) native;
 
@@ -17385,50 +17358,6 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   void setElements(Object array, [int offset]) native "set";
 
   _Int8ArrayImpl subarray(int start, [int end]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName JavaScriptAudioNode
-abstract class JavaScriptAudioNode implements AudioNode, EventTarget {
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  JavaScriptAudioNodeEvents get on;
-
-  /** @domName JavaScriptAudioNode.bufferSize */
-  int get bufferSize;
-}
-
-abstract class JavaScriptAudioNodeEvents implements Events {
-
-  EventListenerList get audioProcess;
-}
-
-class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
-
-  _JavaScriptAudioNodeEventsImpl get on =>
-    new _JavaScriptAudioNodeEventsImpl(this);
-
-  final int bufferSize;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-}
-
-class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
-  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get audioProcess => this['audioprocess'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21863,6 +21792,18 @@ typedef void NotificationPermissionCallback(String permission);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OESElementIndexUint
+abstract class OESElementIndexUint {
+}
+
+class _OESElementIndexUintImpl implements OESElementIndexUint native "*OESElementIndexUint" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName OESStandardDerivatives
 abstract class OESStandardDerivatives {
 
@@ -22185,8 +22126,8 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
 
 // WARNING: Do not edit - generated code.
 
-/// @domName Oscillator
-abstract class Oscillator implements AudioSourceNode {
+/// @domName OscillatorNode
+abstract class OscillatorNode implements AudioSourceNode {
 
   static const int CUSTOM = 4;
 
@@ -22206,29 +22147,29 @@ abstract class Oscillator implements AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  /** @domName Oscillator.detune */
+  /** @domName OscillatorNode.detune */
   AudioParam get detune;
 
-  /** @domName Oscillator.frequency */
+  /** @domName OscillatorNode.frequency */
   AudioParam get frequency;
 
-  /** @domName Oscillator.playbackState */
+  /** @domName OscillatorNode.playbackState */
   int get playbackState;
 
-  /** @domName Oscillator.type */
+  /** @domName OscillatorNode.type */
   int type;
 
-  /** @domName Oscillator.setWaveTable */
+  /** @domName OscillatorNode.setWaveTable */
   void setWaveTable(WaveTable waveTable);
 
-  /** @domName Oscillator.start */
+  /** @domName OscillatorNode.start */
   void start(num when);
 
-  /** @domName Oscillator.stop */
+  /** @domName OscillatorNode.stop */
   void stop(num when);
 }
 
-class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
+class _OscillatorNodeImpl extends _AudioSourceNodeImpl implements OscillatorNode native "*OscillatorNode" {
 
   final _AudioParamImpl detune;
 
@@ -22389,6 +22330,95 @@ abstract class PageTransitionEvent implements Event {
 class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
 
   final bool persisted;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PannerNode
+abstract class PannerNode implements AudioNode {
+
+  static const int EQUALPOWER = 0;
+
+  static const int EXPONENTIAL_DISTANCE = 2;
+
+  static const int HRTF = 1;
+
+  static const int INVERSE_DISTANCE = 1;
+
+  static const int LINEAR_DISTANCE = 0;
+
+  static const int SOUNDFIELD = 2;
+
+  /** @domName PannerNode.coneGain */
+  AudioGain get coneGain;
+
+  /** @domName PannerNode.coneInnerAngle */
+  num coneInnerAngle;
+
+  /** @domName PannerNode.coneOuterAngle */
+  num coneOuterAngle;
+
+  /** @domName PannerNode.coneOuterGain */
+  num coneOuterGain;
+
+  /** @domName PannerNode.distanceGain */
+  AudioGain get distanceGain;
+
+  /** @domName PannerNode.distanceModel */
+  int distanceModel;
+
+  /** @domName PannerNode.maxDistance */
+  num maxDistance;
+
+  /** @domName PannerNode.panningModel */
+  int panningModel;
+
+  /** @domName PannerNode.refDistance */
+  num refDistance;
+
+  /** @domName PannerNode.rolloffFactor */
+  num rolloffFactor;
+
+  /** @domName PannerNode.setOrientation */
+  void setOrientation(num x, num y, num z);
+
+  /** @domName PannerNode.setPosition */
+  void setPosition(num x, num y, num z);
+
+  /** @domName PannerNode.setVelocity */
+  void setVelocity(num x, num y, num z);
+}
+
+class _PannerNodeImpl extends _AudioNodeImpl implements PannerNode native "*PannerNode" {
+
+  final _AudioGainImpl coneGain;
+
+  num coneInnerAngle;
+
+  num coneOuterAngle;
+
+  num coneOuterGain;
+
+  final _AudioGainImpl distanceGain;
+
+  int distanceModel;
+
+  num maxDistance;
+
+  int panningModel;
+
+  num refDistance;
+
+  num rolloffFactor;
+
+  void setOrientation(num x, num y, num z) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23754,58 +23784,6 @@ class _RangeImpl implements Range native "*Range" {
   void surroundContents(_NodeImpl newParent) native;
 
   String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-/// @domName RealtimeAnalyserNode
-abstract class RealtimeAnalyserNode implements AudioNode {
-
-  /** @domName RealtimeAnalyserNode.fftSize */
-  int fftSize;
-
-  /** @domName RealtimeAnalyserNode.frequencyBinCount */
-  int get frequencyBinCount;
-
-  /** @domName RealtimeAnalyserNode.maxDecibels */
-  num maxDecibels;
-
-  /** @domName RealtimeAnalyserNode.minDecibels */
-  num minDecibels;
-
-  /** @domName RealtimeAnalyserNode.smoothingTimeConstant */
-  num smoothingTimeConstant;
-
-  /** @domName RealtimeAnalyserNode.getByteFrequencyData */
-  void getByteFrequencyData(Uint8Array array);
-
-  /** @domName RealtimeAnalyserNode.getByteTimeDomainData */
-  void getByteTimeDomainData(Uint8Array array);
-
-  /** @domName RealtimeAnalyserNode.getFloatFrequencyData */
-  void getFloatFrequencyData(Float32Array array);
-}
-
-class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalyserNode native "*RealtimeAnalyserNode" {
-
-  int fftSize;
-
-  final int frequencyBinCount;
-
-  num maxDecibels;
-
-  num minDecibels;
-
-  num smoothingTimeConstant;
-
-  void getByteFrequencyData(_Uint8ArrayImpl array) native;
-
-  void getByteTimeDomainData(_Uint8ArrayImpl array) native;
-
-  void getFloatFrequencyData(_Float32ArrayImpl array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31371,6 +31349,50 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ScriptProcessorNode
+abstract class ScriptProcessorNode implements AudioNode, EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  ScriptProcessorNodeEvents get on;
+
+  /** @domName ScriptProcessorNode.bufferSize */
+  int get bufferSize;
+}
+
+abstract class ScriptProcessorNodeEvents implements Events {
+
+  EventListenerList get audioProcess;
+}
+
+class _ScriptProcessorNodeImpl extends _AudioNodeImpl implements ScriptProcessorNode native "*ScriptProcessorNode" {
+
+  _ScriptProcessorNodeEventsImpl get on =>
+    new _ScriptProcessorNodeEventsImpl(this);
+
+  final int bufferSize;
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
+class _ScriptProcessorNodeEventsImpl extends _EventsImpl implements ScriptProcessorNodeEvents {
+  _ScriptProcessorNodeEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioProcess => this['audioprocess'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName ScriptProfile
 abstract class ScriptProfile {
 
@@ -33461,6 +33483,9 @@ abstract class TextAreaElement implements Element {
   /** @domName HTMLTextAreaElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLTextAreaElement.setRangeText */
+  void setRangeText(String replacement, [int start, int end, String selectionMode]);
+
   /** @domName HTMLTextAreaElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 }
@@ -33516,6 +33541,8 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
   void select() native;
 
   void setCustomValidity(String error) native;
+
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   void setSelectionRange(int start, int end, [String direction]) native;
 }
