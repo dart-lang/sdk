@@ -396,12 +396,6 @@ Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce opt
 Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t06: Fail # TODO(ahe): Enforce optional parameter semantics.
 
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t08: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t01: Fail # Compile-time error: Unimplemented non-matching static call
-Language/10_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/01_Constants_A03_t01: Fail # Compile-time error: error: not a compile-time constant
 Language/10_Expressions/01_Constants_A11_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
