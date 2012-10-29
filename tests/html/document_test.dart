@@ -10,7 +10,8 @@ main() {
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isAnchorElement =
       predicate((x) => x is AnchorElement, 'is an AnchorElement');
-  var isUnknownElement = predicate((x) => x is Element, 'is UnknownElement');
+  var isUnknownElement =
+      predicate((x) => x is UnknownElement, 'is UnknownElement');
 
   test('CreateElement', () {
     // FIXME: nifty way crashes, do it boring way.
