@@ -67,6 +67,8 @@ void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
     Future processFuture = Process.start(runnerPath, ["--list"]);
     processFuture.then((p) {
+      // Drain stderr to not leak resources.
+      p.stderr.onData = p.stderr.read;
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       var streamDone = false;
       var processExited = false;

@@ -23,14 +23,13 @@ void test(Future<Process> future, int expectedExitCode) {
     List<int> data = "ABCDEFGHI\n".charCodes;
     final int dataSize = data.length;
 
-    InputStream input = process.stderr;
-    OutputStream output = process.stdin;
+    InputStream err = process.stderr;
 
     int received = 0;
     List<int> buffer = [];
 
     void readData() {
-      buffer.addAll(input.read());
+      buffer.addAll(err.read());
       for (int i = received;
            i < min(data.length, buffer.length) - 1;
            i++) {
@@ -43,17 +42,14 @@ void test(Future<Process> future, int expectedExitCode) {
           Expect.equals(13, buffer[dataSize - 1]);
           Expect.equals(10, buffer[dataSize]);
           buffer.removeLast();
-          process.close();
-        } else if (received === dataSize) {
-          process.close();
         }
       }
     }
 
-    output.write(data);
-    output.close();
-    input.onData = readData;
-
+    process.stdout.onData = process.stdout.read;
+    process.stdin.write(data);
+    process.stdin.close();
+    err.onData = readData;
   });
 }
 

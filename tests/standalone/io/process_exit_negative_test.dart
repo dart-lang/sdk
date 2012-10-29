@@ -13,6 +13,8 @@ void main() {
                             const ["0", "0", "0", "0"]);
   p.onExit = (int s) {
     print(a.toString());  // Should cause a compilation error here.
-    p.close();
   };
+  // Drain stdout and stderr.
+  p.stdout.onData = p.stdout.read;
+  p.stderr.onData = p.stderr.read;
 }

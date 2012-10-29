@@ -25,6 +25,11 @@ class Process {
    *
    * An optional [ProcessOptions] object can be passed to specify
    * options other than the executable and the arguments.
+   *
+   * Users must read all data coming on the [stdout] and [stderr]
+   * streams of processes started with [:Process.start:]. If the user
+   * does not read all data on the streams the underlying system
+   * resources will not be freed since there is still pending data.
    */
   static Future<Process> start(String executable,
                                List<String> arguments,
@@ -96,17 +101,6 @@ class Process {
    * already dead.
    */
   abstract bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
-
-  /**
-   * Terminates the streams of a process. [close] must be called on a
-   * process to free the system resources associated with it if not all
-   * data on the stdout and stderr streams have been read. Usually,
-   * close should be called in [onExit], but care must be taken to actually
-   * wait on the stderr and stdout streams to close if all data is required.
-   * Once a process has been closed it can no longer be killed and [onExit]
-   * is detached so the application is not notified of process termination.
-   */
-  abstract void close();
 }
 
 

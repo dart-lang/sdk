@@ -609,7 +609,6 @@ class RunningProcess {
    * the actual test and its output is analyzed in [testComplete].
    */
   void stepExitHandler(int exitCode) {
-    process.close();
     process = null;
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
@@ -762,7 +761,6 @@ class BatchRunnerProcess {
       _executable = testCase.commands.last.executable;
       _batchArguments = testCase.batchRunnerArguments;
       _process.onExit = (exitCode) {
-        _process.close();
         _startProcess(() {
           doStartTest(testCase);
         });
@@ -778,7 +776,6 @@ class BatchRunnerProcess {
     Completer completer = new Completer();
     Timer killTimer;
     _process.onExit = (exitCode) {
-      _process.close();
       if (killTimer != null) killTimer.cancel();
       completer.complete(true);
     };
@@ -926,10 +923,8 @@ class BatchRunnerProcess {
         }
         _stderrDrained = true;
         _stdoutDrained = true;
-        _process.close();
         _startProcess(_reportResult);
       } else {  // No active test case running.
-        _process.close();
         _process = null;
       }
     }
@@ -1111,6 +1106,8 @@ class ProcessQueue {
 
       Future processFuture = Process.start(cmd, arg);
       processFuture.then((Process p) {
+        // Drain stderr to not leak resources.
+        p.stderr.onData = p.stderr.read;
         final StringInputStream stdoutStringStream =
             new StringInputStream(p.stdout);
         stdoutStringStream.onLine = () {

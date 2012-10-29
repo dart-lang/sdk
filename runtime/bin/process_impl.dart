@@ -73,7 +73,6 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
     _out = new _Socket._internalWriteOnly();  // stdin going to process.
     _err = new _Socket._internalReadOnly();  // stderr coming from process.
     _exitHandler = new _Socket._internalReadOnly();
-    _closed = false;
     _ended = false;
     _started = false;
     _onExit = null;
@@ -148,7 +147,10 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
                                   _exitHandler,
                                   status);
       if (!success) {
-        close();
+        _in.close();
+        _out.close();
+        _err.close();
+        _exitHandler.close();
         completer.completeException(
             new ProcessException(status._errorMessage, status._errorCode));
         return;
@@ -185,6 +187,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
           if (_onExit !== null) {
             _onExit(exitCode(exitDataBuffer));
           }
+          _out.close();
         }
 
         exitDataRead += _exitHandler.inputStream.readInto(
@@ -208,23 +211,14 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
                     _ProcessStartStatus status) native "Process_Start";
 
   InputStream get stdout {
-    if (_closed) {
-      throw new ProcessException("Process closed");
-    }
     return _in.inputStream;
   }
 
   InputStream get stderr {
-    if (_closed) {
-      throw new ProcessException("Process closed");
-    }
     return _err.inputStream;
   }
 
   OutputStream get stdin {
-    if (_closed) {
-      throw new ProcessException("Process closed");
-    }
     return _out.outputStream;
   }
 
@@ -240,21 +234,7 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
 
   bool _kill(Process p, int signal) native "Process_Kill";
 
-  void close() {
-    if (_closed) {
-      throw new ProcessException("Process closed");
-    }
-    _in.close();
-    _out.close();
-    _err.close();
-    _exitHandler.close();
-    _closed = true;
-  }
-
   void set onExit(void callback(int exitCode)) {
-    if (_closed) {
-      throw new ProcessException("Process closed");
-    }
     if (_ended) {
       throw new ProcessException("Process killed");
     }
@@ -270,7 +250,6 @@ class _Process extends NativeFieldWrapperClass1 implements Process {
   _Socket _out;
   _Socket _err;
   Socket _exitHandler;
-  bool _closed;
   bool _ended;
   bool _started;
   Function _onExit;
