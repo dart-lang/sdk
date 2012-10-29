@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _SocketInputStream implements SocketInputStream {
+class _SocketInputStream implements InputStream {
   _SocketInputStream(Socket socket) : _socket = socket {
     if (_socket._closed) _closed = true;
     _socket.onClosed = _onClosed;
@@ -95,7 +95,7 @@ class _SocketInputStream implements SocketInputStream {
 
 
 class _SocketOutputStream
-    extends _BaseOutputStream implements SocketOutputStream {
+    extends _BaseOutputStream implements OutputStream {
   _SocketOutputStream(Socket socket)
       : _socket = socket, _pendingWrites = new _BufferList();
 

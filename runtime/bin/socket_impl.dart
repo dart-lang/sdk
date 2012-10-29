@@ -475,7 +475,7 @@ class _Socket extends _SocketBase implements Socket {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
-      _inputStream = new SocketInputStream(this);
+      _inputStream = new _SocketInputStream(this);
     }
     return _inputStream;
   }
@@ -486,7 +486,7 @@ class _Socket extends _SocketBase implements Socket {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
-      _outputStream = new SocketOutputStream(this);
+      _outputStream = new _SocketOutputStream(this);
     }
     return _outputStream;
   }
@@ -574,8 +574,8 @@ class _Socket extends _SocketBase implements Socket {
   bool _pipe = false;
   Function _clientConnectHandler;
   Function _clientWriteHandler;
-  SocketInputStream _inputStream;
-  SocketOutputStream _outputStream;
+  _SocketInputStream _inputStream;
+  _SocketOutputStream _outputStream;
   String _remoteHost;
   int _remotePort;
   static SendPort _socketService;

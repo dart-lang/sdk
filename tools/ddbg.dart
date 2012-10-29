@@ -529,12 +529,12 @@ int jsonObjectLength(String string) {
 void main() {
   outstandingCommands = new Map<int, Completer>();
   vmSock = new Socket("127.0.0.1", 5858);
-  vmStream = new SocketOutputStream(vmSock);
+  vmStream = vmSock.outputStream;
   var stdinStream = new StringInputStream(stdin);
   stdinStream.onLine = () {
     processCommand(stdinStream.readLine());
   };
-  var vmInStream = new SocketInputStream(vmSock);
+  var vmInStream = vmSock.inputStream;
   vmInStream.onData = () {
     String s = decodeUtf8(vmInStream.read());
     processVmData(s);

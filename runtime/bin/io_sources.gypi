@@ -38,7 +38,6 @@
     'process_impl.dart',
     'socket.dart',
     'socket_impl.dart',
-    'socket_stream.dart',
     'socket_stream_impl.dart',
     'stdio.dart',
     'stream_util.dart',
